@@ -136,7 +136,7 @@ void Disk::FlushCache()
 void Disk::Rezero(Controller *controller)
 {
 	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	controller->Status();
@@ -144,9 +144,7 @@ void Disk::Rezero(Controller *controller)
 
 void Disk::FormatUnit(Controller *controller)
 {
-	if (!Format(ctrl->cmd)) {
-		throw scsi_dispatch_error_exception();
-	}
+	Format(ctrl->cmd);
 
 	controller->Status();
 }
@@ -154,7 +152,7 @@ void Disk::FormatUnit(Controller *controller)
 void Disk::ReassignBlocks(Controller *controller)
 {
 	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	controller->Status();
@@ -335,7 +333,7 @@ void Disk::SendDiagnostic(Controller *controller)
 void Disk::PreventAllowMediumRemoval(Controller *controller)
 {
 	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	bool lock = ctrl->cmd[4] & 0x01;
@@ -685,25 +683,16 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 	// Nothing to add by default
 }
 
-//---------------------------------------------------------------------------
-//
-//	FORMAT UNIT
-//
-//---------------------------------------------------------------------------
-bool Disk::Format(const DWORD *cdb)
+void Disk::Format(const DWORD *cdb)
 {
 	if (!CheckReady()) {
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-
-	// FORMAT Success
-	return true;
 }
 
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
@@ -712,13 +701,12 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	if (!CheckReady()) {
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
+		 throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// leave it to the cache
@@ -735,18 +723,17 @@ int Disk::WriteCheck(DWORD block)
 {
 	// Status check
 	if (!CheckReady()) {
-		LOGDEBUG("WriteCheck failed (not ready)");
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		LOGDEBUG("WriteCheck failed (capacity exceeded)");
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
+		// TODO Improve error handling
 		LOGDEBUG("WriteCheck failed (protected)");
 		return -1;
 	}
@@ -790,7 +777,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 void Disk::Seek(Controller *controller)
 {
 	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
 	}
 
 	controller->Status();
