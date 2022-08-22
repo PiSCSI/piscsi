@@ -145,9 +145,9 @@ protected:
 
 private:
 
-	void Read(Controller *, uint64_t);
-	void Write(Controller *, uint64_t);
-	void Verify(Controller *, uint64_t);
+	void Read(Controller *, access_mode);
+	void Write(Controller *, access_mode);
+	void Verify(Controller *, access_mode);
 	void ReadWriteLong10(Controller *);
 	void ReadWriteLong16(Controller *);
 	void ReadCapacity16_ReadLong16(Controller *);

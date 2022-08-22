@@ -158,9 +158,12 @@ void Disk::ReassignBlocks(Controller *controller)
 	controller->Status();
 }
 
-void Disk::Read(Controller *controller, uint64_t record)
+void Disk::Read(Controller *controller, access_mode mode)
 {
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	uint64_t start;
+	GetStartAndCount(controller, start, ctrl->blocks, mode);
+
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
 	if (ctrl->length <= 0) {
@@ -168,30 +171,24 @@ void Disk::Read(Controller *controller, uint64_t record)
 	}
 
 	// Set next block
-	ctrl->next = record + 1;
+	ctrl->next = start + 1;
 
 	controller->DataIn();
 }
 
 void Disk::Read6(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW6);
-	Read(controller, start);
+	Read(controller, RW6);
 }
 
 void Disk::Read10(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW10);
-	Read(controller, start);
+	Read(controller, RW10);
 }
 
 void Disk::Read16(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW16);
-	Read(controller, start);
+	Read(controller, RW16);
 }
 
 void Disk::ReadWriteLong10(Controller *controller)
@@ -219,9 +216,12 @@ void Disk::ReadWriteLong16(Controller *controller)
 	controller->Status();
 }
 
-void Disk::Write(Controller *controller, uint64_t record)
+void Disk::Write(Controller *controller, access_mode mode)
 {
-	ctrl->length = WriteCheck(record);
+	uint64_t start;
+	GetStartAndCount(controller, start, ctrl->blocks, mode);
+
+	ctrl->length = WriteCheck(start);
 	if (ctrl->length == 0) {
 		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
 	}
@@ -230,34 +230,31 @@ void Disk::Write(Controller *controller, uint64_t record)
 	}
 
 	// Set next block
-	ctrl->next = record + 1;
+	ctrl->next = start + 1;
 
 	controller->DataOut();
 }
 
 void Disk::Write6(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW6);
-	Write(controller, start);
+	Write(controller, RW6);
 }
 
 void Disk::Write10(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW10);
-	Write(controller, start);
+	Write(controller, RW10);
 }
 
 void Disk::Write16(Controller *controller)
 {
-	uint64_t start;
-	GetStartAndCount(controller, start, ctrl->blocks, RW16);
-	Write(controller, start);
+	Write(controller, RW16);
 }
 
-void Disk::Verify(Controller *controller, uint64_t record)
+void Disk::Verify(Controller *controller, access_mode mode)
 {
+	uint64_t start;
+	GetStartAndCount(controller, start, ctrl->blocks, mode);
+
 	// if BytChk=0
 	if ((ctrl->cmd[1] & 0x02) == 0) {
 		Seek(controller);
@@ -265,28 +262,22 @@ void Disk::Verify(Controller *controller, uint64_t record)
 	}
 
 	// Test loading
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
 
 	// Set next block
-	ctrl->next = record + 1;
+	ctrl->next = start + 1;
 
 	controller->DataOut();
 }
 
 void Disk::Verify10(Controller *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	GetStartAndCount(controller, record, ctrl->blocks, RW10);
-	Verify(controller, record);
+	Verify(controller, RW10);
 }
 
 void Disk::Verify16(Controller *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	GetStartAndCount(controller, record, ctrl->blocks, RW16);
-	Verify(controller, record);
+	Verify(controller, RW16);
 }
 
 void Disk::StartStopUnit(Controller *controller)
