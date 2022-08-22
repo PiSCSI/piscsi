@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "controllers/scsidev_ctrl.h"
 #include "dispatcher.h"
 #include "primary_device.h"
 

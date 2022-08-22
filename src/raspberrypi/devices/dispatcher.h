@@ -13,6 +13,7 @@
 
 #include "log.h"
 #include "scsi.h"
+#include "scsidev_ctrl.h"
 #include <unordered_map>
 
 class SCSIDEV;

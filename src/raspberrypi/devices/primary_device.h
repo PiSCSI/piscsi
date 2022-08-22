@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "controllers/scsidev_ctrl.h"
 #include "interfaces/scsi_primary_commands.h"
+#include "scsidev_ctrl.h"
 #include "device.h"
 #include "dispatcher.h"
 #include <string>

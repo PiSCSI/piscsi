@@ -19,7 +19,7 @@
 
 #include "log.h"
 #include "scsi.h"
-#include "controllers/scsidev_ctrl.h"
+#include "scsidev_ctrl.h"
 #include "device.h"
 #include "device_factory.h"
 #include "disk_track_cache.h"

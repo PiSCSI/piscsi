@@ -40,7 +40,7 @@
 //
 
 #include <sys/stat.h>
-#include "controllers/scsidev_ctrl.h"
+#include "scsidev_ctrl.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
 
