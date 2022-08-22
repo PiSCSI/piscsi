@@ -434,15 +434,9 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
-	}
-	size += pages_size;
-
+	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 255) {
-		SetStatusCode(STATUS_INVALIDPRM);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -521,15 +515,9 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
-	}
-	size += pages_size;
-
+	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 65535) {
-		SetStatusCode(STATUS_INVALIDPRM);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes

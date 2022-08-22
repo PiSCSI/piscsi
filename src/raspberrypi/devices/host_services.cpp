@@ -109,14 +109,10 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
-	// Basic information
-	int size = 4;
-
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	int size = 4 + super::AddModePages(cdb, &buf[size], length - size);
+	if (size > 255) {
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -141,14 +137,10 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	memset(buf, 0, length);
 
-	// Basic information
-	int size = 8;
-
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	int size = 8 + super::AddModePages(cdb, &buf[size], length - size);
+	if (size > 65535) {
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
