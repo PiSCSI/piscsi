@@ -86,10 +86,7 @@ bool Disk::Dispatch(Controller *controller)
 
 		disk.is_medium_changed = false;
 
-		// Do not raise scsi_dispatch_exception here
-		controller->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
-
-		return true;
+		throw scsi_dispatch_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// The superclass handles the less specific commands
