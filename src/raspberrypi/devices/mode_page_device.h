@@ -28,7 +28,7 @@ public:
 	virtual int ModeSense6(const DWORD *, BYTE *) = 0;
 	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
 
-	// TODO This method should not be called by SASIDEV
+	// TODO This method should not be called by SCSIDEV
 	virtual bool ModeSelect(const DWORD *, const BYTE *, int);
 
 protected:
@@ -40,12 +40,12 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<ModePageDevice, SASIDEV> dispatcher;
+	Dispatcher<ModePageDevice, SCSIDEV> dispatcher;
 
-	void ModeSense6(SASIDEV *);
-	void ModeSense10(SASIDEV *);
-	void ModeSelect6(SASIDEV *);
-	void ModeSelect10(SASIDEV *);
+	void ModeSense6(SCSIDEV *);
+	void ModeSense10(SCSIDEV *);
+	void ModeSelect6(SCSIDEV *);
+	void ModeSelect10(SCSIDEV *);
 
 	int ModeSelectCheck(int);
 	int ModeSelectCheck6();

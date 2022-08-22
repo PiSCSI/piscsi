@@ -54,7 +54,7 @@ private:
 		bool is_medium_changed;
 	} disk_t;
 
-	Dispatcher<Disk, SASIDEV> dispatcher;
+	Dispatcher<Disk, SCSIDEV> dispatcher;
 
 public:
 	Disk(const string&);
@@ -71,43 +71,43 @@ public:
 	bool Eject(bool) override;
 
 private:
-	friend class SASIDEV;
+	friend class SCSIDEV;
 
 	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void StartStopUnit(SASIDEV *);
-	void SendDiagnostic(SASIDEV *);
-	void PreventAllowMediumRemoval(SASIDEV *);
-	void SynchronizeCache10(SASIDEV *);
-	void SynchronizeCache16(SASIDEV *);
-	void ReadDefectData10(SASIDEV *);
-	virtual void Read6(SASIDEV *);
-	void Read10(SASIDEV *) override;
-	void Read16(SASIDEV *) override;
-	virtual void Write6(SASIDEV *);
-	void Write10(SASIDEV *) override;
-	void Write16(SASIDEV *) override;
-	void ReadLong10(SASIDEV *);
-	void ReadLong16(SASIDEV *);
-	void WriteLong10(SASIDEV *);
-	void WriteLong16(SASIDEV *);
-	void Verify10(SASIDEV *);
-	void Verify16(SASIDEV *);
-	void Seek(SASIDEV *);
-	void Seek10(SASIDEV *);
-	virtual void ReadCapacity10(SASIDEV *) override;
-	void ReadCapacity16(SASIDEV *) override;
-	void Reserve(SASIDEV *);
-	void Release(SASIDEV *);
+	void StartStopUnit(SCSIDEV *);
+	void SendDiagnostic(SCSIDEV *);
+	void PreventAllowMediumRemoval(SCSIDEV *);
+	void SynchronizeCache10(SCSIDEV *);
+	void SynchronizeCache16(SCSIDEV *);
+	void ReadDefectData10(SCSIDEV *);
+	virtual void Read6(SCSIDEV *);
+	void Read10(SCSIDEV *) override;
+	void Read16(SCSIDEV *) override;
+	virtual void Write6(SCSIDEV *);
+	void Write10(SCSIDEV *) override;
+	void Write16(SCSIDEV *) override;
+	void ReadLong10(SCSIDEV *);
+	void ReadLong16(SCSIDEV *);
+	void WriteLong10(SCSIDEV *);
+	void WriteLong16(SCSIDEV *);
+	void Verify10(SCSIDEV *);
+	void Verify16(SCSIDEV *);
+	void Seek(SCSIDEV *);
+	void Seek10(SCSIDEV *);
+	virtual void ReadCapacity10(SCSIDEV *) override;
+	void ReadCapacity16(SCSIDEV *) override;
+	void Reserve(SCSIDEV *);
+	void Release(SCSIDEV *);
 
 public:
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void Rezero(SASIDEV *);
-	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *);
-	void Seek6(SASIDEV *);
+	void Rezero(SCSIDEV *);
+	void FormatUnit(SCSIDEV *) override;
+	void ReassignBlocks(SCSIDEV *);
+	void Seek6(SCSIDEV *);
 
 	// Command helpers
 	virtual int WriteCheck(DWORD block);
@@ -149,14 +149,14 @@ protected:
 
 private:
 
-	void Read(SASIDEV *, uint64_t);
-	void Write(SASIDEV *, uint64_t);
-	void Verify(SASIDEV *, uint64_t);
-	void ReadWriteLong10(SASIDEV *);
-	void ReadWriteLong16(SASIDEV *);
-	void ReadCapacity16_ReadLong16(SASIDEV *);
+	void Read(SCSIDEV *, uint64_t);
+	void Write(SCSIDEV *, uint64_t);
+	void Verify(SCSIDEV *, uint64_t);
+	void ReadWriteLong10(SCSIDEV *);
+	void ReadWriteLong16(SCSIDEV *);
+	void ReadCapacity16_ReadLong16(SCSIDEV *);
 	bool Format(const DWORD *cdb);
 
-	bool ValidateBlockAddress(SASIDEV *, access_mode);
-	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	bool ValidateBlockAddress(SCSIDEV *, access_mode);
+	bool GetStartAndCount(SCSIDEV *, uint64_t&, uint32_t&, access_mode);
 };

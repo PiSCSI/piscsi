@@ -123,7 +123,7 @@ vector<BYTE> SCSIBR::Inquiry() const
 	return buf;
 }
 
-void SCSIBR::TestUnitReady(SASIDEV *controller)
+void SCSIBR::TestUnitReady(SCSIDEV *controller)
 {
 	// Always successful
 	controller->Status();
@@ -263,7 +263,7 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	return false;
 }
 
-void SCSIBR::GetMessage10(SASIDEV *controller)
+void SCSIBR::GetMessage10(SCSIDEV *controller)
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
@@ -293,7 +293,7 @@ void SCSIBR::GetMessage10(SASIDEV *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10(SASIDEV *controller)
+void SCSIBR::SendMessage10(SCSIDEV *controller)
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {

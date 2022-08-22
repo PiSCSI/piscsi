@@ -61,7 +61,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
+	SCSIDEV::ctrl_t *ctrl = controller->GetCtrl();
 	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
 			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
 		return false;
@@ -435,14 +435,14 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 	return result;
 }
 
-void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
+void SCSIDaynaPort::TestUnitReady(SCSIDEV *controller)
 {
 	// TEST UNIT READY Success
 
 	controller->Status();
 }
 
-void SCSIDaynaPort::Read6(SASIDEV *controller)
+void SCSIDaynaPort::Read6(SCSIDEV *controller)
 {
 	// Get record number and block number
 	uint32_t record = ctrl->cmd[1] & 0x1f;
@@ -471,7 +471,7 @@ void SCSIDaynaPort::Read6(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void SCSIDaynaPort::Write6(SASIDEV *controller)
+void SCSIDaynaPort::Write6(SCSIDEV *controller)
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
@@ -506,7 +506,7 @@ void SCSIDaynaPort::Write6(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
+void SCSIDaynaPort::RetrieveStatistics(SCSIDEV *controller)
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -548,7 +548,7 @@ void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
 //             value.
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
+void SCSIDaynaPort::SetInterfaceMode(SCSIDEV *controller)
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -570,7 +570,7 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 	}
 }
 
-void SCSIDaynaPort::SetMcastAddr(SASIDEV *controller)
+void SCSIDaynaPort::SetMcastAddr(SCSIDEV *controller)
 {
 	ctrl->length = (DWORD)ctrl->cmd[4];
 	if (ctrl->length == 0) {
@@ -584,7 +584,7 @@ void SCSIDaynaPort::SetMcastAddr(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
+void SCSIDaynaPort::EnableInterface(SCSIDEV *controller)
 {
 	bool status = EnableInterface(ctrl->cmd);
 	if (!status) {

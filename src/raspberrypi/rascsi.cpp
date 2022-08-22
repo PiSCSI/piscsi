@@ -11,7 +11,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	SASIDEV::UnitMax	// Number of units around controller
+#define UnitNum	SCSIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -59,7 +59,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-vector<SASIDEV *> controllers(CtrlMax);	// Controllers
+vector<SCSIDEV *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket

@@ -43,14 +43,14 @@ public:
 	vector<BYTE> Inquiry() const override;
 	int GetMessage10(const DWORD *cdb, BYTE *buf);
 	bool SendMessage10(const DWORD *cdb, BYTE *buf);
-	void TestUnitReady(SASIDEV *) override;
-	void GetMessage10(SASIDEV *);
-	void SendMessage10(SASIDEV *);
+	void TestUnitReady(SCSIDEV *) override;
+	void GetMessage10(SCSIDEV *);
+	void SendMessage10(SCSIDEV *);
 
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIBR, SASIDEV> dispatcher;
+	Dispatcher<SCSIBR, SCSIDEV> dispatcher;
 
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address

@@ -88,7 +88,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void ModePageDevice::ModeSense6(SASIDEV *controller)
+void ModePageDevice::ModeSense6(SCSIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -99,7 +99,7 @@ void ModePageDevice::ModeSense6(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void ModePageDevice::ModeSense10(SASIDEV *controller)
+void ModePageDevice::ModeSense10(SCSIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 0) {
@@ -118,7 +118,7 @@ bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 	return false;
 }
 
-void ModePageDevice::ModeSelect6(SASIDEV *controller)
+void ModePageDevice::ModeSelect6(SCSIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
@@ -131,7 +131,7 @@ void ModePageDevice::ModeSelect6(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void ModePageDevice::ModeSelect10(SASIDEV *controller)
+void ModePageDevice::ModeSelect10(SCSIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 

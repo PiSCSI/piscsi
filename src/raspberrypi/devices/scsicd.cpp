@@ -385,7 +385,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	dataindex = 0;
 }
 
-void SCSICD::ReadToc(SASIDEV *controller)
+void SCSICD::ReadToc(SCSIDEV *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -621,7 +621,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-void SCSICD::GetEventStatusNotification(SASIDEV *controller)
+void SCSICD::GetEventStatusNotification(SCSIDEV *controller)
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi

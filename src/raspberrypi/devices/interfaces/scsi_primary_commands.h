@@ -11,7 +11,7 @@
 
 #pragma once
 
-class SASIDEV;
+class SCSIDEV;
 
 class ScsiPrimaryCommands
 {
@@ -21,10 +21,10 @@ public:
 	virtual ~ScsiPrimaryCommands() {}
 
 	// Mandatory commands
-	virtual void TestUnitReady(SASIDEV *) = 0;
-	virtual void Inquiry(SASIDEV *) = 0;
-	virtual void ReportLuns(SASIDEV *) = 0;
+	virtual void TestUnitReady(SCSIDEV *) = 0;
+	virtual void Inquiry(SCSIDEV *) = 0;
+	virtual void ReportLuns(SCSIDEV *) = 0;
 
 	// Implemented for all RaSCSI device types
-	virtual void RequestSense(SASIDEV *) = 0;
+	virtual void RequestSense(SCSIDEV *) = 0;
 };

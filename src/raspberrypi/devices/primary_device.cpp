@@ -33,7 +33,7 @@ bool PrimaryDevice::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller);
 }
 
-void PrimaryDevice::TestUnitReady(SASIDEV *controller)
+void PrimaryDevice::TestUnitReady(SCSIDEV *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -43,7 +43,7 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 	controller->Status();
 }
 
-void PrimaryDevice::Inquiry(SASIDEV *controller)
+void PrimaryDevice::Inquiry(SCSIDEV *controller)
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
@@ -74,7 +74,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::ReportLuns(SASIDEV *controller)
+void PrimaryDevice::ReportLuns(SCSIDEV *controller)
 {
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 
@@ -103,7 +103,7 @@ void PrimaryDevice::ReportLuns(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::RequestSense(SASIDEV *controller)
+void PrimaryDevice::RequestSense(SCSIDEV *controller)
 {
 	int lun = controller->GetEffectiveLun();
 

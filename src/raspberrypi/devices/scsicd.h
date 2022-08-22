@@ -95,7 +95,7 @@ protected:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSICD, SASIDEV> dispatcher;
+	Dispatcher<SCSICD, SCSIDEV> dispatcher;
 
 	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
@@ -105,8 +105,8 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void ReadToc(SASIDEV *) override;
-	void GetEventStatusNotification(SASIDEV *) override;
+	void ReadToc(SCSIDEV *) override;
+	void GetEventStatusNotification(SCSIDEV *) override;
 
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 

@@ -28,11 +28,11 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *);
 
-	void TestUnitReady(SASIDEV *);
-	void RequestSense(SASIDEV *);
-	virtual void Inquiry(SASIDEV *);
+	void TestUnitReady(SCSIDEV *);
+	void RequestSense(SCSIDEV *);
+	virtual void Inquiry(SCSIDEV *);
 
-	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
+	void SetCtrl(SCSIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	bool CheckReady();
 	virtual vector<BYTE> Inquiry() const = 0;
@@ -44,11 +44,11 @@ protected:
 
 	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
 
-	SASIDEV::ctrl_t *ctrl;
+	SCSIDEV::ctrl_t *ctrl;
 
 private:
 
-	Dispatcher<PrimaryDevice, SASIDEV> dispatcher;
+	Dispatcher<PrimaryDevice, SCSIDEV> dispatcher;
 
-	void ReportLuns(SASIDEV *);
+	void ReportLuns(SCSIDEV *);
 };

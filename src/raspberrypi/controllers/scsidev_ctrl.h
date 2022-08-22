@@ -79,6 +79,7 @@ public:
 	void FlushUnit();
 
 	void Status() override;
+	void DataIn() override;
 	void DataOut() override;
 
 private:
@@ -89,7 +90,6 @@ private:
 	void Selection();
 	void Command();
 	void Execute();
-	void DataIn() override;
 	void MsgIn();
 	void MsgOut();
 
