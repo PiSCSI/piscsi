@@ -333,7 +333,7 @@ void Controller::Command()
 
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
-			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+			ctrl.cmd[i] = ctrl.buffer[i];
 			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
