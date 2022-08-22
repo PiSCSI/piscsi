@@ -236,7 +236,7 @@ void Disk::Write(Controller *controller, uint64_t record)
 		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
 	}
 	else if (ctrl->length < 0) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::WRITE_PROTECTED);
+		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
 	// Set next block
@@ -733,9 +733,7 @@ int Disk::WriteCheck(DWORD block)
 
 	// Error if write protected
 	if (IsProtected()) {
-		// TODO Improve error handling
-		LOGDEBUG("WriteCheck failed (protected)");
-		return -1;
+		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
 	//  Success
@@ -743,31 +741,31 @@ int Disk::WriteCheck(DWORD block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool Disk::Write(Controller *controller, const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
+		controller->Error(sense_key::NOT_READY);
 		return false;
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
-		SetStatusCode(STATUS_WRITEPROTECT);
+		controller->Error(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 		return false;
 	}
 
 	// Leave it to the cache
 	if (!disk.dcache->WriteSector(buf, block)) {
-		SetStatusCode(STATUS_WRITEFAULT);
+		controller->Error(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 		return false;
 	}
 

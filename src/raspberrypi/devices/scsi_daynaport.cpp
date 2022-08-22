@@ -327,7 +327,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIDaynaPort::Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	BYTE data_format = cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);

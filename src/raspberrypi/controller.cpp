@@ -1283,7 +1283,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			// TODO This class must not know about DaynaPort
 			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(device);
 			if (daynaport) {
-				if (!daynaport->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!daynaport->Write(this, ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}
@@ -1294,7 +1294,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+			if (!device->Write(this, ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return false;
 			}

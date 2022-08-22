@@ -111,7 +111,7 @@ public:
 
 	// Command helpers
 	virtual int WriteCheck(DWORD block);
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);
+	virtual bool Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD block);
 	bool StartStop(const DWORD *cdb);
 	bool SendDiag(const DWORD *cdb) const;
 
