@@ -1067,11 +1067,11 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
-              createImagesDir
-              createCfgDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1109,9 +1109,10 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               updateRaScsiGit
-              createImagesDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1197,8 +1198,8 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
-              updateRaScsiGit
               createImagesDir
+              updateRaScsiGit
               installPackages
               stopRaScsi
               compileRaScsi
@@ -1216,8 +1217,8 @@ function runChoice() {
               echo "- Modify user groups and permissions"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
-              updateRaScsiGit
               createCfgDir
+              updateRaScsiGit
               installPackages
               preparePythonCommon
               cachePipPackages
