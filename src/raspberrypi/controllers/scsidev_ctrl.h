@@ -76,19 +76,29 @@ public:
 	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
+	void FlushUnit();
+
+	void Status() override;
+	void DataOut() override;
+
 private:
 	typedef SASIDEV super;
 
 	// Phases
 	void BusFree() override;
 	void Selection() override;
+	void Command() override;
 	void Execute() override;
+	void DataIn() override;
+	void MsgIn() override;
 	void MsgOut();
 
 	// Data transfer
 	void Send() override;
 	bool XferMsg(int);
+	bool XferIn(BYTE* buf);
 	bool XferOut(bool);
+	bool XferOut2(bool);
 	void ReceiveBytes();
 
 	// Internal data

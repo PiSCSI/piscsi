@@ -31,7 +31,6 @@ class SASIDEV
 {
 protected:
 
-private:
 	enum sasi_command : int {
 		eCmdReadCapacity = 0x05,
 		eCmdRead6 = 0x08,
@@ -120,10 +119,10 @@ public:
 	ctrl_t* GetCtrl() { return &ctrl; }			// Get the internal information address
 
 public:
-	void DataIn();							// Data in phase
-	void Status();							// Status phase
-	void MsgIn();							// Message in phase
-	void DataOut();						// Data out phase
+	virtual void DataIn();							// Data in phase
+	virtual void Status();							// Status phase
+	virtual void MsgIn();							// Message in phase
+	virtual void DataOut();						// Data out phase
 
 	virtual int GetEffectiveLun() const;
 
@@ -141,12 +140,6 @@ protected:
 	// Data transfer
 	virtual void Send();						// Send data
 	virtual void Receive();					// Receive data
-
-	bool XferIn(BYTE* buf);					// Data transfer IN
-	virtual bool XferOut(bool cont);					// Data transfer OUT
-
-	// Special operations
-	void FlushUnit();						// Flush the logical unit
 
 	ctrl_t ctrl;								// Internal data
 };
