@@ -469,10 +469,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
 
-	// Status check
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	// Search for the track
 	int index = SearchTrack(block);
@@ -514,10 +511,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb);
 	ASSERT(buf);
 
-	// Check if ready
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	// If ready, there is at least one track
 	ASSERT(tracks > 0);

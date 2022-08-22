@@ -34,7 +34,7 @@ public:
 
 	void SetCtrl(Controller::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
-	bool CheckReady();
+	void CheckReady();
 	virtual vector<BYTE> Inquiry() const = 0;
 	virtual vector<BYTE> RequestSense(int);
 	virtual bool WriteBytes(BYTE *, uint32_t);

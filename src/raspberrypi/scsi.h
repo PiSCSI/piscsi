@@ -236,6 +236,7 @@ namespace scsi_defs {
 		INVALID_LUN = 0x25,
 		WRITE_PROTECTED = 0x27,
 		NOT_READY_TO_READY_CHANGE = 0x28,
+		POWER_ON_OR_RESET = 0x29,
 		MEDIUM_NOT_PRESENT = 0x3a
 	};
 };

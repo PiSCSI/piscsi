@@ -35,9 +35,7 @@ bool PrimaryDevice::Dispatch(Controller *controller)
 
 void PrimaryDevice::TestUnitReady(Controller *controller)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception();
-	}
+	CheckReady();
 
 	controller->Status();
 }
@@ -130,35 +128,30 @@ void PrimaryDevice::RequestSense(Controller *controller)
     controller->DataIn();
 }
 
-bool PrimaryDevice::CheckReady()
+void PrimaryDevice::CheckReady()
 {
 	// Not ready if reset
 	if (IsReset()) {
-		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
 		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
-		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
 		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
 		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Initialization with no error
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__);
-
-	return true;
 }
 
 vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_removable) const

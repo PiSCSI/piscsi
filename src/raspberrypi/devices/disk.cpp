@@ -135,9 +135,7 @@ void Disk::FlushCache()
 
 void Disk::Rezero(Controller *controller)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	controller->Status();
 }
@@ -151,9 +149,7 @@ void Disk::FormatUnit(Controller *controller)
 
 void Disk::ReassignBlocks(Controller *controller)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	controller->Status();
 }
@@ -296,9 +292,7 @@ void Disk::SendDiagnostic(Controller *controller)
 
 void Disk::PreventAllowMediumRemoval(Controller *controller)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	bool lock = ctrl->cmd[4] & 0x01;
 
@@ -649,9 +643,7 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 
 void Disk::Format(const DWORD *cdb)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
@@ -664,9 +656,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
@@ -684,10 +674,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 int Disk::WriteCheck(DWORD block)
 {
-	// Status check
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
-	}
+	CheckReady();
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
@@ -737,9 +724,7 @@ bool Disk::Write(Controller *controller, const DWORD *cdb, const BYTE *buf, DWOR
 
 void Disk::Seek(Controller *controller)
 {
-	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	controller->Status();
 }
@@ -810,7 +795,9 @@ bool Disk::SendDiag(const DWORD *cdb) const
 
 void Disk::ReadCapacity10(Controller *controller)
 {
-	if (!CheckReady() || disk.blocks <= 0) {
+	CheckReady();
+
+	if (disk.blocks <= 0) {
 		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
@@ -838,7 +825,9 @@ void Disk::ReadCapacity10(Controller *controller)
 
 void Disk::ReadCapacity16(Controller *controller)
 {
-	if (!CheckReady() || disk.blocks <= 0) {
+	CheckReady();
+
+	if (disk.blocks <= 0) {
 		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 

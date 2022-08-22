@@ -288,27 +288,17 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
-//---------------------------------------------------------------------------
-//
-// WRITE check
-//
-//---------------------------------------------------------------------------
 int SCSIDaynaPort::WriteCheck(DWORD block)
 {
-	// Status check
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	if (!m_bTapEnable){
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::UNIT_ATTENTION, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	// Success
 	return 1;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //  Write

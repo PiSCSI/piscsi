@@ -1207,7 +1207,14 @@ bool Controller::XferIn(BYTE *buf)
 		case eCmdRead10:
 		case eCmdRead16:
 			// Read from disk
-			ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
+			try {
+				ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
+			}
+			catch(const scsi_dispatch_error_exception& e) {
+				// If there is an error, go to the status phase
+				return false;
+			}
+
 			ctrl.next++;
 
 			// If there is an error, go to the status phase
