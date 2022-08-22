@@ -48,7 +48,7 @@ protected:
 
 private:
 
-	Dispatcher<PrimaryDevice, Controller> dispatcher;
+	Dispatcher<PrimaryDevice> dispatcher;
 
 	void ReportLuns(Controller *);
 };

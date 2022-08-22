@@ -36,7 +36,7 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices, Controller> dispatcher;
+	Dispatcher<HostServices> dispatcher;
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;

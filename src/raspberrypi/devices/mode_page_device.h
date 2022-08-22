@@ -40,7 +40,7 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<ModePageDevice, Controller> dispatcher;
+	Dispatcher<ModePageDevice> dispatcher;
 
 	void ModeSense6(Controller *);
 	void ModeSense10(Controller *);

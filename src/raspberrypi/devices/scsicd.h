@@ -95,7 +95,7 @@ protected:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSICD, Controller> dispatcher;
+	Dispatcher<SCSICD> dispatcher;
 
 	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;

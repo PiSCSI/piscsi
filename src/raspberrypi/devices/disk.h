@@ -54,7 +54,7 @@ private:
 		bool is_medium_changed;
 	} disk_t;
 
-	Dispatcher<Disk, Controller> dispatcher;
+	Dispatcher<Disk> dispatcher;
 
 public:
 	Disk(const string&);

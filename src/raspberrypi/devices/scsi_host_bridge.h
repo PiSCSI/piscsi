@@ -50,7 +50,7 @@ public:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIBR, Controller> dispatcher;
+	Dispatcher<SCSIBR> dispatcher;
 
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address

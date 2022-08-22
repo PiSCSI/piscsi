@@ -49,7 +49,7 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<SCSIPrinter, Controller> dispatcher;
+	Dispatcher<SCSIPrinter> dispatcher;
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;

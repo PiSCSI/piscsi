@@ -92,7 +92,7 @@ public:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIDaynaPort, Controller> dispatcher;
+	Dispatcher<SCSIDaynaPort> dispatcher;
 
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;

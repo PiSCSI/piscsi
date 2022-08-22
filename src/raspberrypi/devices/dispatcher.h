@@ -21,7 +21,7 @@ class Controller;
 using namespace std;
 using namespace scsi_defs;
 
-template<class T, class U>
+template<class T>
 class Dispatcher
 {
 public:
@@ -47,7 +47,7 @@ public:
 		commands[opcode] = new command_t(name, execute);
 	}
 
-	bool Dispatch(T *instance, U *controller)
+	bool Dispatch(T *instance, Controller *controller)
 	{
 		Controller::ctrl_t *ctrl = controller->GetCtrl();
 		instance->SetCtrl(ctrl);
