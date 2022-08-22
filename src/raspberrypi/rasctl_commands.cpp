@@ -76,7 +76,7 @@ void RasctlCommands::SendCommand()
     	SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
-    	cerr << "Error: " << e.getmsg() << endl;
+    	cerr << "Error: " << e.get_msg() << endl;
 
         if (fd >= 0) {
         	close(fd);
@@ -96,7 +96,7 @@ void RasctlCommands::SendCommand()
     catch(const io_exception& e) {
     	close(fd);
 
-    	cerr << "Error: " << e.getmsg() << endl;
+    	cerr << "Error: " << e.get_msg() << endl;
 
     	exit(EXIT_FAILURE);
     }

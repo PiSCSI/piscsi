@@ -3,14 +3,13 @@
 // SCSI Target Emulator RaSCSI (*^..^*)
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
-//
-// Various exceptions
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
+#include "scsi.h"
 #include <exception>
 #include <string>
 
@@ -24,9 +23,7 @@ public:
 	illegal_argument_exception(const string& _msg) : msg(_msg) {}
 	illegal_argument_exception() {};
 
-	const string& getmsg() const {
-		return msg;
-	}
+	const string& get_msg() const { return msg; }
 };
 
 class io_exception : public exception {
@@ -37,13 +34,32 @@ public:
 	io_exception(const string& _msg) : msg(_msg) {}
 	virtual ~io_exception() {}
 
-	const string& getmsg() const {
-		return msg;
-	}
+	const string& get_msg() const { return msg; }
 };
 
 class file_not_found_exception : public io_exception {
 public:
 	file_not_found_exception(const string& msg) : io_exception(msg) {}
 	~file_not_found_exception() {}
+};
+
+class scsi_error_exception : public exception {
+private:
+	scsi_defs::sense_key sense_key;
+	scsi_defs::asc asc;
+	scsi_defs::status status;
+
+public:
+	scsi_error_exception(scsi_defs::sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) {
+		this->sense_key = sense_key;
+		this->asc = asc;
+		this->status = status;
+	}
+	~scsi_error_exception() {};
+
+	scsi_defs::sense_key get_sense_key() const { return sense_key; }
+	scsi_defs::asc get_asc() const { return asc; }
+	scsi_defs::status get_status() const { return status; }
 };

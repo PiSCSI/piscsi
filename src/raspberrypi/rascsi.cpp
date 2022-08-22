@@ -559,7 +559,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 	catch(const illegal_argument_exception& e) {
-		return ReturnStatus(context, false, e.getmsg());
+		return ReturnStatus(context, false, e.get_msg());
 	}
 
 	if (pb_device.block_size()) {
@@ -618,7 +618,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		catch(const io_exception& e) {
 			delete device;
 
-			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
+			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -757,7 +757,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
+		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -1503,7 +1503,7 @@ static void *MonThread(void *param)
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.getmsg().c_str());
+			LOGWARN("%s", e.get_msg().c_str());
 
 			// Fall through
 		}

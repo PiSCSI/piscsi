@@ -13,9 +13,11 @@
 //  	[ SCSI device controller ]
 //
 //---------------------------------------------------------------------------
+
 #include "log.h"
 #include "controller.h"
 #include "gpiobus.h"
+#include "exceptions.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 
@@ -389,10 +391,15 @@ void Controller::Execute()
 		ctrl.device->SetStatusCode(0);
 	}
 	
-	if (!ctrl.device->Dispatch(this)) {
-		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
+	try {
+		if (!ctrl.device->Dispatch(this)) {
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
-		Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+		}
+	}
+	catch(const scsi_error_exception& e) {
+		Error(e.get_sense_key(), e.get_asc(), e.get_status());
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
