@@ -275,7 +275,7 @@ void SCSIBR::GetMessage10(Controller *controller)
 
 	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	// Set next block
@@ -309,7 +309,7 @@ void SCSIBR::SendMessage10(Controller *controller)
 	ctrl->length |= ctrl->cmd[8];
 
 	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	// Set next block

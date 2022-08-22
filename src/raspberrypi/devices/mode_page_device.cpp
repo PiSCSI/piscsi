@@ -50,7 +50,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Holds all mode page data
@@ -107,7 +107,7 @@ void ModePageDevice::ModeSense10(Controller *controller)
 
 void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6(Controller *controller)
@@ -116,7 +116,7 @@ void ModePageDevice::ModeSelect6(Controller *controller)
 
 	ctrl->length = ModeSelectCheck6();
 	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	controller->DataOut();
@@ -128,7 +128,7 @@ void ModePageDevice::ModeSelect10(Controller *controller)
 
 	ctrl->length = ModeSelectCheck10();
 	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	controller->DataOut();
@@ -139,7 +139,7 @@ int ModePageDevice::ModeSelectCheck(int length)
 	// Error if save parameters are set for other types than of SCHD or SCRM
 	// TODO The assumption above is not correct, and this code should be located elsewhere
 	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	return length;

@@ -389,7 +389,7 @@ void SCSICD::ReadToc(Controller *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	controller->DataIn();
@@ -476,7 +476,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Ff invalid, out of range
 	if (index < 0) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	ASSERT(track[index]);
@@ -530,7 +530,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	if ((int)cdb[6] > last) {
 		// Except for AA
 		if (cdb[6] != 0xaa) {
-			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
@@ -565,7 +565,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			}
 
 			// Otherwise, error
-			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
@@ -615,11 +615,11 @@ void SCSICD::GetEventStatusNotification(Controller *controller)
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported");
-	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

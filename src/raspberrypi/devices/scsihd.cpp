@@ -119,7 +119,7 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
-				throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 			buf += 12;
 			length -= 12;
@@ -138,7 +138,7 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
-						throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					break;
 

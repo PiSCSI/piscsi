@@ -86,7 +86,7 @@ bool Disk::Dispatch(Controller *controller)
 
 		disk.is_medium_changed = false;
 
-		throw scsi_dispatch_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// The superclass handles the less specific commands
@@ -189,7 +189,7 @@ void Disk::ReadWriteLong10(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	ValidateBlockAddress(controller, RW10);
@@ -201,7 +201,7 @@ void Disk::ReadWriteLong16(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -275,7 +275,7 @@ void Disk::Verify16(Controller *controller)
 void Disk::StartStopUnit(Controller *controller)
 {
 	if (!StartStop(ctrl->cmd)) {
-		throw scsi_dispatch_error_exception();
+		throw scsi_error_exception();
 	}
 
 	controller->Status();
@@ -284,7 +284,7 @@ void Disk::StartStopUnit(Controller *controller)
 void Disk::SendDiagnostic(Controller *controller)
 {
 	if (!SendDiag(ctrl->cmd)) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	controller->Status();
@@ -392,7 +392,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 255) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -473,7 +473,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 65535) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -647,7 +647,7 @@ void Disk::Format(const DWORD *cdb)
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 }
 
@@ -660,12 +660,12 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		 throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		 throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// leave it to the cache
 	if (!disk.dcache->ReadSector(buf, block)) {
-		throw scsi_dispatch_error_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
+		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
 	//  Success
@@ -678,12 +678,12 @@ int Disk::WriteCheck(DWORD block)
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
-		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
+		throw scsi_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
 	//  Success
@@ -766,7 +766,7 @@ bool Disk::StartStop(const DWORD *cdb)
 		if (load) {
 			if (IsLocked()) {
 				// Cannot be ejected because it is locked
-				throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
+				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
 			}
 
 			// Eject
@@ -797,7 +797,7 @@ void Disk::ReadCapacity10(Controller *controller)
 	CheckReady();
 
 	if (disk.blocks <= 0) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	BYTE *buf = ctrl->buffer;
@@ -827,7 +827,7 @@ void Disk::ReadCapacity16(Controller *controller)
 	CheckReady();
 
 	if (disk.blocks <= 0) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	BYTE *buf = ctrl->buffer;
@@ -874,7 +874,7 @@ void Disk::ReadCapacity16_ReadLong16(Controller *controller)
 		break;
 
 	default:
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		break;
 	}
 }
@@ -930,7 +930,7 @@ void Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
 	if (block > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(block)).c_str());
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 }
 
@@ -994,7 +994,7 @@ bool Disk::GetStartAndCount(Controller *controller, uint64_t& start, uint32_t& c
 	if (start > capacity || start + count > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count)).c_str());
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	// Do not process 0 blocks

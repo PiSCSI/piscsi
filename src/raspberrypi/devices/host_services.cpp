@@ -96,14 +96,14 @@ void HostServices::StartStopUnit(Controller *controller)
 		}
 	}
 
-	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (int)cdb[4];
@@ -114,7 +114,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 255) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -131,7 +131,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (cdb[7] << 8) | cdb[8];
@@ -145,7 +145,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 65535) {
-		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes

@@ -396,10 +396,10 @@ void Controller::Execute()
 		if (!ctrl.device->Dispatch(this)) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
-			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
 	}
-	catch(const scsi_dispatch_error_exception& e) {
+	catch(const scsi_error_exception& e) {
 		Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 		// Fall through
@@ -1169,7 +1169,7 @@ void Controller::FlushUnit()
 			try {
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
-			catch(const scsi_dispatch_error_exception& e) {
+			catch(const scsi_error_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
@@ -1213,7 +1213,7 @@ bool Controller::XferIn(BYTE *buf)
 			try {
 				ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
 			}
-			catch(const scsi_dispatch_error_exception& e) {
+			catch(const scsi_error_exception& e) {
 				// If there is an error, go to the status phase
 				return false;
 			}
@@ -1266,7 +1266,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			try {
 				device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
-			catch(const scsi_dispatch_error_exception& e) {
+			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return false;
 			}
@@ -1322,7 +1322,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			try {
 				ctrl.length = device->WriteCheck(ctrl.next - 1);
 			}
-			catch(const scsi_dispatch_error_exception& e) {
+			catch(const scsi_error_exception& e) {
 				// Cannot write
 				return false;
 			}

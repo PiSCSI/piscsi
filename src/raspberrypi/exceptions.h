@@ -43,21 +43,21 @@ public:
 	~file_not_found_exception() {}
 };
 
-class scsi_dispatch_error_exception : public exception {
+class scsi_error_exception : public exception {
 private:
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;
 	scsi_defs::status status;
 
 public:
-	scsi_dispatch_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
+	scsi_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) {
 		this->sense_key = sense_key;
 		this->asc = asc;
 		this->status = status;
 	}
-	~scsi_dispatch_error_exception() {};
+	~scsi_error_exception() {};
 
 	scsi_defs::sense_key get_sense_key() const { return sense_key; }
 	scsi_defs::asc get_asc() const { return asc; }
