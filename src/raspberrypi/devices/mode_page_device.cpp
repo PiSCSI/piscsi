@@ -33,6 +33,10 @@ bool ModePageDevice::Dispatch(Controller *controller)
 
 int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 {
+	if (max_length <= 0) {
+		return 0;
+	}
+
 	bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
