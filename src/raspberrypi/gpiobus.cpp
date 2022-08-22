@@ -817,7 +817,7 @@ BOOL GPIOBUS::GetDP()
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
+int GPIOBUS::CommandHandShake(BYTE *buf)
 {
 	int count;
 
@@ -869,7 +869,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 	// semantics. I fact, these semantics have become a standard in the Atari world.
 
 	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-	if (!is_sasi && *buf == 0x1F) {
+	if (*buf == 0x1F) {
 		SetSignal(PIN_REQ, ON);
 
 		ret = WaitSignal(PIN_ACK, TRUE);

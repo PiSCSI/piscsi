@@ -67,7 +67,8 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
-	int ordinal = 1;
+	// Start with 2 instead of 1. 1 was the SASI drive type.
+	int ordinal = 2;
 	while (PbDeviceType_IsValid(ordinal)) {
 		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);

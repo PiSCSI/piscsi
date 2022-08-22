@@ -833,9 +833,8 @@ void Disk::Seek(SASIDEV *controller)
 
 void Disk::Seek6(SASIDEV *controller)
 {
-	// For SASI do not check LBA (SASI IOCS)
 	uint64_t start;
-	if (IsSASIHD() || GetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
+	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
 		Seek(controller);
 	}
 }

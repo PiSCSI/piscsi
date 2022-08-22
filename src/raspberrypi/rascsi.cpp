@@ -294,19 +294,11 @@ bool MapController(Device **map)
 	int i = 0;
 	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 		// Examine the unit configuration
-		int sasi_num = 0;
 		int scsi_num = 0;
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			// branch by unit type
 			if (devices[unitno]) {
-				if (devices[unitno]->IsSASIHD()) {
-					// Drive is SASI, so increment SASI count
-					sasi_num++;
-				} else {
-					// Drive is SCSI, so increment SCSI count
-					scsi_num++;
-				}
+				scsi_num++;
 			}
 
 			// Remove the unit
@@ -316,7 +308,7 @@ bool MapController(Device **map)
 		}
 
 		// If there are no units connected
-		if (!sasi_num && !scsi_num) {
+		if (!scsi_num) {
 			if (*it) {
 				delete *it;
 				*it = NULL;
@@ -324,40 +316,10 @@ bool MapController(Device **map)
 			}
 		}
 
-		// Mixture of SCSI and SASI
-		if (sasi_num > 0 && scsi_num > 0) {
-			status = false;
-			continue;
-		}
-
-		if (sasi_num > 0) {
-			// Only SASI Unit(s)
-
-			// Release the controller if it is not SASI
-			if (*it && !(*it)->IsSASI()) {
-				delete *it;
-				*it = NULL;
-			}
-
-			// Create a new SASI controller
-			if (!*it) {
-				*it = new SASIDEV();
-				(*it)->Connect(i, bus);
-			}
-		} else {
-			// Only SCSI Unit(s)
-
-			// Release the controller if it is not SCSI
-			if (*it && !(*it)->IsSCSI()) {
-				delete *it;
-				*it = NULL;
-			}
-
-			// Create a new SCSI controller
-			if (!*it) {
-				*it = new SCSIDEV();
-				(*it)->Connect(i, bus);
-			}
+		// Create a new SCSI controller
+		if (!*it) {
+			*it = new SCSIDEV();
+			(*it)->Connect(i, bus);
 		}
 
 		// connect all units
@@ -1087,28 +1049,17 @@ bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
-		int max_id = type == SAHD ? 16 : 8;
-
-		if (!GetAsInt(id_spec, id) || id < 0 || id >= max_id) {
-			cerr << optarg << ": Invalid device ID (0-" << (max_id - 1) << ")" << endl;
+		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
+			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
 		}
 
-		// Required for SASI ID/LUN handling backwards compatibility
 		unit = 0;
-		if (type == SAHD) {
-			unit = id % 2;
-			id /= 2;
-		}
 	}
-	else {
-		int max_unit = type == SAHD ? 2 : UnitNum;
-
-		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= max_unit) {
-			cerr << optarg << ": Invalid unit (0-" << (max_unit - 1) << ")" << endl;
-			return false;
-		}
+	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
+			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= UnitNum) {
+		cerr << optarg << ": Invalid unit (0-" << (UnitNum - 1) << ")" << endl;
+		return false;
 	}
 
 	return true;
@@ -1186,20 +1137,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				id = -1;
 				unit = -1;
-				continue;
-
-			case 'h':
-			case 'H':
-				id = -1;
-				unit = -1;
-				type = SAHD;
 				continue;
 
 			case 'd':

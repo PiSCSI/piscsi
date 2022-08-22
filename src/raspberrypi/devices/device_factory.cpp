@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "sasihd.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -25,7 +24,6 @@ using namespace rascsi_interface;
 
 DeviceFactory::DeviceFactory()
 {
-	sector_sizes[SAHD] = { 256, 512, 1024 };
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
@@ -55,7 +53,6 @@ DeviceFactory::DeviceFactory()
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 	default_params[SCLP]["timeout"] = "30";
 
-	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;
 	extension_mapping["hda"] = SCHD;
 	extension_mapping["hdn"] = SCHD;
@@ -121,12 +118,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	Device *device = NULL;
 	try {
 		switch (type) {
-			case SAHD:
-				device = new SASIHD(sector_sizes[SAHD]);
-				device->SetSupportedLuns(2);
-				device->SetProduct("SASI HD");
-			break;
-
 			case SCHD: {
 				string ext = GetExtension(filename);
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {

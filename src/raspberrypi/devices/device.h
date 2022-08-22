@@ -182,6 +182,5 @@ public:
 	void Stop();
 	virtual bool Eject(bool);
 
-	bool IsSASIHD() const { return type == "SAHD"; }
 	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
 };

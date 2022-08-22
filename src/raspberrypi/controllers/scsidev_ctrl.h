@@ -65,9 +65,6 @@ public:
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
-	bool IsSASI() const override { return false; }
-	bool IsSCSI() const override { return true; }
-
 	// Common error handling
 	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,

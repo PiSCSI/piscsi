@@ -33,21 +33,13 @@ protected:
 
 private:
 	enum sasi_command : int {
-		eCmdTestUnitReady = 0x00,
-		eCmdRezero =  0x01,
-		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x04,
 		eCmdReadCapacity = 0x05,
-		eCmdFormatLegacy = 0x06,
-		eCmdReassign = 0x07,
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
 		eCmdSeek6 = 0x0B,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
 		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
-		eCmdReserve6 = 0x16,
-		eCmdRelease6 = 0x17,
 		eCmdRead10 = 0x28,
 		eCmdWrite10 = 0x2A,
 		eCmdVerify10 = 0x2E,
@@ -57,9 +49,7 @@ private:
 		eCmdWrite16 = 0x8A,
 		eCmdVerify16 = 0x8F,
 		eCmdWriteLong10 = 0x3F,
-		eCmdWriteLong16 = 0x9F,
-		eCmdInvalid = 0xC2,
-		eCmdSasiCmdAssign = 0x0E
+		eCmdWriteLong16 = 0x9F
 	};
 
 public:
@@ -69,12 +59,9 @@ public:
 
 	const int UNKNOWN_SCSI_ID = -1;
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
-	// TODO Remove this duplicate
-	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
 	enum {			
-		min_exec_time_sasi	= 100,			// SASI BOOT/FORMAT 30:NG 35:OK
 		min_exec_time_scsi	= 50
 	};
 
@@ -131,8 +118,6 @@ public:
 
 	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
 	ctrl_t* GetCtrl() { return &ctrl; }			// Get the internal information address
-	virtual bool IsSASI() const { return true; }		// SASI Check
-	virtual bool IsSCSI() const { return false; }		// SCSI check
 
 public:
 	void DataIn();							// Data in phase
@@ -152,10 +137,6 @@ protected:
 	virtual void Selection();					// Selection phase
 	virtual void Command();					// Command phase
 	virtual void Execute();					// Execution phase
-
-	// Commands
-	void CmdAssign();						// ASSIGN command
-	void CmdSpecify();						// SPECIFY command
 
 	// Data transfer
 	virtual void Send();						// Send data
