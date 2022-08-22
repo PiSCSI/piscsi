@@ -123,7 +123,7 @@ public:
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
-	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
+	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
