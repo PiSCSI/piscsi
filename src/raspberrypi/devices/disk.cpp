@@ -47,9 +47,9 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	dispatcher.AddCommand(eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	dispatcher.AddCommand(eCmdRead10, "Read10", &Disk::Read10);
 	dispatcher.AddCommand(eCmdWrite10, "Write10", &Disk::Write10);
-	dispatcher.AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
-	dispatcher.AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
-	dispatcher.AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
+	dispatcher.AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
+	dispatcher.AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
+	dispatcher.AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
 	dispatcher.AddCommand(eCmdSeek10, "Seek10", &Disk::Seek10);
 	dispatcher.AddCommand(eCmdVerify10, "Verify10", &Disk::Verify10);
 	dispatcher.AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
@@ -206,11 +206,6 @@ void Disk::ReadWriteLong10(Controller *controller)
 	controller->Status();
 }
 
-void Disk::ReadLong10(Controller *controller)
-{
-	ReadWriteLong10(controller);
-}
-
 void Disk::ReadWriteLong16(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
@@ -222,11 +217,6 @@ void Disk::ReadWriteLong16(Controller *controller)
 	ValidateBlockAddress(controller, RW16);
 
 	controller->Status();
-}
-
-void Disk::ReadLong16(Controller *controller)
-{
-	ReadWriteLong16(controller);
 }
 
 void Disk::Write(Controller *controller, uint64_t record)
@@ -264,16 +254,6 @@ void Disk::Write16(Controller *controller)
 	uint64_t start;
 	GetStartAndCount(controller, start, ctrl->blocks, RW16);
 	Write(controller, start);
-}
-
-void Disk::WriteLong10(Controller *controller)
-{
-	ReadWriteLong10(controller);
-}
-
-void Disk::WriteLong16(Controller *controller)
-{
-	ReadWriteLong16(controller);
 }
 
 void Disk::Verify(Controller *controller, uint64_t record)
@@ -913,7 +893,7 @@ void Disk::ReadCapacity16_ReadLong16(Controller *controller)
 		break;
 
 	case 0x11:
-		ReadLong16(controller);
+		ReadWriteLong16(controller);
 		break;
 
 	default:

@@ -88,10 +88,6 @@ private:
 	virtual void Write6(Controller *);
 	void Write10(Controller *) override;
 	void Write16(Controller *) override;
-	void ReadLong10(Controller *);
-	void ReadLong16(Controller *);
-	void WriteLong10(Controller *);
-	void WriteLong16(Controller *);
 	void Verify10(Controller *);
 	void Verify16(Controller *);
 	void Seek(Controller *);
