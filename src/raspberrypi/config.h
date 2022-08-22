@@ -18,7 +18,6 @@
 //
 //---------------------------------------------------------------------------
 #define USE_SEL_EVENT_ENABLE			// Check SEL signal by event
-#define REMOVE_FIXED_SASIHD_SIZE		// remove the size limitation of SASIHD
 // This avoids an indefinite loop with warnings if there is no RaSCSI hardware
 // and thus helps with running certain tests on X86 hardware.
 #if defined(__x86_64__) || defined(__X86__)
