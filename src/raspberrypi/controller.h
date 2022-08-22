@@ -88,7 +88,7 @@ public:
 		// commands
 		DWORD cmd[16];					// Command data
 		DWORD status;					// Status data
-		DWORD message;					// Message data
+		int message;					// Message data
 
 		// Run
 		DWORD execstart;				// Execution start time
@@ -97,9 +97,9 @@ public:
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		uint32_t blocks;				// Number of transfer block
-		DWORD next;						// Next record
-		DWORD offset;					// Transfer offset
-		DWORD length;					// Transfer remaining length
+		uint32_t next;					// Next record
+		uint32_t offset;				// Transfer offset
+		uint32_t length;				// Transfer remaining length
 
 		// Logical units
 		PrimaryDevice *unit[UNIT_MAX];
