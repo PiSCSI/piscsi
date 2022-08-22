@@ -15,22 +15,54 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "controllers/sasidev_ctrl.h"
+#include "../config.h"
+#include "os.h"
+#include "scsi.h"
+#include "fileio.h"
 
-//===========================================================================
-//
-//	SCSI Device (Interits SASI device)
-//
-//===========================================================================
-class SCSIDEV : public SASIDEV
+class PrimaryDevice;
+
+class SCSIDEV
 {
 public:
+
+	const int UNKNOWN_SCSI_ID = -1;
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
+
+	enum sasi_command : int {
+		eCmdReadCapacity = 0x05,
+		eCmdRead6 = 0x08,
+		eCmdWrite6 = 0x0A,
+		eCmdSeek6 = 0x0B,
+		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdInquiry = 0x12,
+		eCmdModeSelect6 = 0x15,
+		eCmdRead10 = 0x28,
+		eCmdWrite10 = 0x2A,
+		eCmdVerify10 = 0x2E,
+		eCmdVerify = 0x2F,
+		eCmdModeSelect10 = 0x55,
+		eCmdRead16 = 0x88,
+		eCmdWrite16 = 0x8A,
+		eCmdVerify16 = 0x8F,
+		eCmdWriteLong10 = 0x3F,
+		eCmdWriteLong16 = 0x9F
+	};
 
 	enum rascsi_shutdown_mode {
 		NONE,
 		STOP_RASCSI,
 		STOP_PI,
 		RESTART_PI
+	};
+
+	// For timing adjustments
+	enum {
+		min_exec_time_scsi	= 50
+	};
+
+	enum {
+		UnitMax = 32					// Maximum number of logical units
 	};
 
 	// Internal data definition
@@ -53,12 +85,45 @@ public:
 		uint32_t bytes_to_transfer;
 	} scsi_t;
 
+	// Internal data definition
+	typedef struct {
+		// General
+		BUS::phase_t phase;				// Transition phase
+		int m_scsi_id;					// Controller ID (0-7)
+		BUS *bus;						// Bus
+
+		// commands
+		DWORD cmd[16];					// Command data
+		DWORD status;					// Status data
+		DWORD message;					// Message data
+
+		// Run
+		DWORD execstart;				// Execution start time
+
+		// Transfer
+		BYTE *buffer;					// Transfer data buffer
+		int bufsize;					// Transfer data buffer size
+		uint32_t blocks;				// Number of transfer block
+		DWORD next;						// Next record
+		DWORD offset;					// Transfer offset
+		DWORD length;					// Transfer remaining length
+
+		// Logical units
+		PrimaryDevice *unit[UnitMax];
+
+		// The current device
+		PrimaryDevice *device;
+
+		// The LUN from the IDENTIFY message
+		int lun;
+	} ctrl_t;
+
 	SCSIDEV();
 	~SCSIDEV();
 
-	void Reset() override;
+	void Reset();
 
-	BUS::phase_t Process(int) override;
+	BUS::phase_t Process(int);
 
 	void Receive();
 
@@ -68,7 +133,7 @@ public:
 	// Common error handling
 	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
 	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
@@ -76,15 +141,21 @@ public:
 	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
+	void SetUnit(int, PrimaryDevice *);
+	bool HasUnit();
+
 	void FlushUnit();
 
-	void Status() override;
-	void DataIn() override;
-	void DataOut() override;
+	void Connect(int, BUS *);
+
+	void Status();
+	void DataIn();
+	void DataOut();
+
+	int GetSCSIID() {return ctrl.m_scsi_id;}
+	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
-	typedef SASIDEV super;
-
 	// Phases
 	void BusFree();
 	void Selection();
@@ -101,7 +172,7 @@ private:
 	bool XferOut2(bool);
 	void ReceiveBytes();
 
-	// Internal data
+	ctrl_t ctrl;
 	scsi_t scsi;
 
 	rascsi_shutdown_mode shutdown_mode;

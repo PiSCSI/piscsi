@@ -28,8 +28,32 @@ using namespace scsi_defs;
 //
 //===========================================================================
 
-SCSIDEV::SCSIDEV() : SASIDEV()
+SCSIDEV::SCSIDEV()
 {
+	// Work initialization
+	ctrl.phase = BUS::busfree;
+	ctrl.m_scsi_id = UNKNOWN_SCSI_ID;
+	ctrl.bus = NULL;
+	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
+	ctrl.status = 0x00;
+	ctrl.message = 0x00;
+	ctrl.execstart = 0;
+	// The initial buffer size will default to either the default buffer size OR
+	// the size of an Ethernet message, whichever is larger.
+	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
+	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
+	memset(ctrl.buffer, 0x00, ctrl.bufsize);
+	ctrl.blocks = 0;
+	ctrl.next = 0;
+	ctrl.offset = 0;
+	ctrl.length = 0;
+	ctrl.lun = -1;
+
+	// Logical unit initialization
+	for (int i = 0; i < UnitMax; i++) {
+		ctrl.unit[i] = NULL;
+	}
+
 	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
@@ -45,19 +69,66 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 
 SCSIDEV::~SCSIDEV()
 {
+	// Free the buffer
+	if (ctrl.buffer) {
+		free(ctrl.buffer);
+		ctrl.buffer = NULL;
+	}
 }
 
 void SCSIDEV::Reset()
 {
-	scsi.is_byte_transfer = false;
-	scsi.bytes_to_transfer = 0;
+	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
+	ctrl.phase = BUS::busfree;
+	ctrl.status = 0x00;
+	ctrl.message = 0x00;
+	ctrl.execstart = 0;
+	memset(ctrl.buffer, 0x00, ctrl.bufsize);
+	ctrl.blocks = 0;
+	ctrl.next = 0;
+	ctrl.offset = 0;
+	ctrl.length = 0;
 
-	// Work initialization
 	scsi.atnmsg = false;
 	scsi.msc = 0;
+	scsi.is_byte_transfer = false;
+	scsi.bytes_to_transfer = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	super::Reset();
+	for (int i = 0; i < UnitMax; i++) {
+		if (ctrl.unit[i]) {
+			ctrl.unit[i]->Reset();
+		}
+	}
+}
+
+void SCSIDEV::SetUnit(int no, PrimaryDevice *dev)
+{
+	ASSERT(no < UnitMax);
+
+	ctrl.unit[no] = dev;
+}
+
+bool SCSIDEV::HasUnit()
+{
+	for (int i = 0; i < UnitMax; i++) {
+		if (ctrl.unit[i]) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Connect the controller
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::Connect(int id, BUS *bus)
+{
+	ctrl.m_scsi_id = id;
+	ctrl.bus = bus;
 }
 
 BUS::phase_t SCSIDEV::Process(int initiator_id)
@@ -1325,7 +1396,7 @@ bool SCSIDEV::XferOut2(bool cont)
 			break;
 		}
 
-		case SASIDEV::eCmdSetMcastAddr:
+		case eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
 			break;
 
