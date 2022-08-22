@@ -1166,9 +1166,12 @@ void Controller::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+			try {
+				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
+			}
+			catch(const scsi_dispatch_error_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
-				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
 			}
             break;
@@ -1260,8 +1263,11 @@ bool Controller::XferOutBlockOriented(bool cont)
 	switch (ctrl.cmd[0]) {
 		case eCmdModeSelect6:
 		case eCmdModeSelect10:
-			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			try {
+				device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
+			}
+			catch(const scsi_dispatch_error_exception& e) {
+				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return false;
 			}
 			break;

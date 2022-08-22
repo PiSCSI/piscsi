@@ -103,7 +103,7 @@ vector<BYTE> SCSIHD::Inquiry() const
 	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
 }
 
-bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	assert(length >= 0);
 
@@ -119,8 +119,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
-				SetStatusCode(STATUS_INVALIDPRM);
-				return false;
+				throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 			buf += 12;
 			length -= 12;
@@ -139,8 +138,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
-						SetStatusCode(STATUS_INVALIDPRM);
-						return false;
+						throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					break;
 
@@ -171,9 +169,6 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			buf += size;
 		}
 	}
-
-	// Do not generate an error for the time being (MINIX)
-	return true;
 }
 
 //---------------------------------------------------------------------------

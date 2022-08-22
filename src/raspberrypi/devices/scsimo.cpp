@@ -94,7 +94,7 @@ void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 	// Do not report update blocks
 }
 
-bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int size;
 
@@ -109,8 +109,7 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
-				SetStatusCode(STATUS_INVALIDPRM);
-				return false;
+				throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 			buf += 12;
 			length -= 12;
@@ -129,8 +128,7 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
-						SetStatusCode(STATUS_INVALIDPRM);
-						return false;
+						throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					break;
 				// vendor unique format
@@ -149,9 +147,6 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			buf += size;
 		}
 	}
-
-	// Do not generate an error for the time being (MINIX)
-	return true;
 }
 
 //---------------------------------------------------------------------------

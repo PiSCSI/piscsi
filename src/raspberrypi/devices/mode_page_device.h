@@ -29,7 +29,7 @@ public:
 	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
 
 	// TODO This method should not be called by Controller
-	virtual bool ModeSelect(const DWORD *, const BYTE *, int);
+	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 
 protected:
 

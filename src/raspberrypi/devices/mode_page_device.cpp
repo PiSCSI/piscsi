@@ -105,9 +105,9 @@ void ModePageDevice::ModeSense10(Controller *controller)
 	controller->DataIn();
 }
 
-bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
+void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	return false;
+	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6(Controller *controller)
@@ -139,8 +139,7 @@ int ModePageDevice::ModeSelectCheck(int length)
 	// Error if save parameters are set for other types than of SCHD or SCRM
 	// TODO The assumption above is not correct, and this code should be located elsewhere
 	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	return length;

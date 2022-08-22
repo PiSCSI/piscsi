@@ -32,7 +32,7 @@ public:
 
 	// Commands
 	virtual vector<BYTE> Inquiry() const override;
-	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 };

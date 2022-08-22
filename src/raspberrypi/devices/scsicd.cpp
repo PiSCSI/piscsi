@@ -474,11 +474,11 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	// Search for the track
 	int index = SearchTrack(block);
 
-	// if invalid, out of range
+	// Ff invalid, out of range
 	if (index < 0) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
+
 	ASSERT(track[index]);
 
 	// If different from the current data track
@@ -530,8 +530,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	if ((int)cdb[6] > last) {
 		// Except for AA
 		if (cdb[6] != 0xaa) {
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
+			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
@@ -566,8 +565,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			}
 
 			// Otherwise, error
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
+			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
