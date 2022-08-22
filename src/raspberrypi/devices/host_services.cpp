@@ -109,7 +109,10 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
-	int size = 4 + super::AddModePages(cdb, &buf[size], length - size);
+	// Basic Information
+	int size = 4;
+
+	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 255) {
 		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -137,7 +140,10 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	memset(buf, 0, length);
 
-	int size = 8 + super::AddModePages(cdb, &buf[size], length - size);
+	// Basic Information
+	int size = 8;
+
+	size += super::AddModePages(cdb, &buf[size], length - size);
 	if (size > 65535) {
 		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
