@@ -50,7 +50,7 @@ SCSIDEV::SCSIDEV()
 	ctrl.lun = -1;
 
 	// Logical unit initialization
-	for (int i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UNIT_MAX; i++) {
 		ctrl.unit[i] = NULL;
 	}
 
@@ -95,7 +95,7 @@ void SCSIDEV::Reset()
 	scsi.bytes_to_transfer = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	for (int i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UNIT_MAX; i++) {
 		if (ctrl.unit[i]) {
 			ctrl.unit[i]->Reset();
 		}
@@ -104,14 +104,14 @@ void SCSIDEV::Reset()
 
 void SCSIDEV::SetUnit(int no, PrimaryDevice *dev)
 {
-	ASSERT(no < UnitMax);
+	ASSERT(no < UNIT_MAX);
 
 	ctrl.unit[no] = dev;
 }
 
 bool SCSIDEV::HasUnit()
 {
-	for (int i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UNIT_MAX; i++) {
 		if (ctrl.unit[i]) {
 			return true;
 		}
@@ -451,8 +451,8 @@ void SCSIDEV::Status()
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < min_exec_time_scsi) {
-				SysTimer::SleepUsec(min_exec_time_scsi - time);
+			if (time < MIN_EXEC_TIME) {
+				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
 			ctrl.execstart = 0;
 		} else {
@@ -486,7 +486,7 @@ void SCSIDEV::Status()
 
 //---------------------------------------------------------------------------
 //
-//	Message in phase (used by SASI and SCSI)
+//	Message in phase
 //
 //---------------------------------------------------------------------------
 void SCSIDEV::MsgIn()
@@ -568,8 +568,8 @@ void SCSIDEV::DataIn()
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < min_exec_time_scsi) {
-				SysTimer::SleepUsec(min_exec_time_scsi - time);
+			if (time < MIN_EXEC_TIME) {
+				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
 			ctrl.execstart = 0;
 		}
@@ -615,8 +615,8 @@ void SCSIDEV::DataOut()
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < min_exec_time_scsi) {
-				SysTimer::SleepUsec(min_exec_time_scsi - time);
+			if (time < MIN_EXEC_TIME) {
+				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
 			ctrl.execstart = 0;
 		}
@@ -1223,6 +1223,7 @@ void SCSIDEV::FlushUnit()
 		case SCSIDEV::eCmdWrite6:
 		case SCSIDEV::eCmdWrite10:
 		case SCSIDEV::eCmdWrite16:
+		case SCSIDEV::eCmdWriteLong10:
 		case SCSIDEV::eCmdWriteLong16:
 		case SCSIDEV::eCmdVerify10:
 		case SCSIDEV::eCmdVerify16:

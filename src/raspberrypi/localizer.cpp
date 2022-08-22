@@ -81,11 +81,6 @@ Localizer::Localizer()
 	Add(ERROR_DUPLICATE_ID, "sv", "Duplikat ID %1, LUN %2");
 	Add(ERROR_DUPLICATE_ID, "fr", "ID %1, unité %2 dupliquée");
 	Add(ERROR_DUPLICATE_ID, "es", "ID duplicado %1, unidad %2");
-	Add(ERROR_SASI_SCSI, "en", "SASI and SCSI can't be used at the same time");
-	Add(ERROR_SASI_SCSI, "de", "SASI und SCSI können nicht gleichzeitig verwendet werden");
-	Add(ERROR_SASI_SCSI, "sv", "SASI och SCSI kan ej användas samtidigt");
-	Add(ERROR_SASI_SCSI, "fr", "SASI et SCSI ne peuvent être utilisés en même temps");
-	Add(ERROR_SASI_SCSI, "es", "SASI y SCSI no pueden utilizarse al mismo tiempo");
 	Add(ERROR_EJECT_REQUIRED, "en", "Existing medium must first be ejected");
 	Add(ERROR_EJECT_REQUIRED, "de", "Das vorhandene Medium muss erst ausgeworfen werden");
 	Add(ERROR_EJECT_REQUIRED, "sv", "Nuvarande skiva måste utmatas först");

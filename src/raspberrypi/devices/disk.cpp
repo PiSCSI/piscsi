@@ -719,7 +719,6 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 //---------------------------------------------------------------------------
 //
 //	FORMAT UNIT
-//	*Opcode $06 for SASI, Opcode $04 for SCSI
 //
 //---------------------------------------------------------------------------
 bool Disk::Format(const DWORD *cdb)
@@ -738,8 +737,7 @@ bool Disk::Format(const DWORD *cdb)
 	return true;
 }
 
-// TODO Read more than one block in a single call. Currently blocked by the SASI code (missing early range check)
-// and the track-oriented cache.
+// TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
 int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
@@ -788,8 +786,7 @@ int Disk::WriteCheck(DWORD block)
 	return 1 << disk.size;
 }
 
-// TODO Write more than one block in a single call. Currently blocked by the SASI code (missing early range check)
-// and the track-oriented cache.
+// TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
 bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);

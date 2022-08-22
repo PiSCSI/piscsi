@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	SCSIDEV::UnitMax	// Number of units around controller
+#define UnitNum	SCSIDEV::UNIT_MAX	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -107,11 +107,8 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");
 		FPRT(stdout," FILE is disk image file.\n\n");
-		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
 		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
-		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
 		FPRT(stdout,"  hdr : SCSI HD image (Removable generic SCSI HD image)\n");
 		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
@@ -259,11 +256,9 @@ void Reset()
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-bool MapController(Device **map)
+void MapController(Device **map)
 {
 	assert(bus);
-
-	bool status = true;
 
 	// Take ownership of the ctrl data structure
 	pthread_mutex_lock(&ctrl_mutex);
@@ -332,8 +327,6 @@ bool MapController(Device **map)
 		}
 	}
 	pthread_mutex_unlock(&ctrl_mutex);
-
-	return status;
 }
 
 bool ReadAccessToken(const char *filename)
@@ -498,9 +491,9 @@ void DetachAll()
 		map[i] = NULL;
 	}
 
-	if (MapController(map)) {
-		LOGINFO("Detached all devices");
-	}
+	MapController(map);
+
+	LOGINFO("Detached all devices");
 
 	FileSupport::UnreserveAll();
 }
@@ -659,21 +652,19 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	map[id * UnitNum + unit] = device;
 
 	// Re-map the controller
-	if (MapController(map)) {
-		string msg = "Attached ";
-		if (device->IsReadOnly()) {
-			msg += "read-only ";
-		}
-		else if (device->IsProtectable() && device->IsProtected()) {
-			msg += "protected ";
-		}
-		msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
-		LOGINFO("%s", msg.c_str());
+	MapController(map);
 
-		return true;
+	string msg = "Attached ";
+	if (device->IsReadOnly()) {
+		msg += "read-only ";
 	}
+	else if (device->IsProtectable() && device->IsProtected()) {
+		msg += "protected ";
+	}
+	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
+	LOGINFO("%s", msg.c_str());
 
-	return ReturnLocalizedError(context, ERROR_SASI_SCSI);
+	return true;
 }
 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)

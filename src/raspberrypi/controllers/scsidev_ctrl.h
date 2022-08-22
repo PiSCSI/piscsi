@@ -24,18 +24,22 @@ class PrimaryDevice;
 
 class SCSIDEV
 {
-public:
+	// For timing adjustments
+	const unsigned int MIN_EXEC_TIME = 50;
 
 	const int UNKNOWN_SCSI_ID = -1;
+
+public:
+
+	// Maximum number of logical units
+	static const int UNIT_MAX = 32;
+
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	enum sasi_command : int {
-		eCmdReadCapacity = 0x05,
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
-		eCmdSeek6 = 0x0B,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdRead10 = 0x28,
 		eCmdWrite10 = 0x2A,
@@ -54,15 +58,6 @@ public:
 		STOP_RASCSI,
 		STOP_PI,
 		RESTART_PI
-	};
-
-	// For timing adjustments
-	enum {
-		min_exec_time_scsi	= 50
-	};
-
-	enum {
-		UnitMax = 32					// Maximum number of logical units
 	};
 
 	// Internal data definition
@@ -109,7 +104,7 @@ public:
 		DWORD length;					// Transfer remaining length
 
 		// Logical units
-		PrimaryDevice *unit[UnitMax];
+		PrimaryDevice *unit[UNIT_MAX];
 
 		// The current device
 		PrimaryDevice *device;
