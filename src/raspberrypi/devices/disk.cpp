@@ -15,6 +15,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "fileio.h"
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
