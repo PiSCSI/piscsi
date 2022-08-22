@@ -1107,7 +1107,7 @@ bool Controller::XferOut(bool cont)
 
 	scsi.is_byte_transfer = false;
 
-	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
+	PrimaryDevice *device = ctrl.unit[GetEffectiveLun()];
 	if (device && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
