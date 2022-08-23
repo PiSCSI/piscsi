@@ -56,21 +56,39 @@ private:
 	Dispatcher<Disk> dispatcher;
 
 public:
+
 	Disk(const string&);
 	virtual ~Disk();
 
 	virtual bool Dispatch() override;
 
 	void MediumChanged();
-	void ReserveFile(const string&);
-
-	// Media Operations
-	virtual void Open(const Filepath& path);
-	void GetPath(Filepath& path) const;
 	bool Eject(bool) override;
 
+	// Command helpers
+	virtual int WriteCheck(DWORD block);
+	virtual void Write( const DWORD *cdb, BYTE *buf, uint64_t block);
+	bool StartStop(const DWORD *cdb);
+	bool SendDiag(const DWORD *cdb) const;
+
+	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
+
+	uint32_t GetSectorSizeInBytes() const;
+	void SetSectorSizeInBytes(uint32_t);
+	uint32_t GetSectorSizeShiftCount() const;
+	void SetSectorSizeShiftCount(uint32_t);
+	bool IsSectorSizeConfigurable() const;
+	unordered_set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const unordered_set<uint32_t>&);
+	uint32_t GetConfiguredSectorSize() const;
+	bool SetConfiguredSectorSize(uint32_t);
+	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
+	bool SetGeometryForCapacity(uint64_t);
+	uint64_t GetBlockCount() const;
+	void SetBlockCount(uint32_t);
+	void FlushCache();
+
 private:
-	friend class Controller;
 
 	typedef ModePageDevice super;
 
@@ -96,38 +114,26 @@ private:
 	void Reserve();
 	void Release();
 
-public:
-
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	void Rezero();
 	void FormatUnit() override;
 	void ReassignBlocks();
 	void Seek6();
 
-	// Command helpers
-	virtual int WriteCheck(DWORD block);
-	virtual void Write( const DWORD *cdb, BYTE *buf, uint64_t block);
-	bool StartStop(const DWORD *cdb);
-	bool SendDiag(const DWORD *cdb) const;
+	void Read(access_mode);
+	void Write(access_mode);
+	void Verify(access_mode);
+	void ReadWriteLong10();
+	void ReadWriteLong16();
+	void ReadCapacity16_ReadLong16();
+	void Format(const DWORD *cdb);
 
-	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-
-	uint32_t GetSectorSizeInBytes() const;
-	void SetSectorSizeInBytes(uint32_t);
-	uint32_t GetSectorSizeShiftCount() const;
-	void SetSectorSizeShiftCount(uint32_t);
-	bool IsSectorSizeConfigurable() const;
-	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const unordered_set<uint32_t>&);
-	uint32_t GetConfiguredSectorSize() const;
-	bool SetConfiguredSectorSize(uint32_t);
-	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
-	bool SetGeometryForCapacity(uint64_t);
-	uint64_t GetBlockCount() const;
-	void SetBlockCount(uint32_t);
-	void FlushCache();
+	void ValidateBlockAddress(access_mode) const;
+	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 
 protected:
+
+	virtual void Open(const Filepath& path);
 
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
@@ -141,17 +147,4 @@ protected:
 
 	// Internal disk data
 	disk_t disk;
-
-private:
-
-	void Read(access_mode);
-	void Write(access_mode);
-	void Verify(access_mode);
-	void ReadWriteLong10();
-	void ReadWriteLong16();
-	void ReadCapacity16_ReadLong16();
-	void Format(const DWORD *cdb);
-
-	void ValidateBlockAddress(access_mode) const;
-	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 };
