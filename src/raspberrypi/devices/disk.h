@@ -60,7 +60,7 @@ public:
 	Disk(const string&);
 	virtual ~Disk();
 
-	virtual bool Dispatch(Controller *) override;
+	virtual bool Dispatch() override;
 
 	void MediumChanged();
 	void ReserveFile(const string&);
@@ -76,38 +76,38 @@ private:
 	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void StartStopUnit(Controller *);
-	void SendDiagnostic(Controller *);
-	void PreventAllowMediumRemoval(Controller *);
-	void SynchronizeCache10(Controller *);
-	void SynchronizeCache16(Controller *);
-	void ReadDefectData10(Controller *);
-	virtual void Read6(Controller *);
-	void Read10(Controller *) override;
-	void Read16(Controller *) override;
-	virtual void Write6(Controller *);
-	void Write10(Controller *) override;
-	void Write16(Controller *) override;
-	void Verify10(Controller *);
-	void Verify16(Controller *);
-	void Seek(Controller *);
-	void Seek10(Controller *);
-	virtual void ReadCapacity10(Controller *) override;
-	void ReadCapacity16(Controller *) override;
-	void Reserve(Controller *);
-	void Release(Controller *);
+	void StartStopUnit();
+	void SendDiagnostic();
+	void PreventAllowMediumRemoval();
+	void SynchronizeCache10();
+	void SynchronizeCache16();
+	void ReadDefectData10();
+	virtual void Read6();
+	void Read10();
+	void Read16() override;
+	virtual void Write6();
+	void Write10() override;
+	void Write16() override;
+	void Verify10();
+	void Verify16();
+	void Seek();
+	void Seek10();
+	virtual void ReadCapacity10() override;
+	void ReadCapacity16() override;
+	void Reserve();
+	void Release();
 
 public:
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void Rezero(Controller *);
-	void FormatUnit(Controller *) override;
-	void ReassignBlocks(Controller *);
-	void Seek6(Controller *);
+	void Rezero();
+	void FormatUnit() override;
+	void ReassignBlocks();
+	void Seek6();
 
 	// Command helpers
 	virtual int WriteCheck(DWORD block);
-	virtual void Write(Controller *, const DWORD *cdb, BYTE *buf, uint64_t block);
+	virtual void Write( const DWORD *cdb, BYTE *buf, uint64_t block);
 	bool StartStop(const DWORD *cdb);
 	bool SendDiag(const DWORD *cdb) const;
 
@@ -145,14 +145,14 @@ protected:
 
 private:
 
-	void Read(Controller *, access_mode);
-	void Write(Controller *, access_mode);
-	void Verify(Controller *, access_mode);
-	void ReadWriteLong10(Controller *);
-	void ReadWriteLong16(Controller *);
-	void ReadCapacity16_ReadLong16(Controller *);
+	void Read(access_mode);
+	void Write(access_mode);
+	void Verify(access_mode);
+	void ReadWriteLong10();
+	void ReadWriteLong16();
+	void ReadCapacity16_ReadLong16();
 	void Format(const DWORD *cdb);
 
 	void ValidateBlockAddress(access_mode) const;
-	bool CheckAndGetStartAndCount(Controller *, uint64_t&, uint32_t&, access_mode);
+	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 };

@@ -94,15 +94,15 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch(Controller *controller)
+bool SCSIBR::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-vector<BYTE> SCSIBR::Inquiry() const
+vector<BYTE> SCSIBR::InquiryInternal() const
 {
-	vector<BYTE> b = PrimaryDevice::Inquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<BYTE> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
 	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);
@@ -124,7 +124,7 @@ vector<BYTE> SCSIBR::Inquiry() const
 	return buf;
 }
 
-void SCSIBR::TestUnitReady(Controller *controller)
+void SCSIBR::TestUnitReady()
 {
 	// Always successful
 	controller->Status();
@@ -263,7 +263,7 @@ bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 	return false;
 }
 
-void SCSIBR::GetMessage10(Controller *controller)
+void SCSIBR::GetMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
@@ -291,7 +291,7 @@ void SCSIBR::GetMessage10(Controller *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10(Controller *controller)
+void SCSIBR::SendMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {

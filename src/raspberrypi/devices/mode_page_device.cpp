@@ -25,10 +25,10 @@ ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
-bool ModePageDevice::Dispatch(Controller *controller)
+bool ModePageDevice::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
@@ -91,14 +91,14 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void ModePageDevice::ModeSense6(Controller *controller)
+void ModePageDevice::ModeSense6()
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 
 	controller->DataIn();
 }
 
-void ModePageDevice::ModeSense10(Controller *controller)
+void ModePageDevice::ModeSense10()
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 
@@ -110,7 +110,7 @@ void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
-void ModePageDevice::ModeSelect6(Controller *controller)
+void ModePageDevice::ModeSelect6()
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
@@ -119,7 +119,7 @@ void ModePageDevice::ModeSelect6(Controller *controller)
 	controller->DataOut();
 }
 
-void ModePageDevice::ModeSelect10(Controller *controller)
+void ModePageDevice::ModeSelect10()
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 

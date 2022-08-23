@@ -31,7 +31,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 
 	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;

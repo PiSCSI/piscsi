@@ -321,10 +321,12 @@ void MapController(Device **map)
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			if (devices[unitno]) {
-				// Add the unit connection
-				(*it)->SetUnit(j, (static_cast<PrimaryDevice *>(devices[unitno])));
+				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unitno]));
 
-				(static_cast<PrimaryDevice *>(devices[unitno]))->SetController(*it);
+				primary_device->SetController(*it);
+
+				// Add the unit connection
+				(*it)->SetUnit(j, primary_device);
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -23,7 +23,7 @@ public:
 	ModePageDevice(const string&);
 	virtual ~ModePageDevice() {}
 
-	virtual bool Dispatch(Controller *) override;
+	virtual bool Dispatch() override;
 
 	virtual int ModeSense6(const DWORD *, BYTE *) = 0;
 	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
@@ -42,10 +42,10 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	void ModeSense6(Controller *);
-	void ModeSense10(Controller *);
-	void ModeSelect6(Controller *);
-	void ModeSelect10(Controller *);
+	void ModeSense6();
+	void ModeSense10();
+	void ModeSelect6();
+	void ModeSelect10();
 
 	int ModeSelectCheck(int);
 	int ModeSelectCheck6();

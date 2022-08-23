@@ -16,8 +16,6 @@
 #include "controller.h"
 #include <unordered_map>
 
-class Controller;
-
 using namespace std;
 using namespace scsi_defs;
 
@@ -36,27 +34,24 @@ public:
 
 	typedef struct _command_t {
 		const char* name;
-		void (T::*execute)(Controller *);
+		void (T::*execute)();
 
-		_command_t(const char* _name, void (T::*_execute)(Controller *)) : name(_name), execute(_execute) { };
+		_command_t(const char* _name, void (T::*_execute)()) : name(_name), execute(_execute) { };
 	} command_t;
 	unordered_map<scsi_command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(Controller *))
+	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)())
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
 
-	bool Dispatch(T *instance, Controller *controller)
+	bool Dispatch(T *instance, DWORD cmd)
 	{
-		Controller::ctrl_t *ctrl = controller->GetCtrl();
-		instance->SetCtrl(ctrl);
-
-		const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
+		const auto& it = commands.find(static_cast<scsi_command>(cmd));
 		if (it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd);
 
-			(instance->*it->second->execute)(controller);
+			(instance->*it->second->execute)();
 
 			return true;
 		}

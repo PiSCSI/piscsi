@@ -17,9 +17,6 @@ using namespace std;
 
 #define DEFAULT_VENDOR "RaSCSI"
 
-// TODO Remove as soon as Controller is a member of PrimaryDevice
-class Controller;
-
 class Device
 {
 private:
@@ -91,7 +88,7 @@ public:
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
-	virtual bool Dispatch(Controller *) = 0;
+	virtual bool Dispatch() = 0;
 
 	const string& GetType() const { return type; }
 

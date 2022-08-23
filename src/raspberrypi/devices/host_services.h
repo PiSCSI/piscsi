@@ -15,6 +15,8 @@
 
 using namespace std;
 
+class Controller;
+
 class HostServices: public ModePageDevice
 {
 
@@ -23,11 +25,11 @@ public:
 	HostServices();
 	~HostServices() {}
 
-	virtual bool Dispatch(Controller *) override;
+	virtual bool Dispatch() override;
 
-	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(Controller *);
-	void StartStopUnit(Controller *);
+	vector<BYTE> InquiryInternal() const override;
+	void TestUnitReady();
+	void StartStopUnit();
 
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *, int);

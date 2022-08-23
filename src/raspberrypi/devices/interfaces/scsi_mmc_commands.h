@@ -13,8 +13,6 @@
 
 #include "scsi_primary_commands.h"
 
-class Controller;
-
 class ScsiMmcCommands : virtual public ScsiPrimaryCommands
 {
 public:
@@ -22,6 +20,6 @@ public:
 	ScsiMmcCommands() {}
 	virtual ~ScsiMmcCommands() {}
 
-	virtual void ReadToc(Controller *) = 0;
-	virtual void GetEventStatusNotification(Controller *) = 0;
+	virtual void ReadToc() = 0;
+	virtual void GetEventStatusNotification() = 0;
 };

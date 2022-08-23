@@ -27,24 +27,21 @@ public:
 	PrimaryDevice(const string&);
 	virtual ~PrimaryDevice() {}
 
-	virtual bool Dispatch(Controller *);
+	virtual bool Dispatch();
 
-	void TestUnitReady(Controller *);
-	void RequestSense(Controller *);
-	virtual void Inquiry(Controller *);
-
-	void SetController(Controller *controller) { this->controller = controller;  }
-	void SetCtrl(Controller::ctrl_t *ctrl) { this->ctrl = ctrl; }
-
+	void TestUnitReady();
+	void RequestSense();
+	void Inquiry();
+	void SetController(Controller *);
 	void CheckReady();
-	vector<BYTE> RequestSense();
-	virtual vector<BYTE> Inquiry() const = 0;
+	vector<BYTE> HandleRequestSense();
+	virtual vector<BYTE> InquiryInternal() const = 0;
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
 protected:
 
-	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
+	vector<BYTE> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 
 	Controller *controller;
 	Controller::ctrl_t *ctrl;
@@ -53,5 +50,5 @@ private:
 
 	Dispatcher<PrimaryDevice> dispatcher;
 
-	void ReportLuns(Controller *);
+	void ReportLuns();
 };

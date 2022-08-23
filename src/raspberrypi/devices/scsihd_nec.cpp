@@ -135,9 +135,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD_NEC::Inquiry() const
+vector<BYTE> SCSIHD_NEC::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
+	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const

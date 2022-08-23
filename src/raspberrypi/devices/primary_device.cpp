@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -29,26 +29,31 @@ PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(i
 	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
-bool PrimaryDevice::Dispatch(Controller *controller)
+bool PrimaryDevice::Dispatch()
 {
-	return dispatcher.Dispatch(this, controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]);
 }
 
-void PrimaryDevice::TestUnitReady(Controller *controller)
+void PrimaryDevice::SetController(Controller *controller) {
+	this->controller = controller;
+	this->ctrl = controller->GetCtrl();
+}
+
+void PrimaryDevice::TestUnitReady()
 {
 	CheckReady();
 
 	controller->Status();
 }
 
-void PrimaryDevice::Inquiry(Controller *controller)
+void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	vector<BYTE> buf = Inquiry();
+	vector<BYTE> buf = InquiryInternal();
 
 	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
 	if (allocation_length > buf.size()) {
@@ -71,7 +76,7 @@ void PrimaryDevice::Inquiry(Controller *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::ReportLuns(Controller *controller)
+void PrimaryDevice::ReportLuns()
 {
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 
@@ -100,7 +105,7 @@ void PrimaryDevice::ReportLuns(Controller *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::RequestSense(Controller *controller)
+void PrimaryDevice::RequestSense()
 {
 	int lun = controller->GetEffectiveLun();
 
@@ -116,7 +121,7 @@ void PrimaryDevice::RequestSense(Controller *controller)
 		ctrl->status = 0x00;
 	}
 
-    vector<BYTE> buf = ctrl->unit[lun]->RequestSense();
+    vector<BYTE> buf = ctrl->unit[lun]->HandleRequestSense();
 
 	size_t allocation_length = ctrl->cmd[4];
     if (allocation_length > buf.size()) {
@@ -155,7 +160,7 @@ void PrimaryDevice::CheckReady()
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__);
 }
 
-vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_removable) const
+vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
 	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
@@ -177,7 +182,7 @@ vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_
 	return buf;
 }
 
-vector<BYTE> PrimaryDevice::RequestSense()
+vector<BYTE> PrimaryDevice::HandleRequestSense()
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {

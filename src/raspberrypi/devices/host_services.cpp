@@ -46,24 +46,24 @@ HostServices::HostServices() : ModePageDevice("SCHS")
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-bool HostServices::Dispatch(Controller *controller)
+bool HostServices::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-void HostServices::TestUnitReady(Controller *controller)
+void HostServices::TestUnitReady()
 {
 	// Always successful
 	controller->Status();
 }
 
-vector<BYTE> HostServices::Inquiry() const
+vector<BYTE> HostServices::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit(Controller *controller)
+void HostServices::StartStopUnit()
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;

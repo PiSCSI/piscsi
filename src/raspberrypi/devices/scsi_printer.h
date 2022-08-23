@@ -27,21 +27,21 @@ public:
 	SCSIPrinter();
 	~SCSIPrinter();
 
-	virtual bool Dispatch(Controller *) override;
+	virtual bool Dispatch() override;
 
 	bool Init(const unordered_map<string, string>&);
 
-	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(Controller *);
-	void ReserveUnit(Controller *);
-	void ReleaseUnit(Controller *);
-	void Print(Controller *);
-	void SynchronizeBuffer(Controller *);
-	void SendDiagnostic(Controller *);
-	void StopPrint(Controller *);
+	vector<BYTE> InquiryInternal() const override;
+	void TestUnitReady();
+	void ReserveUnit();
+	void ReleaseUnit();
+	void Print();
+	void SynchronizeBuffer();
+	void SendDiagnostic();
+	void StopPrint();
 
 	bool WriteBytes(BYTE *, uint32_t) override;
-	void CheckReservation(Controller *);
+	void CheckReservation();
 	void DiscardReservation();
 	void Cleanup();
 

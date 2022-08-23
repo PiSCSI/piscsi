@@ -11,8 +11,6 @@
 
 #pragma once
 
-class Controller;
-
 class ScsiPrimaryCommands
 {
 public:
@@ -21,10 +19,10 @@ public:
 	virtual ~ScsiPrimaryCommands() {}
 
 	// Mandatory commands
-	virtual void TestUnitReady(Controller *) = 0;
-	virtual void Inquiry(Controller *) = 0;
-	virtual void ReportLuns(Controller *) = 0;
+	virtual void TestUnitReady() = 0;
+	virtual void Inquiry() = 0;
+	virtual void ReportLuns() = 0;
 
 	// Implemented for all RaSCSI device types
-	virtual void RequestSense(Controller *) = 0;
+	virtual void RequestSense() = 0;
 };

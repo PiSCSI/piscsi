@@ -394,7 +394,7 @@ void Controller::Execute()
 	}
 	
 	try {
-		if (!ctrl.device->Dispatch(this)) {
+		if (!ctrl.device->Dispatch()) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
@@ -1291,7 +1291,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			}
 
 			try {
-				device->Write(this, ctrl.cmd, ctrl.buffer, ctrl.next - 1);
+				device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1);
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());

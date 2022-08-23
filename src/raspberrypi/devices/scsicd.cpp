@@ -204,10 +204,10 @@ SCSICD::~SCSICD()
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch(Controller *controller)
+bool SCSICD::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 void SCSICD::Open(const Filepath& path)
@@ -385,16 +385,16 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	dataindex = 0;
 }
 
-void SCSICD::ReadToc(Controller *controller)
+void SCSICD::ReadToc()
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 
 	controller->DataIn();
 }
 
-vector<BYTE> SCSICD::Inquiry() const
+vector<BYTE> SCSICD::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
@@ -608,7 +608,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-void SCSICD::GetEventStatusNotification(Controller *controller)
+void SCSICD::GetEventStatusNotification()
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi

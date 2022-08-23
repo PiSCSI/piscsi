@@ -37,15 +37,15 @@ public:
 	~SCSIBR();
 
 	bool Init(const unordered_map<string, string>&) override;
-	bool Dispatch(Controller *) override;
+	bool Dispatch() override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 	int GetMessage10(const DWORD *, BYTE *);
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
-	void TestUnitReady(Controller *) override;
-	void GetMessage10(Controller *);
-	void SendMessage10(Controller *);
+	void TestUnitReady() override;
+	void GetMessage10();
+	void SendMessage10();
 
 private:
 	typedef Disk super;

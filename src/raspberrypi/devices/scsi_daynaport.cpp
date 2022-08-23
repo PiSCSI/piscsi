@@ -59,7 +59,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-bool SCSIDaynaPort::Dispatch(Controller *controller)
+bool SCSIDaynaPort::Dispatch()
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
 	Controller::ctrl_t *ctrl = controller->GetCtrl();
@@ -69,7 +69,7 @@ bool SCSIDaynaPort::Dispatch(Controller *controller)
 	}
 
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
@@ -119,9 +119,9 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-vector<BYTE> SCSIDaynaPort::Inquiry() const
+vector<BYTE> SCSIDaynaPort::InquiryInternal() const
 {
-	vector<BYTE> buf = PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<BYTE> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
@@ -424,14 +424,14 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 	return result;
 }
 
-void SCSIDaynaPort::TestUnitReady(Controller *controller)
+void SCSIDaynaPort::TestUnitReady()
 {
 	// TEST UNIT READY Success
 
 	controller->Status();
 }
 
-void SCSIDaynaPort::Read6(Controller *controller)
+void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
 	uint32_t record = ctrl->cmd[1] & 0x1f;
@@ -459,7 +459,7 @@ void SCSIDaynaPort::Read6(Controller *controller)
 	controller->DataIn();
 }
 
-void SCSIDaynaPort::Write6(Controller *controller)
+void SCSIDaynaPort::Write6()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
@@ -492,7 +492,7 @@ void SCSIDaynaPort::Write6(Controller *controller)
 	controller->DataOut();
 }
 
-void SCSIDaynaPort::RetrieveStatistics(Controller *controller)
+void SCSIDaynaPort::RetrieveStatistics()
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 
@@ -529,7 +529,7 @@ void SCSIDaynaPort::RetrieveStatistics(Controller *controller)
 //             value.
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::SetInterfaceMode(Controller *controller)
+void SCSIDaynaPort::SetInterfaceMode()
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -551,7 +551,7 @@ void SCSIDaynaPort::SetInterfaceMode(Controller *controller)
 	}
 }
 
-void SCSIDaynaPort::SetMcastAddr(Controller *controller)
+void SCSIDaynaPort::SetMcastAddr()
 {
 	ctrl->length = (DWORD)ctrl->cmd[4];
 	if (ctrl->length == 0) {
@@ -563,7 +563,7 @@ void SCSIDaynaPort::SetMcastAddr(Controller *controller)
 	controller->DataOut();
 }
 
-void SCSIDaynaPort::EnableInterface(Controller *controller)
+void SCSIDaynaPort::EnableInterface()
 {
 	bool status = EnableInterface(ctrl->cmd);
 	if (!status) {

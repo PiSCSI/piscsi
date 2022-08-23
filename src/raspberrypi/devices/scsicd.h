@@ -79,12 +79,12 @@ public:
 	SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
-	bool Dispatch(Controller *) override;
+	bool Dispatch() override;
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	int ReadToc(const DWORD *cdb, BYTE *buf);
 
@@ -105,8 +105,8 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void ReadToc(Controller *) override;
-	void GetEventStatusNotification(Controller *) override;
+	void ReadToc() override;
+	void GetEventStatusNotification() override;
 
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 

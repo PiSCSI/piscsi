@@ -27,13 +27,11 @@ public:
 
 	void Open(const Filepath& path) override;
 
-	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 protected:
 
-	// Internal processing
 	void SetDeviceParameters(BYTE *) override;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;

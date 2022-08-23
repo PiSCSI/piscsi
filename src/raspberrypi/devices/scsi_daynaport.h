@@ -49,7 +49,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
 	int WriteCheck(DWORD block) override;
@@ -59,16 +59,16 @@ public:
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
 
-	void TestUnitReady(Controller *) override;
-	void Read6(Controller *) override;
-	void Write6(Controller *) override;
-	void RetrieveStatistics(Controller *);
-	void SetInterfaceMode(Controller *);
-	void SetMcastAddr(Controller *);
-	void EnableInterface(Controller *);
+	void TestUnitReady() override;
+	void Read6() override;
+	void Write6() override;
+	void RetrieveStatistics();
+	void SetInterfaceMode();
+	void SetMcastAddr();
+	void EnableInterface();
 	int GetSendDelay() const override;
 
-	bool Dispatch(Controller *) override;
+	bool Dispatch() override;
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
