@@ -43,6 +43,7 @@ protected:
 
 	vector<BYTE> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 
+	// TODO The dispatched methods should probably return the next bus phase, instead of calling these methods
 	void EnterBusFreePhase() { phase_handler->BusFree(); }
 	void EnterSelectionPhase() { phase_handler->Selection(); }
 	void EnterCommandPhase() { phase_handler->Command(); }
