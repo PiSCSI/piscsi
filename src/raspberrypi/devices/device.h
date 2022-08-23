@@ -154,6 +154,4 @@ public:
 	bool Start();
 	void Stop();
 	virtual bool Eject(bool);
-
-	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
 };

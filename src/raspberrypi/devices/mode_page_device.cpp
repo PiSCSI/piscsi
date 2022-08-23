@@ -115,9 +115,6 @@ void ModePageDevice::ModeSelect6(Controller *controller)
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck6();
-	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
-	}
 
 	controller->DataOut();
 }
@@ -127,18 +124,15 @@ void ModePageDevice::ModeSelect10(Controller *controller)
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck10();
-	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
-	}
 
 	controller->DataOut();
 }
 
 int ModePageDevice::ModeSelectCheck(int length)
 {
-	// Error if save parameters are set for other types than of SCHD or SCRM
+	// Error if save parameters are set for other types than of SCHD, SCRM or SCMO
 	// TODO The assumption above is not correct, and this code should be located elsewhere
-	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
+	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
