@@ -190,7 +190,7 @@ void Disk::ReadWriteLong10(Controller *controller)
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	ValidateBlockAddress(controller, RW10);
+	ValidateBlockAddress(RW10);
 
 	controller->Status();
 }
@@ -203,7 +203,7 @@ void Disk::ReadWriteLong16(Controller *controller)
 		return;
 	}
 
-	ValidateBlockAddress(controller, RW16);
+	ValidateBlockAddress(RW16);
 
 	controller->Status();
 }
@@ -893,7 +893,7 @@ void Disk::Release(Controller *controller)
 //
 //---------------------------------------------------------------------------
 
-void Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
+void Disk::ValidateBlockAddress(access_mode mode) const
 {
 	uint64_t block = ctrl->cmd[2];
 	block <<= 8;
