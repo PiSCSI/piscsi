@@ -322,10 +322,13 @@ void MapController(Device **map)
 			int unitno = i * UnitNum + j;
 			if (devices[unitno]) {
 				// Add the unit connection
-				(*it)->SetUnit(j, (static_cast<Disk *>(devices[unitno])));
+				(*it)->SetUnit(j, (static_cast<PrimaryDevice *>(devices[unitno])));
+
+				(static_cast<PrimaryDevice *>(devices[unitno]))->SetController(*it);
 			}
 		}
 	}
+
 	pthread_mutex_unlock(&ctrl_mutex);
 }
 

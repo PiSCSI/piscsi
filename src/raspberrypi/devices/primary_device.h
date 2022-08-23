@@ -33,6 +33,7 @@ public:
 	void RequestSense(Controller *);
 	virtual void Inquiry(Controller *);
 
+	void SetController(Controller *controller) { this->controller = controller;  }
 	void SetCtrl(Controller::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	void CheckReady();
@@ -45,6 +46,7 @@ protected:
 
 	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
 
+	Controller *controller;
 	Controller::ctrl_t *ctrl;
 
 private:

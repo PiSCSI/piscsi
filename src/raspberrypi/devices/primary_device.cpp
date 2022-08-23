@@ -17,6 +17,7 @@ using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
+	controller = NULL;
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
