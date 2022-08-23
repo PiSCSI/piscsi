@@ -62,7 +62,6 @@ SCSIDaynaPort::~SCSIDaynaPort()
 bool SCSIDaynaPort::Dispatch()
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	Controller::ctrl_t *ctrl = controller->GetCtrl();
 	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
 			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
 		return false;

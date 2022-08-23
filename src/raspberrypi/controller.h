@@ -119,8 +119,6 @@ public:
 
 	BUS::phase_t Process(int);
 
-	void Receive();
-
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
@@ -132,13 +130,9 @@ public:
 	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
 	int GetInitiatorId() const { return scsi.initiator_id; }
-	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 	void SetUnit(int, PrimaryDevice *);
-	bool HasUnit() const;
-
-	void FlushUnit();
 
 	void Connect(int, BUS *);
 
@@ -146,7 +140,6 @@ public:
 	void DataIn() override;
 	void DataOut() override;
 
-	int GetSCSIID() {return ctrl.m_scsi_id;}
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
@@ -155,7 +148,6 @@ private:
 	void BusFree() override;
 	void Selection() override;
 	void Command() override;
-	void Execute();
 	void MsgIn() override;
 	void MsgOut() override;
 
@@ -166,6 +158,12 @@ private:
 	bool XferOut(bool);
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
+
+	void Execute();
+	void FlushUnit();
+	void Receive();
+	bool HasUnit() const;
+	int GetSCSIID() { return ctrl.m_scsi_id; }
 
 	ctrl_t ctrl;
 	scsi_t scsi;
