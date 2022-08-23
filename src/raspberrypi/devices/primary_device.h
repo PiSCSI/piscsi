@@ -35,8 +35,8 @@ public:
 	void SetCtrl(Controller::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	void CheckReady();
+	vector<BYTE> RequestSense();
 	virtual vector<BYTE> Inquiry() const = 0;
-	virtual vector<BYTE> RequestSense(int);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 

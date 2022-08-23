@@ -115,10 +115,9 @@ void PrimaryDevice::RequestSense(Controller *controller)
 		ctrl->status = 0x00;
 	}
 
+    vector<BYTE> buf = ctrl->unit[lun]->RequestSense();
+
 	size_t allocation_length = ctrl->cmd[4];
-
-    vector<BYTE> buf = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(allocation_length);
-
     if (allocation_length > buf.size()) {
     	allocation_length = buf.size();
     }
@@ -177,7 +176,7 @@ vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_
 	return buf;
 }
 
-vector<BYTE> PrimaryDevice::RequestSense(int)
+vector<BYTE> PrimaryDevice::RequestSense()
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
