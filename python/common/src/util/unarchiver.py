@@ -79,7 +79,8 @@ def extract_archive(file_path, **kwargs):
             extracted_members = []
 
             for line in lines[1:-1]:
-                if line_matches := match(unar_file_extracted, line):
+                line_matches = match(unar_file_extracted, line)
+                if line_matches:
                     matches = line_matches.groupdict()
                     member = {
                         "name": str(pathlib.PurePath(matches["path"]).name),
@@ -90,7 +91,11 @@ def extract_archive(file_path, **kwargs):
                         "absolute_path": str(pathlib.PurePath(tmp_dir).joinpath(matches["path"])),
                         }
 
-                    member_types = matches.get("types", "").removeprefix(", ").split(", ")
+                    member_types = matches.get("types", "")
+                    if member_types.startswith(", "):
+                        member_types = member_types[2:].split(", ")
+                    else:
+                        member_types = member_types.split(", ")
 
                     if "dir" in member_types:
                         member["is_dir"] = True
