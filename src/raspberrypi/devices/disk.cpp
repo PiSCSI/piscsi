@@ -200,7 +200,6 @@ void Disk::ReadWriteLong16(Controller *controller)
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
 	}
 
 	ValidateBlockAddress(RW16);
