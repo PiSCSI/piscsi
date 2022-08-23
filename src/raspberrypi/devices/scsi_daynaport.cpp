@@ -317,7 +317,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
+bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	BYTE data_format = cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
@@ -337,6 +337,8 @@ void SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
 	}
+
+	return true;
 }
 	
 //---------------------------------------------------------------------------

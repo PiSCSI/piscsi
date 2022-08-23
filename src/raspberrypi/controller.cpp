@@ -1265,14 +1265,11 @@ bool Controller::XferOutBlockOriented(bool cont)
 		case eCmdVerify10:
 		case eCmdVerify16:
 		{
-			// If we're a host bridge, use the host bridge's SendMessage10 function
+			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
 			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
 			if (bridge) {
-				try {
-					bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length);
-				}
-				catch(const scsi_error_exception&) {
+				if (!bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// Write failed
 					return false;
 				}
@@ -1285,7 +1282,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			// TODO This class must not know about DaynaPort
 			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(device);
 			if (daynaport) {
-				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length);
+				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, 0);
 
 				ctrl.offset = 0;
 				ctrl.blocks = 0;

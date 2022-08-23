@@ -42,7 +42,7 @@ public:
 	// Commands
 	vector<BYTE> Inquiry() const override;
 	int GetMessage10(const DWORD *, BYTE *);
-	void WriteBytes(const DWORD *, BYTE *, uint64_t);
+	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
 	void TestUnitReady(Controller *) override;
 	void GetMessage10(Controller *);
 	void SendMessage10(Controller *);

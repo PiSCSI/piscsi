@@ -210,7 +210,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-void SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
+bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
@@ -232,17 +232,17 @@ void SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
-				throw scsi_error_exception();
+				return false;
 			}
 
 			switch (func) {
 				case 0:		// MAC address setting
 					SetMacAddr(buf);
-					return;
+					return true;
 
 				case 1:		// Send packet
 					SendPacket(buf, len);
-					return;
+					return true;
 			}
 			break;
 
@@ -250,17 +250,17 @@ void SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 			switch (phase) {
 				case 0:		// issue command
 					WriteFs(func, buf);
-					return;
+					return true;
 
 				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
-					return;
+					return true;
 			}
 			break;
 	}
 
 	assert(false);
-	throw scsi_error_exception();
+	return false;
 }
 
 void SCSIBR::GetMessage10(Controller *controller)
