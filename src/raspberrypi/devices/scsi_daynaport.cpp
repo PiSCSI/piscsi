@@ -427,7 +427,7 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 void SCSIDaynaPort::TestUnitReady()
 {
 	// Always successful
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void SCSIDaynaPort::Read6()
@@ -455,7 +455,7 @@ void SCSIDaynaPort::Read6()
 	// Set next block
 	ctrl->next = record + 1;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void SCSIDaynaPort::Write6()
@@ -488,7 +488,7 @@ void SCSIDaynaPort::Write6()
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	phase_handler->DataOut();
+	EnterDataOutPhase();
 }
 
 void SCSIDaynaPort::RetrieveStatistics()
@@ -499,7 +499,7 @@ void SCSIDaynaPort::RetrieveStatistics()
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 //---------------------------------------------------------------------------
@@ -536,12 +536,12 @@ void SCSIDaynaPort::SetInterfaceMode()
 	switch(ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
-			phase_handler->Status();
+			EnterStatusPhase();
 			break;
 
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
-			phase_handler->DataOut();
+			EnterDataOutPhase();
 			break;
 
 		default:
@@ -559,7 +559,7 @@ void SCSIDaynaPort::SetMcastAddr()
 		throw scsi_error_exception();
 	}
 
-	phase_handler->DataOut();
+	EnterDataOutPhase();
 }
 
 void SCSIDaynaPort::EnableInterface()
@@ -569,7 +569,7 @@ void SCSIDaynaPort::EnableInterface()
 		throw scsi_error_exception();
 	}
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 int SCSIDaynaPort::GetSendDelay() const

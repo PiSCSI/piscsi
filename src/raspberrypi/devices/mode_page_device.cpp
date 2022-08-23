@@ -95,14 +95,14 @@ void ModePageDevice::ModeSense6()
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
@@ -116,7 +116,7 @@ void ModePageDevice::ModeSelect6()
 
 	ctrl->length = ModeSelectCheck6();
 
-	phase_handler->DataOut();
+	EnterDataOutPhase();
 }
 
 void ModePageDevice::ModeSelect10()
@@ -125,7 +125,7 @@ void ModePageDevice::ModeSelect10()
 
 	ctrl->length = ModeSelectCheck10();
 
-	phase_handler->DataOut();
+	EnterDataOutPhase();
 }
 
 int ModePageDevice::ModeSelectCheck(int length)

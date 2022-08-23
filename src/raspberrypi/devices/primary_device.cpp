@@ -45,7 +45,7 @@ void PrimaryDevice::TestUnitReady()
 {
 	CheckReady();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void PrimaryDevice::Inquiry()
@@ -75,7 +75,7 @@ void PrimaryDevice::Inquiry()
 		ctrl->buffer[0] |= 0x7f;
 	}
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void PrimaryDevice::ReportLuns()
@@ -104,7 +104,7 @@ void PrimaryDevice::ReportLuns()
 
 	ctrl->length = allocation_length < size ? allocation_length : size;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void PrimaryDevice::RequestSense()
@@ -133,7 +133,7 @@ void PrimaryDevice::RequestSense()
     memcpy(ctrl->buffer, buf.data(), allocation_length);
     ctrl->length = allocation_length;
 
-    phase_handler->DataIn();
+    EnterDataInPhase();
 }
 
 void PrimaryDevice::CheckReady()

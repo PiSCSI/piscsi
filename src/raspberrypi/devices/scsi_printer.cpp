@@ -99,7 +99,7 @@ void SCSIPrinter::TestUnitReady()
 {
 	CheckReservation();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 vector<BYTE> SCSIPrinter::InquiryInternal() const
@@ -127,7 +127,7 @@ void SCSIPrinter::ReserveUnit()
 
 	Cleanup();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void SCSIPrinter::ReleaseUnit()
@@ -143,7 +143,7 @@ void SCSIPrinter::ReleaseUnit()
 
 	DiscardReservation();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void SCSIPrinter::Print()
@@ -169,7 +169,7 @@ void SCSIPrinter::Print()
 	ctrl->length = length;
 	controller->SetByteTransfer(true);
 
-	phase_handler->DataOut();
+	EnterDataOutPhase();
 }
 
 void SCSIPrinter::SynchronizeBuffer()
@@ -209,14 +209,14 @@ void SCSIPrinter::SynchronizeBuffer()
 
 	unlink(filename);
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void SCSIPrinter::SendDiagnostic()
 {
 	CheckReservation();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void SCSIPrinter::StopPrint()
@@ -225,7 +225,7 @@ void SCSIPrinter::StopPrint()
 
 	// Nothing to do, printing has not yet been started
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)

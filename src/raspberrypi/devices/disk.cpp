@@ -137,21 +137,21 @@ void Disk::Rezero()
 {
 	CheckReady();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::FormatUnit()
 {
 	Format(ctrl->cmd);
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::ReassignBlocks()
 {
 	CheckReady();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::Read(access_mode mode)
@@ -164,7 +164,7 @@ void Disk::Read(access_mode mode)
 		// Set next block
 		ctrl->next = start + 1;
 
-		phase_handler->DataIn();
+		EnterDataInPhase();
 	}
 }
 
@@ -192,7 +192,7 @@ void Disk::ReadWriteLong10()
 
 	ValidateBlockAddress(RW10);
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::ReadWriteLong16()
@@ -204,7 +204,7 @@ void Disk::ReadWriteLong16()
 
 	ValidateBlockAddress(RW16);
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::Write(access_mode mode)
@@ -216,7 +216,7 @@ void Disk::Write(access_mode mode)
 		// Set next block
 		ctrl->next = start + 1;
 
-		phase_handler->DataOut();
+		EnterDataOutPhase();
 	}
 }
 
@@ -251,7 +251,7 @@ void Disk::Verify(access_mode mode)
 		// Set next block
 		ctrl->next = start + 1;
 
-		phase_handler->DataOut();
+		EnterDataOutPhase();
 	}
 }
 
@@ -271,7 +271,7 @@ void Disk::StartStopUnit()
 		throw scsi_error_exception();
 	}
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::SendDiagnostic()
@@ -280,7 +280,7 @@ void Disk::SendDiagnostic()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::PreventAllowMediumRemoval()
@@ -293,14 +293,14 @@ void Disk::PreventAllowMediumRemoval()
 
 	SetLocked(lock);
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::SynchronizeCache10()
 {
 	FlushCache();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::SynchronizeCache16()
@@ -319,7 +319,7 @@ void Disk::ReadDefectData10()
 	memset(ctrl->buffer, 0, allocation_length);
 	ctrl->length = allocation_length;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void Disk::MediumChanged()
@@ -714,7 +714,7 @@ void Disk::Seek()
 {
 	CheckReady();
 
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::Seek6()
@@ -807,7 +807,7 @@ void Disk::ReadCapacity10()
 	// the size
 	ctrl->length = 8;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void Disk::ReadCapacity16()
@@ -846,7 +846,7 @@ void Disk::ReadCapacity16()
 	// the size
 	ctrl->length = 14;
 
-	phase_handler->DataIn();
+	EnterDataInPhase();
 }
 
 void Disk::ReadCapacity16_ReadLong16()
@@ -879,12 +879,12 @@ void Disk::ReadCapacity16_ReadLong16()
 //---------------------------------------------------------------------------
 void Disk::Reserve()
 {
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 void Disk::Release()
 {
-	phase_handler->Status();
+	EnterStatusPhase();
 }
 
 //---------------------------------------------------------------------------
@@ -988,7 +988,7 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 	// Do not process 0 blocks unless this is a seek
 	if (!count && (mode != SEEK6 && mode != SEEK10)) {
 		LOGTRACE("NOT processing 0 blocks");
-		phase_handler->Status();
+		EnterStatusPhase();
 		return false;
 	}
 
