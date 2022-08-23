@@ -1263,6 +1263,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 		case eCmdWrite6:
 		case eCmdWrite10:
 		case eCmdWrite16:
+		// TODO Verify has to verify, not to write
 		case eCmdVerify10:
 		case eCmdVerify16:
 		{
