@@ -144,51 +144,63 @@ BUS::phase_t Controller::Process(int initiator_id)
 
 	scsi.initiator_id = initiator_id;
 
-	// Phase processing
-	switch (ctrl.phase) {
-		// Bus free phase
-		case BUS::busfree:
-			BusFree();
+	try {
+		// Phase processing
+		switch (ctrl.phase) {
+			// Bus free phase
+			case BUS::busfree:
+				BusFree();
+				break;
+
+				// Selection
+			case BUS::selection:
+				Selection();
+				break;
+
+				// Data out (MCI=000)
+			case BUS::dataout:
+				DataOut();
+				break;
+
+				// Data in (MCI=001)
+			case BUS::datain:
+				DataIn();
+				break;
+
+				// Command (MCI=010)
+			case BUS::command:
+				Command();
 			break;
 
-		// Selection
-		case BUS::selection:
-			Selection();
-			break;
+			// Status (MCI=011)
+			case BUS::status:
+				Status();
+				break;
 
-		// Data out (MCI=000)
-		case BUS::dataout:
-			DataOut();
-			break;
+			// Message out (MCI=110)
+			case BUS::msgout:
+				MsgOut();
+				break;
 
-		// Data in (MCI=001)
-		case BUS::datain:
-			DataIn();
-			break;
+			// Message in (MCI=111)
+			case BUS::msgin:
+				MsgIn();
+				break;
 
-		// Command (MCI=010)
-		case BUS::command:
-			Command();
-			break;
+			default:
+				assert(false);
+				break;
+		}
+	}
+	catch(const scsi_error_exception& e) {
+		// This is an unexpected case because any exception should have been handled before
 
-		// Status (MCI=011)
-		case BUS::status:
-			Status();
-			break;
+		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__);
 
-		// Message out (MCI=110)
-		case BUS::msgout:
-			MsgOut();
-			break;
+		Reset();
+		ctrl.bus->Reset();
 
-		// Message in (MCI=111)
-		case BUS::msgin:
-			MsgIn();
-			break;
-
-		default:
-			assert(false);
-			break;
+		BusFree();
 	}
 
 	return ctrl.phase;
