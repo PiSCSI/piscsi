@@ -384,7 +384,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 		response_size = allocation_length;
 	}
 
-	// Success
 	return response_size;
 }
 
@@ -497,9 +496,6 @@ void SCSIDaynaPort::Write6(Controller *controller)
 void SCSIDaynaPort::RetrieveStatistics(Controller *controller)
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
-	}
 
 	// Set next block
 	ctrl->blocks = 1;

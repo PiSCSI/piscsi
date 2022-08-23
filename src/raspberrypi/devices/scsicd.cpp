@@ -388,9 +388,6 @@ void SCSICD::OpenPhysical(const Filepath& path)
 void SCSICD::ReadToc(Controller *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
-	}
 
 	controller->DataIn();
 }
@@ -474,7 +471,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	// Search for the track
 	int index = SearchTrack(block);
 
-	// Ff invalid, out of range
+	// If invalid, out of range
 	if (index < 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
