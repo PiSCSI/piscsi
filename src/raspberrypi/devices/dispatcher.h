@@ -13,7 +13,6 @@
 
 #include "log.h"
 #include "scsi.h"
-#include "controller.h"
 #include <unordered_map>
 
 using namespace std;
