@@ -17,7 +17,6 @@
 //---------------------------------------------------------------------------
 
 #include "exceptions.h"
-#include "controller.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"

@@ -41,7 +41,6 @@
 
 #include <sys/stat.h>
 #include "exceptions.h"
-#include "controller.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
 

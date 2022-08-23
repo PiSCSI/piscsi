@@ -11,7 +11,6 @@
 
 #include "log.h"
 #include "exceptions.h"
-#include "controller.h"
 #include "mode_page_device.h"
 
 using namespace std;
