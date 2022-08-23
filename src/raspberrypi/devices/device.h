@@ -17,6 +17,7 @@ using namespace std;
 
 #define DEFAULT_VENDOR "RaSCSI"
 
+// TODO Remove as soon as Controller is a member of PrimaryDevice
 class Controller;
 
 class Device
