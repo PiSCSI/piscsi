@@ -41,8 +41,8 @@ public:
 
 	// Commands
 	vector<BYTE> Inquiry() const override;
-	int GetMessage10(const DWORD *cdb, BYTE *buf);
-	void SendMessage10(const DWORD *cdb, BYTE *buf);
+	int GetMessage10(const DWORD *, BYTE *);
+	void Write(Controller *, const DWORD *, BYTE *, uint64_t) override;
 	void TestUnitReady(Controller *) override;
 	void GetMessage10(Controller *);
 	void SendMessage10(Controller *);
@@ -53,10 +53,10 @@ private:
 	Dispatcher<SCSIBR> dispatcher;
 
 	int GetMacAddr(BYTE *buf);					// Get MAC address
-	void SetMacAddr(BYTE *buf);					// Set MAC address
+	void SetMacAddr(const BYTE *buf);			// Set MAC address
 	void ReceivePacket();						// Receive a packet
-	void GetPacketBuf(BYTE *buf);					// Get a packet
-	void SendPacket(BYTE *buf, int len);				// Send a packet
+	void GetPacketBuf(BYTE *buf);				// Get a packet
+	void SendPacket(BYTE *buf, int len);		// Send a packet
 
 	CTapDriver *tap;							// TAP driver
 	bool m_bTapEnable;							// TAP valid flag

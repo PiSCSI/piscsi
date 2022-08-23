@@ -50,8 +50,8 @@ public:
 
 	// Commands
 	vector<BYTE> Inquiry() const override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	void Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
+	void Write(Controller *, const DWORD *, BYTE *, uint64_t) override;
 	int WriteCheck(DWORD block) override;
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);

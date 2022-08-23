@@ -691,7 +691,7 @@ int Disk::WriteCheck(DWORD block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-void Disk::Write(Controller *controller, const DWORD *cdb, const BYTE *buf, DWORD block)
+void Disk::Write(Controller *controller, const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 

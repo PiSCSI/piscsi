@@ -210,7 +210,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-void SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
+void SCSIBR::Write(Controller *, const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
@@ -324,7 +324,7 @@ int SCSIBR::GetMacAddr(BYTE *mac)
 	return 6;
 }
 
-void SCSIBR::SetMacAddr(BYTE *mac)
+void SCSIBR::SetMacAddr(const BYTE *mac)
 {
 	memcpy(mac_addr, mac, 6);
 }

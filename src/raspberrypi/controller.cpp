@@ -1270,14 +1270,13 @@ bool Controller::XferOutBlockOriented(bool cont)
 			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
 			if (bridge) {
 				try {
-					bridge->SendMessage10(ctrl.cmd, ctrl.buffer);
+					bridge->Write(this, ctrl.cmd, ctrl.buffer, ctrl.length);
 				}
 				catch(const scsi_error_exception&) {
-					// write failed
+					// Write failed
 					return false;
 				}
 
-				// If normal, work setting
 				ctrl.offset = 0;
 				break;
 			}
@@ -1318,7 +1317,6 @@ bool Controller::XferOutBlockOriented(bool cont)
 				return false;
 			}
 
-			// If normal, work setting
 			ctrl.offset = 0;
 			break;
 		}
