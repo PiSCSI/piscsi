@@ -985,9 +985,8 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
-	// Do not process 0 blocks unless this is a seek
+	// Do not process 0 blocks
 	if (!count && (mode != SEEK6 && mode != SEEK10)) {
-		LOGTRACE("NOT processing 0 blocks");
 		EnterStatusPhase();
 		return false;
 	}
