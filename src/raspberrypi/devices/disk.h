@@ -45,7 +45,7 @@ private:
 	unordered_map<uint64_t, Geometry> geometries;
 
 	typedef struct {
-		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
+		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
 		// TODO blocks should be a 64 bit value in order to support higher capacities
 		uint32_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
