@@ -66,12 +66,12 @@ public:
 	bool Eject(bool) override;
 
 	// Command helpers
-	virtual int WriteCheck(DWORD block);
-	virtual void Write( const DWORD *cdb, BYTE *buf, uint64_t block);
-	bool StartStop(const DWORD *cdb);
-	bool SendDiag(const DWORD *cdb) const;
+	virtual int WriteCheck(DWORD);
+	virtual void Write( const DWORD *, BYTE *, uint64_t);
+	bool StartStop(const DWORD *);
+	bool SendDiag(const DWORD *) const;
 
-	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
+	virtual int Read(const DWORD *, BYTE *, uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t);
@@ -126,7 +126,7 @@ private:
 	void ReadWriteLong10();
 	void ReadWriteLong16();
 	void ReadCapacity16_ReadLong16();
-	void Format(const DWORD *cdb);
+	void Format(const DWORD *);
 
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
