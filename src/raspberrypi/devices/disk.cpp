@@ -985,7 +985,7 @@ bool Disk::CheckAndGetStartAndCount(Controller *controller, uint64_t& start, uin
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
-	// Do not process 0 blocks
+	// Do not process 0 blocks unless this is a seek
 	if (!count && (mode != SEEK6 && mode != SEEK10)) {
 		LOGTRACE("NOT processing 0 blocks");
 		controller->Status();
