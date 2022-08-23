@@ -340,6 +340,7 @@ bool Disk::Eject(bool force)
 		disk.dcache = NULL;
 
 		// The image file for this drive is not in use anymore
+		// TODO This cast and the FileSupport class can be removed as soon as only disk-like devices inherit from Disk
 		FileSupport *file_support = dynamic_cast<FileSupport *>(this);
 		if (file_support) {
 			file_support->UnreserveFile();
