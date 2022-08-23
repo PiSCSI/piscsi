@@ -1285,7 +1285,6 @@ bool Controller::XferOutBlockOriented(bool cont)
 			if (daynaport) {
 				daynaport->Write(this, ctrl.cmd, ctrl.buffer, ctrl.length);
 
-				// If normal, work setting
 				ctrl.offset = 0;
 				ctrl.blocks = 0;
 				break;

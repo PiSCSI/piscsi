@@ -109,8 +109,9 @@ void PrimaryDevice::RequestSense(Controller *controller)
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
 		lun = 0;
 
-		// Do not raise an exception here because the status has to be reset below
+		// Do not raise an exception here because the rest of the code must be executed
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+
 		ctrl->status = 0x00;
 	}
 
