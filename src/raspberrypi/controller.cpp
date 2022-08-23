@@ -1269,7 +1269,10 @@ bool Controller::XferOutBlockOriented(bool cont)
 			// TODO This class must not know about SCSIBR
 			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
 			if (bridge) {
-				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+				try {
+					bridge->SendMessage10(ctrl.cmd, ctrl.buffer);
+				}
+				catch(const scsi_error_exception&) {
 					// write failed
 					return false;
 				}
