@@ -39,6 +39,7 @@ void PrimaryDevice::SetController(Controller *controller)
 {
 	this->controller = controller;
 	this->ctrl = controller->GetCtrl();
+	this->phase_handler = controller;
 }
 
 void PrimaryDevice::TestUnitReady()
