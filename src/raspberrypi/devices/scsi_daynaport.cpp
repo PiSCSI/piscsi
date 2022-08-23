@@ -563,8 +563,7 @@ void SCSIDaynaPort::SetMcastAddr()
 
 void SCSIDaynaPort::EnableInterface()
 {
-	bool status = EnableInterface(ctrl->cmd);
-	if (!status) {
+	if (!EnableInterface(ctrl->cmd)) {
 		throw scsi_error_exception();
 	}
 
