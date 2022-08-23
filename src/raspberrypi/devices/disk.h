@@ -154,5 +154,5 @@ private:
 	void Format(const DWORD *cdb);
 
 	void ValidateBlockAddress(Controller *, access_mode);
-	bool GetStartAndCount(Controller *, uint64_t&, uint32_t&, access_mode);
+	bool CheckAndGetStartAndCount(Controller *, uint64_t&, uint32_t&, access_mode);
 };

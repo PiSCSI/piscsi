@@ -157,17 +157,15 @@ void Disk::ReassignBlocks(Controller *controller)
 void Disk::Read(Controller *controller, access_mode mode)
 {
 	uint64_t start;
-	if (!GetStartAndCount(controller, start, ctrl->blocks, mode)) {
-		return;
+	if (CheckAndGetStartAndCount(controller, start, ctrl->blocks, mode)) {
+		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
+		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+
+		// Set next block
+		ctrl->next = start + 1;
+
+		controller->DataIn();
 	}
-
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
-	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-
-	// Set next block
-	ctrl->next = start + 1;
-
-	controller->DataIn();
 }
 
 void Disk::Read6(Controller *controller)
@@ -213,16 +211,14 @@ void Disk::ReadWriteLong16(Controller *controller)
 void Disk::Write(Controller *controller, access_mode mode)
 {
 	uint64_t start;
-	if (!GetStartAndCount(controller, start, ctrl->blocks, mode)) {
-		return;
+	if (CheckAndGetStartAndCount(controller, start, ctrl->blocks, mode)) {
+		ctrl->length = WriteCheck(start);
+
+		// Set next block
+		ctrl->next = start + 1;
+
+		controller->DataOut();
 	}
-
-	ctrl->length = WriteCheck(start);
-
-	// Set next block
-	ctrl->next = start + 1;
-
-	controller->DataOut();
 }
 
 void Disk::Write6(Controller *controller)
@@ -243,23 +239,21 @@ void Disk::Write16(Controller *controller)
 void Disk::Verify(Controller *controller, access_mode mode)
 {
 	uint64_t start;
-	if (!GetStartAndCount(controller, start, ctrl->blocks, mode)) {
-		return;
+	if (CheckAndGetStartAndCount(controller, start, ctrl->blocks, mode)) {
+		// if BytChk=0
+		if ((ctrl->cmd[1] & 0x02) == 0) {
+			Seek(controller);
+			return;
+		}
+
+		// Test reading
+		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
+
+		// Set next block
+		ctrl->next = start + 1;
+
+		controller->DataOut();
 	}
-
-	// if BytChk=0
-	if ((ctrl->cmd[1] & 0x02) == 0) {
-		Seek(controller);
-		return;
-	}
-
-	// Test loading
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
-
-	// Set next block
-	ctrl->next = start + 1;
-
-	controller->DataOut();
 }
 
 void Disk::Verify10(Controller *controller)
@@ -726,7 +720,7 @@ void Disk::Seek(Controller *controller)
 void Disk::Seek6(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
+	if (CheckAndGetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
 		Seek(controller);
 	}
 }
@@ -734,7 +728,7 @@ void Disk::Seek6(Controller *controller)
 void Disk::Seek10(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK10)) {
+	if (CheckAndGetStartAndCount(controller, start, ctrl->blocks, SEEK10)) {
 		Seek(controller);
 	}
 }
@@ -928,7 +922,7 @@ void Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
 	}
 }
 
-bool Disk::GetStartAndCount(Controller *controller, uint64_t& start, uint32_t& count, access_mode mode)
+bool Disk::CheckAndGetStartAndCount(Controller *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
 	if (mode == RW6 || mode == SEEK6) {
 		start = ctrl->cmd[1] & 0x1f;
