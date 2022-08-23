@@ -210,7 +210,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-void SCSIBR::Write(Controller *, const DWORD *cdb, BYTE *buf, uint64_t)
+void SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];

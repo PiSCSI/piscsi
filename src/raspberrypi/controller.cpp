@@ -1270,7 +1270,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
 			if (bridge) {
 				try {
-					bridge->Write(this, ctrl.cmd, ctrl.buffer, ctrl.length);
+					bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length);
 				}
 				catch(const scsi_error_exception&) {
 					// Write failed
@@ -1285,7 +1285,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 			// TODO This class must not know about DaynaPort
 			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(device);
 			if (daynaport) {
-				daynaport->Write(this, ctrl.cmd, ctrl.buffer, ctrl.length);
+				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length);
 
 				ctrl.offset = 0;
 				ctrl.blocks = 0;
