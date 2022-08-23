@@ -691,35 +691,29 @@ int Disk::WriteCheck(DWORD block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-bool Disk::Write(Controller *controller, const DWORD *cdb, const BYTE *buf, DWORD block)
+void Disk::Write(Controller *controller, const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
-		controller->Error(sense_key::NOT_READY);
-		return false;
+		throw scsi_error_exception(sense_key::NOT_READY);
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
-		return false;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
-		controller->Error(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
-		return false;
+		throw scsi_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
 	// Leave it to the cache
 	if (!disk.dcache->WriteSector(buf, block)) {
-		controller->Error(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
-		return false;
+		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 	}
-
-	return true;
 }
 
 void Disk::Seek(Controller *controller)

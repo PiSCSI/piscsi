@@ -317,7 +317,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD block)
+void SCSIDaynaPort::Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	BYTE data_format = cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
@@ -325,20 +325,17 @@ bool SCSIDaynaPort::Write(Controller *, const DWORD *cdb, const BYTE *buf, DWORD
 	if (data_format == 0x00){
 		m_tap->Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
 		m_tap->Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
 	}
 	else
 	{
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-		return true;
 	}
 }
 	
