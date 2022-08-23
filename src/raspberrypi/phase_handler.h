@@ -1,0 +1,30 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI Reloaded
+// for Raspberry Pi
+//
+// Copyright (C) 2022 Uwe Seimet
+//
+// An interface with methods for switching bus phases
+//
+//---------------------------------------------------------------------------
+
+#pragma once
+
+class PhaseHandler
+{
+public:
+
+	PhaseHandler() {}
+	virtual ~PhaseHandler() {}
+
+	virtual void BusFree() = 0;
+	virtual void Selection() = 0;
+	virtual void Command() = 0;
+	virtual void Status() = 0;
+	virtual void DataIn() = 0;
+	virtual void DataOut() = 0;
+	virtual void MsgIn() = 0;
+	virtual void MsgOut() = 0;
+};
+

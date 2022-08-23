@@ -17,10 +17,11 @@
 
 #include "os.h"
 #include "scsi.h"
+#include "phase_handler.h"
 
 class PrimaryDevice;
 
-class Controller
+class Controller : virtual public PhaseHandler
 {
 	// For timing adjustments
 	const unsigned int MIN_EXEC_TIME = 50;
@@ -141,9 +142,9 @@ public:
 
 	void Connect(int, BUS *);
 
-	void Status();
-	void DataIn();
-	void DataOut();
+	void Status() override;
+	void DataIn() override;
+	void DataOut() override;
 
 	int GetSCSIID() {return ctrl.m_scsi_id;}
 	ctrl_t* GetCtrl() { return &ctrl; }
@@ -151,12 +152,12 @@ public:
 private:
 
 	// Phases
-	void BusFree();
-	void Selection();
-	void Command();
+	void BusFree() override;
+	void Selection() override;
+	void Command() override;
 	void Execute();
-	void MsgIn();
-	void MsgOut();
+	void MsgIn() override;
+	void MsgOut() override;
 
 	// Data transfer
 	void Send();
