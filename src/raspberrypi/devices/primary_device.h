@@ -19,7 +19,6 @@
 
 using namespace std;
 
-// TODO The controller should become a member of this class
 class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 {
 public:
