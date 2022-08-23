@@ -389,7 +389,7 @@ void SCSICD::ReadToc()
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
 vector<BYTE> SCSICD::InquiryInternal() const
