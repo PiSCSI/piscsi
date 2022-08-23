@@ -147,42 +147,34 @@ BUS::phase_t Controller::Process(int initiator_id)
 	try {
 		// Phase processing
 		switch (ctrl.phase) {
-			// Bus free phase
 			case BUS::busfree:
 				BusFree();
 				break;
 
-				// Selection
 			case BUS::selection:
 				Selection();
 				break;
 
-				// Data out (MCI=000)
 			case BUS::dataout:
 				DataOut();
 				break;
 
-				// Data in (MCI=001)
 			case BUS::datain:
 				DataIn();
 				break;
 
-				// Command (MCI=010)
 			case BUS::command:
 				Command();
-			break;
+				break;
 
-			// Status (MCI=011)
 			case BUS::status:
 				Status();
 				break;
 
-			// Message out (MCI=110)
 			case BUS::msgout:
 				MsgOut();
 				break;
 
-			// Message in (MCI=111)
 			case BUS::msgin:
 				MsgIn();
 				break;
@@ -208,7 +200,6 @@ BUS::phase_t Controller::Process(int initiator_id)
 
 void Controller::BusFree()
 {
-	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
@@ -270,7 +261,6 @@ void Controller::BusFree()
 
 void Controller::Selection()
 {
-	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
 		int id = 1 << ctrl.m_scsi_id;
@@ -313,7 +303,6 @@ void Controller::Selection()
 
 void Controller::Command()
 {
-	// Phase change
 	if (ctrl.phase != BUS::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
 
@@ -429,7 +418,6 @@ void Controller::Execute()
 
 void Controller::Status()
 {
-	// Phase change
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
@@ -468,7 +456,6 @@ void Controller::Status()
 
 void Controller::MsgIn()
 {
-	// Phase change
 	if (ctrl.phase != BUS::msgin) {
 		LOGTRACE("%s Starting Message in phase", __PRETTY_FUNCTION__);
 
@@ -495,7 +482,6 @@ void Controller::MsgOut()
 {
 	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
 
-	// Phase change
 	if (ctrl.phase != BUS::msgout) {
 		LOGTRACE("Message Out Phase");
 
@@ -529,7 +515,6 @@ void Controller::DataIn()
 {
 	assert(ctrl.length >= 0);
 
-	// Phase change
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
@@ -556,7 +541,6 @@ void Controller::DataIn()
 		ctrl.bus->SetIO(TRUE);
 
 		// length, blocks are already set
-		assert(ctrl.length > 0);
 		assert(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
@@ -570,7 +554,6 @@ void Controller::DataOut()
 {
 	assert(ctrl.length >= 0);
 
-	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
@@ -597,8 +580,6 @@ void Controller::DataOut()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 
-		// Length has already been calculated
-		assert(ctrl.length > 0);
 		ctrl.offset = 0;
 		return;
 	}
@@ -939,7 +920,7 @@ bool Controller::XferMsg(int msg)
 
 	// Save message out data
 	if (scsi.atnmsg) {
-		scsi.msb[scsi.msc] = (BYTE)msg;
+		scsi.msb[scsi.msc] = msg;
 		scsi.msc++;
 		scsi.msc %= 256;
 	}
@@ -1231,12 +1212,6 @@ bool Controller::XferIn(BYTE *buf)
 			}
 
 			ctrl.next++;
-
-			// If there is an error, go to the status phase
-			if (ctrl.length <= 0) {
-				// Cancel data-in
-				return false;
-			}
 
 			// If things are normal, work setting
 			ctrl.offset = 0;
