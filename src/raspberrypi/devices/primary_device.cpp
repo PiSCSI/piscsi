@@ -17,6 +17,7 @@ using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
+	phase_handler = NULL;
 	controller = NULL;
 	ctrl = NULL;
 
@@ -34,7 +35,8 @@ bool PrimaryDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]);
 }
 
-void PrimaryDevice::SetController(Controller *controller) {
+void PrimaryDevice::SetController(Controller *controller)
+{
 	this->controller = controller;
 	this->ctrl = controller->GetCtrl();
 }
@@ -43,7 +45,7 @@ void PrimaryDevice::TestUnitReady()
 {
 	CheckReady();
 
-	controller->Status();
+	phase_handler->Status();
 }
 
 void PrimaryDevice::Inquiry()
@@ -73,7 +75,7 @@ void PrimaryDevice::Inquiry()
 		ctrl->buffer[0] |= 0x7f;
 	}
 
-	controller->DataIn();
+	phase_handler->DataIn();
 }
 
 void PrimaryDevice::ReportLuns()
@@ -102,7 +104,7 @@ void PrimaryDevice::ReportLuns()
 
 	ctrl->length = allocation_length < size ? allocation_length : size;
 
-	controller->DataIn();
+	phase_handler->DataIn();
 }
 
 void PrimaryDevice::RequestSense()
@@ -131,7 +133,7 @@ void PrimaryDevice::RequestSense()
     memcpy(ctrl->buffer, buf.data(), allocation_length);
     ctrl->length = allocation_length;
 
-    controller->DataIn();
+    phase_handler->DataIn();
 }
 
 void PrimaryDevice::CheckReady()

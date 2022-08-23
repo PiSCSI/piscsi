@@ -55,7 +55,7 @@ bool HostServices::Dispatch()
 void HostServices::TestUnitReady()
 {
 	// Always successful
-	controller->Status();
+	phase_handler->Status();
 }
 
 vector<BYTE> HostServices::InquiryInternal() const
@@ -84,14 +84,14 @@ void HostServices::StartStopUnit()
 			controller->ScheduleShutDown(Controller::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
-		controller->Status();
+		phase_handler->Status();
 		return;
 	}
 	else {
 		if (load) {
 			controller->ScheduleShutDown(Controller::rascsi_shutdown_mode::RESTART_PI);
 
-			controller->Status();
+			phase_handler->Status();
 			return;
 		}
 	}

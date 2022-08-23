@@ -46,6 +46,9 @@ protected:
 	Controller *controller;
 	Controller::ctrl_t *ctrl;
 
+	// Preparation for decoupling the bus phase handling
+	PhaseHandler *phase_handler;
+
 private:
 
 	Dispatcher<PrimaryDevice> dispatcher;

@@ -127,7 +127,7 @@ vector<BYTE> SCSIBR::InquiryInternal() const
 void SCSIBR::TestUnitReady()
 {
 	// Always successful
-	controller->Status();
+	phase_handler->Status();
 }
 
 int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
@@ -281,7 +281,7 @@ void SCSIBR::GetMessage10()
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataIn();
+	phase_handler->DataIn();
 }
 
 //---------------------------------------------------------------------------
@@ -315,7 +315,7 @@ void SCSIBR::SendMessage10()
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataOut();
+	phase_handler->DataOut();
 }
 
 int SCSIBR::GetMacAddr(BYTE *mac)
