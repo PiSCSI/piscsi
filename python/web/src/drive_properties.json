@@ -430,5 +430,17 @@
     "file_type": null,
     "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
     "url": ""
+},
+{
+    "device_type": "SCCD",
+    "vendor": null,
+    "product": null,
+    "revision": null,
+    "block_size": 512,
+    "size": null,
+    "name": "Generic CD-ROM 512 block size",
+    "file_type": null,
+    "description": "For use with host systems that expect the non-standard 512 byte block size for CD-ROM drives, such as Akai samplers.",
+    "url": ""
 }
 ]
