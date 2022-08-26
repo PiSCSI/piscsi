@@ -102,10 +102,11 @@ public:
 		uint32_t offset;				// Transfer offset
 		uint32_t length;				// Transfer remaining length
 
-		// Logical units
+		// Logical units of the device connected to this controller
 		PrimaryDevice *unit[UNIT_MAX];
 
 		// The current device
+		// TODO This is probably obsolete
 		PrimaryDevice *device;
 
 		// The LUN from the IDENTIFY message
