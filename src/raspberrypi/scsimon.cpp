@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
     while (running)
     {
         // Work initialization
-        this_sample = (bus->Aquire() & ALL_SCSI_PINS);
+        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {

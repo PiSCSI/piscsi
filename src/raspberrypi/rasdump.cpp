@@ -213,7 +213,7 @@ bool WaitPhase(BUS::phase_t phase)
 	// Timeout (3000ms)
 	now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-		bus.Aquire();
+		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
 			return true;
 		}
@@ -254,7 +254,7 @@ bool Selection(int id)
 	count = 10000;
 	do {
 		usleep(20);
-		bus.Aquire();
+		bus.Acquire();
 		if (bus.GetBSY()) {
 			break;
 		}

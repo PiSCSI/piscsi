@@ -488,7 +488,7 @@ public:
 	//	Bus signal acquisition
 	//
 	//---------------------------------------------------------------------------
-	inline DWORD Aquire() override
+	inline DWORD Acquire() override
 	{
 	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable

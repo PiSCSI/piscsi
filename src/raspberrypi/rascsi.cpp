@@ -1616,9 +1616,9 @@ int main(int argc, char* argv[])
 		}
 
 		// Get the bus
-		bus->Aquire();
+		bus->Acquire();
 #else
-		bus->Aquire();
+		bus->Acquire();
 		if (!bus->GetSEL()) {
 			usleep(0);
 			continue;
@@ -1630,7 +1630,7 @@ int main(int argc, char* argv[])
 		if (bus->GetBSY()) {
 			int now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-				bus->Aquire();
+				bus->Acquire();
 				if (!bus->GetBSY()) {
 					break;
 				}

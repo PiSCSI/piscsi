@@ -120,7 +120,7 @@ bool Controller::HasAnyUnit() const
 BUS::phase_t Controller::Process(int initiator_id)
 {
 	// Get bus information
-	bus->Aquire();
+	bus->Acquire();
 
 	// Check to see if the reset signal was asserted
 	if (bus->GetRST()) {
@@ -571,7 +571,7 @@ void Controller::DataOut()
 void Controller::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
-	bus->Aquire();
+	bus->Acquire();
 
 	// Reset check
 	if (bus->GetRST()) {

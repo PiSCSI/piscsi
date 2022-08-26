@@ -750,7 +750,7 @@ void GPIOBUS::SetREQ(BOOL ast)
 //---------------------------------------------------------------------------
 BYTE GPIOBUS::GetDAT()
 {
-	DWORD data = Aquire();
+	DWORD data = Acquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
@@ -987,7 +987,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 		}
 	} else {
 		// Get phase
-		phase = Aquire() & GPIO_MCI;
+		phase = Acquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
@@ -1094,7 +1094,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		WaitSignal(PIN_ACK, FALSE);
 	} else {
 		// Get Phase
-		DWORD phase = Aquire() & GPIO_MCI;
+		DWORD phase = Acquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
@@ -1394,7 +1394,7 @@ BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 	// end immediately if the signal has changed
 	do {
 		// Immediately upon receiving a reset
-		Aquire();
+		Acquire();
 		if (GetRST()) {
 			return FALSE;
 		}
