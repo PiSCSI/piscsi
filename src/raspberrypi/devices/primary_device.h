@@ -28,12 +28,7 @@ public:
 
 	virtual bool Dispatch();
 
-	void TestUnitReady();
-	void RequestSense();
-	void Inquiry();
 	void SetController(Controller *);
-	void CheckReady();
-	vector<BYTE> HandleRequestSense();
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
@@ -41,6 +36,7 @@ protected:
 
 	vector<BYTE> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<BYTE> InquiryInternal() const = 0;
+	void CheckReady();
 
 	// TODO The dispatched methods should probably return the next bus phase, instead of calling these methods
 	void EnterBusFreePhase() { phase_handler->BusFree(); }
@@ -57,9 +53,13 @@ protected:
 
 private:
 
-	Dispatcher<PrimaryDevice> dispatcher;
-
+	void TestUnitReady();
+	void RequestSense();
 	void ReportLuns();
+	void Inquiry();
+	vector<BYTE> HandleRequestSense();
+
+	Dispatcher<PrimaryDevice> dispatcher;
 
 	// Preparation for decoupling the bus phase handling
 	PhaseHandler *phase_handler;
