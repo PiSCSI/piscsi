@@ -116,4 +116,70 @@ TEST(DeviceTest, SCCD_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
+TEST(DeviceTest, SCBR_Device_Defaults)
+{
+	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge");
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ(false, device->IsProtectable());
+	EXPECT_EQ(false, device->IsProtected());
+	EXPECT_EQ(false, device->IsReadOnly());
+	EXPECT_EQ(false, device->IsRemovable());
+	EXPECT_EQ(false, device->IsRemoved());
+	EXPECT_EQ(false, device->IsLockable());
+	EXPECT_EQ(false, device->IsLocked());
+	EXPECT_EQ(false, device->IsStoppable());
+	EXPECT_EQ(false, device->IsStopped());
+
+	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("SCSI HOST BRIDGE", device->GetProduct());
+	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+			device->GetRevision());
+
+	EXPECT_EQ(32, device->GetSupportedLuns());
+}
+
+TEST(DeviceTest, SCDP_Device_Defaults)
+{
+	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport");
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ(false, device->IsProtectable());
+	EXPECT_EQ(false, device->IsProtected());
+	EXPECT_EQ(false, device->IsReadOnly());
+	EXPECT_EQ(false, device->IsRemovable());
+	EXPECT_EQ(false, device->IsRemoved());
+	EXPECT_EQ(false, device->IsLockable());
+	EXPECT_EQ(false, device->IsLocked());
+	EXPECT_EQ(false, device->IsStoppable());
+	EXPECT_EQ(false, device->IsStopped());
+
+	EXPECT_EQ("Dayna", device->GetVendor());
+	EXPECT_EQ("SCSI/Link", device->GetProduct());
+	EXPECT_EQ("1.4a", device->GetRevision());
+
+	EXPECT_EQ(32, device->GetSupportedLuns());
+}
+
+TEST(DeviceTest, SCHS_Device_Defaults)
+{
+	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ(false, device->IsProtectable());
+	EXPECT_EQ(false, device->IsProtected());
+	EXPECT_EQ(false, device->IsReadOnly());
+	EXPECT_EQ(false, device->IsRemovable());
+	EXPECT_EQ(false, device->IsRemoved());
+	EXPECT_EQ(false, device->IsLockable());
+	EXPECT_EQ(false, device->IsLocked());
+	EXPECT_EQ(false, device->IsStoppable());
+	EXPECT_EQ(false, device->IsStopped());
+
+	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("Host Services", device->GetProduct());
+	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+			device->GetRevision());
+
+	EXPECT_EQ(32, device->GetSupportedLuns());
+}
+
+
 }
