@@ -1101,16 +1101,15 @@ bool Controller::XferOut(bool cont)
 	return false;
 }
 
+// TODO This code most likely belongs into the Disk class, the FlushUnit() declaration into the PrimaryDevice class
 void Controller::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	int lun = GetEffectiveLun();
-	if (!ctrl.units[lun]) {
+	Disk *disk = dynamic_cast<Disk *>(ctrl.units[GetEffectiveLun()]);
+	if (!disk) {
 		return;
 	}
-
-	Disk *disk = (Disk *)ctrl.units[lun];
 
 	// WRITE system only
 	switch ((Controller::rw_command)ctrl.cmd[0]) {
