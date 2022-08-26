@@ -1101,7 +1101,6 @@ bool Controller::XferOut(bool cont)
 	return false;
 }
 
-// TODO This code most likely belongs into the Disk class, the FlushUnit() declaration into the PrimaryDevice class
 void Controller::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
