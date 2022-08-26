@@ -49,7 +49,7 @@ Controller::Controller(int scsi_id, BUS *bus)
 
 	// Logical unit initialization
 	for (int i = 0; i < UNIT_MAX; i++) {
-		ctrl.unit[i] = NULL;
+		ctrl.units[i] = NULL;
 	}
 
 	scsi.is_byte_transfer = false;
@@ -57,7 +57,7 @@ Controller::Controller(int scsi_id, BUS *bus)
 	shutdown_mode = NONE;
 
 	// Synchronous transfer work initialization
-	scsi.syncenable = FALSE;
+	scsi.syncenable = false;
 	scsi.syncperiod = 50;
 	scsi.syncoffset = 0;
 	scsi.atnmsg = false;
@@ -93,23 +93,23 @@ void Controller::Reset()
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
 	for (int i = 0; i < UNIT_MAX; i++) {
-		if (ctrl.unit[i]) {
-			ctrl.unit[i]->Reset();
+		if (ctrl.units[i]) {
+			ctrl.units[i]->Reset();
 		}
 	}
 }
 
-void Controller::SetUnit(int no, PrimaryDevice *dev)
+void Controller::SetUnit(int no, PrimaryDevice *device)
 {
 	assert(no < UNIT_MAX);
 
-	ctrl.unit[no] = dev;
+	ctrl.units[no] = device;
 }
 
-bool Controller::HasUnit() const
+bool Controller::HasAnyUnit() const
 {
 	for (int i = 0; i < UNIT_MAX; i++) {
-		if (ctrl.unit[i]) {
+		if (ctrl.units[i]) {
 			return true;
 		}
 	}
@@ -261,7 +261,7 @@ void Controller::Selection()
 		}
 
 		// Return if there is no valid LUN
-		if (!HasUnit()) {
+		if (!HasAnyUnit()) {
 			return;
 		}
 
@@ -361,7 +361,7 @@ void Controller::Execute()
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun]) {
+	if (!ctrl.units[lun]) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, ctrl.scsi_id);
@@ -372,13 +372,13 @@ void Controller::Execute()
 		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			assert(ctrl.unit[0]);
+			assert(ctrl.units[0]);
 
 			lun = 0;
 		}
 	}
 
-	ctrl.device = ctrl.unit[lun];
+	ctrl.device = ctrl.units[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
@@ -399,7 +399,7 @@ void Controller::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[lun]) {
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.units[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
@@ -602,15 +602,15 @@ void Controller::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun] || asc == INVALID_LUN) {
+	if (!ctrl.units[lun] || asc == INVALID_LUN) {
 		lun = 0;
 
-		assert(ctrl.unit[lun]);
+		assert(ctrl.units[lun]);
 	}
 
 	if (sense_key || asc) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+		ctrl.units[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 	}
 
 	ctrl.status = status;
@@ -632,7 +632,7 @@ void Controller::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0] ? ctrl.unit[0]->GetSendDelay() : 0);
+		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.units[0] ? ctrl.units[0]->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1103,7 +1103,7 @@ bool Controller::XferOut(bool cont)
 
 	scsi.is_byte_transfer = false;
 
-	PrimaryDevice *device = ctrl.unit[GetEffectiveLun()];
+	PrimaryDevice *device = ctrl.units[GetEffectiveLun()];
 	if (device && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
@@ -1118,11 +1118,11 @@ void Controller::FlushUnit()
 	assert(ctrl.phase == BUS::dataout);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun]) {
+	if (!ctrl.units[lun]) {
 		return;
 	}
 
-	Disk *disk = (Disk *)ctrl.unit[lun];
+	Disk *disk = (Disk *)ctrl.units[lun];
 
 	// WRITE system only
 	switch ((Controller::rw_command)ctrl.cmd[0]) {
@@ -1186,7 +1186,7 @@ bool Controller::XferIn(BYTE *buf)
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun]) {
+	if (!ctrl.units[lun]) {
 		return false;
 	}
 
@@ -1197,7 +1197,7 @@ bool Controller::XferIn(BYTE *buf)
 		case eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
+				ctrl.length = ((Disk *)ctrl.units[lun])->Read(ctrl.cmd, buf, ctrl.next);
 			}
 			catch(const scsi_error_exception& e) {
 				// If there is an error, go to the status phase
@@ -1233,11 +1233,11 @@ bool Controller::XferOutBlockOriented(bool cont)
 	assert(ctrl.phase == BUS::dataout);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun]) {
+	if (!ctrl.units[lun]) {
 		return false;
 	}
 
-	Disk *device = (Disk *)ctrl.unit[lun];
+	Disk *device = (Disk *)ctrl.units[lun];
 
 	// Limited to write commands
 	switch (ctrl.cmd[0]) {

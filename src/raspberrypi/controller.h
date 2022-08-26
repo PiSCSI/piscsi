@@ -49,7 +49,7 @@ class Controller : virtual public PhaseHandler
 
 	typedef struct {
 		// Synchronous transfer
-		BOOL syncenable;				// Synchronous transfer possible
+		bool syncenable;				// Synchronous transfer possible
 		int syncperiod;					// Synchronous transfer period
 		int syncoffset;					// Synchronous transfer offset
 		int syncack;					// Number of synchronous transfer ACKs
@@ -105,7 +105,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 
 		// Logical units of the device connected to this controller
-		PrimaryDevice *unit[UNIT_MAX];
+		PrimaryDevice *units[UNIT_MAX];
 
 		// The current device
 		// TODO This is probably obsolete
@@ -133,12 +133,14 @@ public:
 	int GetInitiatorId() const { return scsi.initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
+	PrimaryDevice *GetUnit(int lun) const { return ctrl.units[lun]; }
 	void SetUnit(int, PrimaryDevice *);
 
 	void Status() override;
 	void DataIn() override;
 	void DataOut() override;
 
+	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
@@ -163,7 +165,7 @@ private:
 	void Execute();
 	void FlushUnit();
 	void Receive();
-	bool HasUnit() const;
+	bool HasAnyUnit() const;
 
 	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
