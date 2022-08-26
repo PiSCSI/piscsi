@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 
+#include "rascsi_version.h"
 #include "../devices/device.h"
 #include "../devices/device_factory.h"
 
@@ -21,14 +22,14 @@ namespace DeviceTest
 
 DeviceFactory& device_factory = DeviceFactory::instance();
 
-TEST(DeviceTest, SCHD_Device)
+TEST(DeviceTest, SCHD_Device_Defaults)
 {
 	Device *device;
 
 	device = device_factory.CreateDevice(UNDEFINED, "test");
 	EXPECT_EQ(nullptr, device);
 
-	device = device_factory.CreateDevice(SCHD, "test");
+	device = device_factory.CreateDevice(UNDEFINED, "test.hda");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(true, device->IsProtectable());
 	EXPECT_EQ(false, device->IsProtected());
@@ -39,6 +40,13 @@ TEST(DeviceTest, SCHD_Device)
 	EXPECT_EQ(false, device->IsLocked());
 	EXPECT_EQ(true, device->IsStoppable());
 	EXPECT_EQ(false, device->IsStopped());
+
+	EXPECT_EQ("QUANTUM", device->GetVendor()) << "Invalid default vendor for Apple drive";
+	EXPECT_EQ("FIREBALL", device->GetProduct()) << "Invalid default vendor for Apple drive";
+	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+			device->GetRevision());
+
+	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
 }
