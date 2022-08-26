@@ -13,7 +13,7 @@ logo="""
  ~ (║|_____|║) ~\n
 ( : ║ .  __ ║ : )\n
  ~ .╚╦═════╦╝. ~\n
-  (  ¯¯¯¯¯¯¯  ) RaSCSI Assistant\n
+  (  ¯¯¯¯¯¯¯  ) RaSCSI Reloaded Assistant\n
    '~ .~~~. ~'\n
        '~'\n
 """
@@ -90,7 +90,7 @@ function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
     # Refresh the sudo authentication, which shouldn't trigger another password prompt
     sudo -v
-    sudo pip install -r ./requirements.txt
+    sudo pip3 install -r ./requirements.txt
     popd
 }
 
@@ -1066,11 +1066,11 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
-              createImagesDir
-              createCfgDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1108,9 +1108,10 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               updateRaScsiGit
-              createImagesDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1197,8 +1198,8 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
-              updateRaScsiGit
               createImagesDir
+              updateRaScsiGit
               installPackages
               stopRaScsi
               compileRaScsi
@@ -1216,8 +1217,8 @@ function runChoice() {
               echo "- Modify user groups and permissions"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
-              updateRaScsiGit
               createCfgDir
+              updateRaScsiGit
               installPackages
               preparePythonCommon
               cachePipPackages
