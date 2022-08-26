@@ -43,13 +43,13 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
 
-TEST(DeviceTest, UnknownDeviceType)
+TEST(DeviceFactoryTest, UnknownDeviceType)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test");
 	EXPECT_EQ(nullptr, device);
 }
 
-TEST(DeviceTest, SCHD_Device_Defaults)
+TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda");
 	EXPECT_NE(nullptr, device);
@@ -73,7 +73,7 @@ TEST(DeviceTest, SCHD_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCRM_Device_Defaults)
+TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr");
 	EXPECT_NE(nullptr, device);
@@ -97,7 +97,7 @@ TEST(DeviceTest, SCRM_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCMO_Device_Defaults)
+TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos");
 	EXPECT_NE(nullptr, device);
@@ -121,7 +121,7 @@ TEST(DeviceTest, SCMO_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCCD_Device_Defaults)
+TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso");
 	EXPECT_NE(nullptr, device);
@@ -145,7 +145,7 @@ TEST(DeviceTest, SCCD_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCBR_Device_Defaults)
+TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge");
 	EXPECT_NE(nullptr, device);
@@ -169,7 +169,7 @@ TEST(DeviceTest, SCBR_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCDP_Device_Defaults)
+TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport");
 	EXPECT_NE(nullptr, device);
@@ -192,7 +192,7 @@ TEST(DeviceTest, SCDP_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCHS_Device_Defaults)
+TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
 	EXPECT_NE(nullptr, device);
@@ -216,7 +216,7 @@ TEST(DeviceTest, SCHS_Device_Defaults)
 	EXPECT_EQ(32, device->GetSupportedLuns());
 }
 
-TEST(DeviceTest, SCLP_Device_Defaults)
+TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "printer");
 	EXPECT_NE(nullptr, device);
