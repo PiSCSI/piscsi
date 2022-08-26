@@ -113,6 +113,8 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			length -= 12;
 		}
 
+		bool has_valid_page_code = false;
+
 		// Parsing the page
 		while (length > 0) {
 			int page = buf[0];
@@ -129,6 +131,7 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						// because the size is an externally configurable setting only
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
+					has_valid_page_code = true;
 					}
 					break;
 
@@ -136,6 +139,7 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				case 0x20:
 					// TODO Is it correct to ignore this? The initiator would rely on something to actually have been changed.
 					// just ignore, for now
+					has_valid_page_code = true;
 					break;
 
 				default:
@@ -147,6 +151,10 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			int size = buf[1] + 2;
 			length -= size;
 			buf += size;
+		}
+
+		if (!has_valid_page_code) {
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 		}
 	}
 }
