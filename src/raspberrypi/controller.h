@@ -94,6 +94,7 @@ public:
 		int message;					// Message data
 
 		// Transfer
+		// TODO Try to get rid of the static buffer
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		uint32_t blocks;				// Number of transfer block
