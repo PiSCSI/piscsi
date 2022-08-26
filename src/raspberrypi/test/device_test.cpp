@@ -61,7 +61,12 @@ TEST(DeviceTest, TestUnitReady)
 	SCSIHD *device = (SCSIHD *)device_factory.CreateDevice(SCHD, "test");
 
 	controller.ctrl.cmd[0] = eCmdTestUnitReady;
+
+	device->SetReady(false);
+	EXPECT_CALL(controller, Error);
 	EXPECT_TRUE(device->Dispatch(&controller));
+
+	// TODO Add tests for a device that is ready after the SASI code removal
 }
 
 }
