@@ -66,19 +66,19 @@ class Controller : virtual public PhaseHandler
 		uint32_t bytes_to_transfer;
 	} scsi_t;
 
-public:
-
-	// Maximum number of logical units
-	static const int UNIT_MAX = 32;
-
-	const int DEFAULT_BUFFER_SIZE = 0x1000;
-
 	enum rascsi_shutdown_mode {
 		NONE,
 		STOP_RASCSI,
 		STOP_PI,
 		RESTART_PI
 	};
+
+public:
+
+	// Maximum number of logical units
+	static const int UNIT_MAX = 32;
+
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	// Internal data definition
 	// TODO Some of these data are probably device specific, and in this case they should be moved
