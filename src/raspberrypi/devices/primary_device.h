@@ -38,7 +38,6 @@ protected:
 	virtual vector<BYTE> InquiryInternal() const = 0;
 	void CheckReady();
 
-	// TODO The dispatched methods should probably return the next bus phase, instead of calling these methods
 	void EnterBusFreePhase() { phase_handler->BusFree(); }
 	void EnterSelectionPhase() { phase_handler->Selection(); }
 	void EnterCommandPhase() { phase_handler->Command(); }
