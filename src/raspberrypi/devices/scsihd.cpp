@@ -103,6 +103,8 @@ vector<BYTE> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
 }
 
+
+// TODO This is a duplicate of code in scsimo.cpp
 void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	assert(length >= 0);
@@ -115,9 +117,7 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		if (length >= 12) {
 			// Check the block length bytes
 			size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) ||
-				buf[10] != (BYTE)(size >> 8) ||
-				buf[11] != (BYTE)size) {
+			if (buf[9] != (BYTE)(size >> 16) || buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
@@ -127,24 +127,28 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 		// Parsing the page
 		while (length > 0) {
-			// Get page
-			BYTE page = buf[0];
+			int page = buf[0];
 
 			switch (page) {
 				// format device
 				case 0x03:
 					// check the number of bytes in the physical sector
 					size = 1 << GetSectorSizeShiftCount();
-					if (buf[0xc] != (BYTE)(size >> 8) ||
-						buf[0xd] != (BYTE)size) {
+					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					break;
 
+					// vendor unique format
+				case 0x20:
+					// TODO Is it correct to ignore this? The initiator would rely on something to actually have been changed.
+					// just ignore, for now
+					break;
+
 				// Other page
 				default:
-                    printf("Unknown Mode Select page code received: %02X\n",page);
+                    LOGTRACE("Unknown Mode Select page code received: %02X", page);
 					break;
 			}
 

@@ -94,20 +94,20 @@ void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 	// Do not report update blocks
 }
 
+// TODO This is a duplicate of code in scsihd.cpp
 void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int size;
-
 	ASSERT(length >= 0);
+
+	int size;
 
 	// PF
 	if (cdb[1] & 0x10) {
 		// Mode Parameter header
 		if (length >= 12) {
-			// Check the block length (in bytes)
+			// Check the block length bytes
 			size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) ||
-				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
+			if (buf[9] != (BYTE)(size >> 16) || buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
@@ -117,7 +117,6 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 		// Parsing the page
 		while (length > 0) {
-			// Get the page
 			int page = buf[0];
 
 			switch (page) {
@@ -125,19 +124,21 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				case 0x03:
 					// Check the number of bytes in the physical sector
 					size = 1 << GetSectorSizeShiftCount();
-					if (buf[0xc] != (BYTE)(size >> 8) ||
-						buf[0xd] != (BYTE)size) {
+					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					break;
-				// vendor unique format
+
+					// vendor unique format
 				case 0x20:
+					// TODO Is it correct to ignore this? The initiator would rely on something to actually have been changed.
 					// just ignore, for now
 					break;
 
 				// Other page
 				default:
+					LOGTRACE("Unknown Mode Select page code received: %02X", page);
 					break;
 			}
 
