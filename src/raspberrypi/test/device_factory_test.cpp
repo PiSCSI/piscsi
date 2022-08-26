@@ -43,6 +43,37 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
 
+TEST(DeviceFactoryTest, GetSectorSizes)
+{
+	unordered_set<uint32_t> sector_sizes;
+
+	sector_sizes = device_factory.GetSectorSizes(SCHD);
+	EXPECT_EQ(4, sector_sizes.size());
+	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+
+	sector_sizes = device_factory.GetSectorSizes(SCRM);
+	EXPECT_EQ(4, sector_sizes.size());
+	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+
+	sector_sizes = device_factory.GetSectorSizes(SCMO);
+	EXPECT_EQ(4, sector_sizes.size());
+	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+
+	sector_sizes = device_factory.GetSectorSizes(SCCD);
+	EXPECT_EQ(2, sector_sizes.size());
+	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
+}
+
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test");
