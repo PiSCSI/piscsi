@@ -19,16 +19,13 @@ using namespace std;
 
 class Device
 {
-private:
+	const int supported_luns = 32;
 
 	string type;
 
 	bool ready;
 	bool reset;
 	bool attn;
-
-	// Number of supported luns
-	int supported_luns;
 
 	// Device is protectable/write-protected
 	bool protectable;
@@ -100,8 +97,8 @@ public:
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool attn) { this->attn = attn; }
 
+	// TODO This is probably a controller and ot a device property
 	int GetSupportedLuns() const { return supported_luns; }
-	void SetSupportedLuns(int supported_luns) { this->supported_luns = supported_luns; }
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }

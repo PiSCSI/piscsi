@@ -241,7 +241,8 @@ message PbDeviceProperties {
     bool supports_params = 7;
     // List of default parameters, if any (requires supports_params to be true)
     map<string, string> default_params = 8;
-    // LUN numbers this device can represent. At least 1 (for LUN 0 only). Maxium is 32, for LUNs 0-31.
+    // LUN numbers this device can represent. Maximum is 32, for LUNs 0-31.
+    // TODO Deprecate this field, after SASI removal there are always 32 LUNs per device
     int32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;

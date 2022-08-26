@@ -90,7 +90,7 @@ void PrimaryDevice::ReportLuns()
 
 	// Only SELECT REPORT mode 0 is supported
 	if (!ctrl->cmd[2]) {
-		for (int lun = 0; lun < ctrl->device->GetSupportedLuns(); lun++) {
+		for (int lun = 0; lun < GetSupportedLuns(); lun++) {
 			if (controller->GetUnit(lun)) {
 				size += 8;
 				buf[size + 7] = lun;

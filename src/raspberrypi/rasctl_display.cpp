@@ -125,6 +125,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
+		// TODO Remove this block and ensure the formatting below is correct
 		cout << "  Supported LUN numbers: 0";
 		if (properties.luns() > 1) {
 			cout << "-" << (properties.luns() - 1);
@@ -160,7 +161,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		if (properties.supports_file()) {
 			cout << "        Image file support" << endl;
 		}
-		else if (properties.supports_params()) {
+		if (properties.supports_params()) {
 			cout << "        Parameter support" << endl;
 		}
 
