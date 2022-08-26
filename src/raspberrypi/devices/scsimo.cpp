@@ -132,15 +132,14 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					}
 					break;
 
-					// vendor unique format
+				// vendor unique format
 				case 0x20:
 					// TODO Is it correct to ignore this? The initiator would rely on something to actually have been changed.
 					// just ignore, for now
 					break;
 
-				// Other page
 				default:
-					LOGTRACE("Unknown Mode Select page code received: %02X", page);
+                    LOGTRACE("Unknown MODE SELECT page code: $%02X", page);
 					break;
 			}
 
