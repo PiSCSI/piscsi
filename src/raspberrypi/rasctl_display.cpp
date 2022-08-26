@@ -119,22 +119,15 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info)
 
 void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 {
-	cout << "Supported device types and their properties:" << endl;
+	cout << "Supported device types and their properties:";
 	for (const auto& device_type_info : device_types_info.properties()) {
-		cout << "  " << PbDeviceType_Name(device_type_info.type());
+		cout << endl << "  " << PbDeviceType_Name(device_type_info.type()) << "  ";
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
-		// TODO Remove this block and ensure the formatting below is correct
-		cout << "  Supported LUN numbers: 0";
-		if (properties.luns() > 1) {
-			cout << "-" << (properties.luns() - 1);
-		}
-		cout << endl;
-
 		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
 				|| properties.lockable()) {
-			cout << "        Properties: ";
+			cout << "Properties: ";
 			bool has_property = false;
 			if (properties.read_only()) {
 				cout << "read-only";
@@ -155,21 +148,21 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			if (properties.lockable()) {
 				cout << (has_property ? ", " : "") << "lockable";
 			}
-			cout << endl;
+			cout << endl << "        ";
 		}
 
 		if (properties.supports_file()) {
-			cout << "        Image file support" << endl;
+			cout << "Image file support" << endl << "        ";
 		}
 		if (properties.supports_params()) {
-			cout << "        Parameter support" << endl;
+			cout << "Parameter support" << endl << "        ";
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
 			// Creates a sorted map
 			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
 
-			cout << "        Default parameters: ";
+			cout << "Default parameters: ";
 
 			bool isFirst = true;
 			for (const auto& param : params) {
@@ -186,7 +179,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			// Creates a sorted set
 			set<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 
-			cout << "        Configurable block sizes in bytes: ";
+			cout << "Configurable block sizes in bytes: ";
 
 			bool isFirst = true;
 			for (const auto& block_size : block_sizes) {
