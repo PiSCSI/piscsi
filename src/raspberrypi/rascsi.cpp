@@ -312,10 +312,9 @@ void MapController(Device **map)
 			}
 		}
 
-		// Create a new SCSI controller
+		// Create a new SCSI controller for the current device ID and bus
 		if (!*it) {
-			*it = new Controller();
-			(*it)->Connect(i, bus);
+			*it = new Controller(i, bus);
 		}
 
 		// connect all units

@@ -23,8 +23,11 @@
 
 using namespace scsi_defs;
 
-Controller::Controller()
+Controller::Controller(int scsi_id, BUS *bus)
 {
+	ctrl.scsi_id = scsi_id;
+	ctrl.bus = bus;
+
 	// Work initialization
 	ctrl.phase = BUS::busfree;
 	ctrl.scsi_id = UNKNOWN_SCSI_ID;
@@ -112,12 +115,6 @@ bool Controller::HasUnit() const
 	}
 
 	return false;
-}
-
-void Controller::Connect(int id, BUS *bus)
-{
-	ctrl.scsi_id = id;
-	ctrl.bus = bus;
 }
 
 BUS::phase_t Controller::Process(int initiator_id)
