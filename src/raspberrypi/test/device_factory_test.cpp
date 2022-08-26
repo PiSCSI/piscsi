@@ -15,6 +15,9 @@
 
 using namespace rascsi_interface;
 
+namespace DeviceFactoryTest
+{
+
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 TEST(DeviceFactoryTest, GetTypeForFile)
@@ -36,4 +39,5 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("services"), SCHS);
 	EXPECT_EQ(device_factory.GetTypeForFile("unknown"), UNDEFINED);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
+}
 }
