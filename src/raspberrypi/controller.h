@@ -81,7 +81,8 @@ public:
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	// Internal data definition
-	// TODO Some of these data are probably device specific, and in this case they should be moved
+	// TODO Some of these data are probably device specific, and in this case they should be moved.
+	// These data are not internal, otherwise they could all be private
 	typedef struct {
 		// General
 		BUS::phase_t phase;				// Transition phase

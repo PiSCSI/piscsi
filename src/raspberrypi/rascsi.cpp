@@ -290,11 +290,11 @@ void MapController(Device **map)
 	int i = 0;
 	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 		// Examine the unit configuration
-		int scsi_num = 0;
+		bool has_unit = false;
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			if (devices[unitno]) {
-				scsi_num++;
+				has_unit = true;
 			}
 
 			// Remove the unit
@@ -303,8 +303,8 @@ void MapController(Device **map)
 			}
 		}
 
-		// If there are no units connected
-		if (!scsi_num) {
+		// If there are no units connected the controller can be discarded
+		if (!has_unit) {
 			if (*it) {
 				delete *it;
 				*it = NULL;
