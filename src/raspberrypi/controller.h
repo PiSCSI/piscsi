@@ -80,6 +80,7 @@ public:
 	} scsi_t;
 
 	// Internal data definition
+	// TODO Some of these data are probably device specific, and in this case they should be moved
 	typedef struct {
 		// General
 		BUS::phase_t phase;				// Transition phase
