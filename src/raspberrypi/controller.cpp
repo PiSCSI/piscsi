@@ -1140,6 +1140,7 @@ void Controller::FlushUnit()
 
             // TODO What is this special handling of ModeSelect good for?
             // Without it we would not need this method at all.
+            // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
 			try {
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
