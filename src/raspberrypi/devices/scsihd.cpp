@@ -109,14 +109,12 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	assert(length >= 0);
 
-	int size;
-
 	// PF
 	if (cdb[1] & 0x10) {
 		// Mode Parameter header
 		if (length >= 12) {
 			// Check the block length bytes
-			size = 1 << GetSectorSizeShiftCount();
+			int size = 1 << GetSectorSizeShiftCount();
 			if (buf[9] != (BYTE)(size >> 16) || buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
@@ -131,12 +129,13 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 			switch (page) {
 				// format device
-				case 0x03:
+				case 0x03: {
 					// check the number of bytes in the physical sector
-					size = 1 << GetSectorSizeShiftCount();
+					int size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+					}
 					}
 					break;
 
@@ -153,7 +152,7 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			}
 
 			// Advance to the next page
-			size = buf[1] + 2;
+			int size = buf[1] + 2;
 			length -= size;
 			buf += size;
 		}
