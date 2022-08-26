@@ -73,6 +73,14 @@ class Device
 
 protected:
 
+	void SetReady(bool ready) { this->ready = ready; }
+	bool IsReset() const { return reset; }
+	void SetReset(bool reset) { this->reset = reset; }
+	bool IsAttn() const { return attn; }
+	void SetAttn(bool attn) { this->attn = attn; }
+
+	int GetStatusCode() const { return status_code; }
+
 	static unordered_set<Device *> devices;
 
 public:
@@ -88,12 +96,7 @@ public:
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
-	void SetReady(bool ready) { this->ready = ready; }
-	bool IsReset() const { return reset; }
-	void SetReset(bool reset) { this->reset = reset; }
 	void Reset();
-	bool IsAttn() const { return attn; }
-	void SetAttn(bool attn) { this->attn = attn; }
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }
@@ -138,7 +141,6 @@ public:
 	const unordered_map<string, string> GetDefaultParams() const { return default_params; }
 	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
 
-	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int);
 
 	bool Start();
