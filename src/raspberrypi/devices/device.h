@@ -19,8 +19,6 @@ using namespace std;
 
 class Device
 {
-	const int supported_luns = 32;
-
 	string type;
 
 	bool ready;
@@ -96,9 +94,6 @@ public:
 	void Reset();
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool attn) { this->attn = attn; }
-
-	// TODO This is probably a controller and ot a device property
-	int GetSupportedLuns() const { return supported_luns; }
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }

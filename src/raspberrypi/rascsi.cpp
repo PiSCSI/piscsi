@@ -526,18 +526,11 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 
-	int supported_luns = device->GetSupportedLuns();
-	if (unit >= supported_luns) {
+	if (unit >= Controller::UNIT_MAX) {
 		delete device;
 
-		string error = "Invalid unit " + to_string(unit) + " for device type " + PbDeviceType_Name(type);
-		if (supported_luns == 1) {
-			error += " (0)";
-		}
-		else {
-			error += " (0-" + to_string(supported_luns -1) + ")";
-		}
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
+				+ ")");
 	}
 
 	// If no filename was provided the medium is considered removed
