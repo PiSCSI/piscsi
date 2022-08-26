@@ -131,6 +131,7 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						// because the size is an externally configurable setting only
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
+
 					has_valid_page_code = true;
 					}
 					break;
