@@ -23,6 +23,8 @@ class PrimaryDevice;
 
 class Controller : virtual public PhaseHandler
 {
+	friend class HostServices;
+
 	// For timing adjustments
 	const unsigned int MIN_EXEC_TIME = 50;
 
@@ -45,21 +47,6 @@ class Controller : virtual public PhaseHandler
 		eCmdWriteLong16 = 0x9F
 	};
 
-public:
-
-	// Maximum number of logical units
-	static const int UNIT_MAX = 32;
-
-	const int DEFAULT_BUFFER_SIZE = 0x1000;
-
-	enum rascsi_shutdown_mode {
-		NONE,
-		STOP_RASCSI,
-		STOP_PI,
-		RESTART_PI
-	};
-
-	// Internal data definition
 	typedef struct {
 		// Synchronous transfer
 		BOOL syncenable;				// Synchronous transfer possible
@@ -78,6 +65,20 @@ public:
 		bool is_byte_transfer;
 		uint32_t bytes_to_transfer;
 	} scsi_t;
+
+public:
+
+	// Maximum number of logical units
+	static const int UNIT_MAX = 32;
+
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
+
+	enum rascsi_shutdown_mode {
+		NONE,
+		STOP_RASCSI,
+		STOP_PI,
+		RESTART_PI
+	};
 
 	// Internal data definition
 	// TODO Some of these data are probably device specific, and in this case they should be moved
@@ -129,8 +130,6 @@ public:
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
-	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
-
 	int GetInitiatorId() const { return scsi.initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
@@ -165,6 +164,8 @@ private:
 	void FlushUnit();
 	void Receive();
 	bool HasUnit() const;
+
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
 	ctrl_t ctrl;
 	scsi_t scsi;
