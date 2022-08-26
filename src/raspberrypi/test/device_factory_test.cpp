@@ -52,38 +52,38 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	sector_sizes = device_factory.GetSectorSizes(SCHD);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
 	sector_sizes = device_factory.GetSectorSizes("SCRM");
 	EXPECT_EQ(4, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCRM);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
 	sector_sizes = device_factory.GetSectorSizes("SCMO");
 	EXPECT_EQ(4, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCMO);
 	EXPECT_EQ(4, sector_sizes.size());
 
-	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(1024) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(4096) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(1024) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
 	sector_sizes = device_factory.GetSectorSizes("SCCD");
 	EXPECT_EQ(2, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCCD);
 	EXPECT_EQ(2, sector_sizes.size());
 
-	EXPECT_EQ(true, sector_sizes.find(512) != sector_sizes.end());
-	EXPECT_EQ(true, sector_sizes.find(2048) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
+	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
@@ -96,17 +96,17 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(true, device->SupportsFile());
-	EXPECT_EQ(false, device->SupportsParams());
-	EXPECT_EQ(true, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(false, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(false, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(true, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_TRUE(device->SupportsFile());
+	EXPECT_FALSE(device->SupportsParams());
+	EXPECT_TRUE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_FALSE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_FALSE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_TRUE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("QUANTUM", device->GetVendor()) << "Invalid default vendor for Apple drive";
 	EXPECT_EQ("FIREBALL", device->GetProduct()) << "Invalid default vendor for Apple drive";
@@ -120,17 +120,17 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(true, device->SupportsFile());
-	EXPECT_EQ(false, device->SupportsParams());
-	EXPECT_EQ(true, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(true, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(true, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(true, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_TRUE(device->SupportsFile());
+	EXPECT_FALSE(device->SupportsParams());
+	EXPECT_TRUE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_TRUE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_TRUE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_TRUE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI HD (REM.)", device->GetProduct());
@@ -144,17 +144,17 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(true, device->SupportsFile());
-	EXPECT_EQ(false, device->SupportsParams());
-	EXPECT_EQ(true, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(true, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(true, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(true, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_TRUE(device->SupportsFile());
+	EXPECT_FALSE(device->SupportsParams());
+	EXPECT_TRUE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_TRUE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_TRUE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_TRUE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI MO", device->GetProduct());
@@ -168,17 +168,17 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(true, device->SupportsFile());
-	EXPECT_EQ(false, device->SupportsParams());
-	EXPECT_EQ(false, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(true, device->IsReadOnly());
-	EXPECT_EQ(true, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(true, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(true, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_TRUE(device->SupportsFile());
+	EXPECT_FALSE(device->SupportsParams());
+	EXPECT_FALSE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_TRUE(device->IsReadOnly());
+	EXPECT_TRUE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_TRUE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_TRUE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
@@ -192,17 +192,17 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(false, device->SupportsFile());
-	EXPECT_EQ(true, device->SupportsParams());
-	EXPECT_EQ(false, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(false, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(false, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(false, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_FALSE(device->SupportsFile());
+	EXPECT_TRUE(device->SupportsParams());
+	EXPECT_FALSE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_FALSE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_FALSE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_FALSE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI HOST BRIDGE", device->GetProduct());
@@ -216,17 +216,17 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(false, device->SupportsFile());
-	EXPECT_EQ(true, device->SupportsParams());
-	EXPECT_EQ(false, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(false, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(false, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(false, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_FALSE(device->SupportsFile());
+	EXPECT_TRUE(device->SupportsParams());
+	EXPECT_FALSE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_FALSE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_FALSE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_FALSE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("Dayna", device->GetVendor());
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
@@ -239,17 +239,17 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(false, device->SupportsFile());
-	EXPECT_EQ(false, device->SupportsParams());
-	EXPECT_EQ(false, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(false, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(false, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(false, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_FALSE(device->SupportsFile());
+	EXPECT_FALSE(device->SupportsParams());
+	EXPECT_FALSE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_FALSE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_FALSE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_FALSE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("Host Services", device->GetProduct());
@@ -263,17 +263,17 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "printer");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ(false, device->SupportsFile());
-	EXPECT_EQ(true, device->SupportsParams());
-	EXPECT_EQ(false, device->IsProtectable());
-	EXPECT_EQ(false, device->IsProtected());
-	EXPECT_EQ(false, device->IsReadOnly());
-	EXPECT_EQ(false, device->IsRemovable());
-	EXPECT_EQ(false, device->IsRemoved());
-	EXPECT_EQ(false, device->IsLockable());
-	EXPECT_EQ(false, device->IsLocked());
-	EXPECT_EQ(false, device->IsStoppable());
-	EXPECT_EQ(false, device->IsStopped());
+	EXPECT_FALSE(device->SupportsFile());
+	EXPECT_TRUE(device->SupportsParams());
+	EXPECT_FALSE(device->IsProtectable());
+	EXPECT_FALSE(device->IsProtected());
+	EXPECT_FALSE(device->IsReadOnly());
+	EXPECT_FALSE(device->IsRemovable());
+	EXPECT_FALSE(device->IsRemoved());
+	EXPECT_FALSE(device->IsLockable());
+	EXPECT_FALSE(device->IsLocked());
+	EXPECT_FALSE(device->IsStoppable());
+	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI PRINTER", device->GetProduct());

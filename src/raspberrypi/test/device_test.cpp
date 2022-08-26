@@ -60,7 +60,8 @@ TEST(DeviceTest, TestUnitReady)
 	MockController controller;
 	SCSIHD *device = (SCSIHD *)device_factory.CreateDevice(SCHD, "test");
 
-	EXPECT_EQ(true, device->Dispatch(&controller));
+	controller.ctrl.cmd[0] = eCmdTestUnitReady;
+	EXPECT_TRUE(device->Dispatch(&controller));
 }
 
 }
