@@ -17,7 +17,7 @@ using namespace rascsi_interface;
 
 DeviceFactory& device_factory = DeviceFactory::instance();
 
-TEST(DeviceFactoryTest, GetExtension)
+TEST(DeviceFactoryTest, GetTypeForFile)
 {
 	EXPECT_EQ(SAHD, device_factory.GetTypeForFile("test.hdf"));
 	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.hds"));
