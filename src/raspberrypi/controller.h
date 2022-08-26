@@ -87,7 +87,6 @@ public:
 		// General
 		BUS::phase_t phase;				// Transition phase
 		int scsi_id;					// The SCSI ID of the connected device (0-7)
-		BUS *bus;						// Bus
 
 		// commands
 		DWORD cmd[16];					// Command data
@@ -143,6 +142,8 @@ public:
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
+
+	BUS *bus;
 
 	// Phases
 	void BusFree() override;

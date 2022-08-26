@@ -25,13 +25,13 @@ using namespace scsi_defs;
 
 Controller::Controller(int scsi_id, BUS *bus)
 {
+	this->bus = bus;
+
 	ctrl.scsi_id = scsi_id;
-	ctrl.bus = bus;
 
 	// Work initialization
 	ctrl.phase = BUS::busfree;
 	ctrl.scsi_id = UNKNOWN_SCSI_ID;
-	ctrl.bus = NULL;
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
@@ -119,23 +119,18 @@ bool Controller::HasUnit() const
 
 BUS::phase_t Controller::Process(int initiator_id)
 {
-	// Do nothing if not connected
-	if (ctrl.scsi_id < 0 || ctrl.bus == NULL) {
-		return ctrl.phase;
-	}
-
 	// Get bus information
-	ctrl.bus->Aquire();
+	bus->Aquire();
 
 	// Check to see if the reset signal was asserted
-	if (ctrl.bus->GetRST()) {
+	if (bus->GetRST()) {
 		LOGWARN("RESET signal received!");
 
 		// Reset the controller
 		Reset();
 
 		// Reset the bus
-		ctrl.bus->Reset();
+		bus->Reset();
 		return ctrl.phase;
 	}
 
@@ -187,7 +182,7 @@ BUS::phase_t Controller::Process(int initiator_id)
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__);
 
 		Reset();
-		ctrl.bus->Reset();
+		bus->Reset();
 
 		BusFree();
 	}
@@ -204,11 +199,11 @@ void Controller::BusFree()
 		ctrl.phase = BUS::busfree;
 
 		// Set Signal lines
-		ctrl.bus->SetREQ(FALSE);
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(false);
+		bus->SetREQ(FALSE);
+		bus->SetMSG(FALSE);
+		bus->SetCD(FALSE);
+		bus->SetIO(FALSE);
+		bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -251,7 +246,7 @@ void Controller::BusFree()
 	}
 
 	// Move to selection phase
-	if (ctrl.bus->GetSEL() && !ctrl.bus->GetBSY()) {
+	if (bus->GetSEL() && !bus->GetBSY()) {
 		Selection();
 	}
 }
@@ -261,7 +256,7 @@ void Controller::Selection()
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
 		int id = 1 << ctrl.scsi_id;
-		if ((ctrl.bus->GetDAT() & id) == 0) {
+		if ((bus->GetDAT() & id) == 0) {
 			return;
 		}
 
@@ -283,14 +278,14 @@ void Controller::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raise BSY and respond
-		ctrl.bus->SetBSY(true);
+		bus->SetBSY(true);
 		return;
 	}
 
 	// Selection completed
-	if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
+	if (!bus->GetSEL() && bus->GetBSY()) {
 		// Message out phase if ATN=1, otherwise command phase
-		if (ctrl.bus->GetATN()) {
+		if (bus->GetATN()) {
 			MsgOut();
 		} else {
 			Command();
@@ -307,9 +302,9 @@ void Controller::Command()
 		ctrl.phase = BUS::command;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(FALSE);
+		bus->SetMSG(FALSE);
+		bus->SetCD(TRUE);
+		bus->SetIO(FALSE);
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -317,7 +312,7 @@ void Controller::Command()
 		ctrl.blocks = 1;
 
 		// If no byte can be received move to the status phase
-		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		int count = bus->CommandHandShake(ctrl.buffer);
 		if (!count) {
 			LOGERROR("%s No byte received. Going to error",__PRETTY_FUNCTION__);
 			Error();
@@ -433,9 +428,9 @@ void Controller::Status()
 		ctrl.phase = BUS::status;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(TRUE);
+		bus->SetMSG(FALSE);
+		bus->SetCD(TRUE);
+		bus->SetIO(TRUE);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -460,9 +455,9 @@ void Controller::MsgIn()
 		ctrl.phase = BUS::msgin;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(TRUE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(TRUE);
+		bus->SetMSG(TRUE);
+		bus->SetCD(TRUE);
+		bus->SetIO(TRUE);
 
 		// length, blocks are already set
 		assert(ctrl.length > 0);
@@ -493,9 +488,9 @@ void Controller::MsgOut()
 		ctrl.phase = BUS::msgout;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(TRUE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(FALSE);
+		bus->SetMSG(TRUE);
+		bus->SetCD(TRUE);
+		bus->SetIO(FALSE);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -533,9 +528,9 @@ void Controller::DataIn()
 		ctrl.phase = BUS::datain;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(TRUE);
+		bus->SetMSG(FALSE);
+		bus->SetCD(FALSE);
+		bus->SetIO(TRUE);
 
 		// length, blocks are already set
 		assert(ctrl.blocks > 0);
@@ -573,9 +568,9 @@ void Controller::DataOut()
 		ctrl.phase = BUS::dataout;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
+		bus->SetMSG(FALSE);
+		bus->SetCD(FALSE);
+		bus->SetIO(FALSE);
 
 		ctrl.offset = 0;
 		return;
@@ -588,15 +583,15 @@ void Controller::DataOut()
 void Controller::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
-	ctrl.bus->Aquire();
+	bus->Aquire();
 
 	// Reset check
-	if (ctrl.bus->GetRST()) {
+	if (bus->GetRST()) {
 		// Reset the controller
 		Reset();
 
 		// Reset the bus
-		ctrl.bus->Reset();
+		bus->Reset();
 		return;
 	}
 
@@ -628,8 +623,8 @@ void Controller::Error(sense_key sense_key, asc asc, status status)
 
 void Controller::Send()
 {
-	assert(!ctrl.bus->GetREQ());
-	assert(ctrl.bus->GetIO());
+	assert(!bus->GetREQ());
+	assert(bus->GetIO());
 
 	if (ctrl.length != 0) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
@@ -637,7 +632,7 @@ void Controller::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0] ? ctrl.unit[0]->GetSendDelay() : 0);
+		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0] ? ctrl.unit[0]->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -730,14 +725,14 @@ void Controller::Receive()
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	// REQ is low
-	assert(!ctrl.bus->GetREQ());
-	assert(!ctrl.bus->GetIO());
+	assert(!bus->GetREQ());
+	assert(!bus->GetIO());
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -816,7 +811,7 @@ void Controller::Receive()
 
 		case BUS::msgout:
 			// Continue message out phase as long as ATN keeps asserting
-			if (ctrl.bus->GetATN()) {
+			if (bus->GetATN()) {
 				// Data transfer is 1 byte x 1 block
 				ctrl.offset = 0;
 				ctrl.length = 1;
@@ -934,13 +929,13 @@ void Controller::ReceiveBytes()
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	// REQ is low
-	assert(!ctrl.bus->GetREQ());
-	assert(!ctrl.bus->GetIO());
+	assert(!bus->GetREQ());
+	assert(!bus->GetIO());
 
 	if (ctrl.length) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length);
 
-		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.length) {
@@ -1004,7 +999,7 @@ void Controller::ReceiveBytes()
 
 		case BUS::msgout:
 			// Continue message out phase as long as ATN keeps asserting
-			if (ctrl.bus->GetATN()) {
+			if (bus->GetATN()) {
 				// Data transfer is 1 byte x 1 block
 				ctrl.offset = 0;
 				ctrl.length = 1;
