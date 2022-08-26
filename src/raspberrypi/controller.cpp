@@ -45,7 +45,7 @@ Controller::Controller(int scsi_id, BUS *bus)
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
-	ctrl.lun = -1;
+	identified_lun = -1;
 
 	// Logical unit initialization
 	for (int i = 0; i < UNIT_MAX; i++) {
@@ -212,7 +212,7 @@ void Controller::BusFree()
 		// Initialize ATN message reception status
 		scsi.atnmsg = false;
 
-		ctrl.lun = -1;
+		identified_lun = -1;
 
 		scsi.is_byte_transfer = false;
 		scsi.bytes_to_transfer = 0;
@@ -831,8 +831,8 @@ void Controller::Receive()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						ctrl.lun = data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
+						identified_lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun);
 					}
 
 					// Extended Message
@@ -1019,8 +1019,8 @@ void Controller::ReceiveBytes()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						ctrl.lun = data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
+						identified_lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun);
 					}
 
 					// Extended Message
@@ -1314,7 +1314,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 
 int Controller::GetEffectiveLun() const
 {
-	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
+	return identified_lun != -1 ? identified_lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 
 void Controller::Sleep()

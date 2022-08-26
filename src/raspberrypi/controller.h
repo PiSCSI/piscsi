@@ -107,9 +107,6 @@ public:
 		// The current device
 		// TODO This is probably obsolete
 		PrimaryDevice *device;
-
-		// The LUN from the IDENTIFY message
-		int lun;
 	} ctrl_t;
 
 	Controller(int, BUS *);
@@ -118,9 +115,6 @@ public:
 	void Reset();
 
 	BUS::phase_t Process(int);
-
-	// Execution start time
-	DWORD execstart;
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
@@ -146,6 +140,12 @@ public:
 private:
 
 	BUS *bus;
+
+	// Execution start time
+	DWORD execstart;
+
+	// The LUN from the IDENTIFY message
+	int identified_lun;
 
 	// Phases
 	void BusFree() override;
