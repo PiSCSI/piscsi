@@ -142,21 +142,6 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					}
 					break;
 
-                // CD-ROM Parameters
-				// TODO Move to scsicd.cpp
-                // According to the SONY CDU-541 manual, Page code 8 is supposed
-                // to set the Logical Block Adress Format, as well as the
-                // inactivity timer multiplier
-                case 0x08:
-                    // Debug code for Issue #2:
-                    //     https://github.com/akuker/RASCSI/issues/2
-                    LOGWARN("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
-                    for (int i = 0; i<length; i++)
-                    {
-                        printf("%02X ", buf[i]);
-                    }
-                    printf("\n");
-                    break;
 				// Other page
 				default:
                     printf("Unknown Mode Select page code received: %02X\n",page);
