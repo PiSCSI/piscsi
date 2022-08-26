@@ -32,6 +32,8 @@ public:
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *, int);
 
+	bool SupportsFile() const override { return false; }
+
 private:
 
 	typedef ModePageDevice super;
