@@ -133,7 +133,10 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					// check the number of bytes in the physical sector
 					int size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
-						// currently does not allow changing sector length
+						// Currently does not allow changing sector size
+						// Some drives use the configured size for a subsequent FORMAT command with this size
+						// TODO Because it is not possible to permanently (by formatting) change the sector size
+						// with rascsi all this code is probably useless
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					}
