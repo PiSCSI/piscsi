@@ -19,21 +19,21 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
-	EXPECT_EQ(SAHD, device_factory.GetTypeForFile("test.hdf"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.hds"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.HDS"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.hda"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.hdn"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.hdi"));
-	EXPECT_EQ(SCHD, device_factory.GetTypeForFile("test.nhd"));
-	EXPECT_EQ(SCRM, device_factory.GetTypeForFile("test.hdr"));
-	EXPECT_EQ(SCMO, device_factory.GetTypeForFile("test.mos"));
-	EXPECT_EQ(SCCD, device_factory.GetTypeForFile("test.iso"));
-	EXPECT_EQ(SCCD, device_factory.GetTypeForFile("test.suffix.iso"));
-	EXPECT_EQ(SCBR, device_factory.GetTypeForFile("bridge"));
-	EXPECT_EQ(SCDP, device_factory.GetTypeForFile("daynaport"));
-	EXPECT_EQ(SCLP, device_factory.GetTypeForFile("printer"));
-	EXPECT_EQ(SCHS, device_factory.GetTypeForFile("services"));
-	EXPECT_EQ(UNDEFINED, device_factory.GetTypeForFile("unknown"));
-	EXPECT_EQ(UNDEFINED, device_factory.GetTypeForFile("test.iso.suffix"));
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hdf"), SAHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hda"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hdn"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hdi"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.nhd"), SCHD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hdr"), SCRM);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.mos"), SCMO);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.iso"), SCCD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.suffix.iso"), SCCD);
+	EXPECT_EQ(device_factory.GetTypeForFile("bridge"), SCBR);
+	EXPECT_EQ(device_factory.GetTypeForFile("daynaport"), SCDP);
+	EXPECT_EQ(device_factory.GetTypeForFile("printer"), SCLP);
+	EXPECT_EQ(device_factory.GetTypeForFile("services"), SCHS);
+	EXPECT_EQ(device_factory.GetTypeForFile("unknown"), UNDEFINED);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
