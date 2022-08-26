@@ -29,9 +29,11 @@ TEST(DeviceFactoryTest, GetExtension)
 	EXPECT_EQ(SCRM, device_factory.GetTypeForFile("test.hdr"));
 	EXPECT_EQ(SCMO, device_factory.GetTypeForFile("test.mos"));
 	EXPECT_EQ(SCCD, device_factory.GetTypeForFile("test.iso"));
+	EXPECT_EQ(SCCD, device_factory.GetTypeForFile("test.suffix.iso"));
 	EXPECT_EQ(SCBR, device_factory.GetTypeForFile("bridge"));
 	EXPECT_EQ(SCDP, device_factory.GetTypeForFile("daynaport"));
 	EXPECT_EQ(SCLP, device_factory.GetTypeForFile("printer"));
 	EXPECT_EQ(SCHS, device_factory.GetTypeForFile("services"));
 	EXPECT_EQ(UNDEFINED, device_factory.GetTypeForFile("unknown"));
+	EXPECT_EQ(UNDEFINED, device_factory.GetTypeForFile("test.iso.suffix"));
 }
