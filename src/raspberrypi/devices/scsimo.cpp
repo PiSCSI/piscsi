@@ -101,19 +101,21 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 	// PF
 	if (cdb[1] & 0x10) {
+		bool has_valid_page_code = false;
+
 		// Mode Parameter header
 		if (length >= 12) {
-			// Check the block length bytes
-			int size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) || buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
-				// Currently does not allow changing sector length
+			int current_size = 1 << GetSectorSizeShiftCount();
+			if (buf[9] != (BYTE)(current_size >> 16) || buf[10] != (BYTE)(current_size >> 8) ||
+					buf[11] != (BYTE)current_size) {
+				// See below for details
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
+			has_valid_page_code = true;
+
 			buf += 12;
 			length -= 12;
 		}
-
-		bool has_valid_page_code = false;
 
 		// Parsing the page
 		while (length > 0) {
@@ -125,7 +127,7 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					// With this page the sector size for a subsequent FORMAT can be selected, but only very few
 					// drives support this, e.g FUJITSU M2624S
 					// We are fine as long as the current sector size remains unchanged
-					int current_size = GetSectorSizeInBytes();
+					int current_size = 1 << GetSectorSizeInBytes();
 					if (buf[0xc] != (BYTE)(current_size >> 8) || buf[0xd] != (BYTE)current_size) {
 						// With rascsi it is not possible to permanently (by formatting) change the sector size,
 						// because the size is an externally configurable setting only
