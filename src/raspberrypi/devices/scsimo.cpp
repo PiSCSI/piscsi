@@ -118,15 +118,15 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			int page = buf[0];
 
 			switch (page) {
-				// format device
+				// Format device page
 				case 0x03: {
 					// Check the number of bytes in the physical sector
 					int size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
-						// Currently does not allow changing sector size
-						// Some drives use the configured size for a subsequent FORMAT command with this size
-						// TODO Because it is not possible to permanently (by formatting) change the sector size
-						// with rascsi all this code is probably useless
+						// With this page the sector size for a subsequent FORMAT can be selected, but only very few
+						// drives support this, e.g FUJITSU M2624S
+						// With rascsi it is not possible to permanently (by formatting) change the sector size,
+						// because the size is an externally configurable setting only
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 					}
