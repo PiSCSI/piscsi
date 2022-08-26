@@ -83,7 +83,7 @@ public:
 	typedef struct {
 		// General
 		BUS::phase_t phase;				// Transition phase
-		int m_scsi_id;					// Controller ID (0-7)
+		int scsi_id;					// The SCSI ID of the connected device (0-7)
 		BUS *bus;						// Bus
 
 		// commands
@@ -163,7 +163,6 @@ private:
 	void FlushUnit();
 	void Receive();
 	bool HasUnit() const;
-	int GetSCSIID() { return ctrl.m_scsi_id; }
 
 	ctrl_t ctrl;
 	scsi_t scsi;

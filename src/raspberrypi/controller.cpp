@@ -27,7 +27,7 @@ Controller::Controller()
 {
 	// Work initialization
 	ctrl.phase = BUS::busfree;
-	ctrl.m_scsi_id = UNKNOWN_SCSI_ID;
+	ctrl.scsi_id = UNKNOWN_SCSI_ID;
 	ctrl.bus = NULL;
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
@@ -116,14 +116,14 @@ bool Controller::HasUnit() const
 
 void Controller::Connect(int id, BUS *bus)
 {
-	ctrl.m_scsi_id = id;
+	ctrl.scsi_id = id;
 	ctrl.bus = bus;
 }
 
 BUS::phase_t Controller::Process(int initiator_id)
 {
 	// Do nothing if not connected
-	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
+	if (ctrl.scsi_id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
 	}
 
@@ -263,7 +263,7 @@ void Controller::Selection()
 {
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
-		int id = 1 << ctrl.m_scsi_id;
+		int id = 1 << ctrl.scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -273,7 +273,7 @@ void Controller::Selection()
 			return;
 		}
 
-		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.m_scsi_id);
+		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.scsi_id);
 
 		if (scsi.initiator_id != UNKNOWN_SCSI_ID) {
 			LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, scsi.initiator_id);
@@ -372,7 +372,7 @@ void Controller::Execute()
 	if (!ctrl.unit[lun]) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
-			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, ctrl.scsi_id);
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
@@ -395,7 +395,7 @@ void Controller::Execute()
 	
 	try {
 		if (!ctrl.device->Dispatch()) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", ctrl.scsi_id, lun, (BYTE)ctrl.cmd[0]);
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
@@ -480,7 +480,7 @@ void Controller::MsgIn()
 
 void Controller::MsgOut()
 {
-	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, ctrl.scsi_id);
 
 	if (ctrl.phase != BUS::msgout) {
 		LOGTRACE("Message Out Phase");
