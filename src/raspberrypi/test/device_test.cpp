@@ -175,9 +175,7 @@ TEST(DeviceTest, SCHS_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
 	EXPECT_NE(nullptr, device);
-	// TODO Neither parameters nor files are supported.
-	// SupportsFile() returns true, whic is a bug which may also require client changes after fixing.
-	EXPECT_EQ(true, device->SupportsFile());
+	EXPECT_EQ(false, device->SupportsFile());
 	EXPECT_EQ(false, device->SupportsParams());
 	EXPECT_EQ(false, device->IsProtectable());
 	EXPECT_EQ(false, device->IsProtected());

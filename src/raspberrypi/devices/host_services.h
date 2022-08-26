@@ -32,6 +32,8 @@ public:
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *, int);
 
+	bool SupportsFile() const override { return false; }
+
 protected:
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
