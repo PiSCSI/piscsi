@@ -128,7 +128,7 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			int page = buf[0];
 
 			switch (page) {
-				// format device page
+				// Format device page
 				case 0x03: {
 					// With this page the sector size for a subsequent FORMAT can be selected, but only very few
 					// drives support this, e.g FUJITSU M2624S
