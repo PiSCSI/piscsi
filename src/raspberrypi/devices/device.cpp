@@ -120,14 +120,14 @@ const string Device::GetParam(const string& key)
 	return params.find(key) != params.end() ? params[key] : "";
 }
 
-void Device::SetParams(const unordered_map<string, string>& params)
+void Device::SetParams(const unordered_map<string, string>& set_params)
 {
-	this->params = GetDefaultParams();
+	params = default_params;
 
-	for (const auto& param : params) {
+	for (const auto& param : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (this->params.find(param.first) != this->params.end()) {
-			this->params[param.first] = param.second;
+		if (params.find(param.first) != params.end()) {
+			params[param.first] = param.second;
 		}
 		else {
 			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());

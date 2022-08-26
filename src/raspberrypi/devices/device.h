@@ -81,6 +81,9 @@ protected:
 
 	int GetStatusCode() const { return status_code; }
 
+	const string GetParam(const string&);
+	void SetParams(const unordered_map<string, string>&);
+
 	static unordered_set<Device *> devices;
 
 public:
@@ -136,9 +139,6 @@ public:
 	bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const unordered_map<string, string> GetParams() const { return params; }
-	const string GetParam(const string&);
-	void SetParams(const unordered_map<string, string>&);
-	const unordered_map<string, string> GetDefaultParams() const { return default_params; }
 	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
 
 	void SetStatusCode(int);
