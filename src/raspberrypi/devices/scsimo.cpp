@@ -252,3 +252,20 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 
 	return;
 }
+
+void SCSIMO::SetGeometries(const unordered_map<uint64_t, Geometry>& geometries)
+{
+	this->geometries = geometries;
+}
+
+bool SCSIMO::SetGeometryForCapacity(uint64_t capacity) {
+	const auto& geometry = geometries.find(capacity);
+	if (geometry != geometries.end()) {
+		SetSectorSizeInBytes(geometry->second.first);
+		SetBlockCount(geometry->second.second);
+
+		return true;
+	}
+
+	return false;
+}

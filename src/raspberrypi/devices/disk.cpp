@@ -1068,23 +1068,6 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 	return true;
 }
 
-void Disk::SetGeometries(const unordered_map<uint64_t, Geometry>& geometries)
-{
-	this->geometries = geometries;
-}
-
-bool Disk::SetGeometryForCapacity(uint64_t capacity) {
-	const auto& geometry = geometries.find(capacity);
-	if (geometry != geometries.end()) {
-		SetSectorSizeInBytes(geometry->second.first);
-		SetBlockCount(geometry->second.second);
-
-		return true;
-	}
-
-	return false;
-}
-
 uint64_t Disk::GetBlockCount() const
 {
 	return disk.blocks;

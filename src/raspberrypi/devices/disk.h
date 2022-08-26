@@ -35,14 +35,12 @@ using namespace std;
 class Disk : public ModePageDevice, ScsiBlockCommands
 {
 private:
+
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
 	// The supported configurable block sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size;
-
-	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
-	unordered_map<uint64_t, Geometry> geometries;
 
 	typedef struct {
 		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
@@ -68,8 +66,6 @@ public:
 	// Command helpers
 	virtual int WriteCheck(DWORD);
 	virtual void Write( const DWORD *, BYTE *, uint64_t);
-	bool StartStop(const DWORD *);
-	bool SendDiag(const DWORD *) const;
 
 	virtual int Read(const DWORD *, BYTE *, uint64_t);
 
@@ -77,14 +73,13 @@ public:
 	bool IsSectorSizeConfigurable() const;
 	bool SetConfiguredSectorSize(uint32_t);
 	uint64_t GetBlockCount() const;
-	void SetBlockCount(uint32_t);
 	void FlushCache();
 
 private:
 
 	typedef ModePageDevice super;
 
-	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
+	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();
 	void SendDiagnostic();
 	void PreventAllowMediumRemoval();
@@ -105,13 +100,10 @@ private:
 	void ReadCapacity16() override;
 	void Reserve();
 	void Release();
-
-	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	void Rezero();
 	void FormatUnit() override;
 	void ReassignBlocks();
 	void Seek6();
-
 	void Read(access_mode);
 	void Write(access_mode);
 	void Verify(access_mode);
@@ -119,6 +111,8 @@ private:
 	void ReadWriteLong16();
 	void ReadCapacity16_ReadLong16();
 	void Format(const DWORD *);
+	bool SendDiag(const DWORD *) const;
+	bool StartStop(const DWORD *);
 
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
@@ -142,8 +136,7 @@ protected:
 	uint32_t GetSectorSizeShiftCount() const;
 	void SetSectorSizeShiftCount(uint32_t);
 	uint32_t GetConfiguredSectorSize() const;
-	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
-	bool SetGeometryForCapacity(uint64_t);
+	void SetBlockCount(uint32_t);
 
 	// Internal disk data
 	disk_t disk;
