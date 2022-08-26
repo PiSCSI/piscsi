@@ -13,10 +13,14 @@ RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/Introdu
   
 Typically, releases will only be planned every few months.
 
+When you are ready to contribute code to RaSCSI Reloaded, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
+
+If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/akuker/RASCSI/blob/develop/python/web/README.md#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
+
 <a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>
 
-# Github Sponsors
-Thank you to all of the Github sponsors who support the development community!
+# GitHub Sponsors
+Thank you to all of the GitHub sponsors who support the development community!
 
  Special thank you to the Gold level sponsors!
   - <a href="https://github.com/mikelord68">@mikelord68</a>
