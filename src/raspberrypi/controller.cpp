@@ -1139,6 +1139,8 @@ void Controller::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
+            // TODO What is this special handling of ModeSelect good for?
+            // Without it we would not need this method at all.
 			try {
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
