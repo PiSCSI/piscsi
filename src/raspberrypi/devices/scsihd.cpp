@@ -128,9 +128,9 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			int page = buf[0];
 
 			switch (page) {
-				// format device
+				// format device page
 				case 0x03: {
-					// check the number of bytes in the physical sector
+					// We are fine as long as the current sector size remains unchanged
 					int size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) || buf[0xd] != (BYTE)size) {
 						// With this page the sector size for a subsequent FORMAT can be selected, but only very few
