@@ -770,7 +770,7 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-220702"
+    NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
 
@@ -793,7 +793,7 @@ function installMacproxy {
     echo -n "Enter a port number 1024 - 65535, or press Enter to use the default port: "
 
     read -r CHOICE
-    if [ $CHOICE -ge "1024" ] && [ $CHOICE -le "65535" ]; then
+    if [[ $CHOICE -ge "1024" ]] && [[ $CHOICE -le "65535" ]]; then
         PORT=$CHOICE
     else
         echo "Using the default port $PORT"
@@ -801,20 +801,19 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.12.3"
+    MACPROXY_VER="22.8"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
-        echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
-        exit 1
+        echo "The $MACPROXY_PATH directory already exists. Deleting before downloading again..."
+        sudo rm -rf "$MACPROXY_PATH"
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/$MACPROXY_VER.tar.gz" </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
 
-    stopMacproxy
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh" "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh -p=$PORT" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
     startMacproxy
@@ -1186,6 +1185,7 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               sudoCheck
+              stopMacproxy
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
