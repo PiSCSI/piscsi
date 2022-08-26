@@ -62,7 +62,6 @@ endif
 RASCSI = rascsi
 RASCTL = rasctl
 RASDUMP = rasdump
-SASIDUMP = sasidump
 SCSIMON = scsimon
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
@@ -81,8 +80,7 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP) \
-	$(BINDIR)/$(SASIDUMP)
+	$(BINDIR)/$(RASDUMP)
 
 SRC_PROTOC = \
 	rascsi_interface.proto
@@ -131,13 +129,6 @@ SRC_RASDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-SRC_SASIDUMP = \
-	sasidump.cpp \
-	scsi.cpp \
-	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp\
-	rascsi_version.cpp
 
 vpath %.h ./ ./devices ./monitor
 vpath %.cpp ./ ./devices ./monitor
@@ -148,7 +139,6 @@ vpath ./$(BINDIR)
 OBJ_RASCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI:%.cpp=%.o)))
 OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
-OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
@@ -191,19 +181,15 @@ $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
 
-$(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SASIDUMP)
-
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON)
 $(RASCSI)  : $(BINDIR)/$(RASCSI) 
 $(RASCTL)  : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
-$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 
 
@@ -231,12 +217,10 @@ install: \
 	$(MAN_PAGE_DIR)/rasctl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
 	$(MAN_PAGE_DIR)/rasdump.1 \
-	$(MAN_PAGE_DIR)/sasidump.1 \
 	$(USR_LOCAL_BIN)/$(RASCTL) \
 	$(USR_LOCAL_BIN)/$(RASCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
 	$(USR_LOCAL_BIN)/$(RASDUMP) \
-	$(USR_LOCAL_BIN)/$(SASIDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)
