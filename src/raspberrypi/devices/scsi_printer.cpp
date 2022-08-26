@@ -257,9 +257,9 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
-	write(fd, buf, length);
+	uint32_t num_written = write(fd, buf, length);
 
-	return true;
+	return (num_written == length);
 }
 
 bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
