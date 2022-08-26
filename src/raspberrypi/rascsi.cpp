@@ -253,7 +253,8 @@ void Reset()
 
 //---------------------------------------------------------------------------
 //
-//	Controller Mapping
+// Controller Mapping
+// TODO This can probably be simplified
 //
 //---------------------------------------------------------------------------
 void MapController(Device **map)
