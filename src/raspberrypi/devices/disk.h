@@ -74,16 +74,8 @@ public:
 	virtual int Read(const DWORD *, BYTE *, uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
-	void SetSectorSizeInBytes(uint32_t);
-	uint32_t GetSectorSizeShiftCount() const;
-	void SetSectorSizeShiftCount(uint32_t);
 	bool IsSectorSizeConfigurable() const;
-	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const unordered_set<uint32_t>&);
-	uint32_t GetConfiguredSectorSize() const;
 	bool SetConfiguredSectorSize(uint32_t);
-	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
-	bool SetGeometryForCapacity(uint64_t);
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
 	void FlushCache();
@@ -144,6 +136,14 @@ protected:
 	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
 	void AddCachePage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
+	unordered_set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const unordered_set<uint32_t>&);
+	void SetSectorSizeInBytes(uint32_t);
+	uint32_t GetSectorSizeShiftCount() const;
+	void SetSectorSizeShiftCount(uint32_t);
+	uint32_t GetConfiguredSectorSize() const;
+	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
+	bool SetGeometryForCapacity(uint64_t);
 
 	// Internal disk data
 	disk_t disk;
