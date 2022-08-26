@@ -70,7 +70,7 @@ void PrimaryDevice::Inquiry()
 
 	// Report if the device does not support the requested LUN
 	if (!controller->GetUnit(lun)) {
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId());
 
 		// Signal that the requested LUN does not exist
 		ctrl->buffer[0] |= 0x7f;
