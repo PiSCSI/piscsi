@@ -93,9 +93,6 @@ public:
 		DWORD status;					// Status data
 		int message;					// Message data
 
-		// Run
-		DWORD execstart;				// Execution start time
-
 		// Transfer
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
@@ -121,6 +118,9 @@ public:
 	void Reset();
 
 	BUS::phase_t Process(int);
+
+	// Execution start time
+	DWORD execstart;
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
@@ -168,6 +168,8 @@ private:
 	bool HasAnyUnit() const;
 
 	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+
+	void Sleep();
 
 	ctrl_t ctrl;
 	scsi_t scsi;

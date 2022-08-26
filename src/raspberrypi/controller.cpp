@@ -35,7 +35,7 @@ Controller::Controller(int scsi_id, BUS *bus)
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-	ctrl.execstart = 0;
+	execstart = 0;
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
 	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
@@ -79,7 +79,7 @@ void Controller::Reset()
 	ctrl.phase = BUS::busfree;
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-	ctrl.execstart = 0;
+	execstart = 0;
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
@@ -351,7 +351,7 @@ void Controller::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-	ctrl.execstart = SysTimer::GetTimerLow();
+	execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
@@ -412,12 +412,8 @@ void Controller::Status()
 {
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
-		if (ctrl.execstart > 0) {
-			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < MIN_EXEC_TIME) {
-				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
-			}
-			ctrl.execstart = 0;
+		if (execstart > 0) {
+			Sleep();
 		} else {
 			SysTimer::SleepUsec(5);
 		}
@@ -509,12 +505,8 @@ void Controller::DataIn()
 
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
-		if (ctrl.execstart > 0) {
-			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < MIN_EXEC_TIME) {
-				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
-			}
-			ctrl.execstart = 0;
+		if (execstart > 0) {
+			Sleep();
 		}
 
 		// If the length is 0, go to the status phase
@@ -548,12 +540,8 @@ void Controller::DataOut()
 
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
-		if (ctrl.execstart > 0) {
-			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < MIN_EXEC_TIME) {
-				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
-			}
-			ctrl.execstart = 0;
+		if (execstart > 0) {
+			Sleep();
 		}
 
 		// If the length is 0, go to the status phase
@@ -1329,3 +1317,11 @@ int Controller::GetEffectiveLun() const
 	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 
+void Controller::Sleep()
+{
+	uint32_t time = SysTimer::GetTimerLow() - execstart;
+	if (time < MIN_EXEC_TIME) {
+		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
+	}
+	execstart = 0;
+}
