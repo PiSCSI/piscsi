@@ -58,7 +58,7 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 TEST(DeviceTest, TestUnitReady)
 {
 	MockController controller;
-	SCSIHD *device = (SCSIHD *)device_factory.CreateDevice(SCHD, "test");
+	Device *device = device_factory.CreateDevice(SCHD, "test");
 
 	controller.ctrl.cmd[0] = eCmdTestUnitReady;
 
