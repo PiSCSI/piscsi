@@ -40,4 +40,5 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("unknown"), UNDEFINED);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
+
 }

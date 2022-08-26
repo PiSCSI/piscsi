@@ -180,4 +180,5 @@ TEST(ModePagesTest, HostServices_AddModePages)
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of code pages";
 	EXPECT_EQ(10, mode_pages[32].size());
 }
+
 }
