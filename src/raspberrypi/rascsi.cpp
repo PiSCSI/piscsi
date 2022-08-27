@@ -498,6 +498,11 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
+	if (unit >= Controller::UNIT_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
+				+ ")");
+	}
+
 	string filename = GetParam(pb_device, "file");
 
 	// Create a new device, based on the provided type or filename
@@ -509,13 +514,6 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		else {
 			return ReturnLocalizedError(context, ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
 		}
-	}
-
-	if (unit >= Controller::UNIT_MAX) {
-		delete device;
-
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
-				+ ")");
 	}
 
 	// If no filename was provided the medium is considered removed
