@@ -306,7 +306,7 @@ message PbDeviceDefinition {
     PbDeviceType type = 3;
     // Device specific named parameters, e.g. the name of an image file
     map<string, string> params = 4;
-    // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
+    // The optional block size in bytes per sector, must be one of the supported block sizes
     int32 block_size = 5;
     // The device name components
     string vendor = 6;
