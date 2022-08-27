@@ -52,7 +52,7 @@ public:
 	vector<BYTE> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
-	int WriteCheck(DWORD block) override;
+	int WriteCheck(uint64_t block) override;
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 	bool EnableInterface(const DWORD *cdb);

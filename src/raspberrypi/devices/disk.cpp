@@ -584,12 +584,12 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 	if (IsReady()) {
 		// Set the number of cylinders (total number of blocks
         // divided by 25 sectors/track and 8 heads)
-		uint32_t cylinder = disk.blocks;
-		cylinder >>= 3;
-		cylinder /= 25;
-		buf[0x02] = (BYTE)(cylinder >> 16);
-		buf[0x03] = (BYTE)(cylinder >> 8);
-		buf[0x04] = (BYTE)cylinder;
+		uint64_t cylinders = disk.blocks;
+		cylinders >>= 3;
+		cylinders /= 25;
+		buf[0x02] = (BYTE)(cylinders >> 16);
+		buf[0x03] = (BYTE)(cylinders >> 8);
+		buf[0x04] = (BYTE)cylinders;
 
 		// Fix the head at 8
 		buf[0x05] = 0x8;
@@ -666,7 +666,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return 1 << disk.size;
 }
 
-int Disk::WriteCheck(DWORD block)
+int Disk::WriteCheck(uint64_t block)
 {
 	CheckReady();
 
@@ -1073,7 +1073,7 @@ uint64_t Disk::GetBlockCount() const
 	return disk.blocks;
 }
 
-void Disk::SetBlockCount(uint32_t blocks)
+void Disk::SetBlockCount(uint64_t blocks)
 {
 	disk.blocks = blocks;
 }

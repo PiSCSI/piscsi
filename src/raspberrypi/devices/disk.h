@@ -44,8 +44,7 @@ private:
 
 	typedef struct {
 		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
-		// TODO blocks should be a 64 bit value in order to support higher capacities
-		uint32_t blocks;						// Total number of sectors
+		uint64_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
 		bool is_medium_changed;
@@ -64,7 +63,7 @@ public:
 	bool Eject(bool) override;
 
 	// Command helpers
-	virtual int WriteCheck(DWORD);
+	virtual int WriteCheck(uint64_t);
 	virtual void Write( const DWORD *, BYTE *, uint64_t);
 
 	virtual int Read(const DWORD *, BYTE *, uint64_t);
@@ -136,7 +135,7 @@ protected:
 	uint32_t GetSectorSizeShiftCount() const;
 	void SetSectorSizeShiftCount(uint32_t);
 	uint32_t GetConfiguredSectorSize() const;
-	void SetBlockCount(uint32_t);
+	void SetBlockCount(uint64_t);
 
 	// Internal disk data
 	disk_t disk;

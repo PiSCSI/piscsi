@@ -287,7 +287,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
-int SCSIDaynaPort::WriteCheck(DWORD block)
+int SCSIDaynaPort::WriteCheck(uint64_t)
 {
 	CheckReady();
 
