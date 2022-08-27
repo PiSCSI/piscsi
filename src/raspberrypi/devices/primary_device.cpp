@@ -37,8 +37,8 @@ bool PrimaryDevice::Dispatch()
 
 void PrimaryDevice::SetController(Controller *controller)
 {
-	this->controller = static_cast<ScsiController *>(controller);
-	ctrl = this->controller->GetCtrl();
+	this->controller = controller;
+	ctrl = controller->GetCtrl();
 	phase_handler = controller;
 }
 
