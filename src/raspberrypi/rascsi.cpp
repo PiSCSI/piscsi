@@ -240,7 +240,8 @@ void Reset()
 //---------------------------------------------------------------------------
 //
 // Controller Mapping
-// TODO This can probably be simplified
+// TODO This can probably be simplified. Just do what's needed to attach or delete a single device and do
+// not touch the others.
 //
 //---------------------------------------------------------------------------
 void MapController(Device **map)
