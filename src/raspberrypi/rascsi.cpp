@@ -1575,7 +1575,7 @@ int main(int argc, char* argv[])
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #else
-	cout << "Note: Hardware support is disabled (non-Pi platform?)" << endl;
+	cout << "Note: SCSI hardware support is disabled (non-Pi platform?)" << endl;
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
