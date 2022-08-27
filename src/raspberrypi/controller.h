@@ -165,7 +165,6 @@ private:
 	void Execute();
 	void FlushUnit();
 	void Receive();
-	bool HasAnyUnit() const;
 
 	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 

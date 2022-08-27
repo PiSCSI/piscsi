@@ -255,6 +255,7 @@ void Controller::Selection()
 		for (int i = 0; i < UNIT_MAX; i++) {
 			if (ctrl.units[i]) {
 				has_valid_unit = true;
+				break;
 			}
 		}
 		if (!has_valid_unit) {
