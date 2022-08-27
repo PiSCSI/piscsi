@@ -35,7 +35,7 @@ bool PrimaryDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]);
 }
 
-void PrimaryDevice::SetController(Controller *controller)
+void PrimaryDevice::SetController(ScsiController *controller)
 {
 	this->controller = controller;
 	ctrl = controller->GetCtrl();
@@ -90,7 +90,7 @@ void PrimaryDevice::ReportLuns()
 
 	// Only SELECT REPORT mode 0 is supported
 	if (!ctrl->cmd[2]) {
-		for (int lun = 0; lun < Controller::UNIT_MAX; lun++) {
+		for (int lun = 0; lun < ScsiController::UNIT_MAX; lun++) {
 			if (controller->GetUnit(lun)) {
 				size += 8;
 				buf[size + 7] = lun;

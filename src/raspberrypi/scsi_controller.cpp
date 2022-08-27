@@ -14,8 +14,9 @@
 //
 //---------------------------------------------------------------------------
 
+#include "scsi_controller.h"
+
 #include "log.h"
-#include "controller.h"
 #include "gpiobus.h"
 #include "exceptions.h"
 #include "devices/scsi_host_bridge.h"
@@ -23,7 +24,7 @@
 
 using namespace scsi_defs;
 
-Controller::Controller(int scsi_id, BUS *bus)
+ScsiController::ScsiController(int scsi_id, BUS *bus)
 {
 	this->bus = bus;
 
@@ -64,7 +65,7 @@ Controller::Controller(int scsi_id, BUS *bus)
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 }
 
-Controller::~Controller()
+ScsiController::~ScsiController()
 {
 	if (ctrl.buffer) {
 		free(ctrl.buffer);
@@ -72,7 +73,7 @@ Controller::~Controller()
 	}
 }
 
-void Controller::Reset()
+void ScsiController::Reset()
 {
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	SetPhase(BUS::busfree);
@@ -98,14 +99,14 @@ void Controller::Reset()
 	}
 }
 
-void Controller::SetUnit(int no, PrimaryDevice *device)
+void ScsiController::SetUnit(int no, PrimaryDevice *device)
 {
 	assert(no < UNIT_MAX);
 
 	ctrl.units[no] = device;
 }
 
-BUS::phase_t Controller::Process(int initiator_id)
+BUS::phase_t ScsiController::Process(int initiator_id)
 {
 	// Get bus information
 	bus->Acquire();
@@ -180,7 +181,7 @@ BUS::phase_t Controller::Process(int initiator_id)
 	return ctrl.phase;
 }
 
-void Controller::BusFree()
+void ScsiController::BusFree()
 {
 	if (ctrl.phase != BUS::busfree) {
 		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
@@ -240,7 +241,7 @@ void Controller::BusFree()
 	}
 }
 
-void Controller::Selection()
+void ScsiController::Selection()
 {
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
@@ -290,7 +291,7 @@ void Controller::Selection()
 	}
 }
 
-void Controller::Command()
+void ScsiController::Command()
 {
 	if (ctrl.phase != BUS::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
@@ -337,7 +338,7 @@ void Controller::Command()
 	}
 }
 
-void Controller::Execute()
+void ScsiController::Execute()
 {
 	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
@@ -403,7 +404,7 @@ void Controller::Execute()
 	}
 }
 
-void Controller::Status()
+void ScsiController::Status()
 {
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
@@ -434,7 +435,7 @@ void Controller::Status()
 	Send();
 }
 
-void Controller::MsgIn()
+void ScsiController::MsgIn()
 {
 	if (ctrl.phase != BUS::msgin) {
 		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__);
@@ -457,7 +458,7 @@ void Controller::MsgIn()
 	Send();
 }
 
-void Controller::MsgOut()
+void ScsiController::MsgOut()
 {
 	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, ctrl.scsi_id);
 
@@ -489,7 +490,7 @@ void Controller::MsgOut()
 	Receive();
 }
 
-void Controller::DataIn()
+void ScsiController::DataIn()
 {
 	assert(ctrl.length >= 0);
 
@@ -524,7 +525,7 @@ void Controller::DataIn()
 	Send();
 }
 
-void Controller::DataOut()
+void ScsiController::DataOut()
 {
 	assert(ctrl.length >= 0);
 
@@ -557,7 +558,7 @@ void Controller::DataOut()
 }
 
 // TODO Check all calls with no arguments. The error handling in this case might be wrong.
-void Controller::Error(sense_key sense_key, asc asc, status status)
+void ScsiController::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
 	bus->Acquire();
@@ -598,7 +599,7 @@ void Controller::Error(sense_key sense_key, asc asc, status status)
 	Status();
 }
 
-void Controller::Send()
+void ScsiController::Send()
 {
 	assert(!bus->GetREQ());
 	assert(bus->GetIO());
@@ -689,7 +690,7 @@ void Controller::Send()
 	}
 }
 
-void Controller::Receive()
+void ScsiController::Receive()
 {
 	if (scsi.is_byte_transfer) {
 		ReceiveBytes();
@@ -884,7 +885,7 @@ void Controller::Receive()
 	}
 }
 
-bool Controller::XferMsg(int msg)
+bool ScsiController::XferMsg(int msg)
 {
 	assert(ctrl.phase == BUS::msgout);
 
@@ -898,7 +899,7 @@ bool Controller::XferMsg(int msg)
 	return true;
 }
 
-void Controller::ReceiveBytes()
+void ScsiController::ReceiveBytes()
 {
 	uint32_t len;
 	BYTE data;
@@ -1070,7 +1071,7 @@ void Controller::ReceiveBytes()
 	}
 }
 
-bool Controller::XferOut(bool cont)
+bool ScsiController::XferOut(bool cont)
 {
 	if (!scsi.is_byte_transfer) {
 		return XferOutBlockOriented(cont);
@@ -1090,7 +1091,7 @@ bool Controller::XferOut(bool cont)
 	return false;
 }
 
-void Controller::FlushUnit()
+void ScsiController::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
@@ -1100,18 +1101,18 @@ void Controller::FlushUnit()
 	}
 
 	// WRITE system only
-	switch ((Controller::rw_command)ctrl.cmd[0]) {
-		case Controller::eCmdWrite6:
-		case Controller::eCmdWrite10:
-		case Controller::eCmdWrite16:
-		case Controller::eCmdWriteLong10:
-		case Controller::eCmdWriteLong16:
-		case Controller::eCmdVerify10:
-		case Controller::eCmdVerify16:
+	switch ((ScsiController::rw_command)ctrl.cmd[0]) {
+		case ScsiController::eCmdWrite6:
+		case ScsiController::eCmdWrite10:
+		case ScsiController::eCmdWrite16:
+		case ScsiController::eCmdWriteLong10:
+		case ScsiController::eCmdWriteLong16:
+		case ScsiController::eCmdVerify10:
+		case ScsiController::eCmdVerify16:
 			break;
 
-		case Controller::eCmdModeSelect6:
-		case Controller::eCmdModeSelect10:
+		case ScsiController::eCmdModeSelect6:
+		case ScsiController::eCmdModeSelect10:
             // TODO What is this special handling of ModeSelect good for?
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
@@ -1125,7 +1126,7 @@ void Controller::FlushUnit()
 			}
             break;
 
-		case Controller::eCmdSetMcastAddr:
+		case ScsiController::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 
@@ -1143,7 +1144,7 @@ void Controller::FlushUnit()
 // just like the actual SCSI commands XferIn should be executed by the respective device
 //
 //---------------------------------------------------------------------------
-bool Controller::XferIn(BYTE *buf)
+bool ScsiController::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::datain);
 
@@ -1192,7 +1193,7 @@ bool Controller::XferIn(BYTE *buf)
 // just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
-bool Controller::XferOutBlockOriented(bool cont)
+bool ScsiController::XferOutBlockOriented(bool cont)
 {
 	assert(ctrl.phase == BUS::dataout);
 
@@ -1288,12 +1289,12 @@ bool Controller::XferOutBlockOriented(bool cont)
 	return true;
 }
 
-int Controller::GetEffectiveLun() const
+int ScsiController::GetEffectiveLun() const
 {
 	return identified_lun != -1 ? identified_lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 
-void Controller::Sleep()
+void ScsiController::Sleep()
 {
 	uint32_t time = SysTimer::GetTimerLow() - execstart;
 	if (time < MIN_EXEC_TIME) {

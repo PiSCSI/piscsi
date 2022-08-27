@@ -11,7 +11,6 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -34,6 +33,7 @@
 #include <vector>
 #include <map>
 #include "config.h"
+#include "scsi_controller.h"
 
 using namespace std;
 using namespace spdlog;
@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	Controller::UNIT_MAX	// Number of units around controller
+#define UnitNum	ScsiController::UNIT_MAX	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -59,7 +59,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-vector<Controller *> controllers(CtrlMax);	// Controllers
+vector<ScsiController *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
@@ -312,7 +312,7 @@ void MapController(Device **map)
 
 		// Create a new SCSI controller for the current device ID and bus
 		if (!*it) {
-			*it = new Controller(i, bus);
+			*it = new ScsiController(i, bus);
 		}
 
 		// connect all units
@@ -524,10 +524,10 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 
-	if (unit >= Controller::UNIT_MAX) {
+	if (unit >= ScsiController::UNIT_MAX) {
 		delete device;
 
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(ScsiController::UNIT_MAX)
 				+ ")");
 	}
 

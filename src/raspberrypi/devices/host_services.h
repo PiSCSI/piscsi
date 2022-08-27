@@ -15,7 +15,7 @@
 
 using namespace std;
 
-class Controller;
+class ScsiController;
 
 class HostServices: public ModePageDevice
 {

@@ -22,7 +22,7 @@
 
 class PrimaryDevice;
 
-class Controller : virtual public PhaseHandler
+class ScsiController : virtual public PhaseHandler
 {
 	friend class HostServices;
 
@@ -111,8 +111,8 @@ public:
 		PrimaryDevice *device;
 	} ctrl_t;
 
-	Controller(int, BUS *);
-	~Controller();
+	ScsiController(int, BUS *);
+	~ScsiController();
 
 	void Reset();
 

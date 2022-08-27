@@ -12,10 +12,10 @@
 #pragma once
 
 #include "interfaces/scsi_primary_commands.h"
-#include "controller.h"
 #include "device.h"
 #include "dispatcher.h"
 #include <string>
+#include "../scsi_controller.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ public:
 
 	virtual bool Dispatch();
 
-	void SetController(Controller *);
+	void SetController(ScsiController *);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
@@ -42,8 +42,8 @@ protected:
 	void EnterDataInPhase() { phase_handler->DataIn(); }
 	void EnterDataOutPhase() { phase_handler->DataOut(); }
 
-	Controller *controller;
-	Controller::ctrl_t *ctrl;
+	ScsiController *controller;
+	ScsiController::ctrl_t *ctrl;
 
 private:
 
