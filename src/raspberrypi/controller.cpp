@@ -317,8 +317,8 @@ void Controller::Command()
 		// If no byte can be received move to the status phase
 		int count = bus->CommandHandShake(ctrl.buffer);
 		if (!count) {
-			LOGERROR("%s No byte received. Going to error",__PRETTY_FUNCTION__);
-			Error();
+			LOGERROR("%s No command bytes received",__PRETTY_FUNCTION__);
+			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
@@ -326,7 +326,7 @@ void Controller::Command()
 
 		// If not able to receive all, move to the status phase
 		if (count != (int)ctrl.length) {
-			Error();
+			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
@@ -627,7 +627,7 @@ void Controller::Send()
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
-			Error();
+			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
@@ -652,7 +652,7 @@ void Controller::Send()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error();
+		Error(sense_key::ABORTED_COMMAND);
 		return;
 	}
 
@@ -727,8 +727,8 @@ void Controller::Receive()
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
-			Error();
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
@@ -776,7 +776,7 @@ void Controller::Receive()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error();
+		Error(sense_key::ABORTED_COMMAND);
 		return;
 	}
 
@@ -930,9 +930,9 @@ void Controller::ReceiveBytes()
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.length) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len);
-			Error();
+			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
@@ -971,7 +971,7 @@ void Controller::ReceiveBytes()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error();
+		Error(sense_key::ABORTED_COMMAND);
 		return;
 	}
 
