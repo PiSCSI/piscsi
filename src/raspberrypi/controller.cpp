@@ -266,7 +266,7 @@ void Controller::Selection()
 
 		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.scsi_id);
 
-		if (scsi.initiator_id != UNKNOWN_SCSI_ID) {
+		if (scsi.initiator_id != UNKNOWN_INITIATOR_ID) {
 			LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, scsi.initiator_id);
 		}
 		else {

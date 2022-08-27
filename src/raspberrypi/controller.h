@@ -29,7 +29,7 @@ class Controller : virtual public PhaseHandler
 	// For timing adjustments
 	const unsigned int MIN_EXEC_TIME = 50;
 
-	const int UNKNOWN_SCSI_ID = -1;
+	const int UNKNOWN_INITIATOR_ID = -1;
 
 	enum rw_command : int {
 		eCmdRead6 = 0x08,
