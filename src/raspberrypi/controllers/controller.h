@@ -15,7 +15,7 @@
 
 class PrimaryDevice;
 
-// TODO The abstraction level is not yet high enough, the code still too SCSI specific
+// TODO The abstraction level is not yet high enough, the code is still too SCSI specific
 class Controller : virtual public PhaseHandler
 {
 public:
@@ -36,7 +36,7 @@ public:
 	typedef struct {
 		// General
 		BUS::phase_t phase;				// Transition phase
-		int scsi_id;					// The SCSI ID of the connected device (0-7)
+		int scsi_id;					// The SCSI ID of the respective device
 
 		// commands
 		DWORD cmd[16];					// Command data
@@ -78,5 +78,7 @@ public:
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 protected:
+	BUS *bus;
+
 	ctrl_t ctrl;
 };

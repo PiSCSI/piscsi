@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "scsi.h"
+
 class PhaseHandler
 {
 public:
@@ -18,6 +20,7 @@ public:
 	PhaseHandler() {}
 	virtual ~PhaseHandler() {}
 
+	virtual void SetPhase(BUS::phase_t) = 0;
 	virtual void BusFree() = 0;
 	virtual void Selection() = 0;
 	virtual void Command() = 0;
