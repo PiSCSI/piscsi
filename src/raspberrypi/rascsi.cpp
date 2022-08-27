@@ -33,7 +33,6 @@
 #include <list>
 #include <vector>
 #include <map>
-#include "config.h"
 
 using namespace std;
 using namespace spdlog;
