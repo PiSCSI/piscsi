@@ -105,13 +105,13 @@ void Banner(int argc, char* argv[])
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is SCSI identification number(0-7).\n");
-		FPRT(stdout," FILE is disk image file.\n\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
-		FPRT(stdout," Image type is detected based on file extension.\n");
-		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
-		FPRT(stdout,"  hdr : SCSI HD image (Removable generic SCSI HD image)\n");
+		FPRT(stdout,"Usage: %s [-IDn:m FILE] ...\n\n", argv[0]);
+		FPRT(stdout," n is SCSI device ID (0-7).\n");
+		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
+		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
+		FPRT(stdout," Image type is detected based on file extension if no explicit type is specified.\n");
+		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic HD image)\n");
+		FPRT(stdout,"  hdr : SCSI HD image (Removable generic HD image)\n");
 		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
