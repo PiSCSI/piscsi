@@ -251,6 +251,7 @@ void Controller::Selection()
 		}
 
 		// Abort if there is no valid LUN
+		// TODO This check might be obsolete
 		bool has_valid_unit = false;
 		for (int i = 0; i < UNIT_MAX; i++) {
 			if (ctrl.units[i]) {
