@@ -18,11 +18,11 @@
 
 #include "os.h"
 #include "scsi.h"
-#include "phase_handler.h"
+#include "controller.h"
 
 class PrimaryDevice;
 
-class ScsiController : virtual public PhaseHandler
+class ScsiController : virtual public Controller
 {
 	friend class HostServices;
 
