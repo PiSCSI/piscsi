@@ -201,7 +201,7 @@ bool InitBus()
 //---------------------------------------------------------------------------
 void Cleanup()
 {
-	// Delete the disks
+	// Delete all devices
 	for (auto it = devices.begin(); it != devices.end(); ++it) {
 		if (*it) {
 			delete *it;
@@ -209,7 +209,7 @@ void Cleanup()
 		}
 	}
 
-	// Delete the Controllers
+	// Delete all controllers
 	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
 		if (*it) {
 			delete *it;
@@ -217,11 +217,9 @@ void Cleanup()
 		}
 	}
 
-	// Cleanup the Bus
+	// Clean up and discard the bus
 	if (bus) {
 		bus->Cleanup();
-
-		// Discard the GPIOBUS object
 		delete bus;
 	}
 
