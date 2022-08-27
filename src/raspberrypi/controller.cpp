@@ -1123,21 +1123,6 @@ void Controller::FlushUnit()
 
 		case Controller::eCmdModeSelect6:
 		case Controller::eCmdModeSelect10:
-            // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
-            // the mac is rebooted
-            // https://github.com/akuker/RASCSI/issues/2
-			// TODO Verify whether this ticket is still valid
-            LOGWARN("Received \'Mode Select\'\n");
-            LOGWARN("   Operation Code: [%02X]\n", (WORD)ctrl.cmd[0]);
-            LOGWARN("   Logical Unit %01X, PF %01X, SP %01X [%02X]\n",\
-			   (WORD)ctrl.cmd[1] >> 5, 1 & ((WORD)ctrl.cmd[1] >> 4), \
-			   (WORD)ctrl.cmd[1] & 1, (WORD)ctrl.cmd[1]);
-            LOGWARN("   Reserved: %02X\n", (WORD)ctrl.cmd[2]);
-            LOGWARN("   Reserved: %02X\n", (WORD)ctrl.cmd[3]);
-            LOGWARN("   Parameter List Len %02X\n", (WORD)ctrl.cmd[4]);
-            LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
-            LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
-
             // TODO What is this special handling of ModeSelect good for?
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
