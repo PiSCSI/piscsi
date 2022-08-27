@@ -21,12 +21,6 @@
 
 #define DEFAULT_PRODUCT "SCSI HD"
 
-//===========================================================================
-//
-//	SCSI Hard Disk
-//
-//===========================================================================
-
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 	SetSectorSizes(sector_sizes);
