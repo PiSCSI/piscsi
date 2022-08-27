@@ -413,7 +413,7 @@ void Controller::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE( "%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
+		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
 
 		SetPhase(BUS::status);
 
@@ -437,7 +437,7 @@ void Controller::Status()
 void Controller::MsgIn()
 {
 	if (ctrl.phase != BUS::msgin) {
-		LOGTRACE("%s Starting Message in phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__);
 
 		SetPhase(BUS::msgin);
 
