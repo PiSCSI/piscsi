@@ -468,7 +468,7 @@ string SetReservedIds(const string& ids)
     	LOGINFO("Reserved ID(s) set to %s", s.c_str());
     }
     else {
-    	LOGINFO("Cleared reserved IDs");
+    	LOGINFO("Cleared reserved ID(s)");
     }
 
 	return "";
