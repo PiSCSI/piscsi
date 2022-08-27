@@ -476,6 +476,7 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
+	// Prepare an empty device map
 	Device *map[devices.size()];
 	for (size_t i = 0; i < devices.size(); i++) {
 		map[i] = NULL;
@@ -653,8 +654,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
 {
 	if (!device->GetLun()) {
-		for (auto const& d : devices) {
-			// LUN 0 can only be detached if there is no other lUN anymore
+		for (auto const d : devices) {
+			// LUN 0 can only be detached if there is no other LUN anymore
 			if (d && d->GetId() == device->GetId() && d->GetLun()) {
 				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
 			}
