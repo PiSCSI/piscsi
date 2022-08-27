@@ -55,9 +55,8 @@ public:
 		// Logical units of the device connected to this controller
 		PrimaryDevice *units[UNIT_MAX];
 
-		// The current device
 		// TODO This is probably obsolete
-		PrimaryDevice *device;
+		PrimaryDevice *current_device;
 	} ctrl_t;
 
 	Controller() {}

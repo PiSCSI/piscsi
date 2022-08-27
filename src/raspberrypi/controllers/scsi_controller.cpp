@@ -374,15 +374,15 @@ void ScsiController::Execute()
 		}
 	}
 
-	ctrl.device = ctrl.units[lun];
+	ctrl.current_device = ctrl.units[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
-		ctrl.device->SetStatusCode(0);
+		ctrl.current_device->SetStatusCode(0);
 	}
 	
 	try {
-		if (!ctrl.device->Dispatch()) {
+		if (!ctrl.current_device->Dispatch()) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", ctrl.scsi_id, lun, (BYTE)ctrl.cmd[0]);
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
@@ -398,7 +398,7 @@ void ScsiController::Execute()
 	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.units[lun]) {
 		lun = GetEffectiveLun();
 
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.current_device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
 	}
