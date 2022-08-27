@@ -75,7 +75,7 @@ Controller::~Controller()
 void Controller::Reset()
 {
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
-	ctrl.phase = BUS::busfree;
+	SetPhase(BUS::busfree);
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
 	execstart = 0;
@@ -185,8 +185,7 @@ void Controller::BusFree()
 	if (ctrl.phase != BUS::busfree) {
 		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
-		// Phase setting
-		ctrl.phase = BUS::busfree;
+		SetPhase(BUS::busfree);
 
 		// Set Signal lines
 		bus->SetREQ(FALSE);
@@ -273,8 +272,7 @@ void Controller::Selection()
 			LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
 		}
 
-		// Phase setting
-		ctrl.phase = BUS::selection;
+		SetPhase(BUS::selection);
 
 		// Raise BSY and respond
 		bus->SetBSY(true);
@@ -297,8 +295,7 @@ void Controller::Command()
 	if (ctrl.phase != BUS::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
 
-		// Phase Setting
-		ctrl.phase = BUS::command;
+		SetPhase(BUS::command);
 
 		// Signal line operated by the target
 		bus->SetMSG(FALSE);
@@ -344,8 +341,7 @@ void Controller::Execute()
 {
 	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	// Phase Setting
-	ctrl.phase = BUS::execute;
+	SetPhase(BUS::execute);
 
 	// Initialization for data transfer
 	ctrl.offset = 0;
@@ -419,8 +415,7 @@ void Controller::Status()
 
 		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
 
-		// Phase Setting
-		ctrl.phase = BUS::status;
+		SetPhase(BUS::status);
 
 		// Signal line operated by the target
 		bus->SetMSG(FALSE);
@@ -446,8 +441,7 @@ void Controller::MsgIn()
 	if (ctrl.phase != BUS::msgin) {
 		LOGTRACE("%s Starting Message in phase", __PRETTY_FUNCTION__);
 
-		// Phase Setting
-		ctrl.phase = BUS::msgin;
+		SetPhase(BUS::msgin);
 
 		// Signal line operated by the target
 		bus->SetMSG(TRUE);
@@ -479,8 +473,7 @@ void Controller::MsgOut()
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
 
-		// Phase Setting
-		ctrl.phase = BUS::msgout;
+		SetPhase(BUS::msgout);
 
 		// Signal line operated by the target
 		bus->SetMSG(TRUE);
@@ -515,8 +508,8 @@ void Controller::DataIn()
 		}
 
 		LOGTRACE("%s Going into Data-in Phase", __PRETTY_FUNCTION__);
-		// Phase Setting
-		ctrl.phase = BUS::datain;
+
+		SetPhase(BUS::datain);
 
 		// Signal line operated by the target
 		bus->SetMSG(FALSE);
@@ -551,8 +544,7 @@ void Controller::DataOut()
 
 		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
 
-		// Phase Setting
-		ctrl.phase = BUS::dataout;
+		SetPhase(BUS::dataout);
 
 		// Signal line operated by the target
 		bus->SetMSG(FALSE);
@@ -1156,6 +1148,7 @@ void Controller::FlushUnit()
 bool Controller::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::datain);
+
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();

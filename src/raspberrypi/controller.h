@@ -148,6 +148,7 @@ private:
 	int identified_lun;
 
 	// Phases
+	void SetPhase(BUS::phase_t phase) { ctrl.phase = phase; }
 	void BusFree() override;
 	void Selection() override;
 	void Command() override;
