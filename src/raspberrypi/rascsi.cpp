@@ -254,23 +254,23 @@ void MapController(Device **map)
 	pthread_mutex_lock(&ctrl_mutex);
 
 	// Replace the changed unit
-	for (size_t i = 0; i < controllers.size(); i++) {
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
-			if (devices[unitno] != map[unitno]) {
+	for (size_t id = 0; id < controllers.size(); id++) {
+		for (int lun = 0; lun < UnitNum; lun++) {
+			int lun_no = id * UnitNum + lun;
+			if (devices[lun_no] != map[lun_no]) {
 				// Check if the original unit exists
-				if (devices[unitno]) {
+				if (devices[lun_no]) {
 					// Disconnect it from the controller
-					if (controllers[i]) {
-						controllers[i]->SetUnit(j, nullptr);
+					if (controllers[id]) {
+						controllers[id]->SetUnit(lun, nullptr);
 					}
 
 					// Free the Unit
-					delete devices[unitno];
+					delete devices[lun_no];
 				}
 
 				// Setup a new unit
-				devices[unitno] = map[unitno];
+				devices[lun_no] = map[lun_no];
 			}
 		}
 	}
@@ -279,21 +279,21 @@ void MapController(Device **map)
 	int scsi_id = 0;
 	for (auto controller = controllers.begin(); controller != controllers.end(); ++scsi_id, ++controller) {
 		// Examine the unit configuration
-		bool has_unit = false;
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = scsi_id * UnitNum + j;
-			if (devices[unitno]) {
-				has_unit = true;
+		bool has_lun = false;
+		for (int lun = 0; lun < UnitNum; lun++) {
+			int lun_no = scsi_id * UnitNum + lun;
+			if (devices[lun_no]) {
+				has_lun = true;
 			}
 
 			// Remove the unit
 			if (*controller) {
-				(*controller)->SetUnit(j, nullptr);
+				(*controller)->SetUnit(lun, nullptr);
 			}
 		}
 
 		// If there are no units connected the controller can be discarded
-		if (!has_unit && *controller) {
+		if (!has_lun && *controller) {
 			delete *controller;
 			*controller = nullptr;
 			continue;
@@ -305,15 +305,15 @@ void MapController(Device **map)
 		}
 
 		// connect all units
-		for (int unit = 0; unit < UnitNum; unit++) {
-			int unit_no = scsi_id * UnitNum + unit;
-			if (devices[unit_no]) {
-				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unit_no]));
+		for (int lun = 0; lun < UnitNum; lun++) {
+			int lun_no = scsi_id * UnitNum + lun;
+			if (devices[lun_no]) {
+				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[lun_no]));
 
 				primary_device->SetController(*controller);
 
 				// Add the unit connection
-				(*controller)->SetUnit(unit, primary_device);
+				(*controller)->SetUnit(lun, primary_device);
 			}
 		}
 	}
