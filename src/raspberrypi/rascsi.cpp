@@ -11,6 +11,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -33,7 +34,6 @@
 #include <vector>
 #include <map>
 #include "config.h"
-#include "scsi_controller.h"
 
 using namespace std;
 using namespace spdlog;

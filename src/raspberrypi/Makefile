@@ -92,7 +92,6 @@ SRC_RASCSI = \
 	rascsi.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	scsi_controller.cpp \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
@@ -101,6 +100,7 @@ SRC_RASCSI = \
 	rasutil.cpp \
 	protobuf_util.cpp \
 	localizer.cpp
+SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
 
@@ -130,8 +130,8 @@ SRC_RASDUMP = \
 	rascsi_version.cpp
 
 
-vpath %.h ./ ./devices ./monitor
-vpath %.cpp ./ ./devices ./monitor
+vpath %.h ./ ./controllers ./devices ./monitor
+vpath %.cpp ./controllers ./ ./devices ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
