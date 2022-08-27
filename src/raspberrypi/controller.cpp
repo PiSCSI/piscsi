@@ -113,6 +113,8 @@ bool Controller::HasAnyUnit() const
 		}
 	}
 
+	assert(false);
+
 	return false;
 }
 
@@ -130,6 +132,7 @@ BUS::phase_t Controller::Process(int initiator_id)
 
 		// Reset the bus
 		bus->Reset();
+
 		return ctrl.phase;
 	}
 
@@ -177,6 +180,7 @@ BUS::phase_t Controller::Process(int initiator_id)
 	}
 	catch(const scsi_error_exception& e) {
 		// This is an unexpected case because any exception should have been handled before
+		assert(false);
 
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__);
 
