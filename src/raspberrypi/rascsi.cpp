@@ -277,7 +277,7 @@ void MapController(Device **map)
 
 	// Reconfigure all of the controllers
 	int scsi_id = 0;
-	for (auto it = controllers.begin(); it != controllers.end(); ++scsi_id, ++it) {
+	for (auto controller = controllers.begin(); controller != controllers.end(); ++scsi_id, ++controller) {
 		// Examine the unit configuration
 		bool has_unit = false;
 		for (int j = 0; j < UnitNum; j++) {
@@ -287,21 +287,21 @@ void MapController(Device **map)
 			}
 
 			// Remove the unit
-			if (*it) {
-				(*it)->SetUnit(j, nullptr);
+			if (*controller) {
+				(*controller)->SetUnit(j, nullptr);
 			}
 		}
 
 		// If there are no units connected the controller can be discarded
-		if (!has_unit && *it) {
-			delete *it;
-			*it = nullptr;
+		if (!has_unit && *controller) {
+			delete *controller;
+			*controller = nullptr;
 			continue;
 		}
 
 		// Create a new SCSI controller for the current device ID and bus
-		if (!*it) {
-			*it = new ScsiController(bus, scsi_id);
+		if (!*controller) {
+			*controller = new ScsiController(bus, scsi_id);
 		}
 
 		// connect all units
@@ -310,10 +310,10 @@ void MapController(Device **map)
 			if (devices[unit_no]) {
 				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unit_no]));
 
-				primary_device->SetController(*it);
+				primary_device->SetController(*controller);
 
 				// Add the unit connection
-				(*it)->SetUnit(unit, primary_device);
+				(*controller)->SetUnit(unit, primary_device);
 			}
 		}
 	}
