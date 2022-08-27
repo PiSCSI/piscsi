@@ -58,6 +58,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
+// TODO Maps might be a better solution than vectors with fixed sizes
 vector<Controller *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Devices
 GPIOBUS *bus;						// GPIO Bus
