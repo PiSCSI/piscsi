@@ -72,7 +72,7 @@ public:
 	bool IsSectorSizeConfigurable() const;
 	bool SetConfiguredSectorSize(uint32_t);
 	uint64_t GetBlockCount() const;
-	void FlushCache();
+	void FlushCache() override;
 
 private:
 

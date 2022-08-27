@@ -34,7 +34,7 @@
 //
 
 #include "exceptions.h"
-#include "disk.h"
+#include "device.h"
 #include "host_services.h"
 
 using namespace scsi_defs;
@@ -70,10 +70,7 @@ void HostServices::StartStopUnit()
 	if (!start) {
 		// Flush any caches
 		for (Device *device : devices) {
-			Disk *disk = dynamic_cast<Disk *>(device);
-			if (disk) {
-				disk->FlushCache();
-			}
+			device->FlushCache();
 		}
 
 		if (load) {
