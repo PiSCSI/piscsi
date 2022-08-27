@@ -117,12 +117,6 @@ private:
 	static const char* phase_str_table[];
 };
 
-//===========================================================================
-//
-//	For Status byte codes, Sense Keys and Additional Sense Codes
-//  See https://www.t10.org/lists/1spc-lst.htm
-//
-//===========================================================================
 namespace scsi_defs {
 	enum scsi_level : int {
 		SCSI_1_CCS = 1,
