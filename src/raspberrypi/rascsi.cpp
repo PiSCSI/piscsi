@@ -10,6 +10,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "config.h"
 #include "os.h"
 #include "controllers/controller.h"
 #include "devices/device_factory.h"
@@ -1573,6 +1574,8 @@ int main(int argc, char* argv[])
 	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
+#else
+	cout << "Note: Hardware support is disabled (non-Pi platform?)" << endl;
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
