@@ -28,7 +28,6 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 {
 	// Work initialization
 	ctrl.phase = BUS::busfree;
-	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
 	execstart = 0;
@@ -36,7 +35,6 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	// the size of an Ethernet message, whichever is larger.
 	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
 	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
 	ctrl.offset = 0;
@@ -71,12 +69,10 @@ ScsiController::~ScsiController()
 
 void ScsiController::Reset()
 {
-	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	SetPhase(BUS::busfree);
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
 	execstart = 0;
-	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
 	ctrl.offset = 0;
