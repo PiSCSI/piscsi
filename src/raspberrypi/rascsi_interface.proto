@@ -15,7 +15,7 @@ package rascsi_interface;
 enum PbDeviceType {
     UNDEFINED = 0;
     // Non-removable SASI drive, not supported anymore
-    reserved 1;
+    SASI = 1 [deprecated = true];
     // Non-removable SCSI drive
     SCHD = 2;
     // Removable SCSI drive
