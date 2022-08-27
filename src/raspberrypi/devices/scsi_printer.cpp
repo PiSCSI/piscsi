@@ -244,7 +244,7 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 
 	uint32_t num_written = write(fd, buf, length);
 
-	return (num_written == length);
+	return num_written == length;
 }
 
 void SCSIPrinter::CheckReservation()
