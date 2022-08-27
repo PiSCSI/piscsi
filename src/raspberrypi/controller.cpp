@@ -618,7 +618,7 @@ void Controller::Send()
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str());
 
-		// TODO The delay has to be taken from ctrl.unit[lun], but as there are no Daynaport drivers for
+		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
 		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.units[0] ? ctrl.units[0]->GetSendDelay() : 0);
 
