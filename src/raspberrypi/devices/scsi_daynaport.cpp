@@ -38,7 +38,7 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 // TODO Disk should not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
-	m_tap = NULL;
+	m_tap = nullptr;
 	m_bTapEnable = false;
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);

@@ -34,8 +34,8 @@ CTapDriver::CTapDriver()
 {
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
-	m_pcap = NULL;
-	m_pcap_dumper = NULL;
+	m_pcap = nullptr;
+	m_pcap_dumper = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -345,10 +345,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 }
 
 void CTapDriver::OpenDump(const Filepath& path) {
-	if (m_pcap == NULL) {
+	if (m_pcap == nullptr) {
 		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
 	}
-	if (m_pcap_dumper != NULL) {
+	if (m_pcap_dumper != nullptr) {
 		pcap_dump_close(m_pcap_dumper);
 	}
 	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
@@ -380,14 +380,14 @@ void CTapDriver::Cleanup()
 		m_hTAP = -1;
 	}
 
-	if (m_pcap_dumper != NULL) {
+	if (m_pcap_dumper != nullptr) {
 		pcap_dump_close(m_pcap_dumper);
-		m_pcap_dumper = NULL;
+		m_pcap_dumper = nullptr;
 	}
 
-	if (m_pcap != NULL) {
+	if (m_pcap != nullptr) {
 		pcap_close(m_pcap);
-		m_pcap = NULL;
+		m_pcap = nullptr;
 	}
 }
 
@@ -497,7 +497,7 @@ int CTapDriver::Rx(BYTE *buf)
 		dwReceived += 4;
 	}
 
-	if (m_pcap_dumper != NULL) {
+	if (m_pcap_dumper != nullptr) {
 		struct pcap_pkthdr h = {
 			.caplen = dwReceived,
 			.len = dwReceived,
@@ -520,7 +520,7 @@ int CTapDriver::Tx(const BYTE *buf, int len)
 {
 	ASSERT(m_hTAP != -1);
 
-	if (m_pcap_dumper != NULL) {
+	if (m_pcap_dumper != nullptr) {
 		struct pcap_pkthdr h = {
 			.caplen = (bpf_u_int32)len,
 			.len = (bpf_u_int32)len,

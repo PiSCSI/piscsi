@@ -188,7 +188,7 @@ SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), Scsi
 
 	// Track initialization
 	for (int i = 0; i < TrackMax; i++) {
-		track[i] = NULL;
+		track[i] = nullptr;
 	}
 	tracks = 0;
 	dataindex = -1;
@@ -482,7 +482,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	if (dataindex != index) {
 		// Delete current disk cache (no need to save)
 		delete disk.dcache;
-		disk.dcache = NULL;
+		disk.dcache = nullptr;
 
 		// Reset the number of blocks
 		SetBlockCount(track[index]->GetBlocks());
@@ -655,7 +655,7 @@ void SCSICD::ClearTrack()
 	for (int i = 0; i < TrackMax; i++) {
 		if (track[i]) {
 			delete track[i];
-			track[i] = NULL;
+			track[i] = nullptr;
 		}
 	}
 

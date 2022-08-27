@@ -17,8 +17,8 @@ using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
-	controller = NULL;
-	ctrl = NULL;
+	controller = nullptr;
+	ctrl = nullptr;
 
 	// Mandatory SCSI primary commands
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);

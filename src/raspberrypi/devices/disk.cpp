@@ -29,7 +29,7 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
-	disk.dcache = NULL;
+	disk.dcache = nullptr;
 	disk.image_offset = 0;
 	disk.is_medium_changed = false;
 
@@ -74,7 +74,7 @@ Disk::~Disk()
 	// Clear disk cache
 	if (disk.dcache) {
 		delete disk.dcache;
-		disk.dcache = NULL;
+		disk.dcache = nullptr;
 	}
 }
 
@@ -337,7 +337,7 @@ bool Disk::Eject(bool force)
 	if (status) {
 		FlushCache();
 		delete disk.dcache;
-		disk.dcache = NULL;
+		disk.dcache = nullptr;
 
 		// The image file for this drive is not in use anymore
 		// TODO This cast and the FileSupport class can be removed as soon as only disk-like devices inherit from Disk

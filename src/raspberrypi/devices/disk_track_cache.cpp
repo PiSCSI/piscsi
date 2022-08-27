@@ -37,9 +37,9 @@ DiskTrack::DiskTrack()
 	dt.init = FALSE;
 	dt.changed = FALSE;
 	dt.length = 0;
-	dt.buffer = NULL;
+	dt.buffer = nullptr;
 	dt.maplen = 0;
-	dt.changemap = NULL;
+	dt.changemap = nullptr;
 	dt.imgoffset = 0;
 }
 
@@ -48,11 +48,11 @@ DiskTrack::~DiskTrack()
 	// Release memory, but do not save automatically
 	if (dt.buffer) {
 		free(dt.buffer);
-		dt.buffer = NULL;
+		dt.buffer = nullptr;
 	}
 	if (dt.changemap) {
 		free(dt.changemap);
-		dt.changemap = NULL;
+		dt.changemap = nullptr;
 	}
 }
 
@@ -106,7 +106,7 @@ bool DiskTrack::Load(const Filepath& path)
 	// Allocate buffer memory
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
-	if (dt.buffer == NULL) {
+	if (dt.buffer == nullptr) {
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                         LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
                 }
@@ -127,7 +127,7 @@ bool DiskTrack::Load(const Filepath& path)
 	}
 
 	// Reserve change map memory
-	if (dt.changemap == NULL) {
+	if (dt.changemap == nullptr) {
 		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
 		dt.maplen = dt.sectors;
 	}
@@ -348,7 +348,7 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 
 	// Cache work
 	for (int i = 0; i < CacheMax; i++) {
-		cache[i].disktrk = NULL;
+		cache[i].disktrk = nullptr;
 		cache[i].serial = 0;
 	}
 
@@ -416,7 +416,7 @@ void DiskCache::Clear()
 	for (int i = 0; i < CacheMax; i++) {
 		if (cache[i].disktrk) {
 			delete cache[i].disktrk;
-			cache[i].disktrk = NULL;
+			cache[i].disktrk = nullptr;
 		}
 	}
 }
@@ -493,7 +493,7 @@ DiskTrack* DiskCache::Assign(int track)
 			}
 
 			// Load failed
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -516,12 +516,12 @@ DiskTrack* DiskCache::Assign(int track)
 
 	// Save this track
 	if (!cache[c].disktrk->Save(sec_path)) {
-		return NULL;
+		return nullptr;
 	}
 
 	// Delete this track
 	DiskTrack *disktrk = cache[c].disktrk;
-	cache[c].disktrk = NULL;
+	cache[c].disktrk = nullptr;
 
 	if (Load(c, track, disktrk)) {
 		// Successful loading
@@ -530,7 +530,7 @@ DiskTrack* DiskCache::Assign(int track)
 	}
 
 	// Load failed
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -552,7 +552,7 @@ bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	}
 
 	// Create a disk track
-	if (disktrk == NULL) {
+	if (disktrk == nullptr) {
 		disktrk = new DiskTrack();
 	}
 

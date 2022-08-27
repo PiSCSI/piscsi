@@ -45,7 +45,7 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 
 	// Logical unit initialization
 	for (int i = 0; i < UNIT_MAX; i++) {
-		ctrl.units[i] = NULL;
+		ctrl.units[i] = nullptr;
 	}
 
 	scsi.is_byte_transfer = false;
@@ -65,7 +65,7 @@ ScsiController::~ScsiController()
 {
 	if (ctrl.buffer) {
 		free(ctrl.buffer);
-		ctrl.buffer = NULL;
+		ctrl.buffer = nullptr;
 	}
 }
 

@@ -111,11 +111,11 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	if (type == UNDEFINED) {
 		type = GetTypeForFile(filename);
 		if (type == UNDEFINED) {
-			return NULL;
+			return nullptr;
 		}
 	}
 
-	Device *device = NULL;
+	Device *device = nullptr;
 	try {
 		switch (type) {
 			case SCHD: {
@@ -200,7 +200,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	}
 	catch(const illegal_argument_exception& e) {
 		// There was an internal problem with setting up the device data for INQUIRY
-		return NULL;
+		return nullptr;
 	}
 
 	return device;

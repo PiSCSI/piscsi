@@ -128,7 +128,7 @@ void Banner(int argc, char* argv[])
 
 bool InitService(int port)
 {
-	int result = pthread_mutex_init(&ctrl_mutex,NULL);
+	int result = pthread_mutex_init(&ctrl_mutex, NULL);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Error code: %d", result);
 		return false;
@@ -199,7 +199,7 @@ void Cleanup()
 	for (auto it = devices.begin(); it != devices.end(); ++it) {
 		if (*it) {
 			delete *it;
-			*it = NULL;
+			*it = nullptr;
 		}
 	}
 
@@ -207,7 +207,7 @@ void Cleanup()
 	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
 		if (*it) {
 			delete *it;
-			*it = NULL;
+			*it = nullptr;
 		}
 	}
 
@@ -259,7 +259,7 @@ void MapController(Device **map)
 				if (devices[unitno]) {
 					// Disconnect it from the controller
 					if (controllers[i]) {
-						controllers[i]->SetUnit(j, NULL);
+						controllers[i]->SetUnit(j, nullptr);
 					}
 
 					// Free the Unit
@@ -285,14 +285,14 @@ void MapController(Device **map)
 
 			// Remove the unit
 			if (*it) {
-				(*it)->SetUnit(j, NULL);
+				(*it)->SetUnit(j, nullptr);
 			}
 		}
 
 		// If there are no units connected the controller can be discarded
 		if (!has_unit && *it) {
 			delete *it;
-			*it = NULL;
+			*it = nullptr;
 			continue;
 		}
 
@@ -478,7 +478,7 @@ void DetachAll()
 	// Prepare an empty device map
 	Device *map[devices.size()];
 	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = NULL;
+		map[i] = nullptr;
 	}
 
 	MapController(map);
@@ -660,7 +660,7 @@ bool Detach(const CommandContext& context, Device *device, Device *map[], bool d
 	}
 
 	if (!dryRun) {
-		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
+		map[device->GetId() * UnitNum + device->GetLun()] = nullptr;
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 		if (file_support) {
@@ -1495,7 +1495,7 @@ static void *MonThread(void *param)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ using namespace scsi_defs;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
-	tap = NULL;
+	tap = nullptr;
 	m_bTapEnable = false;
 	packet_enable = false;
 

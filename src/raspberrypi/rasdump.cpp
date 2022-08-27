@@ -141,10 +141,7 @@ void Reset()
 bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
-	char *file;
-
-	// Initialization
-	file = NULL;
+	char *file = nullptr;
 
 	// Argument Parsing
 	opterr = 0;
