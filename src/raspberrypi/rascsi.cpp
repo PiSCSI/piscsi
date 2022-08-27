@@ -60,7 +60,7 @@ using namespace protobuf_util;
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
 vector<Controller *> controllers(CtrlMax);	// Controllers
-vector<Device *> devices(CtrlMax * UnitNum);	// Disks
+vector<Device *> devices(CtrlMax * UnitNum);	// Devices
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -303,15 +303,15 @@ void MapController(Device **map)
 		}
 
 		// connect all units
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = scsi_id * UnitNum + j;
-			if (devices[unitno]) {
-				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unitno]));
+		for (int unit = 0; unit < UnitNum; unit++) {
+			int unit_no = scsi_id * UnitNum + unit;
+			if (devices[unit_no]) {
+				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unit_no]));
 
 				primary_device->SetController(*it);
 
 				// Add the unit connection
-				(*it)->SetUnit(j, primary_device);
+				(*it)->SetUnit(unit, primary_device);
 			}
 		}
 	}
