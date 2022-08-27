@@ -24,8 +24,6 @@ class PrimaryDevice;
 
 class ScsiController : public Controller
 {
-	friend class HostServices;
-
 	// For timing adjustments
 	const unsigned int MIN_EXEC_TIME = 50;
 
