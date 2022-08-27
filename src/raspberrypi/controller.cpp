@@ -31,7 +31,6 @@ Controller::Controller(int scsi_id, BUS *bus)
 
 	// Work initialization
 	ctrl.phase = BUS::busfree;
-	ctrl.scsi_id = UNKNOWN_SCSI_ID;
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;

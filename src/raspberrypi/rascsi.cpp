@@ -304,12 +304,10 @@ void MapController(Device **map)
 		}
 
 		// If there are no units connected the controller can be discarded
-		if (!has_unit) {
-			if (*it) {
-				delete *it;
-				*it = NULL;
-				continue;
-			}
+		if (!has_unit && *it) {
+			delete *it;
+			*it = NULL;
+			continue;
 		}
 
 		// Create a new SCSI controller for the current device ID and bus
