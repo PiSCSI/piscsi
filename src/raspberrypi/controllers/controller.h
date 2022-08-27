@@ -59,7 +59,10 @@ public:
 		PrimaryDevice *current_device;
 	} ctrl_t;
 
-	Controller() { bus = NULL; }
+	Controller(BUS *bus, int scsi_id) {
+		this->bus = bus;
+		ctrl.scsi_id = scsi_id;
+	}
 	virtual ~Controller() {}
 
 	virtual BUS::phase_t Process(int) = 0;

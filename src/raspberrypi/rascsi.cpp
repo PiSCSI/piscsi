@@ -228,14 +228,13 @@ void Cleanup()
 
 void Reset()
 {
-	// Reset all of the controllers
+	// Reset all controllers
 	for (const auto& controller : controllers) {
 		if (controller) {
 			controller->Reset();
 		}
 	}
 
-	// Reset the bus
 	bus->Reset();
 }
 
@@ -275,12 +274,12 @@ void MapController(Device **map)
 	}
 
 	// Reconfigure all of the controllers
-	int i = 0;
-	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
+	int scsi_id = 0;
+	for (auto it = controllers.begin(); it != controllers.end(); ++scsi_id, ++it) {
 		// Examine the unit configuration
 		bool has_unit = false;
 		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
+			int unitno = scsi_id * UnitNum + j;
 			if (devices[unitno]) {
 				has_unit = true;
 			}
@@ -300,12 +299,12 @@ void MapController(Device **map)
 
 		// Create a new SCSI controller for the current device ID and bus
 		if (!*it) {
-			*it = new ScsiController(i, bus);
+			*it = new ScsiController(bus, scsi_id);
 		}
 
 		// connect all units
 		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
+			int unitno = scsi_id * UnitNum + j;
 			if (devices[unitno]) {
 				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[unitno]));
 

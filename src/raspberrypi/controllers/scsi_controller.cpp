@@ -24,12 +24,8 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(int scsi_id, BUS *bus)
+ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 {
-	this->bus = bus;
-
-	ctrl.scsi_id = scsi_id;
-
 	// Work initialization
 	ctrl.phase = BUS::busfree;
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));

@@ -69,7 +69,7 @@ public:
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
-	ScsiController(int, BUS *);
+	ScsiController(BUS *, int);
 	~ScsiController();
 
 	void Reset();
