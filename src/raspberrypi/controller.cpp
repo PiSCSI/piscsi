@@ -251,7 +251,7 @@ void Controller::Selection()
 		}
 
 		// Abort if there is no valid LUN
-		// TODO This check might be obsolete
+		// TODO This check might be obsolete. Can there be a controller without a device attached?
 		bool has_valid_unit = false;
 		for (int i = 0; i < UNIT_MAX; i++) {
 			if (ctrl.units[i]) {
