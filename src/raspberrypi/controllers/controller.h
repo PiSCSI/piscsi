@@ -48,7 +48,7 @@ public:
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		uint32_t blocks;				// Number of transfer blocks
-		uint32_t next;					// Next record
+		uint64_t next;					// Next record
 		uint32_t offset;				// Transfer offset
 		uint32_t length;				// Transfer remaining length
 

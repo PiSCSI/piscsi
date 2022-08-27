@@ -64,7 +64,7 @@ public:
 
 	// Command helpers
 	virtual int WriteCheck(uint64_t);
-	virtual void Write( const DWORD *, BYTE *, uint64_t);
+	virtual void Write(const DWORD *, BYTE *, uint64_t);
 
 	virtual int Read(const DWORD *, BYTE *, uint64_t);
 
