@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -242,9 +242,9 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
-	write(fd, buf, length);
+	uint32_t num_written = write(fd, buf, length);
 
-	return true;
+	return (num_written == length);
 }
 
 void SCSIPrinter::CheckReservation()

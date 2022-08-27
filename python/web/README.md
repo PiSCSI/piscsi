@@ -40,7 +40,7 @@ $ git push pi master
 
 ## Localizing the Web Interface
 
-We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
+We use the Flask-Babel library and Flask/Jinja2 extension for internationalization (i18n).
 
 It uses the 'pybabel' command line tool for extracting and compiling localizations. The Web Interface start script will automatically compile localizations upon launch.
 
@@ -113,6 +113,10 @@ msgstr ""
 "Emulerar en SCSI DaynaPORT ethernet-adapter. <a href=\"%(url)s\">Kräver "
 "drivrutiner och inställningar</a>."
 ```
+
+### Contributing to the project
+
+New or updated localizations are treated just like any other code change. See the [project README](https://github.com/akuker/RASCSI/tree/rdmark-readme-contributions#how-do-i-contribute) for further information.
 
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.
