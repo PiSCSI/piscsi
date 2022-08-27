@@ -834,8 +834,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (id < 0) {
 		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
-	if (id >= CtrlMax) {
-		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-" + to_string(CtrlMax - 1) + ")");
+	if (id >= (int)controllers.size()) {
+		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-"
+				+ to_string(controllers.size() - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
