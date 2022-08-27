@@ -92,7 +92,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 
 void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 
 	EnterDataInPhase();
 }

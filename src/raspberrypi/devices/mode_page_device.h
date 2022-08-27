@@ -25,7 +25,7 @@ public:
 
 	virtual bool Dispatch() override;
 
-	virtual int ModeSense6(const DWORD *, BYTE *) = 0;
+	virtual int ModeSense6(const DWORD *, BYTE *, int) = 0;
 	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
 
 	// TODO This method should not be called by Controller

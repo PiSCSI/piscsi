@@ -98,7 +98,7 @@ void HostServices::StartStopUnit()
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
+int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
@@ -106,6 +106,9 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	int length = (int)cdb[4];
+	if (length > max_length) {
+		length = max_length;
+	}
 	memset(buf, 0, length);
 
 	// Basic Information

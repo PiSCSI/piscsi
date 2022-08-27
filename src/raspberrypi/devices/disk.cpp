@@ -350,10 +350,13 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
+int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Get length, clear buffer
 	int length = (int)cdb[4];
+	if (length > max_length) {
+		length = max_length;
+	}
 	memset(buf, 0, length);
 
 	// Basic information

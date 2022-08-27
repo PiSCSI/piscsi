@@ -31,7 +31,7 @@ public:
 	void TestUnitReady();
 	void StartStopUnit();
 
-	int ModeSense6(const DWORD *, BYTE *);
+	int ModeSense6(const DWORD *, BYTE *, int);
 	int ModeSense10(const DWORD *, BYTE *, int);
 
 	bool SupportsFile() const override { return false; }

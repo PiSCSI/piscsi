@@ -118,10 +118,10 @@ private:
 
 protected:
 
-	virtual void Open(const Filepath& path);
+	virtual void Open(const Filepath&);
 
-	int ModeSense6(const DWORD *cdb, BYTE *buf);
-	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
+	int ModeSense6(const DWORD *, BYTE *, int);
+	int ModeSense10(const DWORD *, BYTE *, int);
 	virtual void SetDeviceParameters(BYTE *);
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
