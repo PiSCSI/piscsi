@@ -413,7 +413,7 @@ void Controller::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
+		LOGTRACE( "%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
 
 		SetPhase(BUS::status);
 
@@ -427,8 +427,6 @@ void Controller::Status()
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 		ctrl.buffer[0] = (BYTE)ctrl.status;
-
-		LOGTRACE( "%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
 
 		return;
 	}
