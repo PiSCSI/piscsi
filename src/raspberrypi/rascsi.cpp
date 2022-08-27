@@ -229,7 +229,7 @@ void Cleanup()
 void Reset()
 {
 	// Reset all controllers
-	for (const auto& controller : controllers) {
+	for (const auto controller : controllers) {
 		if (controller) {
 			controller->Reset();
 		}
@@ -1629,8 +1629,8 @@ int main(int argc, char* argv[])
 
 		// Notify all controllers
 		int i = 0;
-		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-			if (!*it || (data & (1 << i)) == 0) {
+		for (const auto controller : controllers) {
+			if (!controller || (data & (1 << i)) == 0) {
 				continue;
 			}
 
@@ -1650,7 +1650,7 @@ int main(int argc, char* argv[])
 			}
 
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process(initiator_id) == BUS::selection) {
+			if (controller->Process(initiator_id) == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
