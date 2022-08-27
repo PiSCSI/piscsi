@@ -252,6 +252,9 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 		if (!isFirst) {
 			cout << ", ";
 		}
+		else {
+			cout << "  ";
+		}
 		isFirst = false;
 		cout << interface;
 	}
