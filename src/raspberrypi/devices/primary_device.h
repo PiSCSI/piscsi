@@ -13,9 +13,9 @@
 
 #include "interfaces/scsi_primary_commands.h"
 #include "device.h"
+#include "scsi_controller.h"
 #include "dispatcher.h"
 #include <string>
-#include "../scsi_controller.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ public:
 
 	virtual bool Dispatch();
 
-	void SetController(ScsiController *);
+	void SetController(Controller *);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 

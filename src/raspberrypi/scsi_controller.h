@@ -22,7 +22,7 @@
 
 class PrimaryDevice;
 
-class ScsiController : virtual public Controller
+class ScsiController : public Controller
 {
 	friend class HostServices;
 
@@ -67,49 +67,9 @@ class ScsiController : virtual public Controller
 		uint32_t bytes_to_transfer;
 	} scsi_t;
 
-	enum rascsi_shutdown_mode {
-		NONE,
-		STOP_RASCSI,
-		STOP_PI,
-		RESTART_PI
-	};
-
 public:
 
-	// Maximum number of logical units
-	static const int UNIT_MAX = 32;
-
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
-
-	// Internal data definition
-	// TODO Some of these data are probably device specific, and in this case they should be moved.
-	// These data are not internal, otherwise they could all be private
-	typedef struct {
-		// General
-		BUS::phase_t phase;				// Transition phase
-		int scsi_id;					// The SCSI ID of the connected device (0-7)
-
-		// commands
-		DWORD cmd[16];					// Command data
-		DWORD status;					// Status data
-		int message;					// Message data
-
-		// Transfer
-		// TODO Try to get rid of the static buffer
-		BYTE *buffer;					// Transfer data buffer
-		int bufsize;					// Transfer data buffer size
-		uint32_t blocks;				// Number of transfer block
-		uint32_t next;					// Next record
-		uint32_t offset;				// Transfer offset
-		uint32_t length;				// Transfer remaining length
-
-		// Logical units of the device connected to this controller
-		PrimaryDevice *units[UNIT_MAX];
-
-		// The current device
-		// TODO This is probably obsolete
-		PrimaryDevice *device;
-	} ctrl_t;
 
 	ScsiController(int, BUS *);
 	~ScsiController();
@@ -118,24 +78,20 @@ public:
 
 	BUS::phase_t Process(int);
 
-	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
-	int GetEffectiveLun() const;
+	int GetEffectiveLun() const override;
 
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
-	int GetInitiatorId() const { return scsi.initiator_id; }
-	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
+	int GetInitiatorId() const override { return scsi.initiator_id; }
+	void SetByteTransfer(bool is_byte_transfer) override { scsi.is_byte_transfer = is_byte_transfer; }
 
-	PrimaryDevice *GetUnit(int lun) const { return ctrl.units[lun]; }
+	PrimaryDevice *GetUnit(int lun) const override { return ctrl.units[lun]; }
 	void SetUnit(int, PrimaryDevice *);
 
 	void Status() override;
 	void DataIn() override;
 	void DataOut() override;
-
-	// TODO Do not expose internal data
-	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
 
@@ -167,11 +123,10 @@ private:
 	void FlushUnit();
 	void Receive();
 
-	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) override { this->shutdown_mode = shutdown_mode; }
 
 	void Sleep();
 
-	ctrl_t ctrl;
 	scsi_t scsi;
 
 	rascsi_shutdown_mode shutdown_mode;

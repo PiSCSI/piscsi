@@ -35,10 +35,10 @@ bool PrimaryDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]);
 }
 
-void PrimaryDevice::SetController(ScsiController *controller)
+void PrimaryDevice::SetController(Controller *controller)
 {
-	this->controller = controller;
-	ctrl = controller->GetCtrl();
+	this->controller = static_cast<ScsiController *>(controller);
+	ctrl = this->controller->GetCtrl();
 	phase_handler = controller;
 }
 
