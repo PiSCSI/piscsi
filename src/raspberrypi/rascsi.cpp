@@ -141,7 +141,7 @@ bool InitService(int port)
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
-	server.sin_port   = htons(port);
+	server.sin_port = htons(port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
@@ -155,7 +155,7 @@ bool InitService(int port)
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
-		FPRT(stderr, "Error: Already running?\n");
+		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
 		return false;
 	}
 
