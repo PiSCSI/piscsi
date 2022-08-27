@@ -540,10 +540,10 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 	}
 
 	if (IsReady()) {
-		// Set the number of tracks in one zone to 8 (TODO)
+		// Set the number of tracks in one zone to 8
 		buf[0x03] = 0x08;
 
-		// Set sector/track to 25 (TODO)
+		// Set sector/track to 25
 		buf[0x0a] = 0x00;
 		buf[0x0b] = 0x19;
 
