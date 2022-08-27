@@ -549,7 +549,6 @@ void ScsiController::DataOut()
 	Receive();
 }
 
-// TODO Check all calls with no arguments. The error handling in this case might be wrong.
 void ScsiController::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
