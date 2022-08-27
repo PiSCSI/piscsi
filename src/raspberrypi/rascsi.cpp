@@ -1112,7 +1112,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int opt;
 	while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
 		switch (opt) {
-			// The three options below are kind of a compound option with two letters
+			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				id = -1;
