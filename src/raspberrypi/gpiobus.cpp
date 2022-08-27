@@ -1580,9 +1580,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 
 //---------------------------------------------------------------------------
 //
-//	Get the number of bytes for a command
-//
-// TODO The command length should be determined based on the bytes transferred in the COMMAND phase
+// Get the number of bytes for a command
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::GetCommandByteCount(BYTE opcode) {
