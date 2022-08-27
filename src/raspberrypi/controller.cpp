@@ -1126,7 +1126,7 @@ void Controller::FlushUnit()
             // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
-			// TODO Verfiy whether this ticket is still valid
+			// TODO Verify whether this ticket is still valid
             LOGWARN("Received \'Mode Select\'\n");
             LOGWARN("   Operation Code: [%02X]\n", (WORD)ctrl.cmd[0]);
             LOGWARN("   Logical Unit %01X, PF %01X, SP %01X [%02X]\n",\
