@@ -15,8 +15,6 @@
 
 using namespace std;
 
-class ScsiController;
-
 class HostServices: public ModePageDevice
 {
 
@@ -31,9 +29,6 @@ public:
 	void TestUnitReady();
 	void StartStopUnit();
 
-	int ModeSense6(const DWORD *, BYTE *, int);
-	int ModeSense10(const DWORD *, BYTE *, int);
-
 	bool SupportsFile() const override { return false; }
 
 private:
@@ -41,6 +36,9 @@ private:
 	typedef ModePageDevice super;
 
 	Dispatcher<HostServices> dispatcher;
+
+	int ModeSense6(const DWORD *, BYTE *, int) override;
+	int ModeSense10(const DWORD *, BYTE *, int) override;
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;

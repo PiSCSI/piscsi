@@ -25,9 +25,6 @@ public:
 
 	virtual bool Dispatch() override;
 
-	virtual int ModeSense6(const DWORD *, BYTE *, int) = 0;
-	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
-
 	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 
 protected:
@@ -40,6 +37,9 @@ private:
 	typedef PrimaryDevice super;
 
 	Dispatcher<ModePageDevice> dispatcher;
+
+	virtual int ModeSense6(const DWORD *, BYTE *, int) = 0;
+	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
 
 	void ModeSense6();
 	void ModeSense10();
