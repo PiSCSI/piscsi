@@ -100,12 +100,12 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
 	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
+	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn:m FILE] ...\n\n", argv[0]);
+		FPRT(stdout,"Usage: %s [-idn[:m] FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI device ID (0-7).\n");
 		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
 		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
