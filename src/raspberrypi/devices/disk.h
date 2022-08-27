@@ -116,12 +116,13 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 
+	int ModeSense6(const DWORD *, BYTE *, int) override;
+	int ModeSense10(const DWORD *, BYTE *, int) override;
+
 protected:
 
 	virtual void Open(const Filepath&);
 
-	int ModeSense6(const DWORD *, BYTE *, int);
-	int ModeSense10(const DWORD *, BYTE *, int);
 	virtual void SetDeviceParameters(BYTE *);
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
