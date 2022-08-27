@@ -105,19 +105,6 @@ void Controller::SetUnit(int no, PrimaryDevice *device)
 	ctrl.units[no] = device;
 }
 
-bool Controller::HasAnyUnit() const
-{
-	for (int i = 0; i < UNIT_MAX; i++) {
-		if (ctrl.units[i]) {
-			return true;
-		}
-	}
-
-	assert(false);
-
-	return false;
-}
-
 BUS::phase_t Controller::Process(int initiator_id)
 {
 	// Get bus information
@@ -263,8 +250,15 @@ void Controller::Selection()
 			return;
 		}
 
-		// Return if there is no valid LUN
-		if (!HasAnyUnit()) {
+		// Abort if there is no valid LUN
+		bool has_valid_unit = false;
+		for (int i = 0; i < UNIT_MAX; i++) {
+			if (ctrl.units[i]) {
+				has_valid_unit = true;
+			}
+		}
+		if (!has_valid_unit) {
+			assert(false);
 			return;
 		}
 
