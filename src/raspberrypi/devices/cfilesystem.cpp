@@ -1550,7 +1550,6 @@ void CHostPath::Refresh()
 	m_cRing.InsertRing(&cRingBackup);
 
 	// Register file name
-	/// TODO: Process file duplication by ourselves rather than using the host API.
 	BOOL bUpdate = FALSE;
 	struct dirent **pd = NULL;
 	int nument = 0;
