@@ -198,18 +198,18 @@ bool InitBus()
 void Cleanup()
 {
 	// Delete all devices
-	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		if (*it) {
-			delete *it;
-			*it = nullptr;
+	for (auto device = devices.begin(); device != devices.end(); ++device) {
+		if (*device) {
+			delete *device;
+			*device = nullptr;
 		}
 	}
 
 	// Delete all controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
-			delete *it;
-			*it = nullptr;
+	for (auto controller = controllers.begin(); controller != controllers.end(); ++controller) {
+		if (*controller) {
+			delete *controller;
+			*controller = nullptr;
 		}
 	}
 
@@ -1632,8 +1632,8 @@ int main(int argc, char* argv[])
 
 		// Notify all controllers
 		int i = 0;
-		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-			if (!*it || (data & (1 << i)) == 0) {
+		for (auto controller = controllers.begin(); controller != controllers.end(); ++i, ++controller) {
+			if (!*controller || (data & (1 << i)) == 0) {
 				continue;
 			}
 
@@ -1653,7 +1653,7 @@ int main(int argc, char* argv[])
 			}
 
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process(initiator_id) == BUS::selection) {
+			if ((*controller)->Process(initiator_id) == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
