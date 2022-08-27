@@ -42,8 +42,8 @@ protected:
 	void EnterDataInPhase() { phase_handler->DataIn(); }
 	void EnterDataOutPhase() { phase_handler->DataOut(); }
 
-	ScsiController *controller;
-	ScsiController::ctrl_t *ctrl;
+	Controller *controller;
+	Controller::ctrl_t *ctrl;
 
 private:
 

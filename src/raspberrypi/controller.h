@@ -63,7 +63,8 @@ public:
 	Controller() {}
 	virtual ~Controller() {}
 
-	virtual void Error(scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status) = 0;
+	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
 	virtual void Reset() = 0;
 	virtual int GetInitiatorId() const = 0;
 	virtual PrimaryDevice *GetUnit(int) const = 0;
