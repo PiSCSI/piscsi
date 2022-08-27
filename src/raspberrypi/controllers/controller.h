@@ -73,7 +73,7 @@ public:
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
 
-	virtual void ScheduleShutDown(rascsi_shutdown_mode) { };
+	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
