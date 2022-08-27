@@ -59,14 +59,17 @@ public:
 		PrimaryDevice *current_device;
 	} ctrl_t;
 
-	Controller() {}
+	Controller() { bus = NULL; }
 	virtual ~Controller() {}
+
+	virtual BUS::phase_t Process(int) = 0;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
 	virtual void Reset() = 0;
 	virtual int GetInitiatorId() const = 0;
 	virtual PrimaryDevice *GetUnit(int) const = 0;
+	virtual void SetUnit(int, PrimaryDevice *) = 0;
 	virtual void SetByteTransfer(bool) = 0;
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback

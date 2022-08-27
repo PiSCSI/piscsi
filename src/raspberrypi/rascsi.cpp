@@ -11,7 +11,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "controllers/scsi_controller.h"
+#include "controllers/controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	ScsiController::UNIT_MAX	// Number of units around controller
+#define UnitNum	Controller::UNIT_MAX	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -59,7 +59,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-vector<ScsiController *> controllers(CtrlMax);	// Controllers
+vector<Controller *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
@@ -524,10 +524,10 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 
-	if (unit >= ScsiController::UNIT_MAX) {
+	if (unit >= Controller::UNIT_MAX) {
 		delete device;
 
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(ScsiController::UNIT_MAX)
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
 				+ ")");
 	}
 
