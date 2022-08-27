@@ -38,9 +38,9 @@ protected:
 	virtual vector<BYTE> InquiryInternal() const = 0;
 	void CheckReady();
 
-	void EnterStatusPhase() { phase_handler->Status(); }
-	void EnterDataInPhase() { phase_handler->DataIn(); }
-	void EnterDataOutPhase() { phase_handler->DataOut(); }
+	void EnterStatusPhase() { controller->Status(); }
+	void EnterDataInPhase() { controller->DataIn(); }
+	void EnterDataOutPhase() { controller->DataOut(); }
 
 	Controller *controller;
 	Controller::ctrl_t *ctrl;
@@ -54,7 +54,4 @@ private:
 	vector<BYTE> HandleRequestSense();
 
 	Dispatcher<PrimaryDevice> dispatcher;
-
-	// Preparation for decoupling the bus phase handling
-	PhaseHandler *phase_handler;
 };

@@ -17,7 +17,6 @@ using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
-	phase_handler = NULL;
 	controller = NULL;
 	ctrl = NULL;
 
@@ -39,7 +38,6 @@ void PrimaryDevice::SetController(Controller *controller)
 {
 	this->controller = controller;
 	ctrl = controller->GetCtrl();
-	phase_handler = controller;
 }
 
 void PrimaryDevice::TestUnitReady()
