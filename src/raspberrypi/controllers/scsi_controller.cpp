@@ -42,7 +42,7 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	identified_lun = -1;
 
 	// Logical unit initialization
-	for (int i = 0; i < UNIT_MAX; i++) {
+	for (int i = 0; i < LUN_MAX; i++) {
 		ctrl.units[i] = nullptr;
 	}
 
@@ -84,7 +84,7 @@ void ScsiController::Reset()
 	scsi.bytes_to_transfer = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	for (int i = 0; i < UNIT_MAX; i++) {
+	for (int i = 0; i < LUN_MAX; i++) {
 		if (ctrl.units[i]) {
 			ctrl.units[i]->Reset();
 		}
@@ -93,7 +93,7 @@ void ScsiController::Reset()
 
 void ScsiController::SetUnit(int no, PrimaryDevice *device)
 {
-	assert(no < UNIT_MAX);
+	assert(no < LUN_MAX);
 
 	ctrl.units[no] = device;
 }
@@ -245,7 +245,7 @@ void ScsiController::Selection()
 		// Abort if there is no valid LUN
 		// TODO This check might be obsolete. Can there be a controller without a device attached?
 		bool has_valid_unit = false;
-		for (int i = 0; i < UNIT_MAX; i++) {
+		for (int i = 0; i < LUN_MAX; i++) {
 			if (ctrl.units[i]) {
 				has_valid_unit = true;
 				break;

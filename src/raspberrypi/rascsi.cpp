@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	Controller::UNIT_MAX	// Number of units around controller
+#define UnitNum	Controller::LUN_MAX	// Number of LUNs per controller/device
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -501,8 +501,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
-	if (unit >= Controller::UNIT_MAX) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::UNIT_MAX)
+	if (unit >= Controller::LUN_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::LUN_MAX)
 				+ ")");
 	}
 

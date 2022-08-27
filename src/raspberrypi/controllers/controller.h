@@ -21,7 +21,7 @@ class Controller : virtual public PhaseHandler
 public:
 
 	// Maximum number of logical units
-	static const int UNIT_MAX = 32;
+	static const int LUN_MAX = 32;
 
 	enum rascsi_shutdown_mode {
 		NONE,
@@ -53,7 +53,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 
 		// Logical units of the device connected to this controller
-		PrimaryDevice *units[UNIT_MAX];
+		PrimaryDevice *units[LUN_MAX];
 
 		// TODO This is probably obsolete
 		PrimaryDevice *current_device;

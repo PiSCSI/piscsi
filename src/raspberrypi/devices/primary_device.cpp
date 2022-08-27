@@ -88,7 +88,7 @@ void PrimaryDevice::ReportLuns()
 
 	// Only SELECT REPORT mode 0 is supported
 	if (!ctrl->cmd[2]) {
-		for (int lun = 0; lun < ScsiController::UNIT_MAX; lun++) {
+		for (int lun = 0; lun < ScsiController::LUN_MAX; lun++) {
 			if (controller->GetUnit(lun)) {
 				size += 8;
 				buf[size + 7] = lun;

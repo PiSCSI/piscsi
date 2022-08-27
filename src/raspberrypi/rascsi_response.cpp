@@ -30,7 +30,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
-	properties->set_luns(ScsiController::UNIT_MAX);
+	properties->set_luns(ScsiController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
