@@ -256,11 +256,18 @@ void ScsiController::Selection()
 			return;
 		}
 
-		// Abort if there is no LUN for this controller
-		if (ctrl.luns.empty()) {
-			assert(false);
-			return;
-		}
+        // Abort if there is no valid LUN
+        bool has_valid_unit = false;
+        for (int i = 0; i < LUN_MAX; i++) {
+                if (HasLunDevice(i)) {
+                        has_valid_unit = true;
+                        break;
+                }
+        }
+        if (!has_valid_unit) {
+                assert(false);
+                return;
+        }
 
 		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.scsi_id);
 
