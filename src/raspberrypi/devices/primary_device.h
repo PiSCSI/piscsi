@@ -42,8 +42,8 @@ protected:
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
 
-	Controller *controller;
-	Controller::ctrl_t *ctrl;
+	Controller *controller = nullptr;
+	Controller::ctrl_t *ctrl = nullptr;
 
 private:
 
