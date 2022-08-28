@@ -27,7 +27,9 @@ class ScsiController : public Controller
 	// For timing adjustments
 	static const unsigned int MIN_EXEC_TIME = 50;
 
-	const int UNKNOWN_INITIATOR_ID = -1;
+	static const int UNKNOWN_INITIATOR_ID = -1;
+
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	enum rw_command : int {
 		eCmdRead6 = 0x08,
@@ -66,8 +68,6 @@ class ScsiController : public Controller
 	} scsi_t;
 
 public:
-
-	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	ScsiController(BUS *, int);
 	~ScsiController();
