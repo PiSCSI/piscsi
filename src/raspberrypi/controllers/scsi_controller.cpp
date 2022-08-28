@@ -89,8 +89,8 @@ void ScsiController::Reset()
 
 PrimaryDevice *ScsiController::GetLunDevice(int lun) const
 {
-	const auto& device = ctrl.luns.find(lun);
-	return device == ctrl.luns.end() ? nullptr : device->second;
+	const auto& it = ctrl.luns.find(lun);
+	return it == ctrl.luns.end() ? nullptr : it->second;
 }
 
 void ScsiController::SetLunDevice(int lun, PrimaryDevice *device)

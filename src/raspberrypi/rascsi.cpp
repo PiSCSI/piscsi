@@ -198,18 +198,18 @@ bool InitBus()
 void Cleanup()
 {
 	// Delete all devices
-	for (auto device = devices.begin(); device != devices.end(); ++device) {
-		if (*device) {
-			delete *device;
-			*device = nullptr;
+	for (auto it = devices.begin(); it != devices.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = nullptr;
 		}
 	}
 
 	// Delete all controllers
-	for (auto controller = controllers.begin(); controller != controllers.end(); ++controller) {
-		if (*controller) {
-			delete *controller;
-			*controller = nullptr;
+	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = nullptr;
 		}
 	}
 
@@ -277,7 +277,7 @@ void MapController(Device **map)
 
 	// Reconfigure all of the controllers
 	int scsi_id = 0;
-	for (auto controller = controllers.begin(); controller != controllers.end(); ++scsi_id, ++controller) {
+	for (auto it = controllers.begin(); it != controllers.end(); ++scsi_id, ++it) {
 		// Examine the unit configuration
 		bool has_lun = false;
 		for (int lun = 0; lun < UnitNum; lun++) {
@@ -287,21 +287,21 @@ void MapController(Device **map)
 			}
 
 			// Remove the unit
-			if (*controller) {
-				(*controller)->SetLunDevice(lun, nullptr);
+			if (*it) {
+				(*it)->SetLunDevice(lun, nullptr);
 			}
 		}
 
 		// If there are no units connected the controller can be discarded
-		if (!has_lun && *controller != nullptr) {
-			delete *controller;
-			*controller = nullptr;
+		if (!has_lun && *it != nullptr) {
+			delete *it;
+			*it = nullptr;
 			continue;
 		}
 
 		// Create a new SCSI controller for the current device ID and bus
-		if (*controller == nullptr) {
-			*controller = new ScsiController(bus, scsi_id);
+		if (*it == nullptr) {
+			*it = new ScsiController(bus, scsi_id);
 		}
 
 		// connect all units
@@ -310,10 +310,10 @@ void MapController(Device **map)
 			if (devices[lun_no]) {
 				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[lun_no]));
 
-				primary_device->SetController(*controller);
+				primary_device->SetController(*it);
 
 				// Add the unit connection
-				(*controller)->SetLunDevice(lun, primary_device);
+				(*it)->SetLunDevice(lun, primary_device);
 			}
 		}
 	}
@@ -1631,8 +1631,8 @@ int main(int argc, char* argv[])
 
 		// Notify all controllers
 		int i = 0;
-		for (auto controller = controllers.begin(); controller != controllers.end(); ++i, ++controller) {
-			if (*controller == nullptr || (data & (1 << i)) == 0) {
+		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
+			if (*it == nullptr || (data & (1 << i)) == 0) {
 				continue;
 			}
 
@@ -1652,7 +1652,7 @@ int main(int argc, char* argv[])
 			}
 
 			// Find the target that has moved to the selection phase
-			if ((*controller)->Process(initiator_id) == BUS::selection) {
+			if ((*it)->Process(initiator_id) == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
