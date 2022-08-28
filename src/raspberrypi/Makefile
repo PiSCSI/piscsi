@@ -172,6 +172,7 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   all      : Rebuild all of the executable files and re-generate 
 ##              the text versions of the manpages
 ##   docs     : Re-generate the text versions of the man pages
+##   test     : Build and run unit tests
 .DEFAULT_GOAL := all
 .PHONY: all ALL docs
 all: $(BIN_ALL) docs
