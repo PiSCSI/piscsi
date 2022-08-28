@@ -34,12 +34,15 @@ public:
 
 	bool SupportsFile() const override { return false; }
 
+protected:
+
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+
 private:
 
 	typedef ModePageDevice super;
 
 	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };
