@@ -41,8 +41,9 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	ctrl.length = 0;
 	identified_lun = -1;
 
-	scsi.is_byte_transfer = false;
-	scsi.bytes_to_transfer = 0;
+	is_byte_transfer = false;
+	bytes_to_transfer = 0;
+
 	shutdown_mode = NONE;
 
 	// Synchronous transfer work initialization
@@ -75,9 +76,10 @@ void ScsiController::Reset()
 
 	scsi.atnmsg = false;
 	scsi.msc = 0;
-	scsi.is_byte_transfer = false;
-	scsi.bytes_to_transfer = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
+
+	is_byte_transfer = false;
+	bytes_to_transfer = 0;
 
 	// Reset all LUNs
 	for (auto& lun : ctrl.luns) {
@@ -206,8 +208,8 @@ void ScsiController::BusFree()
 
 		identified_lun = -1;
 
-		scsi.is_byte_transfer = false;
-		scsi.bytes_to_transfer = 0;
+		is_byte_transfer = false;
+		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
@@ -685,7 +687,7 @@ void ScsiController::Send()
 
 void ScsiController::Receive()
 {
-	if (scsi.is_byte_transfer) {
+	if (is_byte_transfer) {
 		ReceiveBytes();
 		return;
 	}
@@ -916,9 +918,11 @@ void ScsiController::ReceiveBytes()
 			return;
 		}
 
+		bytes_to_transfer = ctrl.length;
+
 		ctrl.offset += ctrl.length;
-		scsi.bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
+
 		return;
 	}
 
@@ -1066,17 +1070,17 @@ void ScsiController::ReceiveBytes()
 
 bool ScsiController::XferOut(bool cont)
 {
-	if (!scsi.is_byte_transfer) {
+	assert(ctrl.phase == BUS::dataout);
+
+	if (!is_byte_transfer) {
 		return XferOutBlockOriented(cont);
 	}
 
-	assert(ctrl.phase == BUS::dataout);
-
-	scsi.is_byte_transfer = false;
+	is_byte_transfer = false;
 
 	PrimaryDevice *device = GetLunDevice(GetEffectiveLun());
 	if (device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
-		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
+		return device->WriteBytes(ctrl.buffer, bytes_to_transfer);
 	}
 
 	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
@@ -1188,8 +1192,6 @@ bool ScsiController::XferIn(BYTE *buf)
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
-	assert(ctrl.phase == BUS::dataout);
-
 	Disk *disk = dynamic_cast<Disk *>(GetLunDevice(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return false;

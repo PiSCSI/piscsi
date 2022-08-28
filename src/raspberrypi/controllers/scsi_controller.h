@@ -62,9 +62,6 @@ class ScsiController : public Controller
 
 		// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
 		int initiator_id;
-
-		bool is_byte_transfer;
-		uint32_t bytes_to_transfer;
 	} scsi_t;
 
 public:
@@ -82,7 +79,7 @@ public:
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
 	int GetInitiatorId() const override { return scsi.initiator_id; }
-	void SetByteTransfer(bool is_byte_transfer) override { scsi.is_byte_transfer = is_byte_transfer; }
+	void SetByteTransfer(bool is_byte_transfer) override { this->is_byte_transfer = is_byte_transfer; }
 
 	PrimaryDevice *GetLunDevice(int lun) const override;
 	void SetLunDevice(int, PrimaryDevice *);
@@ -99,6 +96,9 @@ private:
 
 	// The LUN from the IDENTIFY message
 	int identified_lun;
+
+	bool is_byte_transfer;
+	uint32_t bytes_to_transfer;
 
 	// Phases
 	void SetPhase(BUS::phase_t phase) override { ctrl.phase = phase; }
