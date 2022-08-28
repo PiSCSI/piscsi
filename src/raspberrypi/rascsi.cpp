@@ -199,7 +199,7 @@ void Cleanup()
 {
 	// Delete all devices
 	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		if (*it) {
+		if (*it != nullptr) {
 			delete *it;
 			*it = nullptr;
 		}
@@ -207,7 +207,7 @@ void Cleanup()
 
 	// Delete all controllers
 	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
+		if (*it != nullptr) {
 			delete *it;
 			*it = nullptr;
 		}
@@ -497,7 +497,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (map[id * UnitNum + unit]) {
+	if (map[id * UnitNum + unit] != nullptr) {
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
@@ -520,7 +520,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// If no filename was provided the medium is considered removed
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support) {
+	if (file_support != nullptr) {
 		device->SetRemoved(filename.empty());
 	}
 	else {
@@ -547,7 +547,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	if (pb_device.block_size()) {
 		Disk *disk = dynamic_cast<Disk *>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
+		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				delete device;
 
@@ -562,7 +562,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
-	if (file_support && !device->IsRemovable() && filename.empty()) {
+	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
 		delete device;
 
 		return ReturnStatus(context, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
@@ -665,7 +665,7 @@ bool Detach(const CommandContext& context, Device *device, Device *map[], bool d
 		map[device->GetId() * UnitNum + device->GetLun()] = nullptr;
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support) {
+		if (file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
@@ -703,7 +703,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	Disk *disk = dynamic_cast<Disk *>(device);
 
 	if (pb_device.block_size()) {
-		if (disk && disk->IsSectorSizeConfigurable()) {
+		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
@@ -751,7 +751,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		device->SetProtected(pb_device.protected_());
 	}
 
-	if (disk) {
+	if (disk != nullptr) {
 		disk->MediumChanged();
 	}
 
