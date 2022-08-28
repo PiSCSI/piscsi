@@ -39,6 +39,7 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	initiator_id = UNKNOWN_INITIATOR_ID;
 	identified_lun = -1;
 
 	is_byte_transfer = false;
@@ -72,6 +73,7 @@ void ScsiController::Reset()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	initiator_id = UNKNOWN_INITIATOR_ID;
 	identified_lun = -1;
 
 	scsi.atnmsg = false;
