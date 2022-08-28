@@ -461,9 +461,9 @@ void SCSIDaynaPort::Write6()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
 	}
 
 	DWORD data_format = ctrl->cmd[5];

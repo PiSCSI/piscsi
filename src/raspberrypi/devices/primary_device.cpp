@@ -163,7 +163,7 @@ void PrimaryDevice::CheckReady()
 
 vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
-	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
+	vector<BYTE> buf(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... SCSI device type

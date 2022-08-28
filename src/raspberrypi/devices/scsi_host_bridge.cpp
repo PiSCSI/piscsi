@@ -266,9 +266,9 @@ void SCSIBR::GetMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
 		ctrl->bufsize = 0x1000000;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 	}
 
 	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
@@ -294,9 +294,9 @@ void SCSIBR::SendMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = 0x1000000;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
 	}
 
 	// Set transfer amount

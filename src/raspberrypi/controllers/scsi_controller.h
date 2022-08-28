@@ -89,16 +89,16 @@ public:
 private:
 
 	// Execution start time
-	DWORD execstart;
+	DWORD execstart = 0;
 
-	// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
-	int initiator_id;
+	// The initiator ID may be unavailable, e.g. with Atari ACSI and old host adapters
+	int initiator_id = UNKNOWN_INITIATOR_ID;
 
 	// The LUN from the IDENTIFY message
-	int identified_lun;
+	int identified_lun = -1;
 
-	bool is_byte_transfer;
-	uint32_t bytes_to_transfer;
+	bool is_byte_transfer = false;
+	uint32_t bytes_to_transfer = 0;
 
 	// Phases
 	void SetPhase(BUS::phase_t phase) override { ctrl.phase = phase; }
@@ -126,6 +126,6 @@ private:
 
 	scsi_t scsi;
 
-	rascsi_shutdown_mode shutdown_mode;
+	rascsi_shutdown_mode shutdown_mode = NONE;
 };
 

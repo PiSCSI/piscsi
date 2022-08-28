@@ -705,18 +705,12 @@ bool GPIOBUS::GetDP() const
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
-	int count;
-
 	// Only works in TARGET mode
 	if (actmode != TARGET) {
 		return 0;
 	}
 
-	// IRQs disabled
 	DisableIRQ();
-
-	// Get the first command byte
-	int i = 0;
 
 	// Assert REQ signal
 	SetSignal(PIN_REQ, ON);
@@ -735,7 +729,8 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
 	// Timeout waiting for ACK assertion
 	if (!ret) {
-		goto irq_enable_exit;
+		EnableIRQ();
+		return 0;
 	}
 
 	// Wait for ACK to clear
@@ -743,7 +738,8 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
 	// Timeout waiting for ACK to clear
 	if (!ret) {
-		goto irq_enable_exit;
+		EnableIRQ();
+		return 0;
 	}
 
 	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
@@ -768,22 +764,25 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		SetSignal(PIN_REQ, OFF);
 
 		if (!ret) {
-			goto irq_enable_exit;
+			EnableIRQ();
+			return 0;
 		}
 
 		WaitSignal(PIN_ACK, FALSE);
 
 		if (!ret) {
-			goto irq_enable_exit;
+			EnableIRQ();
+			return 0;
 		}
 	}
 
-	count = GetCommandByteCount(*buf);
+	int command_byte_count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
 	buf++;
 
-	for (i = 1; i < count; i++) {
+	int bytes_received;
+	for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
 		// Assert REQ signal
 		SetSignal(PIN_REQ, ON);
 
@@ -816,12 +815,9 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		buf++;
 	}
 
-irq_enable_exit:
-	// IRQs enabled
 	EnableIRQ();
 
-	// returned the number of bytes received
-	return i;
+	return bytes_received;
 }
 
 //---------------------------------------------------------------------------

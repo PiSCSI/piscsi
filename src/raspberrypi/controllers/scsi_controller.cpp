@@ -30,22 +30,15 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	ctrl.phase = BUS::busfree;
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-	execstart = 0;
-	// The initial buffer size will default to either the default buffer size OR
-	// the size of an Ethernet message, whichever is larger.
-	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
-	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
-	initiator_id = UNKNOWN_INITIATOR_ID;
-	identified_lun = -1;
 
-	is_byte_transfer = false;
-	bytes_to_transfer = 0;
-
-	shutdown_mode = NONE;
+	// The initial buffer size will default to either the default buffer size OR
+	// the size of an Ethernet message, whichever is larger.
+	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
+	ctrl.buffer = new BYTE[ctrl.bufsize];
 
 	// Synchronous transfer work initialization
 	scsi.syncenable = false;
@@ -59,7 +52,7 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 ScsiController::~ScsiController()
 {
 	if (ctrl.buffer != nullptr) {
-		free(ctrl.buffer);
+		delete[] ctrl.buffer;
 	}
 }
 
@@ -73,7 +66,6 @@ void ScsiController::Reset()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
-	initiator_id = UNKNOWN_INITIATOR_ID;
 	identified_lun = -1;
 
 	scsi.atnmsg = false;
@@ -130,6 +122,13 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 		return ctrl.phase;
 	}
 
+	if (initiator_id != UNKNOWN_INITIATOR_ID) {
+		LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, initiator_id);
+	}
+	else {
+		LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
+	}
+
 	this->initiator_id = initiator_id;
 
 	try {
@@ -173,7 +172,7 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 		}
 	}
 	catch(const scsi_error_exception& e) {
-		// This is an unexpected case because any exception should have been handled before
+		// Any exception should have been handled during the phase processing
 		assert(false);
 
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__);
@@ -263,13 +262,6 @@ void ScsiController::Selection()
 
 		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.scsi_id);
 
-		if (initiator_id != UNKNOWN_INITIATOR_ID) {
-			LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, initiator_id);
-		}
-		else {
-			LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
-		}
-
 		SetPhase(BUS::selection);
 
 		// Raise BSY and respond
@@ -306,9 +298,9 @@ void ScsiController::Command()
 		ctrl.blocks = 1;
 
 		// If no byte can be received move to the status phase
-		int count = bus->CommandHandShake(ctrl.buffer);
-		if (!count) {
-			LOGERROR("%s No command bytes received",__PRETTY_FUNCTION__);
+		int command_byte_count = bus->CommandHandShake(ctrl.buffer);
+		if (!command_byte_count) {
+			LOGERROR("%s No command bytes received", __PRETTY_FUNCTION__);
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -316,7 +308,7 @@ void ScsiController::Command()
 		ctrl.length = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 		// If not able to receive all, move to the status phase
-		if (count != (int)ctrl.length) {
+		if (command_byte_count != (int)ctrl.length) {
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -728,8 +720,6 @@ void ScsiController::Receive()
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
 	switch (ctrl.phase) {
-
-		// Data out phase
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
@@ -740,7 +730,6 @@ void ScsiController::Receive()
 			}
 			break;
 
-		// Message out phase
 		case BUS::msgout:
 			ctrl.message = ctrl.buffer[0];
 			if (!XferMsg(ctrl.message)) {
