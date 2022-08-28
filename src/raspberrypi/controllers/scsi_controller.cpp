@@ -258,7 +258,6 @@ void ScsiController::Selection()
 
 		// Abort if there is no LUN for this controller
 		if (ctrl.luns.empty()) {
-			assert(false);
 			return;
 		}
 
