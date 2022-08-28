@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "gpiobus.h"
+#include "exceptions.h"
 #include "devices/scsihd.h"
 #include "devices/device_factory.h"
 
@@ -63,8 +63,7 @@ TEST(DeviceTest, TestUnitReady)
 	controller.ctrl.cmd[0] = eCmdTestUnitReady;
 	device->SetController(&controller);
 
-	EXPECT_CALL(controller, Error);
-	EXPECT_TRUE(device->Dispatch());
+	EXPECT_THROW(device->Dispatch(), scsi_error_exception);
 
 	// TODO Add tests for a device that is ready after the SASI code removal
 }
