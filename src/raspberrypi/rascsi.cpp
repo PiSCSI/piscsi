@@ -259,9 +259,9 @@ void MapController(Device **map)
 			int lun_no = id * UnitNum + lun;
 			if (devices[lun_no] != map[lun_no]) {
 				// Check if the original unit exists
-				if (devices[lun_no]) {
+				if (devices[lun_no] != nullptr) {
 					// Disconnect it from the controller
-					if (controllers[id]) {
+					if (controllers[id] != nullptr) {
 						controllers[id]->SetLunDevice(lun, nullptr);
 					}
 
@@ -282,12 +282,12 @@ void MapController(Device **map)
 		bool has_lun = false;
 		for (int lun = 0; lun < UnitNum; lun++) {
 			int lun_no = scsi_id * UnitNum + lun;
-			if (devices[lun_no]) {
+			if (devices[lun_no] != nullptr) {
 				has_lun = true;
 			}
 
 			// Remove the unit
-			if (*it) {
+			if (*it != nullptr) {
 				(*it)->SetLunDevice(lun, nullptr);
 			}
 		}
@@ -307,7 +307,7 @@ void MapController(Device **map)
 		// connect all units
 		for (int lun = 0; lun < UnitNum; lun++) {
 			int lun_no = scsi_id * UnitNum + lun;
-			if (devices[lun_no]) {
+			if (devices[lun_no] != nullptr) {
 				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[lun_no]));
 
 				primary_device->SetController(*it);
