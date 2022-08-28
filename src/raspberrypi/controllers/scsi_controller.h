@@ -59,9 +59,6 @@ class ScsiController : public Controller
 		bool atnmsg;
 		int msc;
 		BYTE msb[256];
-
-		// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
-		int initiator_id;
 	} scsi_t;
 
 public:
@@ -78,7 +75,7 @@ public:
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 
-	int GetInitiatorId() const override { return scsi.initiator_id; }
+	int GetInitiatorId() const override { return initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) override { this->is_byte_transfer = is_byte_transfer; }
 
 	PrimaryDevice *GetLunDevice(int lun) const override;
@@ -93,6 +90,9 @@ private:
 
 	// Execution start time
 	DWORD execstart;
+
+	// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
+	int initiator_id;
 
 	// The LUN from the IDENTIFY message
 	int identified_lun;
