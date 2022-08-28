@@ -12,11 +12,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "../devices/scsihd.h"
-#include "../devices/scsihd_nec.h"
-#include "../devices/scsicd.h"
-#include "../devices/scsimo.h"
-#include "../devices/host_services.h"
+#include "exceptions.h"
+#include "devices/scsihd.h"
+#include "devices/scsihd_nec.h"
+#include "devices/scsicd.h"
+#include "devices/scsimo.h"
+#include "devices/host_services.h"
 
 using namespace std;
 
@@ -104,7 +105,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 1))  << "Allocation length was not limited";
 
 	cdb[2] = 0x00;
-	EXPECT_EQ(0, device.AddModePages(cdb, buf, 12)) << "Data for non-existing code page 0 were returned";
+	EXPECT_THROW(device.AddModePages(cdb, buf, 12), scsi_error_exception) << "Data for non-existing code page 0 were returned";
 }
 
 TEST(ModePagesTest, SCSIHD_AddModePages)

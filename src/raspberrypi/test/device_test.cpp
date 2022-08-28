@@ -13,8 +13,8 @@
 #include <gmock/gmock.h>
 
 #include "gpiobus.h"
-#include "../devices/scsihd.h"
-#include "../devices/device_factory.h"
+#include "devices/scsihd.h"
+#include "devices/device_factory.h"
 
 using namespace rascsi_interface;
 

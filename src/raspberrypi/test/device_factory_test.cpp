@@ -12,8 +12,8 @@
 #include <gtest/gtest.h>
 
 #include "rascsi_version.h"
-#include "../devices/device.h"
-#include "../devices/device_factory.h"
+#include "devices/device.h"
+#include "devices/device_factory.h"
 
 using namespace rascsi_interface;
 
