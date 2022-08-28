@@ -258,7 +258,7 @@
                         {% endfor %}
                     </select>
                     <label for="unit">{{ _("LUN") }}</label>
-                    <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                    <input name="unit" type="number" value="0" min="0" max="31" step="1">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file['detected_type_name'] }}
@@ -337,7 +337,7 @@
                 {% for key, value in device_types[type]["params"].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" size="{{ value|length }}" value="{{ value }}">
+                <input name="{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
                 <select name="interface">
                 {% for if in netinfo["ifs"] %}
@@ -359,7 +359,7 @@
                 {% endfor %}
                 </select>
                 <label for="unit">{{ _("LUN") }}</label>
-                <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                <input name="unit" type="number" value="0" min="0" max="31" step="1">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
@@ -416,7 +416,7 @@
             gb: "{{ _("GB") }}",
             mb: "{{ _("MB") }}",
             kb: "{{ _("KB") }}",
-            b: "{{ _("b") }}"
+            b: "{{ _("B") }}"
         }
     }
 </script>
@@ -572,7 +572,7 @@
                     </option>
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
-                <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" size="6" required>
+                <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" max="262144" required>
                 <input type="submit" value="{{ _("Create") }}">
             </form>
         </td>
@@ -607,7 +607,7 @@
         <td style="border: none; vertical-align:top;">
             <form action="/logs/show" method="post">
                 <label for="lines">{{ _("Log Lines:") }}</label>
-                <input name="lines" type="number" value="200" min="1" size="4">
+                <input name="lines" type="number" value="200" min="0" max="99999" step="100">
                 <label for="scope">{{ _("Scope:") }}</label>
                 <select name="scope">
                     <option value="">

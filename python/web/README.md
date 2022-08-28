@@ -21,7 +21,9 @@ You may edit the files under `mock/bin` to simulate Linux command responses.
 TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
 A separate mocking solution will be needed for this interface.
 
-## Pushing to the Pi via git
+## (Optional) Pushing to the Pi via git
+
+This is a setup for pushing code changes from your local development environment to the Raspberry Pi without a roundtrip to the remote GitHub repository.
 
 Setup a bare repo on the rascsi
 ```
