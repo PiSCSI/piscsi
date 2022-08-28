@@ -37,7 +37,7 @@ private:
 	friend class SCSIDaynaPort;
 	friend class SCSIBR;
 
-	CTapDriver();
+	CTapDriver() {}
 	~CTapDriver() {}
 
 	bool Init(const unordered_map<string, string>&);
@@ -56,13 +56,13 @@ public:
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	BYTE m_MacAddr[6];							// MAC Address
-	int m_hTAP;								// File handle
+	BYTE m_MacAddr[6] = {};						// MAC Address
+	int m_hTAP = -1;							// File handle
 
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];
 
-	pcap_t *m_pcap;
-	pcap_dumper_t *m_pcap_dumper;
+	pcap_t *m_pcap = nullptr;
+	pcap_dumper_t *m_pcap_dumper = nullptr;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
 	vector<string> interfaces;

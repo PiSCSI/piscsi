@@ -30,14 +30,6 @@
 using namespace std;
 using namespace ras_util;
 
-CTapDriver::CTapDriver()
-{
-	m_hTAP = -1;
-	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
-	m_pcap = nullptr;
-	m_pcap_dumper = nullptr;
-}
-
 //---------------------------------------------------------------------------
 //
 //	Initialization

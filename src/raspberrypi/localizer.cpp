@@ -17,9 +17,6 @@ using namespace std;
 
 Localizer::Localizer()
 {
-	// Supported locales, always lower case
-	supported_languages = { "en", "de", "sv", "fr", "es" };
-
 	// Positional string arguments are %1, %2, %3
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");

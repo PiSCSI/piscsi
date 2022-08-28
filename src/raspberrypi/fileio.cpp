@@ -22,8 +22,6 @@
 
 Fileio::Fileio()
 {
-	// Initialize work
-	handle = -1;
 }
 
 Fileio::~Fileio()

@@ -615,37 +615,37 @@ private:
 										// Set GPIO drive strength
 
 
-	mode_e actmode;						// Operation mode
+	mode_e actmode = TARGET;			// Operation mode
 
-	DWORD baseaddr;						// Base address
+	uint32_t baseaddr = 0;				// Base address
 
-	int rpitype;						// Type of Raspberry Pi
+	int rpitype = 0;					// Type of Raspberry Pi
 
-	volatile DWORD *gpio;				// GPIO register
+	volatile uint32_t *gpio = 0;		// GPIO register
 
-	volatile DWORD *pads;				// PADS register
+	volatile uint32_t *pads = 0;		// PADS register
 
-	volatile DWORD *level;				// GPIO input level
+	volatile uint32_t *level = 0;		// GPIO input level
 
-	volatile DWORD *irpctl;				// Interrupt control register
+	volatile uint32_t *irpctl = 0;		// Interrupt control register
 
-	volatile DWORD irptenb;				// Interrupt enabled state
+	volatile uint32_t irptenb;			// Interrupt enabled state
 
-	volatile DWORD *qa7regs;			// QA7 register
+	volatile uint32_t *qa7regs = 0;		// QA7 register
 
 	volatile int tintcore;				// Interupt control target CPU.
 
-	volatile DWORD tintctl;				// Interupt control
+	volatile uint32_t tintctl;			// Interupt control
 
-	volatile DWORD giccpmr;				// GICC priority setting
+	volatile uint32_t giccpmr;			// GICC priority setting
 
-	volatile DWORD *gicd;				// GIC Interrupt distributor register
+	volatile uint32_t *gicd = 0;		// GIC Interrupt distributor register
 
-	volatile DWORD *gicc;				// GIC CPU interface register
+	volatile uint32_t *gicc = 0;		// GIC CPU interface register
 
 	DWORD gpfsel[4];					// GPFSEL0-4 backup values
 
-	DWORD signals;						// All bus signals
+	uint32_t signals = 0;				// All bus signals
 
 #ifdef USE_SEL_EVENT_ENABLE
 	struct gpioevent_request selevreq = {};	// SEL signal event request

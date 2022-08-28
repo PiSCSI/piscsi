@@ -54,5 +54,6 @@ private:
 	void Add(LocalizationKey, const string&, const string&);
 	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
-	unordered_set<string> supported_languages;
+	// Supported locales, always lower case
+	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es" };
 };

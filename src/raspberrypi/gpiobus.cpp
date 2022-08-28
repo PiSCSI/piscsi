@@ -78,17 +78,6 @@ DWORD bcm_host_get_peripheral_address(void)
 
 GPIOBUS::GPIOBUS()
 {
-	actmode = TARGET;
-	baseaddr = 0;
-	gicc = 0;
-	gicd = 0;
-	gpio = 0;
-	level = 0;
-	pads = 0;
-	irpctl = 0;
-	qa7regs = 0;
-	signals = 0;
-	rpitype = 0;
 }
 
 bool GPIOBUS::Init(mode_e mode)
