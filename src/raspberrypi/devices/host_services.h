@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -32,12 +32,17 @@ public:
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *, int);
 
+	bool SupportsFile() const override { return false; }
+
+protected:
+
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+
 private:
 
 	typedef ModePageDevice super;
 
 	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };

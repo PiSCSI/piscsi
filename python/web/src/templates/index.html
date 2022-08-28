@@ -185,41 +185,41 @@
                     </ul>
                 </details>
             </td>
-            {% elif file["zip_members"] %}
+            {% elif file["archive_contents"] %}
             <td>
                 <details>
                     <summary>
                         {{ file["name"] }}
                     </summary>
                     <ul style="list-style: none;">
-                    {% for member in file["zip_members"] %}
-                    {% if not member.lower().endswith(PROPERTIES_SUFFIX) %}
-                        <li>
-                            {% if member + "." + PROPERTIES_SUFFIX in file["zip_members"] %}
-                            <details><summary>{{ member }}
-                            <form action="/files/unzip" method="post">
-                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                                <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="{{ _("Unzip") }}" onclick="processNotify('{{ _("Unzipping a single file...") }}')">
-                            </form>
-                            </summary>
-                            <ul style="list-style: none;">
+                        {% for member in file["archive_contents"] %}
+                            {% if not member["is_properties_file"] %}
                                 <li>
-                                {{ member + "." + PROPERTIES_SUFFIX }}
+                                    {% if member["related_properties_file"] %}
+                                        <details>
+                                            <summary>
+                                                <label>{{ member["path"] }}</label>
+                                                <form action="/files/extract_image" method="post">
+                                                    <input name="archive_file" type="hidden" value="{{ file['name'] }}">
+                                                    <input name="archive_members" type="hidden" value="{{ member["path"] }}|{{ member["related_properties_file"] }}">
+                                                    <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                                </form>
+                                            </summary>
+                                            <ul style="list-style: none;">
+                                                <li>{{ member["related_properties_file"] }}</li>
+                                            </ul>
+                                        </details>
+                                    {% else %}
+                                        <label>{{ member["path"] }}</label>
+                                        <form action="/files/extract_image" method="post">
+                                            <input name="archive_file" type="hidden" value="{{ file["name"] }}">
+                                            <input name="archive_members" type="hidden" value="{{ member["path"] }}">
+                                            <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                        </form>
+                                    {% endif %}
                                 </li>
-                            </ul>
-                            </details>
-                            {% else %}
-                            <label for="zip_member">{{ member }}</label>
-                            <form action="/files/unzip" method="post">
-                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                                <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="{{ _("Unzip") }}" onclick="processNotify('{{ _("Unzipping a single file...") }}')">
-                            </form>
                             {% endif %}
-                        </li>
-                    {% endif %}
-                    {% endfor %}
+                        {% endfor %}
                     </ul>
                 </details>
             </td>
@@ -238,11 +238,12 @@
                     {{ _("Attached!") }}
                 </center>
                 {% else %}
-                {% if file["name"].lower().endswith(ARCHIVE_FILE_SUFFIX) %}
-                <form action="/files/unzip" method="post">
-                    <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                    <input name="zip_members" type="hidden" value="{{ file['zip_members'] }}">
-                    <input type="submit" value="{{ _("Unzip All") }}" onclick="processNotify('{{ _("Unzipping all files...") }}')">
+                {% if file["archive_contents"] %}
+                <form action="/files/extract_image" method="post">
+                    <input name="archive_file" type="hidden" value="{{ file['name'] }}">
+                    {% set pipe = joiner("|") %}
+                    <input name="archive_members" type="hidden" value="{% for member in file["archive_contents"] %}{{ pipe() }}{{ member["path"] }}{% endfor %}">
+                    <input type="submit" value="{{ _("Extract All") }}" onclick="processNotify('{{ _("Extracting all files...") }}')">
                 </form>
                 {% else %}
                 <form action="/scsi/attach" method="post">
@@ -257,7 +258,7 @@
                         {% endfor %}
                     </select>
                     <label for="unit">{{ _("LUN") }}</label>
-                    <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                    <input name="unit" type="number" value="0" min="0" max="31" step="1">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file['detected_type_name'] }}
@@ -336,7 +337,7 @@
                 {% for key, value in device_types[type]["params"].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" size="{{ value|length }}" value="{{ value }}">
+                <input name="{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
                 <select name="interface">
                 {% for if in netinfo["ifs"] %}
@@ -358,7 +359,7 @@
                 {% endfor %}
                 </select>
                 <label for="unit">{{ _("LUN") }}</label>
-                <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                <input name="unit" type="number" value="0" min="0" max="31" step="1">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
@@ -415,7 +416,7 @@
             gb: "{{ _("GB") }}",
             mb: "{{ _("MB") }}",
             kb: "{{ _("KB") }}",
-            b: "{{ _("b") }}"
+            b: "{{ _("B") }}"
         }
     }
 </script>
@@ -571,7 +572,7 @@
                     </option>
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
-                <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" size="6" required>
+                <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" max="262144" required>
                 <input type="submit" value="{{ _("Create") }}">
             </form>
         </td>
@@ -606,7 +607,7 @@
         <td style="border: none; vertical-align:top;">
             <form action="/logs/show" method="post">
                 <label for="lines">{{ _("Log Lines:") }}</label>
-                <input name="lines" type="number" value="200" min="1" size="4">
+                <input name="lines" type="number" value="200" min="0" max="99999" step="100">
                 <label for="scope">{{ _("Scope:") }}</label>
                 <select name="scope">
                     <option value="">

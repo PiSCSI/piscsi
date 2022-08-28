@@ -64,6 +64,7 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
 SCSIMON = scsimon
+RASCSI_TEST = rascsi_test
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -90,21 +91,22 @@ SRC_PROTOC = \
 SRC_PROTOBUF = \
 	rascsi_interface.pb.cpp
 
-SRC_RASCSI = \
-	rascsi.cpp \
-	scsi.cpp \
+SRC_RASCSI_CORE = scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
 	rasutil.cpp \
 	protobuf_util.cpp \
 	localizer.cpp
-SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
-SRC_RASCSI += $(shell find ./devices -name '*.cpp')
-SRC_RASCSI += $(SRC_PROTOBUF)
+SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
+SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI_CORE += $(SRC_PROTOBUF)
+
+SRC_RASCSI = rascsi.cpp
+SRC_RASCSI += $(SRC_RASCSI_CORE)
 
 SRC_SCSIMON = \
 	scsimon.cpp \
@@ -128,7 +130,7 @@ SRC_RASDUMP = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp
 
 SRC_SASIDUMP = \
@@ -136,11 +138,16 @@ SRC_SASIDUMP = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp
 
+
+SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
+SRC_RASCSI_TEST += $(SRC_RASCSI_CORE)
+
+
 vpath %.h ./ ./controllers ./devices ./monitor
-vpath %.cpp ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -150,13 +157,14 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
+OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -180,6 +188,9 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 all: $(BIN_ALL) docs
 ALL: all
 
+test: $(BINDIR)/$(RASCSI_TEST)
+	$(BINDIR)/$(RASCSI_TEST)
+
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
@@ -196,6 +207,9 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+
+$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_TEST) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest -lgtest_main
 
 
 # Phony rules for building individual utilities

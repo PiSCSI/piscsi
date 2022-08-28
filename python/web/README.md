@@ -21,7 +21,9 @@ You may edit the files under `mock/bin` to simulate Linux command responses.
 TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
 A separate mocking solution will be needed for this interface.
 
-## Pushing to the Pi via git
+## (Optional) Pushing to the Pi via git
+
+This is a setup for pushing code changes from your local development environment to the Raspberry Pi without a roundtrip to the remote GitHub repository.
 
 Setup a bare repo on the rascsi
 ```
@@ -40,7 +42,7 @@ $ git push pi master
 
 ## Localizing the Web Interface
 
-We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
+We use the Flask-Babel library and Flask/Jinja2 extension for internationalization (i18n).
 
 It uses the 'pybabel' command line tool for extracting and compiling localizations. The Web Interface start script will automatically compile localizations upon launch.
 
@@ -55,7 +57,7 @@ To create a new localization, it needs to be added to the LANGAUGES constant in
 web/settings.py. To localize messages coming from the RaSCSI backend, update also code in
 raspberrypi/localizer.cpp in the RaSCSI C++ code.
 
-Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications).
+Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://python-babel.github.io/flask-babel/index.html#translating-applications).
 
 First, generate the raw messages.pot file containing extracted strings.
 
@@ -68,7 +70,7 @@ $ pybabel extract -F babel.cfg -o messages.pot .
 When adding a localization for a new language, initialize the directory structure. Replace 'xx' with the two character code for the language.
 
 ```
-$ pybabel init -i messages.pot -d translations -l xx
+$ pybabel init -i messages.pot -d src/translations -l xx
 ```
 
 ### Update an existing loclization
@@ -113,6 +115,10 @@ msgstr ""
 "Emulerar en SCSI DaynaPORT ethernet-adapter. <a href=\"%(url)s\">Kräver "
 "drivrutiner och inställningar</a>."
 ```
+
+### Contributing to the project
+
+New or updated localizations are treated just like any other code change. See the [project README](https://github.com/akuker/RASCSI/tree/rdmark-readme-contributions#how-do-i-contribute) for further information.
 
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.

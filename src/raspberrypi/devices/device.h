@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2021 Uwe Seimet
@@ -167,7 +167,7 @@ public:
 	const string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
-	bool SupportsFile() const { return !supports_params; }
+	virtual bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const unordered_map<string, string> GetParams() const { return params; }
 	const string GetParam(const string&);

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI (*^..^*)
+// SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
 // Copyright (C) 2021 Uwe Seimet
@@ -26,7 +26,6 @@ class Device;
 
 class DeviceFactory
 {
-private:
 	DeviceFactory();
 	~DeviceFactory() {}
 

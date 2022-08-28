@@ -13,7 +13,7 @@ logo="""
  ~ (║|_____|║) ~\n
 ( : ║ .  __ ║ : )\n
  ~ .╚╦═════╦╝. ~\n
-  (  ¯¯¯¯¯¯¯  ) RaSCSI Assistant\n
+  (  ¯¯¯¯¯¯¯  ) RaSCSI Reloaded Assistant\n
    '~ .~~~. ~'\n
        '~'\n
 """
@@ -55,6 +55,8 @@ OLED_INSTALL_PATH="$BASE/python/oled"
 CTRLBOARD_INSTALL_PATH="$BASE/python/ctrlboard"
 PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
+SSL_CERTS_PATH="/etc/ssl/certs"
+SSL_KEYS_PATH="/etc/ssl/private"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -80,7 +82,7 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 unar -y </dev/null
 }
 
 # cache the pip packages
@@ -88,7 +90,7 @@ function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
     # Refresh the sudo authentication, which shouldn't trigger another password prompt
     sudo -v
-    sudo pip install -r ./requirements.txt
+    sudo pip3 install -r ./requirements.txt
     popd
 }
 
@@ -146,6 +148,21 @@ function installRaScsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
+
+    if [ -f "$SSL_CERTS_PATH/rascsi-web.crt" ]; then
+        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt already exists."
+    else
+        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt does not exist; creating self-signed certificate..."
+        sudo mkdir -p "$SSL_CERTS_PATH" || true
+        sudo mkdir -p "$SSL_KEYS_PATH" || true
+        sudo openssl req -x509 -nodes -sha256 -days 3650 \
+            -newkey rsa:4096 \
+            -keyout "$SSL_KEYS_PATH/rascsi-web.key" \
+            -out "$SSL_CERTS_PATH/rascsi-web.crt" \
+            -subj '/CN=rascsi' \
+            -addext 'subjectAltName=DNS:rascsi' \
+            -addext 'extendedKeyUsage=serverAuth'
+    fi
 
     sudo systemctl reload nginx || true
 }
@@ -753,7 +770,7 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-220702"
+    NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
 
@@ -776,7 +793,7 @@ function installMacproxy {
     echo -n "Enter a port number 1024 - 65535, or press Enter to use the default port: "
 
     read -r CHOICE
-    if [ $CHOICE -ge "1024" ] && [ $CHOICE -le "65535" ]; then
+    if [[ $CHOICE -ge "1024" ]] && [[ $CHOICE -le "65535" ]]; then
         PORT=$CHOICE
     else
         echo "Using the default port $PORT"
@@ -784,20 +801,19 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.12.3"
+    MACPROXY_VER="22.8"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
-        echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
-        exit 1
+        echo "The $MACPROXY_PATH directory already exists. Deleting before downloading again..."
+        sudo rm -rf "$MACPROXY_PATH"
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/$MACPROXY_VER.tar.gz" </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
 
-    stopMacproxy
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh" "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh -p=$PORT" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
     startMacproxy
@@ -1048,12 +1064,13 @@ function runChoice() {
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
+              echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
-              createImagesDir
-              createCfgDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1091,9 +1108,10 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              createImagesDir
+              createCfgDir
               configureTokenAuth
               updateRaScsiGit
-              createImagesDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -1168,6 +1186,7 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               sudoCheck
+              stopMacproxy
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
@@ -1179,8 +1198,8 @@ function runChoice() {
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
-              updateRaScsiGit
               createImagesDir
+              updateRaScsiGit
               installPackages
               stopRaScsi
               compileRaScsi
@@ -1196,9 +1215,10 @@ function runChoice() {
               echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
+              echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
-              updateRaScsiGit
               createCfgDir
+              updateRaScsiGit
               installPackages
               preparePythonCommon
               cachePipPackages
