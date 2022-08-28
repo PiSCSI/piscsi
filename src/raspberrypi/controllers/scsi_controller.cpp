@@ -41,10 +41,6 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	ctrl.length = 0;
 	identified_lun = -1;
 
-	for (int i = 0; i < LUN_MAX; i++) {
-		ctrl.units[i] = nullptr;
-	}
-
 	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
@@ -60,9 +56,8 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 
 ScsiController::~ScsiController()
 {
-	if (ctrl.buffer) {
+	if (ctrl.buffer != nullptr) {
 		free(ctrl.buffer);
-		ctrl.buffer = nullptr;
 	}
 }
 
@@ -85,18 +80,32 @@ void ScsiController::Reset()
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
 	// Reset all LUNs
-	for (int i = 0; i < LUN_MAX; i++) {
-		if (ctrl.units[i]) {
-			ctrl.units[i]->Reset();
-		}
+	for (auto& lun : ctrl.luns) {
+		lun.second->Reset();
 	}
 }
 
-void ScsiController::SetLun(int lun, PrimaryDevice *device)
+PrimaryDevice *ScsiController::GetLunDevice(int lun) const
+{
+	const auto& device = ctrl.luns.find(lun);
+	return device == ctrl.luns.end() ? nullptr : device->second;
+}
+
+void ScsiController::SetLunDevice(int lun, PrimaryDevice *device)
 {
 	assert(lun < LUN_MAX);
 
-	ctrl.units[lun] = device;
+	if (device != nullptr) {
+		ctrl.luns[lun] = device;
+	}
+	else {
+		ctrl.luns.erase(lun);
+	}
+}
+
+bool ScsiController::HasLunDevice(int lun) const
+{
+	return ctrl.luns.find(lun) != ctrl.luns.end();
 }
 
 BUS::phase_t ScsiController::Process(int initiator_id)
@@ -243,16 +252,8 @@ void ScsiController::Selection()
 			return;
 		}
 
-		// Abort if there is no valid LUN
-		// TODO This check might be obsolete. Can there be a controller without a device attached?
-		bool has_valid_unit = false;
-		for (int i = 0; i < LUN_MAX; i++) {
-			if (ctrl.units[i]) {
-				has_valid_unit = true;
-				break;
-			}
-		}
-		if (!has_valid_unit) {
+		// Abort if there is no LUN for this controller
+		if (ctrl.luns.empty()) {
 			assert(false);
 			return;
 		}
@@ -350,7 +351,7 @@ void ScsiController::Execute()
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.units[lun]) {
+	if (!HasLunDevice(lun)) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, ctrl.scsi_id);
@@ -361,13 +362,13 @@ void ScsiController::Execute()
 		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			assert(ctrl.units[0]);
+			assert(HasLunDevice(0));
 
 			lun = 0;
 		}
 	}
 
-	ctrl.current_device = ctrl.units[lun];
+	ctrl.current_device = ctrl.luns[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
@@ -388,7 +389,7 @@ void ScsiController::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.units[lun]) {
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.luns[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.current_device->GetId());
@@ -572,15 +573,15 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.units[lun] || asc == INVALID_LUN) {
+	if (!HasLunDevice(lun) || asc == INVALID_LUN) {
 		lun = 0;
 
-		assert(ctrl.units[lun]);
+		assert(HasLunDevice(lun));
 	}
 
 	if (sense_key || asc) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		ctrl.units[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+		ctrl.luns[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 	}
 
 	ctrl.status = status;
@@ -602,7 +603,7 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.units[0] ? ctrl.units[0]->GetSendDelay() : 0);
+		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, GetLunDevice(0) ? ctrl.luns[0]->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1073,8 +1074,8 @@ bool ScsiController::XferOut(bool cont)
 
 	scsi.is_byte_transfer = false;
 
-	PrimaryDevice *device = ctrl.units[GetEffectiveLun()];
-	if (device && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
+	PrimaryDevice *device = GetLunDevice(GetEffectiveLun());
+	if (device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
 
@@ -1087,7 +1088,7 @@ void ScsiController::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	Disk *disk = dynamic_cast<Disk *>(ctrl.units[GetEffectiveLun()]);
+	Disk *disk = dynamic_cast<Disk *>(GetLunDevice(GetEffectiveLun()));
 	if (!disk) {
 		return;
 	}
@@ -1143,7 +1144,7 @@ bool ScsiController::XferIn(BYTE *buf)
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.units[lun]) {
+	if (!HasLunDevice(lun)) {
 		return false;
 	}
 
@@ -1154,7 +1155,7 @@ bool ScsiController::XferIn(BYTE *buf)
 		case eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = ((Disk *)ctrl.units[lun])->Read(ctrl.cmd, buf, ctrl.next);
+				ctrl.length = ((Disk *)ctrl.luns[lun])->Read(ctrl.cmd, buf, ctrl.next);
 			}
 			catch(const scsi_error_exception& e) {
 				// If there is an error, go to the status phase
@@ -1189,19 +1190,17 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	int lun = GetEffectiveLun();
-	if (!ctrl.units[lun]) {
+	Disk *disk = dynamic_cast<Disk *>(GetLunDevice(GetEffectiveLun()));
+	if (disk == nullptr) {
 		return false;
 	}
-
-	Disk *device = (Disk *)ctrl.units[lun];
 
 	// Limited to write commands
 	switch (ctrl.cmd[0]) {
 		case eCmdModeSelect6:
 		case eCmdModeSelect10:
 			try {
-				device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
@@ -1218,7 +1217,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		{
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
-			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
+			SCSIBR *bridge = dynamic_cast<SCSIBR *>(disk);
 			if (bridge) {
 				if (!bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// Write failed
@@ -1231,7 +1230,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
-			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(device);
+			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(disk);
 			if (daynaport) {
 				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, 0);
 
@@ -1241,7 +1240,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			}
 
 			try {
-				device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1);
+				disk->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1);
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
@@ -1258,7 +1257,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Check the next block
 			try {
-				ctrl.length = device->WriteCheck(ctrl.next - 1);
+				ctrl.length = disk->WriteCheck(ctrl.next - 1);
 			}
 			catch(const scsi_error_exception& e) {
 				// Cannot write

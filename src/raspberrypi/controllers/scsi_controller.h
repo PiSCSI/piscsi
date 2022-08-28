@@ -84,8 +84,9 @@ public:
 	int GetInitiatorId() const override { return scsi.initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) override { scsi.is_byte_transfer = is_byte_transfer; }
 
-	PrimaryDevice *GetUnit(int lun) const override { return ctrl.units[lun]; }
-	void SetLun(int, PrimaryDevice *);
+	PrimaryDevice *GetLunDevice(int lun) const override;
+	void SetLunDevice(int, PrimaryDevice *);
+	bool HasLunDevice(int) const;
 
 	void Status() override;
 	void DataIn() override;

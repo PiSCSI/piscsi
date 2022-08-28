@@ -262,7 +262,7 @@ void MapController(Device **map)
 				if (devices[lun_no]) {
 					// Disconnect it from the controller
 					if (controllers[id]) {
-						controllers[id]->SetLun(lun, nullptr);
+						controllers[id]->SetLunDevice(lun, nullptr);
 					}
 
 					// Free the Unit
@@ -288,7 +288,7 @@ void MapController(Device **map)
 
 			// Remove the unit
 			if (*controller) {
-				(*controller)->SetLun(lun, nullptr);
+				(*controller)->SetLunDevice(lun, nullptr);
 			}
 		}
 
@@ -313,7 +313,7 @@ void MapController(Device **map)
 				primary_device->SetController(*controller);
 
 				// Add the unit connection
-				(*controller)->SetLun(lun, primary_device);
+				(*controller)->SetLunDevice(lun, primary_device);
 			}
 		}
 	}

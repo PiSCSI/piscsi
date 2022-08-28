@@ -12,6 +12,7 @@
 #pragma once
 
 #include "phase_handler.h"
+#include <unordered_map>
 
 class PrimaryDevice;
 
@@ -52,8 +53,8 @@ public:
 		uint32_t offset;				// Transfer offset
 		uint32_t length;				// Transfer remaining length
 
-		// Logical units of the device connected to this controller
-		PrimaryDevice *units[LUN_MAX];
+		// Logical units of this device/controller mapped to their LUN numbers
+		std::unordered_map<int, PrimaryDevice *> luns;
 
 		// TODO This is probably obsolete
 		PrimaryDevice *current_device;
@@ -71,8 +72,9 @@ public:
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
 	virtual void Reset() = 0;
 	virtual int GetInitiatorId() const = 0;
-	virtual PrimaryDevice *GetUnit(int) const = 0;
-	virtual void SetLun(int, PrimaryDevice *) = 0;
+	virtual PrimaryDevice *GetLunDevice(int) const = 0;
+	virtual void SetLunDevice(int, PrimaryDevice *) = 0;
+	virtual bool HasLunDevice(int) const = 0;
 	virtual void SetByteTransfer(bool) = 0;
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
