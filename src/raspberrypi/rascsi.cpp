@@ -293,14 +293,14 @@ void MapController(Device **map)
 		}
 
 		// If there are no units connected the controller can be discarded
-		if (!has_lun && *controller) {
+		if (!has_lun && *controller != nullptr) {
 			delete *controller;
 			*controller = nullptr;
 			continue;
 		}
 
 		// Create a new SCSI controller for the current device ID and bus
-		if (!*controller) {
+		if (*controller == nullptr) {
 			*controller = new ScsiController(bus, scsi_id);
 		}
 
@@ -508,9 +508,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	string filename = GetParam(pb_device, "file");
 
-	// Create a new device, based on the provided type or filename
 	Device *device = device_factory.CreateDevice(type, filename);
-	if (!device) {
+	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
 		}
@@ -853,7 +852,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Does the unit exist?
 	Device *device = devices[id * UnitNum + unit];
-	if (!device) {
+	if (device == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
 
@@ -1633,7 +1632,7 @@ int main(int argc, char* argv[])
 		// Notify all controllers
 		int i = 0;
 		for (auto controller = controllers.begin(); controller != controllers.end(); ++i, ++controller) {
-			if (!*controller || (data & (1 << i)) == 0) {
+			if (*controller == nullptr || (data & (1 << i)) == 0) {
 				continue;
 			}
 

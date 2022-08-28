@@ -1093,7 +1093,7 @@ void ScsiController::FlushUnit()
 	assert(ctrl.phase == BUS::dataout);
 
 	Disk *disk = dynamic_cast<Disk *>(GetLunDevice(GetEffectiveLun()));
-	if (!disk) {
+	if (disk == nullptr) {
 		return;
 	}
 
