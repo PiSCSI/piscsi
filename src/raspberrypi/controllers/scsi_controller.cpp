@@ -250,7 +250,7 @@ void ScsiController::BusFree()
 void ScsiController::Selection()
 {
 	if (ctrl.phase != BUS::selection) {
-		// invalid if IDs do not match
+		// A different controller/device was selected
 		int id = 1 << ctrl.scsi_id;
 		if ((bus->GetDAT() & id) == 0) {
 			return;
