@@ -92,11 +92,11 @@ void ScsiController::Reset()
 	}
 }
 
-void ScsiController::SetUnit(int no, PrimaryDevice *device)
+void ScsiController::SetLun(int lun, PrimaryDevice *device)
 {
-	assert(no < LUN_MAX);
+	assert(lun < LUN_MAX);
 
-	ctrl.units[no] = device;
+	ctrl.units[lun] = device;
 }
 
 BUS::phase_t ScsiController::Process(int initiator_id)

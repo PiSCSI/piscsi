@@ -72,7 +72,7 @@ public:
 	virtual void Reset() = 0;
 	virtual int GetInitiatorId() const = 0;
 	virtual PrimaryDevice *GetUnit(int) const = 0;
-	virtual void SetUnit(int, PrimaryDevice *) = 0;
+	virtual void SetLun(int, PrimaryDevice *) = 0;
 	virtual void SetByteTransfer(bool) = 0;
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback

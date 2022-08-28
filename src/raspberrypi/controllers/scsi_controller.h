@@ -85,7 +85,7 @@ public:
 	void SetByteTransfer(bool is_byte_transfer) override { scsi.is_byte_transfer = is_byte_transfer; }
 
 	PrimaryDevice *GetUnit(int lun) const override { return ctrl.units[lun]; }
-	void SetUnit(int, PrimaryDevice *);
+	void SetLun(int, PrimaryDevice *);
 
 	void Status() override;
 	void DataIn() override;
