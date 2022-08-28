@@ -25,7 +25,7 @@ class PrimaryDevice;
 class ScsiController : public Controller
 {
 	// For timing adjustments
-	const unsigned int MIN_EXEC_TIME = 50;
+	static const unsigned int MIN_EXEC_TIME = 50;
 
 	const int UNKNOWN_INITIATOR_ID = -1;
 
