@@ -72,7 +72,7 @@ public:
 	ScsiController(BUS *, int);
 	~ScsiController();
 
-	void Reset();
+	void Reset() override;
 
 	BUS::phase_t Process(int) override;
 
