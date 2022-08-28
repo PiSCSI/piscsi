@@ -77,6 +77,7 @@ void ScsiController::Reset()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	identified_lun = -1;
 
 	scsi.atnmsg = false;
 	scsi.msc = 0;
