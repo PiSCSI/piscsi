@@ -41,7 +41,6 @@ ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 	ctrl.length = 0;
 	identified_lun = -1;
 
-	// Logical unit initialization
 	for (int i = 0; i < LUN_MAX; i++) {
 		ctrl.units[i] = nullptr;
 	}
@@ -85,6 +84,7 @@ void ScsiController::Reset()
 	scsi.bytes_to_transfer = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
+	// Reset all LUNs
 	for (int i = 0; i < LUN_MAX; i++) {
 		if (ctrl.units[i]) {
 			ctrl.units[i]->Reset();
