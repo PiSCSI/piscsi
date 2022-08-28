@@ -12,7 +12,7 @@
 
 #include "config.h"
 #include "os.h"
-#include "controllers/controller.h"
+#include "controllers/abstract_controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	Controller::LUN_MAX	// Number of LUNs per controller/device
+#define UnitNum	AbstractController::LUN_MAX	// Number of LUNs per controller/device
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 #define DEFAULT_PORT 6868
 
@@ -61,7 +61,7 @@ using namespace protobuf_util;
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
 // TODO Maps might be a better solution than vectors with fixed sizes
-vector<Controller *> controllers(CtrlMax);	// Controllers
+vector<AbstractController *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Devices
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
@@ -259,7 +259,7 @@ void MapController(Device **map)
 				if (devices[lun_no] != nullptr) {
 					// Disconnect it from the controller
 					if (controllers[id] != nullptr) {
-						controllers[id]->SetLunDevice(lun, nullptr);
+						controllers[id]->SetDeviceForLun(lun, nullptr);
 					}
 
 					// Free the Unit
@@ -285,7 +285,7 @@ void MapController(Device **map)
 
 			// Remove the unit
 			if (*it != nullptr) {
-				(*it)->SetLunDevice(lun, nullptr);
+				(*it)->SetDeviceForLun(lun, nullptr);
 			}
 		}
 
@@ -310,7 +310,7 @@ void MapController(Device **map)
 				primary_device->SetController(*it);
 
 				// Add the unit connection
-				(*it)->SetLunDevice(lun, primary_device);
+				(*it)->SetDeviceForLun(lun, primary_device);
 			}
 		}
 	}
@@ -498,8 +498,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
-	if (unit >= Controller::LUN_MAX) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(Controller::LUN_MAX)
+	if (unit >= AbstractController::LUN_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX)
 				+ ")");
 	}
 

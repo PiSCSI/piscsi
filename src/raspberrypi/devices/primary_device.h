@@ -28,7 +28,7 @@ public:
 
 	virtual bool Dispatch();
 
-	void SetController(Controller *);
+	void SetController(AbstractController *);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
@@ -42,8 +42,8 @@ protected:
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
 
-	Controller *controller = nullptr;
-	Controller::ctrl_t *ctrl = nullptr;
+	AbstractController *controller = nullptr;
+	AbstractController::ctrl_t *ctrl = nullptr;
 
 private:
 

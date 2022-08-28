@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Abstract base class for controllers
+// Base class for device controllers
 //
 //---------------------------------------------------------------------------
 
@@ -16,8 +16,7 @@
 
 class PrimaryDevice;
 
-// TODO The abstraction level is not yet high enough, the code is still too SCSI specific
-class Controller : virtual public PhaseHandler
+class AbstractController : virtual public PhaseHandler
 {
 public:
 
@@ -37,7 +36,6 @@ public:
 	typedef struct {
 		// General
 		BUS::phase_t phase = BUS::busfree;	// Transition phase
-		int scsi_id;					// The SCSI ID of the respective device
 
 		// commands
 		DWORD cmd[16];					// Command data
@@ -53,18 +51,12 @@ public:
 		uint32_t offset;				// Transfer offset
 		uint32_t length;				// Transfer remaining length
 
-		// Logical units of this device/controller mapped to their LUN numbers
+		// Logical units of this device controller mapped to their LUN numbers
 		std::unordered_map<int, PrimaryDevice *> luns;
-
-		// TODO This is probably obsolete
-		PrimaryDevice *current_device;
 	} ctrl_t;
 
-	Controller(BUS *bus, int scsi_id) {
-		this->bus = bus;
-		ctrl.scsi_id = scsi_id;
-	}
-	virtual ~Controller() {}
+	AbstractController(BUS *, int);
+	virtual ~AbstractController() {}
 
 	virtual BUS::phase_t Process(int) = 0;
 
@@ -72,21 +64,27 @@ public:
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
 	virtual void Reset() = 0;
 	virtual int GetInitiatorId() const = 0;
-	virtual PrimaryDevice *GetLunDevice(int) const = 0;
-	virtual void SetLunDevice(int, PrimaryDevice *) = 0;
-	virtual bool HasLunDevice(int) const = 0;
 	virtual void SetByteTransfer(bool) = 0;
 
-	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
+	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
 
 	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
+
+	int GetDeviceId() const { return device_id; }
+
+	PrimaryDevice *GetDeviceForLun(int) const;
+	void SetDeviceForLun(int, PrimaryDevice *);
+	bool HasDeviceForLun(int) const;
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 protected:
+
 	BUS *bus;
+
+	int device_id;
 
 	ctrl_t ctrl = {};
 };

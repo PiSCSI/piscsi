@@ -16,13 +16,13 @@
 
 #pragma once
 
+#include "abstract_controller.h"
 #include "os.h"
 #include "scsi.h"
-#include "controller.h"
 
 class PrimaryDevice;
 
-class ScsiController : public Controller
+class ScsiController : public AbstractController
 {
 	// For timing adjustments
 	static const unsigned int MIN_EXEC_TIME = 50;
@@ -83,10 +83,6 @@ public:
 
 	int GetInitiatorId() const override { return initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) override { this->is_byte_transfer = is_byte_transfer; }
-
-	PrimaryDevice *GetLunDevice(int lun) const override;
-	void SetLunDevice(int, PrimaryDevice *);
-	bool HasLunDevice(int) const;
 
 	void Status() override;
 	void DataIn() override;
