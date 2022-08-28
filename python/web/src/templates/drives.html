@@ -34,7 +34,7 @@
         <input type="hidden" name="revision" value="{{ hd.revision }}">
         <input type="hidden" name="blocks" value="{{ hd.blocks }}">
         <input type="hidden" name="block_size" value="{{ hd.block_size }}">
-        <input type="hidden" name="size" value="{{ hd.size }}">
+        {{ _("Size:") }} <input type="number" name="size" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
     <input type="hidden" name="file_type" value="{{ hd.file_type }}">
     <label for="file_name">{{ _("Save as:") }}</label>
     <input type="text" name="file_name" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
@@ -124,7 +124,7 @@
         <input type="hidden" name="revision" value="{{ rm.revision }}">
         <input type="hidden" name="blocks" value="{{ rm.blocks }}">
         <input type="hidden" name="block_size" value="{{ rm.block_size }}">
-        <input type="hidden" name="size" value="{{ rm.size }}">
+        {{ _("Size:") }} <input type="number" name="size" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
         <input type="hidden" name="file_type" value="{{ rm.file_type }}">
         <label for="file_name">{{ _("Save as:") }}</label>
         <input type="text" name="file_name" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}

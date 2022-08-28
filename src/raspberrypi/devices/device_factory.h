@@ -26,7 +26,6 @@ class Device;
 
 class DeviceFactory
 {
-private:
 	DeviceFactory();
 	~DeviceFactory() {}
 
