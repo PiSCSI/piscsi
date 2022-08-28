@@ -245,7 +245,7 @@ bool Selection(int id)
 	data |= (1 << boardid);
 	data |= (1 << id);
 	bus.SetDAT(data);
-	bus.SetSEL(TRUE);
+	bus.SetSEL(true);
 
 	// wait for busy
 	count = 10000;
@@ -258,7 +258,7 @@ bool Selection(int id)
 	} while (count--);
 
 	// SEL negate
-	bus.SetSEL(FALSE);
+	bus.SetSEL(false);
 
 	// Success if the target is busy
 	return bus.GetBSY();

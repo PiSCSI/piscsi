@@ -473,10 +473,9 @@ class GPIOBUS : public BUS
 public:
 	// Basic Functions
 	GPIOBUS();
-										// Constructor
-	virtual ~GPIOBUS();
+	virtual ~GPIOBUS() {}
 										// Destructor
-	BOOL Init(mode_e mode = TARGET);
+	bool Init(mode_e mode = TARGET);
 										// Initialization
 	void Reset();
 										// Reset
@@ -506,64 +505,64 @@ public:
 	#endif // ifdef __x86_64__ || __X86__
 	}
 
-	void SetENB(BOOL ast);
+	void SetENB(bool ast);
 										// Set ENB signal
 
-	bool GetBSY() override;
+	bool GetBSY() const override;
 										// Get BSY signal
 	void SetBSY(bool ast) override;
 										// Set BSY signal
 
-	BOOL GetSEL() override;
+	bool GetSEL() const override;
 										// Get SEL signal
-	void SetSEL(BOOL ast) override;
+	void SetSEL(bool ast) override;
 										// Set SEL signal
 
-	BOOL GetATN() override;
+	bool GetATN() const override;
 										// Get ATN signal
-	void SetATN(BOOL ast) override;
+	void SetATN(bool ast) override;
 										// Set ATN signal
 
-	BOOL GetACK() override;
+	bool GetACK() const override;
 										// Get ACK signal
-	void SetACK(BOOL ast) override;
+	void SetACK(bool ast) override;
 										// Set ACK signal
 
-	BOOL GetACT();
+	bool GetACT() const;
 										// Get ACT signal
-	void SetACT(BOOL ast);
+	void SetACT(bool ast);
 										// Set ACT signal
 
-	BOOL GetRST() override;
+	bool GetRST() const override;
 										// Get RST signal
-	void SetRST(BOOL ast) override;
+	void SetRST(bool ast) override;
 										// Set RST signal
 
-	BOOL GetMSG() override;
+	bool GetMSG() const override;
 										// Get MSG signal
-	void SetMSG(BOOL ast) override;
+	void SetMSG(bool ast) override;
 										// Set MSG signal
 
-	BOOL GetCD() override;
+	bool GetCD() const override;
 										// Get CD signal
-	void SetCD(BOOL ast) override;
+	void SetCD(bool ast) override;
 										// Set CD signal
 
-	BOOL GetIO() override;
+	bool GetIO() override;
 										// Get IO signal
-	void SetIO(BOOL ast) override;
+	void SetIO(bool ast) override;
 										// Set IO signal
 
-	BOOL GetREQ() override;
+	bool GetREQ() const override;
 										// Get REQ signal
-	void SetREQ(BOOL ast) override;
+	void SetREQ(bool ast) override;
 										// Set REQ signal
 
 	BYTE GetDAT() override;
 										// Get DAT signal
 	void SetDAT(BYTE dat) override;
 										// Set DAT signal
-	BOOL GetDP() override;
+	bool GetDP() const override;
 										// Get Data parity signal
 	int CommandHandShake(BYTE *buf) override;
 										// Command receive handshake
@@ -579,7 +578,7 @@ public:
 
 	#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
-	int PollSelectEvent();
+	bool PollSelectEvent();
 										// SEL signal event polling
 	void ClearSelectEvent();
 										// Clear SEL signal event
@@ -589,15 +588,15 @@ private:
 	// SCSI I/O signal control
 	void MakeTable();
 										// Create work data
-	void SetControl(int pin, BOOL ast);
+	void SetControl(int pin, bool ast);
 										// Set Control Signal
 	void SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	BOOL GetSignal(int pin);
+	bool GetSignal(int pin) const override;
 										// Get SCSI input signal value
-	void SetSignal(int pin, BOOL ast);
+	void SetSignal(int pin, bool ast);
 										// Set SCSI output signal value
-	BOOL WaitSignal(int pin, BOOL ast);
+	bool WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change
 	// Interrupt control
 	void DisableIRQ();
@@ -610,7 +609,7 @@ private:
 										// GPIO pin direction setting
 	void PullConfig(int pin, int mode);
 										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, BOOL ast);
+	void PinSetSignal(int pin, bool ast);
 										// Set GPIO output signal
 	void DrvConfig(DWORD drive);
 										// Set GPIO drive strength

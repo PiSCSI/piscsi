@@ -49,6 +49,7 @@ using namespace protobuf_util;
 #define CtrlMax	8					// Maximum number of SCSI controllers
 #define UnitNum	Controller::LUN_MAX	// Number of LUNs per controller/device
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
+#define DEFAULT_PORT 6868
 
 #define COMPONENT_SEPARATOR ':'
 
@@ -1540,7 +1541,7 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
-	int port = 6868;
+	int port = DEFAULT_PORT;
 
 	if (!InitBus()) {
 		return EPERM;
@@ -1588,7 +1589,7 @@ int main(int argc, char* argv[])
 
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
-		if (bus->PollSelectEvent() < 0) {
+		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
