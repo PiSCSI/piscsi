@@ -115,11 +115,11 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 {
 	// Read the header with the size of the protobuf data
 	uint8_t header_buf[4];
-	int bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
-	if (bytes_read < (int)sizeof(header_buf)) {
+	size_t bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
+	if (bytes_read < sizeof(header_buf)) {
 		return;
 	}
-	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
+	size_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
 	if (size <= 0) {
 		throw io_exception("Broken protobuf message header");
 	}
@@ -136,13 +136,13 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	message.ParseFromString(data);
 }
 
-int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
+size_t protobuf_util::ReadNBytes(int fd, uint8_t *buf, size_t n)
 {
-	int offset = 0;
+	size_t offset = 0;
 	while (offset < n) {
 		ssize_t len = read(fd, buf + offset, n - offset);
-		if (!len) {
-			break;
+		if (len <= 0) {
+			return len;
 		}
 
 		offset += len;

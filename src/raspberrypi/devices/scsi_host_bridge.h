@@ -58,12 +58,12 @@ private:
 	void GetPacketBuf(BYTE *buf);				// Get a packet
 	void SendPacket(BYTE *buf, int len);		// Send a packet
 
-	CTapDriver *tap;							// TAP driver
-	bool m_bTapEnable;							// TAP valid flag
+	CTapDriver *tap = nullptr;					// TAP driver
+	bool m_bTapEnable = false;					// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
-	int packet_len;								// Receive packet size
-	BYTE packet_buf[0x1000];						// Receive packet buffer
-	bool packet_enable;							// Received packet valid
+	int packet_len = 0;							// Receive packet size
+	BYTE packet_buf[0x1000];					// Receive packet buffer
+	bool packet_enable = false;					// Received packet valid
 
 	int ReadFsResult(BYTE *buf);					// Read filesystem (result code)
 	int ReadFsOut(BYTE *buf);					// Read filesystem (return data)
@@ -99,9 +99,9 @@ private:
 	void FS_Lock(BYTE *buf);					// $58 - get exclusive control
 
 	CFileSys *fs;								// File system accessor
-	DWORD fsresult;								// File system access result code
+	DWORD fsresult = 0;							// File system access result code
 	BYTE fsout[0x800];							// File system access result buffer
-	DWORD fsoutlen;								// File system access result buffer size
-	BYTE fsopt[0x1000000];							// File system access buffer
-	DWORD fsoptlen;								// File system access buffer size
+	DWORD fsoutlen = 0;							// File system access result buffer size
+	BYTE fsopt[0x1000000];						// File system access buffer
+	DWORD fsoptlen = 0;							// File system access buffer size
 };

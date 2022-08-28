@@ -21,37 +21,37 @@ class Device
 {
 	string type;
 
-	bool ready;
-	bool reset;
-	bool attn;
+	bool ready = false;
+	bool reset = false;
+	bool attn = false;
 
 	// Device is protectable/write-protected
-	bool protectable;
-	bool write_protected;
+	bool protectable = false;
+	bool write_protected = false;
 	// Device is permanently read-only
-	bool read_only;
+	bool read_only = false;
 
 	// Device can be stopped (parked)/is stopped (parked)
-	bool stoppable;
-	bool stopped;
+	bool stoppable = false;
+	bool stopped = false;
 
 	// Device is removable/removed
-	bool removable;
-	bool removed;
+	bool removable = false;
+	bool removed = false;
 
 	// Device is lockable/locked
-	bool lockable;
-	bool locked;
+	bool lockable = false;
+	bool locked = false;
 
 	// The block size is configurable
-	bool block_size_configurable;
+	bool block_size_configurable = false;
 
 	// Device can be created with parameters
-	bool supports_params;
+	bool supports_params = false;
 
 	// Device ID and LUN
-	int32_t id;
-	int32_t lun;
+	int32_t id = 0;
+	int32_t lun = 0;
 
 	// Device identifier (for INQUIRY)
 	string vendor;
@@ -69,7 +69,7 @@ class Device
 	//			Sense Key
 	//			Additional Sense Code (ASC)
 	//	LSB		Additional Sense Code Qualifier(ASCQ)
-	int status_code;
+	int status_code = scsi_defs::status::GOOD;
 
 protected:
 

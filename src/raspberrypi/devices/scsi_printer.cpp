@@ -44,19 +44,12 @@
 #include "../rasutil.h"
 #include "scsi_printer.h"
 
-#define NOT_RESERVED -2
-
 using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
-	fd = -1;
-	reserving_initiator = NOT_RESERVED;
-	reservation_time = 0;
-	timeout = 0;
-
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);

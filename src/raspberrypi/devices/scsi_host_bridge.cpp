@@ -26,15 +26,6 @@ using namespace scsi_defs;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
-	tap = nullptr;
-	m_bTapEnable = false;
-	packet_enable = false;
-
-	fsoptlen = 0;
-	fsoutlen = 0;
-	fsresult = 0;
-	packet_len = 0;
-
 	// Create host file system
 	fs = new CFileSys();
 	fs->Reset();

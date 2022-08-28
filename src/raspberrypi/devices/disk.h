@@ -40,7 +40,7 @@ private:
 
 	// The supported configurable block sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
-	uint32_t configured_sector_size;
+	uint32_t configured_sector_size = 0;
 
 	typedef struct {
 		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
@@ -139,5 +139,5 @@ protected:
 	void SetBlockCount(uint64_t);
 
 	// Internal disk data
-	disk_t disk;
+	disk_t disk = {};
 };

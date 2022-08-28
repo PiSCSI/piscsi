@@ -26,34 +26,15 @@ using namespace scsi_defs;
 
 ScsiController::ScsiController(BUS *bus, int scsi_id) : Controller(bus, scsi_id)
 {
-	// Work initialization
-	ctrl.phase = BUS::busfree;
-	ctrl.status = 0x00;
-	ctrl.message = 0x00;
-	ctrl.blocks = 0;
-	ctrl.next = 0;
-	ctrl.offset = 0;
-	ctrl.length = 0;
-
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
 	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
 	ctrl.buffer = new BYTE[ctrl.bufsize];
-
-	// Synchronous transfer work initialization
-	scsi.syncenable = false;
-	scsi.syncperiod = 50;
-	scsi.syncoffset = 0;
-	scsi.atnmsg = false;
-	scsi.msc = 0;
-	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 }
 
 ScsiController::~ScsiController()
 {
-	if (ctrl.buffer != nullptr) {
-		delete[] ctrl.buffer;
-	}
+	delete[] ctrl.buffer;
 }
 
 void ScsiController::Reset()
@@ -823,16 +804,14 @@ void ScsiController::Receive()
 							return;
 						}
 
-						// Transfer period factor (limited to 50 x 4 = 200ns)
 						scsi.syncperiod = scsi.msb[i + 3];
-						if (scsi.syncperiod > 50) {
-							scsi.syncperiod = 50;
+						if (scsi.syncperiod > MAX_SYNC_PERIOD) {
+							scsi.syncperiod = MAX_SYNC_PERIOD;
 						}
 
-						// REQ/ACK offset(limited to 16)
 						scsi.syncoffset = scsi.msb[i + 4];
-						if (scsi.syncoffset > 16) {
-							scsi.syncoffset = 16;
+						if (scsi.syncoffset > MAX_SYNC_OFFSET) {
+							scsi.syncoffset = MAX_SYNC_OFFSET;
 						}
 
 						// STDR response message generation
@@ -841,8 +820,8 @@ void ScsiController::Receive()
 						ctrl.buffer[0] = 0x01;
 						ctrl.buffer[1] = 0x03;
 						ctrl.buffer[2] = 0x01;
-						ctrl.buffer[3] = (BYTE)scsi.syncperiod;
-						ctrl.buffer[4] = (BYTE)scsi.syncoffset;
+						ctrl.buffer[3] = scsi.syncperiod;
+						ctrl.buffer[4] = scsi.syncoffset;
 						MsgIn();
 						return;
 					}
@@ -1013,16 +992,14 @@ void ScsiController::ReceiveBytes()
 							return;
 						}
 
-						// Transfer period factor (limited to 50 x 4 = 200ns)
 						scsi.syncperiod = scsi.msb[i + 3];
-						if (scsi.syncperiod > 50) {
-							scsi.syncoffset = 50;
+						if (scsi.syncperiod > MAX_SYNC_PERIOD) {
+							scsi.syncperiod = MAX_SYNC_PERIOD;
 						}
 
-						// REQ/ACK offset(limited to 16)
 						scsi.syncoffset = scsi.msb[i + 4];
-						if (scsi.syncoffset > 16) {
-							scsi.syncoffset = 16;
+						if (scsi.syncoffset > MAX_SYNC_OFFSET) {
+							scsi.syncoffset = MAX_SYNC_OFFSET;
 						}
 
 						// STDR response message generation
@@ -1031,8 +1008,8 @@ void ScsiController::ReceiveBytes()
 						ctrl.buffer[0] = 0x01;
 						ctrl.buffer[1] = 0x03;
 						ctrl.buffer[2] = 0x01;
-						ctrl.buffer[3] = (BYTE)scsi.syncperiod;
-						ctrl.buffer[4] = (BYTE)scsi.syncoffset;
+						ctrl.buffer[3] = scsi.syncperiod;
+						ctrl.buffer[4] = scsi.syncoffset;
 						MsgIn();
 						return;
 					}

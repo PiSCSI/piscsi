@@ -36,7 +36,7 @@ public:
 	// These data are not internal, otherwise they could all be private
 	typedef struct {
 		// General
-		BUS::phase_t phase;				// Transition phase
+		BUS::phase_t phase = BUS::busfree;	// Transition phase
 		int scsi_id;					// The SCSI ID of the respective device
 
 		// commands
@@ -88,5 +88,5 @@ public:
 protected:
 	BUS *bus;
 
-	ctrl_t ctrl;
+	ctrl_t ctrl = {};
 };

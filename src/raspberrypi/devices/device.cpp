@@ -28,26 +28,6 @@ Device::Device(const string& type)
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
 	revision = rev;
-
-	ready = false;
-	reset = false;
-	attn = false;
-	protectable = false;
-	write_protected = false;
-	read_only = false;
-	stoppable = false;
-	stopped = false;
-	removable = false;
-	removed = false;
-	lockable = false;
-	locked = false;
-	block_size_configurable = false;
-	supports_params = false;
-
-	id = 0;
-	lun = 0;
-
-	status_code = 0;
 }
 
 Device::~Device()

@@ -25,14 +25,6 @@ using namespace scsi_defs;
 
 Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 {
-	// Work initialization
-	configured_sector_size = 0;
-	disk.size = 0;
-	disk.blocks = 0;
-	disk.dcache = nullptr;
-	disk.image_offset = 0;
-	disk.is_medium_changed = false;
-
 	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
 	dispatcher.AddCommand(eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
@@ -71,11 +63,7 @@ Disk::~Disk()
 		FlushCache();
 	}
 
-	// Clear disk cache
-	if (disk.dcache) {
-		delete disk.dcache;
-		disk.dcache = nullptr;
-	}
+	delete disk.dcache;
 }
 
 bool Disk::Dispatch()

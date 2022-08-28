@@ -27,6 +27,12 @@ class ScsiController : public Controller
 	// For timing adjustments
 	static const unsigned int MIN_EXEC_TIME = 50;
 
+	// Transfer period factor (limited to 50 x 4 = 200ns)
+	static const int MAX_SYNC_PERIOD = 50;
+
+	// REQ/ACK offset(limited to 16)
+	static const int MAX_SYNC_OFFSET = 16;
+
 	static const int UNKNOWN_INITIATOR_ID = -1;
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
@@ -51,7 +57,7 @@ class ScsiController : public Controller
 	typedef struct {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
-		int syncperiod;					// Synchronous transfer period
+		int syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
 		int syncoffset;					// Synchronous transfer offset
 		int syncack;					// Number of synchronous transfer ACKs
 
@@ -124,7 +130,7 @@ private:
 
 	void Sleep();
 
-	scsi_t scsi;
+	scsi_t scsi = {};
 
 	rascsi_shutdown_mode shutdown_mode = NONE;
 };

@@ -20,10 +20,6 @@
 
 SCSIHD_NEC::SCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
 {
-	// Work initialization
-	cylinders = 0;
-	heads = 0;
-	sectors = 0;
 }
 
 //---------------------------------------------------------------------------

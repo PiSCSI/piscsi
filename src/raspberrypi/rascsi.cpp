@@ -200,18 +200,14 @@ void Cleanup()
 {
 	// Delete all devices
 	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		if (*it != nullptr) {
-			delete *it;
-			*it = nullptr;
-		}
+		delete *it;
+		*it = nullptr;
 	}
 
 	// Delete all controllers
 	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it != nullptr) {
-			delete *it;
-			*it = nullptr;
-		}
+		delete *it;
+		*it = nullptr;
 	}
 
 	// Clean up and discard the bus

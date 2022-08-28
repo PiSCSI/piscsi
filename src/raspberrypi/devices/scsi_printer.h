@@ -21,6 +21,7 @@ using namespace std;
 
 class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 {
+	static const int NOT_RESERVED = -2;
 
 public:
 
@@ -52,10 +53,10 @@ private:
 	Dispatcher<SCSIPrinter> dispatcher;
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
-	int fd;
+	int fd = -1;
 
-	int reserving_initiator;
+	int reserving_initiator = NOT_RESERVED;
 
-	time_t reservation_time;
-	int timeout;
+	time_t reservation_time = 0;
+	int timeout = 0;
 };

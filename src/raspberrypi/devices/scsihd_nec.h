@@ -39,7 +39,7 @@ public:
 
 private:
 	// Geometry data
-	int cylinders;
-	int heads;
-	int sectors;
+	int cylinders = 0;
+	int heads = 0;
+	int sectors = 0;
 };

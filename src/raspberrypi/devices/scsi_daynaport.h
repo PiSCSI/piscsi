@@ -131,9 +131,9 @@ private:
 
 	const BYTE m_daynacom_mac_prefix[3] = { 0x00, 0x80, 0x19 };
 
-	CTapDriver *m_tap;
+	CTapDriver *m_tap = nullptr;
 										// TAP driver
-	bool m_bTapEnable;
+	bool m_bTapEnable = false;
 										// TAP valid flag
 	BYTE m_mac_addr[6];
 										// MAC Address
