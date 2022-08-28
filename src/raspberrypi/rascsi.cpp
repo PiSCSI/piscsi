@@ -62,7 +62,7 @@ static volatile bool active;		// Processing flag
 // TODO Maps might be a better solution than vectors with fixed sizes
 vector<Controller *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Devices
-GPIOBUS *bus;						// GPIO Bus
+BUS *bus;							// Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
@@ -184,8 +184,8 @@ bool InitBus()
 	// GPIOBUS creation
 	bus = new GPIOBUS();
 
-	// GPIO Initialization
-	if (!bus->Init()) {
+	// bus Initialization
+	if (!bus->Init(BUS::mode_e::TARGET)) {
 		return false;
 	}
 
