@@ -476,7 +476,6 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	// Set an empty device map
 	Device *map[DeviceMax] = {};
 	MapController(map);
 
@@ -485,13 +484,13 @@ void DetachAll()
 	FileSupport::UnreserveAll();
 }
 
-bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (map[id * UnitNum + unit] != nullptr) {
+	if (devices[id * UnitNum + unit] != nullptr) {
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
@@ -626,6 +625,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	// Replace with the newly created unit
+	Device *map[DeviceMax];
+	std::copy(devices.begin(), devices.end(), map);
 	map[id * UnitNum + unit] = device;
 
 	// Re-map the controller
@@ -644,7 +645,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	return true;
 }
 
-bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
+bool Detach(const CommandContext& context, Device *device, bool dryRun)
 {
 	if (!device->GetLun()) {
 		for (auto const d : devices) {
@@ -656,6 +657,9 @@ bool Detach(const CommandContext& context, Device *device, Device *map[], bool d
 	}
 
 	if (!dryRun) {
+		// Remove the unit
+		Device *map[DeviceMax];
+		std::copy(devices.begin(), devices.end(), map);
 		map[device->GetId() * UnitNum + device->GetLun()] = nullptr;
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
@@ -829,12 +833,8 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(UnitNum - 1) + ")");
 	}
 
-	// Copy the devices from the vector into an array
-	Device *map[DeviceMax];
-	std::copy(devices.begin(), devices.end(), map);
-
 	if (operation == ATTACH) {
-		return Attach(context, pb_device, map, dryRun);
+		return Attach(context, pb_device, dryRun);
 	}
 
 	// Does the controller exist?
@@ -849,7 +849,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	if (operation == DETACH) {
-		return Detach(context, device, map, dryRun);
+		return Detach(context, device, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
