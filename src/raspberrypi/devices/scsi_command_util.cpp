@@ -71,7 +71,17 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 		}
 	}
 	else {
-		// Vendor-specific parameters are not supported
+		// Vendor-specific parameters (SCSI-1) are not supported
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+	}
+}
+
+void scsi_command_util::EnrichFormatPage(map<int, vector<BYTE>>& pages, bool changeable, int sector_size)
+{
+	if (changeable) {
+		// The sector size is simulated to be changeable, see the MODE SELECT implementation for details
+		vector<BYTE>& format_page = pages[3];
+		format_page[12] = sector_size >> 8;
+		format_page[13] = sector_size;
 	}
 }

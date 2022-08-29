@@ -10,8 +10,9 @@
 #include <gtest/gtest.h>
 #include "spdlog/spdlog.h"
 
-class Environment : public ::testing::Environment {
- public:
+class Environment : public ::testing::Environment
+{
+public:
 
 	Environment() {}
 	~Environment() {}

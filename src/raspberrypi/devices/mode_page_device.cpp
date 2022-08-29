@@ -111,8 +111,6 @@ void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 
 void ModePageDevice::ModeSelect6()
 {
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
 	ctrl->length = ModeSelectCheck6();
 
 	EnterDataOutPhase();
@@ -120,8 +118,6 @@ void ModePageDevice::ModeSelect6()
 
 void ModePageDevice::ModeSelect10()
 {
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
 	ctrl->length = ModeSelectCheck10();
 
 	EnterDataOutPhase();

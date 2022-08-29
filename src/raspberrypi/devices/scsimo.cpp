@@ -87,6 +87,13 @@ void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
+void SCSIMO::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	Disk::AddFormatPage(pages, changeable);
+
+	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+}
+
 void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(4);

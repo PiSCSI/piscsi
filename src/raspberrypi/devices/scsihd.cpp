@@ -103,6 +103,13 @@ void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
+void SCSIHD::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	Disk::AddFormatPage(pages, changeable);
+
+	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+}
+
 //---------------------------------------------------------------------------
 //
 //	Add Vendor special page to make drive Apple compatible

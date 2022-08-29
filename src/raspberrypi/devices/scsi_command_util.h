@@ -12,8 +12,11 @@
 #pragma once
 
 #include "os.h"
+#include <vector>
+#include <map>
 
 namespace scsi_command_util
 {
 	void ModeSelect(const DWORD *, const BYTE *, int, int);
+	void EnrichFormatPage(std::map<int, vector<BYTE>>&, bool, int);
 }
