@@ -476,6 +476,7 @@ string SetReservedIds(const string& ids)
 void DetachAll()
 {
 	// Prepare an empty device map
+	// TODO ISO C++ forbids variable length array
 	Device *map[devices.size()];
 	for (size_t i = 0; i < devices.size(); i++) {
 		map[i] = nullptr;
@@ -833,6 +834,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Copy the devices
+	// TODO ISO C++ forbids variable length array
 	Device *map[devices.size()];
 	for (size_t i = 0; i < devices.size(); i++) {
 		map[i] = devices[i];

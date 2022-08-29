@@ -125,7 +125,7 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	}
 
 	// Read the binary protobuf data
-	uint8_t data_buf[size];
+	uint8_t *data_buf = new uint8_t[size];
 	bytes_read = ReadNBytes(fd, data_buf, size);
 	if (bytes_read < size) {
 		throw io_exception("Missing protobuf message data");
@@ -133,6 +133,7 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 
 	// Create protobuf message
 	string data((const char *)data_buf, size);
+	delete[] data_buf;
 	message.ParseFromString(data);
 }
 
