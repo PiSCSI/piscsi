@@ -196,7 +196,7 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest -lgtest_main
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest
 
 
 # Phony rules for building individual utilities

@@ -10,7 +10,9 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "spdlog/spdlog.h"
 #include "exceptions.h"
+#include "devices/scsi_command_util.h"
 #include "devices/scsihd.h"
 #include "devices/scsihd_nec.h"
 #include "devices/scsicd.h"
@@ -178,6 +180,42 @@ TEST(ModePagesTest, HostServices_AddModePages)
 
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of code pages";
 	EXPECT_EQ(10, mode_pages[32].size());
+}
+
+TEST(ModePagesTest, ModeSelect)
+{
+	const int LENGTH = 12;
+
+	DWORD cdb[16] = {};
+	BYTE buf[255] = {};
+
+	// PF (vendor-specific parameter format)
+	cdb[1] = 0x00;
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH, 0), scsi_error_exception)
+		<< "Vendor-specific parameters are not supported";
+
+	// PF (standard parameter format)
+	cdb[1] = 0x10;
+	// Request 512 bytes per sector
+	buf[9] = 0x00;
+	buf[10] = 0x02;
+	buf[11] = 0x00;
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH, 256), scsi_error_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Page 0
+	buf[LENGTH] = 0x00;
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+		<< "Unsupported page 0 was not rejected";
+
+	// Page 3 (Format Device Page)
+	buf[LENGTH] = 0x03;
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Match the requested to the current sector size
+	buf[LENGTH + 12] = 0x02;
+	scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512);
 }
 
 }

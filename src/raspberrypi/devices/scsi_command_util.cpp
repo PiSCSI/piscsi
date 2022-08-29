@@ -23,18 +23,19 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 
 		// Mode Parameter header
 		if (length >= 12) {
+			// Check the block length
 			if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
 					buf[11] != (BYTE)sector_size) {
 				// See below for details
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
-			has_valid_page_code = true;
 
 			buf += 12;
 			length -= 12;
 		}
 
 		// Parsing the page
+		// TODO The length handling is wrong in case of length < size
 		while (length > 0) {
 			int page = buf[0];
 
@@ -54,14 +55,6 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 					}
 					break;
 
-				// vendor unique format
-				case 0x20:
-					// TODO Is it correct to ignore this? The initiator would rely on something to actually have been changed.
-					// just ignore, for now
-                    LOGWARN("Ignored MODE SELECT page code: $%02X", page);
-					has_valid_page_code = true;
-					break;
-
 				default:
 					LOGWARN("Unknown MODE SELECT page code: $%02X", page);
 					break;
@@ -76,5 +69,9 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 		if (!has_valid_page_code) {
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 		}
+	}
+	else {
+		// Vendor-specific parameters are not supported
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 	}
 }
