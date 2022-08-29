@@ -213,7 +213,7 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 	return sector_sizes[t];
 }
 
-const unordered_set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type) const
+const unordered_set<uint64_t> DeviceFactory::GetCapacities() const
 {
 	unordered_set<uint64_t> keys;
 

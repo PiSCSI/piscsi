@@ -83,6 +83,8 @@ GPIOBUS::GPIOBUS()
 bool GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
+	actmode = mode;
+
 	// When we're running on x86, there is no hardware to talk to, so just return.
 	return true;
 #else

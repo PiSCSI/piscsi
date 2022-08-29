@@ -279,7 +279,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
 

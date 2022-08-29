@@ -76,7 +76,7 @@ char input_file_name[_MAX_FNAME];
 //	Signal Processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
     // Stop instruction
     running = false;
@@ -130,7 +130,7 @@ void parse_arguments(int argc, char *argv[])
 //	Copyright text
 //
 //---------------------------------------------------------------------------
-void print_copyright_text(int argc, char *argv[])
+void print_copyright_text(int, char *[])
 {
     LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
     LOGINFO("version %s (%s, %s)",
@@ -148,7 +148,7 @@ void print_copyright_text(int argc, char *argv[])
 //	Help text
 //
 //---------------------------------------------------------------------------
-void print_help_text(int argc, char *argv[])
+void print_help_text(int, char *argv[])
 {
     LOGINFO("%s -i [input file json] -b [buffer size] [output file]", argv[0]);
     LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data");
@@ -163,7 +163,7 @@ void print_help_text(int argc, char *argv[])
 //	Banner Output
 //
 //---------------------------------------------------------------------------
-void Banner(int argc, char *argv[])
+void Banner(int, char *[])
 {
     if (import_data)
     {

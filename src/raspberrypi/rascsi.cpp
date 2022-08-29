@@ -80,7 +80,7 @@ RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 //	Signal Processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
 	// Stop instruction
 	running = false;
@@ -1017,7 +1017,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	return ReturnStatus(context);
 }
 
-bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
+bool ProcessId(const string id_spec, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
@@ -1120,7 +1120,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 			case 'd':
 			case 'D': {
-				if (!ProcessId(optarg, type, id, unit)) {
+				if (!ProcessId(optarg, id, unit)) {
 					return false;
 				}
 				continue;
@@ -1291,7 +1291,7 @@ void FixCpu(int cpu)
 //	Monitor Thread
 //
 //---------------------------------------------------------------------------
-static void *MonThread(void *param)
+static void *MonThread(void *)
 {
     // Scheduler Settings
 	struct sched_param schedparam;
@@ -1389,7 +1389,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_TYPES_INFO: {
-					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
+					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
 					SerializeMessage(context.fd, result);
 					break;
 				}

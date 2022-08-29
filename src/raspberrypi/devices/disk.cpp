@@ -637,7 +637,7 @@ void Disk::Format(const DWORD *cdb)
 }
 
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
-int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int Disk::Read(const DWORD *, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
@@ -676,7 +676,7 @@ int Disk::WriteCheck(uint64_t block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-void Disk::Write(const DWORD *cdb, BYTE *buf, uint64_t block)
+void Disk::Write(const DWORD *, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 

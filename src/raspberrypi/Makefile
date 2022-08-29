@@ -15,13 +15,13 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug CFLAGS
-	CFLAGS += -O0 -g -Wall -DDEBUG
-	CXXFLAGS += -O0 -g -Wall -DDEBUG
+	CFLAGS += -O0 -g -Wall -Wextra -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 	BUILD_TYPE = Debug
 else
 	# Release CFLAGS
-	CFLAGS += -O3 -Wall -Werror -DNDEBUG
-	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
+	CFLAGS += -O3 -Wall -Wextra -Werror -DNDEBUG
+	CXXFLAGS += -O3 -Wall -Wextra -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")

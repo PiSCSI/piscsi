@@ -491,8 +491,9 @@ int CTapDriver::Rx(BYTE *buf)
 
 	if (m_pcap_dumper != nullptr) {
 		struct pcap_pkthdr h = {
+			.ts = {},
 			.caplen = dwReceived,
-			.len = dwReceived,
+			.len = dwReceived
 		};
 		gettimeofday(&h.ts, NULL);
 		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
@@ -514,6 +515,7 @@ int CTapDriver::Tx(const BYTE *buf, int len)
 
 	if (m_pcap_dumper != nullptr) {
 		struct pcap_pkthdr h = {
+			.ts = {},
 			.caplen = (bpf_u_int32)len,
 			.len = (bpf_u_int32)len,
 		};

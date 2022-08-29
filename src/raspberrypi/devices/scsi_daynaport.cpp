@@ -158,7 +158,7 @@ vector<BYTE> SCSIDaynaPort::InquiryInternal() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	int rx_packet_size = 0;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;

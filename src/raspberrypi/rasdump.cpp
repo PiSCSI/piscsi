@@ -48,7 +48,7 @@ void Cleanup();
 //	Signal processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
 	// Stop running
 	Cleanup();

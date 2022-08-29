@@ -438,8 +438,6 @@ void ScsiController::MsgOut()
 
 void ScsiController::DataIn()
 {
-	assert(ctrl.length >= 0);
-
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
 		if (execstart > 0) {
@@ -473,8 +471,6 @@ void ScsiController::DataIn()
 
 void ScsiController::DataOut()
 {
-	assert(ctrl.length >= 0);
-
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (execstart > 0) {

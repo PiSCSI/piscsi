@@ -33,7 +33,7 @@ public:
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
-	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
+	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const unordered_set<int>&, const string&,
 			const string&, const string&, int);

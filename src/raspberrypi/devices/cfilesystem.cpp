@@ -267,7 +267,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 		} else {
 			pClear = NULL;
 		}
-		if (((TCHAR)0x80 <= c && c <= (TCHAR)0x9F) || (TCHAR)0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
+		if ((c <= (TCHAR)0x9F) || (TCHAR)0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
 			p++;
 			if (*p == _T('\0'))
 				break;
@@ -2373,7 +2373,7 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
+BOOL CHostFcb::Create(DWORD nHumanAttribute, BOOL bForce)
 {
 	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
@@ -2533,7 +2533,7 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 {
 	ASSERT(m_pFile || m_bFlag);
 
-	struct tm t = { 0 };
+	struct tm t = { };
 	t.tm_year = (nHumanTime >> 25) + 80;
 	t.tm_mon = ((nHumanTime >> 21) - 1) & 15;
 	t.tm_mday = (nHumanTime >> 16) & 31;
@@ -3280,7 +3280,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	}
 
 	// Create file
-	if (pHostFcb->Create(pFcb, nHumanAttribute, bForce) == FALSE) {
+	if (pHostFcb->Create(nHumanAttribute, bForce) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_FILEEXIST;
 	}
