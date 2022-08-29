@@ -61,8 +61,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-// TODO Maps might be a better solution than vectors with fixed sizes
-vector<AbstractController *> controllers(CtrlMax);	// Controllers
+// TODO Get rid of this vector, the controllers know all devices
 vector<Device *> devices(DeviceMax);	// Devices
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
@@ -75,6 +74,7 @@ unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+void DetachAll();
 
 //---------------------------------------------------------------------------
 //
@@ -199,17 +199,9 @@ bool InitBus()
 
 void Cleanup()
 {
-	// Delete all devices
-	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		delete *it;
-		*it = nullptr;
-	}
+	DetachAll();
 
-	// Delete all controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		delete *it;
-		*it = nullptr;
-	}
+	AbstractController::DeleteAll();
 
 	// Clean up and discard the bus
 	if (bus) {
@@ -227,96 +219,9 @@ void Cleanup()
 
 void Reset()
 {
-	// Reset all controllers
-	for (const auto& controller : controllers) {
-		if (controller) {
-			controller->Reset();
-		}
-	}
+	AbstractController::ResetAll();
 
 	bus->Reset();
-}
-
-//---------------------------------------------------------------------------
-//
-// Controller Mapping
-// TODO This can probably be simplified. Just do what's needed to attach or delete a single device and do
-// not touch the others. In addition, devices should probably be a map.
-//
-//---------------------------------------------------------------------------
-void MapController(Device **map)
-{
-	assert(bus);
-
-	// Take ownership of the ctrl data structure
-	pthread_mutex_lock(&ctrl_mutex);
-
-	// Replace the changed unit
-	for (size_t id = 0; id < controllers.size(); id++) {
-		for (int lun = 0; lun < UnitNum; lun++) {
-			int lun_no = id * UnitNum + lun;
-			if (devices[lun_no] != map[lun_no]) {
-				// Check if the original unit exists
-				if (devices[lun_no] != nullptr) {
-					// Disconnect it from the controller
-					if (controllers[id] != nullptr) {
-						controllers[id]->SetDeviceForLun(lun, nullptr);
-					}
-
-					// Free the Unit
-					delete devices[lun_no];
-				}
-
-				// Setup a new unit
-				devices[lun_no] = map[lun_no];
-			}
-		}
-	}
-
-	// Reconfigure all of the controllers
-	int scsi_id = 0;
-	for (auto it = controllers.begin(); it != controllers.end(); ++scsi_id, ++it) {
-		// Examine the unit configuration
-		bool has_lun = false;
-		for (int lun = 0; lun < UnitNum; lun++) {
-			int lun_no = scsi_id * UnitNum + lun;
-			if (devices[lun_no] != nullptr) {
-				has_lun = true;
-			}
-
-			// Remove the unit
-			if (*it != nullptr) {
-				(*it)->SetDeviceForLun(lun, nullptr);
-			}
-		}
-
-		// If there are no units connected the controller can be discarded
-		if (!has_lun && *it != nullptr) {
-			delete *it;
-			*it = nullptr;
-			continue;
-		}
-
-		// Create a new SCSI controller for the current device ID and bus
-		if (*it == nullptr) {
-			*it = new ScsiController(bus, scsi_id);
-		}
-
-		// connect all units
-		for (int lun = 0; lun < UnitNum; lun++) {
-			int lun_no = scsi_id * UnitNum + lun;
-			if (devices[lun_no] != nullptr) {
-				PrimaryDevice *primary_device = (static_cast<PrimaryDevice *>(devices[lun_no]));
-
-				primary_device->SetController(*it);
-
-				// Add the unit connection
-				(*it)->SetDeviceForLun(lun, primary_device);
-			}
-		}
-	}
-
-	pthread_mutex_unlock(&ctrl_mutex);
 }
 
 bool ReadAccessToken(const char *filename)
@@ -476,12 +381,18 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	Device *map[DeviceMax] = {};
-	MapController(map);
-
-	LOGINFO("Detached all devices");
+	pthread_mutex_lock(&ctrl_mutex);
+	AbstractController::ClearLuns();
+	// TODO Move the devices list from rascsi to the controller, move all memory management to the controllers
+	for (auto it = devices.begin(); it != devices.end(); ++it) {
+		delete *it;
+		*it = nullptr;
+	}
+	pthread_mutex_unlock(&ctrl_mutex);
 
 	FileSupport::UnreserveAll();
+
+	LOGINFO("Detached all devices");
 }
 
 bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
@@ -625,12 +536,15 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	// Replace with the newly created unit
-	Device *map[DeviceMax];
-	std::copy(devices.begin(), devices.end(), map);
-	map[id * UnitNum + unit] = device;
-
-	// Re-map the controller
-	MapController(map);
+	pthread_mutex_lock(&ctrl_mutex);
+	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
+	devices[device->GetId() * UnitNum + device->GetLun()] = device;
+	AbstractController *controller = AbstractController::FindController(device->GetId());
+	if (controller == nullptr) {
+		controller = new ScsiController(bus, device->GetId());
+	}
+	controller->SetDeviceForLun(device->GetLun(), primary_device);
+	pthread_mutex_unlock(&ctrl_mutex);
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -657,20 +571,23 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 	}
 
 	if (!dryRun) {
-		// Remove the unit
-		Device *map[DeviceMax];
-		std::copy(devices.begin(), devices.end(), map);
-		map[device->GetId() * UnitNum + device->GetLun()] = nullptr;
+		// Remember data that going to be deleted
+		int id = device->GetId();
+		int lun = device->GetLun();
+		string type = device->GetType();
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 		if (file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
-		LOGINFO("Detached %s device with ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun());
+		// Delete the existing unit
+		pthread_mutex_lock(&ctrl_mutex);
+		devices[id * UnitNum + lun] = nullptr;
+		AbstractController::FindController(id)->SetDeviceForLun(lun, nullptr);
+		pthread_mutex_unlock(&ctrl_mutex);
 
-		// Re-map the controller
-		MapController(map);
+		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
 	}
 
 	return true;
@@ -758,8 +675,6 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 void TerminationHandler(int signum)
 {
-	DetachAll();
-
 	Cleanup();
 
 	exit(signum);
@@ -819,9 +734,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (id < 0) {
 		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
-	if (id >= (int)controllers.size()) {
+	if (id >= CtrlMax) {
 		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-"
-				+ to_string(controllers.size() - 1) + ")");
+				+ to_string(CtrlMax - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
@@ -838,7 +753,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Does the controller exist?
-	if (!dryRun && !controllers[id]) {
+	if (!dryRun && AbstractController::FindController(id) == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
@@ -1617,19 +1532,20 @@ int main(int argc, char* argv[])
 
 		pthread_mutex_lock(&ctrl_mutex);
 
-		BYTE data = bus->GetDAT();
-
 		int initiator_id = -1;
 
-		// Notify all controllers
-		int i = 0;
-		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-			if (*it == nullptr || (data & (1 << i)) == 0) {
+		// The initiator and target ID
+		BYTE data = bus->GetDAT();
+
+		for (auto& controller : AbstractController::FindAll()) {
+			int scsi_id = controller->GetDeviceId();
+
+			if ((data & (1 << scsi_id)) == 0) {
 				continue;
 			}
 
-			// Extract the SCSI initiator ID
-			int tmp = data - (1 << i);
+			// Extract the initiator ID
+			int tmp = data - (1 << scsi_id);
 			if (tmp) {
 				initiator_id = 0;
 				for (int j = 0; j < 8; j++) {
@@ -1644,9 +1560,8 @@ int main(int argc, char* argv[])
 			}
 
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process(initiator_id) == BUS::selection) {
-				// Get the target ID
-				actid = i;
+			if (controller->Process(initiator_id) == BUS::selection) {
+				actid = scsi_id;
 
 				// Bus Selection phase
 				phase = BUS::selection;
@@ -1672,7 +1587,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = controllers[actid]->Process(initiator_id);
+			phase = AbstractController::FindController(actid)->Process(initiator_id);
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {

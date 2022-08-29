@@ -12,7 +12,10 @@
 #pragma once
 
 #include "phase_handler.h"
+#include <vector>
 #include <unordered_map>
+
+using namespace std;
 
 class PrimaryDevice;
 
@@ -52,7 +55,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 
 		// Logical units of this device controller mapped to their LUN numbers
-		std::unordered_map<int, PrimaryDevice *> luns;
+		unordered_map<int, PrimaryDevice *> luns;
 	} ctrl_t;
 
 	AbstractController(BUS *, int);
@@ -71,7 +74,7 @@ public:
 
 	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
 
-	int GetDeviceId() const { return device_id; }
+	int GetDeviceId() const { return scsi_id; }
 
 	PrimaryDevice *GetDeviceForLun(int) const;
 	void SetDeviceForLun(int, PrimaryDevice *);
@@ -80,11 +83,21 @@ public:
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
+	static const vector<AbstractController *> FindAll();
+	static AbstractController *FindController(int);
+	static void ClearLuns();
+	static void DeleteAll();
+	static void ResetAll();
+
 protected:
 
 	BUS *bus;
 
-	int device_id;
+	int scsi_id;
 
 	ctrl_t ctrl = {};
+
+private:
+
+	static unordered_map<int, AbstractController *> controllers;
 };
