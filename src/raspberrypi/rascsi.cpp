@@ -48,6 +48,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
 #define UnitNum	AbstractController::LUN_MAX	// Number of LUNs per controller/device
+#define DeviceMax (CtrlMax * UnitNum)
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 #define DEFAULT_PORT 6868
 
@@ -62,7 +63,7 @@ static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
 // TODO Maps might be a better solution than vectors with fixed sizes
 vector<AbstractController *> controllers(CtrlMax);	// Controllers
-vector<Device *> devices(CtrlMax * UnitNum);	// Devices
+vector<Device *> devices(DeviceMax);	// Devices
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -475,13 +476,8 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	// Prepare an empty device map
-	// TODO ISO C++ forbids variable length array
-	Device *map[devices.size()];
-	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = nullptr;
-	}
-
+	// Set an empty device map
+	Device *map[DeviceMax] = {};
 	MapController(map);
 
 	LOGINFO("Detached all devices");
@@ -833,12 +829,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(UnitNum - 1) + ")");
 	}
 
-	// Copy the devices
-	// TODO ISO C++ forbids variable length array
-	Device *map[devices.size()];
-	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = devices[i];
-	}
+	// Copy the devices from the vector into an array
+	Device *map[DeviceMax];
+	std::copy(devices.begin(), devices.end(), map);
 
 	if (operation == ATTACH) {
 		return Attach(context, pb_device, map, dryRun);
