@@ -51,6 +51,7 @@ private:
 	void RequestSense();
 	void ReportLuns();
 	void Inquiry();
+
 	vector<BYTE> HandleRequestSense();
 
 	Dispatcher<PrimaryDevice> dispatcher;

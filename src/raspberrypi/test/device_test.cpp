@@ -21,8 +21,10 @@ using namespace rascsi_interface;
 namespace DeviceTest
 {
 
-class MockController : public ScsiController
+class MockScsiController : public ScsiController
 {
+public:
+
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
 	MOCK_METHOD(int, GetEffectiveLun, (), ());
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
@@ -48,24 +50,78 @@ class MockController : public ScsiController
 	MOCK_METHOD(bool, HasUnit, (), (const override));
 
 	FRIEND_TEST(DeviceTest, TestUnitReady);
+	FRIEND_TEST(DeviceTest, Inquiry);
 
-	MockController() : ScsiController(nullptr, 0) { }
-	~MockController() { }
+	MockScsiController() : ScsiController(nullptr, 0) {}
+	~MockScsiController() {}
+};
+
+class MockPrimaryDevice : public PrimaryDevice
+{
+public:
+
+	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
+
+	MockPrimaryDevice() : PrimaryDevice("test") {}
+	~MockPrimaryDevice() {}
+
+	// Make protected methods visible for testing
+
+	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
+	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
+	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
 };
 
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 TEST(DeviceTest, TestUnitReady)
 {
-	MockController controller;
-	PrimaryDevice *device = static_cast<PrimaryDevice *>(device_factory.CreateDevice(SCHD, "test"));
+	MockScsiController controller;
+	MockPrimaryDevice device;
+
+	device.SetController(&controller);
 
 	controller.ctrl.cmd[0] = eCmdTestUnitReady;
-	device->SetController(&controller);
 
-	EXPECT_THROW(device->Dispatch(), scsi_error_exception);
+	device.SetReset(true);
+	device.SetAttn(true);
+	device.SetReady(false);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
-	// TODO Add tests for a device that is ready after the SASI code removal
+	device.SetReset(false);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
+
+	device.SetReset(true);
+	device.SetAttn(false);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
+
+	device.SetReset(false);
+	device.SetAttn(true);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
+
+	device.SetAttn(false);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
+
+	device.SetReady(true);
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+	EXPECT_TRUE(controller.ctrl.status == scsi_defs::status::GOOD);
+}
+
+TEST(DeviceTest, Inquiry)
+{
+	MockScsiController controller;
+	MockPrimaryDevice device;
+
+	device.SetController(&controller);
+
+	controller.ctrl.cmd[0] = eCmdInquiry;
+
+	EXPECT_CALL(device, InquiryInternal()).Times(1);
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+
+	// TODO Evaluate return data
 }
 
 }
