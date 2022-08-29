@@ -19,7 +19,8 @@
 #include "scsi_command_util.h"
 #include "scsimo.h"
 
-SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries) : Disk("SCMO")
+SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
+	: Disk("SCMO"), geometries({})
 {
 	SetSectorSizes(sector_sizes);
 	SetGeometries(geometries);

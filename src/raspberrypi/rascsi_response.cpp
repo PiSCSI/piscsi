@@ -21,9 +21,8 @@ using namespace rascsi_interface;
 using namespace protobuf_util;
 
 RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
+	: device_factory(device_factory), rascsi_image(rascsi_image)
 {
-	this->device_factory = device_factory;
-	this->rascsi_image = rascsi_image;
 }
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)

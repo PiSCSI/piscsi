@@ -12,6 +12,6 @@
 #include <string>
 
 struct CommandContext {
-	int fd;
-	std::string locale;
+	int fd = -1;
+	std::string locale = "";
 };

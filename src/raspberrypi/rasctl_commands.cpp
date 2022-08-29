@@ -26,12 +26,8 @@ using namespace protobuf_util;
 
 RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
+	: command(command), hostname(hostname), port(port), token(token), locale(locale)
 {
-	this->command = command;
-	this->hostname = hostname;
-	this->port = port;
-	this->token = token;
-	this->locale = locale;
 }
 
 void RasctlCommands::SendCommand()

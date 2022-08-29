@@ -20,8 +20,8 @@ private:
 	string msg;
 
 public:
-	illegal_argument_exception(const string& _msg) : msg(_msg) {}
-	illegal_argument_exception() {};
+	illegal_argument_exception(const string& msg) : msg(msg) {}
+	~illegal_argument_exception() {}
 
 	const string& get_msg() const { return msg; }
 };
@@ -31,7 +31,7 @@ private:
 	string msg;
 
 public:
-	io_exception(const string& _msg) : msg(_msg) {}
+	io_exception(const string& msg) : msg(msg) {}
 	virtual ~io_exception() {}
 
 	const string& get_msg() const { return msg; }
@@ -52,11 +52,8 @@ private:
 public:
 	scsi_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) {
-		this->sense_key = sense_key;
-		this->asc = asc;
-		this->status = status;
-	}
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION)
+	: sense_key(sense_key), asc(asc), status(status) {}
 	~scsi_error_exception() {};
 
 	scsi_defs::sense_key get_sense_key() const { return sense_key; }

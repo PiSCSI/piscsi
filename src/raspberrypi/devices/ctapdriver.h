@@ -37,7 +37,7 @@ private:
 	friend class SCSIDaynaPort;
 	friend class SCSIBR;
 
-	CTapDriver() {}
+	CTapDriver() : interfaces({}), inet({}) {}
 	~CTapDriver() {}
 
 	bool Init(const unordered_map<string, string>&);

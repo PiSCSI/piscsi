@@ -24,10 +24,9 @@
 using namespace std;
 using namespace scsi_defs;
 
-SCSIBR::SCSIBR() : Disk("SCBR")
+SCSIBR::SCSIBR() : Disk("SCBR"), dispatcher({}), fs(new CFileSys())
 {
 	// Create host file system
-	fs = new CFileSys();
 	fs->Reset();
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);

@@ -23,7 +23,7 @@ class Dispatcher
 {
 public:
 
-	Dispatcher() {}
+	Dispatcher() : commands({}) {}
 	~Dispatcher()
 	{
 		for (auto const& command : commands) {

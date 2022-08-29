@@ -16,7 +16,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
+ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id), dispatcher({})
 {
 	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);

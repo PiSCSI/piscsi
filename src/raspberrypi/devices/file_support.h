@@ -29,7 +29,7 @@ private:
 
 public:
 
-	FileSupport() {}
+	FileSupport() : diskpath({}) {}
 	virtual ~FileSupport() {}
 
 	void GetPath(Filepath& path) const { path = diskpath; }

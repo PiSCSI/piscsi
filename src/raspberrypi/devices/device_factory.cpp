@@ -22,7 +22,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-DeviceFactory::DeviceFactory()
+DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_params({}), extension_mapping({})
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
