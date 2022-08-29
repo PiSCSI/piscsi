@@ -5,20 +5,18 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Unit tests based on GoogleTest and GoogleMock
-//
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 #include "exceptions.h"
-#include "devices/scsihd.h"
+#include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
 using namespace rascsi_interface;
 
-namespace DeviceTest
+namespace PrimaryDeviceTest
 {
 
 class MockScsiController : public ScsiController
@@ -49,8 +47,8 @@ public:
 	MOCK_METHOD(void, Receive, (), ());
 	MOCK_METHOD(bool, HasUnit, (), (const override));
 
-	FRIEND_TEST(DeviceTest, TestUnitReady);
-	FRIEND_TEST(DeviceTest, Inquiry);
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 
 	MockScsiController() : ScsiController(nullptr, 0) {}
 	~MockScsiController() {}
@@ -77,7 +75,7 @@ public:
 
 DeviceFactory& device_factory = DeviceFactory::instance();
 
-TEST(DeviceTest, TestUnitReady)
+TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockScsiController controller;
 	MockPrimaryDevice device;
@@ -89,20 +87,25 @@ TEST(DeviceTest, TestUnitReady)
 	device.SetReset(true);
 	device.SetAttn(true);
 	device.SetReady(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
 	device.SetReset(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
 	device.SetReset(true);
 	device.SetAttn(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
 	device.SetReset(false);
 	device.SetAttn(true);
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
 	device.SetAttn(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
 
 	device.SetReady(true);
@@ -111,7 +114,7 @@ TEST(DeviceTest, TestUnitReady)
 	EXPECT_TRUE(controller.ctrl.status == scsi_defs::status::GOOD);
 }
 
-TEST(DeviceTest, Inquiry)
+TEST(PrimaryDeviceTest, Inquiry)
 {
 	MockScsiController controller;
 	MockPrimaryDevice device;
@@ -153,9 +156,11 @@ TEST(DeviceTest, Inquiry)
 	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
 
 	controller.ctrl.cmd[1] = 0x01;
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception) << "EVPD bit is not supported";
 
 	controller.ctrl.cmd[2] = 0x01;
+	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(), scsi_error_exception) << "PAGE CODE field is not supported";
 
 	controller.ctrl.cmd[1] = 0x00;

@@ -5,8 +5,6 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Unit tests based on GoogleTest and GoogleMock
-//
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
