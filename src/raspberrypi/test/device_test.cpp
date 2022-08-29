@@ -70,6 +70,9 @@ public:
 	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
 	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
 	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
+	vector<BYTE> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
+		return PrimaryDevice::HandleInquiry(type, level, is_removable);
+	}
 };
 
 DeviceFactory& device_factory = DeviceFactory::instance();
@@ -116,12 +119,54 @@ TEST(DeviceTest, Inquiry)
 	device.SetController(&controller);
 
 	controller.ctrl.cmd[0] = eCmdInquiry;
+	// ALLOCATION LENGTH
+	controller.ctrl.cmd[4] = 255;
 
+	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
+		return device.HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	});
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());
+	EXPECT_EQ(0x7F, controller.ctrl.buffer[0]) << "Invalid LUN was not reported";
 
-	// TODO Evaluate return data
+	controller.SetDeviceForLun(0, &device);
+	EXPECT_CALL(device, InquiryInternal()).Times(1);
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+	EXPECT_EQ(device_type::PROCESSOR, controller.ctrl.buffer[0]);
+	EXPECT_EQ(0x00, controller.ctrl.buffer[1]) << "Device was not reported as non-removable";
+	EXPECT_EQ(scsi_level::SPC_3, controller.ctrl.buffer[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::SCSI_2, controller.ctrl.buffer[3]) << "Wrong response level";
+	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
+
+	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
+		return device.HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
+	});
+	EXPECT_CALL(device, InquiryInternal()).Times(1);
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+	EXPECT_EQ(device_type::DIRECT_ACCESS, controller.ctrl.buffer[0]);
+	EXPECT_EQ(0x80, controller.ctrl.buffer[1]) << "Device was not reported as removable";
+	EXPECT_EQ(scsi_level::SCSI_1_CCS, controller.ctrl.buffer[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::SCSI_1_CCS, controller.ctrl.buffer[3]) << "Wrong response level";
+	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
+
+	controller.ctrl.cmd[1] = 0x01;
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception) << "EVPD bit is not supported";
+
+	controller.ctrl.cmd[2] = 0x01;
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception) << "PAGE CODE field is not supported";
+
+	controller.ctrl.cmd[1] = 0x00;
+	controller.ctrl.cmd[2] = 0x00;
+	// ALLOCATION LENGTH
+	controller.ctrl.cmd[4] = 1;
+	EXPECT_CALL(device, InquiryInternal()).Times(1);
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
+	EXPECT_EQ(1, controller.ctrl.length) << "Wrong ALLOCATION LENGTH handling";
 }
 
 }
