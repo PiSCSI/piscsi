@@ -1538,14 +1538,14 @@ int main(int argc, char* argv[])
 		BYTE data = bus->GetDAT();
 
 		for (auto& controller : AbstractController::FindAll()) {
-			int scsi_id = controller->GetDeviceId();
+			int target_id = controller->GetTargetId();
 
-			if ((data & (1 << scsi_id)) == 0) {
+			if ((data & (1 << target_id)) == 0) {
 				continue;
 			}
 
 			// Extract the initiator ID
-			int tmp = data - (1 << scsi_id);
+			int tmp = data - (1 << target_id);
 			if (tmp) {
 				initiator_id = 0;
 				for (int j = 0; j < 8; j++) {
@@ -1561,7 +1561,7 @@ int main(int argc, char* argv[])
 
 			// Find the target that has moved to the selection phase
 			if (controller->Process(initiator_id) == BUS::selection) {
-				actid = scsi_id;
+				actid = target_id;
 
 				// Bus Selection phase
 				phase = BUS::selection;

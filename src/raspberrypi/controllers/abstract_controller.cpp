@@ -12,8 +12,8 @@
 
 unordered_map<int, AbstractController *> AbstractController::controllers;
 
-AbstractController::AbstractController(BUS *bus, int scsi_id) : bus(bus), scsi_id(scsi_id) {
-	controllers[scsi_id] = this;
+AbstractController::AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {
+	controllers[target_id] = this;
 }
 
 PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {

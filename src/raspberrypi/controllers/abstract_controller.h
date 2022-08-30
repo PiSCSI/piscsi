@@ -74,7 +74,7 @@ public:
 
 	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
 
-	int GetDeviceId() const { return scsi_id; }
+	int GetTargetId() const { return target_id; }
 
 	PrimaryDevice *GetDeviceForLun(int) const;
 	void SetDeviceForLun(int, PrimaryDevice *);
@@ -93,7 +93,7 @@ protected:
 
 	BUS *bus;
 
-	int scsi_id;
+	int target_id;
 
 	ctrl_t ctrl = {};
 

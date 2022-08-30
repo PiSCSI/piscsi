@@ -207,7 +207,7 @@ void ScsiController::Selection()
 {
 	if (ctrl.phase != BUS::selection) {
 		// A different device controller was selected
-		int id = 1 << GetDeviceId();
+		int id = 1 << GetTargetId();
 		if ((bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -217,7 +217,7 @@ void ScsiController::Selection()
 			return;
 		}
 
-		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, GetDeviceId());
+		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, GetTargetId());
 
 		SetPhase(BUS::selection);
 
@@ -306,7 +306,7 @@ void ScsiController::Execute()
 	if (!HasDeviceForLun(lun)) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
-			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetDeviceId());
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId());
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
@@ -329,7 +329,7 @@ void ScsiController::Execute()
 	
 	try {
 		if (!device->Dispatch()) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetDeviceId(), lun, (BYTE)ctrl.cmd[0]);
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (BYTE)ctrl.cmd[0]);
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
@@ -406,7 +406,7 @@ void ScsiController::MsgIn()
 
 void ScsiController::MsgOut()
 {
-	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetDeviceId());
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId());
 
 	if (ctrl.phase != BUS::msgout) {
 		LOGTRACE("Message Out Phase");
