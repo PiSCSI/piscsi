@@ -19,8 +19,6 @@ void AbstractController::SetDeviceForLun(int lun, PrimaryDevice *device)
 {
 	assert(lun < GetMaxLuns());
 
-	delete GetDeviceForLun(lun);
-
 	if (device != nullptr) {
 		ctrl.luns[lun] = device;
 		device->SetController(this);

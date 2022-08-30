@@ -573,6 +573,7 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 		pthread_mutex_lock(&ctrl_mutex);
 		devices[id * UnitNum + lun] = nullptr;
 		controller_manager.FindController(id)->SetDeviceForLun(lun, nullptr);
+		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
