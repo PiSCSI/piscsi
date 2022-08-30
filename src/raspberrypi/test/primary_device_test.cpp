@@ -73,8 +73,6 @@ public:
 	}
 };
 
-DeviceFactory& device_factory = DeviceFactory::instance();
-
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockScsiController controller;

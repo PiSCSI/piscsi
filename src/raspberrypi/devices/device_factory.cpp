@@ -245,6 +245,8 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		return nullptr;
 	}
 
+	device->SetId(id);
+
 	devices.emplace(id, device);
 
 	return device;

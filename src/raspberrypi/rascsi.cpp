@@ -424,7 +424,6 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		device->SetRemoved(false);
 	}
 
-	device->SetId(id);
 	device->SetLun(unit);
 
 	try {
