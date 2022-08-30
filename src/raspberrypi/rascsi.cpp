@@ -262,7 +262,7 @@ bool ReadAccessToken(const char *filename)
 	return true;
 }
 
-string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
+string ValidateLunSetup(const PbCommand& command)
 {
 	// Mapping of available LUNs (bit vector) to devices
 	map<uint32_t, uint32_t> luns;
@@ -273,10 +273,8 @@ string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existi
 	}
 
 	// Collect LUN vectors of existing devices
-	for (auto const& device : existing_devices) {
-		if (device) {
-			luns[device->GetId()] |= 1 << device->GetLun();
-		}
+	for (const Device *device : device_factory.GetAllDevices()) {
+		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
 	// LUN 0 must exist for all devices
@@ -351,7 +349,7 @@ string SetReservedIds(const string& ids)
  			return "Invalid ID " + id_to_reserve;
  		}
 
- 		if (devices[id * UnitNum]) {
+ 		if (controller_manager.FindController(id) != nullptr) {
  			return "ID " + id_to_reserve + " is currently in use";
  		}
 
@@ -553,9 +551,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 bool Detach(const CommandContext& context, Device *device, bool dryRun)
 {
 	if (!device->GetLun()) {
-		for (auto const d : devices) {
+		for (const Device *d : device_factory.GetAllDevices()) {
 			// LUN 0 can only be detached if there is no other LUN anymore
-			if (d && d->GetId() == device->GetId() && d->GetLun()) {
+			if (d->GetId() == device->GetId() && d->GetLun()) {
 				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
 			}
 		}
@@ -894,7 +892,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string result = ValidateLunSetup(command, devices);
+	string result = ValidateLunSetup(command);
 	if (!result.empty()) {
 		return ReturnStatus(context, false, result);
 	}

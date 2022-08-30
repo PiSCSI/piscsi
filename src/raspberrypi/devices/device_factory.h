@@ -12,6 +12,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -36,6 +37,7 @@ public:
 	Device *CreateDevice(PbDeviceType, const string&, int);
 	void DeleteDevice(Device *);
 	void DeleteAllDevices();
+	const vector<Device *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const unordered_set<uint32_t>& GetSectorSizes(const string&);
@@ -57,5 +59,5 @@ private:
 
 	string GetExtension(const string&) const;
 
-	static std::unordered_map<int, Device *> devices;
+	static std::multimap<int, Device *> devices;
 };

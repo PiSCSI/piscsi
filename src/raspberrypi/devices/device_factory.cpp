@@ -22,7 +22,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-unordered_map<int, Device *> DeviceFactory::devices;
+multimap<int, Device *> DeviceFactory::devices;
 
 DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_params({}), extension_mapping({})
 {
@@ -78,9 +78,16 @@ DeviceFactory& DeviceFactory::instance()
 
 void DeviceFactory::DeleteDevice(Device *device)
 {
-	devices.erase(device->GetId());
+	auto iterpair = devices.equal_range(device->GetId());
 
-	delete device;
+	for (auto it = iterpair.first; it != iterpair.second; ++it) {
+		if (it->second->GetLun() == device->GetLun()) {
+			devices.erase(it);
+			delete device;
+
+			break;
+		}
+	}
 }
 
 void DeviceFactory::DeleteAllDevices()
@@ -90,6 +97,17 @@ void DeviceFactory::DeleteAllDevices()
 	}
 
 	devices.clear();
+}
+
+const vector<Device *> DeviceFactory::GetAllDevices() const
+{
+	vector<Device *> result;
+
+	for (const auto& device : devices) {
+		result.push_back(device.second);
+	}
+
+	return result;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
@@ -128,6 +146,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	return UNDEFINED;
 }
 
+// ID -1 is used by rascsi to create a temporary device
 Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
 {
 	// If no type was specified try to derive the device type from the filename
@@ -226,7 +245,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		return nullptr;
 	}
 
-	devices[id] = device;
+	devices.emplace(id, device);
 
 	return device;
 }
