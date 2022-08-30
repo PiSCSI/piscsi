@@ -14,27 +14,25 @@
 #include <vector>
 #include <unordered_map>
 
-using namespace std;
-
 class BUS;
 class AbstractController;
-class ScsiController;
+class PrimaryDevice;
 
 class ControllerManager
 {
 	ControllerManager() {}
-	~ControllerManager() {}
+	~ControllerManager();
 
 public:
 
 	static ControllerManager& instance();
 
-	ScsiController *CreateScsiController(BUS *, int);
-	const vector<AbstractController *> FindAll();
+	void CreateScsiController(BUS *, PrimaryDevice *);
+	AbstractController *IdentifyController(int);
 	AbstractController *FindController(int);
 	void DeleteAll();
 	void ResetAll();
 	void ClearAllLuns();
 
-	static unordered_map<int, AbstractController *> controllers;
+	static std::unordered_map<int, AbstractController *> controllers;
 };

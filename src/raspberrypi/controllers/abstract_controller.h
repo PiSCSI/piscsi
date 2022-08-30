@@ -12,7 +12,6 @@
 #pragma once
 
 #include "phase_handler.h"
-#include <vector>
 #include <unordered_map>
 
 using namespace std;
@@ -58,7 +57,7 @@ public:
 		unordered_map<int, PrimaryDevice *> luns;
 	} ctrl_t;
 
-	AbstractController(BUS *, int);
+	AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {}
 	virtual ~AbstractController() {}
 
 	virtual BUS::phase_t Process(int) = 0;
@@ -79,15 +78,11 @@ public:
 	PrimaryDevice *GetDeviceForLun(int) const;
 	void SetDeviceForLun(int, PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
+	void ClearLuns();
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
-	static const vector<AbstractController *> FindAll();
-	static AbstractController *FindController(int);
-	static void ClearLuns();
-	static void DeleteAll();
-	static void ResetAll();
 
 protected:
 
@@ -96,8 +91,4 @@ protected:
 	int target_id;
 
 	ctrl_t ctrl = {};
-
-private:
-
-	static unordered_map<int, AbstractController *> controllers;
 };

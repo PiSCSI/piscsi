@@ -23,7 +23,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS *bus, int scsi_id) : AbstractController(bus, scsi_id)
+ScsiController::ScsiController(BUS *bus, int target_id) : AbstractController(bus, target_id)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -217,7 +217,7 @@ void ScsiController::Selection()
 			return;
 		}
 
-		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, GetTargetId());
+		LOGTRACE("%s Selection Phase Target ID=%d", __PRETTY_FUNCTION__, GetTargetId());
 
 		SetPhase(BUS::selection);
 

@@ -12,7 +12,7 @@
 
 #include "config.h"
 #include "os.h"
-#include "controllers/abstract_controller.h"
+#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
@@ -72,6 +72,7 @@ string current_log_level;			// Some versions of spdlog do not support get_log_le
 string access_token;
 unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
+ControllerManager&controller_manager = ControllerManager::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 void DetachAll();
@@ -201,7 +202,7 @@ void Cleanup()
 {
 	DetachAll();
 
-	AbstractController::DeleteAll();
+	controller_manager.DeleteAll();
 
 	// Clean up and discard the bus
 	if (bus) {
@@ -219,7 +220,7 @@ void Cleanup()
 
 void Reset()
 {
-	AbstractController::ResetAll();
+	controller_manager.ResetAll();
 
 	bus->Reset();
 }
@@ -382,7 +383,7 @@ string SetReservedIds(const string& ids)
 void DetachAll()
 {
 	pthread_mutex_lock(&ctrl_mutex);
-	AbstractController::ClearLuns();
+	controller_manager.ClearAllLuns();
 	// TODO Move the devices list from rascsi to the controller, move all memory management to the controllers
 	for (auto it = devices.begin(); it != devices.end(); ++it) {
 		delete *it;
@@ -539,11 +540,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	pthread_mutex_lock(&ctrl_mutex);
 	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
 	devices[device->GetId() * UnitNum + device->GetLun()] = device;
-	AbstractController *controller = AbstractController::FindController(device->GetId());
-	if (controller == nullptr) {
-		controller = new ScsiController(bus, device->GetId());
-	}
-	controller->SetDeviceForLun(device->GetLun(), primary_device);
+	controller_manager.CreateScsiController(bus, primary_device);
 	pthread_mutex_unlock(&ctrl_mutex);
 
 	string msg = "Attached ";
@@ -584,7 +581,7 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
 		devices[id * UnitNum + lun] = nullptr;
-		AbstractController::FindController(id)->SetDeviceForLun(lun, nullptr);
+		controller_manager.FindController(id)->SetDeviceForLun(lun, nullptr);
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
@@ -753,7 +750,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Does the controller exist?
-	if (!dryRun && AbstractController::FindController(id) == nullptr) {
+	if (!dryRun && controller_manager.FindController(id) == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
@@ -1424,7 +1421,6 @@ int main(int argc, char* argv[])
 	delete operation_info;
 #endif
 
-	int actid;
 	BUS::phase_t phase;
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -1490,7 +1486,6 @@ int main(int argc, char* argv[])
 	// Main Loop
 	while (running) {
 		// Work initialization
-		actid = -1;
 		phase = BUS::busfree;
 
 #ifdef USE_SEL_EVENT_ENABLE
@@ -1537,15 +1532,10 @@ int main(int argc, char* argv[])
 		// The initiator and target ID
 		BYTE data = bus->GetDAT();
 
-		for (auto& controller : AbstractController::FindAll()) {
-			int target_id = controller->GetTargetId();
-
-			if ((data & (1 << target_id)) == 0) {
-				continue;
-			}
-
+		AbstractController *controller = controller_manager.IdentifyController(data);
+		if (controller != nullptr) {
 			// Extract the initiator ID
-			int tmp = data - (1 << target_id);
+			int tmp = data - (1 << controller->GetTargetId());
 			if (tmp) {
 				initiator_id = 0;
 				for (int j = 0; j < 8; j++) {
@@ -1559,13 +1549,9 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			// Find the target that has moved to the selection phase
 			if (controller->Process(initiator_id) == BUS::selection) {
-				actid = target_id;
-
 				// Bus Selection phase
 				phase = BUS::selection;
-				break;
 			}
 		}
 
@@ -1587,7 +1573,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = AbstractController::FindController(actid)->Process(initiator_id);
+			phase = controller->Process(initiator_id);
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {

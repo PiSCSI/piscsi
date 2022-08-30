@@ -7,11 +7,21 @@
 //
 //---------------------------------------------------------------------------
 
+#include "devices/primary_device.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
 #include <vector>
 
+using namespace std;
+
 unordered_map<int, AbstractController *> ControllerManager::controllers;
+
+ControllerManager::~ControllerManager()
+{
+	for (const auto& controller : controllers) {
+		delete controller.second;
+	}
+}
 
 ControllerManager& ControllerManager::instance()
 {
@@ -19,27 +29,31 @@ ControllerManager& ControllerManager::instance()
 	return instance;
 }
 
-ScsiController *ControllerManager::CreateScsiController(BUS *bus, int target_id)
+void ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 {
-	return new ScsiController(bus, target_id);
-}
-
-// TODO Try not to expose the controller list by moving a part of the Process() code into the AbstractController class
-// Or use the visitor pattern
-const vector<AbstractController *> ControllerManager::FindAll()
-{
-	vector<AbstractController *> result;
-
-	for (auto controller : controllers) {
-		result.push_back(controller.second);
+	AbstractController *controller = FindController(device->GetId());
+	if (controller == nullptr) {
+		controller = new ScsiController(bus, device->GetId());
+		controllers[device->GetId()] = controller;
 	}
 
-	return result;
+	controller->SetDeviceForLun(device->GetLun(), device);
 }
 
-AbstractController *ControllerManager::FindController(int scsi_id)
+AbstractController *ControllerManager::IdentifyController(int data)
 {
-	const auto& it = controllers.find(scsi_id);
+	for (const auto& controller : controllers) {
+		if (data & (1 << controller.second->GetTargetId())) {
+			return controller.second;
+		}
+	}
+
+	return nullptr;
+}
+
+AbstractController *ControllerManager::FindController(int target_id)
+{
+	const auto& it = controllers.find(target_id);
 	return it == controllers.end() ? nullptr : it->second;
 }
 
