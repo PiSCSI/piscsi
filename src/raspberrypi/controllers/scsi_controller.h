@@ -78,6 +78,8 @@ public:
 
 	int GetEffectiveLun() const override;
 
+	int GetMaxLuns() const override { return LUN_MAX; };
+
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
 

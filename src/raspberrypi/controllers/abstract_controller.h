@@ -71,6 +71,8 @@ public:
 	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
 
+	virtual int GetMaxLuns() const = 0;
+
 	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
 
 	int GetTargetId() const { return target_id; }
@@ -79,6 +81,7 @@ public:
 	void SetDeviceForLun(int, PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
 	void ClearLuns();
+	int ExtractInitiatorId(int id_data);
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }

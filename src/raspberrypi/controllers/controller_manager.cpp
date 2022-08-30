@@ -78,3 +78,17 @@ void ControllerManager::ClearAllLuns()
 		controller.second->ClearLuns();
 	}
 }
+
+PrimaryDevice *ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
+{
+	for (const auto& controller : controllers) {
+		if (controller.second->GetTargetId() == id) {
+			PrimaryDevice *device = controller.second->GetDeviceForLun(lun);
+			if (device != nullptr) {
+				return device;
+			}
+		}
+	}
+
+	return nullptr;
+}

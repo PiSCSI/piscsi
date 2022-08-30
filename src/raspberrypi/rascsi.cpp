@@ -382,14 +382,8 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	pthread_mutex_lock(&ctrl_mutex);
+	device_factory.DeleteAllDevices();
 	controller_manager.ClearAllLuns();
-	// TODO Move the devices list from rascsi to the controller, move all memory management to the controllers
-	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		delete *it;
-		*it = nullptr;
-	}
-	pthread_mutex_unlock(&ctrl_mutex);
 
 	FileSupport::UnreserveAll();
 
@@ -402,7 +396,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (devices[id * UnitNum + unit] != nullptr) {
+	if (controller_manager.GetDeviceByIdAndLun(id, unit) != nullptr) {
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
@@ -413,7 +407,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	string filename = GetParam(pb_device, "file");
 
-	Device *device = device_factory.CreateDevice(type, filename);
+	Device *device = device_factory.CreateDevice(type, filename, id);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
@@ -454,13 +448,13 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				delete device;
+				device_factory.DeleteDevice(device);
 
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			delete device;
+			device_factory.DeleteDevice(device);
 
 			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
@@ -468,7 +462,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
-		delete device;
+		device_factory.DeleteDevice(device);
 
 		return ReturnStatus(context, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 	}
@@ -481,7 +475,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		int id;
 		int unit;
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-			delete device;
+			device_factory.DeleteDevice(device);
 
 			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
@@ -495,7 +489,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-					delete device;
+					device_factory.DeleteDevice(device);
 
 					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
@@ -504,7 +498,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			}
 		}
 		catch(const io_exception& e) {
-			delete device;
+			device_factory.DeleteDevice(device);
 
 			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
@@ -520,7 +514,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
-		delete device;
+		device_factory.DeleteDevice(device);
 
 		return true;
 	}
@@ -530,7 +524,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		params.erase("file");
 	}
 	if (!device->Init(params)) {
-		delete device;
+		device_factory.DeleteDevice(device);
 
 		return ReturnStatus(context, false, "Initialization of " + PbDeviceType_Name(type) + " device, ID " +to_string(id) +
 				", unit " +to_string(unit) + " failed");
@@ -755,7 +749,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Does the unit exist?
-	Device *device = devices[id * UnitNum + unit];
+	Device *device = controller_manager.GetDeviceByIdAndLun(id, unit);
 	if (device == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
@@ -1525,32 +1519,19 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
-		pthread_mutex_lock(&ctrl_mutex);
 
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		BYTE data = bus->GetDAT();
+		BYTE id_data = bus->GetDAT();
 
-		AbstractController *controller = controller_manager.IdentifyController(data);
+		pthread_mutex_lock(&ctrl_mutex);
+
+		AbstractController *controller = controller_manager.IdentifyController(id_data);
 		if (controller != nullptr) {
-			// Extract the initiator ID
-			int tmp = data - (1 << controller->GetTargetId());
-			if (tmp) {
-				initiator_id = 0;
-				for (int j = 0; j < 8; j++) {
-					tmp >>= 1;
-					if (tmp) {
-						initiator_id++;
-					}
-					else {
-						break;
-					}
-				}
-			}
+			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (controller->Process(initiator_id) == BUS::selection) {
-				// Bus Selection phase
 				phase = BUS::selection;
 			}
 		}

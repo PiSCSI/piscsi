@@ -22,6 +22,8 @@
 using namespace std;
 using namespace rascsi_interface;
 
+unordered_map<int, Device *> DeviceFactory::devices;
+
 DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_params({}), extension_mapping({})
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
@@ -63,10 +65,31 @@ DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_param
 	extension_mapping["iso"] = SCCD;
 }
 
+DeviceFactory::~DeviceFactory()
+{
+	DeleteAllDevices();
+}
+
 DeviceFactory& DeviceFactory::instance()
 {
 	static DeviceFactory instance;
 	return instance;
+}
+
+void DeviceFactory::DeleteDevice(Device *device)
+{
+	devices.erase(device->GetId());
+
+	delete device;
+}
+
+void DeviceFactory::DeleteAllDevices()
+{
+	for (const auto& device : devices) {
+		delete device.second;
+	}
+
+	devices.clear();
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
@@ -105,7 +128,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	return UNDEFINED;
 }
 
-Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
+Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -202,6 +225,8 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 		// There was an internal problem with setting up the device data for INQUIRY
 		return nullptr;
 	}
+
+	devices[id] = device;
 
 	return device;
 }

@@ -33,6 +33,7 @@ public:
 	void DeleteAll();
 	void ResetAll();
 	void ClearAllLuns();
+	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 
 	static std::unordered_map<int, AbstractController *> controllers;
 };

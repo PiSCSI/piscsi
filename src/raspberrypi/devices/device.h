@@ -20,6 +20,8 @@ using namespace std;
 
 class Device
 {
+	friend class DeviceFactory;
+
 	string type;
 
 	bool ready = false;
@@ -87,10 +89,10 @@ protected:
 
 	static unordered_set<Device *> devices;
 
-public:
-
 	Device(const string&);
 	virtual ~Device();
+
+public:
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };

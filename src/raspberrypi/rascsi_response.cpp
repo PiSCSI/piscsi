@@ -29,6 +29,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
+	// Get maximum lun number from controller
 	properties->set_luns(ScsiController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
@@ -59,9 +60,9 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory->CreateDevice(type, "");
+	Device *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
+	device_factory->DeleteDevice(device);
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)

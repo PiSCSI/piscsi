@@ -17,7 +17,7 @@ PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 
 void AbstractController::SetDeviceForLun(int lun, PrimaryDevice *device)
 {
-	assert(lun < LUN_MAX);
+	assert(lun < GetMaxLuns());
 
 	delete GetDeviceForLun(lun);
 
@@ -38,4 +38,25 @@ bool AbstractController::HasDeviceForLun(int lun) const
 void AbstractController::ClearLuns()
 {
 	ctrl.luns.clear();
+}
+
+int AbstractController::ExtractInitiatorId(int id_data)
+{
+	int initiator_id = -1;
+
+	int tmp = id_data - (1 << target_id);
+	if (tmp) {
+		initiator_id = 0;
+		for (int j = 0; j < 8; j++) {
+			tmp >>= 1;
+			if (tmp) {
+				initiator_id++;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	return initiator_id;
 }

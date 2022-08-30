@@ -27,13 +27,15 @@ class Device;
 class DeviceFactory
 {
 	DeviceFactory();
-	~DeviceFactory() {}
+	~DeviceFactory();
 
 public:
 
 	static DeviceFactory& instance();
 
-	Device *CreateDevice(PbDeviceType, const string&);
+	Device *CreateDevice(PbDeviceType, const string&, int);
+	void DeleteDevice(Device *);
+	void DeleteAllDevices();
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const unordered_set<uint32_t>& GetSectorSizes(const string&);
@@ -54,4 +56,6 @@ private:
 	unordered_map<string, PbDeviceType> extension_mapping;
 
 	string GetExtension(const string&) const;
+
+	static std::unordered_map<int, Device *> devices;
 };
