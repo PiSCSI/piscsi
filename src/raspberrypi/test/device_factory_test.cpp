@@ -85,13 +85,13 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
 	EXPECT_EQ(nullptr, device);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
@@ -109,11 +109,13 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ("FIREBALL", device->GetProduct()) << "Invalid default vendor for Apple drive";
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
@@ -131,11 +133,13 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_EQ("SCSI HD (REM.)", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
@@ -153,11 +157,13 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	EXPECT_EQ("SCSI MO", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
@@ -175,11 +181,13 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
@@ -197,11 +205,13 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_EQ("SCSI HOST BRIDGE", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
@@ -218,11 +228,13 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	EXPECT_EQ("Dayna", device->GetVendor());
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
 	EXPECT_EQ("1.4a", device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
@@ -240,11 +252,13 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ("Host Services", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "printer");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
@@ -262,6 +276,8 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ("SCSI PRINTER", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+	device_factory.DeleteDevice(device);
 }
 
 }
