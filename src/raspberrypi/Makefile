@@ -18,18 +18,15 @@ CXX = $(CROSS_COMPILE)g++
 ##              this is only used by developers.
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-	# Debug CFLAGS
-	CFLAGS += -O0 -g -Wall -DDEBUG
+	# Debug compiler flags
 	CXXFLAGS += -O0 -g -Wall -DDEBUG
 	BUILD_TYPE = Debug
 else
-	# Release CFLAGS
-	CFLAGS += -O3 -Wall -Werror -DNDEBUG
+	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq "$(GCCVERSION11)" "1"
-	CFLAGS += -Wextra
 	CXXFLAGS += -Wextra
 endif
 ifeq ("$(shell uname -s)","Linux")
@@ -37,15 +34,12 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
-CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
 
 ifeq "$(GCCVERSION10)" "1"
-	CFLAGS += -DFMT_HEADER_ONLY
 	CXXFLAGS += -DFMT_HEADER_ONLY
 endif
 
@@ -59,7 +53,6 @@ endif
 CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
-CFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 
