@@ -1,5 +1,9 @@
 .DEFAULT_GOAL: all
 
+# Depending on the GCC version the compilation flags differ
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+GCCVERSION11 := $(shell expr `gcc -dumpversion` \>= 11)
+
 ## Optional build flags:
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
@@ -15,14 +19,18 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug CFLAGS
-	CFLAGS += -O0 -g -Wall -Wextra -DDEBUG
-	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
+	CFLAGS += -O0 -g -Wall -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -DDEBUG
 	BUILD_TYPE = Debug
 else
 	# Release CFLAGS
-	CFLAGS += -O3 -Wall -Wextra -Werror -DNDEBUG
-	CXXFLAGS += -O3 -Wall -Wextra -Werror -DNDEBUG
+	CFLAGS += -O3 -Wall -Werror -DNDEBUG
+	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
+endif
+ifeq "$(GCCVERSION11)" "1"
+	CFLAGS += -Wextra
+	CXXFLAGS += -Wextra
 endif
 ifeq ("$(shell uname -s)","Linux")
 	# -Wno-psabi might not work on non-Linux platforms
@@ -36,14 +44,10 @@ CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
 
-# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
-GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
-
 ifeq "$(GCCVERSION10)" "1"
 	CFLAGS += -DFMT_HEADER_ONLY
 	CXXFLAGS += -DFMT_HEADER_ONLY
 endif
-
 
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
