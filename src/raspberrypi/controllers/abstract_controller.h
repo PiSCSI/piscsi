@@ -81,7 +81,6 @@ public:
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
-	void ClearLuns();
 	int ExtractInitiatorId(int id_data);
 
 	// TODO Do not expose internal data

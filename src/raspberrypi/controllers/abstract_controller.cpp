@@ -37,11 +37,6 @@ bool AbstractController::HasDeviceForLun(int lun) const
 	return ctrl.luns.find(lun) != ctrl.luns.end();
 }
 
-void AbstractController::ClearLuns()
-{
-	ctrl.luns.clear();
-}
-
 int AbstractController::ExtractInitiatorId(int id_data)
 {
 	int initiator_id = -1;

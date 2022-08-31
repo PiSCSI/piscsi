@@ -26,9 +26,7 @@ TEST(AbstractControllerTest, AbstractController)
 	EXPECT_EQ(ID, controller.GetTargetId());
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN));
 	EXPECT_FALSE(controller.HasDeviceForLun(0));
-
-	controller.ClearLuns();
-	EXPECT_FALSE(controller.HasDeviceForLun(LUN));
+	EXPECT_TRUE(controller.DeleteDevice(&device));
 
 	EXPECT_EQ(INITIATOR_ID, controller.ExtractInitiatorId((1 << INITIATOR_ID) | ( 1 << ID)));
 	EXPECT_EQ(UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
