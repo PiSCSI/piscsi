@@ -73,7 +73,7 @@ public:
 
 	virtual int GetMaxLuns() const = 0;
 
-	virtual void ScheduleShutDown(rascsi_shutdown_mode) = 0;
+	virtual void ScheduleShutdown(rascsi_shutdown_mode) = 0;
 
 	int GetTargetId() const { return target_id; }
 

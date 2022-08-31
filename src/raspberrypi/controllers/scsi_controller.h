@@ -124,7 +124,7 @@ private:
 	void FlushUnit();
 	void Receive();
 
-	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) override { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutdown(rascsi_shutdown_mode shutdown_mode) override { this->shutdown_mode = shutdown_mode; }
 
 	void Sleep();
 
