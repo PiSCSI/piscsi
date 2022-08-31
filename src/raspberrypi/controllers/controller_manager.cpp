@@ -10,7 +10,6 @@
 #include "devices/primary_device.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
-#include <vector>
 
 using namespace std;
 

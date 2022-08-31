@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
-#include <vector>
+#include <list>
 #include <string>
 
 using namespace std;
@@ -25,8 +25,9 @@ class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory *, const RascsiImage *);
-	~RascsiResponse() {};
+	RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
+		: device_factory(device_factory), rascsi_image(rascsi_image) {}
+	~RascsiResponse() {}
 
 	bool GetImageFile(PbImageFile *, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
@@ -46,7 +47,7 @@ private:
 	DeviceFactory *device_factory;
 	const RascsiImage *rascsi_image;
 
-	vector<string> log_levels { "trace", "debug", "info", "warn", "err", "critical", "off" };
+	static list<string> log_levels;
 
 	PbDeviceProperties *GetDeviceProperties(const Device *);
 	void GetDevice(const Device *, PbDevice *);

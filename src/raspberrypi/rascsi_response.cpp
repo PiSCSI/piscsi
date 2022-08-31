@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -20,10 +20,8 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
-	: device_factory(device_factory), rascsi_image(rascsi_image)
-{
-}
+list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
+
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {

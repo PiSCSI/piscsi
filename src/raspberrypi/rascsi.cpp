@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2021 Contributors to the RaSCSI project
+//	Copyright (C) 2020-2022 Contributors to the RaSCSI project
 //	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
@@ -32,7 +32,6 @@
 #include <iostream>
 #include <fstream>
 #include <list>
-#include <vector>
 #include <map>
 
 using namespace std;
@@ -46,12 +45,8 @@ using namespace protobuf_util;
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	AbstractController::LUN_MAX	// Number of LUNs per controller/device
-#define DeviceMax (CtrlMax * UnitNum)
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 #define DEFAULT_PORT 6868
-
 #define COMPONENT_SEPARATOR ':'
 
 //---------------------------------------------------------------------------
@@ -265,12 +260,12 @@ string ValidateLunSetup(const PbCommand& command)
 	// Mapping of available LUNs (bit vector) to devices
 	map<uint32_t, uint32_t> luns;
 
-	// Collect LUN vectors of new devices
+	// Collect LUN bit vectors of new devices
 	for (const auto& device : command.devices()) {
 		luns[device.id()] |= 1 << device.unit();
 	}
 
-	// Collect LUN vectors of existing devices
+	// Collect LUN bit vectors of existing devices
 	for (const Device *device : device_factory.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
@@ -719,9 +714,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (id < 0) {
 		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
-	if (id >= CtrlMax) {
+	if (id >= ControllerManager::DEVICE_MAX) {
 		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-"
-				+ to_string(CtrlMax - 1) + ")");
+				+ to_string(ControllerManager::DEVICE_MAX - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
@@ -729,8 +724,8 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Check the Unit Number
-	if (unit < 0 || unit >= UnitNum) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(UnitNum - 1) + ")");
+	if (unit < 0 || unit >= AbstractController::LUN_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX - 1) + ")");
 	}
 
 	if (operation == ATTACH) {
@@ -924,8 +919,8 @@ bool ProcessId(const string id_spec, int& id, int& unit)
 		unit = 0;
 	}
 	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= UnitNum) {
-		cerr << optarg << ": Invalid unit (0-" << (UnitNum - 1) << ")" << endl;
+			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= AbstractController::LUN_MAX) {
+		cerr << optarg << ": Invalid unit (0-" << (AbstractController::LUN_MAX - 1) << ")" << endl;
 		return false;
 	}
 

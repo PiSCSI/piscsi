@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <vector>
 #include <unordered_map>
 
 class BUS;
@@ -24,6 +23,8 @@ class ControllerManager
 	~ControllerManager();
 
 public:
+	// Maximum number of controller devices
+	static const int DEVICE_MAX = 8;
 
 	static ControllerManager& instance();
 

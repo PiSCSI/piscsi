@@ -15,8 +15,10 @@
 #include <vector>
 #include <map>
 
+using namespace std;
+
 namespace scsi_command_util
 {
 	void ModeSelect(const DWORD *, const BYTE *, int, int);
-	void EnrichFormatPage(std::map<int, vector<BYTE>>&, bool, int);
+	void EnrichFormatPage(map<int, vector<BYTE>>&, bool, int);
 }

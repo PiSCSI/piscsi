@@ -12,6 +12,7 @@
 
 #include "mode_page_device.h"
 #include <vector>
+#include <map>
 
 using namespace std;
 

@@ -16,7 +16,7 @@
 #include <pcap/pcap.h>
 #include "filepath.h"
 #include <unordered_map>
-#include <vector>
+#include <list>
 #include <string>
 
 #ifndef ETH_FRAME_LEN
@@ -65,7 +65,7 @@ private:
 	pcap_dumper_t *m_pcap_dumper = nullptr;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
-	vector<string> interfaces;
+	list<string> interfaces;
 
 	string inet;
 };
