@@ -17,9 +17,7 @@ unordered_map<int, AbstractController *> ControllerManager::controllers;
 
 ControllerManager::~ControllerManager()
 {
-	for (const auto& controller : controllers) {
-		delete controller.second;
-	}
+	DeleteAll();
 }
 
 ControllerManager& ControllerManager::instance()
@@ -58,10 +56,11 @@ AbstractController *ControllerManager::FindController(int target_id) const
 
 void ControllerManager::DeleteAll()
 {
-	for (auto controller : controllers) {
-		controller.second->ClearLuns();
+	for (const auto& controller : controllers) {
 		delete controller.second;
 	}
+
+	controllers.clear();
 }
 
 void ControllerManager::ResetAll()
@@ -80,13 +79,9 @@ void ControllerManager::ClearAllLuns()
 
 PrimaryDevice *ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
 {
-	for (const auto& controller : controllers) {
-		if (controller.second->GetTargetId() == id) {
-			PrimaryDevice *device = controller.second->GetDeviceForLun(lun);
-			if (device != nullptr) {
-				return device;
-			}
-		}
+	const AbstractController *controller = FindController(id);
+	if (controller != nullptr) {
+		return controller->GetDeviceForLun(lun);
 	}
 
 	return nullptr;
