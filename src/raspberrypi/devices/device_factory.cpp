@@ -110,9 +110,9 @@ const Device * DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 	return nullptr;
 }
 
-const vector<Device *> DeviceFactory::GetAllDevices() const
+const list<Device *> DeviceFactory::GetAllDevices() const
 {
-	vector<Device *> result;
+	list<Device *> result;
 
 	for (const auto& device : devices) {
 		result.push_back(device.second);

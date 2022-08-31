@@ -38,7 +38,7 @@ public:
 	void DeleteDevice(Device *);
 	void DeleteAllDevices();
 	const Device *GetDeviceByIdAndLun(int, int) const;
-	const vector<Device *> GetAllDevices() const;
+	const list<Device *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const unordered_set<uint32_t>& GetSectorSizes(const string&);
