@@ -28,7 +28,7 @@ ControllerManager& ControllerManager::instance()
 	return instance;
 }
 
-void ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
+bool ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 {
 	AbstractController *controller = FindController(device->GetId());
 	if (controller == nullptr) {
@@ -36,7 +36,7 @@ void ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 		controllers[device->GetId()] = controller;
 	}
 
-	controller->AddLun(device);
+	return controller->AddLun(device);
 }
 
 AbstractController *ControllerManager::IdentifyController(int data) const

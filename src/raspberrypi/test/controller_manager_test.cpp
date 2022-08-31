@@ -7,12 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-
 #include "mocks.h"
 #include "controllers/controller_manager.h"
 
-TEST(ControllerManagerTest, CreateScsiController)
+TEST(ControllerManagerTest, ControllerManager)
 {
 	const int ID = 4;
 	const int LUN = 6;

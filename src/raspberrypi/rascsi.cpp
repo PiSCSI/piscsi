@@ -519,7 +519,11 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
 	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
-	controller_manager.CreateScsiController(bus, primary_device);
+	if (!controller_manager.CreateScsiController(bus, primary_device)) {
+		pthread_mutex_unlock(&ctrl_mutex);
+
+		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
+	}
 	pthread_mutex_unlock(&ctrl_mutex);
 
 	string msg = "Attached ";
@@ -559,7 +563,11 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		controller_manager.FindController(id)->DeleteLun(device);
+		if (!controller_manager.FindController(id)->DeleteLun(device)) {
+			pthread_mutex_unlock(&ctrl_mutex);
+
+			return ReturnStatus(context, false, "Couldn't detach device");
+		}
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 

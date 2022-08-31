@@ -7,9 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include "mocks.h"
 #include "spdlog/spdlog.h"
 #include "exceptions.h"

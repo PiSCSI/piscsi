@@ -7,8 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-
 #include "mocks.h"
 #include "rascsi_version.h"
 #include "devices/device.h"
