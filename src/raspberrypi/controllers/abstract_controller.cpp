@@ -15,20 +15,18 @@ PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 	return it == ctrl.luns.end() ? nullptr : it->second;
 }
 
-void AbstractController::SetDeviceForLun(int lun, PrimaryDevice *device)
+void AbstractController::AddLun(PrimaryDevice *device)
 {
-	assert(lun < GetMaxLuns());
-
-	if (device != nullptr) {
-		ctrl.luns[lun] = device;
-		device->SetController(this);
-	}
-	else {
-		ctrl.luns.erase(lun);
-	}
+	ctrl.luns[device->GetLun()] = device;
+	device->SetController(this);
 }
 
-bool AbstractController::HasDeviceForLun(int lun) const
+void AbstractController::DeleteLun(const PrimaryDevice *device)
+{
+	ctrl.luns.erase(device->GetLun());
+}
+
+bool AbstractController::HasLun(int lun) const
 {
 	return ctrl.luns.find(lun) != ctrl.luns.end();
 }

@@ -303,7 +303,7 @@ void ScsiController::Execute()
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!HasDeviceForLun(lun)) {
+	if (!HasLun(lun)) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId());
@@ -314,7 +314,7 @@ void ScsiController::Execute()
 		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			assert(HasDeviceForLun(0));
+			assert(HasLun(0));
 
 			lun = 0;
 		}
@@ -341,7 +341,7 @@ void ScsiController::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !HasLun(lun)) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId());
@@ -519,8 +519,8 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	int lun = GetEffectiveLun();
-	if (!HasDeviceForLun(lun) || asc == INVALID_LUN) {
-		assert(HasDeviceForLun(0));
+	if (!HasLun(lun) || asc == INVALID_LUN) {
+		assert(HasLun(0));
 
 		lun = 0;
 	}
@@ -550,7 +550,7 @@ void ScsiController::Send()
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
 		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length,
-				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
+				HasLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1086,7 +1086,7 @@ bool ScsiController::XferIn(BYTE *buf)
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun = GetEffectiveLun();
-	if (!HasDeviceForLun(lun)) {
+	if (!HasLun(lun)) {
 		return false;
 	}
 

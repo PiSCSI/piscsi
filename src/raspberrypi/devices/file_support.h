@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // Devices inheriting from FileSupport support image files
 //
@@ -21,11 +21,14 @@ typedef pair<int, int> id_set;
 
 class FileSupport
 {
-private:
+	friend class ControllerManager;
+
 	Filepath diskpath;
 
 	// The list of image files in use and the IDs and LUNs using these files
 	static unordered_map<string, id_set> reserved_files;
+
+	static void UnreserveAll();
 
 public:
 
@@ -41,7 +44,6 @@ public:
 	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)
 		{ FileSupport::reserved_files = files_in_use; }
 	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
-	static void UnreserveAll();
 
 	virtual void Open(const Filepath&) = 0;
 };

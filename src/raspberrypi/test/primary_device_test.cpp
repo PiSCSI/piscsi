@@ -131,7 +131,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_TRUE(device.Dispatch());
 	EXPECT_EQ(0x7F, controller.ctrl.buffer[0]) << "Invalid LUN was not reported";
 
-	controller.SetDeviceForLun(0, &device);
+	controller.AddLun(&device);
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());

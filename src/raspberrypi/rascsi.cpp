@@ -196,8 +196,6 @@ void Cleanup()
 {
 	DetachAll();
 
-	controller_manager.DeleteAllControllersAndDevices();
-
 	// Clean up and discard the bus
 	if (bus) {
 		bus->Cleanup();
@@ -376,8 +374,6 @@ void DetachAll()
 {
 	controller_manager.DeleteAllControllersAndDevices();
 
-	FileSupport::UnreserveAll();
-
 	LOGINFO("Detached all devices");
 }
 
@@ -539,7 +535,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	return true;
 }
 
-bool Detach(const CommandContext& context, Device *device, bool dryRun)
+bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 {
 	if (!device->GetLun()) {
 		for (const Device *d : device_factory.GetAllDevices()) {
@@ -551,7 +547,7 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 	}
 
 	if (!dryRun) {
-		// Remember data that going to be deleted
+		// Remember data that going to be deleted but are used for logging
 		int id = device->GetId();
 		int lun = device->GetLun();
 		string type = device->GetType();
@@ -563,7 +559,7 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		controller_manager.FindController(id)->SetDeviceForLun(lun, nullptr);
+		controller_manager.FindController(id)->DeleteLun(device);
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
@@ -738,7 +734,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Does the unit exist?
-	Device *device = controller_manager.GetDeviceByIdAndLun(id, unit);
+	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, unit);
 	if (device == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
@@ -1453,13 +1449,14 @@ int main(int argc, char* argv[])
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
+	struct sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #else
 	cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 	// Start execution
 	running = true;
@@ -1487,7 +1484,7 @@ int main(int argc, char* argv[])
 			usleep(0);
 			continue;
 		}
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
@@ -1534,10 +1531,9 @@ int main(int argc, char* argv[])
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
-		struct sched_param schparam;
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 		// Loop until the bus is free
 		while (running) {
@@ -1556,7 +1552,7 @@ int main(int argc, char* argv[])
 		// Set the scheduling priority back to normal
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 		// End the target travel
 		active = false;

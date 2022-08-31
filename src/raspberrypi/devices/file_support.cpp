@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -23,13 +23,13 @@ void FileSupport::UnreserveFile()
 	reserved_files.erase(diskpath.GetPath());
 }
 
-bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& unit)
+bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& lun)
 {
 	const auto& it = reserved_files.find(path.GetPath());
 	if (it != reserved_files.end()) {
-		const id_set ids = it->second;
-		id = ids.first;
-		unit = ids.second;
+		id = it->second.first;
+		lun = it->second.second;
+
 		return true;
 	}
 

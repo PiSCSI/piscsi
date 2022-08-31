@@ -9,6 +9,7 @@
 
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
+#include "devices/file_support.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
 
@@ -35,7 +36,7 @@ void ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 		controllers[device->GetId()] = controller;
 	}
 
-	controller->SetDeviceForLun(device->GetLun(), device);
+	controller->AddLun(device);
 }
 
 AbstractController *ControllerManager::IdentifyController(int data) const
@@ -64,6 +65,8 @@ void ControllerManager::DeleteAllControllersAndDevices()
 	controllers.clear();
 
 	DeviceFactory::instance().DeleteAllDevices();
+
+	FileSupport::UnreserveAll();
 }
 
 void ControllerManager::ResetAllControllers()
