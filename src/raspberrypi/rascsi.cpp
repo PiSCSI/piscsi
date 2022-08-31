@@ -1406,9 +1406,9 @@ int main(int argc, char* argv[])
 #endif
 
 	BUS::phase_t phase;
+
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
-	struct sched_param schparam;
 
 	// Output the Banner
 	Banner(argc, argv);
@@ -1426,12 +1426,11 @@ int main(int argc, char* argv[])
 	auto logger = stdout_color_mt("rascsi stdout logger");
 	set_level(level::info);
 
-	int port = DEFAULT_PORT;
-
 	if (!InitBus()) {
 		return EPERM;
 	}
 
+	int port = DEFAULT_PORT;
 	if (!InitService(port)) {
 		return EPERM;
 	}
@@ -1460,7 +1459,7 @@ int main(int argc, char* argv[])
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #else
-	cout << "Note: RaSCSI board is not available, only client interface calls are supported" << endl;
+	cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
@@ -1508,7 +1507,6 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
-
 		int initiator_id = -1;
 
 		// The initiator and target ID
@@ -1516,6 +1514,7 @@ int main(int argc, char* argv[])
 
 		pthread_mutex_lock(&ctrl_mutex);
 
+		// Identify the responsible controller
 		AbstractController *controller = controller_manager.IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
@@ -1536,6 +1535,7 @@ int main(int argc, char* argv[])
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
+		struct sched_param schparam;
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
 #endif	// USE_SEL_EVENT_ENABLE

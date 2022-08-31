@@ -39,7 +39,7 @@ void ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 	controller->SetDeviceForLun(device->GetLun(), device);
 }
 
-AbstractController *ControllerManager::IdentifyController(int data)
+AbstractController *ControllerManager::IdentifyController(int data) const
 {
 	for (const auto& controller : controllers) {
 		if (data & (1 << controller.second->GetTargetId())) {
@@ -50,7 +50,7 @@ AbstractController *ControllerManager::IdentifyController(int data)
 	return nullptr;
 }
 
-AbstractController *ControllerManager::FindController(int target_id)
+AbstractController *ControllerManager::FindController(int target_id) const
 {
 	const auto& it = controllers.find(target_id);
 	return it == controllers.end() ? nullptr : it->second;

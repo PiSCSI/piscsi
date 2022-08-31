@@ -29,8 +29,8 @@ public:
 	static ControllerManager& instance();
 
 	void CreateScsiController(BUS *, PrimaryDevice *);
-	AbstractController *IdentifyController(int);
-	AbstractController *FindController(int);
+	AbstractController *IdentifyController(int) const;
+	AbstractController *FindController(int) const;
 	void DeleteAll();
 	void ResetAll();
 	void ClearAllLuns();
