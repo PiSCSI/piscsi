@@ -34,11 +34,6 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-##   COVERAGE=1  : Build with coverage data for the gcov tool
-COVERAGE ?= 0
-ifeq ($(COVERAGE), 1)
-  CXXFLAGS += --coverage
-endif
 
 CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
@@ -75,6 +70,8 @@ RSYSLOG_LOG  = /var/log/rascsi.log
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
+COVERAGE_DIR = ./coverage
+COVERAGE_FILE = rascsi.dat
 OS_FILES = ./os_integration
 
 OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
@@ -177,12 +174,18 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   docs     : Re-generate the text versions of the man pages
 ##   test     : Build and run unit tests
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs
+.PHONY: all ALL docs clean
 all: $(BIN_ALL) docs
 ALL: all
 
 test: $(BINDIR)/$(RASCSI_TEST)
 	$(BINDIR)/$(RASCSI_TEST)
+	
+coverage: CXXFLAGS += --coverage
+coverage: clean $(BINDIR)/$(RASCSI_TEST)
+	$(BINDIR)/$(RASCSI_TEST)
+	lcov -q -c -d . --include '*/RASCSI/*' --exclude '*/test*' -o rascsi.dat
+	genhtml -q -o coverage --legend rascsi.dat
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
@@ -214,7 +217,7 @@ $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
+	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
