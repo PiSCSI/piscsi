@@ -89,7 +89,8 @@ SRC_PROTOC = \
 SRC_PROTOBUF = \
 	rascsi_interface.pb.cpp
 
-SRC_RASCSI_CORE = scsi.cpp \
+SRC_RASCSI_CORE = \
+	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp \
@@ -181,7 +182,9 @@ test: $(BINDIR)/$(RASCSI_TEST)
 	$(BINDIR)/$(RASCSI_TEST)
 	
 coverage: CXXFLAGS += --coverage
-coverage: clean test
+coverage:
+	$(MAKE) clean
+	$(MAKE) test
 	lcov -q -c -d . --include '*/RASCSI/*' --exclude '*/test*' -o $(COVERAGE_FILE)
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
