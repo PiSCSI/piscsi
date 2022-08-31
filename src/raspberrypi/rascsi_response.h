@@ -31,12 +31,11 @@ public:
 	bool GetImageFile(PbImageFile *, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
-	void GetDevices(PbServerInfo&, const vector<Device *>&);
-	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&);
+	void GetDevices(PbServerInfo&);
+	void GetDevicesInfo(PbResult&, const PbCommand&);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
-	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const unordered_set<int>&, const string&,
-			const string&, const string&, int);
+	PbServerInfo *GetServerInfo(PbResult&, const unordered_set<int>&, const string&, const string&, const string&, int);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);

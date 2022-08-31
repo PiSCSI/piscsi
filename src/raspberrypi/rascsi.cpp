@@ -904,7 +904,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(result, command, device_factory.GetAllDevices());
+		rascsi_response.GetDevicesInfo(result, command);
 		SerializeMessage(context.fd, result);
 		return true;
 	}
@@ -1151,7 +1151,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info, device_factory.GetAllDevices());
+	rascsi_response.GetDevices(server_info);
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1278,7 +1278,7 @@ static void *MonThread(void *)
 				}
 
 				case DEVICES_INFO: {
-					rascsi_response.GetDevicesInfo(result, command, device_factory.GetAllDevices());
+					rascsi_response.GetDevicesInfo(result, command);
 					SerializeMessage(context.fd, result);
 					break;
 				}
@@ -1291,9 +1291,8 @@ static void *MonThread(void *)
 
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, device_factory.GetAllDevices(), reserved_ids, current_log_level,
-							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-							rascsi_image.GetDepth()));
+							result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
 					SerializeMessage(context.fd, result);
 					break;
 				}

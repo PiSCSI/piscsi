@@ -233,19 +233,19 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices)
+void RascsiResponse::GetDevices(PbServerInfo& server_info)
 {
-	for (const Device *device : devices) {
+	for (const Device *device : device_factory->GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 		GetDevice(device, pb_device);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
-		for (const Device *device : devices) {
+		for (const Device *device : device_factory->GetAllDevices()) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
@@ -283,9 +283,8 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 	return device_types_info;
 }
 
-PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices,
-		const unordered_set<int>& reserved_ids, const string& current_log_level, const string& folder_pattern,
-		const string& file_pattern, int scan_depth)
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
+		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
@@ -295,7 +294,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Devic
 	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info, devices);
+	GetDevices(*server_info);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 
