@@ -27,6 +27,8 @@ class Device;
 
 class DeviceFactory
 {
+	friend class ControllerManager;
+
 	DeviceFactory();
 	~DeviceFactory();
 
@@ -36,7 +38,6 @@ public:
 
 	Device *CreateDevice(PbDeviceType, const string&, int);
 	void DeleteDevice(Device *);
-	void DeleteAllDevices();
 	const Device *GetDeviceByIdAndLun(int, int) const;
 	const list<Device *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
@@ -48,6 +49,8 @@ public:
 	const unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
 private:
+
+	void DeleteAllDevices();
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 

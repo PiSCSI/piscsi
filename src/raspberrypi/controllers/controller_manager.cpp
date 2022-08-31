@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
@@ -17,7 +18,7 @@ unordered_map<int, AbstractController *> ControllerManager::controllers;
 
 ControllerManager::~ControllerManager()
 {
-	DeleteAll();
+	DeleteAllControllersAndDevices();
 }
 
 ControllerManager& ControllerManager::instance()
@@ -54,26 +55,21 @@ AbstractController *ControllerManager::FindController(int target_id) const
 	return it == controllers.end() ? nullptr : it->second;
 }
 
-void ControllerManager::DeleteAll()
+void ControllerManager::DeleteAllControllersAndDevices()
 {
 	for (const auto& controller : controllers) {
 		delete controller.second;
 	}
 
 	controllers.clear();
+
+	DeviceFactory::instance().DeleteAllDevices();
 }
 
-void ControllerManager::ResetAll()
+void ControllerManager::ResetAllControllers()
 {
 	for (const auto& controller : controllers) {
 		controller.second->Reset();
-	}
-}
-
-void ControllerManager::ClearAllLuns()
-{
-	for (auto controller : controllers) {
-		controller.second->ClearLuns();
 	}
 }
 

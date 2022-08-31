@@ -196,7 +196,7 @@ void Cleanup()
 {
 	DetachAll();
 
-	controller_manager.DeleteAll();
+	controller_manager.DeleteAllControllersAndDevices();
 
 	// Clean up and discard the bus
 	if (bus) {
@@ -214,7 +214,7 @@ void Cleanup()
 
 void Reset()
 {
-	controller_manager.ResetAll();
+	controller_manager.ResetAllControllers();
 
 	bus->Reset();
 }
@@ -374,8 +374,7 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	device_factory.DeleteAllDevices();
-	controller_manager.ClearAllLuns();
+	controller_manager.DeleteAllControllersAndDevices();
 
 	FileSupport::UnreserveAll();
 

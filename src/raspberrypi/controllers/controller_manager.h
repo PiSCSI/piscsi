@@ -31,9 +31,8 @@ public:
 	void CreateScsiController(BUS *, PrimaryDevice *);
 	AbstractController *IdentifyController(int) const;
 	AbstractController *FindController(int) const;
-	void DeleteAll();
-	void ResetAll();
-	void ClearAllLuns();
+	void DeleteAllControllersAndDevices();
+	void ResetAllControllers();
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 
 	static std::unordered_map<int, AbstractController *> controllers;

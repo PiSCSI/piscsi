@@ -10,7 +10,6 @@
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "devices/device.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
@@ -27,8 +26,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
-	// Get maximum lun number from controller
-	properties->set_luns(ScsiController::LUN_MAX);
+	properties->set_luns(AbstractController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
