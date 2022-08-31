@@ -34,6 +34,12 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
+##   COVERAGE=1  : Build with coverage data for the gcov tool
+COVERAGE ?= 0
+ifeq ($(COVERAGE), 1)
+  CXXFLAGS += --coverage
+endif
+
 CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
