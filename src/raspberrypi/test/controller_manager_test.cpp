@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
+#include "testing.h"
 #include "controllers/controller_manager.h"
 
 TEST(ControllerManagerTest, ControllerManager)

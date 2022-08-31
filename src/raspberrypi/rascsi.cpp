@@ -563,7 +563,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		if (!controller_manager.FindController(id)->DeleteLun(device)) {
+		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
 			pthread_mutex_unlock(&ctrl_mutex);
 
 			return ReturnStatus(context, false, "Couldn't detach device");

@@ -64,7 +64,7 @@ void PrimaryDevice::Inquiry()
 	int lun = controller->GetEffectiveLun();
 
 	// Report if the device does not support the requested LUN
-	if (!controller->HasLun(lun)) {
+	if (!controller->HasDeviceForLun(lun)) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId());
 
 		// Signal that the requested LUN does not exist
@@ -86,7 +86,7 @@ void PrimaryDevice::ReportLuns()
 	// Only SELECT REPORT mode 0 is supported
 	if (!ctrl->cmd[2]) {
 		for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
-			if (controller->HasLun(lun)) {
+			if (controller->HasDeviceForLun(lun)) {
 				size += 8;
 				buf[size + 7] = lun;
 			}
@@ -109,9 +109,9 @@ void PrimaryDevice::RequestSense()
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-	if (!controller->HasLun(lun)) {
+	if (!controller->HasDeviceForLun(lun)) {
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
-		assert(controller->HasLun(0));
+		assert(controller->HasDeviceForLun(0));
 
 		lun = 0;
 

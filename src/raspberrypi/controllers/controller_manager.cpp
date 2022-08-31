@@ -36,7 +36,7 @@ bool ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 		controllers[device->GetId()] = controller;
 	}
 
-	return controller->AddLun(device);
+	return controller->AddDevice(device);
 }
 
 AbstractController *ControllerManager::IdentifyController(int data) const

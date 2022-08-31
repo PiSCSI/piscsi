@@ -54,7 +54,7 @@ public:
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 
-	MockScsiController() : ScsiController(nullptr, 0) {}
+	MockScsiController(int target_id) : ScsiController(nullptr, target_id) {}
 	~MockScsiController() {}
 };
 

@@ -78,9 +78,9 @@ public:
 	int GetTargetId() const { return target_id; }
 
 	PrimaryDevice *GetDeviceForLun(int) const;
-	bool AddLun(PrimaryDevice *);
-	bool DeleteLun(const PrimaryDevice *);
-	bool HasLun(int) const;
+	bool AddDevice(PrimaryDevice *);
+	bool DeleteDevice(const PrimaryDevice *);
+	bool HasDeviceForLun(int) const;
 	void ClearLuns();
 	int ExtractInitiatorId(int id_data);
 

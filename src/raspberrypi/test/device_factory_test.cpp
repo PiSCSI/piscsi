@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
+#include "testing.h"
 #include "rascsi_version.h"
 #include "devices/device.h"
 #include "devices/device_factory.h"

@@ -7,14 +7,14 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
+#include "testing.h"
 #include "exceptions.h"
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	MockScsiController controller;
+	MockScsiController controller(0);
 	MockPrimaryDevice device;
 
 	device.SetController(&controller);
@@ -53,7 +53,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	MockScsiController controller;
+	MockScsiController controller(0);
 	MockPrimaryDevice device;
 
 	device.SetController(&controller);
@@ -70,8 +70,8 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_TRUE(device.Dispatch());
 	EXPECT_EQ(0x7F, controller.ctrl.buffer[0]) << "Invalid LUN was not reported";
 
-	EXPECT_TRUE(controller.AddLun(&device));
-	EXPECT_FALSE(controller.AddLun(&device)) << "Duplicate LUN was not rejected";
+	EXPECT_TRUE(controller.AddDevice(&device));
+	EXPECT_FALSE(controller.AddDevice(&device)) << "Duplicate LUN was not rejected";
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());

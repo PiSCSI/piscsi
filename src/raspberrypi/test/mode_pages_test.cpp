@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
+#include "testing.h"
 #include "spdlog/spdlog.h"
 #include "exceptions.h"
 #include "devices/scsi_command_util.h"

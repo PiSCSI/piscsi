@@ -15,9 +15,9 @@ PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 	return it == ctrl.luns.end() ? nullptr : it->second;
 }
 
-bool AbstractController::AddLun(PrimaryDevice *device)
+bool AbstractController::AddDevice(PrimaryDevice *device)
 {
-	if (HasLun(device->GetLun())) {
+	if (HasDeviceForLun(device->GetLun())) {
 		return false;
 	}
 
@@ -27,12 +27,12 @@ bool AbstractController::AddLun(PrimaryDevice *device)
 	return true;
 }
 
-bool AbstractController::DeleteLun(const PrimaryDevice *device)
+bool AbstractController::DeleteDevice(const PrimaryDevice *device)
 {
 	return ctrl.luns.erase(device->GetLun()) == 1;
 }
 
-bool AbstractController::HasLun(int lun) const
+bool AbstractController::HasDeviceForLun(int lun) const
 {
 	return ctrl.luns.find(lun) != ctrl.luns.end();
 }
