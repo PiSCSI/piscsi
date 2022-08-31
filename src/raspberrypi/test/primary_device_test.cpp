@@ -10,14 +10,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "mocks.h"
 #include "exceptions.h"
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
 using namespace rascsi_interface;
-
-namespace PrimaryDeviceTest
-{
 
 class MockScsiController : public ScsiController
 {
@@ -52,25 +50,6 @@ public:
 
 	MockScsiController() : ScsiController(nullptr, 0) {}
 	~MockScsiController() {}
-};
-
-class MockPrimaryDevice : public PrimaryDevice
-{
-public:
-
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
-
-	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() {}
-
-	// Make protected methods visible for testing
-
-	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
-	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
-	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
-	vector<BYTE> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
-		return PrimaryDevice::HandleInquiry(type, level, is_removable);
-	}
 };
 
 TEST(PrimaryDeviceTest, TestUnitReady)
@@ -170,6 +149,4 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_TRUE(device.Dispatch());
 	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
 	EXPECT_EQ(1, controller.ctrl.length) << "Wrong ALLOCATION LENGTH handling";
-}
-
 }

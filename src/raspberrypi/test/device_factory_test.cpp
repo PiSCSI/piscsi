@@ -9,16 +9,10 @@
 
 #include <gtest/gtest.h>
 
+#include "mocks.h"
 #include "rascsi_version.h"
 #include "devices/device.h"
 #include "devices/device_factory.h"
-
-using namespace rascsi_interface;
-
-namespace DeviceFactoryTest
-{
-
-DeviceFactory& device_factory = DeviceFactory::instance();
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
@@ -278,6 +272,4 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 			device->GetRevision());
 
 	device_factory.DeleteDevice(device);
-}
-
 }

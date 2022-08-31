@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "mocks.h"
 #include "spdlog/spdlog.h"
 #include "exceptions.h"
 #include "devices/scsi_command_util.h"
@@ -21,78 +22,7 @@
 
 using namespace std;
 
-namespace ModePagesTest
-{
-
 unordered_set<uint32_t> sector_sizes;
-
-class MockModePageDevice : public ModePageDevice
-{
-public:
-
-	MockModePageDevice() : ModePageDevice("test") { }
-	~MockModePageDevice() { }
-
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
-	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), ());
-
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
-		// Return dummy data for other pages than page 0
-		if (page) {
-			vector<BYTE> buf(255);
-			pages[page] = buf;
-		}
-	}
-
-	// Make protected methods visible for testing
-	// TODO Why does FRIEND_TEST not work for this method?
-
-	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) {
-		return ModePageDevice::AddModePages(cdb, buf, max_length);
-	}
-};
-
-class MockSCSIHD : public SCSIHD
-{
-	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
-
-	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
-	~MockSCSIHD() { };
-};
-
-class MockSCSIHD_NEC : public SCSIHD_NEC
-{
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
-
-	MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
-	~MockSCSIHD_NEC() { };
-};
-
-class MockSCSICD : public SCSICD
-{
-	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
-
-	MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
-	~MockSCSICD() { };
-};
-
-class MockSCSIMO : public SCSIMO
-{
-	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
-
-	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-		: SCSIMO(sector_sizes, geometries) { };
-	~MockSCSIMO() { };
-};
-
-class MockHostServices : public HostServices
-{
-	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
-
-	MockHostServices() { };
-	~MockHostServices() { };
-};
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
@@ -216,6 +146,4 @@ TEST(ModePagesTest, ModeSelect)
 	// Match the requested to the current sector size
 	buf[LENGTH + 12] = 0x02;
 	scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512);
-}
-
 }
