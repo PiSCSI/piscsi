@@ -61,8 +61,6 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-// TODO Get rid of this vector, the controllers know all devices
-vector<Device *> devices(DeviceMax);	// Devices
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -530,7 +528,6 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
 	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
-	devices[device->GetId() * UnitNum + device->GetLun()] = device;
 	controller_manager.CreateScsiController(bus, primary_device);
 	pthread_mutex_unlock(&ctrl_mutex);
 
@@ -571,7 +568,6 @@ bool Detach(const CommandContext& context, Device *device, bool dryRun)
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		devices[id * UnitNum + lun] = nullptr;
 		controller_manager.FindController(id)->SetDeviceForLun(lun, nullptr);
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
@@ -908,7 +904,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+		rascsi_response.GetDevicesInfo(result, command, device_factory.GetAllDevices());
 		SerializeMessage(context.fd, result);
 		return true;
 	}
@@ -1155,7 +1151,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info, devices);
+	rascsi_response.GetDevices(server_info, device_factory.GetAllDevices());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1282,7 +1278,7 @@ static void *MonThread(void *)
 				}
 
 				case DEVICES_INFO: {
-					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+					rascsi_response.GetDevicesInfo(result, command, device_factory.GetAllDevices());
 					SerializeMessage(context.fd, result);
 					break;
 				}
@@ -1295,8 +1291,9 @@ static void *MonThread(void *)
 
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
-							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
+							result, device_factory.GetAllDevices(), reserved_ids, current_log_level,
+							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
+							rascsi_image.GetDepth()));
 					SerializeMessage(context.fd, result);
 					break;
 				}

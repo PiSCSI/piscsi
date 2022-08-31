@@ -32,7 +32,7 @@ public:
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&);
-	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
+	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const unordered_set<int>&, const string&,

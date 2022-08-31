@@ -236,28 +236,22 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices)
 {
 	for (const Device *device : devices) {
-		// Skip if unit does not exist or is not assigned
-		if (device) {
-			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-			GetDevice(device, pb_device);
-		}
+		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
+		GetDevice(device, pb_device);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
-		int unit_count)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
 		for (const Device *device : devices) {
-			if (device) {
-				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
-			}
+			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
 	else {
 		for (const auto& device : command.devices()) {
-			if (devices[device.id() * unit_count + device.unit()]) {
+			if (device_factory->GetDeviceByIdAndLun(device.id(), device.unit())) {
 				id_sets.insert(make_pair(device.id(), device.unit()));
 			}
 			else {
@@ -272,8 +266,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
-		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, devices_info->add_devices());
+		GetDevice(device_factory->GetDeviceByIdAndLun(id_set.first, id_set.second), devices_info->add_devices());
 	}
 
 	result.set_status(true);

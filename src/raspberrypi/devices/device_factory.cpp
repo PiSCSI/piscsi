@@ -99,6 +99,17 @@ void DeviceFactory::DeleteAllDevices()
 	devices.clear();
 }
 
+const Device * DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
+{
+	for (const auto& device : devices) {
+		if (device.second->GetId() == id && device.second->GetLun() == lun) {
+			return device.second;
+		}
+	}
+
+	return nullptr;
+}
+
 const vector<Device *> DeviceFactory::GetAllDevices() const
 {
 	vector<Device *> result;
