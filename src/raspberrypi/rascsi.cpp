@@ -182,6 +182,7 @@ bool InitBus()
 
 	// GPIO Initialization
 	if (!bus->Init()) {
+		delete bus;
 		return false;
 	}
 
@@ -1421,10 +1422,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	SetLogLevel("info");
-
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
+	set_level(level::info);
 
 	int port = DEFAULT_PORT;
 
@@ -1432,13 +1432,13 @@ int main(int argc, char* argv[])
 		return EPERM;
 	}
 
+	if (!InitService(port)) {
+		return EPERM;
+	}
+
 	if (!ParseArgument(argc, argv, port)) {
 		Cleanup();
 		return -1;
-	}
-
-	if (!InitService(port)) {
-		return EPERM;
 	}
 
 	// Signal handler to detach all devices on a KILL or TERM signal
