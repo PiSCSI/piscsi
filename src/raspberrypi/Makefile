@@ -132,7 +132,6 @@ SRC_RASDUMP = \
 
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
-SRC_RASCSI_TEST += $(SRC_RASCSI_CORE)
 
 
 vpath %.h ./ ./controllers ./devices ./monitor
@@ -174,7 +173,7 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   docs     : Re-generate the text versions of the man pages
 ##   test     : Build and run unit tests
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs clean
+.PHONY: all ALL docs
 all: $(BIN_ALL) docs
 ALL: all
 
@@ -200,8 +199,8 @@ $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest
+$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest
 
 
 # Phony rules for building individual utilities
