@@ -37,6 +37,7 @@ public:
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }
+
 	void ReserveFile(const Filepath&, int, int);
 	void UnreserveFile();
 
