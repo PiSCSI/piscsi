@@ -169,92 +169,88 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 	}
 
 	Device *device = nullptr;
-	try {
-		switch (type) {
-			case SCHD: {
-				string ext = GetExtension(filename);
-				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					device = new SCSIHD_NEC({ 512 });
-				} else {
-					device = new SCSIHD(sector_sizes[SCHD], false);
+	switch (type) {
+	case SCHD: {
+		string ext = GetExtension(filename);
+		if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
+			device = new SCSIHD_NEC({ 512 });
+		} else {
+			device = new SCSIHD(sector_sizes[SCHD], false);
 
-					// Some Apple tools require a particular drive identification
-					if (ext == "hda") {
-						device->SetVendor("QUANTUM");
-						device->SetProduct("FIREBALL");
-					}
-				}
-				device->SetProtectable(true);
-				device->SetStoppable(true);
-				break;
+			// Some Apple tools require a particular drive identification
+			if (ext == "hda") {
+				device->SetVendor("QUANTUM");
+				device->SetProduct("FIREBALL");
 			}
-
-			case SCRM:
-				device = new SCSIHD(sector_sizes[SCRM], true);
-				device->SetProtectable(true);
-				device->SetStoppable(true);
-				device->SetRemovable(true);
-				device->SetLockable(true);
-				device->SetProduct("SCSI HD (REM.)");
-				break;
-
-			case SCMO:
-				device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
-				device->SetProtectable(true);
-				device->SetStoppable(true);
-				device->SetRemovable(true);
-				device->SetLockable(true);
-				device->SetProduct("SCSI MO");
-				break;
-
-			case SCCD:
-				device = new SCSICD(sector_sizes[SCCD]);
-				device->SetReadOnly(true);
-				device->SetStoppable(true);
-				device->SetRemovable(true);
-				device->SetLockable(true);
-				device->SetProduct("SCSI CD-ROM");
-				break;
-
-			case SCBR:
-				device = new SCSIBR();
-				device->SetProduct("SCSI HOST BRIDGE");
-				device->SupportsParams(true);
-				device->SetDefaultParams(default_params[SCBR]);
-				break;
-
-			case SCDP:
-				device = new SCSIDaynaPort();
-				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-				device->SetVendor("Dayna");
-				device->SetProduct("SCSI/Link");
-				device->SetRevision("1.4a");
-				device->SupportsParams(true);
-				device->SetDefaultParams(default_params[SCDP]);
-				break;
-
-			case SCHS:
-				device = new HostServices();
-				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-				device->SetVendor("RaSCSI");
-				device->SetProduct("Host Services");
-				break;
-
-			case SCLP:
-				device = new SCSIPrinter();
-				device->SetProduct("SCSI PRINTER");
-				device->SupportsParams(true);
-				device->SetDefaultParams(default_params[SCLP]);
-				break;
-
-			default:
-				break;
 		}
+		device->SetProtectable(true);
+		device->SetStoppable(true);
+		break;
 	}
-	catch(const illegal_argument_exception& e) {
-		// There was an internal problem with setting up the device data for INQUIRY
-		return nullptr;
+
+	case SCRM:
+		device = new SCSIHD(sector_sizes[SCRM], true);
+		device->SetProtectable(true);
+		device->SetStoppable(true);
+		device->SetRemovable(true);
+		device->SetLockable(true);
+		device->SetProduct("SCSI HD (REM.)");
+		break;
+
+	case SCMO:
+		device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
+		device->SetProtectable(true);
+		device->SetStoppable(true);
+		device->SetRemovable(true);
+		device->SetLockable(true);
+		device->SetProduct("SCSI MO");
+		break;
+
+	case SCCD:
+		device = new SCSICD(sector_sizes[SCCD]);
+		device->SetReadOnly(true);
+		device->SetStoppable(true);
+		device->SetRemovable(true);
+		device->SetLockable(true);
+		device->SetProduct("SCSI CD-ROM");
+		break;
+
+	case SCBR:
+		device = new SCSIBR();
+		device->SetProduct("SCSI HOST BRIDGE");
+		device->SupportsParams(true);
+		device->SetDefaultParams(default_params[SCBR]);
+		break;
+
+	case SCDP:
+		device = new SCSIDaynaPort();
+		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+		device->SetVendor("Dayna");
+		device->SetProduct("SCSI/Link");
+		device->SetRevision("1.4a");
+		device->SupportsParams(true);
+		device->SetDefaultParams(default_params[SCDP]);
+		break;
+
+	case SCHS:
+		device = new HostServices();
+		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+		device->SetVendor("RaSCSI");
+		device->SetProduct("Host Services");
+		break;
+
+	case SCLP:
+		device = new SCSIPrinter();
+		device->SetProduct("SCSI PRINTER");
+		device->SupportsParams(true);
+		device->SetDefaultParams(default_params[SCLP]);
+		break;
+
+	default:
+		break;
 	}
+
+	assert(device != nullptr);
 
 	device->SetId(id);
 

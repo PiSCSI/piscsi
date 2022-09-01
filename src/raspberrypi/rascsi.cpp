@@ -1402,6 +1402,7 @@ int main(int argc, char* argv[])
 
 #ifndef NDEBUG
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
+	// TODO Move to unit test?
 	PbResult pb_operation_info_result;
 	const PbOperationInfo *operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
