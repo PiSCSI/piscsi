@@ -178,3 +178,14 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	controller.ctrl.cmd[2] = 0x01;
 	EXPECT_THROW(device1.Dispatch(), scsi_error_exception) << "Only SELECT REPORT mode 0 is supported";
 }
+
+TEST(PrimaryDeviceTest, UnknownCommand)
+{
+	MockScsiController controller(nullptr, 0);
+	MockPrimaryDevice device;
+
+	controller.AddDevice(&device);
+
+	controller.ctrl.cmd[0] = 0xFF;
+	EXPECT_FALSE(device.Dispatch());
+}
