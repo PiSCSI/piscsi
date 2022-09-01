@@ -103,6 +103,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -121,12 +122,28 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 			device->GetRevision());
 
 	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.hds", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.hdi", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.nhd", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -151,6 +168,7 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -175,6 +193,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -199,6 +218,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -223,6 +243,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -246,6 +267,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -270,6 +292,7 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
