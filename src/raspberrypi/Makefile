@@ -19,15 +19,12 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -O0 -g -Wall -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 	BUILD_TYPE = Debug
 else
-	# Release compiler flags
-	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
+	# Release compiler flags, ignore unused parameters because they are reported with some assertions
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -Wno-error=unused-parameter -Wno-unused-parameter -DNDEBUG
 	BUILD_TYPE = Release
-endif
-ifeq "$(GCCVERSION11)" "1"
-	CXXFLAGS += -Wextra
 endif
 ifeq ("$(shell uname -s)","Linux")
 	# -Wno-psabi might not work on non-Linux platforms

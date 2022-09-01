@@ -12,14 +12,10 @@
 
 TEST(ScsiControllerTest, ScsiController)
 {
-	const int ID = 1;
-	const int LUN = 4;
-
 	MockBus bus;
-	MockScsiController controller(&bus, ID);
-	MockPrimaryDevice device;
+	MockScsiController controller(&bus, 0);
 
-	device.SetLun(LUN);
+	EXPECT_EQ(32, controller.GetMaxLuns());
 
 	EXPECT_CALL(controller, SetPhase(BUS::phase_t::busfree)).Times(1);
 	controller.Reset();

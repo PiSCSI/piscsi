@@ -129,6 +129,7 @@ public:
 	MOCK_METHOD(void, Receive, (), ());
 	MOCK_METHOD(bool, HasUnit, (), (const override));
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
+	MOCK_METHOD(void, Sleep, (), ());
 
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);

@@ -150,11 +150,10 @@ void ScsiController::BusFree()
 
 		SetPhase(BUS::busfree);
 
-		// Set Signal lines
-		bus->SetREQ(FALSE);
-		bus->SetMSG(FALSE);
-		bus->SetCD(FALSE);
-		bus->SetIO(FALSE);
+		bus->SetREQ(false);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(false);
 		bus->SetBSY(false);
 
 		// Initialize status and message
@@ -244,10 +243,9 @@ void ScsiController::Command()
 
 		SetPhase(BUS::command);
 
-		// Signal line operated by the target
-		bus->SetMSG(FALSE);
-		bus->SetCD(TRUE);
-		bus->SetIO(FALSE);
+		bus->SetMSG(false);
+		bus->SetCD(true);
+		bus->SetIO(false);
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -365,9 +363,9 @@ void ScsiController::Status()
 		SetPhase(BUS::status);
 
 		// Signal line operated by the target
-		bus->SetMSG(FALSE);
-		bus->SetCD(TRUE);
-		bus->SetIO(TRUE);
+		bus->SetMSG(false);
+		bus->SetCD(true);
+		bus->SetIO(true);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -388,10 +386,9 @@ void ScsiController::MsgIn()
 
 		SetPhase(BUS::msgin);
 
-		// Signal line operated by the target
-		bus->SetMSG(TRUE);
-		bus->SetCD(TRUE);
-		bus->SetIO(TRUE);
+		bus->SetMSG(true);
+		bus->SetCD(true);
+		bus->SetIO(true);
 
 		// length, blocks are already set
 		assert(ctrl.length > 0);
@@ -420,10 +417,9 @@ void ScsiController::MsgOut()
 
 		SetPhase(BUS::msgout);
 
-		// Signal line operated by the target
-		bus->SetMSG(TRUE);
-		bus->SetCD(TRUE);
-		bus->SetIO(FALSE);
+		bus->SetMSG(true);
+		bus->SetCD(true);
+		bus->SetIO(false);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -454,10 +450,9 @@ void ScsiController::DataIn()
 
 		SetPhase(BUS::datain);
 
-		// Signal line operated by the target
-		bus->SetMSG(FALSE);
-		bus->SetCD(FALSE);
-		bus->SetIO(TRUE);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(true);
 
 		// length, blocks are already set
 		assert(ctrl.blocks > 0);
@@ -488,9 +483,9 @@ void ScsiController::DataOut()
 		SetPhase(BUS::dataout);
 
 		// Signal line operated by the target
-		bus->SetMSG(FALSE);
-		bus->SetCD(FALSE);
-		bus->SetIO(FALSE);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(false);
 
 		ctrl.offset = 0;
 		return;
