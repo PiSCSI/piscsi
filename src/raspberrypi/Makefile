@@ -2,7 +2,6 @@
 
 # Depending on the GCC version the compilation flags differ
 GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
-GCCVERSION11 := $(shell expr `gcc -dumpversion` \>= 11)
 
 ## Optional build flags:
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
