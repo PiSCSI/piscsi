@@ -14,7 +14,7 @@
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	MockScsiController controller(0);
+	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
 
 	device.SetController(&controller);
@@ -53,7 +53,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	MockScsiController controller(0);
+	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
 
 	device.SetController(&controller);
