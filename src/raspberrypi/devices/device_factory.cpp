@@ -263,22 +263,17 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 	return device;
 }
 
-const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type) const
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
-	return sector_sizes[t];
-}
 
-const unordered_set<uint64_t> DeviceFactory::GetCapacities() const
-{
-	unordered_set<uint64_t> keys;
-
-	for (auto it = geometries.begin(); it != geometries.end(); ++it) {
-		keys.insert(it->first);
+	const auto it = sector_sizes.find(t);
+	if (it == sector_sizes.end()) {
+		throw illegal_argument_exception("Sector sizes requested for a device without sectors");
 	}
 
-	return keys;
+	return it->second;
 }
 
 const list<string> DeviceFactory::GetNetworkInterfaces() const

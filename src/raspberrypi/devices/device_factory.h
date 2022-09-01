@@ -42,8 +42,7 @@ public:
 	const list<Device *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
-	const unordered_set<uint32_t>& GetSectorSizes(const string&);
-	const unordered_set<uint64_t> GetCapacities() const;
+	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
 	const list<string> GetNetworkInterfaces() const;
 	const unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
