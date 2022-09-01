@@ -181,7 +181,8 @@ test: $(BINDIR)/$(RASCSI_TEST)
 	
 coverage: CXXFLAGS += --coverage
 coverage: test
-	lcov -q -c -d . --include '*/RASCSI/*' --exclude '*/test/*' -o $(COVERAGE_FILE)
+	lcov -q -c -d . --include '*/RASCSI/*' -o $(COVERAGE_FILE) \
+	--exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
