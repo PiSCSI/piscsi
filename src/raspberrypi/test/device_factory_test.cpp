@@ -92,12 +92,6 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 	EXPECT_TRUE(sector_sizes.find(512) != sector_sizes.end());
 	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
-
-	EXPECT_THROW(device_factory.GetSectorSizes("SCBR"), illegal_argument_exception);
-	EXPECT_THROW(device_factory.GetSectorSizes("SCDP"), illegal_argument_exception);
-	EXPECT_THROW(device_factory.GetSectorSizes("SCLP"), illegal_argument_exception);
-	EXPECT_THROW(device_factory.GetSectorSizes("SCHS"), illegal_argument_exception);
-	EXPECT_THROW(device_factory.GetSectorSizes(""), illegal_argument_exception);
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)

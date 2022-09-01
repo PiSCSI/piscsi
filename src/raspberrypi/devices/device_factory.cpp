@@ -269,9 +269,7 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 	PbDeviceType_Parse(type, &t);
 
 	const auto it = sector_sizes.find(t);
-	if (it == sector_sizes.end()) {
-		throw illegal_argument_exception("Sector sizes requested for a device without sectors");
-	}
+	assert (it != sector_sizes.end());
 
 	return it->second;
 }
