@@ -32,6 +32,24 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
 
+TEST(DeviceFactoryTest, LifeCycle)
+{
+	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
+	EXPECT_NE(nullptr, device);
+
+	list<Device *> devices = device_factory.GetAllDevices();
+	EXPECT_EQ(1, devices.size());
+	EXPECT_EQ(device, devices.front());
+
+	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(-1, 0));
+	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 1));
+
+	device_factory.DeleteDevice(device);
+	devices = device_factory.GetAllDevices();
+	EXPECT_EQ(0, devices.size());
+	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 0));
+}
+
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
 	unordered_set<uint32_t> sector_sizes;
