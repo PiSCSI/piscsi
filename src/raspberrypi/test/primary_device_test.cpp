@@ -111,3 +111,50 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
 	EXPECT_EQ(1, controller.ctrl.length) << "Wrong ALLOCATION LENGTH handling";
 }
+
+TEST(PrimaryDeviceTest, ReportLuns)
+{
+	const int LUN1 = 1;
+	const int LUN2 = 4;
+
+	MockScsiController controller(nullptr, 0);
+	MockPrimaryDevice device1;
+	MockPrimaryDevice device2;
+
+	device1.SetLun(LUN1);
+	controller.AddDevice(&device1);
+	ASSERT_TRUE(controller.HasDeviceForLun(LUN1));
+	device2.SetLun(LUN2);
+	controller.AddDevice(&device2);
+	ASSERT_TRUE(controller.HasDeviceForLun(LUN2));
+
+	controller.ctrl.cmd[0] = eCmdReportLuns;
+	// ALLOCATION LENGTH
+	controller.ctrl.cmd[9] = 255;
+
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device1.Dispatch());
+	EXPECT_EQ(0x00, controller.ctrl.buffer[0]) << "Wrong data length";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[1]) << "Wrong data length";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[2]) << "Wrong data length";
+	EXPECT_EQ(0x10, controller.ctrl.buffer[3]) << "Wrong data length";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[8]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[9]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[10]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[11]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[12]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[13]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[14]) << "Wrong LUN1 number";
+	EXPECT_EQ(LUN1, controller.ctrl.buffer[15]) << "Wrong LUN1 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[16]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[17]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[18]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[19]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[20]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[21]) << "Wrong LUN2 number";
+	EXPECT_EQ(0x00, controller.ctrl.buffer[22]) << "Wrong LUN2 number";
+	EXPECT_EQ(LUN2, controller.ctrl.buffer[23]) << "Wrong LUN2 number";
+
+	controller.ctrl.cmd[2] = 0x01;
+	EXPECT_THROW(device1.Dispatch(), scsi_error_exception) << "Only SELECT REPORT mode 0 is supported";
+}

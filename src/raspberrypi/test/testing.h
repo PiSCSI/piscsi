@@ -133,6 +133,7 @@ public:
 
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
+	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 
 	MockScsiController(BUS *bus, int target_id) : ScsiController(bus, target_id) {}
 	~MockScsiController() {}

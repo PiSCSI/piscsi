@@ -79,22 +79,24 @@ void PrimaryDevice::ReportLuns()
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 
 	BYTE *buf = ctrl->buffer;
-	memset(buf, 0, allocation_length);
+	memset(buf, 0, allocation_length < ctrl->bufsize ? allocation_length : ctrl->bufsize);
 
 	int size = 0;
 
 	// Only SELECT REPORT mode 0 is supported
-	if (!ctrl->cmd[2]) {
-		for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
-			if (controller->HasDeviceForLun(lun)) {
-				size += 8;
-				buf[size + 7] = lun;
-			}
-		}
-
-		buf[2] = size >> 8;
-		buf[3] = size;
+	if (ctrl->cmd[2]) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
+
+	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
+		if (controller->HasDeviceForLun(lun)) {
+			size += 8;
+			buf[size + 7] = lun;
+		}
+	}
+
+	buf[2] = size >> 8;
+	buf[3] = size;
 
 	size += 8;
 
