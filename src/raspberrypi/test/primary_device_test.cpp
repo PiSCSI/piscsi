@@ -189,3 +189,9 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 	controller.ctrl.cmd[0] = 0xFF;
 	EXPECT_FALSE(device.Dispatch());
 }
+
+TEST(PrimaryDeviceTest, GetSendDelay)
+{
+	MockPrimaryDevice device;
+	EXPECT_EQ(-1, device.GetSendDelay());
+}
