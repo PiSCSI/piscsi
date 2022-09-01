@@ -17,7 +17,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
 
-	device.SetController(&controller);
+	controller.AddDevice(&device);
 
 	controller.ctrl.cmd[0] = eCmdTestUnitReady;
 
@@ -110,6 +110,26 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_TRUE(device.Dispatch());
 	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
 	EXPECT_EQ(1, controller.ctrl.length) << "Wrong ALLOCATION LENGTH handling";
+}
+
+TEST(PrimaryDeviceTest, RequestSense)
+{
+	MockScsiController controller(nullptr, 0);
+	MockPrimaryDevice device;
+
+	controller.AddDevice(&device);
+
+	controller.ctrl.cmd[0] = eCmdRequestSense;
+	// ALLOCATION LENGTH
+	controller.ctrl.cmd[4] = 255;
+
+	device.SetReady(false);
+	EXPECT_THROW(device.Dispatch(), scsi_error_exception);
+
+	device.SetReady(true);
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(device.Dispatch());
+	EXPECT_TRUE(controller.ctrl.status == scsi_defs::status::GOOD);
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)
