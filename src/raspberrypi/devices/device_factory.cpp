@@ -292,16 +292,13 @@ const list<string> DeviceFactory::GetNetworkInterfaces() const
 
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
-	        	close(fd);
-
 	        	// Only list interfaces that are up
 	        	if (ifr.ifr_flags & IFF_UP) {
 	        		network_interfaces.push_back(tmp->ifa_name);
 	        	}
 	        }
-	        else {
-	        	close(fd);
-	        }
+
+	        close(fd);
 	    }
 
 	    tmp = tmp->ifa_next;
