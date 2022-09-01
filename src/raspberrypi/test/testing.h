@@ -131,7 +131,7 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Sleep, (), ());
 
-	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, UnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);

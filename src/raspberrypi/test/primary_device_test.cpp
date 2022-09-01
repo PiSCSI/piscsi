@@ -12,7 +12,7 @@
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
-TEST(PrimaryDeviceTest, TestUnitReady)
+TEST(PrimaryDeviceTest, UnitReady)
 {
 	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
@@ -188,10 +188,4 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.ctrl.cmd[0] = 0xFF;
 	EXPECT_FALSE(device.Dispatch());
-}
-
-TEST(PrimaryDeviceTest, GetSendDelay)
-{
-	MockPrimaryDevice device;
-	EXPECT_EQ(-1, device.GetSendDelay());
 }

@@ -15,16 +15,16 @@ TEST(ControllerManagerTest, ControllerManager)
 	const int ID = 4;
 	const int LUN = 6;
 
-	MockPrimaryDevice device;
-	device.SetId(ID);
-	device.SetLun(LUN);
+	PrimaryDevice *device = static_cast<PrimaryDevice *>(device_factory.CreateDevice(UNDEFINED, "services", ID));
+	device->SetId(ID);
+	device->SetLun(LUN);
 
-	controller_manager.CreateScsiController(nullptr, &device);
+	controller_manager.CreateScsiController(nullptr, device);
 	EXPECT_NE(nullptr, controller_manager.IdentifyController(1 << ID));
 	EXPECT_EQ(nullptr, controller_manager.IdentifyController(0));
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.FindController(0));
-	EXPECT_EQ(&device, controller_manager.GetDeviceByIdAndLun(ID, LUN));
+	EXPECT_EQ(device, controller_manager.GetDeviceByIdAndLun(ID, LUN));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
 	controller_manager.DeleteAllControllersAndDevices();
