@@ -156,6 +156,7 @@
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
+        <li>{{ _("Recognized file types: %(valid_file_suffix)s", valid_file_suffix=valid_file_suffix) }}</li>
     </ul>
 </details>
 
@@ -378,9 +379,9 @@
         {{ _("Upload File") }}
     </summary>
     <ul>
-        <li>{{ _("Uploads file to <tt>%(directory)s</tt>. The largest file size accepted is %(max_file_size)s MB.", directory=base_dir, max_file_size=max_file_size) }}</li>
-        <li>{{ _("For unrecognized file types, try renaming hard drive images to '.hds', CD-ROM images to '.iso', and removable drive images to '.hdr' before uploading.") }}</li>
-        <li>{{ _("Recognized file types: %(valid_file_suffix)s", valid_file_suffix=valid_file_suffix) }}</li>
+        <li>{{ _("Files are uploaded to <tt>%(directory)s</tt>.", directory=base_dir) }}</li>
+        <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
+        <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
     </ul>
 </details>
 
@@ -394,7 +395,6 @@
 <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
-        acceptedFiles: '{{ valid_file_suffix }}',
         chunking: true,
         forceChunking: true,
         url: '/files/upload',
