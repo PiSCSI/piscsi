@@ -169,7 +169,7 @@ void ScsiController::BusFree()
 		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down.
-		// TODO Try to find a better place for this code without breanking encapsulation
+		// TODO Try to find a better place for this code without breaking encapsulation
 		switch(shutdown_mode) {
 		case STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested");
