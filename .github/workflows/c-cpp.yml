@@ -22,7 +22,7 @@ jobs:
       run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev libpcap-dev protobuf-compiler
 
     - name: Install dependencies
-      run: sudp apt-get install libev-dev libevdev2 libgmock-dev
+      run: sudo apt-get install libev-dev libevdev2 libgmock-dev
 
     - name: dump arm gcc version
       run: arm-linux-gnueabihf-gcc -v
