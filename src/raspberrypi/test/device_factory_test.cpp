@@ -15,6 +15,7 @@
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hd1"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hda"), SCHD);
@@ -37,6 +38,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 {
 	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHS", device->GetType());
 
 	list<Device *> devices = device_factory.GetAllDevices();
 	EXPECT_EQ(1, devices.size());
