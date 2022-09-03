@@ -48,7 +48,7 @@ void Cleanup();
 //	Signal processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
 	// Stop running
 	Cleanup();
@@ -141,10 +141,7 @@ void Reset()
 bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
-	char *file;
-
-	// Initialization
-	file = NULL;
+	char *file = nullptr;
 
 	// Argument Parsing
 	opterr = 0;
@@ -213,7 +210,7 @@ bool WaitPhase(BUS::phase_t phase)
 	// Timeout (3000ms)
 	now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-		bus.Aquire();
+		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
 			return true;
 		}
@@ -248,20 +245,20 @@ bool Selection(int id)
 	data |= (1 << boardid);
 	data |= (1 << id);
 	bus.SetDAT(data);
-	bus.SetSEL(TRUE);
+	bus.SetSEL(true);
 
 	// wait for busy
 	count = 10000;
 	do {
 		usleep(20);
-		bus.Aquire();
+		bus.Acquire();
 		if (bus.GetBSY()) {
 			break;
 		}
 	} while (count--);
 
 	// SEL negate
-	bus.SetSEL(FALSE);
+	bus.SetSEL(false);
 
 	// Success if the target is busy
 	return bus.GetBSY();

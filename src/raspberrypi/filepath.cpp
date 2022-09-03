@@ -13,15 +13,8 @@
 #include "config.h"
 #include "fileio.h"
 
-//===========================================================================
-//
-//	File path
-//
-//===========================================================================
-
 Filepath::Filepath()
 {
-	// Clear
 	Clear();
 }
 
@@ -39,7 +32,6 @@ Filepath& Filepath::operator=(const Filepath& path)
 
 void Filepath::Clear()
 {
-
 	// Clear the path and each part
 	m_szPath[0] = _T('\0');
 	m_szDir[0] = _T('\0');

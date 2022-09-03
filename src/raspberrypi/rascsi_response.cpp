@@ -3,14 +3,13 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "devices/device.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
@@ -20,17 +19,14 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
-{
-	this->device_factory = device_factory;
-	this->rascsi_image = rascsi_image;
-}
+list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
+
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
-	properties->set_luns(device->GetSupportedLuns());
+	properties->set_luns(AbstractController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
@@ -60,14 +56,15 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory->CreateDevice(type, "");
+	Device *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
+	device_factory->DeleteDevice(device);
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
-	int ordinal = 1;
+	// Start with 2 instead of 1. 1 was the removed SASI drive type.
+	int ordinal = 2;
 	while (PbDeviceType_IsValid(ordinal)) {
 		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
@@ -232,31 +229,25 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices)
+void RascsiResponse::GetDevices(PbServerInfo& server_info)
 {
-	for (const Device *device : devices) {
-		// Skip if unit does not exist or is not assigned
-		if (device) {
-			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-			GetDevice(device, pb_device);
-		}
+	for (const Device *device : device_factory->GetAllDevices()) {
+		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
+		GetDevice(device, pb_device);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
-		int unit_count)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
-		for (const Device *device : devices) {
-			if (device) {
-				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
-			}
+		for (const Device *device : device_factory->GetAllDevices()) {
+			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
 	else {
 		for (const auto& device : command.devices()) {
-			if (devices[device.id() * unit_count + device.unit()]) {
+			if (device_factory->GetDeviceByIdAndLun(device.id(), device.unit())) {
 				id_sets.insert(make_pair(device.id(), device.unit()));
 			}
 			else {
@@ -271,14 +262,13 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
-		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, devices_info->add_devices());
+		GetDevice(device_factory->GetDeviceByIdAndLun(id_set.first, id_set.second), devices_info->add_devices());
 	}
 
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
 
@@ -289,9 +279,8 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 	return device_types_info;
 }
 
-PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices,
-		const unordered_set<int>& reserved_ids, const string& current_log_level, const string& folder_pattern,
-		const string& file_pattern, int scan_depth)
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
+		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
@@ -301,7 +290,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Devic
 	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info, devices);
+	GetDevices(*server_info);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 

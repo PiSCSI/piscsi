@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // Interface for SCSI Multi-Media commands (see https://www.t10.org/drafts.htm, MMC-6)
 //
@@ -13,8 +13,6 @@
 
 #include "scsi_primary_commands.h"
 
-class SASIDEV;
-
 class ScsiMmcCommands : virtual public ScsiPrimaryCommands
 {
 public:
@@ -22,6 +20,6 @@ public:
 	ScsiMmcCommands() {}
 	virtual ~ScsiMmcCommands() {}
 
-	virtual void ReadToc(SASIDEV *) = 0;
-	virtual void GetEventStatusNotification(SASIDEV *) = 0;
+	virtual void ReadToc() = 0;
+	virtual void GetEventStatusNotification() = 0;
 };

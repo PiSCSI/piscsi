@@ -33,8 +33,8 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "controllers/scsidev_ctrl.h"
-#include "disk.h"
+#include "rascsi_exceptions.h"
+#include "device.h"
 #include "host_services.h"
 
 using namespace scsi_defs;
@@ -45,24 +45,24 @@ HostServices::HostServices() : ModePageDevice("SCHS")
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-bool HostServices::Dispatch(SCSIDEV *controller)
+bool HostServices::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-void HostServices::TestUnitReady(SCSIDEV *controller)
+void HostServices::TestUnitReady()
 {
 	// Always successful
-	controller->Status();
+	EnterStatusPhase();
 }
 
-vector<BYTE> HostServices::Inquiry() const
+vector<BYTE> HostServices::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit(SCSIDEV *controller)
+void HostServices::StartStopUnit()
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
@@ -70,52 +70,51 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 	if (!start) {
 		// Flush any caches
 		for (Device *device : devices) {
-			Disk *disk = dynamic_cast<Disk *>(device);
-			if (disk) {
-				disk->FlushCache();
-			}
+			device->FlushCache();
 		}
 
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
+			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
+			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
-		controller->Status();
+		EnterStatusPhase();
 		return;
 	}
 	else {
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
+			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::RESTART_PI);
 
-			controller->Status();
+			EnterStatusPhase();
 			return;
 		}
 	}
 
-	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
+int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (int)cdb[4];
+	if (length > max_length) {
+		length = max_length;
+	}
 	memset(buf, 0, length);
 
-	// Basic information
+	// Basic Information
 	int size = 4;
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	size += super::AddModePages(cdb, &buf[size], length - size);
+	if (size > 255) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -131,7 +130,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (cdb[7] << 8) | cdb[8];
@@ -140,14 +139,13 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	memset(buf, 0, length);
 
-	// Basic information
+	// Basic Information
 	int size = 8;
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	size += super::AddModePages(cdb, &buf[size], length - size);
+	if (size > 65535) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {

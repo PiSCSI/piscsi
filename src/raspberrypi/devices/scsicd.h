@@ -79,12 +79,12 @@ public:
 	SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch() override;
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
+	vector<BYTE> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	int ReadToc(const DWORD *cdb, BYTE *buf);
 
@@ -95,7 +95,7 @@ protected:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSICD, SASIDEV> dispatcher;
+	Dispatcher<SCSICD> dispatcher;
 
 	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
@@ -105,20 +105,18 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void ReadToc(SASIDEV *) override;
-	void GetEventStatusNotification(SASIDEV *) override;
+	void ReadToc() override;
+	void GetEventStatusNotification() override;
 
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 
-	bool rawfile;								// RAW flag
+	bool rawfile = false;					// RAW flag
 
 	// Track management
 	void ClearTrack();						// Clear the track
-	int SearchTrack(DWORD lba) const;				// Track search
-	CDTrack* track[TrackMax];						// Track opbject references
-	int tracks;								// Effective number of track objects
-	int dataindex;								// Current data track
-	int audioindex;								// Current audio track
-
-	int frame;								// Frame number
+	int SearchTrack(DWORD lba) const;		// Track search
+	CDTrack* track[TrackMax] = {};			// Track opbject references
+	int tracks = 0;							// Effective number of track objects
+	int dataindex = -1;						// Current data track
+	int audioindex = -1;					// Current audio track
 };

@@ -43,8 +43,6 @@ RascsiImage::RascsiImage()
 	else {
 		default_image_folder = "/home/pi/images";
 	}
-
-	depth = 1;
 }
 
 bool RascsiImage::CheckDepth(const string& filename)

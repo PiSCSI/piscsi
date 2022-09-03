@@ -12,6 +12,7 @@
 
 #include "mode_page_device.h"
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -23,14 +24,11 @@ public:
 	HostServices();
 	~HostServices() {}
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch() override;
 
-	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(SCSIDEV *);
-	void StartStopUnit(SCSIDEV *);
-
-	int ModeSense6(const DWORD *, BYTE *);
-	int ModeSense10(const DWORD *, BYTE *, int);
+	vector<BYTE> InquiryInternal() const override;
+	void TestUnitReady() override;
+	void StartStopUnit();
 
 	bool SupportsFile() const override { return false; }
 
@@ -42,7 +40,10 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices, SCSIDEV> dispatcher;
+	Dispatcher<HostServices> dispatcher;
+
+	int ModeSense6(const DWORD *, BYTE *, int) override;
+	int ModeSense10(const DWORD *, BYTE *, int) override;
 
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };

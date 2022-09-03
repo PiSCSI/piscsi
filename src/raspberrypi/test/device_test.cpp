@@ -5,68 +5,44 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Unit tests based on GoogleTest and GoogleMock
-//
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#include "testing.h"
+#include "rascsi_exceptions.h"
+#include "devices/device.h"
 
-#include "gpiobus.h"
-#include "../devices/scsihd.h"
-#include "../devices/device_factory.h"
-
-using namespace rascsi_interface;
-
-namespace DeviceTest
+class TestDevice : public Device
 {
+public:
 
-class MockController : public SCSIDEV
-{
-	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), ());
-	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
-	MOCK_METHOD(int, GetInitiatorId, (), ());
-	MOCK_METHOD(void, SetUnit, (int), ());
-	MOCK_METHOD(void, Connect, (int, BUS *), ());
-	MOCK_METHOD(void, Status, (), ());
-	MOCK_METHOD(void, DataIn, (), ());
-	MOCK_METHOD(void, DataOut, (), ());
-	MOCK_METHOD(void, BusFree, (), ());
-	MOCK_METHOD(void, Selection, (), ());
-	MOCK_METHOD(void, Command, (), ());
-	MOCK_METHOD(void, MsgIn, (), ());
-	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, Send, (), (override));
-	MOCK_METHOD(bool, XferMsg, (int), ());
-	MOCK_METHOD(bool, XferIn, (BYTE *), ());
-	MOCK_METHOD(bool, XferOut, (bool), (override));
-	MOCK_METHOD(void, ReceiveBytes, (), ());
-	MOCK_METHOD(void, Execute, (), (override));
-	MOCK_METHOD(void, FlushUnit, (), ());
-	MOCK_METHOD(void, Receive, (), (override));
-	MOCK_METHOD(bool, HasUnit, (), (const override));
+	TestDevice() : Device("test") {}
+	~TestDevice() {}
 
-	FRIEND_TEST(DeviceTest, TestUnitReady);
-
-	MockController() { }
-	~MockController() { }
+	bool Dispatch() { return false; }
 };
 
-DeviceFactory& device_factory = DeviceFactory::instance();
-
-TEST(DeviceTest, TestUnitReady)
+TEST(DeviceTest, ProductData)
 {
-	MockController controller;
-	Device *device = device_factory.CreateDevice(SCHD, "test");
+	TestDevice device;
 
-	controller.ctrl.cmd[0] = eCmdTestUnitReady;
+	EXPECT_THROW(device.SetVendor(""), illegal_argument_exception);
+	EXPECT_THROW(device.SetVendor("123456789"), illegal_argument_exception);
+	device.SetVendor("12345678");
+	EXPECT_EQ("12345678", device.GetVendor());
 
-	device->SetReady(false);
-	EXPECT_CALL(controller, Error);
-	EXPECT_TRUE(device->Dispatch(&controller));
+	EXPECT_THROW(device.SetProduct(""), illegal_argument_exception);
+	EXPECT_THROW(device.SetProduct("12345678901234567"), illegal_argument_exception);
+	device.SetProduct("1234567890123456");
+	EXPECT_EQ("1234567890123456", device.GetProduct());
 
-	// TODO Add tests for a device that is ready after the SASI code removal
-}
+	EXPECT_THROW(device.SetRevision(""), illegal_argument_exception);
+	EXPECT_THROW(device.SetRevision("12345"), illegal_argument_exception);
+	device.SetRevision("1234");
+	EXPECT_EQ("1234", device.GetRevision());
 
+	device.SetVendor("V");
+	device.SetProduct("P");
+	device.SetRevision("R");
+
+	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
 }

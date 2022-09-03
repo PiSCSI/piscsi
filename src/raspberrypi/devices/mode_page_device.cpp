@@ -10,13 +10,13 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "controllers/scsidev_ctrl.h"
+#include "rascsi_exceptions.h"
 #include "mode_page_device.h"
 
 using namespace std;
 using namespace scsi_defs;
 
-ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
+ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id), dispatcher({})
 {
 	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
@@ -24,14 +24,18 @@ ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
-bool ModePageDevice::Dispatch(SCSIDEV *controller)
+bool ModePageDevice::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 {
+	if (max_length <= 0) {
+		return 0;
+	}
+
 	bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
@@ -43,11 +47,9 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	map<int, vector<BYTE>> pages;
 	AddModePages(pages, page, changeable);
 
-	// If no mode data were added at all something must be wrong
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Holds all mode page data
@@ -88,69 +90,45 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void ModePageDevice::ModeSense6(SASIDEV *controller)
+void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
+	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSense10(SASIDEV *controller)
+void ModePageDevice::ModeSense10()
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
-bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
+void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	// Cannot be set
-	SetStatusCode(STATUS_INVALIDPRM);
-
-	return false;
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
-void ModePageDevice::ModeSelect6(SASIDEV *controller)
+void ModePageDevice::ModeSelect6()
 {
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
 	ctrl->length = ModeSelectCheck6();
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void ModePageDevice::ModeSelect10(SASIDEV *controller)
+void ModePageDevice::ModeSelect10()
 {
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
 	ctrl->length = ModeSelectCheck10();
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
 int ModePageDevice::ModeSelectCheck(int length)
 {
-	// Error if save parameters are set for other types than of SCHD or SCRM
+	// Error if save parameters are set for other types than of SCHD, SCRM or SCMO
 	// TODO The assumption above is not correct, and this code should be located elsewhere
-	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	return length;

@@ -14,7 +14,7 @@
 
 //===========================================================================
 //
-//	SASI/SCSI Bus
+//	SCSI Bus
 //
 //===========================================================================
 class BUS
@@ -47,7 +47,7 @@ public:
 	virtual ~BUS() {}
 
 	// Basic Functions
-	virtual BOOL Init(mode_e mode) = 0;
+	virtual bool Init(mode_e mode) = 0;
 	virtual void Reset() = 0;
 	virtual void Cleanup() = 0;
 	phase_t GetPhase();
@@ -66,45 +66,45 @@ public:
 		return ((raw_data >> pin_num) & 1);
 	}
 
-	virtual bool GetBSY() = 0;
+	virtual bool GetBSY() const = 0;
 	virtual void SetBSY(bool ast) = 0;
 
-	virtual BOOL GetSEL() = 0;
-	virtual void SetSEL(BOOL ast) = 0;
+	virtual bool GetSEL() const = 0;
+	virtual void SetSEL(bool ast) = 0;
 
-	virtual BOOL GetATN() = 0;
-	virtual void SetATN(BOOL ast) = 0;
+	virtual bool GetATN() const = 0;
+	virtual void SetATN(bool ast) = 0;
 
-	virtual BOOL GetACK() = 0;
-	virtual void SetACK(BOOL ast) = 0;
+	virtual bool GetACK() const = 0;
+	virtual void SetACK(bool ast) = 0;
 
-	virtual BOOL GetRST() = 0;
-	virtual void SetRST(BOOL ast) = 0;
+	virtual bool GetRST() const = 0;
+	virtual void SetRST(bool ast) = 0;
 
-	virtual BOOL GetMSG() = 0;
-	virtual void SetMSG(BOOL ast) = 0;
+	virtual bool GetMSG() const = 0;
+	virtual void SetMSG(bool ast) = 0;
 
-	virtual BOOL GetCD() = 0;
-	virtual void SetCD(BOOL ast) = 0;
+	virtual bool GetCD() const = 0;
+	virtual void SetCD(bool ast) = 0;
 
-	virtual BOOL GetIO() = 0;
-	virtual void SetIO(BOOL ast) = 0;
+	virtual bool GetIO() = 0;
+	virtual void SetIO(bool ast) = 0;
 
-	virtual BOOL GetREQ() = 0;
-	virtual void SetREQ(BOOL ast) = 0;
+	virtual bool GetREQ() const = 0;
+	virtual void SetREQ(bool ast) = 0;
 
 	virtual BYTE GetDAT() = 0;
 	virtual void SetDAT(BYTE dat) = 0;
-	virtual BOOL GetDP() = 0;			// Get parity signal
+	virtual bool GetDP() const = 0;			// Get parity signal
 
-	virtual DWORD Aquire() = 0;
-	virtual int CommandHandShake(BYTE *buf, bool) = 0;
+	virtual DWORD Acquire() = 0;
+	virtual int CommandHandShake(BYTE *buf) = 0;
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
 
-	virtual BOOL GetSignal(int pin) = 0;
+	virtual bool GetSignal(int pin) const = 0;
 										// Get SCSI input signal value
-	virtual void SetSignal(int pin, BOOL ast) = 0;
+	virtual void SetSignal(int pin, bool ast) = 0;
 										// Set SCSI output signal value
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay
@@ -117,12 +117,6 @@ private:
 	static const char* phase_str_table[];
 };
 
-//===========================================================================
-//
-//	For Status byte codes, Sense Keys and Additional Sense Codes
-//  See https://www.t10.org/lists/1spc-lst.htm
-//
-//===========================================================================
 namespace scsi_defs {
 	enum scsi_level : int {
 		SCSI_1_CCS = 1,
@@ -228,12 +222,17 @@ namespace scsi_defs {
 
 	enum asc : int {
 		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
+		WRITE_FAULT = 0x03,
+		READ_FAULT = 0x11,
 		INVALID_COMMAND_OPERATION_CODE = 0x20,
 		LBA_OUT_OF_RANGE = 0x21,
 		INVALID_FIELD_IN_CDB = 0x24,
 		INVALID_LUN = 0x25,
+		INVALID_FIELD_IN_PARAMETER_LIST = 0x26,
 		WRITE_PROTECTED = 0x27,
 		NOT_READY_TO_READY_CHANGE = 0x28,
-		MEDIUM_NOT_PRESENT = 0x3a
+		POWER_ON_OR_RESET = 0x29,
+		MEDIUM_NOT_PRESENT = 0x3a,
+		LOAD_OR_EJECT_FAILED = 0x53
 	};
 };

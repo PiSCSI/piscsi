@@ -40,5 +40,5 @@ public:
 private:
 
 	string default_image_folder;
-	int depth;
+	int depth = -1;
 };

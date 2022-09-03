@@ -15,10 +15,12 @@
 //---------------------------------------------------------------------------
 
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include "scsimo.h"
 
-SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries) : Disk("SCMO")
+SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
+	: Disk("SCMO"), geometries({})
 {
 	SetSectorSizes(sector_sizes);
 	SetGeometries(geometries);
@@ -43,7 +45,7 @@ void SCSIMO::Open(const Filepath& path)
 	// TODO Find a more flexible solution
 	if (!SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
-		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
+		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
@@ -63,9 +65,9 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-vector<BYTE> SCSIMO::Inquiry() const
+vector<BYTE> SCSIMO::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)
@@ -86,6 +88,13 @@ void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
+void SCSIMO::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	Disk::AddFormatPage(pages, changeable);
+
+	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+}
+
 void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(4);
@@ -94,64 +103,9 @@ void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 	// Do not report update blocks
 }
 
-bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int size;
-
-	ASSERT(length >= 0);
-
-	// PF
-	if (cdb[1] & 0x10) {
-		// Mode Parameter header
-		if (length >= 12) {
-			// Check the block length (in bytes)
-			size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) ||
-				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
-				// Currently does not allow changing sector length
-				SetStatusCode(STATUS_INVALIDPRM);
-				return false;
-			}
-			buf += 12;
-			length -= 12;
-		}
-
-		// Parsing the page
-		while (length > 0) {
-			// Get the page
-			int page = buf[0];
-
-			switch (page) {
-				// format device
-				case 0x03:
-					// Check the number of bytes in the physical sector
-					size = 1 << GetSectorSizeShiftCount();
-					if (buf[0xc] != (BYTE)(size >> 8) ||
-						buf[0xd] != (BYTE)size) {
-						// Currently does not allow changing sector length
-						SetStatusCode(STATUS_INVALIDPRM);
-						return false;
-					}
-					break;
-				// vendor unique format
-				case 0x20:
-					// just ignore, for now
-					break;
-
-				// Other page
-				default:
-					break;
-			}
-
-			// Advance to the next page
-			size = buf[1] + 2;
-			length -= size;
-			buf += size;
-		}
-	}
-
-	// Do not generate an error for the time being (MINIX)
-	return true;
+	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
 //---------------------------------------------------------------------------
@@ -256,4 +210,16 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 	pages[32] = buf;
 
 	return;
+}
+
+bool SCSIMO::SetGeometryForCapacity(uint64_t capacity) {
+	const auto& geometry = geometries.find(capacity);
+	if (geometry != geometries.end()) {
+		SetSectorSizeInBytes(geometry->second.first);
+		SetBlockCount(geometry->second.second);
+
+		return true;
+	}
+
+	return false;
 }

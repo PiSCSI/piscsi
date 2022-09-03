@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // The DeviceFactory singleton creates devices based on their type and the image file extension
 //
@@ -12,6 +12,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -26,23 +27,29 @@ class Device;
 
 class DeviceFactory
 {
+	friend class ControllerManager;
+
 	DeviceFactory();
-	~DeviceFactory() {}
+	~DeviceFactory();
 
 public:
 
 	static DeviceFactory& instance();
 
-	Device *CreateDevice(PbDeviceType, const string&);
+	Device *CreateDevice(PbDeviceType, const string&, int);
+	void DeleteDevice(Device *);
+	const Device *GetDeviceByIdAndLun(int, int) const;
+	const list<Device *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
-	const unordered_set<uint32_t>& GetSectorSizes(const string&);
-	const unordered_set<uint64_t> GetCapacities(PbDeviceType) const;
+	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
 	const list<string> GetNetworkInterfaces() const;
 	const unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
 private:
+
+	void DeleteAllDevices();
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
@@ -54,4 +61,6 @@ private:
 	unordered_map<string, PbDeviceType> extension_mapping;
 
 	string GetExtension(const string&) const;
+
+	static std::multimap<int, Device *> devices;
 };

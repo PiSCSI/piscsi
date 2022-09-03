@@ -5,19 +5,20 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2021 Contributors to the RaSCSI project
+//	Copyright (C) 2020-2022 Contributors to the RaSCSI project
 //	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
 
+#include "config.h"
 #include "os.h"
-#include "controllers/sasidev_ctrl.h"
+#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_response.h"
@@ -31,9 +32,7 @@
 #include <iostream>
 #include <fstream>
 #include <list>
-#include <vector>
 #include <map>
-#include "config.h"
 
 using namespace std;
 using namespace spdlog;
@@ -46,10 +45,8 @@ using namespace protobuf_util;
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	SASIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-
+#define DEFAULT_PORT 6868
 #define COMPONENT_SEPARATOR ':'
 
 //---------------------------------------------------------------------------
@@ -59,8 +56,6 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-vector<SASIDEV *> controllers(CtrlMax);	// Controllers
-vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -70,15 +65,17 @@ string current_log_level;			// Some versions of spdlog do not support get_log_le
 string access_token;
 unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
+ControllerManager&controller_manager = ControllerManager::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+void DetachAll();
 
 //---------------------------------------------------------------------------
 //
 //	Signal Processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
 	// Stop instruction
 	running = false;
@@ -99,21 +96,18 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
 	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
+	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is SCSI identification number(0-7).\n");
-		FPRT(stdout," FILE is disk image file.\n\n");
-		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
-		FPRT(stdout," Image type is detected based on file extension.\n");
-		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
-		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
-		FPRT(stdout,"  hdr : SCSI HD image (Removable generic SCSI HD image)\n");
+		FPRT(stdout,"Usage: %s [-idn[:m] FILE] ...\n\n", argv[0]);
+		FPRT(stdout," n is SCSI device ID (0-7).\n");
+		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
+		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
+		FPRT(stdout," Image type is detected based on file extension if no explicit type is specified.\n");
+		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic HD image)\n");
+		FPRT(stdout,"  hdr : SCSI HD image (Removable generic HD image)\n");
 		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
@@ -132,7 +126,7 @@ void Banner(int argc, char* argv[])
 
 bool InitService(int port)
 {
-	int result = pthread_mutex_init(&ctrl_mutex,NULL);
+	int result = pthread_mutex_init(&ctrl_mutex, NULL);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Error code: %d", result);
 		return false;
@@ -143,7 +137,7 @@ bool InitService(int port)
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
-	server.sin_port   = htons(port);
+	server.sin_port = htons(port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
@@ -157,7 +151,7 @@ bool InitService(int port)
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
-		FPRT(stderr, "Error: Already running?\n");
+		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
 		return false;
 	}
 
@@ -188,6 +182,7 @@ bool InitBus()
 
 	// GPIO Initialization
 	if (!bus->Init()) {
+		delete bus;
 		return false;
 	}
 
@@ -197,34 +192,13 @@ bool InitBus()
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cleanup
-//
-//---------------------------------------------------------------------------
 void Cleanup()
 {
-	// Delete the disks
-	for (auto it = devices.begin(); it != devices.end(); ++it) {
-		if (*it) {
-			delete *it;
-			*it = NULL;
-		}
-	}
+	DetachAll();
 
-	// Delete the Controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
-			delete *it;
-			*it = NULL;
-		}
-	}
-
-	// Cleanup the Bus
+	// Clean up and discard the bus
 	if (bus) {
 		bus->Cleanup();
-
-		// Discard the GPIOBUS object
 		delete bus;
 	}
 
@@ -236,142 +210,11 @@ void Cleanup()
 	pthread_mutex_destroy(&ctrl_mutex);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void Reset()
 {
-	// Reset all of the controllers
-	for (const auto& controller : controllers) {
-		if (controller) {
-			controller->Reset();
-		}
-	}
+	controller_manager.ResetAllControllers();
 
-	// Reset the bus
 	bus->Reset();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Controller Mapping
-//
-//---------------------------------------------------------------------------
-bool MapController(Device **map)
-{
-	assert(bus);
-
-	bool status = true;
-
-	// Take ownership of the ctrl data structure
-	pthread_mutex_lock(&ctrl_mutex);
-
-	// Replace the changed unit
-	for (size_t i = 0; i < controllers.size(); i++) {
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
-			if (devices[unitno] != map[unitno]) {
-				// Check if the original unit exists
-				if (devices[unitno]) {
-					// Disconnect it from the controller
-					if (controllers[i]) {
-						controllers[i]->SetUnit(j, NULL);
-					}
-
-					// Free the Unit
-					delete devices[unitno];
-				}
-
-				// Setup a new unit
-				devices[unitno] = map[unitno];
-			}
-		}
-	}
-
-	// Reconfigure all of the controllers
-	int i = 0;
-	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-		// Examine the unit configuration
-		int sasi_num = 0;
-		int scsi_num = 0;
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
-			// branch by unit type
-			if (devices[unitno]) {
-				if (devices[unitno]->IsSASIHD()) {
-					// Drive is SASI, so increment SASI count
-					sasi_num++;
-				} else {
-					// Drive is SCSI, so increment SCSI count
-					scsi_num++;
-				}
-			}
-
-			// Remove the unit
-			if (*it) {
-				(*it)->SetUnit(j, NULL);
-			}
-		}
-
-		// If there are no units connected
-		if (!sasi_num && !scsi_num) {
-			if (*it) {
-				delete *it;
-				*it = NULL;
-				continue;
-			}
-		}
-
-		// Mixture of SCSI and SASI
-		if (sasi_num > 0 && scsi_num > 0) {
-			status = false;
-			continue;
-		}
-
-		if (sasi_num > 0) {
-			// Only SASI Unit(s)
-
-			// Release the controller if it is not SASI
-			if (*it && !(*it)->IsSASI()) {
-				delete *it;
-				*it = NULL;
-			}
-
-			// Create a new SASI controller
-			if (!*it) {
-				*it = new SASIDEV();
-				(*it)->Connect(i, bus);
-			}
-		} else {
-			// Only SCSI Unit(s)
-
-			// Release the controller if it is not SCSI
-			if (*it && !(*it)->IsSCSI()) {
-				delete *it;
-				*it = NULL;
-			}
-
-			// Create a new SCSI controller
-			if (!*it) {
-				*it = new SCSIDEV();
-				(*it)->Connect(i, bus);
-			}
-		}
-
-		// connect all units
-		for (int j = 0; j < UnitNum; j++) {
-			int unitno = i * UnitNum + j;
-			if (devices[unitno]) {
-				// Add the unit connection
-				(*it)->SetUnit(j, (static_cast<Disk *>(devices[unitno])));
-			}
-		}
-	}
-	pthread_mutex_unlock(&ctrl_mutex);
-
-	return status;
 }
 
 bool ReadAccessToken(const char *filename)
@@ -411,21 +254,19 @@ bool ReadAccessToken(const char *filename)
 	return true;
 }
 
-string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
+string ValidateLunSetup(const PbCommand& command)
 {
 	// Mapping of available LUNs (bit vector) to devices
 	map<uint32_t, uint32_t> luns;
 
-	// Collect LUN vectors of new devices
+	// Collect LUN bit vectors of new devices
 	for (const auto& device : command.devices()) {
 		luns[device.id()] |= 1 << device.unit();
 	}
 
-	// Collect LUN vectors of existing devices
-	for (auto const& device : existing_devices) {
-		if (device) {
-			luns[device->GetId()] |= 1 << device->GetLun();
-		}
+	// Collect LUN bit vectors of existing devices
+	for (const Device *device : device_factory.GetAllDevices()) {
+		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
 	// LUN 0 must exist for all devices
@@ -500,7 +341,7 @@ string SetReservedIds(const string& ids)
  			return "Invalid ID " + id_to_reserve;
  		}
 
- 		if (devices[id * UnitNum]) {
+ 		if (controller_manager.FindController(id) != nullptr) {
  			return "ID " + id_to_reserve + " is currently in use";
  		}
 
@@ -523,7 +364,7 @@ string SetReservedIds(const string& ids)
     	LOGINFO("Reserved ID(s) set to %s", s.c_str());
     }
     else {
-    	LOGINFO("Cleared reserved IDs");
+    	LOGINFO("Cleared reserved ID(s)");
     }
 
 	return "";
@@ -531,33 +372,30 @@ string SetReservedIds(const string& ids)
 
 void DetachAll()
 {
-	Device *map[devices.size()];
-	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = NULL;
-	}
+	controller_manager.DeleteAllControllersAndDevices();
 
-	if (MapController(map)) {
-		LOGINFO("Detached all devices");
-	}
-
-	FileSupport::UnreserveAll();
+	LOGINFO("Detached all devices");
 }
 
-bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (map[id * UnitNum + unit]) {
+	if (controller_manager.GetDeviceByIdAndLun(id, unit) != nullptr) {
 		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
+	}
+
+	if (unit >= AbstractController::LUN_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX)
+				+ ")");
 	}
 
 	string filename = GetParam(pb_device, "file");
 
-	// Create a new device, based on the provided type or filename
-	Device *device = device_factory.CreateDevice(type, filename);
-	if (!device) {
+	Device *device = device_factory.CreateDevice(type, filename, id);
+	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
 		}
@@ -566,30 +404,15 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 
-	int supported_luns = device->GetSupportedLuns();
-	if (unit >= supported_luns) {
-		delete device;
-
-		string error = "Invalid unit " + to_string(unit) + " for device type " + PbDeviceType_Name(type);
-		if (supported_luns == 1) {
-			error += " (0)";
-		}
-		else {
-			error += " (0-" + to_string(supported_luns -1) + ")";
-		}
-		return ReturnStatus(context, false, error);
-	}
-
 	// If no filename was provided the medium is considered removed
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support) {
+	if (file_support != nullptr) {
 		device->SetRemoved(filename.empty());
 	}
 	else {
 		device->SetRemoved(false);
 	}
 
-	device->SetId(id);
 	device->SetLun(unit);
 
 	try {
@@ -604,28 +427,28 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 	catch(const illegal_argument_exception& e) {
-		return ReturnStatus(context, false, e.getmsg());
+		return ReturnStatus(context, false, e.get_msg());
 	}
 
 	if (pb_device.block_size()) {
 		Disk *disk = dynamic_cast<Disk *>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
+		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				delete device;
+				device_factory.DeleteDevice(device);
 
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			delete device;
+			device_factory.DeleteDevice(device);
 
 			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
 	}
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
-	if (file_support && !device->IsRemovable() && filename.empty()) {
-		delete device;
+	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
+		device_factory.DeleteDevice(device);
 
 		return ReturnStatus(context, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 	}
@@ -638,7 +461,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		int id;
 		int unit;
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-			delete device;
+			device_factory.DeleteDevice(device);
 
 			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
@@ -652,7 +475,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-					delete device;
+					device_factory.DeleteDevice(device);
 
 					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
@@ -661,9 +484,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			}
 		}
 		catch(const io_exception& e) {
-			delete device;
+			device_factory.DeleteDevice(device);
 
-			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
+			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -677,7 +500,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
-		delete device;
+		device_factory.DeleteDevice(device);
 
 		return true;
 	}
@@ -687,56 +510,68 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		params.erase("file");
 	}
 	if (!device->Init(params)) {
-		delete device;
+		device_factory.DeleteDevice(device);
 
 		return ReturnStatus(context, false, "Initialization of " + PbDeviceType_Name(type) + " device, ID " +to_string(id) +
 				", unit " +to_string(unit) + " failed");
 	}
 
 	// Replace with the newly created unit
-	map[id * UnitNum + unit] = device;
+	pthread_mutex_lock(&ctrl_mutex);
+	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
+	if (!controller_manager.CreateScsiController(bus, primary_device)) {
+		pthread_mutex_unlock(&ctrl_mutex);
 
-	// Re-map the controller
-	if (MapController(map)) {
-		string msg = "Attached ";
-		if (device->IsReadOnly()) {
-			msg += "read-only ";
-		}
-		else if (device->IsProtectable() && device->IsProtected()) {
-			msg += "protected ";
-		}
-		msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
-		LOGINFO("%s", msg.c_str());
-
-		return true;
+		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
 	}
+	pthread_mutex_unlock(&ctrl_mutex);
 
-	return ReturnLocalizedError(context, ERROR_SASI_SCSI);
+	string msg = "Attached ";
+	if (device->IsReadOnly()) {
+		msg += "read-only ";
+	}
+	else if (device->IsProtectable() && device->IsProtected()) {
+		msg += "protected ";
+	}
+	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
+	LOGINFO("%s", msg.c_str());
+
+	return true;
 }
 
-bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
+bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 {
 	if (!device->GetLun()) {
-		for (auto const& d : devices) {
-			// LUN 0 can only be detached if there is no other lUN anymore
-			if (d && d->GetId() == device->GetId() && d->GetLun()) {
+		for (const Device *d : device_factory.GetAllDevices()) {
+			// LUN 0 can only be detached if there is no other LUN anymore
+			if (d->GetId() == device->GetId() && d->GetLun()) {
 				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
 			}
 		}
 	}
 
 	if (!dryRun) {
-		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
+		// Remember data that going to be deleted but are used for logging
+		int id = device->GetId();
+		int lun = device->GetLun();
+		string type = device->GetType();
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support) {
+		if (file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
-		LOGINFO("Detached %s device with ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun());
+		// Delete the existing unit
+		pthread_mutex_lock(&ctrl_mutex);
+		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
+			pthread_mutex_unlock(&ctrl_mutex);
 
-		// Re-map the controller
-		MapController(map);
+			return ReturnStatus(context, false, "Couldn't detach device");
+		}
+		device_factory.DeleteDevice(device);
+		pthread_mutex_unlock(&ctrl_mutex);
+
+		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
 	}
 
 	return true;
@@ -767,7 +602,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	Disk *disk = dynamic_cast<Disk *>(device);
 
 	if (pb_device.block_size()) {
-		if (disk && disk->IsSectorSizeConfigurable()) {
+		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
@@ -804,7 +639,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
+		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -815,7 +650,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		device->SetProtected(pb_device.protected_());
 	}
 
-	if (disk) {
+	if (disk != nullptr) {
 		disk->MediumChanged();
 	}
 
@@ -824,8 +659,6 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 void TerminationHandler(int signum)
 {
-	DetachAll();
-
 	Cleanup();
 
 	exit(signum);
@@ -885,8 +718,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (id < 0) {
 		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
-	if (id >= CtrlMax) {
-		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-" + to_string(CtrlMax - 1) + ")");
+	if (id >= ControllerManager::DEVICE_MAX) {
+		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-"
+				+ to_string(ControllerManager::DEVICE_MAX - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
@@ -894,33 +728,27 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Check the Unit Number
-	if (unit < 0 || unit >= UnitNum) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(UnitNum - 1) + ")");
-	}
-
-	// Copy the devices
-	Device *map[devices.size()];
-	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = devices[i];
+	if (unit < 0 || unit >= AbstractController::LUN_MAX) {
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX - 1) + ")");
 	}
 
 	if (operation == ATTACH) {
-		return Attach(context, pb_device, map, dryRun);
+		return Attach(context, pb_device, dryRun);
 	}
 
 	// Does the controller exist?
-	if (!dryRun && !controllers[id]) {
+	if (!dryRun && controller_manager.FindController(id) == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
 	// Does the unit exist?
-	Device *device = devices[id * UnitNum + unit];
-	if (!device) {
+	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, unit);
+	if (device == nullptr) {
 		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
 
 	if (operation == DETACH) {
-		return Detach(context, device, map, dryRun);
+		return Detach(context, device, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
@@ -1059,7 +887,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string result = ValidateLunSetup(command, devices);
+	string result = ValidateLunSetup(command);
 	if (!result.empty()) {
 		return ReturnStatus(context, false, result);
 	}
@@ -1075,7 +903,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand command;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+		rascsi_response.GetDevicesInfo(result, command);
 		SerializeMessage(context.fd, result);
 		return true;
 	}
@@ -1083,32 +911,21 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	return ReturnStatus(context);
 }
 
-bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
+bool ProcessId(const string id_spec, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
-		int max_id = type == SAHD ? 16 : 8;
-
-		if (!GetAsInt(id_spec, id) || id < 0 || id >= max_id) {
-			cerr << optarg << ": Invalid device ID (0-" << (max_id - 1) << ")" << endl;
+		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
+			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
 		}
 
-		// Required for SASI ID/LUN handling backwards compatibility
 		unit = 0;
-		if (type == SAHD) {
-			unit = id % 2;
-			id /= 2;
-		}
 	}
-	else {
-		int max_unit = type == SAHD ? 2 : UnitNum;
-
-		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= max_unit) {
-			cerr << optarg << ": Invalid unit (0-" << (max_unit - 1) << ")" << endl;
-			return false;
-		}
+	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
+			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= AbstractController::LUN_MAX) {
+		cerr << optarg << ": Invalid unit (0-" << (AbstractController::LUN_MAX - 1) << ")" << endl;
+		return false;
 	}
 
 	return true;
@@ -1186,25 +1003,18 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
 		switch (opt) {
-			// The three options below are kind of a compound option with two letters
+			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				id = -1;
 				unit = -1;
 				continue;
 
-			case 'h':
-			case 'H':
-				id = -1;
-				unit = -1;
-				type = SAHD;
-				continue;
-
 			case 'd':
 			case 'D': {
-				if (!ProcessId(optarg, type, id, unit)) {
+				if (!ProcessId(optarg, id, unit)) {
 					return false;
 				}
 				continue;
@@ -1340,7 +1150,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info, devices);
+	rascsi_response.GetDevices(server_info);
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1375,7 +1185,7 @@ void FixCpu(int cpu)
 //	Monitor Thread
 //
 //---------------------------------------------------------------------------
-static void *MonThread(void *param)
+static void *MonThread(void *)
 {
     // Scheduler Settings
 	struct sched_param schedparam;
@@ -1467,20 +1277,20 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+					rascsi_response.GetDevicesInfo(result, command);
 					SerializeMessage(context.fd, result);
 					break;
 				}
 
 				case DEVICE_TYPES_INFO: {
-					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
+					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
 					SerializeMessage(context.fd, result);
 					break;
 				}
 
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+							result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
 							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
 					SerializeMessage(context.fd, result);
 					break;
@@ -1568,7 +1378,7 @@ static void *MonThread(void *param)
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.getmsg().c_str());
+			LOGWARN("%s", e.get_msg().c_str());
 
 			// Fall through
 		}
@@ -1578,7 +1388,7 @@ static void *MonThread(void *param)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1592,17 +1402,17 @@ int main(int argc, char* argv[])
 
 #ifndef NDEBUG
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
+	// TODO Move to unit test?
 	PbResult pb_operation_info_result;
 	const PbOperationInfo *operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
 	delete operation_info;
 #endif
 
-	int actid;
 	BUS::phase_t phase;
+
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
-	struct sched_param schparam;
 
 	// Output the Banner
 	Banner(argc, argv);
@@ -1621,19 +1431,18 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
-	int port = 6868;
-
 	if (!InitBus()) {
+		return EPERM;
+	}
+
+	int port = DEFAULT_PORT;
+	if (!InitService(port)) {
 		return EPERM;
 	}
 
 	if (!ParseArgument(argc, argv, port)) {
 		Cleanup();
 		return -1;
-	}
-
-	if (!InitService(port)) {
-		return EPERM;
 	}
 
 	// Signal handler to detach all devices on a KILL or TERM signal
@@ -1650,11 +1459,14 @@ int main(int argc, char* argv[])
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
+	struct sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif	// USE_SEL_EVENT_ENABLE
+#else
+	cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
+#endif
 
 	// Start execution
 	running = true;
@@ -1662,12 +1474,11 @@ int main(int argc, char* argv[])
 	// Main Loop
 	while (running) {
 		// Work initialization
-		actid = -1;
 		phase = BUS::busfree;
 
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
-		if (bus->PollSelectEvent() < 0) {
+		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
@@ -1676,21 +1487,21 @@ int main(int argc, char* argv[])
 		}
 
 		// Get the bus
-		bus->Aquire();
+		bus->Acquire();
 #else
-		bus->Aquire();
+		bus->Acquire();
 		if (!bus->GetSEL()) {
 			usleep(0);
 			continue;
 		}
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
 			int now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-				bus->Aquire();
+				bus->Acquire();
 				if (!bus->GetBSY()) {
 					break;
 				}
@@ -1702,42 +1513,20 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
-		pthread_mutex_lock(&ctrl_mutex);
-
-		BYTE data = bus->GetDAT();
-
 		int initiator_id = -1;
 
-		// Notify all controllers
-		int i = 0;
-		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-			if (!*it || (data & (1 << i)) == 0) {
-				continue;
-			}
+		// The initiator and target ID
+		BYTE id_data = bus->GetDAT();
 
-			// Extract the SCSI initiator ID
-			int tmp = data - (1 << i);
-			if (tmp) {
-				initiator_id = 0;
-				for (int j = 0; j < 8; j++) {
-					tmp >>= 1;
-					if (tmp) {
-						initiator_id++;
-					}
-					else {
-						break;
-					}
-				}
-			}
+		pthread_mutex_lock(&ctrl_mutex);
 
-			// Find the target that has moved to the selection phase
-			if ((*it)->Process(initiator_id) == BUS::selection) {
-				// Get the target ID
-				actid = i;
+		// Identify the responsible controller
+		AbstractController *controller = controller_manager.IdentifyController(id_data);
+		if (controller != nullptr) {
+			initiator_id = controller->ExtractInitiatorId(id_data);
 
-				// Bus Selection phase
+			if (controller->Process(initiator_id) == BUS::selection) {
 				phase = BUS::selection;
-				break;
 			}
 		}
 
@@ -1754,12 +1543,12 @@ int main(int argc, char* argv[])
 		// Scheduling policy setting (highest priority)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = controllers[actid]->Process(initiator_id);
+			phase = controller->Process(initiator_id);
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {
@@ -1773,7 +1562,7 @@ int main(int argc, char* argv[])
 		// Set the scheduling priority back to normal
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 		// End the target travel
 		active = false;

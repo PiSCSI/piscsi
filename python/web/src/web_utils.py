@@ -80,14 +80,12 @@ def get_device_name(device_type):
     Takes a four letter device acronym (str) device_type.
     Returns the human-readable name for the device type.
     """
-    if device_type == "SAHD":
-        return _("SASI Hard Disk")
     if device_type == "SCHD":
-        return _("SCSI Hard Disk")
+        return _("Hard Disk")
     if device_type == "SCRM":
         return _("Removable Disk")
     if device_type == "SCMO":
-        return _("Magneto-Optical")
+        return _("Magneto-Optical Disk")
     if device_type == "SCCD":
         return _("CD / DVD")
     if device_type == "SCBR":

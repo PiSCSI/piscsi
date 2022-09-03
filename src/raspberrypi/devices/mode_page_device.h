@@ -23,13 +23,9 @@ public:
 	ModePageDevice(const string&);
 	virtual ~ModePageDevice() {}
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch() override;
 
-	virtual int ModeSense6(const DWORD *, BYTE *) = 0;
-	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
-
-	// TODO This method should not be called by SASIDEV
-	virtual bool ModeSelect(const DWORD *, const BYTE *, int);
+	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 
 protected:
 
@@ -40,12 +36,15 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<ModePageDevice, SASIDEV> dispatcher;
+	Dispatcher<ModePageDevice> dispatcher;
 
-	void ModeSense6(SASIDEV *);
-	void ModeSense10(SASIDEV *);
-	void ModeSelect6(SASIDEV *);
-	void ModeSelect10(SASIDEV *);
+	virtual int ModeSense6(const DWORD *, BYTE *, int) = 0;
+	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
+
+	void ModeSense6();
+	void ModeSense10();
+	void ModeSelect6();
+	void ModeSelect10();
 
 	int ModeSelectCheck(int);
 	int ModeSelectCheck6();

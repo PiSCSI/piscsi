@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 
 using namespace std;
@@ -115,17 +115,17 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 {
 	// Read the header with the size of the protobuf data
 	uint8_t header_buf[4];
-	int bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
-	if (bytes_read < (int)sizeof(header_buf)) {
+	size_t bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
+	if (bytes_read < sizeof(header_buf)) {
 		return;
 	}
-	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
+	size_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
 	if (size <= 0) {
 		throw io_exception("Broken protobuf message header");
 	}
 
 	// Read the binary protobuf data
-	uint8_t data_buf[size];
+	uint8_t *data_buf = new uint8_t[size];
 	bytes_read = ReadNBytes(fd, data_buf, size);
 	if (bytes_read < size) {
 		throw io_exception("Missing protobuf message data");
@@ -133,16 +133,17 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 
 	// Create protobuf message
 	string data((const char *)data_buf, size);
+	delete[] data_buf;
 	message.ParseFromString(data);
 }
 
-int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
+size_t protobuf_util::ReadNBytes(int fd, uint8_t *buf, size_t n)
 {
-	int offset = 0;
+	size_t offset = 0;
 	while (offset < n) {
 		ssize_t len = read(fd, buf + offset, n - offset);
-		if (!len) {
-			break;
+		if (len <= 0) {
+			return len;
 		}
 
 		offset += len;

@@ -49,26 +49,26 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
-	int WriteCheck(DWORD block) override;	// WRITE check
+	vector<BYTE> InquiryInternal() const override;
+	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
+	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
+	int WriteCheck(uint64_t block) override;
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 	bool EnableInterface(const DWORD *cdb);
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
 
-	void TestUnitReady(SASIDEV *) override;
-	void Read6(SASIDEV *) override;
-	void Write6(SASIDEV *) override;
-	void RetrieveStatistics(SASIDEV *);
-	void SetInterfaceMode(SASIDEV *);
-	void SetMcastAddr(SASIDEV *);
-	void EnableInterface(SASIDEV *);
+	void TestUnitReady() override;
+	void Read6() override;
+	void Write6() override;
+	void RetrieveStatistics();
+	void SetInterfaceMode();
+	void SetMcastAddr();
+	void EnableInterface();
 	int GetSendDelay() const override;
 
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch() override;
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
@@ -92,7 +92,7 @@ public:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIDaynaPort, SASIDEV> dispatcher;
+	Dispatcher<SCSIDaynaPort> dispatcher;
 
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
@@ -131,9 +131,9 @@ private:
 
 	const BYTE m_daynacom_mac_prefix[3] = { 0x00, 0x80, 0x19 };
 
-	CTapDriver *m_tap;
+	CTapDriver *m_tap = nullptr;
 										// TAP driver
-	bool m_bTapEnable;
+	bool m_bTapEnable = false;
 										// TAP valid flag
 	BYTE m_mac_addr[6];
 										// MAC Address

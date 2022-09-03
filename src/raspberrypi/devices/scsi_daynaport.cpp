@@ -27,6 +27,7 @@
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
+#include "rascsi_exceptions.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;
@@ -35,11 +36,8 @@ const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
 // TODO Disk should not be the superclass
-SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
+SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP"), dispatcher({})
 {
-	m_tap = NULL;
-	m_bTapEnable = false;
-
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
 	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
@@ -58,17 +56,16 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
+bool SCSIDaynaPort::Dispatch()
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
 	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
 			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
 		return false;
 	}
 
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
@@ -118,9 +115,9 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-vector<BYTE> SCSIDaynaPort::Inquiry() const
+vector<BYTE> SCSIDaynaPort::InquiryInternal() const
 {
-	vector<BYTE> buf = PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<BYTE> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
@@ -161,7 +158,7 @@ vector<BYTE> SCSIDaynaPort::Inquiry() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	int rx_packet_size = 0;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
@@ -287,27 +284,17 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
-//---------------------------------------------------------------------------
-//
-// WRITE check
-//
-//---------------------------------------------------------------------------
-int SCSIDaynaPort::WriteCheck(DWORD block)
+int SCSIDaynaPort::WriteCheck(uint64_t)
 {
-	// Status check
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	if (!m_bTapEnable){
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
+		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	// Success
 	return 1;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //  Write
@@ -326,7 +313,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	BYTE data_format = cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
@@ -334,21 +321,20 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	if (data_format == 0x00){
 		m_tap->Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
 		m_tap->Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
 	}
 	else
 	{
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-		return true;
 	}
+
+	return true;
 }
 	
 //---------------------------------------------------------------------------
@@ -393,7 +379,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 		response_size = allocation_length;
 	}
 
-	// Success
 	return response_size;
 }
 
@@ -435,14 +420,13 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 	return result;
 }
 
-void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
+void SCSIDaynaPort::TestUnitReady()
 {
-	// TEST UNIT READY Success
-
-	controller->Status();
+	// Always successful
+	EnterStatusPhase();
 }
 
-void SCSIDaynaPort::Read6(SASIDEV *controller)
+void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
 	uint32_t record = ctrl->cmd[1] & 0x1f;
@@ -456,8 +440,7 @@ void SCSIDaynaPort::Read6(SASIDEV *controller)
 	// generated by the DaynaPort driver so ignore them
 	if (ctrl->cmd[5] != 0xc0 && ctrl->cmd[5] != 0x80) {
 		LOGTRACE("%s Control value %d, (%04X), returning invalid CDB", __PRETTY_FUNCTION__, ctrl->cmd[5], ctrl->cmd[5]);
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
@@ -468,16 +451,16 @@ void SCSIDaynaPort::Read6(SASIDEV *controller)
 	// Set next block
 	ctrl->next = record + 1;
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
-void SCSIDaynaPort::Write6(SASIDEV *controller)
+void SCSIDaynaPort::Write6()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
 	}
 
 	DWORD data_format = ctrl->cmd[5];
@@ -494,32 +477,25 @@ void SCSIDaynaPort::Write6(SASIDEV *controller)
 	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format);
 
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_error_exception();
 	}
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
+void SCSIDaynaPort::RetrieveStatistics()
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
 //---------------------------------------------------------------------------
@@ -548,7 +524,7 @@ void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
 //             value.
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
+void SCSIDaynaPort::SetInterfaceMode()
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -556,12 +532,12 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 	switch(ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
-			controller->Status();
+			EnterStatusPhase();
 			break;
 
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
-			controller->DataOut();
+			EnterDataOutPhase();
 			break;
 
 		default:
@@ -570,30 +546,25 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 	}
 }
 
-void SCSIDaynaPort::SetMcastAddr(SASIDEV *controller)
+void SCSIDaynaPort::SetMcastAddr()
 {
 	ctrl->length = (DWORD)ctrl->cmd[4];
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
 
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_error_exception();
 	}
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
+void SCSIDaynaPort::EnableInterface()
 {
-	bool status = EnableInterface(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
-		controller->Error();
-		return;
+	if (!EnableInterface(ctrl->cmd)) {
+		throw scsi_error_exception();
 	}
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
 int SCSIDaynaPort::GetSendDelay() const

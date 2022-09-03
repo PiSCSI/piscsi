@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 #include "rascsi_version.h"
 #include "os.h"
 #include "log.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "device.h"
 
 unordered_set<Device *> Device::devices;
@@ -28,27 +28,6 @@ Device::Device(const string& type)
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
 	revision = rev;
-
-	ready = false;
-	reset = false;
-	attn = false;
-	supported_luns = 32;
-	protectable = false;
-	write_protected = false;
-	read_only = false;
-	stoppable = false;
-	stopped = false;
-	removable = false;
-	removed = false;
-	lockable = false;
-	locked = false;
-	block_size_configurable = false;
-	supports_params = false;
-
-	id = 0;
-	lun = 0;
-
-	status_code = STATUS_NOERROR;
 }
 
 Device::~Device()
@@ -121,14 +100,14 @@ const string Device::GetParam(const string& key)
 	return params.find(key) != params.end() ? params[key] : "";
 }
 
-void Device::SetParams(const unordered_map<string, string>& params)
+void Device::SetParams(const unordered_map<string, string>& set_params)
 {
-	this->params = GetDefaultParams();
+	params = default_params;
 
-	for (const auto& param : params) {
+	for (const auto& param : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (this->params.find(param.first) != this->params.end()) {
-			this->params[param.first] = param.second;
+		if (params.find(param.first) != params.end()) {
+			params[param.first] = param.second;
 		}
 		else {
 			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());

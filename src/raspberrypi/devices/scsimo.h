@@ -13,6 +13,7 @@
 //  	[ SCSI Magneto-Optical Disk]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "os.h"
@@ -22,23 +23,29 @@
 class SCSIMO : public Disk, public FileSupport
 {
 public:
+
 	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
 	~SCSIMO() {}
 
 	void Open(const Filepath& path) override;
 
-	// Commands
-	vector<BYTE> Inquiry() const override;
-	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	vector<BYTE> InquiryInternal() const override;
+	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 protected:
 
-	// Internal processing
 	void SetDeviceParameters(BYTE *) override;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
 
 	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
+
+	void SetGeometries(const unordered_map<uint64_t, Geometry>& geometries) { this->geometries = geometries; }
+	bool SetGeometryForCapacity(uint64_t);
+
+	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
+	unordered_map<uint64_t, Geometry> geometries;
 };

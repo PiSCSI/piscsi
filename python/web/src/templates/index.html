@@ -543,9 +543,10 @@
         {{ _("Create Empty Disk Image File") }}
     </summary>
     <ul>
-        <li>{{ _("The Generic image type is recommended for most computer platforms.") }}</li>
-        <li>{{ _("APPLE GENUINE (.hda) and NEC GENUINE (.hdn) image types will make RaSCSI behave as a particular drive type that are recognized by Mac and PC98 systems, respectively.") }}</li>
-        <li>{{ _("SASI images should only be used on the original Sharp X68000, or other legacy systems that utilize this pre-SCSI standard.") }}</li>
+        <li>{{ _("The Generic Hard Disk image type is recommended for most computer platforms.") }}</li>
+        <li>{{ _("APPLE GENUINE is appropriate for Apple Macintosh computers.") }}</li>
+        <li>{{ _("NEC GENUINE is appropriate for NEC PC-98 computers.") }}</li>
+        <li>{{ _("The Generic Removable Disk image type can be used with SCSI floppy drives, SyQuest drives, Zip drives etc.") }}</li>
     </ul>
 </details>
 <table style="border: none">
@@ -566,10 +567,7 @@
                     {{ _("SCSI Hard Disk image (NEC GENUINE) [.hdn]") }}
                     </option>
                     <option value="hdr">
-                    {{ _("SCSI Removable Media Disk image (Generic) [.hdr]") }}
-                    </option>
-                    <option value="hdf">
-                    {{ _("SASI Hard Disk image (Legacy) [.hdf]") }}
+                    {{ _("SCSI Removable Disk image (Generic) [.hdr]") }}
                     </option>
                 </select>
                 <label for="size">{{ _("Size:") }}</label>

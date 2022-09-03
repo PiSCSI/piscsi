@@ -15,16 +15,11 @@
 //---------------------------------------------------------------------------
 #include "scsihd.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include <sstream>
 
 #define DEFAULT_PRODUCT "SCSI HD"
-
-//===========================================================================
-//
-//	SCSI Hard Disk
-//
-//===========================================================================
 
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
@@ -71,7 +66,7 @@ void SCSIHD::Reset()
 
 	// No reset, clear code
 	SetReset(false);
-	SetStatusCode(STATUS_NOERROR);
+	SetStatusCode(0);
 }
 
 void SCSIHD::Open(const Filepath& path)
@@ -89,7 +84,7 @@ void SCSIHD::Open(const Filepath& path)
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
@@ -98,82 +93,21 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD::Inquiry() const
+vector<BYTE> SCSIHD::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
+	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
 }
 
-bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	assert(length >= 0);
+	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
+}
 
-	int size;
+void SCSIHD::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	Disk::AddFormatPage(pages, changeable);
 
-	// PF
-	if (cdb[1] & 0x10) {
-		// Mode Parameter header
-		if (length >= 12) {
-			// Check the block length bytes
-			size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) ||
-				buf[10] != (BYTE)(size >> 8) ||
-				buf[11] != (BYTE)size) {
-				// currently does not allow changing sector length
-				SetStatusCode(STATUS_INVALIDPRM);
-				return false;
-			}
-			buf += 12;
-			length -= 12;
-		}
-
-		// Parsing the page
-		while (length > 0) {
-			// Get page
-			BYTE page = buf[0];
-
-			switch (page) {
-				// format device
-				case 0x03:
-					// check the number of bytes in the physical sector
-					size = 1 << GetSectorSizeShiftCount();
-					if (buf[0xc] != (BYTE)(size >> 8) ||
-						buf[0xd] != (BYTE)size) {
-						// currently does not allow changing sector length
-						SetStatusCode(STATUS_INVALIDPRM);
-						return false;
-					}
-					break;
-
-                // CD-ROM Parameters
-				// TODO Move to scsicd.cpp
-                // According to the SONY CDU-541 manual, Page code 8 is supposed
-                // to set the Logical Block Adress Format, as well as the
-                // inactivity timer multiplier
-                case 0x08:
-                    // Debug code for Issue #2:
-                    //     https://github.com/akuker/RASCSI/issues/2
-                    LOGWARN("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
-                    for (int i = 0; i<length; i++)
-                    {
-                        printf("%02X ", buf[i]);
-                    }
-                    printf("\n");
-                    break;
-				// Other page
-				default:
-                    printf("Unknown Mode Select page code received: %02X\n",page);
-					break;
-			}
-
-			// Advance to the next page
-			size = buf[1] + 2;
-			length -= size;
-			buf += size;
-		}
-	}
-
-	// Do not generate an error for the time being (MINIX)
-	return true;
+	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
 //---------------------------------------------------------------------------

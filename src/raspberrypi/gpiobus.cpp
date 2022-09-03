@@ -78,26 +78,13 @@ DWORD bcm_host_get_peripheral_address(void)
 
 GPIOBUS::GPIOBUS()
 {
-	actmode = TARGET;
-	baseaddr = 0;
-	gicc = 0;
-	gicd = 0;
-	gpio = 0;
-	level = 0;
-	pads = 0;
-	irpctl = 0;
-	qa7regs = 0;
-	signals = 0;
-	rpitype = 0;
 }
 
-GPIOBUS::~GPIOBUS()
-{
-}
-
-BOOL GPIOBUS::Init(mode_e mode)
+bool GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
+	actmode = mode;
+
 	// When we're running on x86, there is no hardware to talk to, so just return.
 	return true;
 #else
@@ -120,7 +107,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
         LOGERROR("Error: Unable to open /dev/mem. Are you running as root?");
-		return FALSE;
+		return false;
 	}
 
 	// Map peripheral region memory
@@ -128,7 +115,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	if (map == MAP_FAILED) {
         LOGERROR("Error: Unable to map memory");
 		close(fd);
-		return FALSE;
+		return false;
 	}
 
 	// Determine the type of raspberry pi from the base address
@@ -168,7 +155,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 			PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
 		if (map == MAP_FAILED) {
 			close(fd);
-			return FALSE;
+			return false;
 		}
 		gicd = (DWORD *)map;
 		gicc = (DWORD *)map;
@@ -226,7 +213,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	fd = open("/dev/gpiochip0", 0);
 	if (fd == -1) {
 		LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
-		return FALSE;
+		return false;
 	}
 
 	// Event request setting
@@ -243,7 +230,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
 		LOGERROR("Unable to register event request. Is RaSCSI already running?")
 		close(fd);
-		return FALSE;
+		return false;
 	}
 
 	// Close GPIO chip file handle
@@ -313,7 +300,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	// Show the user that this app is running
 	SetControl(PIN_ENB, ENB_ON);
 
-	return TRUE;
+	return true;
 #endif // ifdef __x86_64__ || __X86__
 
 }
@@ -441,31 +428,16 @@ void GPIOBUS::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-//---------------------------------------------------------------------------
-//
-//	ENB signal setting
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetENB(BOOL ast)
+void GPIOBUS::SetENB(bool ast)
 {
 	PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get BSY signal
-//
-//---------------------------------------------------------------------------
-bool GPIOBUS::GetBSY()
+bool GPIOBUS::GetBSY() const
 {
 	return GetSignal(PIN_BSY);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set BSY signal
-//
-//---------------------------------------------------------------------------
 void GPIOBUS::SetBSY(bool ast)
 {
 	// Set BSY signal
@@ -500,22 +472,12 @@ void GPIOBUS::SetBSY(bool ast)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get SEL signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetSEL()
+bool GPIOBUS::GetSEL() const
 {
 	return GetSignal(PIN_SEL);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set SEL signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetSEL(BOOL ast)
+void GPIOBUS::SetSEL(bool ast)
 {
 	if (actmode == INITIATOR && ast) {
 		// Turn on ACTIVE signal
@@ -526,134 +488,69 @@ void GPIOBUS::SetSEL(BOOL ast)
 	SetSignal(PIN_SEL, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get ATN signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetATN()
+bool GPIOBUS::GetATN() const
 {
 	return GetSignal(PIN_ATN);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get ATN signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetATN(BOOL ast)
+void GPIOBUS::SetATN(bool ast)
 {
 	SetSignal(PIN_ATN, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get ACK signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetACK()
+bool GPIOBUS::GetACK() const
 {
 	return GetSignal(PIN_ACK);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set ACK signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetACK(BOOL ast)
+void GPIOBUS::SetACK(bool ast)
 {
 	SetSignal(PIN_ACK, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get ACK signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetACT()
+bool GPIOBUS::GetACT() const
 {
 	return GetSignal(PIN_ACT);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set ACK signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetACT(BOOL ast)
+void GPIOBUS::SetACT(bool ast)
 {
 	SetSignal(PIN_ACT, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get RST signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetRST()
+bool GPIOBUS::GetRST() const
 {
 	return GetSignal(PIN_RST);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set RST signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetRST(BOOL ast)
+void GPIOBUS::SetRST(bool ast)
 {
 	SetSignal(PIN_RST, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get MSG signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetMSG()
+bool GPIOBUS::GetMSG() const
 {
 	return GetSignal(PIN_MSG);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set MSG signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetMSG(BOOL ast)
+void GPIOBUS::SetMSG(bool ast)
 {
 	SetSignal(PIN_MSG, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get CD signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetCD()
+bool GPIOBUS::GetCD() const
 {
 	return GetSignal(PIN_CD);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set CD Signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetCD(BOOL ast)
+void GPIOBUS::SetCD(bool ast)
 {
 	SetSignal(PIN_CD, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get IO Signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetIO()
+bool GPIOBUS::GetIO()
 {
-	BOOL ast = GetSignal(PIN_IO);
+	bool ast = GetSignal(PIN_IO);
 
 	if (actmode == INITIATOR) {
 		// Change the data input/output direction by IO signal
@@ -685,12 +582,7 @@ BOOL GPIOBUS::GetIO()
 	return ast;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set IO signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetIO(BOOL ast)
+void GPIOBUS::SetIO(bool ast)
 {
 	SetSignal(PIN_IO, ast);
 
@@ -723,22 +615,12 @@ void GPIOBUS::SetIO(BOOL ast)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get REQ signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetREQ()
+bool GPIOBUS::GetREQ() const
 {
 	return GetSignal(PIN_REQ);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set REQ signal
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetREQ(BOOL ast)
+void GPIOBUS::SetREQ(bool ast)
 {
 	SetSignal(PIN_REQ, ast);
 }
@@ -750,7 +632,7 @@ void GPIOBUS::SetREQ(BOOL ast)
 //---------------------------------------------------------------------------
 BYTE GPIOBUS::GetDAT()
 {
-	DWORD data = Aquire();
+	DWORD data = Acquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
@@ -802,12 +684,7 @@ void GPIOBUS::SetDAT(BYTE dat)
 #endif	// SIGNAL_CONTROL_MODE
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get data parity signal
-//
-//---------------------------------------------------------------------------
-BOOL GPIOBUS::GetDP()
+bool GPIOBUS::GetDP() const
 {
 	return GetSignal(PIN_DP);
 }
@@ -817,26 +694,20 @@ BOOL GPIOBUS::GetDP()
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
+int GPIOBUS::CommandHandShake(BYTE *buf)
 {
-	int count;
-
 	// Only works in TARGET mode
 	if (actmode != TARGET) {
 		return 0;
 	}
 
-	// IRQs disabled
 	DisableIRQ();
-
-	// Get the first command byte
-	int i = 0;
 
 	// Assert REQ signal
 	SetSignal(PIN_REQ, ON);
 
 	// Wait for ACK signal
-	BOOL ret = WaitSignal(PIN_ACK, TRUE);
+	bool ret = WaitSignal(PIN_ACK, TRUE);
 
 	// Wait until the signal line stabilizes
 	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -849,7 +720,8 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 
 	// Timeout waiting for ACK assertion
 	if (!ret) {
-		goto irq_enable_exit;
+		EnableIRQ();
+		return 0;
 	}
 
 	// Wait for ACK to clear
@@ -857,7 +729,8 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 
 	// Timeout waiting for ACK to clear
 	if (!ret) {
-		goto irq_enable_exit;
+		EnableIRQ();
+		return 0;
 	}
 
 	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
@@ -869,7 +742,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 	// semantics. I fact, these semantics have become a standard in the Atari world.
 
 	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-	if (!is_sasi && *buf == 0x1F) {
+	if (*buf == 0x1F) {
 		SetSignal(PIN_REQ, ON);
 
 		ret = WaitSignal(PIN_ACK, TRUE);
@@ -882,22 +755,25 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 		SetSignal(PIN_REQ, OFF);
 
 		if (!ret) {
-			goto irq_enable_exit;
+			EnableIRQ();
+			return 0;
 		}
 
 		WaitSignal(PIN_ACK, FALSE);
 
 		if (!ret) {
-			goto irq_enable_exit;
+			EnableIRQ();
+			return 0;
 		}
 	}
 
-	count = GetCommandByteCount(*buf);
+	int command_byte_count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
 	buf++;
 
-	for (i = 1; i < count; i++) {
+	int bytes_received;
+	for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
 		// Assert REQ signal
 		SetSignal(PIN_REQ, ON);
 
@@ -930,12 +806,9 @@ int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 		buf++;
 	}
 
-irq_enable_exit:
-	// IRQs enabled
 	EnableIRQ();
 
-	// returned the number of bytes received
-	return i;
+	return bytes_received;
 }
 
 //---------------------------------------------------------------------------
@@ -946,8 +819,6 @@ irq_enable_exit:
 int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 {
 	int i;
-	BOOL ret;
-	DWORD phase;
 
 	// Disable IRQs
 	DisableIRQ();
@@ -958,7 +829,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			ret = WaitSignal(PIN_ACK, TRUE);
+			bool ret = WaitSignal(PIN_ACK, TRUE);
 
 			// Wait until the signal line stabilizes
 			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -987,11 +858,11 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 		}
 	} else {
 		// Get phase
-		phase = Aquire() & GPIO_MCI;
+		DWORD phase = Acquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
-			ret = WaitSignal(PIN_REQ, TRUE);
+			bool ret = WaitSignal(PIN_REQ, TRUE);
 
 			// Check for timeout waiting for REQ signal
 			if (!ret) {
@@ -1063,7 +934,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for ACK to clear
-			BOOL ret = WaitSignal(PIN_ACK, FALSE);
+			bool ret = WaitSignal(PIN_ACK, FALSE);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -1094,7 +965,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		WaitSignal(PIN_ACK, FALSE);
 	} else {
 		// Get Phase
-		DWORD phase = Aquire() & GPIO_MCI;
+		DWORD phase = Acquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
@@ -1106,7 +977,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for REQ to be asserted
-			BOOL ret = WaitSignal(PIN_REQ, TRUE);
+			bool ret = WaitSignal(PIN_REQ, TRUE);
 
 			// Check for timeout waiting for REQ to be asserted
 			if (!ret) {
@@ -1157,7 +1028,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 //	SEL signal event polling
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::PollSelectEvent()
+bool GPIOBUS::PollSelectEvent()
 {
 	// clear errno
 	errno = 0;
@@ -1166,15 +1037,15 @@ int GPIOBUS::PollSelectEvent()
 
 	if (epoll_wait(epfd, &epev, 1, -1) <= 0) {
                 LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__);
-		return -1;
+		return false;
 	}
 
 	if (read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
             LOGWARN("%s read failed", __PRETTY_FUNCTION__);
-            return -1;
+            return false;
         }
 
-	return 0;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1306,7 +1177,7 @@ void GPIOBUS::MakeTable(void)
 //	Control signal setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetControl(int pin, BOOL ast)
+void GPIOBUS::SetControl(int pin, bool ast)
 {
 	PinSetSignal(pin, ast);
 }
@@ -1340,7 +1211,7 @@ void GPIOBUS::SetMode(int pin, int mode)
 //	Get input signal value
 //
 //---------------------------------------------------------------------------
-BOOL GPIOBUS::GetSignal(int pin)
+bool GPIOBUS::GetSignal(int pin) const
 {
 	return (signals >> pin) & 1;
 }
@@ -1350,7 +1221,7 @@ BOOL GPIOBUS::GetSignal(int pin)
 //	Set output signal value
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetSignal(int pin, BOOL ast)
+void GPIOBUS::SetSignal(int pin, bool ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
 	int index = pin / 10;
@@ -1383,7 +1254,7 @@ void GPIOBUS::SetSignal(int pin, BOOL ast)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
+bool GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
 	// Get current time
 	DWORD now = SysTimer::GetTimerLow();
@@ -1394,26 +1265,21 @@ BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 	// end immediately if the signal has changed
 	do {
 		// Immediately upon receiving a reset
-		Aquire();
+		Acquire();
 		if (GetRST()) {
-			return FALSE;
+			return false;
 		}
 
 		// Check for the signal edge
         if (((signals >> pin) ^ ~ast) & 1) {
-			return TRUE;
+			return true;
 		}
 	} while ((SysTimer::GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
-	return FALSE;
+	return false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Disable IRQ
-//
-//---------------------------------------------------------------------------
 void GPIOBUS::DisableIRQ()
 {
 #ifdef __linux__
@@ -1436,11 +1302,6 @@ void GPIOBUS::DisableIRQ()
 #endif
 }
 
-//---------------------------------------------------------------------------
-//
-//	Enable IRQ
-//
-//---------------------------------------------------------------------------
 void GPIOBUS::EnableIRQ()
 {
 	if (rpitype == 4) {
@@ -1523,7 +1384,7 @@ void GPIOBUS::PullConfig(int pin, int mode)
 //	Set output pin
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::PinSetSignal(int pin, BOOL ast)
+void GPIOBUS::PinSetSignal(int pin, bool ast)
 {
 	// Check for invalid pin
 	if (pin < 0) {
@@ -1580,9 +1441,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 
 //---------------------------------------------------------------------------
 //
-//	Get the number of bytes for a command
-//
-// TODO The command length should be determined based on the bytes transferred in the COMMAND phase
+// Get the number of bytes for a command
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::GetCommandByteCount(BYTE opcode) {

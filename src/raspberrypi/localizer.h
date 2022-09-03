@@ -30,7 +30,6 @@ enum LocalizationKey {
 	ERROR_UNKNOWN_DEVICE_TYPE,
 	ERROR_MISSING_DEVICE_TYPE,
 	ERROR_DUPLICATE_ID,
-	ERROR_SASI_SCSI,
 	ERROR_EJECT_REQUIRED,
 	ERROR_DEVICE_NAME_UPDATE,
 	ERROR_SHUTDOWN_MODE_MISSING,
@@ -55,5 +54,6 @@ private:
 	void Add(LocalizationKey, const string&, const string&);
 	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
-	unordered_set<string> supported_languages;
+	// Supported locales, always lower case
+	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es" };
 };

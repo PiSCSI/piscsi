@@ -40,23 +40,16 @@
 //
 
 #include <sys/stat.h>
-#include "controllers/scsidev_ctrl.h"
+#include "rascsi_exceptions.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
-
-#define NOT_RESERVED -2
 
 using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
+SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands(), dispatcher({})
 {
-	fd = -1;
-	reserving_initiator = NOT_RESERVED;
-	reservation_time = 0;
-	timeout = 0;
-
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -88,36 +81,32 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-bool SCSIPrinter::Dispatch(SCSIDEV *controller)
+bool SCSIPrinter::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
+void SCSIPrinter::TestUnitReady()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
-vector<BYTE> SCSIPrinter::Inquiry() const
+vector<BYTE> SCSIPrinter::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
+	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
 
-void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
+void SCSIPrinter::ReserveUnit()
 {
 	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
 	if (reservation_time + timeout < time(0)) {
 		DiscardReservation();
 	}
 
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
 	reserving_initiator = controller->GetInitiatorId();
 
@@ -130,14 +119,12 @@ void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
 
 	Cleanup();
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
-void SCSIPrinter::ReleaseUnit(SCSIDEV *controller)
+void SCSIPrinter::ReleaseUnit()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
 	if (reserving_initiator != -1) {
 		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
@@ -148,14 +135,12 @@ void SCSIPrinter::ReleaseUnit(SCSIDEV *controller)
 
 	DiscardReservation();
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
-void SCSIPrinter::Print(SCSIDEV *controller)
+void SCSIPrinter::Print()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
 	uint32_t length = ctrl->cmd[2];
 	length <<= 8;
@@ -170,25 +155,21 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	if (length > (uint32_t)ctrl->bufsize) {
 		LOGERROR("Transfer buffer overflow");
 
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	ctrl->length = length;
 	controller->SetByteTransfer(true);
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
+void SCSIPrinter::SynchronizeBuffer()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
 	if (fd == -1) {
-		controller->Error();
-		return;
+		throw scsi_error_exception();
 	}
 
 	// Make the file readable for the lp user
@@ -213,36 +194,33 @@ void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 	if (system(cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
-		controller->Error();
-	}
-	else {
-		controller->Status();
+		unlink(filename);
+
+		throw scsi_error_exception();
 	}
 
 	unlink(filename);
+
+	EnterStatusPhase();
 }
 
-void SCSIPrinter::SendDiagnostic(SCSIDEV *controller)
+void SCSIPrinter::SendDiagnostic()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
-void SCSIPrinter::StopPrint(SCSIDEV *controller)
+void SCSIPrinter::StopPrint()
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation();
 
 	// Nothing to do, printing has not yet been started
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
-bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);
@@ -259,15 +237,14 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 
 	uint32_t num_written = write(fd, buf, length);
 
-	return (num_written == length);
+	return num_written == length;
 }
 
-bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
+void SCSIPrinter::CheckReservation()
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
 		reservation_time = time(0);
-
-		return true;
+		return;
 	}
 
 	if (controller->GetInitiatorId() != -1) {
@@ -277,10 +254,8 @@ bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
 	}
 
-	controller->Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+	throw scsi_error_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			status::RESERVATION_CONFLICT);
-
-	return false;
 }
 
 void SCSIPrinter::DiscardReservation()

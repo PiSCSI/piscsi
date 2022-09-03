@@ -21,27 +21,28 @@ using namespace std;
 
 class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 {
+	static const int NOT_RESERVED = -2;
 
 public:
 
 	SCSIPrinter();
 	~SCSIPrinter();
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch() override;
 
-	bool Init(const unordered_map<string, string>&);
+	bool Init(const unordered_map<string, string>&) override;
 
-	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(SCSIDEV *);
-	void ReserveUnit(SCSIDEV *);
-	void ReleaseUnit(SCSIDEV *);
-	void Print(SCSIDEV *);
-	void SynchronizeBuffer(SCSIDEV *);
-	void SendDiagnostic(SCSIDEV *);
-	void StopPrint(SCSIDEV *);
+	vector<BYTE> InquiryInternal() const override;
+	void TestUnitReady() override;
+	void ReserveUnit() override;
+	void ReleaseUnit() override;
+	void Print() override;
+	void SynchronizeBuffer();
+	void SendDiagnostic() override;
+	void StopPrint();
 
-	bool WriteBytes(BYTE *, uint32_t) override;
-	bool CheckReservation(SCSIDEV *);
+	bool WriteByteSequence(BYTE *, uint32_t) override;
+	void CheckReservation();
 	void DiscardReservation();
 	void Cleanup();
 
@@ -49,13 +50,13 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<SCSIPrinter, SCSIDEV> dispatcher;
+	Dispatcher<SCSIPrinter> dispatcher;
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
-	int fd;
+	int fd = -1;
 
-	int reserving_initiator;
+	int reserving_initiator = NOT_RESERVED;
 
-	time_t reservation_time;
-	int timeout;
+	time_t reservation_time = 0;
+	int timeout = 0;
 };

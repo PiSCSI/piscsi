@@ -674,7 +674,7 @@ public:
 	void  SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
 	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
-	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);	///< Create file
+	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
 	BOOL  Open();									///< Open file
 	BOOL  Rewind(DWORD nOffset);							///< Seek file
 	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file

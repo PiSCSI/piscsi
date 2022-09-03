@@ -5,26 +5,16 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Unit tests based on GoogleTest and GoogleMock
-//
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-
+#include "testing.h"
+#include "rascsi_exceptions.h"
 #include "rascsi_version.h"
-#include "../devices/device.h"
-#include "../devices/device_factory.h"
-
-using namespace rascsi_interface;
-
-namespace DeviceFactoryTest
-{
-
-DeviceFactory& device_factory = DeviceFactory::instance();
+#include "devices/device.h"
+#include "devices/device_factory.h"
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
-	EXPECT_EQ(device_factory.GetTypeForFile("test.hdf"), SAHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hda"), SCHD);
@@ -41,6 +31,24 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("services"), SCHS);
 	EXPECT_EQ(device_factory.GetTypeForFile("unknown"), UNDEFINED);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
+}
+
+TEST(DeviceFactoryTest, LifeCycle)
+{
+	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
+	EXPECT_NE(nullptr, device);
+
+	list<Device *> devices = device_factory.GetAllDevices();
+	EXPECT_EQ(1, devices.size());
+	EXPECT_EQ(device, devices.front());
+
+	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(-1, 0));
+	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 1));
+
+	device_factory.DeleteDevice(device);
+	devices = device_factory.GetAllDevices();
+	EXPECT_EQ(0, devices.size());
+	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 0));
 }
 
 TEST(DeviceFactoryTest, GetSectorSizes)
@@ -88,14 +96,15 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
 	EXPECT_EQ(nullptr, device);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -113,13 +122,29 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.hds", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.hdi", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
+
+	device = device_factory.CreateDevice(UNDEFINED, "test.nhd", -1);
+	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHD", device->GetType());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -137,13 +162,14 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -161,13 +187,14 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -185,13 +212,14 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -209,13 +237,14 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -232,13 +261,14 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
 	EXPECT_EQ("1.4a", device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "services");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -256,13 +286,14 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
+	device_factory.DeleteDevice(device);
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "printer");
+	Device *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -280,7 +311,5 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	EXPECT_EQ(32, device->GetSupportedLuns());
-}
-
+	device_factory.DeleteDevice(device);
 }

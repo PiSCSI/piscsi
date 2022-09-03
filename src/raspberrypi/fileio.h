@@ -63,7 +63,7 @@ public:
 private:
 	BOOL Open(const char *fname, OpenMode mode, BOOL directIO);
 
-	int handle;							// File handle
+	int handle = -1;						// File handle
 };
 
 #endif	// fileio_h

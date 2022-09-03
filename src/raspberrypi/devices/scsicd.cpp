@@ -16,7 +16,7 @@
 
 #include "scsicd.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 
 using namespace scsi_defs;
 
@@ -165,7 +165,7 @@ bool CDTrack::IsValid(DWORD lba) const
 //---------------------------------------------------------------------------
 bool CDTrack::IsAudio() const
 {
-	ASSERT(valid);
+	assert(valid);
 
 	return audio;
 }
@@ -180,41 +180,24 @@ SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), Scsi
 {
 	SetSectorSizes(sector_sizes);
 
-	// NOT in raw format
-	rawfile = false;
-
-	// Frame initialization
-	frame = 0;
-
-	// Track initialization
-	for (int i = 0; i < TrackMax; i++) {
-		track[i] = NULL;
-	}
-	tracks = 0;
-	dataindex = -1;
-	audioindex = -1;
-
 	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
 	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 SCSICD::~SCSICD()
 {
-	// Clear track
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch(SCSIDEV *controller)
+bool SCSICD::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
 void SCSICD::Open(const Filepath& path)
 {
-	off_t size;
-
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Initialization, track clear
 	SetBlockCount(0);
@@ -228,7 +211,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 
 	// Default sector size is 2048 bytes
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
 	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {
@@ -239,7 +222,7 @@ void SCSICD::Open(const Filepath& path)
 		OpenPhysical(path);
 	} else {
 		// Get file size
-        size = fio.GetFileSize();
+        off_t size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
@@ -268,7 +251,7 @@ void SCSICD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
-	ASSERT(disk.dcache);
+	assert(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
 
 	// Attention if ready
@@ -344,7 +327,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Create only one data track
-	ASSERT(!track[0]);
+	assert(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(false, path);
@@ -385,21 +368,16 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	dataindex = 0;
 }
 
-void SCSICD::ReadToc(SASIDEV *controller)
+void SCSICD::ReadToc()
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
-vector<BYTE> SCSICD::Inquiry() const
+vector<BYTE> SCSICD::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
@@ -469,28 +447,25 @@ void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
 
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
-	ASSERT(buf);
+	assert(buf);
 
-	// Status check
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	// Search for the track
 	int index = SearchTrack(block);
 
-	// if invalid, out of range
+	// If invalid, out of range
 	if (index < 0) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
-	ASSERT(track[index]);
+
+	assert(track[index]);
 
 	// If different from the current data track
 	if (dataindex != index) {
 		// Delete current disk cache (no need to save)
 		delete disk.dcache;
-		disk.dcache = NULL;
+		disk.dcache = nullptr;
 
 		// Reset the number of blocks
 		SetBlockCount(track[index]->GetBlocks());
@@ -507,23 +482,20 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	}
 
 	// Base class
-	ASSERT(dataindex >= 0);
+	assert(dataindex >= 0);
 	return super::Read(cdb, buf, block);
 }
 
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
+	assert(cdb);
+	assert(buf);
 
-	// Check if ready
-	if (!CheckReady()) {
-		return 0;
-	}
+	CheckReady();
 
 	// If ready, there is at least one track
-	ASSERT(tracks > 0);
-	ASSERT(track[0]);
+	assert(tracks > 0);
+	assert(track[0]);
 
 	// Get allocation length, clear buffer
 	int length = cdb[7] << 8;
@@ -538,8 +510,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	if ((int)cdb[6] > last) {
 		// Except for AA
 		if (cdb[6] != 0xaa) {
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
@@ -574,14 +545,13 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			}
 
 			// Otherwise, error
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
 	// Number of track descriptors returned this time (number of loops)
 	int loop = last - track[index]->GetTrackNo() + 1;
-	ASSERT(loop >= 1);
+	assert(loop >= 1);
 
 	// Create header
 	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
@@ -621,16 +591,15 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-void SCSICD::GetEventStatusNotification(SASIDEV *controller)
+void SCSICD::GetEventStatusNotification()
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported");
-	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
@@ -654,9 +623,9 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 	}
 
 	// Store
-	ASSERT(m < 0x100);
-	ASSERT(s < 60);
-	ASSERT(f < 75);
+	assert(m < 0x100);
+	assert(s < 60);
+	assert(f < 75);
 	msf[0] = 0x00;
 	msf[1] = (BYTE)m;
 	msf[2] = (BYTE)s;
@@ -667,10 +636,8 @@ void SCSICD::ClearTrack()
 {
 	// delete the track object
 	for (int i = 0; i < TrackMax; i++) {
-		if (track[i]) {
-			delete track[i];
-			track[i] = NULL;
-		}
+		delete track[i];
+		track[i] = nullptr;
 	}
 
 	// Number of tracks is 0
@@ -692,7 +659,7 @@ int SCSICD::SearchTrack(DWORD lba) const
 	// Track loop
 	for (int i = 0; i < tracks; i++) {
 		// Listen to the track
-		ASSERT(track[i]);
+		assert(track[i]);
 		if (track[i]->IsValid(lba)) {
 			return i;
 		}

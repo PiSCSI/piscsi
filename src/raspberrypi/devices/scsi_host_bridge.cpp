@@ -16,7 +16,7 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
-#include "controllers/scsidev_ctrl.h"
+#include "rascsi_exceptions.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
@@ -24,19 +24,9 @@
 using namespace std;
 using namespace scsi_defs;
 
-SCSIBR::SCSIBR() : Disk("SCBR")
+SCSIBR::SCSIBR() : Disk("SCBR"), dispatcher({}), fs(new CFileSys())
 {
-	tap = NULL;
-	m_bTapEnable = false;
-	packet_enable = false;
-
-	fsoptlen = 0;
-	fsoutlen = 0;
-	fsresult = 0;
-	packet_len = 0;
-
 	// Create host file system
-	fs = new CFileSys();
 	fs->Reset();
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
@@ -93,15 +83,15 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch(SCSIDEV *controller)
+bool SCSIBR::Dispatch()
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-vector<BYTE> SCSIBR::Inquiry() const
+vector<BYTE> SCSIBR::InquiryInternal() const
 {
-	vector<BYTE> b = PrimaryDevice::Inquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<BYTE> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
 	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);
@@ -123,10 +113,10 @@ vector<BYTE> SCSIBR::Inquiry() const
 	return buf;
 }
 
-void SCSIBR::TestUnitReady(SASIDEV *controller)
+void SCSIBR::TestUnitReady()
 {
 	// Always successful
-	controller->Status();
+	EnterStatusPhase();
 }
 
 int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
@@ -209,7 +199,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
+bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
@@ -258,32 +248,29 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 			break;
 	}
 
-	// Error
-	ASSERT(false);
+	assert(false);
 	return false;
 }
 
-void SCSIBR::GetMessage10(SASIDEV *controller)
+void SCSIBR::GetMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
 		ctrl->bufsize = 0x1000000;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 	}
 
 	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_error_exception();
 	}
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
 //---------------------------------------------------------------------------
@@ -293,13 +280,13 @@ void SCSIBR::GetMessage10(SASIDEV *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10(SASIDEV *controller)
+void SCSIBR::SendMessage10()
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
-		free(ctrl->buffer);
+		delete[] ctrl->buffer;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = 0x1000000;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
 	}
 
 	// Set transfer amount
@@ -310,16 +297,14 @@ void SCSIBR::SendMessage10(SASIDEV *controller)
 	ctrl->length |= ctrl->cmd[8];
 
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_error_exception();
 	}
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
 int SCSIBR::GetMacAddr(BYTE *mac)
@@ -328,7 +313,7 @@ int SCSIBR::GetMacAddr(BYTE *mac)
 	return 6;
 }
 
-void SCSIBR::SetMacAddr(BYTE *mac)
+void SCSIBR::SetMacAddr(const BYTE *mac)
 {
 	memcpy(mac_addr, mac, 6);
 }

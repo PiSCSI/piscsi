@@ -9,7 +9,7 @@
 
 #include <netdb.h>
 #include "os.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
@@ -26,12 +26,8 @@ using namespace protobuf_util;
 
 RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
+	: command(command), hostname(hostname), port(port), token(token), locale(locale)
 {
-	this->command = command;
-	this->hostname = hostname;
-	this->port = port;
-	this->token = token;
-	this->locale = locale;
 }
 
 void RasctlCommands::SendCommand()
@@ -76,7 +72,7 @@ void RasctlCommands::SendCommand()
     	SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
-    	cerr << "Error: " << e.getmsg() << endl;
+    	cerr << "Error: " << e.get_msg() << endl;
 
         if (fd >= 0) {
         	close(fd);
@@ -96,7 +92,7 @@ void RasctlCommands::SendCommand()
     catch(const io_exception& e) {
     	close(fd);
 
-    	cerr << "Error: " << e.getmsg() << endl;
+    	cerr << "Error: " << e.get_msg() << endl;
 
     	exit(EXIT_FAILURE);
     }

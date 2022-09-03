@@ -473,14 +473,13 @@ class GPIOBUS : public BUS
 public:
 	// Basic Functions
 	GPIOBUS();
-										// Constructor
-	virtual ~GPIOBUS();
+	virtual ~GPIOBUS() {}
 										// Destructor
-	BOOL Init(mode_e mode = TARGET);
+	bool Init(mode_e mode = TARGET) override;
 										// Initialization
-	void Reset();
+	void Reset() override;
 										// Reset
-	void Cleanup();
+	void Cleanup() override;
 										// Cleanup
 
 	//---------------------------------------------------------------------------
@@ -488,7 +487,7 @@ public:
 	//	Bus signal acquisition
 	//
 	//---------------------------------------------------------------------------
-	inline DWORD Aquire() override
+	inline DWORD Acquire() override
 	{
 	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable
@@ -506,66 +505,66 @@ public:
 	#endif // ifdef __x86_64__ || __X86__
 	}
 
-	void SetENB(BOOL ast);
+	void SetENB(bool ast);
 										// Set ENB signal
 
-	bool GetBSY() override;
+	bool GetBSY() const override;
 										// Get BSY signal
 	void SetBSY(bool ast) override;
 										// Set BSY signal
 
-	BOOL GetSEL() override;
+	bool GetSEL() const override;
 										// Get SEL signal
-	void SetSEL(BOOL ast) override;
+	void SetSEL(bool ast) override;
 										// Set SEL signal
 
-	BOOL GetATN() override;
+	bool GetATN() const override;
 										// Get ATN signal
-	void SetATN(BOOL ast) override;
+	void SetATN(bool ast) override;
 										// Set ATN signal
 
-	BOOL GetACK() override;
+	bool GetACK() const override;
 										// Get ACK signal
-	void SetACK(BOOL ast) override;
+	void SetACK(bool ast) override;
 										// Set ACK signal
 
-	BOOL GetACT();
+	bool GetACT() const;
 										// Get ACT signal
-	void SetACT(BOOL ast);
+	void SetACT(bool ast);
 										// Set ACT signal
 
-	BOOL GetRST() override;
+	bool GetRST() const override;
 										// Get RST signal
-	void SetRST(BOOL ast) override;
+	void SetRST(bool ast) override;
 										// Set RST signal
 
-	BOOL GetMSG() override;
+	bool GetMSG() const override;
 										// Get MSG signal
-	void SetMSG(BOOL ast) override;
+	void SetMSG(bool ast) override;
 										// Set MSG signal
 
-	BOOL GetCD() override;
+	bool GetCD() const override;
 										// Get CD signal
-	void SetCD(BOOL ast) override;
+	void SetCD(bool ast) override;
 										// Set CD signal
 
-	BOOL GetIO() override;
+	bool GetIO() override;
 										// Get IO signal
-	void SetIO(BOOL ast) override;
+	void SetIO(bool ast) override;
 										// Set IO signal
 
-	BOOL GetREQ() override;
+	bool GetREQ() const override;
 										// Get REQ signal
-	void SetREQ(BOOL ast) override;
+	void SetREQ(bool ast) override;
 										// Set REQ signal
 
 	BYTE GetDAT() override;
 										// Get DAT signal
 	void SetDAT(BYTE dat) override;
 										// Set DAT signal
-	BOOL GetDP() override;
+	bool GetDP() const override;
 										// Get Data parity signal
-	int CommandHandShake(BYTE *buf, bool) override;
+	int CommandHandShake(BYTE *buf) override;
 										// Command receive handshake
 	int ReceiveHandShake(BYTE *buf, int count) override;
 										// Data receive handshake
@@ -579,7 +578,7 @@ public:
 
 	#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
-	int PollSelectEvent();
+	bool PollSelectEvent();
 										// SEL signal event polling
 	void ClearSelectEvent();
 										// Clear SEL signal event
@@ -589,15 +588,15 @@ private:
 	// SCSI I/O signal control
 	void MakeTable();
 										// Create work data
-	void SetControl(int pin, BOOL ast);
+	void SetControl(int pin, bool ast);
 										// Set Control Signal
 	void SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	BOOL GetSignal(int pin);
+	bool GetSignal(int pin) const override;
 										// Get SCSI input signal value
-	void SetSignal(int pin, BOOL ast);
+	void SetSignal(int pin, bool ast) override;
 										// Set SCSI output signal value
-	BOOL WaitSignal(int pin, BOOL ast);
+	bool WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change
 	// Interrupt control
 	void DisableIRQ();
@@ -610,43 +609,43 @@ private:
 										// GPIO pin direction setting
 	void PullConfig(int pin, int mode);
 										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, BOOL ast);
+	void PinSetSignal(int pin, bool ast);
 										// Set GPIO output signal
 	void DrvConfig(DWORD drive);
 										// Set GPIO drive strength
 
 
-	mode_e actmode;						// Operation mode
+	mode_e actmode = TARGET;			// Operation mode
 
-	DWORD baseaddr;						// Base address
+	uint32_t baseaddr = 0;				// Base address
 
-	int rpitype;						// Type of Raspberry Pi
+	int rpitype = 0;					// Type of Raspberry Pi
 
-	volatile DWORD *gpio;				// GPIO register
+	volatile uint32_t *gpio = 0;		// GPIO register
 
-	volatile DWORD *pads;				// PADS register
+	volatile uint32_t *pads = 0;		// PADS register
 
-	volatile DWORD *level;				// GPIO input level
+	volatile uint32_t *level = 0;		// GPIO input level
 
-	volatile DWORD *irpctl;				// Interrupt control register
+	volatile uint32_t *irpctl = 0;		// Interrupt control register
 
-	volatile DWORD irptenb;				// Interrupt enabled state
+	volatile uint32_t irptenb;			// Interrupt enabled state
 
-	volatile DWORD *qa7regs;			// QA7 register
+	volatile uint32_t *qa7regs = 0;		// QA7 register
 
 	volatile int tintcore;				// Interupt control target CPU.
 
-	volatile DWORD tintctl;				// Interupt control
+	volatile uint32_t tintctl;			// Interupt control
 
-	volatile DWORD giccpmr;				// GICC priority setting
+	volatile uint32_t giccpmr;			// GICC priority setting
 
-	volatile DWORD *gicd;				// GIC Interrupt distributor register
+	volatile uint32_t *gicd = 0;		// GIC Interrupt distributor register
 
-	volatile DWORD *gicc;				// GIC CPU interface register
+	volatile uint32_t *gicc = 0;		// GIC CPU interface register
 
 	DWORD gpfsel[4];					// GPFSEL0-4 backup values
 
-	DWORD signals;						// All bus signals
+	uint32_t signals = 0;				// All bus signals
 
 #ifdef USE_SEL_EVENT_ENABLE
 	struct gpioevent_request selevreq = {};	// SEL signal event request

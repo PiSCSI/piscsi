@@ -16,14 +16,10 @@
 
 #include "scsihd_nec.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 
 SCSIHD_NEC::SCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
 {
-	// Work initialization
-	cylinders = 0;
-	heads = 0;
-	sectors = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -135,9 +131,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD_NEC::Inquiry() const
+vector<BYTE> SCSIHD_NEC::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
+	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const

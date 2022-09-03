@@ -14,8 +14,8 @@ package rascsi_interface;
 // The available device types
 enum PbDeviceType {
     UNDEFINED = 0;
-    // Non-removable SASI drive
-    SAHD = 1;
+    // Non-removable SASI drive, not supported anymore
+    SAHD = 1 [deprecated = true];
     // Non-removable SCSI drive
     SCHD = 2;
     // Removable SCSI drive
@@ -241,7 +241,7 @@ message PbDeviceProperties {
     bool supports_params = 7;
     // List of default parameters, if any (requires supports_params to be true)
     map<string, string> default_params = 8;
-    // LUN numbers this device can represent. At least 1 (for LUN 0 only). Maxium is 32, for LUNs 0-31.
+    // LUN numbers this device can have, usually 32
     int32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;
@@ -306,7 +306,7 @@ message PbDeviceDefinition {
     PbDeviceType type = 3;
     // Device specific named parameters, e.g. the name of an image file
     map<string, string> params = 4;
-    // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
+    // The optional block size in bytes per sector, must be one of the supported block sizes
     int32 block_size = 5;
     // The device name components
     string vendor = 6;
