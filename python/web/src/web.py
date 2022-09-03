@@ -133,13 +133,13 @@ def index():
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
-    valid_file_suffix = "." + ", .".join(
+    valid_image_suffixes = "." + ", .".join(
         server_info["sahd"] +
         server_info["schd"] +
         server_info["scrm"] +
         server_info["scmo"] +
-        server_info["sccd"] +
-        ARCHIVE_FILE_SUFFIXES)
+        server_info["sccd"]
+        )
 
     if "username" in session:
         username = session["username"]
@@ -175,13 +175,14 @@ def index():
         netinfo=ractl_cmd.get_network_info(),
         device_types=device_types,
         free_disk=int(sys_cmd.disk_space()["free"] / 1024 / 1024),
-        valid_file_suffix=valid_file_suffix,
+        valid_image_suffixes=valid_image_suffixes,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
+        ARCHIVE_FILE_SUFFIXES="." + ", .".join(ARCHIVE_FILE_SUFFIXES),
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
         PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),
