@@ -82,7 +82,10 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 unar -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev \
+    genisoimage python3 python3-venv python3-dev python3-pip nginx \
+    libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 unar \
+    disktype libgmock-dev -y </dev/null
 }
 
 # cache the pip packages

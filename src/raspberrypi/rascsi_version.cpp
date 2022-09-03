@@ -25,13 +25,15 @@ static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + n
 //---------------------------------------------------------------------------
 const char* rascsi_get_version_string()
 {
-    if (rascsi_patch_version < 0) {
+    if(rascsi_patch_version < 0)
+    {
         snprintf(rascsi_version_string, sizeof(rascsi_version_string),
            "%02d.%02d --DEVELOPMENT BUILD--",
             rascsi_major_version,
             rascsi_minor_version);
     }
-    else {
+    else
+    {
         snprintf(rascsi_version_string, sizeof(rascsi_version_string), "%02d.%02d.%d",
             rascsi_major_version,
             rascsi_minor_version, 
