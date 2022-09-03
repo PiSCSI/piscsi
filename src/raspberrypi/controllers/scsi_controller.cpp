@@ -1014,7 +1014,7 @@ bool ScsiController::XferOut(bool cont)
 
 	PrimaryDevice *device = GetDeviceForLun(GetEffectiveLun());
 	if (device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
-		return device->WriteBytes(ctrl.buffer, bytes_to_transfer);
+		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
 	}
 
 	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)

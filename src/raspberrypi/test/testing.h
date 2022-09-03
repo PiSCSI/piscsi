@@ -20,6 +20,8 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
+// Note that these global variables are convenient,
+// but might cause issues because they are reused by all tests
 extern DeviceFactory& device_factory;
 extern ControllerManager& controller_manager;
 
@@ -67,9 +69,9 @@ class MockAbstractController : public AbstractController
 public:
 
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), ());
+	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
-	MOCK_METHOD(int, GetInitiatorId, (), ());
+	MOCK_METHOD(int, GetInitiatorId, (), (const override));
 	MOCK_METHOD(void, SetUnit, (int), ());
 	MOCK_METHOD(void, Connect, (int, BUS *), ());
 	MOCK_METHOD(void, Status, (), ());
@@ -90,8 +92,6 @@ public:
 	MOCK_METHOD(void, Receive, (), ());
 	MOCK_METHOD(bool, HasUnit, (), (const override));
 	MOCK_METHOD(int, GetMaxLuns, (), (const override));
-	MOCK_METHOD(int, GetInitiatorId, (), (const override));
-	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
@@ -106,9 +106,9 @@ class MockScsiController : public ScsiController
 public:
 
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), ());
+	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
-	MOCK_METHOD(int, GetInitiatorId, (), ());
+	MOCK_METHOD(int, GetInitiatorId, (), (const override));
 	MOCK_METHOD(void, SetUnit, (int), ());
 	MOCK_METHOD(void, Connect, (int, BUS *), ());
 	MOCK_METHOD(void, Status, (), ());

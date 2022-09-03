@@ -27,6 +27,7 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 			if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
 					buf[11] != (BYTE)sector_size) {
 				// See below for details
+				LOGWARN("In order to change the sector size use the -b option when launching rascsi");
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 
@@ -48,6 +49,7 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 					if (buf[0xc] != (BYTE)(sector_size >> 8) || buf[0xd] != (BYTE)sector_size) {
 						// With rascsi it is not possible to permanently (by formatting) change the sector size,
 						// because the size is an externally configurable setting only
+						LOGWARN("In order to change the sector size use the -b option when launching rascsi");
 						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 					}
 

@@ -1426,9 +1426,10 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	SetLogLevel("info");
+
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
-	set_level(level::info);
 
 	if (!InitBus()) {
 		return EPERM;

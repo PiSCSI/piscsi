@@ -27,7 +27,7 @@ public:
 	virtual bool Dispatch() override;
 
 	vector<BYTE> InquiryInternal() const override;
-	void TestUnitReady();
+	void TestUnitReady() override;
 	void StartStopUnit();
 
 	bool SupportsFile() const override { return false; }

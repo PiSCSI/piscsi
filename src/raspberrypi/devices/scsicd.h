@@ -119,6 +119,4 @@ private:
 	int tracks = 0;							// Effective number of track objects
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track
-
-	int frame = 0;							// Frame number
 };

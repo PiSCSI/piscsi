@@ -475,11 +475,11 @@ public:
 	GPIOBUS();
 	virtual ~GPIOBUS() {}
 										// Destructor
-	bool Init(mode_e mode = TARGET);
+	bool Init(mode_e mode = TARGET) override;
 										// Initialization
-	void Reset();
+	void Reset() override;
 										// Reset
-	void Cleanup();
+	void Cleanup() override;
 										// Cleanup
 
 	//---------------------------------------------------------------------------
@@ -594,7 +594,7 @@ private:
 										// Set SCSI I/O mode
 	bool GetSignal(int pin) const override;
 										// Get SCSI input signal value
-	void SetSignal(int pin, bool ast);
+	void SetSignal(int pin, bool ast) override;
 										// Set SCSI output signal value
 	bool WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change

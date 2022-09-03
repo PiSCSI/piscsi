@@ -86,7 +86,7 @@ private:
 	void SynchronizeCache16();
 	void ReadDefectData10();
 	virtual void Read6();
-	void Read10();
+	void Read10() override;
 	void Read16() override;
 	virtual void Write6();
 	void Write10() override;

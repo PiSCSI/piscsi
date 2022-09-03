@@ -30,18 +30,18 @@ public:
 
 	virtual bool Dispatch() override;
 
-	bool Init(const unordered_map<string, string>&);
+	bool Init(const unordered_map<string, string>&) override;
 
 	vector<BYTE> InquiryInternal() const override;
-	void TestUnitReady();
-	void ReserveUnit();
-	void ReleaseUnit();
-	void Print();
+	void TestUnitReady() override;
+	void ReserveUnit() override;
+	void ReleaseUnit() override;
+	void Print() override;
 	void SynchronizeBuffer();
-	void SendDiagnostic();
+	void SendDiagnostic() override;
 	void StopPrint();
 
-	bool WriteBytes(BYTE *, uint32_t) override;
+	bool WriteByteSequence(BYTE *, uint32_t) override;
 	void CheckReservation();
 	void DiscardReservation();
 	void Cleanup();

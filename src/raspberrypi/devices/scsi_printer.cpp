@@ -220,7 +220,7 @@ void SCSIPrinter::StopPrint()
 	EnterStatusPhase();
 }
 
-bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);

@@ -208,7 +208,7 @@ vector<BYTE> PrimaryDevice::HandleRequestSense()
 	return buf;
 }
 
-bool PrimaryDevice::WriteBytes(BYTE *, uint32_t)
+bool PrimaryDevice::WriteByteSequence(BYTE *, uint32_t)
 {
 	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__);
 

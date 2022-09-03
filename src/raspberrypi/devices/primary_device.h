@@ -29,7 +29,7 @@ public:
 	virtual bool Dispatch();
 
 	void SetController(AbstractController *);
-	virtual bool WriteBytes(BYTE *, uint32_t);
+	virtual bool WriteByteSequence(BYTE *, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
 protected:

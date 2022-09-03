@@ -54,7 +54,7 @@ class ScsiController : public AbstractController
 		eCmdWriteLong16 = 0x9F
 	};
 
-	typedef struct {
+	typedef struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
 		int syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
@@ -81,7 +81,7 @@ public:
 	int GetMaxLuns() const override { return LUN_MAX; };
 
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION);
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
 
 	int GetInitiatorId() const override { return initiator_id; }
 	void SetByteTransfer(bool is_byte_transfer) override { this->is_byte_transfer = is_byte_transfer; }

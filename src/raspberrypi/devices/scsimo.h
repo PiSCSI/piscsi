@@ -43,7 +43,7 @@ private:
 
 	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
 
-	void SetGeometries(const unordered_map<uint64_t, Geometry>&) { this->geometries = geometries; }
+	void SetGeometries(const unordered_map<uint64_t, Geometry>& geometries) { this->geometries = geometries; }
 	bool SetGeometryForCapacity(uint64_t);
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
