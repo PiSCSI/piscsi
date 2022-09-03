@@ -1,6 +1,10 @@
 name: C/C++ CI
 
-on: [push, pull_request]
+on: 
+  [push, pull_request]
+  branches:    
+      - ci_integration
+      - ci_integration2
 
 jobs:
   build:
