@@ -1282,10 +1282,10 @@ msgstr "Apagar la Raspberry Pi"
 #~ msgstr "Liberar la reserva"
 
 #~ msgid ""
-#~ "Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
+#~ "Types: SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
 #~ "Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
 #~ msgstr ""
-#~ "Tipos: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = extraíble | SCMO = magneto-"
+#~ "Tipos: SCHD = SCSI HDD | SCRM = extraíble | SCMO = magneto-"
 #~ "optico | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
 
 #~ msgid "Attach Ethernet Adapter"
