@@ -8,9 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - uses: actions/checkout@v3
+
     - name: Install cross compile toolchain
-      run: sudo apt-get install gcc-8-arm-linux-gnueabihf g++-8-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
-    - uses: actions/checkout@v2
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev libpcap-dev protobuf-compiler
+
+    - name: Install dependencies
+      run: sudp apt-get install libev-dev libevdev2 libgmock-dev
 
     - name: dump arm gcc version
       run: arm-linux-gnueabihf-gcc -v
@@ -20,28 +25,44 @@ jobs:
       run: gcc -v
       working-directory: ./src/raspberrypi
  
-
     - name: make standard
-      run: make all DEBUG=1 CONNECT_TYPE=STANDARD
+      run: make all -j CONNECT_TYPE=STANDARD CROSS_COMPILE=arm-linux-gnueabihf-
       working-directory: ./src/raspberrypi
  
-    - name: make fullspec
-      run: make all DEBUG=1 CONNECT_TYPE=FULLSPEC
+    - name: Fullspec Build
+      run: make all -j CONNECT_TYPE=FULLSPEC CROSS_COMPILE=arm-linux-gnueabihf-
       working-directory: ./src/raspberrypi
 
-    # We need to tar the binary outputs to retain the executable
-    # file permission. Currently, actions/upload-artifact only
-    # supports .ZIP files.
-    # This is workaround for https://github.com/actions/upload-artifact/issues/38
-    - name: tar binary outputs
-      run: tar -czvf rascsi.tar.gz ./bin
+    - name: Clean for testing
+      run: make clean -j CONNECT_TYPE=FULLSPEC
       working-directory: ./src/raspberrypi
 
-    - name: upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: arm-binaries
-        path: ./src/raspberrypi/rascsi.tar.gz
+    - name: Functional Test
+      run: make test -j CONNECT_TYPE=FULLSPEC
+      working-directory: ./src/raspberrypi      
+
+    - name: Clean for coverage
+      run: make clean -j CONNECT_TYPE=FULLSPEC
+      working-directory: ./src/raspberrypi
+
+    - name: Coverage Test
+      run: make coverage -j CONNECT_TYPE=FULLSPEC
+      working-directory: ./src/raspberrypi
+
+
+    # # We need to tar the binary outputs to retain the executable
+    # # file permission. Currently, actions/upload-artifact only
+    # # supports .ZIP files.
+    # # This is workaround for https://github.com/actions/upload-artifact/issues/38
+    # - name: tar binary outputs
+    #   run: tar -czvf rascsi.tar.gz ./bin
+    #   working-directory: ./src/raspberrypi
+
+    # - name: upload artifacts
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: arm-binaries
+    #     path: ./src/raspberrypi/rascsi.tar.gz
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest
