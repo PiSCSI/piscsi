@@ -33,7 +33,7 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "device.h"
 #include "host_services.h"
 

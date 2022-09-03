@@ -18,7 +18,7 @@
 #include "devices/disk.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_response.h"

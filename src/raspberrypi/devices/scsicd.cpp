@@ -16,7 +16,7 @@
 
 #include "scsicd.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 
 using namespace scsi_defs;
 

@@ -16,7 +16,7 @@
 
 #include "scsihd_nec.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 
 SCSIHD_NEC::SCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
 {

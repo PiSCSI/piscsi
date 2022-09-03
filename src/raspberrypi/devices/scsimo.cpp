@@ -15,7 +15,7 @@
 //---------------------------------------------------------------------------
 
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsimo.h"
 

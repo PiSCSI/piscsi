@@ -16,7 +16,7 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"

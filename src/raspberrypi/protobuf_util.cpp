@@ -12,7 +12,7 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 
 using namespace std;

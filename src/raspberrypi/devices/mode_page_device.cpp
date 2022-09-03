@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "mode_page_device.h"
 
 using namespace std;

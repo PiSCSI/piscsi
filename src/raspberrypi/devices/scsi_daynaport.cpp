@@ -27,7 +27,7 @@
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;

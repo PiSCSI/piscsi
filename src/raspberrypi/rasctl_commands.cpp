@@ -9,7 +9,7 @@
 
 #include <netdb.h>
 #include "os.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"

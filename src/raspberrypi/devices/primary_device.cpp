@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "dispatcher.h"
 #include "primary_device.h"
 

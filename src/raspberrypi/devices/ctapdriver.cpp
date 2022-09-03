@@ -22,7 +22,7 @@
 #include "ctapdriver.h"
 #include "log.h"
 #include "rasutil.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include <sstream>
 
 #define BRIDGE_NAME "rascsi_bridge"

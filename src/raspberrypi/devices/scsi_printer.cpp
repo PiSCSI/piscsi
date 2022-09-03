@@ -40,7 +40,7 @@
 //
 
 #include <sys/stat.h>
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
 

@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 

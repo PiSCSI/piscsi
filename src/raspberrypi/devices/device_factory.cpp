@@ -14,7 +14,7 @@
 #include "scsi_printer.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
 #include "host_services.h"
