@@ -1,9 +1,12 @@
 name: C/C++ CI
 
-on: [push, pull_request]
-  branches:    
-      - ci_integration
-      - ci_integration2
+on:
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches:    
+      - main
+      - 'mona/octocat'
+      - 'releases/**'
 
 jobs:
   build:
