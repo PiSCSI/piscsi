@@ -1,10 +1,6 @@
 name: Run automated unit tests
 
-on:
-  push:
-    branches:
-      - master
-      - 'releases/**'
+on: [push, pull_request]
 
 jobs:
   functional_test:
