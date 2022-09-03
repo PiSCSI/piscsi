@@ -106,7 +106,6 @@ class MockScsiController : public ScsiController
 public:
 
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));
 	MOCK_METHOD(void, SetUnit, (int), ());
