@@ -134,7 +134,6 @@ def index():
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
     valid_image_suffixes = "." + ", .".join(
-        server_info["sahd"] +
         server_info["schd"] +
         server_info["scrm"] +
         server_info["scmo"] +
