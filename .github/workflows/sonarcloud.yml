@@ -50,7 +50,7 @@ jobs:
         working-directory: ./src/raspberrypi
       - name: Run build-wrapper
         run: |
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make all
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} "make scsimon CONNECT_TYPE=STANDARD CROSS_COMPILE=arm-linux-gnueabihf-"
         working-directory: ./src/raspberrypi
       - name: Run sonar-scanner
         env:
