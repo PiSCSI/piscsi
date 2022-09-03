@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   build:
-    name: Build
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
     env:
       SONAR_SCANNER_VERSION: 4.7.0.2747
@@ -17,6 +17,16 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Install cross compile toolchain
+        run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev libpcap-dev protobuf-compiler
+
+      - name: Install dependencies
+        run: sudo apt-get install libev-dev libevdev2 libgmock-dev
+
+      - name: dump arm gcc version
+        run: arm-linux-gnueabihf-gcc -v
+        working-directory: ./src/raspberrypi
+
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
