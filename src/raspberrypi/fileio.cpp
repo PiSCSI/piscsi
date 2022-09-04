@@ -52,7 +52,7 @@ BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
 	return TRUE;
 }
 
-BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
+BOOL Fileio::Save(const Filepath& path, const void *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);

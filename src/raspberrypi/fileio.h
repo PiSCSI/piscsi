@@ -45,7 +45,7 @@ public:
 	Fileio();
 	virtual ~Fileio();
 	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
-	BOOL Save(const Filepath& path, void *buffer, int size);	// Save RAM
+	BOOL Save(const Filepath& path, const void *buffer, int size);	// Save RAM
 
 	BOOL Open(const char *fname, OpenMode mode);
 	BOOL Open(const Filepath& path, OpenMode mode);

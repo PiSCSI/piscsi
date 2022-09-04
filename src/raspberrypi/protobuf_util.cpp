@@ -20,8 +20,8 @@ using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
-#define COMPONENT_SEPARATOR ':'
-#define KEY_VALUE_SEPARATOR '='
+static const char COMPONENT_SEPARATOR = ':';
+static const char KEY_VALUE_SEPARATOR = '=';
 
 Localizer localizer;
 
@@ -162,7 +162,7 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const Lo
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English
-	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str());
+	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
 
 	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
 }
@@ -172,7 +172,7 @@ bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, con
 {
 	// Do not log twice if logging has already been done in the localized error handling above
 	if (log && !status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str());
+		LOGERROR("%s", msg.c_str())
 	}
 
 	if (context.fd == -1) {

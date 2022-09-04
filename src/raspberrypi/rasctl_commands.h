@@ -48,7 +48,7 @@ private:
 
 	PbCommand command;
 	string hostname;
-	uint16_t port;
+	int port;
 	string token;
 	string locale;
 

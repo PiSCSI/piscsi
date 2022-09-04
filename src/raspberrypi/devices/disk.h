@@ -124,7 +124,7 @@ protected:
 	virtual void Open(const Filepath&);
 
 	virtual void SetDeviceParameters(BYTE *) const;
-	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;

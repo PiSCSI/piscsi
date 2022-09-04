@@ -18,7 +18,7 @@
 #include <list>
 
 // Separator for the INQUIRY name components
-#define COMPONENT_SEPARATOR ':'
+static const char COMPONENT_SEPARATOR = ':';
 
 using namespace std;
 using namespace rascsi_interface;
@@ -56,7 +56,7 @@ void RasctlCommands::SendCommand()
     	struct sockaddr_in server;
     	memset(&server, 0, sizeof(server));
     	server.sin_family = AF_INET;
-    	server.sin_port = htons(port);
+    	server.sin_port = (uint16_t)htons(port);
     	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 

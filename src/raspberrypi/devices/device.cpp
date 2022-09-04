@@ -110,7 +110,7 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 			params[param.first] = param.second;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str())
 		}
 	}
 }
@@ -118,7 +118,7 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 void Device::SetStatusCode(int status_code)
 {
 	if (status_code) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff)
 	}
 
 	this->status_code = status_code;

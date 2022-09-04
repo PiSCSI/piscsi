@@ -598,7 +598,7 @@ void SCSICD::GetEventStatusNotification()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	LOGTRACE("Received request for event polling, which is currently not supported");
+	LOGTRACE("Received request for event polling, which is currently not supported")
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 

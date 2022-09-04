@@ -68,7 +68,7 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 
 	// Check to see if the reset signal was asserted
 	if (bus->GetRST()) {
-		LOGWARN("RESET signal received!");
+		LOGWARN("RESET signal received!")
 
 		// Reset the controller
 		Reset();
@@ -80,10 +80,10 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 	}
 
 	if (initiator_id != UNKNOWN_INITIATOR_ID) {
-		LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, initiator_id);
+		LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, initiator_id)
 	}
 	else {
-		LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__)
 	}
 
 	this->initiator_id = initiator_id;
@@ -132,7 +132,7 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 		// Any exception should have been handled during the phase processing
 		assert(false);
 
-		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__);
+		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__)
 
 		Reset();
 		bus->Reset();
@@ -146,7 +146,7 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 void ScsiController::BusFree()
 {
 	if (ctrl.phase != BUS::busfree) {
-		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::busfree);
 
@@ -172,21 +172,21 @@ void ScsiController::BusFree()
 		// TODO Try to find a better place for this code without breaking encapsulation
 		switch(shutdown_mode) {
 		case STOP_RASCSI:
-			LOGINFO("RaSCSI shutdown requested");
+			LOGINFO("RaSCSI shutdown requested")
 			exit(0);
 			break;
 
 		case STOP_PI:
-			LOGINFO("Raspberry Pi shutdown requested");
+			LOGINFO("Raspberry Pi shutdown requested")
 			if (system("init 0") == -1) {
-				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno));
+				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno))
 			}
 			break;
 
 		case RESTART_PI:
-			LOGINFO("Raspberry Pi restart requested");
+			LOGINFO("Raspberry Pi restart requested")
 			if (system("init 6") == -1) {
-				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno));
+				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno))
 			}
 			break;
 
@@ -217,7 +217,7 @@ void ScsiController::Selection()
 			return;
 		}
 
-		LOGTRACE("%s Selection Phase Target ID=%d", __PRETTY_FUNCTION__, GetTargetId());
+		LOGTRACE("%s Selection Phase Target ID=%d", __PRETTY_FUNCTION__, GetTargetId())
 
 		SetPhase(BUS::selection);
 
@@ -240,7 +240,7 @@ void ScsiController::Selection()
 void ScsiController::Command()
 {
 	if (ctrl.phase != BUS::command) {
-		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::command);
 
@@ -256,7 +256,7 @@ void ScsiController::Command()
 		// If no byte can be received move to the status phase
 		int command_byte_count = bus->CommandHandShake(ctrl.buffer);
 		if (!command_byte_count) {
-			LOGERROR("%s No command bytes received", __PRETTY_FUNCTION__);
+			LOGERROR("%s No command bytes received", __PRETTY_FUNCTION__)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -272,7 +272,7 @@ void ScsiController::Command()
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = ctrl.buffer[i];
-			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
 		}
 
 		// Clear length and block
@@ -285,7 +285,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
 
 	SetPhase(BUS::execute);
 
@@ -299,13 +299,13 @@ void ScsiController::Execute()
 		ctrl.status = 0;
 	}
 
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
 		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
-			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId());
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId())
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
@@ -328,7 +328,7 @@ void ScsiController::Execute()
 	
 	try {
 		if (!device->Dispatch()) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (BYTE)ctrl.cmd[0]);
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (BYTE)ctrl.cmd[0])
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
@@ -343,7 +343,7 @@ void ScsiController::Execute()
 	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
 		lun = GetEffectiveLun();
 
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId())
 
 		ctrl.buffer[0] = 0x7f;
 	}
@@ -359,7 +359,7 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
+		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status)
 
 		SetPhase(BUS::status);
 
@@ -383,7 +383,7 @@ void ScsiController::Status()
 void ScsiController::MsgIn()
 {
 	if (ctrl.phase != BUS::msgin) {
-		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::msgin);
 
@@ -398,16 +398,16 @@ void ScsiController::MsgIn()
 		return;
 	}
 
-	LOGTRACE("%s Transitioning to Send()", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Transitioning to Send()", __PRETTY_FUNCTION__)
 	Send();
 }
 
 void ScsiController::MsgOut()
 {
-	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId());
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId())
 
 	if (ctrl.phase != BUS::msgout) {
-		LOGTRACE("Message Out Phase");
+		LOGTRACE("Message Out Phase")
 
 	    // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
@@ -447,7 +447,7 @@ void ScsiController::DataIn()
 			return;
 		}
 
-		LOGTRACE("%s Going into Data-in Phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Going into Data-in Phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::datain);
 
@@ -479,7 +479,7 @@ void ScsiController::DataOut()
 			return;
 		}
 
-		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::dataout);
 
@@ -529,7 +529,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	ctrl.status = status;
 	ctrl.message = 0x00;
 
-	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)
 
 	Status();
 }
@@ -541,7 +541,7 @@ void ScsiController::Send()
 
 	if (ctrl.length != 0) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
-				+ to_string(ctrl.length)).c_str());
+				+ to_string(ctrl.length)).c_str())
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
@@ -569,7 +569,7 @@ void ScsiController::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str());
+			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
 		}
 	}
 
@@ -581,14 +581,14 @@ void ScsiController::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str())
 		assert(ctrl.length > 0);
 		assert(ctrl.offset == 0);
 		return;
 	}
 
 	// Move to next phase
-	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), ctrl.phase);
+	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), ctrl.phase)
 	switch (ctrl.phase) {
 		// Message in phase
 		case BUS::msgin:
@@ -636,7 +636,7 @@ void ScsiController::Receive()
 	int len;
 	BYTE data;
 
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
+	LOGTRACE("%s",__PRETTY_FUNCTION__)
 
 	// REQ is low
 	assert(!bus->GetREQ());
@@ -644,13 +644,13 @@ void ScsiController::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length)
 		// Receive
 		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, (int)ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -666,7 +666,7 @@ void ScsiController::Receive()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
+	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
 	switch (ctrl.phase) {
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
@@ -714,7 +714,7 @@ void ScsiController::Receive()
 
 			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = ctrl.buffer[i];
-				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
 			}
 
 			Execute();
@@ -739,14 +739,14 @@ void ScsiController::Receive()
 
 					// ABORT
 					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", data);
+						LOGTRACE("Message code ABORT $%02X", data)
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -755,12 +755,12 @@ void ScsiController::Receive()
 					// IDENTIFY
 					if (data >= 0x80) {
 						identified_lun = data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun);
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
 					}
 
 					// Extended Message
 					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -835,21 +835,21 @@ void ScsiController::ReceiveBytes()
 	uint32_t len;
 	BYTE data;
 
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
+	LOGTRACE("%s",__PRETTY_FUNCTION__)
 
 	// REQ is low
 	assert(!bus->GetREQ());
 	assert(!bus->GetIO());
 
 	if (ctrl.length) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
-					__PRETTY_FUNCTION__, ctrl.length, len);
+					__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -866,7 +866,7 @@ void ScsiController::ReceiveBytes()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
+	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
 	switch (ctrl.phase) {
 
 		case BUS::dataout:
@@ -902,7 +902,7 @@ void ScsiController::ReceiveBytes()
 
 			for (uint32_t i = 0; i < len; i++) {
 				ctrl.cmd[i] = ctrl.buffer[i];
-				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
 			}
 
 			Execute();
@@ -927,14 +927,14 @@ void ScsiController::ReceiveBytes()
 
 					// ABORT
 					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", data);
+						LOGTRACE("Message code ABORT $%02X", data)
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -943,12 +943,12 @@ void ScsiController::ReceiveBytes()
 					// IDENTIFY
 					if (data >= 0x80) {
 						identified_lun = data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun);
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
 					}
 
 					// Extended Message
 					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -1051,7 +1051,7 @@ void ScsiController::FlushUnit()
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
-				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0])
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
 			}
@@ -1079,7 +1079,7 @@ bool ScsiController::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::datain);
 
-	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -1205,7 +1205,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		}
 
 		case eCmdSetMcastAddr:
-			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
+			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__)
 			break;
 
 		default:

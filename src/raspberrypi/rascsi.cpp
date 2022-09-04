@@ -46,8 +46,8 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-#define DEFAULT_PORT 6868
-#define COMPONENT_SEPARATOR ':'
+static const int DEFAULT_PORT = 6868;
+static const char COMPONENT_SEPARATOR = ':';
 
 //---------------------------------------------------------------------------
 //
@@ -128,7 +128,7 @@ bool InitService(int port)
 {
 	int result = pthread_mutex_init(&ctrl_mutex, nullptr);
 	if (result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Error code: %d", result);
+		LOGERROR("Unable to create a mutex. Error code: %d", result)
 		return false;
 	}
 
@@ -308,7 +308,7 @@ bool SetLogLevel(const string& log_level)
 
 	current_log_level = log_level;
 
-	LOGINFO("Set log level to '%s'", current_log_level.c_str());
+	LOGINFO("Set log level to '%s'", current_log_level.c_str())
 
 	return true;
 }
@@ -319,7 +319,7 @@ void LogDevices(const string& devices)
 	string line;
 
 	while (getline(ss, line, '\n')) {
-		LOGINFO("%s", line.c_str());
+		LOGINFO("%s", line.c_str())
 	}
 }
 
@@ -361,10 +361,10 @@ string SetReservedIds(const string& ids)
     		s += to_string(reserved_id);
     	}
 
-    	LOGINFO("Reserved ID(s) set to %s", s.c_str());
+    	LOGINFO("Reserved ID(s) set to %s", s.c_str())
     }
     else {
-    	LOGINFO("Cleared reserved ID(s)");
+    	LOGINFO("Cleared reserved ID(s)")
     }
 
 	return "";
@@ -374,7 +374,7 @@ void DetachAll()
 {
 	controller_manager.DeleteAllControllersAndDevices();
 
-	LOGINFO("Detached all devices");
+	LOGINFO("Detached all devices")
 }
 
 bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
@@ -534,7 +534,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		msg += "protected ";
 	}
 	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
-	LOGINFO("%s", msg.c_str());
+	LOGINFO("%s", msg.c_str())
 
 	return true;
 }
@@ -571,7 +571,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
+		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
 	}
 
 	return true;
@@ -597,7 +597,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
 
 	Disk *disk = dynamic_cast<Disk *>(device);
 
@@ -712,7 +712,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 			<< "', revision='" << pb_device.revision()
 			<< "', block size=" << pb_device.block_size();
-	LOGINFO("%s", s.str().c_str());
+	LOGINFO("%s", s.str().c_str())
 
 	// Check the Controller Number
 	if (id < 0) {
@@ -769,17 +769,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	switch (operation) {
 		case START:
 			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
+					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
 				}
 			}
 			break;
 
 		case STOP:
 			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// STOP is idempotent
 				device->Stop();
@@ -791,17 +791,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case EJECT:
 			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
+					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
 				}
 			}
 			break;
 
 		case PROTECT:
 			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// PROTECT is idempotent
 				device->SetProtected(true);
@@ -810,7 +810,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case UNPROTECT:
 			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// UNPROTECT is idempotent
 				device->SetProtected(false);
@@ -826,7 +826,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		case CHECK_AUTHENTICATION:
 		case NO_OPERATION:
 			// Do nothing, just log
-			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
+			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str())
 			break;
 
 		default:
@@ -955,25 +955,25 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	}
 
 	if (mode == "system") {
-		LOGINFO("System shutdown requested");
+		LOGINFO("System shutdown requested")
 
 		SerializeMessage(context.fd, result);
 
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			LOGERROR("System shutdown failed: %s", strerror(errno));
+			LOGERROR("System shutdown failed: %s", strerror(errno))
 		}
 	}
 	else if (mode == "reboot") {
-		LOGINFO("System reboot requested");
+		LOGINFO("System reboot requested")
 
 		SerializeMessage(context.fd, result);
 
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			LOGERROR("System reboot failed: %s", strerror(errno));
+			LOGERROR("System reboot failed: %s", strerror(errno))
 		}
 	}
 	else {
@@ -1090,12 +1090,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
-			default:
-				return false;
-
 			case 1:
 				// Encountered filename
 				break;
+
+			default:
+				return false;
 		}
 
 		if (optopt) {
@@ -1135,7 +1135,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	}
 
 	if (!log_level.empty() && !SetLogLevel(log_level)) {
-		LOGWARN("Invalid log level '%s'", log_level.c_str());
+		LOGWARN("Invalid log level '%s'", log_level.c_str())
 	}
 
 	// Attach all specified devices
@@ -1242,13 +1242,13 @@ static void *MonThread(void *)
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {
-				LOGERROR("Received unknown command with operation opcode %d", command.operation());
+				LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
 				ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
 				continue;
 			}
 
-			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
 
 			PbResult result;
 
@@ -1378,7 +1378,7 @@ static void *MonThread(void *)
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.get_msg().c_str());
+			LOGWARN("%s", e.get_msg().c_str())
 
 			// Fall through
 		}

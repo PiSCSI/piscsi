@@ -125,8 +125,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
-		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
-				|| properties.lockable()) {
+		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
 			cout << "Properties: ";
 			bool has_property = false;
 			if (properties.read_only()) {

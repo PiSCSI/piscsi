@@ -108,7 +108,7 @@ bool DiskTrack::Load(const Filepath& path)
 
 	if (dt.buffer == nullptr) {
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-                        LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
+                        LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
                 }
 		dt.length = length;
 	}
@@ -121,7 +121,7 @@ bool DiskTrack::Load(const Filepath& path)
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-                  LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
+                  LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
                 }
 		dt.length = length;
 	}
@@ -276,9 +276,9 @@ bool DiskTrack::Save(const Filepath& path)
 bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 {
 	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
+	ASSERT((sec >= 0) && (sec < 0x100));
 
-	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
+	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
 	// Error if not initialized
 	if (!dt.init) {
 		return false;
@@ -301,7 +301,7 @@ bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 {
 	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
+	ASSERT((sec >= 0) && (sec < 0x100));
 	ASSERT(!dt.raw);
 
 	// Error if not initialized

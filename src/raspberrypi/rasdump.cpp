@@ -21,7 +21,7 @@
 //	Constant Declaration
 //
 //---------------------------------------------------------------------------
-#define BUFSIZE 1024 * 64			// Buffer size of about 64KB
+static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
 
 //---------------------------------------------------------------------------
 //

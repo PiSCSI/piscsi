@@ -21,7 +21,7 @@
 #include <list>
 
 // Separator for the INQUIRY name components and for compound parameters
-#define COMPONENT_SEPARATOR ':'
+static const char COMPONENT_SEPARATOR = ':';
 
 using namespace std;
 using namespace rascsi_interface;

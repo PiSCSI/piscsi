@@ -108,7 +108,7 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 
 	default_image_folder = folder;
 
-	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
+	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str())
 
 	return "";
 }
@@ -187,7 +187,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	close(image_fd);
 
 	LOGINFO("%s", string("Created " + string(permissions & S_IWUSR ? "": "read-only ") + "image file '" + full_filename +
-			"' with a size of " + to_string(len) + " bytes").c_str());
+			"' with a size of " + to_string(len) + " bytes").c_str())
 
 	return ReturnStatus(context);
 }
@@ -236,7 +236,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		last_slash = folder.rfind('/');
 	}
 
-	LOGINFO("Deleted image file '%s'", full_filename.c_str());
+	LOGINFO("Deleted image file '%s'", full_filename.c_str())
 
 	return ReturnStatus(context);
 }
@@ -279,7 +279,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str());
+	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
 }
@@ -329,7 +329,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	    	return ReturnStatus(context, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
 
-		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str());
+		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str())
 
 		return ReturnStatus(context);
 	}
@@ -363,7 +363,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
     close(fd_dst);
     close(fd_src);
 
-	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
+	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
 }
@@ -394,10 +394,10 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	}
 
 	if (protect) {
-		LOGINFO("Protected image file '%s'", filename.c_str());
+		LOGINFO("Protected image file '%s'", filename.c_str())
 	}
 	else {
-		LOGINFO("Unprotected image file '%s'", filename.c_str());
+		LOGINFO("Unprotected image file '%s'", filename.c_str())
 	}
 
 	return ReturnStatus(context);
