@@ -17,9 +17,7 @@ When you are ready to contribute code to RaSCSI Reloaded, follow the <a href="ht
 
 If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/akuker/RASCSI/blob/develop/python/web/README.md#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
 
-<a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>
-
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=akuker_RASCSI) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=akuker_RASCSI&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=akuker_RASCSI)
+<a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=akuker_RASCSI)
 
 # GitHub Sponsors
 Thank you to all of the GitHub sponsors who support the development community!
