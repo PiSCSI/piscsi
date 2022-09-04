@@ -190,8 +190,14 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 
 				case 2:		// Return additional data acquisition
 					return ReadFsOpt(buf);
+
+				default:
+					break;
 			}
 			break;
+
+			default:
+				break;
 	}
 
 	// Error
@@ -232,6 +238,9 @@ bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 				case 1:		// Send packet
 					SendPacket(buf, len);
 					return true;
+
+				default:
+					break;
 			}
 			break;
 
@@ -244,8 +253,14 @@ bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
 					return true;
+
+				default:
+					break;
 			}
 			break;
+
+			default:
+		break;
 	}
 
 	assert(false);
@@ -998,6 +1013,8 @@ void SCSIBR::FS_Ioctrl(BYTE *buf)
 		case (DWORD)-2:
 			pIoctrl->param = htonl(pIoctrl->param);
 			break;
+		default:
+			break;
 	}
 
 	fsresult = fs->Ioctrl(nUnit, nFunction, pIoctrl);
@@ -1009,6 +1026,8 @@ void SCSIBR::FS_Ioctrl(BYTE *buf)
 		case 1:
 		case (DWORD)-3:
 			pIoctrl->param = htonl(pIoctrl->param);
+			break;
+		default:
 			break;
 	}
 
@@ -1129,6 +1148,7 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 		case 0x16: return FS_Flush(buf);	// $56 - flush
 		case 0x17: return FS_CheckMedia(buf);	// $57 - check media exchange
 		case 0x18: return FS_Lock(buf);		// $58 - exclusive control
+		default: break;
 	}
 }
 

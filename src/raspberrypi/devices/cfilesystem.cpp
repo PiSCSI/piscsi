@@ -919,6 +919,8 @@ void CHostFilename::ConvertHuman(int nCount)
 					if (nOption & WINDRV_OPT_CONVERT_PERIODS)
 						c = '_';
 					break;
+				default:
+					break;
 			}
 			*pWrite++ = c;
 			if (c == '\0')
@@ -3290,6 +3292,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 		case Human68k::OP_FULL:
 			if (m_cEntry.isWriteProtect(nUnit))
 				return FS_FATAL_WRITEPROTECT;
+		default: break;
 	}
 
 	// Release if memory with the same key already exists
@@ -3607,6 +3610,9 @@ int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 
 		case 8:		// Eject inspection
 			return 1;
+
+		default:
+			break;
 	}
 
 	return FS_INVALIDFUNC;
@@ -3858,6 +3864,9 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 			// Get options
 			pIoctrl->param = GetOption();
 			return 0;
+
+		default:
+			break;
 	}
 
 	return FS_NOTIOCTRL;
@@ -4012,6 +4021,8 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 				case 'h': nBit = WINDRV_OPT_REDUCED_HYPHENS; break;
 				case 'x': nBit = WINDRV_OPT_REDUCED_BADCHAR; break;
 				case 's': nBit = WINDRV_OPT_REDUCED_SPACE; break;
+
+				default: break;
 			}
 
 			if (nMode)

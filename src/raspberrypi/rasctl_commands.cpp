@@ -56,7 +56,7 @@ void RasctlCommands::SendCommand()
     	struct sockaddr_in server;
     	memset(&server, 0, sizeof(server));
     	server.sin_family = AF_INET;
-    	server.sin_port = (uint16_t)htons(port);
+    	server.sin_port = htons((uint16_t)port);
     	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 

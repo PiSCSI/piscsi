@@ -162,6 +162,9 @@ bool ParseArgument(int argc, char* argv[])
 			case 'r':
 				restore = true;
 				break;
+
+			default:
+				break;
 		}
 	}
 
