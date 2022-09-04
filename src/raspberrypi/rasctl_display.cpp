@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,13 +17,13 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
 
-void RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info)
+void RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info) const
 {
 	const list<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
 	cout << ListDevices(devices) << endl;
 }
 
-void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
+void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 {
 	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
 			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
@@ -90,7 +90,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
-void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info)
+void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
 {
 	cout << "rascsi server version: " << version_info.major_version() << "." << version_info.minor_version();
 	if (version_info.patch_version() > 0) {
@@ -102,7 +102,7 @@ void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info)
 	cout << endl;
 }
 
-void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info)
+void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) const
 {
 	if (!log_level_info.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
@@ -117,7 +117,7 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info)
 	cout << "Current rascsi log level: " << log_level_info.current_log_level() << endl;
 }
 
-void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
+void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
 {
 	cout << "Supported device types and their properties:";
 	for (const auto& device_type_info : device_types_info.properties()) {
@@ -194,7 +194,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 	}
 }
 
-void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info)
+void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info) const
 {
 	if (reserved_ids_info.ids_size()) {
 		cout << "Reserved device IDs: ";
@@ -208,7 +208,7 @@ void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids
 	}
 }
 
-void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info)
+void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 {
 	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
 	if (image_file_info.read_only()) {
@@ -221,7 +221,7 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info)
 
 }
 
-void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
+void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) const
 {
 	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
 	cout << "Supported folder depth: " << image_files_info.depth() << endl;
@@ -241,7 +241,7 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 	}
 }
 
-void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info)
+void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
 {
 	// Creates a sorted list
 	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
@@ -261,7 +261,7 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 	cout << endl;
 }
 
-void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
+void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 {
 	// Creates a sorted map
 	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
@@ -272,7 +272,7 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 	}
 }
 
-void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
+void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
 {
 	const map<int, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 

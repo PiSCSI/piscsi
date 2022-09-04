@@ -24,7 +24,7 @@ public:
 	HostServices();
 	~HostServices() {}
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	vector<BYTE> InquiryInternal() const override;
 	void TestUnitReady() override;

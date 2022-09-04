@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
     running = true;
     bus->SetACT(FALSE);
 
-    (void)gettimeofday(&start_time, NULL);
+    (void)gettimeofday(&start_time, nullptr);
 
     LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS);
 
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
         data_idx++;
     }
 
-    (void)gettimeofday(&stop_time, NULL);
+    (void)gettimeofday(&stop_time, nullptr);
 
     timersub(&stop_time, &start_time, &time_diff);
 

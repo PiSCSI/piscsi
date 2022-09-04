@@ -13,7 +13,7 @@ using namespace std;
 
 unordered_map<string, id_set> FileSupport::reserved_files;
 
-void FileSupport::ReserveFile(const Filepath& path, int id, int lun)
+void FileSupport::ReserveFile(const Filepath& path, int id, int lun) const
 {
 	reserved_files[path.GetPath()] = make_pair(id, lun);
 }

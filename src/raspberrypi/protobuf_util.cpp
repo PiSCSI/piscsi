@@ -51,13 +51,13 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
     }
 }
 
-const string protobuf_util::GetParam(const PbCommand& command, const string& key)
+string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
 	auto map = command.params();
 	return map[key];
 }
 
-const string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
+string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
 {
 	auto map = device.params();
 	return map[key];
@@ -100,7 +100,7 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 	message.SerializeToString(&data);
 
 	// Write the size of the protobuf data as a header
-    int32_t size = data.length();
+    int32_t size = (int32_t)data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
     	throw io_exception("Can't write protobuf message header");
     }

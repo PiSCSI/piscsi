@@ -42,7 +42,6 @@ public:
 		ReadWrite
 	};
 
-public:
 	Fileio();
 	virtual ~Fileio();
 	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM

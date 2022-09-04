@@ -621,17 +621,17 @@ private:
 
 	int rpitype = 0;					// Type of Raspberry Pi
 
-	volatile uint32_t *gpio = 0;		// GPIO register
+	volatile uint32_t *gpio = nullptr;	// GPIO register
 
-	volatile uint32_t *pads = 0;		// PADS register
+	volatile uint32_t *pads = nullptr;	// PADS register
 
-	volatile uint32_t *level = 0;		// GPIO input level
+	volatile uint32_t *level = nullptr;	// GPIO input level
 
-	volatile uint32_t *irpctl = 0;		// Interrupt control register
+	volatile uint32_t *irpctl = nullptr;	// Interrupt control register
 
 	volatile uint32_t irptenb;			// Interrupt enabled state
 
-	volatile uint32_t *qa7regs = 0;		// QA7 register
+	volatile uint32_t *qa7regs = nullptr;	// QA7 register
 
 	volatile int tintcore;				// Interupt control target CPU.
 
@@ -639,9 +639,9 @@ private:
 
 	volatile uint32_t giccpmr;			// GICC priority setting
 
-	volatile uint32_t *gicd = 0;		// GIC Interrupt distributor register
+	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
 
-	volatile uint32_t *gicc = 0;		// GIC CPU interface register
+	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
 
 	DWORD gpfsel[4];					// GPFSEL0-4 backup values
 

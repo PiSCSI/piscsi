@@ -66,7 +66,6 @@ public:
 		DWORD serial;							// Serial
 	} cache_t;
 
-public:
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache();
 

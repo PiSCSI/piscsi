@@ -28,10 +28,10 @@ public:
 	void FinalizeSetup(const Filepath&, off_t);
 
 	void Reset();
-	virtual void Open(const Filepath&) override;
+	void Open(const Filepath&) override;
 
 	// Commands
-	virtual vector<BYTE> InquiryInternal() const override;
+	vector<BYTE> InquiryInternal() const override;
 	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;

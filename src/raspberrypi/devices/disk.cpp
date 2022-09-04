@@ -473,7 +473,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void Disk::SetDeviceParameters(BYTE *buf)
+void Disk::SetDeviceParameters(BYTE *buf) const
 {
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
@@ -1047,7 +1047,7 @@ uint32_t Disk::GetConfiguredSectorSize() const
 
 bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
-	DeviceFactory& device_factory = DeviceFactory::instance();
+	const DeviceFactory& device_factory = DeviceFactory::instance();
 
 	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {

@@ -102,7 +102,7 @@ vector<BYTE> SCSIPrinter::InquiryInternal() const
 void SCSIPrinter::ReserveUnit()
 {
 	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
-	if (reservation_time + timeout < time(0)) {
+	if (reservation_time + timeout < time(nullptr)) {
 		DiscardReservation();
 	}
 
@@ -243,7 +243,7 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 void SCSIPrinter::CheckReservation()
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
-		reservation_time = time(0);
+		reservation_time = time(nullptr);
 		return;
 	}
 

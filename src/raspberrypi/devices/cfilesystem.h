@@ -584,7 +584,7 @@ private:
 //===========================================================================
 class CHostFiles {
 public:
-	CHostFiles() { SetKey(0); Init(); }
+	CHostFiles() { SetKey(0); }
 	void  Init();
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
@@ -765,9 +765,6 @@ private:
 	static const BYTE*  SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer);
 										///< Split and copy the first element of the Human68k full path name
 
-	void  Lock() {}
-	void  Unlock() {}
-
 	/// For memory management
 	struct ring_t {
 		CRing r;
@@ -908,8 +905,6 @@ public:
 	DWORD GetOption() const { return m_nOption; }		///< Get option
 	DWORD GetDefault() const { return m_nOptionDefault; }	///< Get default options
 	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
-	void ShellNotify(DWORD nEvent, const TCHAR* szPath)
-	{ m_cEntry.ShellNotify(nEvent, szPath); }			///< Notify host side file system status change
 
 	enum {
 		DriveMax = CHostEntry::DriveMax					///< Max number of drive candidates

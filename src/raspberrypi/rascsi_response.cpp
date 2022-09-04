@@ -56,7 +56,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory->CreateDevice(type, "", -1);
+	const Device *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
 	device_factory->DeleteDevice(device);
 }
@@ -147,7 +147,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	if (scan_depth-- >= 0) {
 		DIR *d = opendir(folder.c_str());
 		if (d) {
-			struct dirent *dir;
+			const struct dirent *dir;
 			while ((dir = readdir(d))) {
 				bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
 				if (is_supported_type && dir->d_name[0] != '.') {

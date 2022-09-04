@@ -351,7 +351,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
-    if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
+    if (sendfile(fd_dst, fd_src, nullptr, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
 

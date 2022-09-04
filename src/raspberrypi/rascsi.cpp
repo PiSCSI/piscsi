@@ -126,7 +126,7 @@ void Banner(int argc, char* argv[])
 
 bool InitService(int port)
 {
-	int result = pthread_mutex_init(&ctrl_mutex, NULL);
+	int result = pthread_mutex_init(&ctrl_mutex, nullptr);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Error code: %d", result);
 		return false;
@@ -156,7 +156,7 @@ bool InitService(int port)
 	}
 
 	// Create Monitor Thread
-	pthread_create(&monthread, NULL, MonThread, NULL);
+	pthread_create(&monthread, nullptr, MonThread, nullptr);
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -911,7 +911,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	return ReturnStatus(context);
 }
 
-bool ProcessId(const string id_spec, int& id, int& unit)
+bool ProcessId(const string& id_spec, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
@@ -1412,7 +1412,7 @@ int main(int argc, char* argv[])
 	BUS::phase_t phase;
 
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
-	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stdout, nullptr, _IONBF, 0);
 
 	// Output the Banner
 	Banner(argc, argv);
@@ -1450,8 +1450,8 @@ int main(int argc, char* argv[])
 	termination_handler.sa_handler = TerminationHandler;
 	sigemptyset(&termination_handler.sa_mask);
 	termination_handler.sa_flags = 0;
-	sigaction(SIGINT, &termination_handler, NULL);
-	sigaction(SIGTERM, &termination_handler, NULL);
+	sigaction(SIGINT, &termination_handler, nullptr);
+	sigaction(SIGTERM, &termination_handler, nullptr);
 
 	// Reset
 	Reset();

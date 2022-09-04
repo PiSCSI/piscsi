@@ -344,7 +344,7 @@ void CTapDriver::OpenDump(const Filepath& path) {
 		pcap_dump_close(m_pcap_dumper);
 	}
 	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
-	if (m_pcap_dumper == NULL) {
+	if (m_pcap_dumper == nullptr) {
 		LOGERROR("Can't open pcap file: %s", pcap_geterr(m_pcap));
 		throw io_exception("Can't open pcap file");
 	}
@@ -495,7 +495,7 @@ int CTapDriver::Rx(BYTE *buf)
 			.caplen = dwReceived,
 			.len = dwReceived
 		};
-		gettimeofday(&h.ts, NULL);
+		gettimeofday(&h.ts, nullptr);
 		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
 		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)dwReceived, buf[0], buf[dwReceived-1]);
 	}
@@ -519,7 +519,7 @@ int CTapDriver::Tx(const BYTE *buf, int len)
 			.caplen = (bpf_u_int32)len,
 			.len = (bpf_u_int32)len,
 		};
-		gettimeofday(&h.ts, NULL);
+		gettimeofday(&h.ts, nullptr);
 		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
 		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)h.len, buf[0], buf[h.len-1]);
 	}

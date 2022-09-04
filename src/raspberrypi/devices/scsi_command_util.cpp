@@ -40,26 +40,22 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 		while (length > 0) {
 			int page = buf[0];
 
-			switch (page) {
-				// Format device page
-				case 0x03: {
-					// With this page the sector size for a subsequent FORMAT can be selected, but only very few
-					// drives support this, e.g FUJITSU M2624S
-					// We are fine as long as the current sector size remains unchanged
-					if (buf[0xc] != (BYTE)(sector_size >> 8) || buf[0xd] != (BYTE)sector_size) {
-						// With rascsi it is not possible to permanently (by formatting) change the sector size,
-						// because the size is an externally configurable setting only
-						LOGWARN("In order to change the sector size use the -b option when launching rascsi");
-						throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
-					}
+			// Format device page
+			if (page == 0x03) {
+				// With this page the sector size for a subsequent FORMAT can be selected, but only very few
+				// drives support this, e.g FUJITSU M2624S
+				// We are fine as long as the current sector size remains unchanged
+				if (buf[0xc] != (BYTE)(sector_size >> 8) || buf[0xd] != (BYTE)sector_size) {
+					// With rascsi it is not possible to permanently (by formatting) change the sector size,
+					// because the size is an externally configurable setting only
+					LOGWARN("In order to change the sector size use the -b option when launching rascsi");
+					throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+				}
 
-					has_valid_page_code = true;
-					}
-					break;
-
-				default:
-					LOGWARN("Unknown MODE SELECT page code: $%02X", page);
-					break;
+				has_valid_page_code = true;
+			}
+			else {
+				LOGWARN("Unknown MODE SELECT page code: $%02X", page);
 			}
 
 			// Advance to the next page

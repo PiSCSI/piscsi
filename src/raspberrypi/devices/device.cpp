@@ -81,7 +81,7 @@ void Device::SetRevision(const string& revision)
 	this->revision = revision;
 }
 
-const string Device::GetPaddedName() const
+string Device::GetPaddedName() const
 {
 	string name = vendor;
 	name.append(8 - vendor.length(), ' ');
@@ -95,7 +95,7 @@ const string Device::GetPaddedName() const
 	return name;
 }
 
-const string Device::GetParam(const string& key)
+string Device::GetParam(const string& key)
 {
 	return params.find(key) != params.end() ? params[key] : "";
 }

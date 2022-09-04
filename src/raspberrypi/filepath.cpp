@@ -70,10 +70,10 @@ void Filepath::Split()
 
 	// Split
 	char *pDir = strdup(m_szPath);
-	char *pDirName = dirname(pDir);
+	const char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
 	char *pBaseName = basename(pBase);
-	char *pExtName = strrchr(pBaseName, '.');
+	const char *pExtName = strrchr(pBaseName, '.');
 
 	// Transmit
 	if (pDirName) {

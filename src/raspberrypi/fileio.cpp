@@ -151,7 +151,7 @@ BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 
 BOOL Fileio::Read(void *buffer, int size)
 {
-	int count;
+	long count;
 
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -167,7 +167,7 @@ BOOL Fileio::Read(void *buffer, int size)
 
 BOOL Fileio::Write(const void *buffer, int size)
 {
-	int count;
+	long count;
 
 	ASSERT(buffer);
 	ASSERT(size > 0);

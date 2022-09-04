@@ -477,12 +477,10 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache()
 {
-	Lock();
 	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		p->Release();
 		p = (CHostPath*)p->Next();
 	}
-	Unlock();
 }
 
 //---------------------------------------------------------------------------
@@ -494,13 +492,11 @@ void CHostDrv::CleanCache(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
 
-	Lock();
 	CHostPath* p = FindCache(szHumanPath);
 	if (p) {
 		p->Restore();
 		p->Release();
 	}
-	Unlock();
 }
 
 //---------------------------------------------------------------------------
@@ -512,14 +508,12 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
 
-	Lock();
 	CHostPath* p = (CHostPath*)m_cRing.Next();
 	while (p != &m_cRing) {
 		if (p->isSameChild(szHumanPath))
 			p->Release();
 		p = (CHostPath*)p->Next();
 	}
-	Unlock();
 }
 
 //---------------------------------------------------------------------------
@@ -531,14 +525,12 @@ void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
 
-	Lock();
 	CHostPath* p = FindCache(szHumanPath);
 	if (p) {
 		delete p;
 		ASSERT(m_nRing);
 		m_nRing--;
 	}
-	Unlock();
 }
 
 //---------------------------------------------------------------------------
@@ -734,14 +726,11 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 
-	Lock();
-
 	// Get path name and build cache
 	CHostPath* pPath = CopyCache(pFiles);
 	if (pPath == NULL) {
 		pPath = MakeCache(pFiles);
 		if (pPath == NULL) {
-			Unlock();
 			CleanCache();
 			return FALSE;	// Error: Failed to build cache
 		}
@@ -752,14 +741,12 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 
 	// Exit if only path name
 	if (pFiles->isPathOnly()) {
-		Unlock();
 		return TRUE;		// Normal exit: only path name
 	}
 
 	// Find file name
 	const CHostFilename* pFilename = pFiles->Find(pPath);
 	if (pFilename == NULL) {
-		Unlock();
 		return FALSE;		// Error: Could not get file name
 	}
 
@@ -768,8 +755,6 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 
 	// Store the host side full path name
 	pFiles->AddResult(pFilename->GetHost());
-
-	Unlock();
 
 	return TRUE;
 }
@@ -1566,7 +1551,7 @@ void CHostPath::Refresh()
 		}
 
 		// When at the top level directory, exclude current and parent
-		struct dirent* pe = pd[i];
+		const struct dirent* pe = pd[i];
 		if (m_szHuman[0] == '/' && m_szHuman[1] == 0) {
 			if (strcmp(pe->d_name, ".") == 0 || strcmp(pe->d_name, "..") == 0) {
 				continue;
@@ -1646,7 +1631,7 @@ void CHostPath::Refresh()
 
 		WORD nHumanDate = 0;
 		WORD nHumanTime = 0;
-		struct tm* pt = localtime(&sb.st_mtime);
+		const struct tm* pt = localtime(&sb.st_mtime);
 		if (pt) {
 			nHumanDate = (WORD)(((pt->tm_year - 80) << 9) | ((pt->tm_mon + 1) << 5) | pt->tm_mday);
 			nHumanTime = (WORD)((pt->tm_hour << 11) | (pt->tm_min << 5) | (pt->tm_sec >> 1));
@@ -1898,8 +1883,6 @@ BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
 	return m_pDrv[nUnit]->Find(pFiles);
 }
 
-void CHostEntry::ShellNotify(DWORD, const TCHAR*) {}
-
 //---------------------------------------------------------------------------
 //
 /// Drive settings
@@ -2111,16 +2094,6 @@ const BYTE* CHostDrv::SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer)	
 	return p;
 }
 
-//===========================================================================
-//
-//	File search processing
-//
-//===========================================================================
-
-void CHostFiles::Init()
-{
-}
-
 //---------------------------------------------------------------------------
 //
 /// Generate path and file name internally
@@ -2305,7 +2278,6 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 
 	// Release
 	pFiles->SetKey(0);
-	pFiles->Init();
 
 	// Move to the end of the ring
 	ring_t* p = (ring_t*)((size_t)pFiles - offsetof(ring_t, f));
@@ -3754,7 +3726,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 	}
 
 	// Access pseudo-directory entry
-	CHostFiles* pHostFiles = m_cFiles.Search(nSector);
+	const CHostFiles* pHostFiles = m_cFiles.Search(nSector);
 	if (pHostFiles) {
 		// Generate pseudo-directory entry
 		Human68k::dirent_t* dir = (Human68k::dirent_t*)pBuffer;

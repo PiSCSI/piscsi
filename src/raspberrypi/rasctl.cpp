@@ -367,6 +367,9 @@ int main(int argc, char* argv[])
 			case 'z':
 				locale = optarg;
 				break;
+
+			default:
+				break;
 		}
 	}
 

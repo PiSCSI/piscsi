@@ -65,11 +65,11 @@ private:
 	BYTE packet_buf[0x1000];					// Receive packet buffer
 	bool packet_enable = false;					// Received packet valid
 
-	int ReadFsResult(BYTE *buf);					// Read filesystem (result code)
-	int ReadFsOut(BYTE *buf);					// Read filesystem (return data)
-	int ReadFsOpt(BYTE *buf);					// Read file system (optional data)
-	void WriteFs(int func, BYTE *buf);				// File system write (execute)
-	void WriteFsOpt(BYTE *buf, int len);				// File system write (optional data)
+	int ReadFsResult(BYTE *buf) const;			// Read filesystem (result code)
+	int ReadFsOut(BYTE *buf) const;				// Read filesystem (return data)
+	int ReadFsOpt(BYTE *buf) const;				// Read file system (optional data)
+	void WriteFs(int func, BYTE *buf);			// File system write (execute)
+	void WriteFsOpt(BYTE *buf, int len);		// File system write (optional data)
 
 	// Command handlers
 	void FS_InitDevice(BYTE *buf);					// $40 - boot

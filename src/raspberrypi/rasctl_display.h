@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,18 +17,18 @@ class RasctlDisplay
 {
 public:
 
-	RasctlDisplay() {};
-	~RasctlDisplay() {};
+	RasctlDisplay() {}
+	~RasctlDisplay() {}
 
-	void DisplayDevices(const PbDevicesInfo&);
-	void DisplayDeviceInfo(const PbDevice&);
-	void DisplayVersionInfo(const PbVersionInfo&);
-	void DisplayLogLevelInfo(const PbLogLevelInfo&);
-	void DisplayDeviceTypesInfo(const PbDeviceTypesInfo&);
-	void DisplayReservedIdsInfo(const PbReservedIdsInfo&);
-	void DisplayImageFile(const PbImageFile&);
-	void DisplayImageFiles(const PbImageFilesInfo&);
-	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&);
-	void DisplayMappingInfo(const PbMappingInfo&);
-	void DisplayOperationInfo(const PbOperationInfo&);
+	void DisplayDevices(const PbDevicesInfo&) const;
+	void DisplayDeviceInfo(const PbDevice&) const;
+	void DisplayVersionInfo(const PbVersionInfo&) const;
+	void DisplayLogLevelInfo(const PbLogLevelInfo&) const;
+	void DisplayDeviceTypesInfo(const PbDeviceTypesInfo&) const;
+	void DisplayReservedIdsInfo(const PbReservedIdsInfo&) const;
+	void DisplayImageFile(const PbImageFile&) const;
+	void DisplayImageFiles(const PbImageFilesInfo&) const;
+	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
+	void DisplayMappingInfo(const PbMappingInfo&) const;
+	void DisplayOperationInfo(const PbOperationInfo&) const;
 };

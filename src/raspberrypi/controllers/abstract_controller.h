@@ -81,7 +81,7 @@ public:
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
-	int ExtractInitiatorId(int id_data);
+	int ExtractInitiatorId(int id_data) const;
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }

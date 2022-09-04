@@ -37,7 +37,7 @@ bool AbstractController::HasDeviceForLun(int lun) const
 	return ctrl.luns.find(lun) != ctrl.luns.end();
 }
 
-int AbstractController::ExtractInitiatorId(int id_data)
+int AbstractController::ExtractInitiatorId(int id_data) const
 {
 	int initiator_id = -1;
 

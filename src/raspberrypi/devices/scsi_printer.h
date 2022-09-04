@@ -19,7 +19,7 @@ using namespace std;
 
 #define TMP_FILE_PATTERN "/tmp/rascsi_sclp-XXXXXX"
 
-class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
+class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
 	static const int NOT_RESERVED = -2;
 
@@ -28,7 +28,7 @@ public:
 	SCSIPrinter();
 	~SCSIPrinter();
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	bool Init(const unordered_map<string, string>&) override;
 

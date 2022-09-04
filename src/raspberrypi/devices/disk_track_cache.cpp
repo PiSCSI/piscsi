@@ -432,8 +432,8 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 	int track = block >> 8;
 
 	// Get the track data
-	DiskTrack *disktrk = Assign(track);
-	if (!disktrk) {
+	const DiskTrack *disktrk = Assign(track);
+	if (disktrk == nullptr) {
 		return false;
 	}
 
@@ -453,7 +453,7 @@ bool DiskCache::WriteSector(const BYTE *buf, int block)
 
 	// Get that track data
 	DiskTrack *disktrk = Assign(track);
-	if (!disktrk) {
+	if (disktrk == nullptr) {
 		return false;
 	}
 

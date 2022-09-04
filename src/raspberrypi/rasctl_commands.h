@@ -20,7 +20,7 @@ class RasctlCommands
 {
 public:
 
-	RasctlCommands(PbCommand&, const string&, int, const string&, const string&);
+	RasctlCommands(const PbCommand&, const string&, int, const string&, const string&);
 	~RasctlCommands() {};
 
 	void SendCommand();
@@ -48,7 +48,7 @@ private:
 
 	PbCommand command;
 	string hostname;
-	int port;
+	uint16_t port;
 	string token;
 	string locale;
 

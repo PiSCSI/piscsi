@@ -32,7 +32,7 @@
 
 using namespace std;
 
-class Disk : public ModePageDevice, ScsiBlockCommands
+class Disk : public ModePageDevice, public ScsiBlockCommands
 {
 private:
 
@@ -57,7 +57,7 @@ public:
 	Disk(const string&);
 	virtual ~Disk();
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	void MediumChanged();
 	bool Eject(bool) override;
@@ -95,7 +95,7 @@ private:
 	void Verify16();
 	void Seek();
 	void Seek10();
-	virtual void ReadCapacity10() override;
+	void ReadCapacity10() override;
 	void ReadCapacity16() override;
 	void Reserve();
 	void Release();
@@ -123,8 +123,8 @@ protected:
 
 	virtual void Open(const Filepath&);
 
-	virtual void SetDeviceParameters(BYTE *);
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	virtual void SetDeviceParameters(BYTE *) const;
+	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;

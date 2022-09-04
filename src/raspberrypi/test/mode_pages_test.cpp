@@ -19,7 +19,7 @@
 
 using namespace std;
 
-unordered_set<uint32_t> sector_sizes;
+const unordered_set<uint32_t> sector_sizes;
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {

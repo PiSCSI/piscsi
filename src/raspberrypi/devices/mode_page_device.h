@@ -23,7 +23,9 @@ public:
 	ModePageDevice(const string&);
 	virtual ~ModePageDevice() {}
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
+
+	virtual vector<BYTE> InquiryInternal() const override = 0;
 
 	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 

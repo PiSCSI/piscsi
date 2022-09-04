@@ -84,7 +84,7 @@ protected:
 
 	int GetStatusCode() const { return status_code; }
 
-	const string GetParam(const string&);
+	string GetParam(const string&);
 	void SetParams(const unordered_map<string, string>&);
 
 	static unordered_set<Device *> devices;
@@ -130,18 +130,18 @@ public:
 	int32_t GetLun() const { return lun; }
 	void SetLun(int32_t lun) { this->lun = lun; }
 
-	const string GetVendor() const { return vendor; }
+	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
-	const string GetProduct() const { return product; }
+	string GetProduct() const { return product; }
 	void SetProduct(const string&, bool = true);
-	const string GetRevision() const { return revision; }
+	string GetRevision() const { return revision; }
 	void SetRevision(const string&);
-	const string GetPaddedName() const;
+	string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
 	virtual bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
-	const unordered_map<string, string> GetParams() const { return params; }
+	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
 
 	void SetStatusCode(int);

@@ -34,8 +34,8 @@ DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_ar
         uint32_t data_uint;
         char *ptr;
 
-        char *timestamp_str;
-        char *data_str;
+        const char *timestamp_str;
+        const char *data_str;
         timestamp_str = strstr(str_buf, timestamp_label);
         if (!timestamp_str)
             continue;

@@ -76,7 +76,7 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-void DeviceFactory::DeleteDevice(Device *device)
+void DeviceFactory::DeleteDevice(const Device *device) const
 {
 	auto iterpair = devices.equal_range(device->GetId());
 
@@ -90,7 +90,7 @@ void DeviceFactory::DeleteDevice(Device *device)
 	}
 }
 
-void DeviceFactory::DeleteAllDevices()
+void DeviceFactory::DeleteAllDevices() const
 {
 	for (const auto& device : devices) {
 		delete device.second;
@@ -110,7 +110,7 @@ const Device * DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 	return nullptr;
 }
 
-const list<Device *> DeviceFactory::GetAllDevices() const
+list<Device *> DeviceFactory::GetAllDevices() const
 {
 	list<Device *> result;
 
@@ -135,9 +135,7 @@ string DeviceFactory::GetExtension(const string& filename) const
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	string ext = GetExtension(filename);
-
-	const auto& it = extension_mapping.find(ext);
+	const auto& it = extension_mapping.find(GetExtension(filename));
 	if (it != extension_mapping.end()) {
 		return it->second;
 	}
@@ -270,7 +268,7 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 	return it->second;
 }
 
-const list<string> DeviceFactory::GetNetworkInterfaces() const
+list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 

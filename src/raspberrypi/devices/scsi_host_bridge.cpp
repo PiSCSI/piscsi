@@ -398,7 +398,7 @@ void SCSIBR::FS_CheckDir(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->CheckDir(nUnit, pNamests);
@@ -415,7 +415,7 @@ void SCSIBR::FS_MakeDir(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->MakeDir(nUnit, pNamests);
@@ -432,7 +432,7 @@ void SCSIBR::FS_RemoveDir(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->RemoveDir(nUnit, pNamests);
@@ -449,10 +449,10 @@ void SCSIBR::FS_Rename(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
-	Human68k::namests_t *pNamestsNew = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamestsNew = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->Rename(nUnit, pNamests, pNamestsNew);
@@ -592,7 +592,7 @@ void SCSIBR::FS_Create(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
@@ -642,7 +642,7 @@ void SCSIBR::FS_Open(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
@@ -1062,7 +1062,7 @@ void SCSIBR::FS_Lock(BYTE *buf)
 //	Read Filesystem (result code)
 //
 //---------------------------------------------------------------------------
-int SCSIBR::ReadFsResult(BYTE *buf)
+int SCSIBR::ReadFsResult(BYTE *buf) const
 {
 	DWORD *dp = (DWORD*)buf;
 	*dp = htonl(fsresult);
@@ -1074,7 +1074,7 @@ int SCSIBR::ReadFsResult(BYTE *buf)
 //	Read Filesystem (return data)
 //
 //---------------------------------------------------------------------------
-int SCSIBR::ReadFsOut(BYTE *buf)
+int SCSIBR::ReadFsOut(BYTE *buf) const
 {
 	memcpy(buf, fsout, fsoutlen);
 	return fsoutlen;
@@ -1085,7 +1085,7 @@ int SCSIBR::ReadFsOut(BYTE *buf)
 //	Read file system (return option data)
 //
 //---------------------------------------------------------------------------
-int SCSIBR::ReadFsOpt(BYTE *buf)
+int SCSIBR::ReadFsOpt(BYTE *buf) const
 {
 	memcpy(buf, fsopt, fsoptlen);
 	return fsoptlen;

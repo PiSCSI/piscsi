@@ -34,7 +34,7 @@ public:
 
 protected:
 
-	void SetDeviceParameters(BYTE *) override;
+	void SetDeviceParameters(BYTE *) const override;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;

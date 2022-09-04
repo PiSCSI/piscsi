@@ -24,7 +24,7 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
+RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
 	: command(command), hostname(hostname), port(port), token(token), locale(locale)
 {
@@ -43,7 +43,7 @@ void RasctlCommands::SendCommand()
 	// Send command
 	int fd = -1;
 	try {
-    	struct hostent *host = gethostbyname(hostname.c_str());
+    	const struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}

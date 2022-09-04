@@ -101,9 +101,9 @@ private:
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
 
 	// Open
-	void OpenCue(const Filepath& path);				// Open(CUE)
-	void OpenIso(const Filepath& path);				// Open(ISO)
-	void OpenPhysical(const Filepath& path);			// Open(Physical)
+	void OpenCue(const Filepath& path) const;
+	void OpenIso(const Filepath& path);
+	void OpenPhysical(const Filepath& path);
 
 	void ReadToc() override;
 	void GetEventStatusNotification() override;
