@@ -1311,11 +1311,11 @@ static void *MonThread(void *)
 						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 					}
 					else {
-						auto image_file = new PbImageFile();
-						bool status = rascsi_response.GetImageFile(image_file, filename);
+						auto image_file = make_unique<PbImageFile>();
+						bool status = rascsi_response.GetImageFile(image_file.get(), filename);
 						if (status) {
 							result.set_status(true);
-							result.set_allocated_image_file_info(image_file);
+							result.set_allocated_image_file_info(image_file.get());
 							SerializeMessage(context.fd, result);
 						}
 						else {
