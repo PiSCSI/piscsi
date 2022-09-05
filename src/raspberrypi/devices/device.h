@@ -16,11 +16,11 @@
 
 using namespace std;
 
-static const char *DEFAULT_VENDOR = "RaSCSI";
-
 class Device
 {
 	friend class DeviceFactory;
+
+	const string DEFAULT_VENDOR = "RaSCSI";
 
 	string type;
 
