@@ -484,7 +484,7 @@ void SCSIBR::FS_Delete(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->Delete(nUnit, pNamests);
@@ -501,7 +501,7 @@ void SCSIBR::FS_Attribute(BYTE *buf)
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	dp = (DWORD*)&buf[i];
@@ -526,7 +526,7 @@ void SCSIBR::FS_Files(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	Human68k::files_t *files = (Human68k::files_t*)&buf[i];
@@ -821,7 +821,7 @@ void SCSIBR::FS_Seek(BYTE *buf)
 	DWORD nMode = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	int *ip = (int*)&buf[i];
+	const int *ip = (const int*)&buf[i];
 	int nOffset = ntohl(*ip);
 	i += sizeof(int);
 

@@ -17,7 +17,7 @@
 
 using namespace std;
 
-typedef pair<int, int> id_set;
+using id_set = pair<int, int>;
 
 class FileSupport
 {

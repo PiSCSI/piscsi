@@ -31,12 +31,12 @@ public:
 		}
 	}
 
-	typedef struct _command_t {
+	using command_t = struct _command_t {
 		const char* name;
 		void (T::*execute)();
 
 		_command_t(const char* _name, void (T::*_execute)()) : name(_name), execute(_execute) { };
-	} command_t;
+	};
 	unordered_map<scsi_command, command_t*> commands;
 
 	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)())

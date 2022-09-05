@@ -61,10 +61,10 @@ class DiskCache
 {
 public:
 	// Internal data definition
-	typedef struct {
+	using cache_t = struct {
 		DiskTrack *disktrk;						// Disk Track
 		DWORD serial;							// Serial
-	} cache_t;
+	};
 
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache();

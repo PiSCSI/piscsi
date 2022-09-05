@@ -48,7 +48,7 @@ public:
 
 private:
 
-	typedef PrimaryDevice super;
+	using super = PrimaryDevice;
 
 	Dispatcher<SCSIPrinter> dispatcher;
 

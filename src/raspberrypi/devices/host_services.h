@@ -38,7 +38,7 @@ protected:
 
 private:
 
-	typedef ModePageDevice super;
+	using super = ModePageDevice;
 
 	Dispatcher<HostServices> dispatcher;
 

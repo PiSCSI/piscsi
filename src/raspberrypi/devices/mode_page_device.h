@@ -36,7 +36,7 @@ protected:
 
 private:
 
-	typedef PrimaryDevice super;
+	using super = PrimaryDevice;
 
 	Dispatcher<ModePageDevice> dispatcher;
 

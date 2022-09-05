@@ -93,7 +93,7 @@ protected:
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
-	typedef Disk super;
+	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
 

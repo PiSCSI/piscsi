@@ -325,15 +325,15 @@ int main(int argc, char *argv[])
         data_idx = scsimon_read_json(input_file_name, data_buffer, buff_size);
         if (data_idx > 0)
         {
-            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name);
+            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name)
             Cleanup();
         }
         exit(0);
     }
 
-    LOGINFO(" ");
+    LOGINFO(" ")
     LOGINFO("Now collecting data.... Press CTRL-C to stop.")
-    LOGINFO(" ");
+    LOGINFO(" ")
 
     // Initialize
     int ret = 0;
@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
 
     (void)gettimeofday(&start_time, nullptr);
 
-    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS);
+    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
 
     // Main Loop
     while (running)
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {
-            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
+            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")
             running = false;
         }
         if (data_idx >= (buff_size - 2))

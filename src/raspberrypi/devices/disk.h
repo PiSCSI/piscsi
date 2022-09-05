@@ -42,13 +42,13 @@ private:
 	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size = 0;
 
-	typedef struct {
+	using disk_t = struct {
 		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
 		uint64_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
 		bool is_medium_changed;
-	} disk_t;
+	};
 
 	Dispatcher<Disk> dispatcher;
 
@@ -76,7 +76,7 @@ public:
 
 private:
 
-	typedef ModePageDevice super;
+	using super = ModePageDevice;
 
 	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();

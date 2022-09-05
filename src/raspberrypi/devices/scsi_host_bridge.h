@@ -48,7 +48,7 @@ public:
 	void SendMessage10();
 
 private:
-	typedef Disk super;
+	using super = Disk;
 
 	Dispatcher<SCSIBR> dispatcher;
 
