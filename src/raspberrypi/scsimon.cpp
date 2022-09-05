@@ -296,8 +296,7 @@ int main(int argc, char *argv[])
     // Output the Banner
     Banner(argc, argv);
 
-    data_buffer = (data_capture *)malloc(sizeof(data_capture_t) * buff_size);
-    bzero(data_buffer, sizeof(data_capture_t) * buff_size);
+    data_buffer = (data_capture *)calloc(buff_size, sizeof(data_capture_t));
 
     if (import_data)
     {
