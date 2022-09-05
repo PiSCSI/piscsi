@@ -309,9 +309,9 @@ bool SetLogLevel(const string& log_level)
 	return true;
 }
 
-void LogDevices(const string& devices)
+void LogDevices(string_view devices)
 {
-	stringstream ss(devices);
+	stringstream ss(devices.data());
 	string line;
 
 	while (getline(ss, line, '\n')) {
@@ -319,10 +319,10 @@ void LogDevices(const string& devices)
 	}
 }
 
-string SetReservedIds(const string& ids)
+string SetReservedIds(string_view ids)
 {
 	list<string> ids_to_reserve;
-	stringstream ss(ids);
+	stringstream ss(ids.data());
     string id;
     while (getline(ss, id, ',')) {
     	if (!id.empty()) {
