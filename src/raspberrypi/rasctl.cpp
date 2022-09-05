@@ -370,7 +370,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (optopt || optind != argc) {
+	if (optind != argc) {
 		exit(EXIT_FAILURE);
 	}
 
