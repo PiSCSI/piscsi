@@ -41,43 +41,43 @@ void Device::Reset()
 	reset = false;
 }
 
-void Device::SetProtected(bool write_protected)
+void Device::SetProtected(bool b)
 {
 	if (!read_only) {
-		this->write_protected = write_protected;
+		write_protected = b;
 	}
 }
 
-void Device::SetVendor(const string& vendor)
+void Device::SetVendor(const string& v)
 {
-	if (vendor.empty() || vendor.length() > 8) {
-		throw illegal_argument_exception("Vendor '" + vendor + "' must be between 1 and 8 characters");
+	if (v.empty() || v.length() > 8) {
+		throw illegal_argument_exception("Vendor '" + v + "' must be between 1 and 8 characters");
 	}
 
-	this->vendor = vendor;
+	vendor = v;
 }
 
-void Device::SetProduct(const string& product, bool force)
+void Device::SetProduct(const string& p, bool force)
 {
+	if (p.empty() || p.length() > 16) {
+		throw illegal_argument_exception("Product '" + p + "' must be between 1 and 16 characters");
+	}
+
 	// Changing the device name is not SCSI compliant
-	if (!this->product.empty() && !force) {
+	if (!product.empty() && !force) {
 		return;
 	}
 
-	if (product.empty() || product.length() > 16) {
-		throw illegal_argument_exception("Product '" + product + "' must be between 1 and 16 characters");
-	}
-
-	this->product = product;
+	product = p;
 }
 
-void Device::SetRevision(const string& revision)
+void Device::SetRevision(const string& r)
 {
-	if (revision.empty() || revision.length() > 4) {
-		throw illegal_argument_exception("Revision '" + revision + "' must be between 1 and 4 characters");
+	if (r.empty() || r.length() > 4) {
+		throw illegal_argument_exception("Revision '" + r + "' must be between 1 and 4 characters");
 	}
 
-	this->revision = revision;
+	revision = r;
 }
 
 string Device::GetPaddedName() const
