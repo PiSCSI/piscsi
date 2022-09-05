@@ -43,10 +43,8 @@ SCSIBR::~SCSIBR()
 	}
 
 	// Release host file system
-	if (fs) {
-		fs->Reset();
-		delete fs;
-	}
+	fs->Reset();
+	delete fs;
 }
 
 bool SCSIBR::Init(const unordered_map<string, string>& params)
@@ -161,7 +159,8 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 					GetPacketBuf(&buf[2]);
 					return packet_len + 2;
 
-				case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
+				case 3:	{
+					// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
 					// Currently the maximum number of packets is 10
 					// Isn't it too fast if I increase more?
 					int total_len = 0;
@@ -177,6 +176,11 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 						total_len += packet_len;
 					}
 					return total_len;
+				}
+
+				default:
+					assert(false);
+					return -1;
 			}
 			break;
 
