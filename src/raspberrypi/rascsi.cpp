@@ -56,7 +56,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-GPIOBUS *bus;						// GPIO Bus
+unique_ptr<GPIOBUS> bus;			// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
@@ -176,11 +176,10 @@ bool InitService(int port)
 bool InitBus()
 {
 	// GPIOBUS creation
-	bus = new GPIOBUS();
+	bus = make_unique<GPIOBUS>();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
-		delete bus;
 		return false;
 	}
 
@@ -197,7 +196,6 @@ void Cleanup()
 	// Clean up and discard the bus
 	if (bus != nullptr) {
 		bus->Cleanup();
-		delete bus;
 	}
 
 	// Close the monitor socket
@@ -517,7 +515,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
 
-	if (auto primary_device = static_cast<PrimaryDevice *>(device); !controller_manager.CreateScsiController(bus, primary_device)) {
+	if (auto primary_device = static_cast<PrimaryDevice *>(device);
+		!controller_manager.CreateScsiController(bus.get(), primary_device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
