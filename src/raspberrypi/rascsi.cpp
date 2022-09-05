@@ -1479,6 +1479,7 @@ int main(int argc, char* argv[])
 #else
 		bus->Acquire();
 		if (!bus->GetSEL()) {
+			// TODO Why sleep for 0 microseconds?
 			usleep(0);
 			continue;
 		}
