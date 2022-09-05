@@ -24,7 +24,7 @@ list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "e
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
-	auto properties = new PbDeviceProperties();
+	auto properties = make_unique<PbDeviceProperties>().release();
 
 	properties->set_luns(AbstractController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
@@ -190,7 +190,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& folder_pattern,
 		const string& file_pattern, int scan_depth)
 {
-	auto image_files_info = new PbImageFilesInfo();
+	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
 	string default_image_folder = rascsi_image->GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
@@ -216,7 +216,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 
 PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
 {
-	auto reserved_ids_info = new PbReservedIdsInfo();
+	auto reserved_ids_info = make_unique<PbReservedIdsInfo>().release();
 	for (int id : ids) {
 		reserved_ids_info->add_ids(id);
 	}
@@ -255,7 +255,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 		}
 	}
 
-	auto devices_info = new PbDevicesInfo();
+	auto devices_info = make_unique<PbDevicesInfo>().release();
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
@@ -267,7 +267,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 
 PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 {
-	auto device_types_info = new PbDeviceTypesInfo();
+	auto device_types_info = make_unique<PbDeviceTypesInfo>().release();
 
 	GetAllDeviceTypeProperties(*device_types_info);
 
@@ -279,7 +279,7 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
 		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
-	auto server_info = new PbServerInfo();
+	auto server_info = make_unique<PbServerInfo>().release();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
@@ -298,7 +298,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 
 PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 {
-	auto version_info = new PbVersionInfo();
+	auto version_info = make_unique<PbVersionInfo>().release();
 
 	version_info->set_major_version(rascsi_major_version);
 	version_info->set_minor_version(rascsi_minor_version);
@@ -311,7 +311,7 @@ PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 
 PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level)
 {
-	auto log_level_info = new PbLogLevelInfo();
+	auto log_level_info = make_unique<PbLogLevelInfo>().release();
 
 	for (const auto& log_level : log_levels) {
 		log_level_info->add_log_levels(log_level);
@@ -326,7 +326,7 @@ PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& 
 
 PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result)
 {
-	auto network_interfaces_info = new PbNetworkInterfacesInfo();
+	auto network_interfaces_info = make_unique<PbNetworkInterfacesInfo>().release();
 
 	for (const auto& network_interface : device_factory->GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
@@ -339,7 +339,7 @@ PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& resu
 
 PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
-	auto mapping_info = new PbMappingInfo();
+	auto mapping_info = make_unique<PbMappingInfo>().release();
 
 	for (const auto& mapping : device_factory->GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
@@ -352,7 +352,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 
 PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 {
-	auto operation_info = new PbOperationInfo();
+	auto operation_info = make_unique<PbOperationInfo>().release();
 
 	auto meta_data = make_unique<PbOperationMetaData>();
 	AddOperationParameter(meta_data.get(), "name", "Image file name in case of a mass storage device");
