@@ -21,8 +21,8 @@ ifeq ($(DEBUG), 1)
 	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 	BUILD_TYPE = Debug
 else
-	# Release compiler flags, ignore unused parameters because they are reported for some assertions
-	CXXFLAGS += -O3 -Wall -Werror -Wextra -Wno-unused-parameter -DNDEBUG
+	# Release compiler flags
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")

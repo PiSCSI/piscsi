@@ -62,8 +62,8 @@ PbDeviceType ParseType(const char *type)
 	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
 
-	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
-		return parsed_type;
+	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
+		return type;
 	}
 
 	// Parse convenience device types (shortcuts)

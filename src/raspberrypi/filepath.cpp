@@ -106,20 +106,6 @@ const char *Filepath::GetFileExt() const
 	return (const char *)FileExt;
 }
 
-BOOL Filepath::Save(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
-}
-
-BOOL Filepath::Load(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
-}
-
 //---------------------------------------------------------------------------
 //
 //	Filename and extension

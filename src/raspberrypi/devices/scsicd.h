@@ -44,7 +44,6 @@ public:
 	// Properties
 	void SetPath(bool cdda, const Filepath& path);			// Set the path
 	void GetPath(Filepath& path) const;				// Get the path
-	void AddIndex(int index, DWORD lba);				// Add index
 	DWORD GetFirst() const;					// Get the start LBA
 	DWORD GetLast() const;						// Get the last LBA
 	DWORD GetBlocks() const;					// Get the number of blocks

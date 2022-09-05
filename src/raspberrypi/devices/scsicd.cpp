@@ -78,17 +78,6 @@ void CDTrack::GetPath(Filepath& path) const
 	path = imgpath;
 }
 
-void CDTrack::AddIndex(int index, DWORD lba)
-{
-	ASSERT(valid);
-	ASSERT(index > 0);
-	ASSERT(first_lba <= lba);
-	ASSERT(lba <= last_lba);
-
-	// Currently does not support indexes
-	ASSERT(FALSE);
-}
-
 //---------------------------------------------------------------------------
 //
 //	Gets the start of LBA

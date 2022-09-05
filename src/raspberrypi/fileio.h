@@ -51,9 +51,9 @@ public:
 	BOOL Open(const Filepath& path, OpenMode mode);
 	BOOL OpenDIO(const char *fname, OpenMode mode);
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
-	BOOL Seek(off_t offset, BOOL relative = FALSE);
-	BOOL Read(void *buffer, int size);
-	BOOL Write(const void *buffer, int size);
+	BOOL Seek(off_t offset, BOOL relative = FALSE) const;
+	BOOL Read(void *buffer, int size) const;
+	BOOL Write(const void *buffer, int size) const;
 	off_t GetFileSize();
 	off_t GetFilePos() const;
 	void Close();

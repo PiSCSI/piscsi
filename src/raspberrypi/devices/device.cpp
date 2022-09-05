@@ -94,33 +94,34 @@ string Device::GetPaddedName() const
 	return name;
 }
 
-string Device::GetParam(const string& key)
+string Device::GetParam(const string& key) const
 {
-	return params.find(key) != params.end() ? params[key] : "";
+	const auto& it = params.find(key);
+	return it == params.end() ? "" : it->second;
 }
 
 void Device::SetParams(const unordered_map<string, string>& set_params)
 {
 	params = default_params;
 
-	for (const auto& param : set_params) {
+	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (params.find(param.first) != params.end()) {
-			params[param.first] = param.second;
+		if (params.find(key) != params.end()) {
+			params[key] = value;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str())
+			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
 		}
 	}
 }
 
-void Device::SetStatusCode(int status_code)
+void Device::SetStatusCode(int s)
 {
-	if (status_code) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff)
+	if (s) {
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", s >> 16, (s >> 8 &0xff), s & 0xff)
 	}
 
-	this->status_code = status_code;
+	status_code = s;
 }
 
 bool Device::Start()

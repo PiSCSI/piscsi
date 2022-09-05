@@ -38,8 +38,6 @@ public:
 	void SetPath(const char *path);		// File settings (user) for MBCS
 	const char *GetPath() const	{ return m_szPath; }	// Get path name
 	const char *GetFileExt() const;		// Get short name (LPCTSTR)
-	BOOL Save(Fileio *fio, int ver);
-	BOOL Load(Fileio *fio, int ver);
 
 private:
 	void Split();						// Split the path

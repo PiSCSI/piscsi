@@ -84,7 +84,7 @@ protected:
 
 	int GetStatusCode() const { return status_code; }
 
-	string GetParam(const string&);
+	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
 	static unordered_set<Device *> devices;

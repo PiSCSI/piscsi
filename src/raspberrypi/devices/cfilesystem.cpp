@@ -2346,9 +2346,9 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(DWORD nHumanAttribute, BOOL bForce)
+BOOL CHostFcb::Create(DWORD, BOOL bForce)
 {
-	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
+	ASSERT((Human68k::AT_DIRECTORY | Human68k::AT_VOLUME) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
 	ASSERT(m_pFile == NULL);
 

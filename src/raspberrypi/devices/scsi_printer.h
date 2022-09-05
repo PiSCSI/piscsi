@@ -17,7 +17,7 @@
 
 using namespace std;
 
-static const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
+#define TMP_FILE_PATTERN "/tmp/rascsi_sclp-XXXXXX"
 
 class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
