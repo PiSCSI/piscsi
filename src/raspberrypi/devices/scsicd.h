@@ -34,7 +34,7 @@ private:
 
 	friend class SCSICD;
 
-	CDTrack(SCSICD *scsicd);
+	explicit CDTrack(SCSICD *scsicd);
 	virtual ~CDTrack() = default;
 
 public:
@@ -76,7 +76,7 @@ public:
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-	SCSICD(const unordered_set<uint32_t>&);
+	explicit SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
 	bool Dispatch() override;

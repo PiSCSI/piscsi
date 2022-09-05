@@ -97,7 +97,7 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Reset, (), (override));
 
-	MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
+	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
 	~MockAbstractController() = default;
 };
 
@@ -190,7 +190,7 @@ class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
-	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
+	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
 	~MockSCSIHD() = default;
 };
 
@@ -198,7 +198,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
-	MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
+	explicit MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
 	~MockSCSIHD_NEC() = default;
 };
 
@@ -206,7 +206,7 @@ class MockSCSICD : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
-	MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
+	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
 	~MockSCSICD() = default;
 };
 

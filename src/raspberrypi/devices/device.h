@@ -89,7 +89,7 @@ protected:
 
 	static unordered_set<Device *> devices;
 
-	Device(const string&);
+	explicit Device(const string&);
 	virtual ~Device();
 
 public:

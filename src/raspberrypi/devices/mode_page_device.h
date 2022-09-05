@@ -20,7 +20,7 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string&);
+	explicit ModePageDevice(const string&);
 	virtual ~ModePageDevice() = default;
 
 	bool Dispatch() override;

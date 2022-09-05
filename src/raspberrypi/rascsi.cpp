@@ -197,7 +197,7 @@ void Cleanup()
 	DetachAll();
 
 	// Clean up and discard the bus
-	if (bus) {
+	if (bus != nullptr) {
 		bus->Cleanup();
 		delete bus;
 	}

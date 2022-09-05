@@ -54,7 +54,7 @@ private:
 
 public:
 
-	Disk(const string&);
+	explicit Disk(const string&);
 	virtual ~Disk();
 
 	bool Dispatch() override;

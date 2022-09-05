@@ -20,7 +20,7 @@ private:
 	string msg;
 
 public:
-	illegal_argument_exception(const string& msg) : msg(msg) {}
+	explicit illegal_argument_exception(const string& msg) : msg(msg) {}
 	~illegal_argument_exception() = default;
 
 	const string& get_msg() const { return msg; }
@@ -31,7 +31,7 @@ private:
 	string msg;
 
 public:
-	io_exception(const string& msg) : msg(msg) {}
+	explicit io_exception(const string& msg) : msg(msg) {}
 	virtual ~io_exception() = default;
 
 	const string& get_msg() const { return msg; }
@@ -39,7 +39,7 @@ public:
 
 class file_not_found_exception : public io_exception {
 public:
-	file_not_found_exception(const string& msg) : io_exception(msg) {}
+	explicit file_not_found_exception(const string& msg) : io_exception(msg) {}
 	~file_not_found_exception() = default;
 };
 
