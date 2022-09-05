@@ -169,8 +169,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 	Device *device = nullptr;
 	switch (type) {
 	case SCHD: {
-		string ext = GetExtension(filename);
-		if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
+		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = new SCSIHD_NEC({ 512 });
 		} else {
 			device = new SCSIHD(sector_sizes[SCHD], false);
@@ -283,9 +282,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
 	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-	        struct ifreq ifr;
-	        memset(&ifr, 0, sizeof(ifr));
-
+	        struct ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
 	        	// Only list interfaces that are up

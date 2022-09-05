@@ -44,15 +44,14 @@ RascsiImage::RascsiImage()
 	}
 }
 
-bool RascsiImage::CheckDepth(const string& filename)
+bool RascsiImage::CheckDepth(string_view filename)
 {
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
 bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename)
 {
-	size_t filename_start = filename.rfind('/');
-	if (filename_start != string::npos) {
+	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
@@ -81,8 +80,7 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
 		int uid = getuid();
-		const char *sudo_user = getenv("SUDO_UID");
-		if (sudo_user) {
+		if (const char *sudo_user = getenv("SUDO_UID"); sudo_user) {
 			uid = stoi(sudo_user);
 		}
 
@@ -223,8 +221,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		string folder = filename.substr(0, last_slash);
 		string full_folder = default_image_folder + "/" + folder;
 
-		std::error_code error;
-		if (!filesystem::is_empty(full_folder, error) || error) {
+		if (error_code error; !filesystem::is_empty(full_folder, error) || error) {
 			break;
 		}
 
@@ -385,9 +382,8 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
-	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	if (chmod(filename.c_str(), permissions) == -1) {
+	if (int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+		chmod(filename.c_str(), permissions) == -1) {
 		return ReturnStatus(context, false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
 				strerror(errno));
 	}

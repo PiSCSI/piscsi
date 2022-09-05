@@ -20,7 +20,7 @@
 #include "filepath.h"
 
 // Number of tracks to cache
-#define CacheMax 16
+static const int CACHE_MAX = 16;
 
 class DiskTrack
 {
@@ -85,7 +85,7 @@ private:
 	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data
-	cache_t cache[CacheMax];						// Cache management
+	cache_t cache[CACHE_MAX];						// Cache management
 	DWORD serial;								// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)

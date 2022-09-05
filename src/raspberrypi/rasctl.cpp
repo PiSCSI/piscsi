@@ -28,9 +28,9 @@ using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-PbOperation ParseOperation(const char *optarg)
+PbOperation ParseOperation(const char *operation)
 {
-	switch (tolower(optarg[0])) {
+	switch (tolower(operation[0])) {
 		case 'a':
 			return ATTACH;
 
@@ -57,9 +57,9 @@ PbOperation ParseOperation(const char *optarg)
 	}
 }
 
-PbDeviceType ParseType(const char *optarg)
+PbDeviceType ParseType(const char *type)
 {
-	string t = optarg;
+	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
 
 	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
@@ -67,7 +67,7 @@ PbDeviceType ParseType(const char *optarg)
 	}
 
 	// Parse convenience device types (shortcuts)
-	switch (tolower(optarg[0])) {
+	switch (tolower(type[0])) {
 	case 'c':
 		return SCCD;
 

@@ -126,8 +126,7 @@ void Banner(int argc, char* argv[])
 
 bool InitService(int port)
 {
-	int result = pthread_mutex_init(&ctrl_mutex, nullptr);
-	if (result != EXIT_SUCCESS){
+	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Error code: %d", result)
 		return false;
 	}
@@ -517,8 +516,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
-	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
-	if (!controller_manager.CreateScsiController(bus, primary_device)) {
+
+	if (PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device); !controller_manager.CreateScsiController(bus, primary_device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
@@ -555,8 +554,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		int lun = device->GetLun();
 		string type = device->GetType();
 
-		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support != nullptr) {
+		if (FileSupport *file_support = dynamic_cast<FileSupport *>(device); file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
@@ -886,8 +884,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string result = ValidateLunSetup(command);
-	if (!result.empty()) {
+	if (string result = ValidateLunSetup(command); !result.empty()) {
 		return ReturnStatus(context, false, result);
 	}
 
@@ -912,8 +909,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 
 bool ProcessId(const string& id_spec, int& id, int& unit)
 {
-	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
-	if (separator_pos == string::npos) {
+	if (size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
 		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
 			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
@@ -1032,8 +1028,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'F': {
-				string result = rascsi_image.SetDefaultImageFolder(optarg);
-				if (!result.empty()) {
+				if (string result = rascsi_image.SetDefaultImageFolder(optarg); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -1110,8 +1105,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 		ParseParameters(*device, optarg);
 
-		size_t separator_pos = name.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
+		if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 			device->set_vendor(name.substr(0, separator_pos));
 			name = name.substr(separator_pos + 1);
 			separator_pos = name.find(COMPONENT_SEPARATOR);
@@ -1254,8 +1248,7 @@ static void *MonThread(void *)
 			switch(command.operation()) {
 				case LOG_LEVEL: {
 					string log_level = GetParam(command, "level");
-					bool status = SetLogLevel(log_level);
-					if (!status) {
+					if (bool status = SetLogLevel(log_level); !status) {
 						ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
 					}
 					else {
@@ -1265,8 +1258,7 @@ static void *MonThread(void *)
 				}
 
 				case DEFAULT_FOLDER: {
-					string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder"));
-					if (!result.empty()) {
+					if (string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !result.empty()) {
 						ReturnStatus(context, false, result);
 					}
 					else {
@@ -1316,8 +1308,7 @@ static void *MonThread(void *)
 				}
 
 				case IMAGE_FILE_INFO: {
-					string filename = GetParam(command, "file");
-					if (filename.empty()) {
+					if (string filename = GetParam(command, "file"); filename.empty()) {
 						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 					}
 					else {

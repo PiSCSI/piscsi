@@ -24,7 +24,6 @@ Device::Device(const string& type)
 
 	this->type = type;
 
-	vendor = DEFAULT_VENDOR;
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
 	revision = rev;

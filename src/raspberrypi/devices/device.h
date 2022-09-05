@@ -16,7 +16,7 @@
 
 using namespace std;
 
-#define DEFAULT_VENDOR "RaSCSI"
+static const char *DEFAULT_VENDOR = "RaSCSI";
 
 class Device
 {
@@ -57,7 +57,7 @@ class Device
 	int32_t lun = 0;
 
 	// Device identifier (for INQUIRY)
-	string vendor;
+	string vendor = DEFAULT_VENDOR;
 	string product;
 	string revision;
 

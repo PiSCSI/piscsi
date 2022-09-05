@@ -27,7 +27,7 @@
 //  Kanji code conversion
 //
 //---------------------------------------------------------------------------
-#define IC_BUF_SIZE 1024
+static const int IC_BUF_SIZE = 1024;
 static char convert_buf[IC_BUF_SIZE];
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
 	convert(src, dest, (char *)inbuf, outbuf, outsize)
@@ -3847,6 +3847,9 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 				case 1:
 					// Dummy for Human68k compatibility
 					return 0;
+
+				default:
+					return FS_NOTIOCTRL;
 			}
 			break;
 
