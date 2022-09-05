@@ -326,7 +326,7 @@ void SCSIBR::SendMessage10()
 	EnterDataOutPhase();
 }
 
-int SCSIBR::GetMacAddr(BYTE *mac)
+int SCSIBR::GetMacAddr(BYTE *mac) const
 {
 	memcpy(mac, mac_addr, 6);
 	return 6;

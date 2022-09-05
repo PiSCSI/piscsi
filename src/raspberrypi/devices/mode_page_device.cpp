@@ -30,7 +30,7 @@ bool ModePageDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
+int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const
 {
 	if (max_length <= 0) {
 		return 0;
