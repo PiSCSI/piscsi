@@ -353,7 +353,7 @@ bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 //              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
+int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer) const
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 

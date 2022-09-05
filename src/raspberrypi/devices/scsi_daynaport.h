@@ -54,7 +54,7 @@ public:
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
 	int WriteCheck(uint64_t block) override;
 
-	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
+	int RetrieveStats(const DWORD *cdb, BYTE *buffer) const;
 	bool EnableInterface(const DWORD *cdb);
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
