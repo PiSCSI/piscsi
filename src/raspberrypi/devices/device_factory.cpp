@@ -92,18 +92,18 @@ void DeviceFactory::DeleteDevice(const Device *device) const
 
 void DeviceFactory::DeleteAllDevices() const
 {
-	for (const auto& device : devices) {
-		delete device.second;
+	for (const auto& [id, device] : devices) {
+		delete device;
 	}
 
 	devices.clear();
 }
 
-const Device * DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
+const Device * DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
 {
-	for (const auto& device : devices) {
-		if (device.second->GetId() == id && device.second->GetLun() == lun) {
-			return device.second;
+	for (const auto& [id, device] : devices) {
+		if (device->GetId() == i && device->GetLun() == lun) {
+			return device;
 		}
 	}
 
@@ -114,8 +114,8 @@ list<Device *> DeviceFactory::GetAllDevices() const
 {
 	list<Device *> result;
 
-	for (const auto& device : devices) {
-		result.push_back(device.second);
+	for (const auto& [id, device] : devices) {
+		result.push_back(device);
 	}
 
 	return result;

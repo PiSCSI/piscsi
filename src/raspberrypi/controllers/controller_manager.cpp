@@ -41,9 +41,9 @@ bool ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 
 AbstractController *ControllerManager::IdentifyController(int data) const
 {
-	for (const auto& controller : controllers) {
-		if (data & (1 << controller.second->GetTargetId())) {
-			return controller.second;
+	for (const auto& [id, controller] : controllers) {
+		if (data & (1 << controller->GetTargetId())) {
+			return controller;
 		}
 	}
 
@@ -58,8 +58,8 @@ AbstractController *ControllerManager::FindController(int target_id) const
 
 void ControllerManager::DeleteAllControllersAndDevices()
 {
-	for (const auto& controller : controllers) {
-		delete controller.second;
+	for (const auto& [id, controller] : controllers) {
+		delete controller;
 	}
 
 	controllers.clear();
@@ -71,8 +71,8 @@ void ControllerManager::DeleteAllControllersAndDevices()
 
 void ControllerManager::ResetAllControllers()
 {
-	for (const auto& controller : controllers) {
-		controller.second->Reset();
+	for (const auto& [id, controller] : controllers) {
+		controller->Reset();
 	}
 }
 
