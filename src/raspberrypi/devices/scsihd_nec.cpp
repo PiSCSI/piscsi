@@ -18,10 +18,6 @@
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 
-SCSIHD_NEC::SCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
-{
-}
-
 //---------------------------------------------------------------------------
 //
 //	Extract words that are supposed to be little endian

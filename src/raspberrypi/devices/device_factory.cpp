@@ -170,7 +170,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = new SCSIHD_NEC({ 512 });
+			device = new SCSIHD_NEC();
 		} else {
 			device = new SCSIHD(sector_sizes[SCHD], false);
 
