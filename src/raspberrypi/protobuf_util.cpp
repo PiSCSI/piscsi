@@ -161,6 +161,7 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const Lo
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English
+	// TODO This line forces rasctl to depend on the localizer. This should be fixed.
 	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
 
 	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
