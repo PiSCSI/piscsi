@@ -149,10 +149,10 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	try {
 		len = stoull(size);
 	}
-	catch(const invalid_argument& e) {
+	catch(const invalid_argument&) {
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
-	catch(const out_of_range& e) {
+	catch(const out_of_range&) {
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
