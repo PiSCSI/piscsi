@@ -250,9 +250,11 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 
 	assert(device != nullptr);
 
-	device->SetId(id);
+	if (device != nullptr) {
+		device->SetId(id);
 
-	devices.emplace(id, device);
+		devices.emplace(id, device);
+	}
 
 	return device;
 }
