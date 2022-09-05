@@ -23,7 +23,7 @@ public:
 	RascsiImage();
 	~RascsiImage() = default;
 
-	void SetDepth(int depth) { this->depth = depth; }
+	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
 	bool CheckDepth(string_view);
 	bool CreateImageFolder(const CommandContext&, const string&) const;
