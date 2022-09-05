@@ -91,7 +91,9 @@ protected:
 
 	BUS *bus;
 
-	int target_id;
-
 	ctrl_t ctrl = {};
+
+private:
+
+	int target_id;
 };
