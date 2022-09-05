@@ -403,7 +403,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	// If no filename was provided the medium is considered removed
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(device);
 	if (file_support != nullptr) {
 		device->SetRemoved(filename.empty());
 	}
@@ -429,7 +429,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
+		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				device_factory.DeleteDevice(device);
@@ -517,7 +517,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
 
-	if (PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device); !controller_manager.CreateScsiController(bus, primary_device)) {
+	if (auto primary_device = static_cast<PrimaryDevice *>(device); !controller_manager.CreateScsiController(bus, primary_device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
@@ -554,7 +554,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		int lun = device->GetLun();
 		string type = device->GetType();
 
-		if (FileSupport *file_support = dynamic_cast<FileSupport *>(device); file_support != nullptr) {
+		if (auto file_support = dynamic_cast<FileSupport *>(device); file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
@@ -596,7 +596,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
 			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
 
-	Disk *disk = dynamic_cast<Disk *>(device);
+	auto disk = dynamic_cast<Disk *>(device);
 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
@@ -619,7 +619,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 	}
 
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(device);
 	try {
 		try {
 			file_support->Open(filepath);
@@ -1312,7 +1312,7 @@ static void *MonThread(void *)
 						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 					}
 					else {
-						PbImageFile* image_file = new PbImageFile();
+						auto image_file = new PbImageFile();
 						bool status = rascsi_response.GetImageFile(image_file, filename);
 						if (status) {
 							result.set_status(true);

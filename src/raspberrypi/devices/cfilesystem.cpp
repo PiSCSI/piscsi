@@ -477,7 +477,7 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache()
 {
-	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
+	for (auto p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		p->Release();
 		p = (CHostPath*)p->Next();
 	}
@@ -508,7 +508,7 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
 
-	CHostPath* p = (CHostPath*)m_cRing.Next();
+	auto p = (CHostPath*)m_cRing.Next();
 	while (p != &m_cRing) {
 		if (p->isSameChild(szHumanPath))
 			p->Release();
@@ -525,7 +525,7 @@ void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
 
-	CHostPath* p = FindCache(szHumanPath);
+	auto p = FindCache(szHumanPath);
 	if (p) {
 		delete p;
 		ASSERT(m_nRing);
@@ -547,7 +547,7 @@ CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 	ASSERT(szHuman);
 
 	// Find something that matches perfectly with either of the stored file names
-	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
+	for (auto p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		if (p->isSameHuman(szHuman))
 			return p;
 		p = (CHostPath*)p->Next();
@@ -1569,7 +1569,7 @@ void CHostPath::Refresh()
 		pFilename->SetHost(szFilename);
 
 		// If there is a relevant file name in the previous cache, prioritize that for the Human68k name
-		ring_t* pCache = (ring_t*)cRingBackup.Next();
+		auto pCache = (ring_t*)cRingBackup.Next();
 		for (;;) {
 			if (pCache == (ring_t*)&cRingBackup) {
 				pCache = NULL;			// No relevant entry
@@ -2247,7 +2247,7 @@ CHostFiles* CHostFilesManager::Alloc(DWORD nKey)
 	ASSERT(nKey);
 
 	// Select from the end
-	ring_t* p = (ring_t*)m_cRing.Prev();
+	auto p = (ring_t*)m_cRing.Prev();
 
 	// Move to the start of the ring
 	p->r.Insert(&m_cRing);
@@ -2262,7 +2262,7 @@ CHostFiles* CHostFilesManager::Search(DWORD nKey)
 	// ASSERT(nKey);	// The search key may become 0 due to DPB damage
 
 	// Find the relevant object
-	ring_t* p = (ring_t*)m_cRing.Next();
+	auto p = (ring_t*)m_cRing.Next();
 	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
 		if (p->f.isSameKey(nKey)) {
 			// Move to the start of the ring
@@ -2604,7 +2604,7 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 	ASSERT(nKey);
 
 	// Select from the end
-	ring_t* p = (ring_t*)m_cRing.Prev();
+	auto p = (ring_t*)m_cRing.Prev();
 
 	// Error if in use (just in case)
 	if (p->f.isSameKey(0) == FALSE) {
@@ -2626,7 +2626,7 @@ CHostFcb* CHostFcbManager::Search(DWORD nKey)
 	ASSERT(nKey);
 
 	// Search for applicable objects
-	ring_t* p = (ring_t*)m_cRing.Next();
+	auto p = (ring_t*)m_cRing.Next();
 	while (p != (ring_t*)&m_cRing) {
 		if (p->f.isSameKey(nKey)) {
 			 // Move to the top of the ring

@@ -100,7 +100,7 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 	message.SerializeToString(&data);
 
 	// Write the size of the protobuf data as a header
-    int32_t size = (int32_t)data.length();
+	auto size = (int32_t)data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
     	throw io_exception("Can't write protobuf message header");
     }

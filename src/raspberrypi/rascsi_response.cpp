@@ -24,7 +24,7 @@ list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "e
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
-	PbDeviceProperties *properties = new PbDeviceProperties();
+	auto properties = new PbDeviceProperties();
 
 	properties->set_luns(AbstractController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
@@ -87,7 +87,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 
     pb_device->set_allocated_properties(GetDeviceProperties(device));
 
-    PbDeviceStatus *status = new PbDeviceStatus();
+    auto status = new PbDeviceStatus();
 	pb_device->set_allocated_status(status);
 	status->set_protected_(device->IsProtected());
 	status->set_stopped(device->IsStopped());
@@ -100,16 +100,16 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 		}
 	}
 
-    if (const Disk *disk = dynamic_cast<const Disk*>(device); disk) {
+    if (const auto disk = dynamic_cast<const Disk*>(device); disk) {
     	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
     	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
+    const auto file_support = dynamic_cast<const FileSupport *>(device);
 	if (file_support) {
 		Filepath filepath;
 		file_support->GetPath(filepath);
-		PbImageFile *image_file = new PbImageFile();
+		auto image_file = new PbImageFile();
 		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
@@ -191,7 +191,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& folder_pattern,
 		const string& file_pattern, int scan_depth)
 {
-	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+	auto image_files_info = new PbImageFilesInfo();
 
 	string default_image_folder = rascsi_image->GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
@@ -217,7 +217,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 
 PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
 {
-	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
+	auto reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
 		reserved_ids_info->add_ids(id);
 	}
@@ -256,7 +256,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 		}
 	}
 
-	PbDevicesInfo *devices_info = new PbDevicesInfo();
+	auto devices_info = new PbDevicesInfo();
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
@@ -268,7 +268,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 
 PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 {
-	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
+	auto device_types_info = new PbDeviceTypesInfo();
 
 	GetAllDeviceTypeProperties(*device_types_info);
 
@@ -280,7 +280,7 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
 		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
-	PbServerInfo *server_info = new PbServerInfo();
+	auto server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
@@ -299,7 +299,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 
 PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 {
-	PbVersionInfo *version_info = new PbVersionInfo();
+	auto version_info = new PbVersionInfo();
 
 	version_info->set_major_version(rascsi_major_version);
 	version_info->set_minor_version(rascsi_minor_version);
@@ -312,7 +312,7 @@ PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 
 PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level)
 {
-	PbLogLevelInfo *log_level_info = new PbLogLevelInfo();
+	auto log_level_info = new PbLogLevelInfo();
 
 	for (const auto& log_level : log_levels) {
 		log_level_info->add_log_levels(log_level);
@@ -327,7 +327,7 @@ PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& 
 
 PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result)
 {
-	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
+	auto network_interfaces_info = new PbNetworkInterfacesInfo();
 
 	for (const auto& network_interface : device_factory->GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
@@ -340,7 +340,7 @@ PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& resu
 
 PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
-	PbMappingInfo *mapping_info = new PbMappingInfo();
+	auto mapping_info = new PbMappingInfo();
 
 	for (const auto& mapping : device_factory->GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
@@ -353,9 +353,9 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 
 PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 {
-	PbOperationInfo *operation_info = new PbOperationInfo();
+	auto operation_info = new PbOperationInfo();
 
-	PbOperationMetaData *meta_data = new PbOperationMetaData();
+	auto meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
 	AddOperationParameter(meta_data, "interface", "Comma-separated prioritized network interface list");
 	AddOperationParameter(meta_data, "inet", "IP address and netmask of the network bridge");
