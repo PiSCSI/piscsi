@@ -108,9 +108,6 @@ public:
 										// Set SCSI output signal value
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay
-protected:
-	phase_t m_current_phase = phase_t::reserved;
-
 private:
 	static const phase_t phase_table[8];
 
