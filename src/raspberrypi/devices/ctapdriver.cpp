@@ -420,7 +420,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //---------------------------------------------------------------------------
 bool CTapDriver::PendingPackets()
 {
-	struct pollfd fds;
+	pollfd fds;
 
 	ASSERT(m_hTAP != -1);
 

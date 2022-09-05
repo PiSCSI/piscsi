@@ -1533,7 +1533,7 @@ void CHostPath::Refresh()
 
 	// Register file name
 	BOOL bUpdate = FALSE;
-	struct dirent **pd = nullptr;
+	dirent **pd = nullptr;
 	int nument = 0;
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
 	for (int i = 0; i < maxent; i++) {
@@ -1548,7 +1548,7 @@ void CHostPath::Refresh()
 		}
 
 		// When at the top level directory, exclude current and parent
-		const struct dirent* pe = pd[i];
+		const dirent* pe = pd[i];
 		if (m_szHuman[0] == '/' && m_szHuman[1] == 0) {
 			if (strcmp(pe->d_name, ".") == 0 || strcmp(pe->d_name, "..") == 0) {
 				continue;
@@ -1628,7 +1628,7 @@ void CHostPath::Refresh()
 
 		WORD nHumanDate = 0;
 		WORD nHumanTime = 0;
-		const struct tm* pt = localtime(&sb.st_mtime);
+		const tm* pt = localtime(&sb.st_mtime);
 		if (pt) {
 			nHumanDate = (WORD)(((pt->tm_year - 80) << 9) | ((pt->tm_mon + 1) << 5) | pt->tm_mday);
 			nHumanTime = (WORD)((pt->tm_hour << 11) | (pt->tm_min << 5) | (pt->tm_sec >> 1));
@@ -1719,7 +1719,7 @@ void CHostPath::Restore() const
 		ASSERT(szPath[len] == _T('/'));
 		szPath[len] = _T('\0');
 
-		struct utimbuf ut;
+		utimbuf ut;
 		ut.actime = m_tBackup;
 		ut.modtime = m_tBackup;
 		utime(szPath, &ut);
@@ -2375,10 +2375,8 @@ BOOL CHostFcb::Open()
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// Fail if directory
-	if (stat(S2U(m_szFilename), &st) == 0) {
-		if ((st.st_mode & S_IFMT) == S_IFDIR) {
-			return FALSE || m_bFlag;
-		}
+	if (stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
+		return FALSE || m_bFlag;
 	}
 
 	// File open
@@ -2502,7 +2500,7 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
 {
 	ASSERT(m_pFile || m_bFlag);
 
-	struct tm t = { };
+	tm t = { };
 	t.tm_year = (nHumanTime >> 25) + 80;
 	t.tm_mon = ((nHumanTime >> 21) - 1) & 15;
 	t.tm_mday = (nHumanTime >> 16) & 31;
@@ -2512,7 +2510,7 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
 	time_t ti = mktime(&t);
 	if (ti == (time_t)-1)
 		return FALSE;
-	struct utimbuf ut;
+	utimbuf ut;
 	ut.actime = ti;
 	ut.modtime = ti;
 
