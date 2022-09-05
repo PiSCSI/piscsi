@@ -3680,7 +3680,7 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 	DWORD nData = cap.sectors * 3;
 
 	// Set DPB
-	pDpb->sector_size = (WORD)cap.bytes;		// Bytes per sector
+	pDpb->sector_size = cap.bytes;		// Bytes per sector
 	pDpb->cluster_size =
 		(BYTE)(cap.sectors - 1);				// Sectors per cluster - 1
 	pDpb->shift = (BYTE)nShift;					// Number of cluster → sector shifts
@@ -3690,7 +3690,7 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 	pDpb->file_max =
 		(WORD)(cap.sectors * cap.bytes / 0x20);	// Number of files in the root directory
 	pDpb->data_sector = (WORD)nData;			// First sector number of data memory
-	pDpb->cluster_max = (WORD)cap.clusters;		// Total number of clusters + 1
+	pDpb->cluster_max = cap.clusters;		// Total number of clusters + 1
 	pDpb->root_sector = (WORD)nRoot;			// First sector number of the root directory
 	pDpb->media = media;						// Media byte
 
