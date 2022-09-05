@@ -21,7 +21,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-typedef pair<uint32_t, uint32_t> Geometry;
+using Geometry = pair<uint32_t, uint32_t>;
 
 class Device;
 

@@ -79,12 +79,12 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 	// Creates a sorted map
 	map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	bool isFirst = true;
-	for (const auto& param : params) {
+	for (const auto& [key, value] : params) {
 		if (!isFirst) {
 			cout << ":";
 		}
 		isFirst = false;
-		cout << param.first << "=" << param.second;
+		cout << key << "=" << value;
 	}
 
 	cout << endl;
@@ -164,11 +164,11 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			cout << "Default parameters: ";
 
 			bool isFirst = true;
-			for (const auto& param : params) {
+			for (const auto& [key, value] : params) {
 				if (!isFirst) {
 					cout << endl << "                            ";
 				}
-				cout << param.first << "=" << param.second;
+				cout << key << "=" << value;
 
 				isFirst = false;
 			}
@@ -266,8 +266,8 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
 	cout << "Supported image file extension to device type mappings:" << endl;
-	for (const auto&  mapping : mappings) {
-		cout << "  " << mapping.first << "->" << PbDeviceType_Name(mapping.second) << endl;
+	for (const auto& [extension, type] : mappings) {
+		cout << "  " << extension << "->" << PbDeviceType_Name(type) << endl;
 	}
 }
 
@@ -278,27 +278,27 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 	// Copies result into a map sorted by operation name
 	const PbOperationMetaData *unknown_operation = new PbOperationMetaData();
 	map<string, PbOperationMetaData> sorted_operations;
-	for (const auto& operation : operations) {
-		if (PbOperation_IsValid(static_cast<PbOperation>(operation.first))) {
-			sorted_operations[PbOperation_Name(static_cast<PbOperation>(operation.first))] = operation.second;
+	for (const auto& [ordinal, meta_data] : operations) {
+		if (PbOperation_IsValid(static_cast<PbOperation>(ordinal))) {
+			sorted_operations[PbOperation_Name(static_cast<PbOperation>(ordinal))] = meta_data;
 		}
 		else {
 			// If the server-side operation is unknown for the client use the server-provided operation name
 			// No further operation information is available in this case
-			sorted_operations[operation.second.server_side_name()] = *unknown_operation;
+			sorted_operations[meta_data.server_side_name()] = *unknown_operation;
 		}
 	}
 
 	cout << "Operations supported by rascsi server and their parameters:" << endl;
-	for (const auto& operation : sorted_operations) {
-		if (!operation.second.server_side_name().empty()) {
-			cout << "  " << operation.first;
-			if (!operation.second.description().empty()) {
-				cout << " (" << operation.second.description() << ")";
+	for (const auto& [name, meta_data] : sorted_operations) {
+		if (!meta_data.server_side_name().empty()) {
+			cout << "  " << name;
+			if (!meta_data.description().empty()) {
+				cout << " (" << meta_data.description() << ")";
 			}
 			cout << endl;
 
-			list<PbOperationParameter> sorted_parameters = { operation.second.parameters().begin(), operation.second.parameters().end() };
+			list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
 			sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 			for (const auto& parameter : sorted_parameters) {
@@ -328,7 +328,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 			}
 		}
 		else {
-			cout << "  " << operation.first << " (Unknown server-side operation)" << endl;
+			cout << "  " << name << " (Unknown server-side operation)" << endl;
 		}
 	}
 }
