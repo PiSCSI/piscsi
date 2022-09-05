@@ -97,7 +97,7 @@ PbDeviceType ParseType(const char *optarg)
 	}
 }
 
-void SetPatternParams(PbCommand& command, const string& patterns)
+void SetPatternParams(PbCommand& command, string_view patterns)
 {
 	string folder_pattern;
 	string file_pattern;

@@ -63,7 +63,7 @@ string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& k
 	return map[key];
 }
 
-void protobuf_util::AddParam(PbCommand& command, const string& key, const string& value)
+void protobuf_util::AddParam(PbCommand& command, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *command.mutable_params();
@@ -71,7 +71,7 @@ void protobuf_util::AddParam(PbCommand& command, const string& key, const string
 	}
 }
 
-void protobuf_util::AddParam(PbDevice& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDevice& device, const string& key,string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -79,7 +79,7 @@ void protobuf_util::AddParam(PbDevice& device, const string& key, const string& 
 	}
 }
 
-void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
