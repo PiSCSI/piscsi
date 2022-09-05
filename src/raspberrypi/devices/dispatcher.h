@@ -31,15 +31,16 @@ public:
 		}
 	}
 
+	using operation = void (T::*)();
 	using command_t = struct _command_t {
 		const char* name;
-		void (T::*execute)();
+		operation execute;
 
-		_command_t(const char* _name, void (T::*_execute)()) : name(_name), execute(_execute) { };
+		_command_t(const char* _name, operation _execute) : name(_name), execute(_execute) { };
 	};
 	unordered_map<scsi_command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)())
+	void AddCommand(scsi_command opcode, const char* name, operation execute)
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
