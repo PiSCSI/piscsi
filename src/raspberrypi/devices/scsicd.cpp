@@ -32,16 +32,6 @@ CDTrack::CDTrack(SCSICD *scsicd)
 
 	// Set parent CD-ROM device
 	cdrom = scsicd;
-
-	// Track defaults to disabled
-	valid = false;
-
-	// Initialize other data
-	track_no = -1;
-	first_lba = 0;
-	last_lba = 0;
-	audio = false;
-	raw = false;
 }
 
 void CDTrack::Init(int track, DWORD first, DWORD last)

@@ -135,7 +135,7 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 	return false;
 }
 
-void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_image_folder,
+void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, string_view default_image_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
 	string folder_pattern_lower = folder_pattern;
 	transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);

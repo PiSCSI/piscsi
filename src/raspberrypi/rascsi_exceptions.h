@@ -38,9 +38,7 @@ public:
 };
 
 class file_not_found_exception : public io_exception {
-public:
-	explicit file_not_found_exception(const string& msg) : io_exception(msg) {}
-	~file_not_found_exception() = default;
+	using io_exception::io_exception;
 };
 
 class scsi_error_exception : public exception {

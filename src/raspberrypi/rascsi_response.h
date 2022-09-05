@@ -53,7 +53,7 @@ private:
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int);
+	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
 	void CreateOperation(PbOperationInfo *, PbOperationMetaData *, const PbOperation&, const string&);
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,
