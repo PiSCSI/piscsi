@@ -634,9 +634,9 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 void SCSICD::ClearTrack()
 {
 	// delete the track object
-	for (int i = 0; i < TrackMax; i++) {
-		delete track[i];
-		track[i] = nullptr;
+	for (auto t: track) {
+		delete t;
+		t = nullptr;
 	}
 
 	// Number of tracks is 0

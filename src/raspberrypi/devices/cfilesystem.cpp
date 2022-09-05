@@ -286,7 +286,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 // Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::isMediaOffline()
+BOOL CHostDrv::isMediaOffline() const
 {
 	// Offline status check
 	return m_bEnable == FALSE;
@@ -1495,9 +1495,8 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 /// Confirm that the file update has been carried out
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isRefresh()
+BOOL CHostPath::isRefresh() const
 {
-
 	return m_bRefresh;
 }
 
@@ -1929,7 +1928,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 /// Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isMediaOffline(DWORD nUnit)
+BOOL CHostEntry::isMediaOffline(DWORD nUnit) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -1968,7 +1967,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 /// Media change check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::CheckMedia(DWORD nUnit)
+BOOL CHostEntry::CheckMedia(DWORD nUnit) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2020,7 +2019,7 @@ BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 /// Get capacity
 //
 //---------------------------------------------------------------------------
-DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
+DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2400,7 +2399,7 @@ BOOL CHostFcb::Open()
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Rewind(DWORD nOffset)
+BOOL CHostFcb::Rewind(DWORD nOffset) const
 {
 	ASSERT(m_pFile);
 
@@ -2457,7 +2456,7 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Truncate()
+BOOL CHostFcb::Truncate() const
 {
 	ASSERT(m_pFile);
 
@@ -3880,7 +3879,7 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 /// $56 - Flush
 //
 //---------------------------------------------------------------------------
-int CFileSys::Flush(DWORD nUnit)
+int CFileSys::Flush(DWORD nUnit) const
 {
 
 	// Unit check

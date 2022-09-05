@@ -536,7 +536,7 @@ public:
 										///< Find file name
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
 										///< Find file name (with support for wildcards)
-	BOOL  isRefresh();							///< Check that the file change has been done
+	BOOL  isRefresh() const;							///< Check that the file change has been done
 	void  Refresh();							///< Refresh file
 	void  Backup();								/// Backup the time stamp on the host side
 	void  Restore() const;							/// Restore the time stamp on the host side
@@ -676,10 +676,10 @@ public:
 
 	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
 	BOOL  Open();									///< Open file
-	BOOL  Rewind(DWORD nOffset);							///< Seek file
+	BOOL  Rewind(DWORD nOffset) const;							///< Seek file
 	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file
 	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
-	BOOL  Truncate();								///< Truncate file
+	BOOL  Truncate() const;								///< Truncate file
 	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
 	BOOL  TimeStamp(DWORD nHumanTime);						///< Set file time stamp
 	BOOL  Close();									///< Close file
@@ -738,7 +738,7 @@ public:
 
 	BOOL  isWriteProtect() const { return m_bWriteProtect; }
 	BOOL  isEnable() const { return m_bEnable; }		///< Is it accessible?
-	BOOL  isMediaOffline();	
+	BOOL  isMediaOffline() const;
 	BYTE  GetMediaByte() const;
 	DWORD  GetStatus() const;
 	void  SetEnable(BOOL bEnable);						///< Set media status
@@ -806,14 +806,14 @@ public:
 	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);
 	BOOL  isWriteProtect(DWORD nUnit) const;
 	BOOL  isEnable(DWORD nUnit) const;					///< Is it accessible?
-	BOOL  isMediaOffline(DWORD nUnit);
+	BOOL  isMediaOffline(DWORD nUnit) const;
 	BYTE  GetMediaByte(DWORD nUnit) const;
 	DWORD  GetStatus(DWORD nUnit) const;					///< Get drive status
-	BOOL CheckMedia(DWORD nUnit);						///< Media change check
+	BOOL CheckMedia(DWORD nUnit) const;						///< Media change check
 	void Eject(DWORD nUnit);
 	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< Get volume label
 	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
-	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);
+	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
 	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
 										///< Get cluster size from cache
 
@@ -897,7 +897,7 @@ public:
 	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
 	int DiskWrite(DWORD nUnit);						///< $54 - Write sectors
 	int Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
-	int Flush(DWORD nUnit);							///< $56 - Flush
+	int Flush(DWORD nUnit) const;							///< $56 - Flush
 	int CheckMedia(DWORD nUnit);						///< $57 - Media change check
 	int Lock(DWORD nUnit);							///< $58 - Lock
 

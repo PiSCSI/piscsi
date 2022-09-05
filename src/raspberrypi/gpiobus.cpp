@@ -1090,7 +1090,7 @@ void GPIOBUS::MakeTable(void)
 
 	// Create parity table
 	for (i = 0; i < 0x100; i++) {
-		DWORD bits = (DWORD)i;
+		auto bits = (DWORD)i;
 		DWORD parity = 0;
 		for (j = 0; j < 8; j++) {
 			parity ^= bits & 1;
@@ -1106,7 +1106,7 @@ void GPIOBUS::MakeTable(void)
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
 	for (i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		DWORD bits = (DWORD)i;
+		auto bits = (DWORD)i;
 
 		// Get parity
 		if (tblParity[i]) {
