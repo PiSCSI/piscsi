@@ -681,7 +681,7 @@ public:
 	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
 	BOOL  Truncate() const;								///< Truncate file
 	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
-	BOOL  TimeStamp(DWORD nHumanTime);						///< Set file time stamp
+	BOOL  TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
 	BOOL  Close();									///< Close file
 
 private:
