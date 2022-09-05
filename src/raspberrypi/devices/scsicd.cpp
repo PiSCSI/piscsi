@@ -26,12 +26,10 @@ using namespace scsi_defs;
 //
 //===========================================================================
 
-CDTrack::CDTrack(SCSICD *scsicd)
+CDTrack::CDTrack(SCSICD *scsicd) : cdrom(scsicd)
 {
+	// Check parent CD-ROM device
 	ASSERT(scsicd);
-
-	// Set parent CD-ROM device
-	cdrom = scsicd;
 }
 
 void CDTrack::Init(int track, DWORD first, DWORD last)

@@ -16,13 +16,11 @@
 
 unordered_set<Device *> Device::devices;
 
-Device::Device(const string& type)
+Device::Device(const string& t) : type(t)
 {
 	assert(type.length() == 4);
 
 	devices.insert(this);
-
-	this->type = type;
 
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
