@@ -49,7 +49,7 @@ bool RascsiImage::CheckDepth(string_view filename)
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
-bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename)
+bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
 	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
@@ -110,14 +110,14 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 	return "";
 }
 
-bool RascsiImage::IsValidSrcFilename(const string& filename)
+bool RascsiImage::IsValidSrcFilename(const string& filename) const
 {
 	// Source file must exist and must be a regular file or a symlink
 	struct stat st;
 	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
 }
 
-bool RascsiImage::IsValidDstFilename(const string& filename)
+bool RascsiImage::IsValidDstFilename(const string& filename) const
 {
 	// Destination file must not yet exist
 	struct stat st;

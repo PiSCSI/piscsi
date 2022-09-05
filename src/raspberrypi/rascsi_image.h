@@ -26,11 +26,11 @@ public:
 	void SetDepth(int depth) { this->depth = depth; }
 	int GetDepth() const { return depth; }
 	bool CheckDepth(string_view);
-	bool CreateImageFolder(const CommandContext&, const string&);
+	bool CreateImageFolder(const CommandContext&, const string&) const;
 	string GetDefaultImageFolder() const { return default_image_folder; }
 	string SetDefaultImageFolder(const string&);
-	bool IsValidSrcFilename(const string&);
-	bool IsValidDstFilename(const string&);
+	bool IsValidSrcFilename(const string&) const;
+	bool IsValidDstFilename(const string&) const;
 	bool CreateImage(const CommandContext&, const PbCommand&);
 	bool DeleteImage(const CommandContext&, const PbCommand&);
 	bool RenameImage(const CommandContext&, const PbCommand&);
