@@ -49,7 +49,7 @@ public:
 	{
 		const auto& it = commands.find(static_cast<scsi_command>(cmd));
 		if (it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd);
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd)
 
 			(instance->*it->second->execute)();
 
