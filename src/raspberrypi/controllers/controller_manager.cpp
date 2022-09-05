@@ -78,8 +78,7 @@ void ControllerManager::ResetAllControllers()
 
 PrimaryDevice *ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
 {
-	const AbstractController *controller = FindController(id);
-	if (controller != nullptr) {
+	if (const auto controller = FindController(id); controller != nullptr) {
 		return controller->GetDeviceForLun(lun);
 	}
 

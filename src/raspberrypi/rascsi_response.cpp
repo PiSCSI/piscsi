@@ -100,8 +100,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 		}
 	}
 
-	const Disk *disk = dynamic_cast<const Disk*>(device);
-    if (disk) {
+    if (const Disk *disk = dynamic_cast<const Disk*>(device); disk) {
     	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
     	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
     }

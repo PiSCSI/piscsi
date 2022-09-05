@@ -38,10 +38,8 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 		// Parsing the page
 		// TODO The length handling is wrong in case of length < size
 		while (length > 0) {
-			int page = buf[0];
-
 			// Format device page
-			if (page == 0x03) {
+			if (int page = buf[0]; page == 0x03) {
 				// With this page the sector size for a subsequent FORMAT can be selected, but only very few
 				// drives support this, e.g FUJITSU M2624S
 				// We are fine as long as the current sector size remains unchanged

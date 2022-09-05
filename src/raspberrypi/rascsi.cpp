@@ -141,8 +141,7 @@ bool InitService(int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
-	int yes = 1;
-	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	if (int yes = 1; setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return false;
 	}
 

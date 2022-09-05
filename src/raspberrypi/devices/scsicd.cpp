@@ -222,8 +222,7 @@ void SCSICD::Open(const Filepath& path)
 		OpenPhysical(path);
 	} else {
 		// Get file size
-        off_t size = fio.GetFileSize();
-		if (size <= 4) {
+		if (off_t size = fio.GetFileSize(); size <= 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}

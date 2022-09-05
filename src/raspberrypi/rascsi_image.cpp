@@ -30,8 +30,7 @@ RascsiImage::RascsiImage()
 {
 	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
 	int uid = getuid();
-	const char *sudo_user = getenv("SUDO_UID");
-	if (sudo_user) {
+	if (auto sudo_user = getenv("SUDO_UID"); sudo_user) {
 		uid = stoi(sudo_user);
 	}
 

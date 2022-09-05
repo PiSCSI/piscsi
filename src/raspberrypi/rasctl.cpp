@@ -62,8 +62,7 @@ PbDeviceType ParseType(const char *optarg)
 	string t = optarg;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
 
-	PbDeviceType type;
-	if (PbDeviceType_Parse(t, &type)) {
+	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
 		return type;
 	}
 
@@ -102,8 +101,7 @@ void SetPatternParams(PbCommand& command, const string& patterns)
 {
 	string folder_pattern;
 	string file_pattern;
-	size_t separator_pos = patterns.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
+	if (size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		folder_pattern = patterns.substr(0, separator_pos);
 		file_pattern = patterns.substr(separator_pos + 1);
 	}
@@ -300,8 +298,7 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separator_pos = s.find(COMPONENT_SEPARATOR);
-					if (separator_pos != string::npos) {
+					if (size_t separator_pos = s.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 						vendor = s.substr(0, separator_pos);
 						s = s.substr(separator_pos + 1);
 						separator_pos = s.find(COMPONENT_SEPARATOR);

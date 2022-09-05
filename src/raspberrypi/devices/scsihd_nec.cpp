@@ -72,10 +72,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	int sector_size = 0;
 
 	// Determine parameters by extension
-	const char *ext = path.GetFileExt();
 
 	// PC-9801-55 NEC genuine?
-	if (!strcasecmp(ext, ".hdn")) {
+	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		disk.image_offset = 0;
 		image_size = size;
