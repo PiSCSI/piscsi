@@ -26,8 +26,8 @@ public:
 	Dispatcher() : commands({}) {}
 	~Dispatcher()
 	{
-		for (auto const& command : commands) {
-			delete command.second;
+		for (auto const& [name, command] : commands) {
+			delete command;
 		}
 	}
 
