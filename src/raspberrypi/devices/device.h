@@ -149,5 +149,7 @@ public:
 	bool Start();
 	void Stop();
 	virtual bool Eject(bool);
-	virtual void FlushCache() { }
+	virtual void FlushCache() {
+		// Devices with a cache have to implement this method
+	}
 };
