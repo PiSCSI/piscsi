@@ -50,17 +50,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-
 #include <poll.h>
 #include <dirent.h>
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/epoll.h>
 #include <netinet/in.h>
+
+#ifdef __linux
+#include <sys/epoll.h>
 #include <linux/gpio.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#endif
 
 //---------------------------------------------------------------------------
 //
