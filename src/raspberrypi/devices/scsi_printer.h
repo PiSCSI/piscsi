@@ -17,10 +17,10 @@
 
 using namespace std;
 
-constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
-
 class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
+	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
+
 	static const int NOT_RESERVED = -2;
 
 public:
