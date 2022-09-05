@@ -17,7 +17,7 @@
 
 using namespace std;
 
-#define TMP_FILE_PATTERN "/tmp/rascsi_sclp-XXXXXX"
+constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
 
 class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
@@ -52,7 +52,7 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[sizeof(TMP_FILE_PATTERN) + 1];
+	char filename[strlen(TMP_FILE_PATTERN) + 1];
 	int fd = -1;
 
 	int reserving_initiator = NOT_RESERVED;
