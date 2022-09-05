@@ -43,7 +43,7 @@ void RasctlCommands::SendCommand()
 	// Send command
 	int fd = -1;
 	try {
-    	const struct hostent *host = gethostbyname(hostname.c_str());
+    	const hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
@@ -53,8 +53,7 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't create socket");
     	}
 
-    	struct sockaddr_in server;
-    	memset(&server, 0, sizeof(server));
+    	sockaddr_in server = {};
     	server.sin_family = AF_INET;
     	server.sin_port = htons((uint16_t)port);
     	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);

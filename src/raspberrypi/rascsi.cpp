@@ -132,7 +132,7 @@ bool InitService(int port)
 	}
 
 	// Create socket for monitor
-	struct sockaddr_in server;
+	sockaddr_in server;
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
@@ -147,8 +147,7 @@ bool InitService(int port)
 	signal(SIGPIPE, SIG_IGN);
 
 	// Bind
-	if (bind(monsocket, (struct sockaddr *)&server,
-		sizeof(struct sockaddr_in)) < 0) {
+	if (bind(monsocket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
 		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
 		return false;
 	}
@@ -1180,7 +1179,7 @@ void FixCpu(int cpu)
 static void *MonThread(void *)
 {
     // Scheduler Settings
-	struct sched_param schedparam;
+	sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 
@@ -1201,10 +1200,10 @@ static void *MonThread(void *)
 
 		try {
 			// Wait for connection
-			struct sockaddr_in client;
+			sockaddr_in client;
 			socklen_t socklen = sizeof(client);
 			memset(&client, 0, socklen);
-			context.fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
+			context.fd = accept(monsocket, (sockaddr*)&client, &socklen);
 			if (context.fd < 0) {
 				throw io_exception("accept() failed");
 			}
@@ -1447,7 +1446,7 @@ int main(int argc, char* argv[])
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
-	struct sched_param schparam;
+	sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);

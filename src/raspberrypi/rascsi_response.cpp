@@ -145,7 +145,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	if (scan_depth-- >= 0) {
 		if (DIR *d = opendir(folder.c_str()); d) {
-			const struct dirent *dir;
+			const dirent *dir;
 			while ((dir = readdir(d))) {
 				bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
 				if (is_supported_type && dir->d_name[0] != '.') {

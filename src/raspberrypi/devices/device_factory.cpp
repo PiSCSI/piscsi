@@ -282,13 +282,11 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
 	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-	        struct ifreq ifr = {};
+	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
-	        	// Only list interfaces that are up
-	        	if (ifr.ifr_flags & IFF_UP) {
-	        		network_interfaces.push_back(tmp->ifa_name);
-	        	}
+	        // Only list interfaces that are up
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
+	        	network_interfaces.push_back(tmp->ifa_name);
 	        }
 
 	        close(fd);
