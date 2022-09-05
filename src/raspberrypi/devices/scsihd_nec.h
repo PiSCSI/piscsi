@@ -24,12 +24,12 @@
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
 {
-	const unordered_set<uint32_t> sector_sizes = { 512 };
+	static const unordered_set<uint32_t> sector_sizes;
 
 public:
 
 	explicit SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
-	~SCSIHD_NEC() final = default;
+	~SCSIHD_NEC() override = default;
 
 	void Open(const Filepath& path) override;
 

@@ -54,7 +54,7 @@ TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 {
 	map<int, vector<BYTE>> mode_pages;
 
-	MockSCSIHD_NEC device(sector_sizes);
+	MockSCSIHD_NEC device;
 	device.AddModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of code pages";

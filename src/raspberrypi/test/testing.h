@@ -190,7 +190,7 @@ class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
-	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
+	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
 	~MockSCSIHD() = default;
 };
 
@@ -198,7 +198,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
-	explicit MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
+	MockSCSIHD_NEC() = default;
 	~MockSCSIHD_NEC() = default;
 };
 
@@ -206,7 +206,7 @@ class MockSCSICD : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
-	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
+	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
 	~MockSCSICD() = default;
 };
 
@@ -215,7 +215,7 @@ class MockSCSIMO : public SCSIMO
 	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-		: SCSIMO(sector_sizes, geometries) { };
+		: SCSIMO(sector_sizes, geometries) {}
 	~MockSCSIMO() = default;
 };
 

@@ -18,6 +18,8 @@
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 
+const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
+
 //---------------------------------------------------------------------------
 //
 //	Extract words that are supposed to be little endian
@@ -105,8 +107,12 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		}
 	}
 
+	if (sector_size == 0) {
+		throw io_exception("Invalid NEC drive sector size");
+	}
+
 	// Image size consistency check
-	if (disk.image_offset + image_size > size || (image_size % sector_size != 0)) {
+	if (disk.image_offset + image_size > size || image_size % sector_size != 0) {
 		throw io_exception("Image size consistency check failed");
 	}
 

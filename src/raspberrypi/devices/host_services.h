@@ -22,7 +22,7 @@ class HostServices: public ModePageDevice
 public:
 
 	HostServices();
-	~HostServices() final = default;
+	~HostServices() override = default;
 
 	bool Dispatch() override;
 

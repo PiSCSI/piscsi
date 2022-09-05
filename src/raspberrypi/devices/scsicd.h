@@ -76,7 +76,7 @@ public:
 	};
 
 	explicit SCSICD(const unordered_set<uint32_t>&);
-	~SCSICD() final;
+	~SCSICD() override;
 
 	bool Dispatch() override;
 
