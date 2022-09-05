@@ -26,27 +26,6 @@ using namespace std;
 
 //---------------------------------------------------------------------------
 //
-//  Constant declarations
-//
-//---------------------------------------------------------------------------
-
-// Symbol definition for the VCD file
-// These are just arbitrary symbols. They can be anything allowed by the VCD file format,
-// as long as they're consistently used.
-#define SYMBOL_PIN_DAT '#'
-#define SYMBOL_PIN_ATN '+'
-#define SYMBOL_PIN_RST '$'
-#define SYMBOL_PIN_ACK '%'
-#define SYMBOL_PIN_REQ '^'
-#define SYMBOL_PIN_MSG '&'
-#define SYMBOL_PIN_CD '*'
-#define SYMBOL_PIN_IO '('
-#define SYMBOL_PIN_BSY ')'
-#define SYMBOL_PIN_SEL '-'
-#define SYMBOL_PIN_PHASE '='
-
-//---------------------------------------------------------------------------
-//
 //	Variable declarations
 //
 //---------------------------------------------------------------------------

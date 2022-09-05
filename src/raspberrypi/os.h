@@ -100,9 +100,9 @@ using TCHAR = char;
 #define _T(x)	x
 #endif
 
-#define _MAX_PATH   260
-#define _MAX_DIR    256
-#define _MAX_FNAME  256
-#define _MAX_EXT    256
+static const int _MAX_PATH = 260;
+static const int _MAX_DIR = 256;
+static const int _MAX_FNAME = 256;
+static const int _MAX_EXT = 256;
 
 #endif	// os_h
