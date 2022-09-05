@@ -18,7 +18,7 @@ class ScsiMmcCommands : virtual public ScsiPrimaryCommands
 public:
 
 	ScsiMmcCommands() = default;
-	virtual ~ScsiMmcCommands() = default;
+	~ScsiMmcCommands() override = default;
 
 	virtual void ReadToc() = 0;
 	virtual void GetEventStatusNotification() = 0;

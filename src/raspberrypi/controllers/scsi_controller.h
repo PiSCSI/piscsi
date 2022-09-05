@@ -70,7 +70,7 @@ class ScsiController : public AbstractController
 public:
 
 	ScsiController(BUS *, int);
-	~ScsiController();
+	~ScsiController() final;
 
 	void Reset() override;
 

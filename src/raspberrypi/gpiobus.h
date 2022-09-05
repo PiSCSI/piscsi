@@ -475,7 +475,7 @@ class GPIOBUS : public BUS
 public:
 	// Basic Functions
 	GPIOBUS()= default;
-	virtual ~GPIOBUS() = default;
+	~GPIOBUS() final = default;
 										// Destructor
 	bool Init(mode_e mode = TARGET) override;
 										// Initialization

@@ -33,8 +33,9 @@ class SCSIBR : public Disk
 {
 
 public:
+
 	SCSIBR();
-	~SCSIBR();
+	~SCSIBR() final;
 
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch() override;
@@ -48,6 +49,7 @@ public:
 	void SendMessage10();
 
 private:
+
 	using super = Disk;
 
 	Dispatcher<SCSIBR> dispatcher;

@@ -43,7 +43,7 @@ class SCSIDaynaPort: public Disk
 
 public:
 	SCSIDaynaPort();
-	~SCSIDaynaPort();
+	~SCSIDaynaPort() final;
 
 	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;

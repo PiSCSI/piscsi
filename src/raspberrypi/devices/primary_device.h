@@ -24,9 +24,9 @@ class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 public:
 
 	explicit PrimaryDevice(const string&);
-	virtual ~PrimaryDevice() = default;
+	~PrimaryDevice() override = default;
 
-	virtual bool Dispatch();
+	bool Dispatch() override;
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(BYTE *, uint32_t);
@@ -47,10 +47,10 @@ protected:
 
 private:
 
-	void TestUnitReady();
-	void RequestSense();
-	void ReportLuns();
-	void Inquiry();
+	void TestUnitReady() override;
+	void RequestSense() override;
+	void ReportLuns() override;
+	void Inquiry() override;
 
 	vector<BYTE> HandleRequestSense();
 

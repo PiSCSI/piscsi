@@ -27,7 +27,7 @@ class SCSIHD_NEC : public SCSIHD
 public:
 
 	explicit SCSIHD_NEC(const unordered_set<uint32_t>&);
-	~SCSIHD_NEC() = default;
+	~SCSIHD_NEC() final = default;
 
 	void Open(const Filepath& path) override;
 
