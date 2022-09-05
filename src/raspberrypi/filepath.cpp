@@ -18,10 +18,6 @@ Filepath::Filepath()
 	Clear();
 }
 
-Filepath::~Filepath()
-{
-}
-
 Filepath& Filepath::operator=(const Filepath& path)
 {
 	// Set path (split internally)

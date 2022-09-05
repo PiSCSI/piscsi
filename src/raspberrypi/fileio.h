@@ -42,7 +42,7 @@ public:
 		ReadWrite
 	};
 
-	Fileio();
+	Fileio() = default;
 	virtual ~Fileio();
 	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
 	BOOL Save(const Filepath& path, const void *buffer, int size);	// Save RAM

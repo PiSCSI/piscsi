@@ -17,8 +17,8 @@ class RasctlDisplay
 {
 public:
 
-	RasctlDisplay() {}
-	~RasctlDisplay() {}
+	RasctlDisplay() = default;
+	~RasctlDisplay() = default;
 
 	void DisplayDevices(const PbDevicesInfo&) const;
 	void DisplayDeviceInfo(const PbDevice&) const;

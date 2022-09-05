@@ -19,7 +19,7 @@ class PrimaryDevice;
 
 class ControllerManager
 {
-	ControllerManager() {}
+	ControllerManager() = default;
 	~ControllerManager();
 
 public:

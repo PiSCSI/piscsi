@@ -21,7 +21,7 @@ class RascsiImage
 public:
 
 	RascsiImage();
-	~RascsiImage() {};
+	~RascsiImage() = default;
 
 	void SetDepth(int depth) { this->depth = depth; }
 	int GetDepth() { return depth; }

@@ -76,10 +76,6 @@ DWORD bcm_host_get_peripheral_address(void)
 }
 #endif	// __NetBSD__
 
-GPIOBUS::GPIOBUS()
-{
-}
-
 bool GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)

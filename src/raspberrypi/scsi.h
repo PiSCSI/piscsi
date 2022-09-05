@@ -43,8 +43,8 @@ public:
 		reserved						// Unused
 	};
 
-	BUS() {}
-	virtual ~BUS() {}
+	BUS() = default;
+	virtual ~BUS() = default;
 
 	// Basic Functions
 	virtual bool Init(mode_e mode) = 0;

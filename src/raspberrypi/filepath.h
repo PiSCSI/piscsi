@@ -31,7 +31,7 @@ class Filepath
 {
 public:
 	Filepath();
-	virtual ~Filepath();
+	virtual ~Filepath() = default;
 	Filepath& operator=(const Filepath& path);
 
 	void Clear();

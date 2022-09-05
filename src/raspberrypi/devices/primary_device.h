@@ -24,7 +24,7 @@ class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 public:
 
 	PrimaryDevice(const string&);
-	virtual ~PrimaryDevice() {}
+	virtual ~PrimaryDevice() = default;
 
 	virtual bool Dispatch();
 

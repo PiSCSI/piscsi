@@ -861,7 +861,7 @@ class CFileSys
 {
 public:
 	CFileSys();
-	virtual ~CFileSys() {};
+	virtual ~CFileSys() = default;
 
 	void Reset();								///< Reset (close all)
 	void Init();								///< Initialization (device startup and load)

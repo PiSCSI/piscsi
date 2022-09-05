@@ -16,7 +16,7 @@ class TestDevice : public Device
 public:
 
 	TestDevice() : Device("test") {}
-	~TestDevice() {}
+	~TestDevice() = default;
 
 	bool Dispatch() { return false; }
 };

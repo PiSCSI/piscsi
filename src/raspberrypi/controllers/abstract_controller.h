@@ -58,7 +58,7 @@ public:
 	} ctrl_t;
 
 	AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {}
-	virtual ~AbstractController() {}
+	virtual ~AbstractController() = default;
 
 	virtual BUS::phase_t Process(int) = 0;
 
