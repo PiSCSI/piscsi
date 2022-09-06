@@ -109,7 +109,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	if (file_support) {
 		Filepath filepath;
 		file_support->GetPath(filepath);
-		auto image_file = new PbImageFile();
+		auto image_file = make_unique<PbImageFile>().release();
 		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
