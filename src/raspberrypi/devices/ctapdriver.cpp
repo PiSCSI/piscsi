@@ -244,8 +244,8 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			struct ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_a.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			auto addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
-			if (inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
+			if (auto addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
+				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a network address: %s", address.c_str(), strerror(errno))
 
 				close(m_hTAP);
@@ -257,8 +257,8 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			struct ifreq ifr_n;
 			ifr_n.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_n.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			auto mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
-			if (inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
+			if (auto mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
+				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a netmask: %s", netmask.c_str(), strerror(errno))
 
 				close(m_hTAP);
@@ -354,8 +354,7 @@ void CTapDriver::OpenDump(const Filepath& path) {
 
 void CTapDriver::Cleanup()
 {
-	int br_socket_fd = -1;
-	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+	if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
 		LOGERROR("Can't open bridge socket: %s", strerror(errno))
 	} else {
 		LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)

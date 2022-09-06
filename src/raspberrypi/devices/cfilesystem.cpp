@@ -1612,7 +1612,7 @@ void CHostPath::Refresh()
 		strcpy(szPath, m_szHost);
 		strcat(szPath, U2S(pe->d_name));
 
-		struct stat sb;
+		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(szPath), &sb))
 			continue;
 
@@ -1693,7 +1693,7 @@ void CHostPath::Backup()
 		len--;
 		ASSERT(szPath[len] == _T('/'));
 		szPath[len] = _T('\0');
-		struct stat sb;
+		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(szPath), &sb) == 0)
 			m_tBackup = sb.st_mtime;
 	}
@@ -2350,7 +2350,7 @@ BOOL CHostFcb::Create(DWORD, BOOL bForce)
 
 	// Duplication check
 	if (bForce == FALSE) {
-		struct stat sb;
+		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(m_szFilename), &sb) == 0)
 			return FALSE;
 	}
@@ -2370,11 +2370,10 @@ BOOL CHostFcb::Create(DWORD, BOOL bForce)
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Open()
 {
-	struct stat st;
-
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// Fail if directory
+	struct stat st; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 	if (stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
 		return FALSE || m_bFlag;
 	}
@@ -3030,7 +3029,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 	DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) |
 		(f.GetAttribute() & ~Human68k::AT_READONLY);
 	if (f.GetAttribute() != nAttribute) {
-		struct stat sb;
+		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(f.GetPath()), &sb))
 			return FS_FILENOTFND;
 		mode_t m = sb.st_mode & 0777;

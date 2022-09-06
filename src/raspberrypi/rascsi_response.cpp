@@ -125,7 +125,7 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
-		struct stat st;
+		struct stat st; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (!stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file->set_size(st.st_size);
 			return true;
