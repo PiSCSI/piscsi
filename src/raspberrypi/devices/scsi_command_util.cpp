@@ -87,3 +87,24 @@ void scsi_command_util::EnrichFormatPage(map<int, vector<BYTE>>& pages, bool cha
 		format_page[13] = sector_size;
 	}
 }
+
+//---------------------------------------------------------------------------
+//
+//	Add Vendor special page to make drive Apple compatible
+//
+//---------------------------------------------------------------------------
+void scsi_command_util::AddAppleVendorModePage(map<int, vector<BYTE>>& pages, int page, bool changeable)
+{
+	// Page code 48 (30h) - Apple Vendor Mode Page
+	// Needed for SCCD for stock Apple driver support
+	// Needed for SCHD for stock Apple HD SC Setup
+	vector<BYTE> buf(30);
+
+	// No changeable area
+	if (!changeable) {
+		BYTE apple_data[] = "APPLE COMPUTER, INC   ";
+		memcpy(&buf[2], apple_data, sizeof(apple_data));
+	}
+
+	pages[0x30] = buf;
+}

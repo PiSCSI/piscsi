@@ -17,6 +17,8 @@
 #include "scsicd.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+
 
 using namespace scsi_defs;
 
@@ -444,6 +446,15 @@ void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
 
 	pages[14] = buf;
 }
+
+void SCSICD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+{
+	// Page code 48
+	if (page == 0x30 || page == 0x3f) {
+		scsi_command_util::AddAppleVendorModePage(pages, page, changeable);
+	}
+}
+
 
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
