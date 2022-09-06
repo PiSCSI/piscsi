@@ -194,7 +194,7 @@ BOOL Fileio::Seek(off_t offset, BOOL relative) const
 	return TRUE;
 }
 
-off_t Fileio::GetFileSize()
+off_t Fileio::GetFileSize() const
 {
 	off_t cur;
 	off_t end;

@@ -1256,8 +1256,8 @@ static void *MonThread(void *)
 				}
 
 				case DEFAULT_FOLDER: {
-					if (string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !result.empty()) {
-						ReturnStatus(context, false, result);
+					if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
+						ReturnStatus(context, false, status);
 					}
 					else {
 						ReturnStatus(context);

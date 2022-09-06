@@ -81,7 +81,7 @@ private:
 	// Internal Management
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
-	bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
+	bool Load(int index, int track, DiskTrack *disktrk = nullptr);	// Load track
 	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data

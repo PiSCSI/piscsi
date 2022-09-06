@@ -54,7 +54,7 @@ public:
 	BOOL Seek(off_t offset, BOOL relative = FALSE) const;
 	BOOL Read(void *buffer, int size) const;
 	BOOL Write(const void *buffer, int size) const;
-	off_t GetFileSize();
+	off_t GetFileSize() const;
 	off_t GetFilePos() const;
 	void Close();
 	BOOL IsValid() const		{ return (BOOL)(handle != -1); }

@@ -25,7 +25,7 @@ public:
 
 	bool Dispatch() override;
 
-	virtual vector<BYTE> InquiryInternal() const override = 0;
+	vector<BYTE> InquiryInternal() const override = 0;
 
 	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 

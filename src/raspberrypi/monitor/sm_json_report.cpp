@@ -27,7 +27,6 @@ DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_ar
 
     while (fgets(str_buf, sizeof(str_buf), fp))
     {
-
         char timestamp[1024];
         char data[1024];
         uint64_t timestamp_uint;
@@ -62,7 +61,10 @@ DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_ar
             break;
         }
     }
-    fclose(fp);
+
+    if (fp != nullptr) {
+    	fclose(fp);
+	}
 
     return sample_count;
 }
