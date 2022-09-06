@@ -475,7 +475,7 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 /// Update all cache
 //
 //---------------------------------------------------------------------------
-void CHostDrv::CleanCache()
+void CHostDrv::CleanCache() const
 {
 	for (auto p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		p->Release();
@@ -504,7 +504,7 @@ void CHostDrv::CleanCache(const BYTE* szHumanPath)
 /// Update the cache below and including the specified path
 //
 //---------------------------------------------------------------------------
-void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
+void CHostDrv::CleanCacheChild(const BYTE* szHumanPath) const
 {
 	ASSERT(szHumanPath);
 
@@ -3553,7 +3553,7 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 /// $50 - Get capacity
 //
 //---------------------------------------------------------------------------
-int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
+int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(pCapacity);
 
@@ -3620,7 +3620,7 @@ int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 /// Therefore, treat even a unit out of bounds as normal operation.
 //
 //---------------------------------------------------------------------------
-int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
+int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const
 {
 	ASSERT(pDpb);
 
@@ -3782,9 +3782,8 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 /// $54 - Write sector
 //
 //---------------------------------------------------------------------------
-int CFileSys::DiskWrite(DWORD nUnit)
+int CFileSys::DiskWrite(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
@@ -3892,7 +3891,7 @@ int CFileSys::Flush(DWORD nUnit) const
 /// $57 - Media change check
 //
 //---------------------------------------------------------------------------
-int CFileSys::CheckMedia(DWORD nUnit)
+int CFileSys::CheckMedia(DWORD nUnit) const
 {
 
 	// Unit check
@@ -3917,7 +3916,7 @@ int CFileSys::CheckMedia(DWORD nUnit)
 /// $58 - Lock
 //
 //---------------------------------------------------------------------------
-int CFileSys::Lock(DWORD nUnit)
+int CFileSys::Lock(DWORD nUnit) const
 {
 
 	// Unit check

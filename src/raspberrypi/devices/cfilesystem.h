@@ -751,9 +751,9 @@ public:
 	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
 	// Cache operations
-	void  CleanCache();							///< Update all cache
+	void  CleanCache() const;							///< Update all cache
 	void  CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
-	void  CleanCacheChild(const BYTE* szHumanPath);				///< Update all cache below the specified path
+	void  CleanCacheChild(const BYTE* szHumanPath) const;				///< Update all cache below the specified path
 	void  DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
 	CHostPath*  FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
 	CHostPath*  CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
@@ -891,15 +891,15 @@ public:
 	int Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset);	///< $4E - Seek file
 	DWORD TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime);
 										///< $4F - Get / set file timestamp
-	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);		///< $50 - Get capacity
+	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< $50 - Get capacity
 	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - Inspect / control drive status
-	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb);				///< $52 - Get DPB
+	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const;				///< $52 - Get DPB
 	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
-	int DiskWrite(DWORD nUnit);						///< $54 - Write sectors
+	int DiskWrite(DWORD nUnit) const;						///< $54 - Write sectors
 	int Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
 	int Flush(DWORD nUnit) const;							///< $56 - Flush
-	int CheckMedia(DWORD nUnit);						///< $57 - Media change check
-	int Lock(DWORD nUnit);							///< $58 - Lock
+	int CheckMedia(DWORD nUnit) const;						///< $57 - Media change check
+	int Lock(DWORD nUnit) const;							///< $58 - Lock
 
 	void SetOption(DWORD nOption);						///< Set option
 	DWORD GetOption() const { return m_nOption; }		///< Get option
