@@ -28,7 +28,7 @@ using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-PbOperation ParseOperation(const char *operation)
+PbOperation ParseOperation(const string& operation)
 {
 	switch (tolower(operation[0])) {
 		case 'a':
@@ -62,8 +62,8 @@ PbDeviceType ParseType(const char *type)
 	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
 
-	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
-		return type;
+	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
+		return parsed_type;
 	}
 
 	// Parse convenience device types (shortcuts)

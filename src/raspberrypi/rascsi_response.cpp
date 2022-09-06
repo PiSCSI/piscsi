@@ -87,7 +87,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 
     pb_device->set_allocated_properties(GetDeviceProperties(device));
 
-    auto status = new PbDeviceStatus();
+    auto status = make_unique<PbDeviceStatus>().release();
 	pb_device->set_allocated_status(status);
 	status->set_protected_(device->IsProtected());
 	status->set_stopped(device->IsStopped());
