@@ -1871,7 +1871,7 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 /// Find host side names (path name + file name (can be abbreviated) + attribute)
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
+BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles) const
 {
 	ASSERT(pFiles);
 	ASSERT(nUnit < DriveMax);

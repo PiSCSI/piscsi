@@ -594,9 +594,8 @@ public:
 	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
 	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
 	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
-	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }
-											///< Set search attribute
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
+	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
+	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry) ;				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename*  Find(CHostPath* pPath);					///< Find file name
 	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
 	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
@@ -799,7 +798,7 @@ public:
 	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
 	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
 	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< Find host side name (path + file name (can be abbreviated) + attribute)
+	BOOL  Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
 	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
