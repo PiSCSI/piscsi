@@ -333,7 +333,7 @@ void ScsiController::Execute()
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
 	}
-	catch(const scsi_error_exception& e) {
+	catch(const scsi_error_exception& e) { //NOSONAR This exception is handled properly
 		Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 		// Fall through
