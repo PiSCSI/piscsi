@@ -20,6 +20,7 @@ using namespace std;
 class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
 	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
+	static constexpr const int TMP_FILENAME_LENGTH = strlen(TMP_FILE_PATTERN);
 
 	static const int NOT_RESERVED = -2;
 
@@ -52,7 +53,7 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[strlen(TMP_FILE_PATTERN) + 1];
+	char filename[TMP_FILENAME_LENGTH + 1];
 	int fd = -1;
 
 	int reserving_initiator = NOT_RESERVED;
