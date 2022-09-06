@@ -48,7 +48,6 @@ class RaCtlCmds:
 
         # Creates lists of file endings recognized by RaSCSI
         mappings = result.server_info.mapping_info.mapping
-        sahd = []
         schd = []
         scrm = []
         scmo = []
