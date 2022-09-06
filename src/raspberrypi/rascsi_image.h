@@ -25,7 +25,7 @@ public:
 
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
-	bool CheckDepth(string_view);
+	bool CheckDepth(string_view) const;
 	bool CreateImageFolder(const CommandContext&, const string&) const;
 	string GetDefaultImageFolder() const { return default_image_folder; }
 	string SetDefaultImageFolder(const string&);

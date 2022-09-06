@@ -44,7 +44,7 @@ RascsiImage::RascsiImage()
 	}
 }
 
-bool RascsiImage::CheckDepth(string_view filename)
+bool RascsiImage::CheckDepth(string_view filename) const
 {
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
