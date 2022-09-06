@@ -26,12 +26,6 @@ using namespace scsi_defs;
 //
 //===========================================================================
 
-CDTrack::CDTrack(SCSICD *scsicd) : cdrom(scsicd)
-{
-	// Check parent CD-ROM device
-	ASSERT(scsicd);
-}
-
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
@@ -304,7 +298,7 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	// Create only one data track
 	assert(!track[0]);
-	track[0] = new CDTrack(this);
+	track[0] = new CDTrack();
 	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(false, path);
 	tracks = 1;
@@ -337,7 +331,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 	// Create only one data track
 	ASSERT(!track[0]);
-	track[0] = new CDTrack(this);
+	track[0] = new CDTrack();
 	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(false, path);
 	tracks = 1;

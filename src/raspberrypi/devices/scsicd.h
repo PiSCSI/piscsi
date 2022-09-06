@@ -21,8 +21,6 @@
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-class SCSICD;
-
 //===========================================================================
 //
 //	CD-ROM Track
@@ -34,8 +32,8 @@ private:
 
 	friend class SCSICD;
 
-	explicit CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack() = default;
+	CDTrack() = default;
+	virtual ~CDTrack() final = default;
 
 public:
 
@@ -52,13 +50,11 @@ public:
 	bool IsAudio() const;						// Is this an audio track?
 
 private:
-	SCSICD *cdrom;								// Parent device
 	bool valid = false;								// Valid track
 	int track_no = -1;								// Track number
 	DWORD first_lba = 0;							// First LBA
 	DWORD last_lba = 0;								// Last LBA
 	bool audio = false;								// Audio track flag
-	bool raw = false;								// RAW data flag
 	Filepath imgpath;							// Image file path
 };
 

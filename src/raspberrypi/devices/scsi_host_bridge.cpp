@@ -825,7 +825,7 @@ void SCSIBR::FS_Seek(BYTE *buf)
 	DWORD nMode = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	const int *ip = (const int*)&buf[i];
+	auto ip = (const int*)&buf[i];
 	int nOffset = ntohl(*ip);
 	i += sizeof(int);
 
