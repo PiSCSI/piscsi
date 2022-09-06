@@ -46,7 +46,7 @@ void Filepath::SetPath(const char *path)
 	ASSERT(strlen(path) < _MAX_PATH);
 
 	// Copy pathname
-	strcpy(m_szPath, path);
+	strncpy(m_szPath, path, _MAX_PATH - 1);
 
 	// Split
 	Split();
