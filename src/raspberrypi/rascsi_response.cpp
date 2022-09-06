@@ -39,9 +39,9 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 	PbDeviceType_Parse(device->GetType(), &t);
 
 	if (device->SupportsParams()) {
-		for (const auto& param : device_factory->GetDefaultParams(t)) {
+		for (const auto& [key, value] : device_factory->GetDefaultParams(t)) {
 			auto& map = *properties->mutable_default_params();
-			map[param.first] = param.second;
+			map[key] = value;
 		}
 	}
 
@@ -95,8 +95,8 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_locked(device->IsLocked());
 
 	if (device->SupportsParams()) {
-		for (const auto& param : device->GetParams()) {
-			AddParam(*pb_device, param.first, param.second);
+		for (const auto& [key, value] : device->GetParams()) {
+			AddParam(*pb_device, key, value);
 		}
 	}
 

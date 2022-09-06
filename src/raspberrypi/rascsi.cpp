@@ -680,13 +680,13 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (!params.empty()) {
 		s << ", command params=";
 		bool isFirst = true;
-		for (const auto& param: params) {
+		for (const auto& [key, value]: params) {
 			if (!isFirst) {
 				s << ", ";
 			}
 			isFirst = false;
-			string value = param.first != "token" ? param.second : "???";
-			s << "'" << param.first << "=" << value << "'";
+			string v = key != "token" ? value : "???";
+			s << "'" << key << "=" << v << "'";
 		}
 	}
 
@@ -695,12 +695,12 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (pb_device.params_size()) {
 		s << ", device params=";
 		bool isFirst = true;
-		for (const auto& param: pb_device.params()) {
+		for (const auto& [key, value]: pb_device.params()) {
 			if (!isFirst) {
 				s << ":";
 			}
 			isFirst = false;
-			s << "'" << param.first << "=" << param.second << "'";
+			s << "'" << key << "=" << value << "'";
 		}
 	}
 
@@ -1176,7 +1176,7 @@ void FixCpu(int cpu)
 //	Monitor Thread
 //
 //---------------------------------------------------------------------------
-static void *MonThread(void *)
+static void *MonThread(void *) //NOSONAR The pointer cannot be const void * because of the thread API
 {
     // Scheduler Settings
 	sched_param schedparam;
