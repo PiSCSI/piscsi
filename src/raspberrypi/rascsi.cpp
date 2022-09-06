@@ -421,7 +421,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			device->SetRevision(pb_device.revision());
 		}
 	}
-	catch(const illegal_argument_exception& e) {
+	catch(const illegal_argument_exception& e) { //NOSONAR This exception is handled properly
 		return ReturnStatus(context, false, e.get_msg());
 	}
 
@@ -633,7 +633,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			file_support->Open(filepath);
 		}
 	}
-	catch(const io_exception& e) {
+	catch(const io_exception& e) { //NOSONAR This exception is handled properly
 		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
