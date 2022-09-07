@@ -779,7 +779,7 @@ msgstr "Archivo de propiedades"
 
 #: src/templates/index.html:207 src/templates/index.html:219
 msgid "Extract"
-msgstr "EExtraer"
+msgstr "Extraer"
 
 #: src/templates/index.html:207 src/templates/index.html:219
 msgid "Extracting a single file..."
