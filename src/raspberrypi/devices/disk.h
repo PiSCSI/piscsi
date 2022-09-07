@@ -32,7 +32,7 @@
 
 using namespace std;
 
-class Disk : public ModePageDevice, ScsiBlockCommands
+class Disk : public ModePageDevice, public ScsiBlockCommands
 {
 private:
 
@@ -42,22 +42,22 @@ private:
 	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size = 0;
 
-	typedef struct {
+	using disk_t = struct {
 		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
 		uint64_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
 		bool is_medium_changed;
-	} disk_t;
+	};
 
 	Dispatcher<Disk> dispatcher;
 
 public:
 
-	Disk(const string&);
-	virtual ~Disk();
+	explicit Disk(const string&);
+	~Disk() override;
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	void MediumChanged();
 	bool Eject(bool) override;
@@ -76,7 +76,7 @@ public:
 
 private:
 
-	typedef ModePageDevice super;
+	using super = ModePageDevice;
 
 	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();
@@ -95,7 +95,7 @@ private:
 	void Verify16();
 	void Seek();
 	void Seek10();
-	virtual void ReadCapacity10() override;
+	void ReadCapacity10() override;
 	void ReadCapacity16() override;
 	void Reserve();
 	void Release();
@@ -123,7 +123,7 @@ protected:
 
 	virtual void Open(const Filepath&);
 
-	virtual void SetDeviceParameters(BYTE *);
+	virtual void SetDeviceParameters(BYTE *) const;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;

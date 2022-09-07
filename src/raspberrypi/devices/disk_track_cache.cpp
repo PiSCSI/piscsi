@@ -108,7 +108,7 @@ bool DiskTrack::Load(const Filepath& path)
 
 	if (dt.buffer == nullptr) {
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-                        LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
+                        LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
                 }
 		dt.length = length;
 	}
@@ -121,7 +121,7 @@ bool DiskTrack::Load(const Filepath& path)
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-                  LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
+                  LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
                 }
 		dt.length = length;
 	}
@@ -276,9 +276,9 @@ bool DiskTrack::Save(const Filepath& path)
 bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 {
 	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
+	ASSERT((sec >= 0) && (sec < 0x100));
 
-	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
+	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
 	// Error if not initialized
 	if (!dt.init) {
 		return false;
@@ -301,7 +301,7 @@ bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 {
 	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
+	ASSERT((sec >= 0) && (sec < 0x100));
 	ASSERT(!dt.raw);
 
 	// Error if not initialized
@@ -347,7 +347,7 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 	ASSERT(imgoff >= 0);
 
 	// Cache work
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		cache[i].disktrk = nullptr;
 		cache[i].serial = 0;
 	}
@@ -376,7 +376,7 @@ void DiskCache::SetRawMode(BOOL raw)
 bool DiskCache::Save()
 {
 	// Save track
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		// Is it a valid track?
 		if (cache[i].disktrk) {
 			// Save
@@ -396,7 +396,7 @@ bool DiskCache::Save()
 //---------------------------------------------------------------------------
 bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 {
-	ASSERT((index >= 0) && (index < CacheMax));
+	ASSERT((index >= 0) && (index < CACHE_MAX));
 
 	// false if unused
 	if (!cache[index].disktrk) {
@@ -413,7 +413,7 @@ bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 void DiskCache::Clear()
 {
 	// Free the cache
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		if (cache[i].disktrk) {
 			delete cache[i].disktrk;
 			cache[i].disktrk = nullptr;
@@ -432,8 +432,8 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 	int track = block >> 8;
 
 	// Get the track data
-	DiskTrack *disktrk = Assign(track);
-	if (!disktrk) {
+	const DiskTrack *disktrk = Assign(track);
+	if (disktrk == nullptr) {
 		return false;
 	}
 
@@ -453,7 +453,7 @@ bool DiskCache::WriteSector(const BYTE *buf, int block)
 
 	// Get that track data
 	DiskTrack *disktrk = Assign(track);
-	if (!disktrk) {
+	if (disktrk == nullptr) {
 		return false;
 	}
 
@@ -472,7 +472,7 @@ DiskTrack* DiskCache::Assign(int track)
 	ASSERT(track >= 0);
 
 	// First, check if it is already assigned
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		if (cache[i].disktrk) {
 			if (cache[i].disktrk->GetTrack() == track) {
 				// Track match
@@ -483,7 +483,7 @@ DiskTrack* DiskCache::Assign(int track)
 	}
 
 	// Next, check for empty
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		if (!cache[i].disktrk) {
 			// Try loading
 			if (Load(i, track)) {
@@ -504,7 +504,7 @@ DiskTrack* DiskCache::Assign(int track)
 	int c = 0;
 
 	// Compare candidate with serial and update to smaller one
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		ASSERT(cache[i].disktrk);
 
 		// Compare and update the existing serial
@@ -540,7 +540,7 @@ DiskTrack* DiskCache::Assign(int track)
 //---------------------------------------------------------------------------
 bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 {
-	ASSERT((index >= 0) && (index < CacheMax));
+	ASSERT((index >= 0) && (index < CACHE_MAX));
 	ASSERT(track >= 0);
 	ASSERT(!cache[index].disktrk);
 
@@ -581,7 +581,7 @@ void DiskCache::UpdateSerialNumber()
 	}
 
 	// Clear serial of all caches (loop in 32bit)
-	for (int i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CACHE_MAX; i++) {
 		cache[i].serial = 0;
 	}
 }

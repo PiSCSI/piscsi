@@ -69,12 +69,12 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	SetParams(params);
 
 	if (GetParam("cmd").find("%f") == string::npos) {
-		LOGERROR("Missing filename specifier %s", "%f");
+		LOGERROR("Missing filename specifier %s", "%f")
 		return false;
 	}
 
 	if (!GetAsInt(GetParam("timeout"), timeout) || timeout <= 0) {
-		LOGERROR("Reservation timeout value must be > 0");
+		LOGERROR("Reservation timeout value must be > 0")
 		return false;
 	}
 
@@ -102,7 +102,7 @@ vector<BYTE> SCSIPrinter::InquiryInternal() const
 void SCSIPrinter::ReserveUnit()
 {
 	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
-	if (reservation_time + timeout < time(0)) {
+	if (reservation_time + timeout < time(nullptr)) {
 		DiscardReservation();
 	}
 
@@ -111,10 +111,10 @@ void SCSIPrinter::ReserveUnit()
 	reserving_initiator = controller->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
-		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
+		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator)
 	}
 	else {
-		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun());
+		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun())
 	}
 
 	Cleanup();
@@ -127,10 +127,10 @@ void SCSIPrinter::ReleaseUnit()
 	CheckReservation();
 
 	if (reserving_initiator != -1) {
-		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
+		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator)
 	}
 	else {
-		LOGTRACE("Released device ID %d, LUN %d reserved by unknown initiator", GetId(), GetLun());
+		LOGTRACE("Released device ID %d, LUN %d reserved by unknown initiator", GetId(), GetLun())
 	}
 
 	DiscardReservation();
@@ -243,15 +243,15 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 void SCSIPrinter::CheckReservation()
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
-		reservation_time = time(0);
+		reservation_time = time(nullptr);
 		return;
 	}
 
 	if (controller->GetInitiatorId() != -1) {
-		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", controller->GetInitiatorId(), GetId(), GetLun());
+		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", controller->GetInitiatorId(), GetId(), GetLun())
 	}
 	else {
-		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
+		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun())
 	}
 
 	throw scsi_error_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,

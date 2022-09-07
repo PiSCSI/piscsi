@@ -40,10 +40,10 @@ const char SYMBOL_PIN_CD   = '*';
 const char SYMBOL_PIN_IO   = '(';
 const char SYMBOL_PIN_BSY  = ')';
 const char SYMBOL_PIN_SEL  = '-';
-const char SYMBOL_PIN_PHASE  = '=';
+const char SYMBOL_PIN_PHASE = '=';
 
 // We'll use position 0 in the prev_value array to store the previous phase
-#define PIN_PHASE 0
+const int PIN_PHASE = 0;
 
 //---------------------------------------------------------------------------
 //
@@ -122,7 +122,7 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
     // Get the current time
     time_t rawtime;
     time(&rawtime);
-    struct tm *timeinfo = localtime(&rawtime);
+    const struct tm *timeinfo = localtime(&rawtime);
     char timestamp[256];
     strftime(timestamp, sizeof(timestamp), "%d-%m-%Y %H-%M-%S", timeinfo);
 

@@ -21,7 +21,7 @@
 //	Constant Declaration
 //
 //---------------------------------------------------------------------------
-#define BUFSIZE 1024 * 64			// Buffer size of about 64KB
+static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
 
 //---------------------------------------------------------------------------
 //
@@ -141,7 +141,7 @@ void Reset()
 bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
-	char *file = nullptr;
+	const char *file = nullptr;
 
 	// Argument Parsing
 	opterr = 0;
@@ -161,6 +161,9 @@ bool ParseArgument(int argc, char* argv[])
 
 			case 'r':
 				restore = true;
+				break;
+
+			default:
 				break;
 		}
 	}

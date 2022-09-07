@@ -38,7 +38,7 @@ private:
 	friend class SCSIBR;
 
 	CTapDriver() : interfaces({}), inet({}) {}
-	~CTapDriver() {}
+	~CTapDriver() = default;
 
 	bool Init(const unordered_map<string, string>&);
 

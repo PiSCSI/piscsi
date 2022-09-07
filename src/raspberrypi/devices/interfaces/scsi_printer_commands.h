@@ -17,8 +17,8 @@ class ScsiPrinterCommands : virtual public ScsiPrimaryCommands
 {
 public:
 
-	ScsiPrinterCommands() {}
-	virtual ~ScsiPrinterCommands() {}
+	ScsiPrinterCommands() = default;
+	~ScsiPrinterCommands() override = default;
 
 	// Mandatory commands
 	virtual void Print() = 0;

@@ -15,8 +15,8 @@ class ScsiPrimaryCommands
 {
 public:
 
-	ScsiPrimaryCommands() {}
-	virtual ~ScsiPrimaryCommands() {}
+	ScsiPrimaryCommands() = default;
+	virtual ~ScsiPrimaryCommands() = default;
 
 	// Mandatory commands
 	virtual void TestUnitReady() = 0;

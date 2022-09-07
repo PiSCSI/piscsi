@@ -16,15 +16,12 @@
 
 unordered_set<Device *> Device::devices;
 
-Device::Device(const string& type)
+Device::Device(const string& t) : type(t)
 {
 	assert(type.length() == 4);
 
 	devices.insert(this);
 
-	this->type = type;
-
-	vendor = DEFAULT_VENDOR;
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
 	revision = rev;
@@ -42,46 +39,46 @@ void Device::Reset()
 	reset = false;
 }
 
-void Device::SetProtected(bool write_protected)
+void Device::SetProtected(bool b)
 {
 	if (!read_only) {
-		this->write_protected = write_protected;
+		write_protected = b;
 	}
 }
 
-void Device::SetVendor(const string& vendor)
+void Device::SetVendor(const string& v)
 {
-	if (vendor.empty() || vendor.length() > 8) {
-		throw illegal_argument_exception("Vendor '" + vendor + "' must be between 1 and 8 characters");
+	if (v.empty() || v.length() > 8) {
+		throw illegal_argument_exception("Vendor '" + v + "' must be between 1 and 8 characters");
 	}
 
-	this->vendor = vendor;
+	vendor = v;
 }
 
-void Device::SetProduct(const string& product, bool force)
+void Device::SetProduct(const string& p, bool force)
 {
+	if (p.empty() || p.length() > 16) {
+		throw illegal_argument_exception("Product '" + p + "' must be between 1 and 16 characters");
+	}
+
 	// Changing the device name is not SCSI compliant
-	if (!this->product.empty() && !force) {
+	if (!product.empty() && !force) {
 		return;
 	}
 
-	if (product.empty() || product.length() > 16) {
-		throw illegal_argument_exception("Product '" + product + "' must be between 1 and 16 characters");
-	}
-
-	this->product = product;
+	product = p;
 }
 
-void Device::SetRevision(const string& revision)
+void Device::SetRevision(const string& r)
 {
-	if (revision.empty() || revision.length() > 4) {
-		throw illegal_argument_exception("Revision '" + revision + "' must be between 1 and 4 characters");
+	if (r.empty() || r.length() > 4) {
+		throw illegal_argument_exception("Revision '" + r + "' must be between 1 and 4 characters");
 	}
 
-	this->revision = revision;
+	revision = r;
 }
 
-const string Device::GetPaddedName() const
+string Device::GetPaddedName() const
 {
 	string name = vendor;
 	name.append(8 - vendor.length(), ' ');
@@ -95,33 +92,34 @@ const string Device::GetPaddedName() const
 	return name;
 }
 
-const string Device::GetParam(const string& key)
+string Device::GetParam(const string& key) const
 {
-	return params.find(key) != params.end() ? params[key] : "";
+	const auto& it = params.find(key);
+	return it == params.end() ? "" : it->second;
 }
 
 void Device::SetParams(const unordered_map<string, string>& set_params)
 {
 	params = default_params;
 
-	for (const auto& param : set_params) {
+	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (params.find(param.first) != params.end()) {
-			params[param.first] = param.second;
+		if (params.find(key) != params.end()) {
+			params[key] = value;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
 		}
 	}
 }
 
-void Device::SetStatusCode(int status_code)
+void Device::SetStatusCode(int s)
 {
-	if (status_code) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+	if (s) {
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", s >> 16, (s >> 8 &0xff), s & 0xff)
 	}
 
-	this->status_code = status_code;
+	status_code = s;
 }
 
 bool Device::Start()

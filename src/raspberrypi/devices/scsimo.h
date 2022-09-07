@@ -25,7 +25,7 @@ class SCSIMO : public Disk, public FileSupport
 public:
 
 	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
-	~SCSIMO() {}
+	~SCSIMO() override = default;
 
 	void Open(const Filepath& path) override;
 
@@ -34,7 +34,7 @@ public:
 
 protected:
 
-	void SetDeviceParameters(BYTE *) override;
+	void SetDeviceParameters(BYTE *) const override;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;

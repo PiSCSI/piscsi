@@ -18,13 +18,13 @@
 #include <list>
 
 // Separator for the INQUIRY name components
-#define COMPONENT_SEPARATOR ':'
+static const char COMPONENT_SEPARATOR = ':';
 
 using namespace std;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
+RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
 	: command(command), hostname(hostname), port(port), token(token), locale(locale)
 {
@@ -43,7 +43,7 @@ void RasctlCommands::SendCommand()
 	// Send command
 	int fd = -1;
 	try {
-    	struct hostent *host = gethostbyname(hostname.c_str());
+    	const hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
@@ -53,10 +53,9 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't create socket");
     	}
 
-    	struct sockaddr_in server;
-    	memset(&server, 0, sizeof(server));
+    	sockaddr_in server = {};
     	server.sin_family = AF_INET;
-    	server.sin_port = htons(port);
+    	server.sin_port = htons((uint16_t)port);
     	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
@@ -127,10 +126,9 @@ void RasctlCommands::CommandReserveIds(const string& reserved_ids)
 
 void RasctlCommands::CommandCreateImage(const string& image_params)
 {
-	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
-		AddParam(command, "file", image_params.substr(0, separator_pos));
-		AddParam(command, "size", image_params.substr(separator_pos + 1));
+	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+		AddParam(command, "file", string_view(image_params).substr(0, separator_pos));
+		AddParam(command, "size", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
@@ -151,10 +149,9 @@ void RasctlCommands::CommandDeleteImage(const string& filename)
 
 void RasctlCommands::CommandRenameImage(const string& image_params)
 {
-	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separator_pos));
-		AddParam(command, "to", image_params.substr(separator_pos + 1));
+	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
+		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
@@ -166,10 +163,9 @@ void RasctlCommands::CommandRenameImage(const string& image_params)
 
 void RasctlCommands::CommandCopyImage(const string& image_params)
 {
-	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separator_pos));
-		AddParam(command, "to", image_params.substr(separator_pos + 1));
+	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
+		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;

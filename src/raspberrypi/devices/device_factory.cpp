@@ -77,7 +77,7 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-void DeviceFactory::DeleteDevice(Device *device)
+void DeviceFactory::DeleteDevice(const Device *device) const
 {
 	auto iterpair = devices.equal_range(device->GetId());
 
@@ -91,32 +91,32 @@ void DeviceFactory::DeleteDevice(Device *device)
 	}
 }
 
-void DeviceFactory::DeleteAllDevices()
+void DeviceFactory::DeleteAllDevices() const
 {
-	for (const auto& device : devices) {
-		delete device.second;
+	for (const auto& [id, device] : devices) {
+		delete device;
 	}
 
 	devices.clear();
 }
 
-const Device * DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
+const Device * DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
 {
-	for (const auto& device : devices) {
-		if (device.second->GetId() == id && device.second->GetLun() == lun) {
-			return device.second;
+	for (const auto& [id, device] : devices) {
+		if (device->GetId() == i && device->GetLun() == lun) {
+			return device;
 		}
 	}
 
 	return nullptr;
 }
 
-const list<Device *> DeviceFactory::GetAllDevices() const
+list<Device *> DeviceFactory::GetAllDevices() const
 {
 	list<Device *> result;
 
-	for (const auto& device : devices) {
-		result.push_back(device.second);
+	for (const auto& [id, device] : devices) {
+		result.push_back(device);
 	}
 
 	return result;
@@ -136,9 +136,7 @@ string DeviceFactory::GetExtension(const string& filename) const
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	string ext = GetExtension(filename);
-
-	const auto& it = extension_mapping.find(ext);
+	const auto& it = extension_mapping.find(GetExtension(filename));
 	if (it != extension_mapping.end()) {
 		return it->second;
 	}
@@ -169,14 +167,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		}
 	}
 
-	Device *device = nullptr;
+	unique_ptr<Device> device;
 	switch (type) {
 	case SCHD: {
-		string ext = GetExtension(filename);
-		if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = new SCSIHD_NEC({ 512 });
+		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
+			device = make_unique<SCSIHD_NEC>();
 		} else {
-			device = new SCSIHD(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+			device = make_unique<SCSIHD>(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -190,7 +187,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 	}
 
 	case SCRM:
-		device = new SCSIHD(sector_sizes[SCRM], true);
+		device = make_unique<SCSIHD>(sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -199,7 +196,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		break;
 
 	case SCMO:
-		device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
+		device = make_unique<SCSIMO>(sector_sizes[SCMO], geometries[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -208,7 +205,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		break;
 
 	case SCCD:
-		device = new SCSICD(sector_sizes[SCCD]);
+		device = make_unique<SCSICD>(sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -217,14 +214,14 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		break;
 
 	case SCBR:
-		device = new SCSIBR();
+		device = make_unique<SCSIBR>();
 		device->SetProduct("SCSI HOST BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
 	case SCDP:
-		device = new SCSIDaynaPort();
+		device = make_unique<SCSIDaynaPort>();
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -234,14 +231,14 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		break;
 
 	case SCHS:
-		device = new HostServices();
+		device = make_unique<HostServices>();
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = new SCSIPrinter();
+		device = make_unique<SCSIPrinter>();
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
@@ -253,11 +250,15 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 
 	assert(device != nullptr);
 
-	device->SetId(id);
+	Device *d = device.release();
 
-	devices.emplace(id, device);
+	if (d != nullptr) {
+		d->SetId(id);
 
-	return device;
+		devices.emplace(id, d);
+	}
+
+	return d;
 }
 
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type) const
@@ -271,7 +272,7 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 	return it->second;
 }
 
-const list<string> DeviceFactory::GetNetworkInterfaces() const
+list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
@@ -284,15 +285,11 @@ const list<string> DeviceFactory::GetNetworkInterfaces() const
 	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
 	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-	        struct ifreq ifr;
-	        memset(&ifr, 0, sizeof(ifr));
-
+	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
-	        	// Only list interfaces that are up
-	        	if (ifr.ifr_flags & IFF_UP) {
-	        		network_interfaces.push_back(tmp->ifa_name);
-	        	}
+	        // Only list interfaces that are up
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
+	        	network_interfaces.push_back(tmp->ifa_name);
 	        }
 
 	        close(fd);

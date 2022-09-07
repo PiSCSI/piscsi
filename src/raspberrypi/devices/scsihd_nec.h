@@ -24,13 +24,15 @@
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
 {
+	static const unordered_set<uint32_t> sector_sizes;
+
 public:
-	SCSIHD_NEC(const unordered_set<uint32_t>&);
-	~SCSIHD_NEC() {}
+
+	explicit SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
+	~SCSIHD_NEC() override = default;
 
 	void Open(const Filepath& path) override;
 
-	// Commands
 	vector<BYTE> InquiryInternal() const override;
 
 	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
@@ -38,6 +40,7 @@ public:
 	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
 
 private:
+
 	// Geometry data
 	int cylinders = 0;
 	int heads = 0;

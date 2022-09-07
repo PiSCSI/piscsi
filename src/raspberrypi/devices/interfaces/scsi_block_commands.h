@@ -17,8 +17,8 @@ class ScsiBlockCommands : virtual public ScsiPrimaryCommands
 {
 public:
 
-	ScsiBlockCommands() {}
-	virtual ~ScsiBlockCommands() {}
+	ScsiBlockCommands() = default;
+	~ScsiBlockCommands() override = default;
 
 	// Mandatory commands
 	virtual void FormatUnit() = 0;

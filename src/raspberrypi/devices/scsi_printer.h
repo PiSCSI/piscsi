@@ -17,18 +17,19 @@
 
 using namespace std;
 
-#define TMP_FILE_PATTERN "/tmp/rascsi_sclp-XXXXXX"
-
-class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
+class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands
 {
+	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
+	static constexpr const int TMP_FILENAME_LENGTH = strlen(TMP_FILE_PATTERN);
+
 	static const int NOT_RESERVED = -2;
 
 public:
 
 	SCSIPrinter();
-	~SCSIPrinter();
+	~SCSIPrinter() final;
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	bool Init(const unordered_map<string, string>&) override;
 
@@ -48,11 +49,11 @@ public:
 
 private:
 
-	typedef PrimaryDevice super;
+	using super = PrimaryDevice;
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[sizeof(TMP_FILE_PATTERN) + 1];
+	char filename[TMP_FILENAME_LENGTH + 1];
 	int fd = -1;
 
 	int reserving_initiator = NOT_RESERVED;
