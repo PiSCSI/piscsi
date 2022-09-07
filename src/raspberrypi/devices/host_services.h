@@ -22,9 +22,9 @@ class HostServices: public ModePageDevice
 public:
 
 	HostServices();
-	~HostServices() {}
+	~HostServices() override = default;
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
 
 	vector<BYTE> InquiryInternal() const override;
 	void TestUnitReady() override;
@@ -38,7 +38,7 @@ protected:
 
 private:
 
-	typedef ModePageDevice super;
+	using super = ModePageDevice;
 
 	Dispatcher<HostServices> dispatcher;
 

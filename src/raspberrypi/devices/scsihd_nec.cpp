@@ -18,9 +18,7 @@
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 
-SCSIHD_NEC::SCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
-{
-}
+const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
 
 //---------------------------------------------------------------------------
 //
@@ -72,10 +70,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	int sector_size = 0;
 
 	// Determine parameters by extension
-	const char *ext = path.GetFileExt();
 
 	// PC-9801-55 NEC genuine?
-	if (!strcasecmp(ext, ".hdn")) {
+	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		disk.image_offset = 0;
 		image_size = size;
@@ -110,8 +107,12 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		}
 	}
 
+	if (sector_size == 0) {
+		throw io_exception("Invalid NEC drive sector size");
+	}
+
 	// Image size consistency check
-	if (disk.image_offset + image_size > size || (image_size % sector_size != 0)) {
+	if (disk.image_offset + image_size > size || image_size % sector_size != 0) {
 		throw io_exception("Image size consistency check failed");
 	}
 

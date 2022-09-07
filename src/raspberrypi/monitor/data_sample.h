@@ -14,11 +14,11 @@
 #include "scsi.h"
 #include "gpiobus.h"
 
-typedef struct data_capture
+using data_capture_t = struct data_capture
 {
 	DWORD data;
 	uint64_t timestamp;
-} data_capture_t;
+};
 
 #define GET_PIN(SAMPLE, PIN) ((bool)((SAMPLE->data >> PIN) & 1))
 

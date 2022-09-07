@@ -45,13 +45,13 @@ class Localizer
 public:
 
 	Localizer();
-	~Localizer() {};
+	~Localizer() = default;
 
 	string Localize(LocalizationKey, const string&, const string& = "", const string& = "", const string& = "");
 
 private:
 
-	void Add(LocalizationKey, const string&, const string&);
+	void Add(LocalizationKey, const string&, string_view);
 	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
 	// Supported locales, always lower case

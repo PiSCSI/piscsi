@@ -20,8 +20,8 @@ using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
-#define COMPONENT_SEPARATOR ':'
-#define KEY_VALUE_SEPARATOR '='
+static const char COMPONENT_SEPARATOR = ':';
+static const char KEY_VALUE_SEPARATOR = '=';
 
 Localizer localizer;
 
@@ -35,7 +35,7 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 				if (!p.empty()) {
 					size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
 					if (separator_pos != string::npos) {
-						AddParam(device, p.substr(0, separator_pos), p.substr(separator_pos + 1));
+						AddParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
 					}
 				}
 			}
@@ -51,19 +51,19 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
     }
 }
 
-const string protobuf_util::GetParam(const PbCommand& command, const string& key)
+string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
 	auto map = command.params();
 	return map[key];
 }
 
-const string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
+string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
 {
 	auto map = device.params();
 	return map[key];
 }
 
-void protobuf_util::AddParam(PbCommand& command, const string& key, const string& value)
+void protobuf_util::AddParam(PbCommand& command, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *command.mutable_params();
@@ -71,7 +71,7 @@ void protobuf_util::AddParam(PbCommand& command, const string& key, const string
 	}
 }
 
-void protobuf_util::AddParam(PbDevice& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDevice& device, const string& key,string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -79,7 +79,7 @@ void protobuf_util::AddParam(PbDevice& device, const string& key, const string& 
 	}
 }
 
-void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -100,7 +100,7 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 	message.SerializeToString(&data);
 
 	// Write the size of the protobuf data as a header
-    int32_t size = data.length();
+	auto size = (int32_t)data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
     	throw io_exception("Can't write protobuf message header");
     }
@@ -125,15 +125,14 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	}
 
 	// Read the binary protobuf data
-	uint8_t *data_buf = new uint8_t[size];
-	bytes_read = ReadNBytes(fd, data_buf, size);
+	auto data_buf = make_unique<uint8_t[]>(size);
+	bytes_read = ReadNBytes(fd, data_buf.get(), size);
 	if (bytes_read < size) {
 		throw io_exception("Missing protobuf message data");
 	}
 
 	// Create protobuf message
-	string data((const char *)data_buf, size);
-	delete[] data_buf;
+	string data((const char *)data_buf.get(), size);
 	message.ParseFromString(data);
 }
 
@@ -162,7 +161,8 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const Lo
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English
-	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str());
+	// TODO This line forces rasctl to depend on the localizer. This should be fixed.
+	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
 
 	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
 }
@@ -172,7 +172,7 @@ bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, con
 {
 	// Do not log twice if logging has already been done in the localized error handling above
 	if (log && !status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str());
+		LOGERROR("%s", msg.c_str())
 	}
 
 	if (context.fd == -1) {

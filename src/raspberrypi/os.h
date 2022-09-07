@@ -50,17 +50,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-
 #include <poll.h>
 #include <dirent.h>
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/epoll.h>
 #include <netinet/in.h>
+
+#ifdef __linux
+#include <sys/epoll.h>
 #include <linux/gpio.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#endif
 
 //---------------------------------------------------------------------------
 //
@@ -82,11 +84,11 @@
 //	Basic Type Definitions
 //
 //---------------------------------------------------------------------------
-typedef unsigned char BYTE;
-typedef uint16_t WORD;
-typedef uint32_t DWORD;
-typedef int BOOL;
-typedef char TCHAR;
+using BYTE = unsigned char;
+using WORD =uint16_t;
+using DWORD = uint32_t;
+using BOOL = int;
+using TCHAR = char;
 
 #if !defined(FALSE)
 #define FALSE               0
@@ -100,9 +102,9 @@ typedef char TCHAR;
 #define _T(x)	x
 #endif
 
-#define _MAX_PATH   260
-#define _MAX_DIR    256
-#define _MAX_FNAME  256
-#define _MAX_EXT    256
+static const int _MAX_PATH = 260;
+static const int _MAX_DIR = 256;
+static const int _MAX_FNAME = 256;
+static const int _MAX_EXT = 256;
 
 #endif	// os_h

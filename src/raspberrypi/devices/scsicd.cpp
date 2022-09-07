@@ -26,24 +26,6 @@ using namespace scsi_defs;
 //
 //===========================================================================
 
-CDTrack::CDTrack(SCSICD *scsicd)
-{
-	ASSERT(scsicd);
-
-	// Set parent CD-ROM device
-	cdrom = scsicd;
-
-	// Track defaults to disabled
-	valid = false;
-
-	// Initialize other data
-	track_no = -1;
-	first_lba = 0;
-	last_lba = 0;
-	audio = false;
-	raw = false;
-}
-
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
@@ -76,17 +58,6 @@ void CDTrack::GetPath(Filepath& path) const
 
 	// Return the path (by reference)
 	path = imgpath;
-}
-
-void CDTrack::AddIndex(int index, DWORD lba)
-{
-	ASSERT(valid);
-	ASSERT(index > 0);
-	ASSERT(first_lba <= lba);
-	ASSERT(lba <= last_lba);
-
-	// Currently does not support indexes
-	ASSERT(FALSE);
 }
 
 //---------------------------------------------------------------------------
@@ -222,8 +193,7 @@ void SCSICD::Open(const Filepath& path)
 		OpenPhysical(path);
 	} else {
 		// Get file size
-        off_t size = fio.GetFileSize();
-		if (size <= 4) {
+		if (off_t size = fio.GetFileSize(); size <= 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}
@@ -260,7 +230,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-void SCSICD::OpenCue(const Filepath& /*path*/)
+void SCSICD::OpenCue(const Filepath& /*path*/) const
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
@@ -328,7 +298,7 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	// Create only one data track
 	assert(!track[0]);
-	track[0] = new CDTrack(this);
+	track[0] = new CDTrack();
 	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(false, path);
 	tracks = 1;
@@ -361,7 +331,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 	// Create only one data track
 	ASSERT(!track[0]);
-	track[0] = new CDTrack(this);
+	track[0] = new CDTrack();
 	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(false, path);
 	tracks = 1;
@@ -598,7 +568,7 @@ void SCSICD::GetEventStatusNotification()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	LOGTRACE("Received request for event polling, which is currently not supported");
+	LOGTRACE("Received request for event polling, which is currently not supported")
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
@@ -635,9 +605,9 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 void SCSICD::ClearTrack()
 {
 	// delete the track object
-	for (int i = 0; i < TrackMax; i++) {
-		delete track[i];
-		track[i] = nullptr;
+	for (auto t: track) {
+		delete t;
+		t = nullptr;
 	}
 
 	// Number of tracks is 0

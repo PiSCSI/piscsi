@@ -60,8 +60,8 @@ public:
 	MOCK_METHOD(bool, GetSignal, (int), (const, override));
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
-	MockBus() {}
-	~MockBus() {}
+	MockBus() = default;
+	~MockBus() = default;
 };
 
 class MockAbstractController : public AbstractController
@@ -97,8 +97,8 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Reset, (), (override));
 
-	MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
-	~MockAbstractController() {}
+	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
+	~MockAbstractController() = default;
 };
 
 class MockScsiController : public ScsiController
@@ -106,7 +106,6 @@ class MockScsiController : public ScsiController
 public:
 
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));
 	MOCK_METHOD(void, SetUnit, (int), ());
@@ -138,7 +137,7 @@ public:
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 
 	MockScsiController(BUS *bus, int target_id) : ScsiController(bus, target_id) {}
-	~MockScsiController() {}
+	~MockScsiController() = default;
 };
 
 class MockPrimaryDevice : public PrimaryDevice
@@ -148,7 +147,7 @@ public:
 	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() {}
+	~MockPrimaryDevice() = default;
 
 	// Make protected methods visible for testing
 
@@ -164,8 +163,8 @@ class MockModePageDevice : public ModePageDevice
 {
 public:
 
-	MockModePageDevice() : ModePageDevice("test") { }
-	~MockModePageDevice() { }
+	MockModePageDevice() : ModePageDevice("test") {}
+	~MockModePageDevice() = default;
 
 	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
@@ -191,24 +190,24 @@ class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
-	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
-	~MockSCSIHD() { };
+	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
+	~MockSCSIHD() = default;
 };
 
 class MockSCSIHD_NEC : public SCSIHD_NEC
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
-	MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
-	~MockSCSIHD_NEC() { };
+	MockSCSIHD_NEC() = default;
+	~MockSCSIHD_NEC() = default;
 };
 
 class MockSCSICD : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
-	MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
-	~MockSCSICD() { };
+	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
+	~MockSCSICD() = default;
 };
 
 class MockSCSIMO : public SCSIMO
@@ -216,14 +215,14 @@ class MockSCSIMO : public SCSIMO
 	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-		: SCSIMO(sector_sizes, geometries) { };
-	~MockSCSIMO() { };
+		: SCSIMO(sector_sizes, geometries) {}
+	~MockSCSIMO() = default;
 };
 
 class MockHostServices : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
-	MockHostServices() { };
-	~MockHostServices() { };
+	MockHostServices() = default;
+	~MockHostServices() = default;
 };

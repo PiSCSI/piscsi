@@ -19,7 +19,7 @@
 #include "scsi_command_util.h"
 #include <sstream>
 
-#define DEFAULT_PRODUCT "SCSI HD"
+static const char *DEFAULT_PRODUCT = "SCSI HD";
 
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {

@@ -30,8 +30,7 @@ RascsiImage::RascsiImage()
 {
 	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
 	int uid = getuid();
-	const char *sudo_user = getenv("SUDO_UID");
-	if (sudo_user) {
+	if (auto sudo_user = getenv("SUDO_UID"); sudo_user) {
 		uid = stoi(sudo_user);
 	}
 
@@ -45,15 +44,14 @@ RascsiImage::RascsiImage()
 	}
 }
 
-bool RascsiImage::CheckDepth(const string& filename)
+bool RascsiImage::CheckDepth(string_view filename) const
 {
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
-bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename)
+bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
-	size_t filename_start = filename.rfind('/');
-	if (filename_start != string::npos) {
+	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
@@ -82,8 +80,7 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
 		int uid = getuid();
-		const char *sudo_user = getenv("SUDO_UID");
-		if (sudo_user) {
+		if (const char *sudo_user = getenv("SUDO_UID"); sudo_user) {
 			uid = stoi(sudo_user);
 		}
 
@@ -108,19 +105,19 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 
 	default_image_folder = folder;
 
-	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
+	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str())
 
 	return "";
 }
 
-bool RascsiImage::IsValidSrcFilename(const string& filename)
+bool RascsiImage::IsValidSrcFilename(const string& filename) const
 {
 	// Source file must exist and must be a regular file or a symlink
 	struct stat st;
 	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
 }
 
-bool RascsiImage::IsValidDstFilename(const string& filename)
+bool RascsiImage::IsValidDstFilename(const string& filename) const
 {
 	// Destination file must not yet exist
 	struct stat st;
@@ -152,10 +149,10 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	try {
 		len = stoull(size);
 	}
-	catch(const invalid_argument& e) {
+	catch(const invalid_argument&) { //NOSONAR This exception is handled properly
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
-	catch(const out_of_range& e) {
+	catch(const out_of_range&) { //NOSONAR This exception is handled properly
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
@@ -187,7 +184,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	close(image_fd);
 
 	LOGINFO("%s", string("Created " + string(permissions & S_IWUSR ? "": "read-only ") + "image file '" + full_filename +
-			"' with a size of " + to_string(len) + " bytes").c_str());
+			"' with a size of " + to_string(len) + " bytes").c_str())
 
 	return ReturnStatus(context);
 }
@@ -224,8 +221,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		string folder = filename.substr(0, last_slash);
 		string full_folder = default_image_folder + "/" + folder;
 
-		std::error_code error;
-		if (!filesystem::is_empty(full_folder, error) || error) {
+		if (error_code error; !filesystem::is_empty(full_folder, error) || error) {
 			break;
 		}
 
@@ -236,7 +232,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		last_slash = folder.rfind('/');
 	}
 
-	LOGINFO("Deleted image file '%s'", full_filename.c_str());
+	LOGINFO("Deleted image file '%s'", full_filename.c_str())
 
 	return ReturnStatus(context);
 }
@@ -279,7 +275,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str());
+	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
 }
@@ -329,7 +325,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	    	return ReturnStatus(context, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
 
-		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str());
+		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str())
 
 		return ReturnStatus(context);
 	}
@@ -351,7 +347,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
-    if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
+    if (sendfile(fd_dst, fd_src, nullptr, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
 
@@ -363,7 +359,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
     close(fd_dst);
     close(fd_src);
 
-	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
+	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
 }
@@ -386,18 +382,17 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
-	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	if (chmod(filename.c_str(), permissions) == -1) {
+	if (int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+		chmod(filename.c_str(), permissions) == -1) {
 		return ReturnStatus(context, false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
 				strerror(errno));
 	}
 
 	if (protect) {
-		LOGINFO("Protected image file '%s'", filename.c_str());
+		LOGINFO("Protected image file '%s'", filename.c_str())
 	}
 	else {
-		LOGINFO("Unprotected image file '%s'", filename.c_str());
+		LOGINFO("Unprotected image file '%s'", filename.c_str())
 	}
 
 	return ReturnStatus(context);

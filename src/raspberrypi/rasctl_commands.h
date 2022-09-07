@@ -20,8 +20,8 @@ class RasctlCommands
 {
 public:
 
-	RasctlCommands(PbCommand&, const string&, int, const string&, const string&);
-	~RasctlCommands() {};
+	RasctlCommands(const PbCommand&, const string&, int, const string&, const string&);
+	~RasctlCommands() = default;
 
 	void SendCommand();
 	void CommandDevicesInfo();

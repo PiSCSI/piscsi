@@ -150,14 +150,14 @@
 #define CONNECT_DESC "FULLSPEC"				// Startup message
 
 // Select signal control mode
-#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
+const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification
 
 // Control signal pin assignment (-1 means no control)
-#define	PIN_ACT		4						// ACTIVE
-#define	PIN_ENB		5						// ENABLE
-#define PIN_IND		6						// INITIATOR CTRL DIRECTION
-#define PIN_TAD		7						// TARGET CTRL DIRECTION
-#define PIN_DTD		8						// DATA DIRECTION
+const static int PIN_ACT = 4;				// ACTIVE
+const static int PIN_ENB = 5;				// ENABLE
+const static int PIN_IND = 6;				// INITIATOR CTRL DIRECTION
+const static int PIN_TAD = 7;				// TARGET CTRL DIRECTION
+const static int PIN_DTD = 8;				// DATA DIRECTION
 
 // Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
@@ -167,24 +167,24 @@
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
-#define	PIN_DT0		10						// Data 0
-#define	PIN_DT1		11						// Data 1
-#define	PIN_DT2		12						// Data 2
-#define	PIN_DT3		13						// Data 3
-#define	PIN_DT4		14						// Data 4
-#define	PIN_DT5		15						// Data 5
-#define	PIN_DT6		16						// Data 6
-#define	PIN_DT7		17						// Data 7
-#define	PIN_DP		18						// Data parity
-#define	PIN_ATN		19						// ATN
-#define	PIN_RST		20						// RST
-#define	PIN_ACK		21						// ACK
-#define	PIN_REQ		22						// REQ
-#define	PIN_MSG		23						// MSG
-#define	PIN_CD		24						// CD
-#define	PIN_IO		25						// IO
-#define	PIN_BSY		26						// BSY
-#define	PIN_SEL		27						// SEL
+const static int PIN_DT0 = 10;				// Data 0
+const static int PIN_DT1 = 11;				// Data 1
+const static int PIN_DT2 = 12;				// Data 2
+const static int PIN_DT3 = 13;				// Data 3
+const static int PIN_DT4 = 14;				// Data 4
+const static int PIN_DT5 = 15;				// Data 5
+const static int PIN_DT6 = 16;				// Data 6
+const static int PIN_DT7 = 17;				// Data 7
+const static int PIN_DP	=  18;				// Data parity
+const static int PIN_ATN = 19;				// ATN
+const static int PIN_RST = 20;				// RST
+const static int PIN_ACK = 21;				// ACK
+const static int PIN_REQ = 22;				// REQ
+const static int PIN_MSG = 23;				// MSG
+const static int PIN_CD	=  24;				// CD
+const static int PIN_IO	=  25;				// IO
+const static int PIN_BSY = 26;				// BSY
+const static int PIN_SEL = 27;				// SEL
 #endif
 
 #ifdef CONNECT_TYPE_AIBOM
@@ -232,6 +232,7 @@
 #define	PIN_SEL		8						// SEL
 #endif
 
+// TODO Is this type stil relevant?
 #ifdef CONNECT_TYPE_GAMERNIUM
 //
 // RaSCSI Adapter GAMERnium.com version
@@ -435,33 +436,33 @@
 //---------------------------------------------------------------------------
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
-#define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
-#define SCSI_DELAY_ASSERTION_PERIOD_NS             90 
-#define SCSI_DELAY_BUS_CLEAR_DELAY_NS             800 
-#define SCSI_DELAY_BUS_FREE_DELAY_NS              800 
-#define SCSI_DELAY_BUS_SET_DELAY_NS              1800 
-#define SCSI_DELAY_BUS_SETTLE_DELAY_NS            400 
-#define SCSI_DELAY_CABLE_SKEW_DELAY_NS             10 
-#define SCSI_DELAY_DATA_RELEASE_DELAY_NS          400 
-#define SCSI_DELAY_DESKEW_DELAY_NS                 45 
-#define SCSI_DELAY_DISCONNECTION_DELAY_US         200 
-#define SCSI_DELAY_HOLD_TIME_NS                    45 
-#define SCSI_DELAY_NEGATION_PERIOD_NS              90 
-#define SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S   10         // (recommended)
-#define SCSI_DELAY_RESET_TO_SELECTION_TIME_US     (250*1000) // (recommended)
-#define SCSI_DELAY_RESET_HOLD_TIME_US              25 
-#define SCSI_DELAY_SELECTION_ABORT_TIME_US        200 
-#define SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS    (250*1000) // (recommended)
-#define SCSI_DELAY_FAST_ASSERTION_PERIOD_NS        30
-#define SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS         5
-#define SCSI_DELAY_FAST_DESKEW_DELAY_NS            20
-#define SCSI_DELAY_FAST_HOLD_TIME_NS               10
-#define SCSI_DELAY_FAST_NEGATION_PERIOD_NS         30
+const static int SCSI_DELAY_ARBITRATION_DELAY_NS =        2400;
+const static int SCSI_DELAY_ASSERTION_PERIOD_NS =           90;
+const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS =           800;
+const static int SCSI_DELAY_BUS_FREE_DELAY_NS =            800;
+const static int SCSI_DELAY_BUS_SET_DELAY_NS =            1800;
+const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS =          400;
+const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS =           10;
+const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS =        400;
+const static int SCSI_DELAY_DESKEW_DELAY_NS =               45;
+const static int SCSI_DELAY_DISCONNECTION_DELAY_US =       200;
+const static int SCSI_DELAY_HOLD_TIME_NS =                  45;
+const static int SCSI_DELAY_NEGATION_PERIOD_NS =            90;
+const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S =  10;      // (recommended)
+const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US =   250*1000; // (recommended)
+const static int SCSI_DELAY_RESET_HOLD_TIME_US =            25;
+const static int SCSI_DELAY_SELECTION_ABORT_TIME_US =      200;
+const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS =  250*1000;  // (recommended)
+const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS =      30;
+const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS =       5;
+const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS =          20;
+const static int SCSI_DELAY_FAST_HOLD_TIME_NS =             10;
+const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS =       30;
 
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
 // header and the actual data.
-#define SCSI_DELAY_SEND_DATA_DAYNAPORT_US          100
+const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 
 //---------------------------------------------------------------------------
 //
@@ -472,8 +473,8 @@ class GPIOBUS : public BUS
 {
 public:
 	// Basic Functions
-	GPIOBUS();
-	virtual ~GPIOBUS() {}
+	GPIOBUS()= default;
+	~GPIOBUS() final = default;
 										// Destructor
 	bool Init(mode_e mode = TARGET) override;
 										// Initialization
@@ -621,17 +622,17 @@ private:
 
 	int rpitype = 0;					// Type of Raspberry Pi
 
-	volatile uint32_t *gpio = 0;		// GPIO register
+	volatile uint32_t *gpio = nullptr;	// GPIO register
 
-	volatile uint32_t *pads = 0;		// PADS register
+	volatile uint32_t *pads = nullptr;	// PADS register
 
-	volatile uint32_t *level = 0;		// GPIO input level
+	volatile uint32_t *level = nullptr;	// GPIO input level
 
-	volatile uint32_t *irpctl = 0;		// Interrupt control register
+	volatile uint32_t *irpctl = nullptr;	// Interrupt control register
 
 	volatile uint32_t irptenb;			// Interrupt enabled state
 
-	volatile uint32_t *qa7regs = 0;		// QA7 register
+	volatile uint32_t *qa7regs = nullptr;	// QA7 register
 
 	volatile int tintcore;				// Interupt control target CPU.
 
@@ -639,9 +640,9 @@ private:
 
 	volatile uint32_t giccpmr;			// GICC priority setting
 
-	volatile uint32_t *gicd = 0;		// GIC Interrupt distributor register
+	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
 
-	volatile uint32_t *gicc = 0;		// GIC CPU interface register
+	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
 
 	DWORD gpfsel[4];					// GPFSEL0-4 backup values
 

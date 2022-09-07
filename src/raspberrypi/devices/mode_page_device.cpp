@@ -30,7 +30,7 @@ bool ModePageDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
+int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const
 {
 	if (max_length <= 0) {
 		return 0;
@@ -41,14 +41,14 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
 
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<BYTE>> pages;
 	AddModePages(pages, page, changeable);
 
 	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page)
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

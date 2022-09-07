@@ -27,11 +27,9 @@
 static DWORD get_dt_ranges(const char *filename, DWORD offset)
 {
 	DWORD address = ~0;
-	FILE *fp = fopen(filename, "rb");
-	if (fp) {
+	if (FILE *fp = fopen(filename, "rb"); fp) {
 		fseek(fp, offset, SEEK_SET);
-		BYTE buf[4];
-		if (fread(buf, 1, sizeof buf, fp) == sizeof buf) {
+		if (BYTE buf[4]; fread(buf, 1, sizeof buf, fp) == sizeof buf) {
 			address =
 				buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
 		}
@@ -76,10 +74,6 @@ DWORD bcm_host_get_peripheral_address(void)
 }
 #endif	// __NetBSD__
 
-GPIOBUS::GPIOBUS()
-{
-}
-
 bool GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
@@ -106,14 +100,14 @@ bool GPIOBUS::Init(mode_e mode)
 	// Open /dev/mem
 	fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
-        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?");
+        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
 		return false;
 	}
 
 	// Map peripheral region memory
 	map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
 	if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory");
+        LOGERROR("Error: Unable to map memory")
 		close(fd);
 		return false;
 	}
@@ -926,7 +920,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 	if (actmode == TARGET) {
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
-				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes);
+				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
 				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
@@ -969,7 +963,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
-				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes);
+				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
 				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
@@ -1036,12 +1030,12 @@ bool GPIOBUS::PollSelectEvent()
 	struct gpioevent_data gpev;
 
 	if (epoll_wait(epfd, &epev, 1, -1) <= 0) {
-                LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__);
+                LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
 		return false;
 	}
 
 	if (read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-            LOGWARN("%s read failed", __PRETTY_FUNCTION__);
+            LOGWARN("%s read failed", __PRETTY_FUNCTION__)
             return false;
         }
 
@@ -1096,7 +1090,7 @@ void GPIOBUS::MakeTable(void)
 
 	// Create parity table
 	for (i = 0; i < 0x100; i++) {
-		DWORD bits = (DWORD)i;
+		auto bits = (DWORD)i;
 		DWORD parity = 0;
 		for (j = 0; j < 8; j++) {
 			parity ^= bits & 1;
@@ -1112,7 +1106,7 @@ void GPIOBUS::MakeTable(void)
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
 	for (i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		DWORD bits = (DWORD)i;
+		auto bits = (DWORD)i;
 
 		// Get parity
 		if (tblParity[i]) {

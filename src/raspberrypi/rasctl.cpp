@@ -21,16 +21,16 @@
 #include <list>
 
 // Separator for the INQUIRY name components and for compound parameters
-#define COMPONENT_SEPARATOR ':'
+static const char COMPONENT_SEPARATOR = ':';
 
 using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-PbOperation ParseOperation(const char *optarg)
+PbOperation ParseOperation(const string& operation)
 {
-	switch (tolower(optarg[0])) {
+	switch (tolower(operation[0])) {
 		case 'a':
 			return ATTACH;
 
@@ -57,18 +57,17 @@ PbOperation ParseOperation(const char *optarg)
 	}
 }
 
-PbDeviceType ParseType(const char *optarg)
+PbDeviceType ParseType(const char *type)
 {
-	string t = optarg;
+	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
 
-	PbDeviceType type;
-	if (PbDeviceType_Parse(t, &type)) {
-		return type;
+	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
+		return parsed_type;
 	}
 
 	// Parse convenience device types (shortcuts)
-	switch (tolower(optarg[0])) {
+	switch (tolower(type[0])) {
 	case 'c':
 		return SCCD;
 
@@ -98,12 +97,11 @@ PbDeviceType ParseType(const char *optarg)
 	}
 }
 
-void SetPatternParams(PbCommand& command, const string& patterns)
+void SetPatternParams(PbCommand& command, string_view patterns)
 {
 	string folder_pattern;
 	string file_pattern;
-	size_t separator_pos = patterns.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
+	if (size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		folder_pattern = patterns.substr(0, separator_pos);
 		file_pattern = patterns.substr(separator_pos + 1);
 	}
@@ -300,8 +298,7 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separator_pos = s.find(COMPONENT_SEPARATOR);
-					if (separator_pos != string::npos) {
+					if (size_t separator_pos = s.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 						vendor = s.substr(0, separator_pos);
 						s = s.substr(separator_pos + 1);
 						separator_pos = s.find(COMPONENT_SEPARATOR);
@@ -367,8 +364,13 @@ int main(int argc, char* argv[])
 			case 'z':
 				locale = optarg;
 				break;
+
+			default:
+				break;
 		}
 	}
+
+	// TODO For macos only 'if (optind != argc)' appears to work, but then non-argument options do not reject arguments
 
 	if (optopt) {
 		exit(EXIT_FAILURE);

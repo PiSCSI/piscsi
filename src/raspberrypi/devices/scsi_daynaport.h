@@ -43,7 +43,7 @@ class SCSIDaynaPort: public Disk
 
 public:
 	SCSIDaynaPort();
-	~SCSIDaynaPort();
+	~SCSIDaynaPort() final;
 
 	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;
@@ -54,7 +54,7 @@ public:
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
 	int WriteCheck(uint64_t block) override;
 
-	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
+	int RetrieveStats(const DWORD *cdb, BYTE *buffer) const;
 	bool EnableInterface(const DWORD *cdb);
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
@@ -90,17 +90,17 @@ public:
 	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
-	typedef Disk super;
+	using super = Disk;
 
 	Dispatcher<SCSIDaynaPort> dispatcher;
 
-	typedef struct __attribute__((packed)) {
+	using scsi_cmd_daynaport_write_t = struct __attribute__((packed)) {
 		BYTE operation_code;
 		BYTE misc_cdb_information;
 		BYTE logical_block_address;
 		uint16_t length;
 		BYTE format;
-	} scsi_cmd_daynaport_write_t;
+	};
 
 	enum read_data_flags_t : uint32_t {
 		e_no_more_data = 0x00000000,
@@ -108,19 +108,19 @@ private:
 		e_dropped_packets = 0xFFFFFFFF,
 	};
 
-	typedef struct __attribute__((packed)) {
+	using scsi_resp_read_t = struct __attribute__((packed)) {
 		uint32_t length;
 		read_data_flags_t flags;
 		BYTE pad;
 		BYTE data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
-	} scsi_resp_read_t;
+	};
 
-	typedef struct __attribute__((packed)) {
+	using scsi_resp_link_stats_t = struct __attribute__((packed)) {
 		BYTE mac_address[6];
 		uint32_t frame_alignment_errors;
 		uint32_t crc_errors;
 		uint32_t frames_lost;
-	} scsi_resp_link_stats_t;
+	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
 		.mac_address = { 0x00, 0x80, 0x19, 0x10, 0x98, 0xE3 },//MAC address of @PotatoFi's DayanPort

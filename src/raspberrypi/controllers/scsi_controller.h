@@ -54,7 +54,7 @@ class ScsiController : public AbstractController
 		eCmdWriteLong16 = 0x9F
 	};
 
-	typedef struct _scsi_t {
+	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
 		int syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
@@ -65,12 +65,12 @@ class ScsiController : public AbstractController
 		bool atnmsg;
 		int msc;
 		BYTE msb[256];
-	} scsi_t;
+	};
 
 public:
 
 	ScsiController(BUS *, int);
-	~ScsiController();
+	~ScsiController() override;
 
 	void Reset() override;
 
@@ -130,6 +130,6 @@ private:
 
 	scsi_t scsi = {};
 
-	rascsi_shutdown_mode shutdown_mode = NONE;
+	AbstractController::rascsi_shutdown_mode shutdown_mode = AbstractController::rascsi_shutdown_mode::NONE;
 };
 

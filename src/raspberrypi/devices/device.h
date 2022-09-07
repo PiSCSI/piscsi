@@ -16,11 +16,11 @@
 
 using namespace std;
 
-#define DEFAULT_VENDOR "RaSCSI"
-
 class Device
 {
 	friend class DeviceFactory;
+
+	const string DEFAULT_VENDOR = "RaSCSI";
 
 	string type;
 
@@ -57,7 +57,7 @@ class Device
 	int32_t lun = 0;
 
 	// Device identifier (for INQUIRY)
-	string vendor;
+	string vendor = DEFAULT_VENDOR;
 	string product;
 	string revision;
 
@@ -84,15 +84,16 @@ protected:
 
 	int GetStatusCode() const { return status_code; }
 
-	const string GetParam(const string&);
+	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
 	static unordered_set<Device *> devices;
 
-	Device(const string&);
-	virtual ~Device();
+	explicit Device(const string&);
 
 public:
+
+	virtual ~Device();
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
@@ -130,18 +131,18 @@ public:
 	int32_t GetLun() const { return lun; }
 	void SetLun(int32_t lun) { this->lun = lun; }
 
-	const string GetVendor() const { return vendor; }
+	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
-	const string GetProduct() const { return product; }
+	string GetProduct() const { return product; }
 	void SetProduct(const string&, bool = true);
-	const string GetRevision() const { return revision; }
+	string GetRevision() const { return revision; }
 	void SetRevision(const string&);
-	const string GetPaddedName() const;
+	string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
 	virtual bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
-	const unordered_map<string, string> GetParams() const { return params; }
+	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
 
 	void SetStatusCode(int);
@@ -149,5 +150,7 @@ public:
 	bool Start();
 	void Stop();
 	virtual bool Eject(bool);
-	virtual void FlushCache() { }
+	virtual void FlushCache() {
+		// Devices with a cache have to implement this method
+	}
 };

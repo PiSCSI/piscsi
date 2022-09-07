@@ -21,8 +21,6 @@
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-class SCSICD;
-
 //===========================================================================
 //
 //	CD-ROM Track
@@ -34,8 +32,8 @@ private:
 
 	friend class SCSICD;
 
-	CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack() {}
+	CDTrack() = default;
+	virtual ~CDTrack() final = default;
 
 public:
 
@@ -44,7 +42,6 @@ public:
 	// Properties
 	void SetPath(bool cdda, const Filepath& path);			// Set the path
 	void GetPath(Filepath& path) const;				// Get the path
-	void AddIndex(int index, DWORD lba);				// Add index
 	DWORD GetFirst() const;					// Get the start LBA
 	DWORD GetLast() const;						// Get the last LBA
 	DWORD GetBlocks() const;					// Get the number of blocks
@@ -53,13 +50,11 @@ public:
 	bool IsAudio() const;						// Is this an audio track?
 
 private:
-	SCSICD *cdrom;								// Parent device
-	bool valid;								// Valid track
-	int track_no;								// Track number
-	DWORD first_lba;							// First LBA
-	DWORD last_lba;								// Last LBA
-	bool audio;								// Audio track flag
-	bool raw;								// RAW data flag
+	bool valid = false;								// Valid track
+	int track_no = -1;								// Track number
+	DWORD first_lba = 0;							// First LBA
+	DWORD last_lba = 0;								// Last LBA
+	bool audio = false;								// Audio track flag
 	Filepath imgpath;							// Image file path
 };
 
@@ -76,8 +71,8 @@ public:
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-	SCSICD(const unordered_set<uint32_t>&);
-	~SCSICD();
+	explicit SCSICD(const unordered_set<uint32_t>&);
+	~SCSICD() override;
 
 	bool Dispatch() override;
 
@@ -93,7 +88,7 @@ protected:
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
-	typedef Disk super;
+	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
 
@@ -101,9 +96,9 @@ private:
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
 
 	// Open
-	void OpenCue(const Filepath& path);				// Open(CUE)
-	void OpenIso(const Filepath& path);				// Open(ISO)
-	void OpenPhysical(const Filepath& path);			// Open(Physical)
+	void OpenCue(const Filepath& path) const;
+	void OpenIso(const Filepath& path);
+	void OpenPhysical(const Filepath& path);
 
 	void ReadToc() override;
 	void GetEventStatusNotification() override;

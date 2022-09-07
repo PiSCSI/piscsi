@@ -147,7 +147,7 @@ void Disk::Read(access_mode mode)
 	uint64_t start;
 	if (CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
 		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
-		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length)
 
 		// Set next block
 		ctrl->next = start + 1;
@@ -277,7 +277,7 @@ void Disk::PreventAllowMediumRemoval()
 
 	bool lock = ctrl->cmd[4] & 0x01;
 
-	LOGTRACE("%s", lock ? "Locking medium" : "Unlocking medium");
+	LOGTRACE("%s", lock ? "Locking medium" : "Unlocking medium")
 
 	SetLocked(lock);
 
@@ -329,7 +329,7 @@ bool Disk::Eject(bool force)
 
 		// The image file for this drive is not in use anymore
 		// TODO This cast and the FileSupport class can be removed as soon as only disk-like devices inherit from Disk
-		FileSupport *file_support = dynamic_cast<FileSupport *>(this);
+		auto file_support = dynamic_cast<FileSupport *>(this);
 		if (file_support) {
 			file_support->UnreserveFile();
 		}
@@ -473,7 +473,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void Disk::SetDeviceParameters(BYTE *buf)
+void Disk::SetDeviceParameters(BYTE *buf) const
 {
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
@@ -639,7 +639,7 @@ void Disk::Format(const DWORD *cdb)
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
 int Disk::Read(const DWORD *, BYTE *buf, uint64_t block)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
 	CheckReady();
 
@@ -678,7 +678,7 @@ int Disk::WriteCheck(uint64_t block)
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
 void Disk::Write(const DWORD *, BYTE *buf, uint64_t block)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
 	// Error if not ready
 	if (!IsReady()) {
@@ -730,10 +730,10 @@ bool Disk::StartStop(const DWORD *cdb)
 	bool load = cdb[4] & 0x02;
 
 	if (load) {
-		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium");
+		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium")
 	}
 	else {
-		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit")
 
 		SetStopped(!start);
 	}
@@ -908,7 +908,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	uint64_t capacity = GetBlockCount();
 	if (block > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
-				+ to_string(block)).c_str());
+				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 }
@@ -966,13 +966,12 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 		}
 	}
 
-	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
+	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count)
 
 	// Check capacity
-	uint64_t capacity = GetBlockCount();
-	if (start > capacity || start + count > capacity) {
+	if (uint64_t capacity = GetBlockCount(); start > capacity || start + count > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
-				+ to_string(start) + ", block count " + to_string(count)).c_str());
+				+ to_string(start) + ", block count " + to_string(count)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
@@ -1047,7 +1046,7 @@ uint32_t Disk::GetConfiguredSectorSize() const
 
 bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
-	DeviceFactory& device_factory = DeviceFactory::instance();
+	const DeviceFactory& device_factory = DeviceFactory::instance();
 
 	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {

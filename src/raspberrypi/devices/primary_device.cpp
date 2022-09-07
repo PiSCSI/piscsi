@@ -65,7 +65,7 @@ void PrimaryDevice::Inquiry()
 
 	// Report if the device does not support the requested LUN
 	if (!controller->HasDeviceForLun(lun)) {
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
 		ctrl->buffer[0] |= 0x7f;
@@ -141,25 +141,25 @@ void PrimaryDevice::CheckReady()
 	// Not ready if reset
 	if (IsReset()) {
 		SetReset(false);
-		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__)
 		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
-		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__)
 		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
-		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__)
 		throw scsi_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Initialization with no error
-	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__)
 }
 
 vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
@@ -203,14 +203,14 @@ vector<BYTE> PrimaryDevice::HandleRequestSense()
 	buf[12] = GetStatusCode() >> 8;
 	buf[13] = GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12])
 
 	return buf;
 }
 
 bool PrimaryDevice::WriteByteSequence(BYTE *, uint32_t)
 {
-	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__);
+	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__)
 
 	return false;
 }

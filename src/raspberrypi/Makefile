@@ -21,8 +21,8 @@ ifeq ($(DEBUG), 1)
 	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 	BUILD_TYPE = Debug
 else
-	# Release compiler flags, ignore unused parameters because they are reported for some assertions
-	CXXFLAGS += -O3 -Wall -Werror -Wextra -Wno-unused-parameter -DNDEBUG
+	# Release compiler flags
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")
@@ -190,7 +190,7 @@ $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) | $(BINDIR
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)

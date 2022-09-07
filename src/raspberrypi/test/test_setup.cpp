@@ -17,8 +17,8 @@ class Environment : public ::testing::Environment
 {
 public:
 
-	Environment() {}
-	~Environment() {}
+	Environment() = default;
+	~Environment() final = default;
 
 	// Turn off logging
 	void SetUp() override { spdlog::set_level(spdlog::level::off); }

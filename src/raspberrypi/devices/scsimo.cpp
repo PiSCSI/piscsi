@@ -70,7 +70,7 @@ vector<BYTE> SCSIMO::InquiryInternal() const
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
 
-void SCSIMO::SetDeviceParameters(BYTE *buf)
+void SCSIMO::SetDeviceParameters(BYTE *buf) const
 {
 	Disk::SetDeviceParameters(buf);
 
@@ -176,6 +176,9 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 					spare = 2250;
 					bands = 18;
 					break;
+
+				default:
+					break;
 			}
 		}
 
@@ -191,6 +194,9 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 				case 605846:
 					spare = 4437;
 					bands = 18;
+					break;
+
+				default:
 					break;
 			}
 		}

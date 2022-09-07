@@ -120,7 +120,7 @@ Localizer::Localizer()
 	Add(ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "es", "El tamaño del bloque para el tipo de dispositivo %1 no es configurable");
 }
 
-void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
+void Localizer::Add(LocalizationKey key, const string& locale, string_view value)
 {
 	// Safeguards against empty messages, duplicate entries and unsupported locales
 	assert(locale.size());

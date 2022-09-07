@@ -21,16 +21,16 @@ class RascsiImage
 public:
 
 	RascsiImage();
-	~RascsiImage() {};
+	~RascsiImage() = default;
 
-	void SetDepth(int depth) { this->depth = depth; }
-	int GetDepth() { return depth; }
-	bool CheckDepth(const string&);
-	bool CreateImageFolder(const CommandContext&, const string&);
+	void SetDepth(int d) { depth = d; }
+	int GetDepth() const { return depth; }
+	bool CheckDepth(string_view) const;
+	bool CreateImageFolder(const CommandContext&, const string&) const;
 	string GetDefaultImageFolder() const { return default_image_folder; }
 	string SetDefaultImageFolder(const string&);
-	bool IsValidSrcFilename(const string&);
-	bool IsValidDstFilename(const string&);
+	bool IsValidSrcFilename(const string&) const;
+	bool IsValidDstFilename(const string&) const;
 	bool CreateImage(const CommandContext&, const PbCommand&);
 	bool DeleteImage(const CommandContext&, const PbCommand&);
 	bool RenameImage(const CommandContext&, const PbCommand&);
@@ -40,5 +40,5 @@ public:
 private:
 
 	string default_image_folder;
-	int depth = -1;
+	int depth = 1;
 };

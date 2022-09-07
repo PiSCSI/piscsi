@@ -19,7 +19,7 @@
 //---------------------------------------------------------------------------
 #define USE_SEL_EVENT_ENABLE			// Check SEL signal by event
 // This avoids an indefinite loop with warnings if there is no RaSCSI hardware
-// and thus helps with running certain tests on X86 hardware.
-#if defined(__x86_64) || defined(__X86)
+// and thus helps with running rasctl and unit test on other hardware.
+#if !defined(__arm__)
 #undef USE_SEL_EVENT_ENABLE
 #endif

@@ -20,21 +20,23 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string&);
-	virtual ~ModePageDevice() {}
+	explicit ModePageDevice(const string&);
+	~ModePageDevice()override = default;
 
-	virtual bool Dispatch() override;
+	bool Dispatch() override;
+
+	vector<BYTE> InquiryInternal() const override = 0;
 
 	virtual void ModeSelect(const DWORD *, const BYTE *, int);
 
 protected:
 
-	int AddModePages(const DWORD *, BYTE *, int);
+	int AddModePages(const DWORD *, BYTE *, int) const;
 	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const = 0;
 
 private:
 
-	typedef PrimaryDevice super;
+	using super = PrimaryDevice;
 
 	Dispatcher<ModePageDevice> dispatcher;
 

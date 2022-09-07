@@ -18,10 +18,6 @@ Filepath::Filepath()
 	Clear();
 }
 
-Filepath::~Filepath()
-{
-}
-
 Filepath& Filepath::operator=(const Filepath& path)
 {
 	// Set path (split internally)
@@ -70,10 +66,10 @@ void Filepath::Split()
 
 	// Split
 	char *pDir = strdup(m_szPath);
-	char *pDirName = dirname(pDir);
+	const char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
 	char *pBaseName = basename(pBase);
-	char *pExtName = strrchr(pBaseName, '.');
+	const char *pExtName = strrchr(pBaseName, '.');
 
 	// Transmit
 	if (pDirName) {
@@ -108,20 +104,6 @@ const char *Filepath::GetFileExt() const
 
 	// Return as LPCTSTR
 	return (const char *)FileExt;
-}
-
-BOOL Filepath::Save(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
-}
-
-BOOL Filepath::Load(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------

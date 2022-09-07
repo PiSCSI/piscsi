@@ -20,10 +20,6 @@
 //
 //===========================================================================
 
-Fileio::Fileio()
-{
-}
-
 Fileio::~Fileio()
 {
 	ASSERT(handle == -1);
@@ -52,7 +48,7 @@ BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
 	return TRUE;
 }
 
-BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
+BOOL Fileio::Save(const Filepath& path, const void *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -149,9 +145,9 @@ BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 	return OpenDIO(path.GetPath(), mode);
 }
 
-BOOL Fileio::Read(void *buffer, int size)
+BOOL Fileio::Read(void *buffer, int size) const
 {
-	int count;
+	long count;
 
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -165,9 +161,9 @@ BOOL Fileio::Read(void *buffer, int size)
 	return TRUE;
 }
 
-BOOL Fileio::Write(const void *buffer, int size)
+BOOL Fileio::Write(const void *buffer, int size) const
 {
-	int count;
+	long count;
 
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -181,7 +177,7 @@ BOOL Fileio::Write(const void *buffer, int size)
 	return TRUE;
 }
 
-BOOL Fileio::Seek(off_t offset, BOOL relative)
+BOOL Fileio::Seek(off_t offset, BOOL relative) const
 {
 	ASSERT(handle >= 0);
 	ASSERT(offset >= 0);
@@ -198,7 +194,7 @@ BOOL Fileio::Seek(off_t offset, BOOL relative)
 	return TRUE;
 }
 
-off_t Fileio::GetFileSize()
+off_t Fileio::GetFileSize() const
 {
 	off_t cur;
 	off_t end;

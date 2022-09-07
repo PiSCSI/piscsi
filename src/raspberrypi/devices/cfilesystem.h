@@ -536,7 +536,7 @@ public:
 										///< Find file name
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
 										///< Find file name (with support for wildcards)
-	BOOL  isRefresh();							///< Check that the file change has been done
+	BOOL  isRefresh() const;							///< Check that the file change has been done
 	void  Refresh();							///< Refresh file
 	void  Backup();								/// Backup the time stamp on the host side
 	void  Restore() const;							/// Restore the time stamp on the host side
@@ -584,7 +584,7 @@ private:
 //===========================================================================
 class CHostFiles {
 public:
-	CHostFiles() { SetKey(0); Init(); }
+	CHostFiles() { SetKey(0); }
 	void  Init();
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
@@ -594,9 +594,8 @@ public:
 	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
 	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
 	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
-	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }
-											///< Set search attribute
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
+	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
+	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry) ;				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename*  Find(CHostPath* pPath);					///< Find file name
 	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
 	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
@@ -676,12 +675,12 @@ public:
 
 	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
 	BOOL  Open();									///< Open file
-	BOOL  Rewind(DWORD nOffset);							///< Seek file
+	BOOL  Rewind(DWORD nOffset) const;							///< Seek file
 	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file
 	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
-	BOOL  Truncate();								///< Truncate file
+	BOOL  Truncate() const;								///< Truncate file
 	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
-	BOOL  TimeStamp(DWORD nHumanTime);						///< Set file time stamp
+	BOOL  TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
 	BOOL  Close();									///< Close file
 
 private:
@@ -738,7 +737,7 @@ public:
 
 	BOOL  isWriteProtect() const { return m_bWriteProtect; }
 	BOOL  isEnable() const { return m_bEnable; }		///< Is it accessible?
-	BOOL  isMediaOffline();	
+	BOOL  isMediaOffline() const;
 	BYTE  GetMediaByte() const;
 	DWORD  GetStatus() const;
 	void  SetEnable(BOOL bEnable);						///< Set media status
@@ -751,9 +750,9 @@ public:
 	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
 	// Cache operations
-	void  CleanCache();							///< Update all cache
+	void  CleanCache() const;							///< Update all cache
 	void  CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
-	void  CleanCacheChild(const BYTE* szHumanPath);				///< Update all cache below the specified path
+	void  CleanCacheChild(const BYTE* szHumanPath) const;				///< Update all cache below the specified path
 	void  DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
 	CHostPath*  FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
 	CHostPath*  CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
@@ -764,9 +763,6 @@ private:
 	// Path name operations
 	static const BYTE*  SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer);
 										///< Split and copy the first element of the Human68k full path name
-
-	void  Lock() {}
-	void  Unlock() {}
 
 	/// For memory management
 	struct ring_t {
@@ -802,21 +798,21 @@ public:
 	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
 	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
 	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< Find host side name (path + file name (can be abbreviated) + attribute)
+	BOOL  Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
 	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
 	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);
 	BOOL  isWriteProtect(DWORD nUnit) const;
 	BOOL  isEnable(DWORD nUnit) const;					///< Is it accessible?
-	BOOL  isMediaOffline(DWORD nUnit);
+	BOOL  isMediaOffline(DWORD nUnit) const;
 	BYTE  GetMediaByte(DWORD nUnit) const;
 	DWORD  GetStatus(DWORD nUnit) const;					///< Get drive status
-	BOOL CheckMedia(DWORD nUnit);						///< Media change check
+	BOOL CheckMedia(DWORD nUnit) const;						///< Media change check
 	void Eject(DWORD nUnit);
 	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< Get volume label
 	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
-	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);
+	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
 	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
 										///< Get cluster size from cache
 
@@ -864,7 +860,7 @@ class CFileSys
 {
 public:
 	CFileSys();
-	virtual ~CFileSys() {};
+	virtual ~CFileSys() = default;
 
 	void Reset();								///< Reset (close all)
 	void Init();								///< Initialization (device startup and load)
@@ -894,22 +890,20 @@ public:
 	int Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset);	///< $4E - Seek file
 	DWORD TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime);
 										///< $4F - Get / set file timestamp
-	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);		///< $50 - Get capacity
+	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< $50 - Get capacity
 	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - Inspect / control drive status
-	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb);				///< $52 - Get DPB
+	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const;				///< $52 - Get DPB
 	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
-	int DiskWrite(DWORD nUnit);						///< $54 - Write sectors
+	int DiskWrite(DWORD nUnit) const;						///< $54 - Write sectors
 	int Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
-	int Flush(DWORD nUnit);							///< $56 - Flush
-	int CheckMedia(DWORD nUnit);						///< $57 - Media change check
-	int Lock(DWORD nUnit);							///< $58 - Lock
+	int Flush(DWORD nUnit) const;							///< $56 - Flush
+	int CheckMedia(DWORD nUnit) const;						///< $57 - Media change check
+	int Lock(DWORD nUnit) const;							///< $58 - Lock
 
 	void SetOption(DWORD nOption);						///< Set option
 	DWORD GetOption() const { return m_nOption; }		///< Get option
 	DWORD GetDefault() const { return m_nOptionDefault; }	///< Get default options
 	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
-	void ShellNotify(DWORD nEvent, const TCHAR* szPath)
-	{ m_cEntry.ShellNotify(nEvent, szPath); }			///< Notify host side file system status change
 
 	enum {
 		DriveMax = CHostEntry::DriveMax					///< Max number of drive candidates

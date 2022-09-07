@@ -17,8 +17,8 @@ class PhaseHandler
 {
 public:
 
-	PhaseHandler() {}
-	virtual ~PhaseHandler() {}
+	PhaseHandler() = default;
+	virtual ~PhaseHandler() = default;
 
 	virtual void SetPhase(BUS::phase_t) = 0;
 	virtual void BusFree() = 0;

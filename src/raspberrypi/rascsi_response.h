@@ -27,7 +27,7 @@ public:
 
 	RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
 		: device_factory(device_factory), rascsi_image(rascsi_image) {}
-	~RascsiResponse() {}
+	~RascsiResponse() = default;
 
 	bool GetImageFile(PbImageFile *, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
@@ -53,7 +53,7 @@ private:
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int);
+	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
 	void CreateOperation(PbOperationInfo *, PbOperationMetaData *, const PbOperation&, const string&);
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,

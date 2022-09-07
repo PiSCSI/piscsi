@@ -26,27 +26,6 @@ using namespace std;
 
 //---------------------------------------------------------------------------
 //
-//  Constant declarations
-//
-//---------------------------------------------------------------------------
-
-// Symbol definition for the VCD file
-// These are just arbitrary symbols. They can be anything allowed by the VCD file format,
-// as long as they're consistently used.
-#define SYMBOL_PIN_DAT '#'
-#define SYMBOL_PIN_ATN '+'
-#define SYMBOL_PIN_RST '$'
-#define SYMBOL_PIN_ACK '%'
-#define SYMBOL_PIN_REQ '^'
-#define SYMBOL_PIN_MSG '&'
-#define SYMBOL_PIN_CD '*'
-#define SYMBOL_PIN_IO '('
-#define SYMBOL_PIN_BSY ')'
-#define SYMBOL_PIN_SEL '-'
-#define SYMBOL_PIN_PHASE '='
-
-//---------------------------------------------------------------------------
-//
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
@@ -132,15 +111,15 @@ void parse_arguments(int argc, char *argv[])
 //---------------------------------------------------------------------------
 void print_copyright_text(int, char *[])
 {
-    LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
+    LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ")
     LOGINFO("version %s (%s, %s)",
             rascsi_get_version_string(),
             __DATE__,
-            __TIME__);
-    LOGINFO("Powered by XM6 TypeG Technology ");
-    LOGINFO("Copyright (C) 2016-2020 GIMONS");
-    LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
-    LOGINFO(" ");
+            __TIME__)
+    LOGINFO("Powered by XM6 TypeG Technology ")
+    LOGINFO("Copyright (C) 2016-2020 GIMONS")
+    LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project")
+    LOGINFO(" ")
 }
 
 //---------------------------------------------------------------------------
@@ -150,12 +129,12 @@ void print_copyright_text(int, char *[])
 //---------------------------------------------------------------------------
 void print_help_text(int, char *argv[])
 {
-    LOGINFO("%s -i [input file json] -b [buffer size] [output file]", argv[0]);
-    LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data");
-    LOGINFO("                              If -i option is not specified, scsimon will read the gpio pins");
-    LOGINFO("       -b [buffer size]     - Override the default buffer size of %d.", buff_size);
-    LOGINFO("       [output file]        - Base name of the output files. The file extension (ex: .json)");
-    LOGINFO("                              will be appended to this file name");
+    LOGINFO("%s -i [input file json] -b [buffer size] [output file]", argv[0])
+    LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data")
+    LOGINFO("                              If -i option is not specified, scsimon will read the gpio pins")
+    LOGINFO("       -b [buffer size]     - Override the default buffer size of %d.", buff_size)
+    LOGINFO("       [output file]        - Base name of the output files. The file extension (ex: .json)")
+    LOGINFO("                              will be appended to this file name")
 }
 
 //---------------------------------------------------------------------------
@@ -167,19 +146,19 @@ void Banner(int, char *[])
 {
     if (import_data)
     {
-        LOGINFO("Reading input file: %s", input_file_name);
+        LOGINFO("Reading input file: %s", input_file_name)
     }
     else
     {
-        LOGINFO("Reading live data from the GPIO pins");
-        LOGINFO("    Connection type : %s", CONNECT_DESC);
+        LOGINFO("Reading live data from the GPIO pins")
+        LOGINFO("    Connection type : %s", CONNECT_DESC)
     }
-    LOGINFO("    Data buffer size: %u", buff_size);
-    LOGINFO(" ");
-    LOGINFO("Generating output files:");
-    LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name);
-    LOGINFO("   %s - JSON file with raw data", json_file_name);
-    LOGINFO("   %s - HTML file with summary of commands", html_file_name);
+    LOGINFO("    Data buffer size: %u", buff_size)
+    LOGINFO(" ")
+    LOGINFO("Generating output files:")
+    LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name)
+    LOGINFO("   %s - JSON file with raw data", json_file_name)
+    LOGINFO("   %s - HTML file with summary of commands", html_file_name)
 }
 
 //---------------------------------------------------------------------------
@@ -207,7 +186,7 @@ bool Init()
     bus = new GPIOBUS();
     if (!bus->Init())
     {
-        LOGERROR("Unable to intiailize the GPIO bus. Exiting....");
+        LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;
     }
 
@@ -224,14 +203,14 @@ void Cleanup()
 {
     if (!import_data)
     {
-        LOGINFO("Stopping data collection....");
+        LOGINFO("Stopping data collection....")
     }
-    LOGINFO(" ");
-    LOGINFO("Generating %s...", vcd_file_name);
+    LOGINFO(" ")
+    LOGINFO("Generating %s...", vcd_file_name)
     scsimon_generate_value_change_dump(vcd_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s...", json_file_name);
+    LOGINFO("Generating %s...", json_file_name)
     scsimon_generate_json(json_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s...", html_file_name);
+    LOGINFO("Generating %s...", html_file_name)
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
     if (bus)
@@ -317,23 +296,22 @@ int main(int argc, char *argv[])
     // Output the Banner
     Banner(argc, argv);
 
-    data_buffer = (data_capture *)malloc(sizeof(data_capture_t) * buff_size);
-    bzero(data_buffer, sizeof(data_capture_t) * buff_size);
+    data_buffer = (data_capture *)calloc(buff_size, sizeof(data_capture_t));
 
     if (import_data)
     {
         data_idx = scsimon_read_json(input_file_name, data_buffer, buff_size);
         if (data_idx > 0)
         {
-            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name);
+            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name)
             Cleanup();
         }
         exit(0);
     }
 
-    LOGINFO(" ");
+    LOGINFO(" ")
     LOGINFO("Now collecting data.... Press CTRL-C to stop.")
-    LOGINFO(" ");
+    LOGINFO(" ")
 
     // Initialize
     int ret = 0;
@@ -360,9 +338,9 @@ int main(int argc, char *argv[])
     running = true;
     bus->SetACT(FALSE);
 
-    (void)gettimeofday(&start_time, NULL);
+    (void)gettimeofday(&start_time, nullptr);
 
-    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS);
+    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
 
     // Main Loop
     while (running)
@@ -372,12 +350,12 @@ int main(int argc, char *argv[])
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {
-            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
+            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")
             running = false;
         }
         if (data_idx >= (buff_size - 2))
         {
-            LOGINFO("Internal data buffer is full. SCSIMON is terminating.");
+            LOGINFO("Internal data buffer is full. SCSIMON is terminating.")
             running = false;
         }
 
@@ -391,7 +369,7 @@ int main(int argc, char *argv[])
             low_bits &= this_sample;
             if ((high_bits != prev_high) || (low_bits != prev_low))
             {
-                LOGDEBUG("   %08X    %08X\n", high_bits, low_bits);
+                LOGDEBUG("   %08X    %08X\n", high_bits, low_bits)
             }
             prev_high = high_bits;
             prev_low = low_bits;
@@ -399,7 +377,7 @@ int main(int argc, char *argv[])
             {
                 s.str("");
                 s << "Collected " << data_idx << " samples...";
-                LOGDEBUG("%s", s.str().c_str());
+                LOGDEBUG("%s", s.str().c_str())
             }
 #endif
             data_buffer[data_idx].data = this_sample;
@@ -419,23 +397,23 @@ int main(int argc, char *argv[])
         data_idx++;
     }
 
-    (void)gettimeofday(&stop_time, NULL);
+    (void)gettimeofday(&stop_time, nullptr);
 
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec * 1000000) + time_diff.tv_usec);
     s.str("");
     s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
-    LOGINFO("%s", s.str().c_str());
+    LOGINFO("%s", s.str().c_str())
     s.str("");
     s << "Collected " << data_idx << " changes";
-    LOGINFO("%s", s.str().c_str());
+    LOGINFO("%s", s.str().c_str())
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.
     ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
     s.str("");
     s << "Read the SCSI bus " << loop_count << " times with an average of " << ns_per_loop << " ns for each read";
-    LOGINFO("%s", s.str().c_str());
+    LOGINFO("%s", s.str().c_str())
 
     Cleanup();
 

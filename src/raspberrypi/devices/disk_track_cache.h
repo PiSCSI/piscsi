@@ -20,7 +20,7 @@
 #include "filepath.h"
 
 // Number of tracks to cache
-#define CacheMax 16
+static const int CACHE_MAX = 16;
 
 class DiskTrack
 {
@@ -61,12 +61,11 @@ class DiskCache
 {
 public:
 	// Internal data definition
-	typedef struct {
+	using cache_t = struct {
 		DiskTrack *disktrk;						// Disk Track
 		DWORD serial;							// Serial
-	} cache_t;
+	};
 
-public:
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache();
 
@@ -82,11 +81,11 @@ private:
 	// Internal Management
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
-	bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
+	bool Load(int index, int track, DiskTrack *disktrk = nullptr);	// Load track
 	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data
-	cache_t cache[CacheMax];						// Cache management
+	cache_t cache[CACHE_MAX];						// Cache management
 	DWORD serial;								// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)

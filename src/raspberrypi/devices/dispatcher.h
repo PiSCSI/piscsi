@@ -26,20 +26,21 @@ public:
 	Dispatcher() : commands({}) {}
 	~Dispatcher()
 	{
-		for (auto const& command : commands) {
-			delete command.second;
+		for (auto const& [name, command] : commands) {
+			delete command;
 		}
 	}
 
-	typedef struct _command_t {
+	using operation = void (T::*)();
+	using command_t = struct _command_t {
 		const char* name;
-		void (T::*execute)();
+		operation execute;
 
-		_command_t(const char* _name, void (T::*_execute)()) : name(_name), execute(_execute) { };
-	} command_t;
+		_command_t(const char* _name, operation _execute) : name(_name), execute(_execute) { };
+	};
 	unordered_map<scsi_command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)())
+	void AddCommand(scsi_command opcode, const char* name, operation execute)
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
@@ -48,7 +49,7 @@ public:
 	{
 		const auto& it = commands.find(static_cast<scsi_command>(cmd));
 		if (it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd);
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd)
 
 			(instance->*it->second->execute)();
 

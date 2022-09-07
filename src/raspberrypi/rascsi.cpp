@@ -46,8 +46,8 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-#define DEFAULT_PORT 6868
-#define COMPONENT_SEPARATOR ':'
+static const int DEFAULT_PORT = 6868;
+static const char COMPONENT_SEPARATOR = ':';
 
 //---------------------------------------------------------------------------
 //
@@ -56,7 +56,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-GPIOBUS *bus;						// GPIO Bus
+unique_ptr<GPIOBUS> bus;			// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
@@ -126,14 +126,13 @@ void Banner(int argc, char* argv[])
 
 bool InitService(int port)
 {
-	int result = pthread_mutex_init(&ctrl_mutex, NULL);
-	if (result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Error code: %d", result);
+	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS){
+		LOGERROR("Unable to create a mutex. Error code: %d", result)
 		return false;
 	}
 
 	// Create socket for monitor
-	struct sockaddr_in server;
+	sockaddr_in server;
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
@@ -141,22 +140,20 @@ bool InitService(int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
-	int yes = 1;
-	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	if (int yes = 1; setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return false;
 	}
 
 	signal(SIGPIPE, SIG_IGN);
 
 	// Bind
-	if (bind(monsocket, (struct sockaddr *)&server,
-		sizeof(struct sockaddr_in)) < 0) {
+	if (bind(monsocket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
 		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
 		return false;
 	}
 
 	// Create Monitor Thread
-	pthread_create(&monthread, NULL, MonThread, NULL);
+	pthread_create(&monthread, nullptr, MonThread, nullptr);
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -178,11 +175,10 @@ bool InitService(int port)
 bool InitBus()
 {
 	// GPIOBUS creation
-	bus = new GPIOBUS();
+	bus = make_unique<GPIOBUS>();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
-		delete bus;
 		return false;
 	}
 
@@ -197,9 +193,8 @@ void Cleanup()
 	DetachAll();
 
 	// Clean up and discard the bus
-	if (bus) {
+	if (bus != nullptr) {
 		bus->Cleanup();
-		delete bus;
 	}
 
 	// Close the monitor socket
@@ -308,25 +303,25 @@ bool SetLogLevel(const string& log_level)
 
 	current_log_level = log_level;
 
-	LOGINFO("Set log level to '%s'", current_log_level.c_str());
+	LOGINFO("Set log level to '%s'", current_log_level.c_str())
 
 	return true;
 }
 
-void LogDevices(const string& devices)
+void LogDevices(string_view devices)
 {
-	stringstream ss(devices);
+	stringstream ss(devices.data());
 	string line;
 
 	while (getline(ss, line, '\n')) {
-		LOGINFO("%s", line.c_str());
+		LOGINFO("%s", line.c_str())
 	}
 }
 
-string SetReservedIds(const string& ids)
+string SetReservedIds(string_view ids)
 {
 	list<string> ids_to_reserve;
-	stringstream ss(ids);
+	stringstream ss(ids.data());
     string id;
     while (getline(ss, id, ',')) {
     	if (!id.empty()) {
@@ -361,10 +356,10 @@ string SetReservedIds(const string& ids)
     		s += to_string(reserved_id);
     	}
 
-    	LOGINFO("Reserved ID(s) set to %s", s.c_str());
+    	LOGINFO("Reserved ID(s) set to %s", s.c_str())
     }
     else {
-    	LOGINFO("Cleared reserved ID(s)");
+    	LOGINFO("Cleared reserved ID(s)")
     }
 
 	return "";
@@ -374,7 +369,7 @@ void DetachAll()
 {
 	controller_manager.DeleteAllControllersAndDevices();
 
-	LOGINFO("Detached all devices");
+	LOGINFO("Detached all devices")
 }
 
 bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
@@ -405,7 +400,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	// If no filename was provided the medium is considered removed
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(device);
 	if (file_support != nullptr) {
 		device->SetRemoved(filename.empty());
 	}
@@ -426,12 +421,12 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			device->SetRevision(pb_device.revision());
 		}
 	}
-	catch(const illegal_argument_exception& e) {
+	catch(const illegal_argument_exception& e) { //NOSONAR This exception is handled properly
 		return ReturnStatus(context, false, e.get_msg());
 	}
 
 	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
+		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				device_factory.DeleteDevice(device);
@@ -518,8 +513,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
-	PrimaryDevice *primary_device = static_cast<PrimaryDevice *>(device);
-	if (!controller_manager.CreateScsiController(bus, primary_device)) {
+
+	if (auto primary_device = static_cast<PrimaryDevice *>(device);
+		!controller_manager.CreateScsiController(bus.get(), primary_device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
@@ -534,7 +530,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		msg += "protected ";
 	}
 	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
-	LOGINFO("%s", msg.c_str());
+	LOGINFO("%s", msg.c_str())
 
 	return true;
 }
@@ -556,8 +552,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		int lun = device->GetLun();
 		string type = device->GetType();
 
-		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support != nullptr) {
+		if (auto file_support = dynamic_cast<FileSupport *>(device); file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
@@ -571,7 +566,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun);
+		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
 	}
 
 	return true;
@@ -597,9 +592,9 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
 
-	Disk *disk = dynamic_cast<Disk *>(device);
+	auto disk = dynamic_cast<Disk *>(device);
 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
@@ -622,7 +617,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 	}
 
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(device);
 	try {
 		try {
 			file_support->Open(filepath);
@@ -638,7 +633,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			file_support->Open(filepath);
 		}
 	}
-	catch(const io_exception& e) {
+	catch(const io_exception& e) { //NOSONAR This exception is handled properly
 		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
@@ -685,13 +680,13 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (!params.empty()) {
 		s << ", command params=";
 		bool isFirst = true;
-		for (const auto& param: params) {
+		for (const auto& [key, value]: params) {
 			if (!isFirst) {
 				s << ", ";
 			}
 			isFirst = false;
-			string value = param.first != "token" ? param.second : "???";
-			s << "'" << param.first << "=" << value << "'";
+			string v = key != "token" ? value : "???";
+			s << "'" << key << "=" << v << "'";
 		}
 	}
 
@@ -700,19 +695,19 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	if (pb_device.params_size()) {
 		s << ", device params=";
 		bool isFirst = true;
-		for (const auto& param: pb_device.params()) {
+		for (const auto& [key, value]: pb_device.params()) {
 			if (!isFirst) {
 				s << ":";
 			}
 			isFirst = false;
-			s << "'" << param.first << "=" << param.second << "'";
+			s << "'" << key << "=" << value << "'";
 		}
 	}
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 			<< "', revision='" << pb_device.revision()
 			<< "', block size=" << pb_device.block_size();
-	LOGINFO("%s", s.str().c_str());
+	LOGINFO("%s", s.str().c_str())
 
 	// Check the Controller Number
 	if (id < 0) {
@@ -769,17 +764,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	switch (operation) {
 		case START:
 			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
+					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
 				}
 			}
 			break;
 
 		case STOP:
 			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// STOP is idempotent
 				device->Stop();
@@ -791,17 +786,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case EJECT:
 			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
+					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
 				}
 			}
 			break;
 
 		case PROTECT:
 			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// PROTECT is idempotent
 				device->SetProtected(true);
@@ -810,7 +805,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case UNPROTECT:
 			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
 
 				// UNPROTECT is idempotent
 				device->SetProtected(false);
@@ -826,7 +821,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		case CHECK_AUTHENTICATION:
 		case NO_OPERATION:
 			// Do nothing, just log
-			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
+			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str())
 			break;
 
 		default:
@@ -887,8 +882,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string result = ValidateLunSetup(command);
-	if (!result.empty()) {
+	if (string result = ValidateLunSetup(command); !result.empty()) {
 		return ReturnStatus(context, false, result);
 	}
 
@@ -911,10 +905,9 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	return ReturnStatus(context);
 }
 
-bool ProcessId(const string id_spec, int& id, int& unit)
+bool ProcessId(const string& id_spec, int& id, int& unit)
 {
-	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
-	if (separator_pos == string::npos) {
+	if (size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
 		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
 			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
@@ -955,25 +948,25 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	}
 
 	if (mode == "system") {
-		LOGINFO("System shutdown requested");
+		LOGINFO("System shutdown requested")
 
 		SerializeMessage(context.fd, result);
 
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			LOGERROR("System shutdown failed: %s", strerror(errno));
+			LOGERROR("System shutdown failed: %s", strerror(errno))
 		}
 	}
 	else if (mode == "reboot") {
-		LOGINFO("System reboot requested");
+		LOGINFO("System reboot requested")
 
 		SerializeMessage(context.fd, result);
 
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			LOGERROR("System reboot failed: %s", strerror(errno));
+			LOGERROR("System reboot failed: %s", strerror(errno))
 		}
 	}
 	else {
@@ -1033,8 +1026,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'F': {
-				string result = rascsi_image.SetDefaultImageFolder(optarg);
-				if (!result.empty()) {
+				if (string result = rascsi_image.SetDefaultImageFolder(optarg); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -1090,12 +1082,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
-			default:
-				return false;
-
 			case 1:
 				// Encountered filename
 				break;
+
+			default:
+				return false;
 		}
 
 		if (optopt) {
@@ -1111,8 +1103,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 		ParseParameters(*device, optarg);
 
-		size_t separator_pos = name.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
+		if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 			device->set_vendor(name.substr(0, separator_pos));
 			name = name.substr(separator_pos + 1);
 			separator_pos = name.find(COMPONENT_SEPARATOR);
@@ -1135,7 +1126,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	}
 
 	if (!log_level.empty() && !SetLogLevel(log_level)) {
-		LOGWARN("Invalid log level '%s'", log_level.c_str());
+		LOGWARN("Invalid log level '%s'", log_level.c_str())
 	}
 
 	// Attach all specified devices
@@ -1185,10 +1176,10 @@ void FixCpu(int cpu)
 //	Monitor Thread
 //
 //---------------------------------------------------------------------------
-static void *MonThread(void *)
+static void *MonThread(void *) //NOSONAR The pointer cannot be const void * because of the thread API
 {
     // Scheduler Settings
-	struct sched_param schedparam;
+	sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 
@@ -1209,10 +1200,10 @@ static void *MonThread(void *)
 
 		try {
 			// Wait for connection
-			struct sockaddr_in client;
+			sockaddr_in client;
 			socklen_t socklen = sizeof(client);
 			memset(&client, 0, socklen);
-			context.fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
+			context.fd = accept(monsocket, (sockaddr*)&client, &socklen);
 			if (context.fd < 0) {
 				throw io_exception("accept() failed");
 			}
@@ -1242,21 +1233,20 @@ static void *MonThread(void *)
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {
-				LOGERROR("Received unknown command with operation opcode %d", command.operation());
+				LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
 				ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
 				continue;
 			}
 
-			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
 
 			PbResult result;
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
 					string log_level = GetParam(command, "level");
-					bool status = SetLogLevel(log_level);
-					if (!status) {
+					if (bool status = SetLogLevel(log_level); !status) {
 						ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
 					}
 					else {
@@ -1266,9 +1256,8 @@ static void *MonThread(void *)
 				}
 
 				case DEFAULT_FOLDER: {
-					string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder"));
-					if (!result.empty()) {
-						ReturnStatus(context, false, result);
+					if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
+						ReturnStatus(context, false, status);
 					}
 					else {
 						ReturnStatus(context);
@@ -1317,16 +1306,15 @@ static void *MonThread(void *)
 				}
 
 				case IMAGE_FILE_INFO: {
-					string filename = GetParam(command, "file");
-					if (filename.empty()) {
+					if (string filename = GetParam(command, "file"); filename.empty()) {
 						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 					}
 					else {
-						PbImageFile* image_file = new PbImageFile();
-						bool status = rascsi_response.GetImageFile(image_file, filename);
+						auto image_file = make_unique<PbImageFile>();
+						bool status = rascsi_response.GetImageFile(image_file.get(), filename);
 						if (status) {
 							result.set_status(true);
-							result.set_allocated_image_file_info(image_file);
+							result.set_allocated_image_file_info(image_file.get());
 							SerializeMessage(context.fd, result);
 						}
 						else {
@@ -1378,7 +1366,7 @@ static void *MonThread(void *)
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.get_msg().c_str());
+			LOGWARN("%s", e.get_msg().c_str())
 
 			// Fall through
 		}
@@ -1404,15 +1392,14 @@ int main(int argc, char* argv[])
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	// TODO Move to unit test?
 	PbResult pb_operation_info_result;
-	const PbOperationInfo *operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
+	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
 	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
-	delete operation_info;
 #endif
 
 	BUS::phase_t phase;
 
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
-	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stdout, nullptr, _IONBF, 0);
 
 	// Output the Banner
 	Banner(argc, argv);
@@ -1450,8 +1437,8 @@ int main(int argc, char* argv[])
 	termination_handler.sa_handler = TerminationHandler;
 	sigemptyset(&termination_handler.sa_mask);
 	termination_handler.sa_flags = 0;
-	sigaction(SIGINT, &termination_handler, NULL);
-	sigaction(SIGTERM, &termination_handler, NULL);
+	sigaction(SIGINT, &termination_handler, nullptr);
+	sigaction(SIGTERM, &termination_handler, nullptr);
 
 	// Reset
 	Reset();
@@ -1459,7 +1446,7 @@ int main(int argc, char* argv[])
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
-	struct sched_param schparam;
+	sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
@@ -1491,6 +1478,7 @@ int main(int argc, char* argv[])
 #else
 		bus->Acquire();
 		if (!bus->GetSEL()) {
+			// TODO Why sleep for 0 microseconds?
 			usleep(0);
 			continue;
 		}

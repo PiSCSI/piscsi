@@ -18,14 +18,14 @@ using namespace std;
 
 class PrimaryDevice;
 
-class AbstractController : virtual public PhaseHandler
+class AbstractController : public PhaseHandler
 {
 public:
 
 	// Maximum number of logical units
 	static const int LUN_MAX = 32;
 
-	enum rascsi_shutdown_mode {
+	enum class rascsi_shutdown_mode {
 		NONE,
 		STOP_RASCSI,
 		STOP_PI,
@@ -35,7 +35,7 @@ public:
 	// Internal data definition
 	// TODO Some of these data are probably device specific, and in this case they should be moved.
 	// These data are not internal, otherwise they could all be private
-	typedef struct _ctrl_t {
+	using ctrl_t = struct _ctrl_t {
 		// General
 		BUS::phase_t phase = BUS::busfree;	// Transition phase
 
@@ -55,10 +55,10 @@ public:
 
 		// Logical units of this device controller mapped to their LUN numbers
 		unordered_map<int, PrimaryDevice *> luns;
-	} ctrl_t;
+	};
 
 	AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {}
-	virtual ~AbstractController() {}
+	~AbstractController() override = default;
 
 	virtual BUS::phase_t Process(int) = 0;
 
@@ -81,7 +81,7 @@ public:
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
-	int ExtractInitiatorId(int id_data);
+	int ExtractInitiatorId(int id_data) const;
 
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
@@ -91,7 +91,9 @@ protected:
 
 	BUS *bus;
 
-	int target_id;
-
 	ctrl_t ctrl = {};
+
+private:
+
+	int target_id;
 };
