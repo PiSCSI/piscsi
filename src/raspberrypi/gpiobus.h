@@ -187,7 +187,6 @@ const static int PIN_BSY = 26;				// BSY
 const static int PIN_SEL = 27;				// SEL
 #endif
 
-// TODO Is this type still relevant?
 #ifdef CONNECT_TYPE_AIBOM
 //
 // RaSCSI Adapter Aibom version
