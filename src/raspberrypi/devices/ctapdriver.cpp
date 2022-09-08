@@ -96,11 +96,11 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters")
 
 		// TODO Remove the deprecated syntax in a future version
-		const string& interfaces = params["interfaces"];
-		size_t separatorPos = interfaces.find(':');
+		const string& ifaces = params["interfaces"];
+		size_t separatorPos = ifaces.find(':');
 		if (separatorPos != string::npos) {
-			params["interface"] = interfaces.substr(0, separatorPos);
-			params["inet"] = interfaces.substr(separatorPos + 1);
+			params["interface"] = ifaces.substr(0, separatorPos);
+			params["inet"] = ifaces.substr(separatorPos + 1);
 		}
 	}
 
@@ -165,15 +165,15 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		LOGTRACE("Checking which interface is available for creating the bridge")
 
 		string bridge_interface;
-		for (const string& interface : interfaces) {
-			if (is_interface_up(interface)) {
-				LOGTRACE("%s", string("Interface " + interface + " is up").c_str())
+		for (const string& iface : interfaces) {
+			if (is_interface_up(iface)) {
+				LOGTRACE("%s", string("Interface " + iface + " is up").c_str())
 
-				bridge_interface = interface;
+				bridge_interface = iface;
 				break;
 			}
 			else {
-				LOGTRACE("%s", string("Interface " + interface + " is not available or is not up").c_str())
+				LOGTRACE("%s", string("Interface " + iface + " is not available or is not up").c_str())
 			}
 		}
 
@@ -208,8 +208,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		else {
 			string address = inet;
 			string netmask = "255.255.255.0";
-			size_t separatorPos = inet.find('/');
-			if (separatorPos != string::npos) {
+			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
 				int m;
@@ -223,7 +222,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				}
 
 				// long long is required for compatibility with 32 bit platforms
-				long long mask = pow(2, 32) - (1 << (32 - m));
+				auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
 				char buf[16];
 				sprintf(buf, "%lld.%lld.%lld.%lld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff,
 						mask & 0xff);
@@ -464,9 +463,9 @@ int CTapDriver::Rx(BYTE *buf)
 	}
 
 	// Receive
-	DWORD dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
+	auto dwReceived = (DWORD)read(m_hTAP, buf, ETH_FRAME_LEN);
 	if (dwReceived == (DWORD)-1) {
-		LOGWARN("%s Error occured while receiving an packet", __PRETTY_FUNCTION__)
+		LOGWARN("%s Error occured while receiving a packet", __PRETTY_FUNCTION__)
 		return 0;
 	}
 
@@ -524,5 +523,5 @@ int CTapDriver::Tx(const BYTE *buf, int len)
 	}
 
 	// Start sending
-	return write(m_hTAP, buf, len);
+	return (int)write(m_hTAP, buf, len);
 }

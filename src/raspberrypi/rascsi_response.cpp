@@ -156,8 +156,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 					string filename = folder + "/" + dir->d_name;
 
-					struct stat st;
-					if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+					if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
 							LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
 							continue;
@@ -174,8 +173,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 					}
 
 					if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-						auto image_file = make_unique<PbImageFile>();
-						if (GetImageFile(image_file.get(), filename)) {
+						if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
 							GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
 						}
 					}
@@ -258,8 +256,8 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 	auto devices_info = make_unique<PbDevicesInfo>().release();
 	result.set_allocated_devices_info(devices_info);
 
-	for (const auto& id_set : id_sets) {
-		GetDevice(device_factory->GetDeviceByIdAndLun(id_set.first, id_set.second), devices_info->add_devices());
+	for (const auto& [id, lun] : id_sets) {
+		GetDevice(device_factory->GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
 	}
 
 	result.set_status(true);
@@ -341,8 +339,8 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	auto mapping_info = make_unique<PbMappingInfo>().release();
 
-	for (const auto& mapping : device_factory->GetExtensionMapping()) {
-		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
+	for (const auto& [name, type] : device_factory->GetExtensionMapping()) {
+		(*mapping_info->mutable_mapping())[name] = type;
 	}
 
 	result.set_status(true);

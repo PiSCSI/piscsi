@@ -28,6 +28,8 @@ public:
 
 	SCSIPrinter();
 	~SCSIPrinter() final;
+	SCSIPrinter(SCSIPrinter&) = delete;
+	SCSIPrinter& operator=(const SCSIPrinter&) = delete;
 
 	bool Dispatch() override;
 

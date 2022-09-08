@@ -44,6 +44,9 @@ public:
 
 	Fileio() = default;
 	virtual ~Fileio();
+	Fileio(Fileio&) = delete;
+	Fileio& operator=(const Fileio&) = delete;
+
 	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
 	BOOL Save(const Filepath& path, const void *buffer, int size);	// Save RAM
 

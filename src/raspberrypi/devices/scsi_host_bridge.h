@@ -36,6 +36,8 @@ public:
 
 	SCSIBR();
 	~SCSIBR() final;
+	SCSIBR(SCSIBR&) = delete;
+	SCSIBR& operator=(const SCSIBR&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch() override;

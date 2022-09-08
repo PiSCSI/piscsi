@@ -36,7 +36,7 @@ const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
 // TODO Disk should not be the superclass
-SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP"), dispatcher({})
+SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
@@ -161,7 +161,7 @@ vector<BYTE> SCSIDaynaPort::InquiryInternal() const
 int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 {
 	int rx_packet_size = 0;
-	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
+	auto response = (scsi_resp_read_t*)buf;
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
@@ -175,6 +175,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 
 	// Some of the packets we receive will not be for us. So, we'll keep pulling messages
 	// until the buffer is empty, or we've read X times. (X is just a made up number)
+	// TODO send_message_to_host is effctively always true
 	bool send_message_to_host;
 	int read_count = 0;
 	while (read_count < MAX_READ_RETRIES) {
@@ -259,8 +260,8 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 				// breaks because of this, the work-around has to be re-evaluated.
 				size = 64;
 			}
-			buf[0] = size >> 8;
-			buf[1] = size;
+			buf[0] = (BYTE)(size >> 8);
+			buf[1] = (BYTE)size;
 
 			buf[2] = 0;
 			buf[3] = 0;
@@ -315,7 +316,7 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 {
-	BYTE data_format = cdb[5];
+	auto data_format = (BYTE)cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
 
 	if (data_format == 0x00){
@@ -355,7 +356,7 @@ bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer) const
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	int allocation_length = cdb[4] + (cdb[3] << 8);
 
 	// memset(buffer,0,18);
 	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
@@ -548,7 +549,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 
 void SCSIDaynaPort::SetMcastAddr()
 {
-	ctrl->length = (DWORD)ctrl->cmd[4];
+	ctrl->length = ctrl->cmd[4];
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2])
 

@@ -94,7 +94,7 @@ DWORD CDTrack::GetBlocks() const
 	ASSERT(first_lba < last_lba);
 
 	// Calculate from start LBA and end LBA
-	return (DWORD)(last_lba - first_lba + 1);
+	return last_lba - first_lba + 1;
 }
 
 int CDTrack::GetTrackNo() const

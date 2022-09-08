@@ -106,14 +106,14 @@
 #define CONNECT_DESC "STANDARD"				// Startup message
 
 // Select signal control mode
-#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
+const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification
 
 // Control signal pin assignment (-1 means no control)
-#define	PIN_ACT		4						// ACTIVE
-#define	PIN_ENB		5						// ENABLE
-#define PIN_IND		-1						// INITIATOR CTRL DIRECTION
-#define PIN_TAD		-1						// TARGET CTRL DIRECTION
-#define PIN_DTD		-1						// DATA DIRECTION
+const static int PIN_ACT =		4;			// ACTIVE
+const static int PIN_ENB =		5;			// ENABLE
+const static int PIN_IND =		-1;			// INITIATOR CTRL DIRECTION
+const static int PIN_TAD =		-1;			// TARGET CTRL DIRECTION
+const static int PIN_DTD =		-1;			// DATA DIRECTION
 
 // Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
@@ -123,24 +123,24 @@
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
-#define	PIN_DT0		10						// Data 0
-#define	PIN_DT1		11						// Data 1
-#define	PIN_DT2		12						// Data 2
-#define	PIN_DT3		13						// Data 3
-#define	PIN_DT4		14						// Data 4
-#define	PIN_DT5		15						// Data 5
-#define	PIN_DT6		16						// Data 6
-#define	PIN_DT7		17						// Data 7
-#define	PIN_DP		18						// Data parity
-#define	PIN_ATN		19						// ATN
-#define	PIN_RST		20						// RST
-#define	PIN_ACK		21						// ACK
-#define	PIN_REQ		22						// REQ
-#define	PIN_MSG		23						// MSG
-#define	PIN_CD		24						// CD
-#define	PIN_IO		25						// IO
-#define	PIN_BSY		26						// BSY
-#define	PIN_SEL		27						// SEL
+const static int 	PIN_DT0 =	10;			// Data 0
+const static int 	PIN_DT1	=	11;			// Data 1
+const static int 	PIN_DT2	=	12;			// Data 2
+const static int 	PIN_DT3	=	13;			// Data 3
+const static int 	PIN_DT4	=	14;			// Data 4
+const static int 	PIN_DT5	=	15;			// Data 5
+const static int 	PIN_DT6	=	16;			// Data 6
+const static int 	PIN_DT7	=	17;			// Data 7
+const static int 	PIN_DP =	18;			// Data parity
+const static int 	PIN_ATN	=	19;			// ATN
+const static int 	PIN_RST	=	20;			// RST
+const static int 	PIN_ACK	=	21;			// ACK
+const static int 	PIN_REQ	=	22;			// REQ
+const static int 	PIN_MSG	=	23;			// MSG
+const static int 	PIN_CD =	24;			// CD
+const static int 	PIN_IO =	25;			// IO
+const static int 	PIN_BSY	=	26;			// BSY
+const static int 	PIN_SEL	=	27;			// SEL
 #endif
 
 #ifdef CONNECT_TYPE_FULLSPEC
@@ -175,14 +175,14 @@ const static int PIN_DT4 = 14;				// Data 4
 const static int PIN_DT5 = 15;				// Data 5
 const static int PIN_DT6 = 16;				// Data 6
 const static int PIN_DT7 = 17;				// Data 7
-const static int PIN_DP	=  18;				// Data parity
+const static int PIN_DP	 = 18;				// Data parity
 const static int PIN_ATN = 19;				// ATN
 const static int PIN_RST = 20;				// RST
 const static int PIN_ACK = 21;				// ACK
 const static int PIN_REQ = 22;				// REQ
 const static int PIN_MSG = 23;				// MSG
-const static int PIN_CD	=  24;				// CD
-const static int PIN_IO	=  25;				// IO
+const static int PIN_CD	 = 24;				// CD
+const static int PIN_IO	 = 25;				// IO
 const static int PIN_BSY = 26;				// BSY
 const static int PIN_SEL = 27;				// SEL
 #endif
@@ -195,7 +195,7 @@ const static int PIN_SEL = 27;				// SEL
 #define CONNECT_DESC "AIBOM PRODUCTS version"		// Startup message
 
 // Select signal control mode
-#define SIGNAL_CONTROL_MODE 2				// SCSI positive logic specification
+const static int SIGNAL_CONTROL_MODE = 2;	// SCSI positive logic specification
 
 // Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
@@ -205,31 +205,31 @@ const static int PIN_SEL = 27;				// SEL
 #define DTD_IN		FALSE					// DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
-#define	PIN_ACT		4						// ACTIVE
-#define	PIN_ENB		17						// ENABLE
-#define PIN_IND		27						// INITIATOR CTRL DIRECTION
-#define PIN_TAD		-1						// TARGET CTRL DIRECTION
-#define PIN_DTD		18						// DATA DIRECTION
+const static int PIN_ACT	=	4;			// ACTIVE
+const static int PIN_ENB	=	17;			// ENABLE
+const static int PIN_IND	=	27;			// INITIATOR CTRL DIRECTION
+const static int PIN_TAD	=	-1;			// TARGET CTRL DIRECTION
+const static int PIN_DTD	=	18;			// DATA DIRECTION
 
 // SCSI signal pin assignment
-#define	PIN_DT0		6						// Data 0
-#define	PIN_DT1		12						// Data 1
-#define	PIN_DT2		13						// Data 2
-#define	PIN_DT3		16						// Data 3
-#define	PIN_DT4		19						// Data 4
-#define	PIN_DT5		20						// Data 5
-#define	PIN_DT6		26						// Data 6
-#define	PIN_DT7		21						// Data 7
-#define	PIN_DP		5						// Data parity
-#define	PIN_ATN		22						// ATN
-#define	PIN_RST		25						// RST
-#define	PIN_ACK		10						// ACK
-#define	PIN_REQ		7						// REQ
-#define	PIN_MSG		9						// MSG
-#define	PIN_CD		11						// CD
-#define	PIN_IO		23						// IO
-#define	PIN_BSY		24						// BSY
-#define	PIN_SEL		8						// SEL
+const static int PIN_DT0	=	6;			// Data 0
+const static int PIN_DT1	=	12;			// Data 1
+const static int PIN_DT2	=	13;			// Data 2
+const static int PIN_DT3	=	16;			// Data 3
+const static int PIN_DT4	=	19;			// Data 4
+const static int PIN_DT5	=	20;			// Data 5
+const static int PIN_DT6	=	26;			// Data 6
+const static int PIN_DT7	=	21;			// Data 7
+const static int PIN_DP		=	5;			// Data parity
+const static int PIN_ATN	=	22;			// ATN
+const static int PIN_RST	=	25;			// RST
+const static int PIN_ACK	=	10;			// ACK
+const static int PIN_REQ	=	7;			// REQ
+const static int PIN_MSG	=	9;			// MSG
+const static int PIN_CD		=	11;			// CD
+const static int PIN_IO		=	23;			// IO
+const static int PIN_BSY	=	24;			// BSY
+const static int PIN_SEL	=	8;			// SEL
 #endif
 
 // TODO Is this type stil relevant?
@@ -241,7 +241,7 @@ const static int PIN_SEL = 27;				// SEL
 #define CONNECT_DESC "GAMERnium.com version"// Startup message
 
 // Select signal control mode
-#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
+const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification
 
 // Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
@@ -251,31 +251,31 @@ const static int PIN_SEL = 27;				// SEL
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
-#define	PIN_ACT		14						// ACTIVE
-#define	PIN_ENB		6						// ENABLE
-#define PIN_IND		7						// INITIATOR CTRL DIRECTION
-#define PIN_TAD		8						// TARGET CTRL DIRECTION
-#define PIN_DTD		5						// DATA DIRECTION
+const static int PIN_ACT =		14;			// ACTIVE
+const static int PIN_ENB =		6;			// ENABLE
+const static int PIN_IND =		7;			// INITIATOR CTRL DIRECTION
+const static int PIN_TAD =		8;			// TARGET CTRL DIRECTION
+const static int PIN_DTD =		5;			// DATA DIRECTION
 
 // SCSI signal pin assignment
-#define	PIN_DT0		21						// Data 0
-#define	PIN_DT1		26						// Data 1
-#define	PIN_DT2		20						// Data 2
-#define	PIN_DT3		19						// Data 3
-#define	PIN_DT4		16						// Data 4
-#define	PIN_DT5		13						// Data 5
-#define	PIN_DT6		12						// Data 6
-#define	PIN_DT7		11						// Data 7
-#define	PIN_DP		25						// Data parity
-#define	PIN_ATN		10						// ATN
-#define	PIN_RST		22						// RST
-#define	PIN_ACK		24						// ACK
-#define	PIN_REQ		15						// REQ
-#define	PIN_MSG		17						// MSG
-#define	PIN_CD		18						// CD
-#define	PIN_IO		4						// IO
-#define	PIN_BSY		27						// BSY
-#define	PIN_SEL		23						// SEL
+const static int PIN_DT0	=	21;			// Data 0
+const static int PIN_DT1	=	26;			// Data 1
+const static int PIN_DT2	=	20;			// Data 2
+const static int PIN_DT3	=	19;			// Data 3
+const static int PIN_DT4	=	16;			// Data 4
+const static int PIN_DT5	=	13;			// Data 5
+const static int PIN_DT6	=	12;			// Data 6
+const static int PIN_DT7	=	11;			// Data 7
+const static int PIN_DP		=	25;			// Data parity
+const static int PIN_ATN	=	10;			// ATN
+const static int PIN_RST	=	22;			// RST
+const static int PIN_ACK	=	24;			// ACK
+const static int PIN_REQ	=	15;			// REQ
+const static int PIN_MSG	=	17;			// MSG
+const static int PIN_CD		=	18;			// CD
+const static int PIN_IO		=	4;			// IO
+const static int PIN_BSY	=	27;			// BSY
+const static int PIN_SEL	=	23;			// SEL
 #endif
 
 #define ALL_SCSI_PINS \

@@ -357,6 +357,9 @@ class CRing {
 public:
 	CRing() { Init(); }
 	~CRing() { Remove(); }
+	CRing(CRing&) = delete;
+	CRing& operator=(const CRing&) = delete;
+
 	void  Init() { next = prev = this; }
 
 	CRing*  Next() const { return next; }			///< Get the next element
@@ -525,6 +528,9 @@ public:
 
 	CHostPath();
 	~CHostPath();
+	CHostPath(CHostPath&) = delete;
+	CHostPath& operator=(const CHostPath&) = delete;
+
 	void  Clean();								///< Initialialize for reuse
 
 	void  SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
@@ -662,6 +668,9 @@ class CHostFcb {
 public:
 	CHostFcb() { SetKey(0); Init(); }
 	~CHostFcb() { Close(); }
+	CHostFcb(CHostFcb&) = delete;
+	CHostFcb& operator=(const CHostFcb&) = delete;
+
 	void  Init();
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
@@ -733,6 +742,9 @@ class CHostDrv
 public:
 	CHostDrv();
 	~CHostDrv();
+	CHostDrv(CHostDrv&) = delete;
+	CHostDrv& operator=(const CHostDrv&) = delete;
+
 	void  Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
 	BOOL  isWriteProtect() const { return m_bWriteProtect; }
@@ -789,6 +801,9 @@ class CHostEntry {
 public:
 	CHostEntry();
 	~CHostEntry();
+	CHostEntry(CHostEntry&) = delete;
+	CHostEntry& operator=(const CHostEntry&) = delete;
+
 	void  Init();								///< Initialization (when the driver is installed)
 	void  Clean();								///< Release (when starting up or resetting)
 

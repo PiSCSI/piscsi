@@ -21,6 +21,8 @@ class ControllerManager
 {
 	ControllerManager() = default;
 	~ControllerManager();
+	ControllerManager(ControllerManager&) = delete;
+	ControllerManager& operator=(const ControllerManager&) = delete;
 
 public:
 	// Maximum number of controller devices
