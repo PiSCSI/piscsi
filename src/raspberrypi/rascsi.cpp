@@ -106,7 +106,8 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
 		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension if no explicit type is specified.\n");
-		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic HD image)\n");
+		FPRT(stdout,"  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n");
+		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
 		FPRT(stdout,"  hdr : SCSI HD image (Removable generic HD image)\n");
 		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");

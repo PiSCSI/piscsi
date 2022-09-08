@@ -13,6 +13,7 @@
 //	[ SCSI hard disk ]
 //
 //---------------------------------------------------------------------------
+
 #include "scsihd.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
@@ -21,8 +22,11 @@
 
 static const char *DEFAULT_PRODUCT = "SCSI HD";
 
-SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
+	: Disk(removable ? "SCRM" : "SCHD")
 {
+	this->scsi_level = level;
+
 	SetSectorSizes(sector_sizes);
 }
 
@@ -95,7 +99,7 @@ void SCSIHD::Open(const Filepath& path)
 
 vector<BYTE> SCSIHD::InquiryInternal() const
 {
-	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
+	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
 void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)

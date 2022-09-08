@@ -29,6 +29,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
+	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0))  << "Allocation length was not limited";
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 1))  << "Allocation length was not limited";
 
 	cdb[2] = 0x00;

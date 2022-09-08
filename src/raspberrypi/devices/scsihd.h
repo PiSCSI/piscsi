@@ -22,8 +22,9 @@
 class SCSIHD : public Disk, public FileSupport
 {
 public:
-	SCSIHD(const unordered_set<uint32_t>&, bool);
-	~SCSIHD() override = default;
+
+	SCSIHD(const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
+	virtual ~SCSIHD() {}
 
 	void FinalizeSetup(const Filepath&, off_t);
 
@@ -36,4 +37,8 @@ public:
 
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+
+private:
+
+	scsi_defs::scsi_level scsi_level;
 };

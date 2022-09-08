@@ -55,6 +55,7 @@ DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_param
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 	default_params[SCLP]["timeout"] = "30";
 
+	extension_mapping["hd1"] = SCHD;
 	extension_mapping["hds"] = SCHD;
 	extension_mapping["hda"] = SCHD;
 	extension_mapping["hdn"] = SCHD;
@@ -172,7 +173,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_unique<SCSIHD_NEC>();
 		} else {
-			device = make_unique<SCSIHD>(sector_sizes[SCHD], false);
+			device = make_unique<SCSIHD>(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {

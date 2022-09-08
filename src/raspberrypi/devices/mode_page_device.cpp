@@ -32,7 +32,7 @@ bool ModePageDevice::Dispatch()
 
 int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const
 {
-	if (max_length <= 0) {
+	if (max_length < 0) {
 		return 0;
 	}
 
