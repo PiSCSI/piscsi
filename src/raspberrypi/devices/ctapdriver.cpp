@@ -107,9 +107,9 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	stringstream s(params["interface"]);
 	string interface;
 	while (getline(s, interface, ',')) {
-		this->interfaces.push_back(interface);
+		interfaces.push_back(interface);
 	}
-	this->inet = params["inet"];
+	inet = params["inet"];
 
 	LOGTRACE("Opening Tap device")
 	// TAP device initilization

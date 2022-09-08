@@ -86,7 +86,7 @@ BUS::phase_t ScsiController::Process(int id)
 		LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__)
 	}
 
-	this->initiator_id = id;
+	initiator_id = id;
 
 	try {
 		// Phase processing

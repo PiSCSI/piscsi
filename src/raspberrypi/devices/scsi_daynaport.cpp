@@ -86,7 +86,7 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 		LOGDEBUG("Tap interface created")
 	}
 
-	this->Reset();
+	Reset();
 	SetReady(true);
 	SetReset(false);
 
