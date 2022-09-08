@@ -1,0 +1,115 @@
+# Docker Environment for Development and Testing
+
+⚠️ **Important:** The Docker environment is unable to connect to the RaSCSI board and is
+intended for development and testing purposes only. To setup RaSCSI on a Raspberry Pi
+refer to the [setup instructions](https://github.com/akuker/RASCSI/wiki/Setup-Instructions)
+on the wiki instead.
+
+## Introduction
+
+This documentation currently focuses on using Docker for developing and testing the web UI.
+
+Additions, amendments and contributions for additional workflows are most welcome.
+
+## Getting Started
+
+The easiest way to launch a new environment is to use Docker Compose.
+
+```
+cd docker
+docker compose up
+```
+
+Containers will be built and started for the RaSCSI server and the web UI.
+
+The web UI can be accessed at:
+
+* http://localhost:8080
+* https://localhost:8443
+
+To stop the containers, press *Ctrl + C*, or run `docker compose stop` 
+from another terminal.
+
+## Environment Variables
+
+The following environment variables are available when using Docker Compose:
+
+| Environment Variable | Default  |
+| -------------------- | -------- |
+| `OS_DISTRO`          | debian   |
+| `OS_VERSION`         | buster   |
+| `OS_ARCH`            | amd64    |
+| `WEB_HTTP_PORT`      | 8080     |
+| `WEB_HTTPS_PORT`     | 8443     |
+| `WEB_LOG_LEVEL`      | info     |
+| `RASCSI_HOST`        | rascsi   |
+| `RASCSI_PORT`        | 6868     |
+| `RASCSI_PASSWORD`    | *[None]* |
+| `RASCSI_LOG_LEVEL`   | debug    |
+
+**Examples:**
+
+Run Debian "bullseye":
+```
+OS_VERSION=bullseye docker compose up
+```
+
+Start the web UI with the log level set to debug:
+```
+WEB_LOG_LEVEL=debug docker compose up
+```
+
+## Volumes
+
+When using Docker Compose the following volumes will be mounted automatically:
+
+| Local Path              | Container Path           |
+| ----------------------- | ------------------------ |
+| docker/volumes/images/  | /home/pi/images/         |
+| docker/volumes/config/  | /home/pi/.config/rascsi/ |
+
+
+## How To
+
+### Rebuild Containers
+
+You should rebuild the container images after checking out a different version of
+RaSCSI or making changes which affect the environment at build time, e.g. 
+`easyinstall.sh`.
+
+```
+docker compose up --build
+```
+
+### Open a Shell on a Running Container
+
+Run the following command, replacing `[CONTAINER]` with `rascsi` or `rascsi_web`.
+
+```
+docker compose exec [CONTAINER] bash
+```
+
+### Setup Live Editing for the Web UI
+
+Use a `docker-compose.override.yml` to mount the local `python` directory to
+`/home/pi/RASCSI/python/` in the `rascsi_web` container.
+
+Any changes to *.py files on the host computer (i.e. in your IDE) will trigger
+the web UI process to be restarted in the container.
+
+**Example:**
+```
+services:
+  rascsi_web:
+    volumes:
+      - ../python:/home/pi/RASCSI/python:delegated
+```
+
+### Connect the Web UI to a Real RaSCSI
+
+This can be useful for testing, but there are some caveats, e.g. the RaSCSI and the
+web UI will be accessing separate `images` directories.
+
+```
+RASCSI_HOST=foo RASCSI_PASSWORD=bar docker compose up
+```

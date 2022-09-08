@@ -10,6 +10,7 @@ import pathlib
 from tempfile import TemporaryDirectory
 from re import escape, match
 from json import loads, JSONDecodeError
+from shutil import move
 from util.run import run
 
 FORK_OUTPUT_TYPE_VISIBLE = "visible"
@@ -140,7 +141,7 @@ def extract_archive(file_path, **kwargs):
                 # The parent dir may not be specified as a member, so ensure it exists
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 logging.debug("Moving temp file: %s -> %s", source_path, target_path)
-                source_path.rename(target_path)
+                move(source_path, target_path)
                 moved.append(member)
 
             return {
