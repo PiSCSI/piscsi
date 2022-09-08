@@ -86,6 +86,7 @@ public:
 protected:
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
 	using super = Disk;

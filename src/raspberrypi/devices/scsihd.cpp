@@ -110,24 +110,10 @@ void SCSIHD::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Vendor special page to make drive Apple compatible
-//
-//---------------------------------------------------------------------------
 void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
 	// Page code 48
-	if (page != 0x30 && page != 0x3f) {
-		return;
+	if (page == 0x30 || page == 0x3f) {
+		scsi_command_util::AddAppleVendorModePage(pages, page, changeable);
 	}
-
-	vector<BYTE> buf(30);
-
-	// No changeable area
-	if (!changeable) {
-		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
-	}
-
-	pages[48] = buf;
 }

@@ -72,13 +72,14 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
-	EXPECT_EQ(6, mode_pages.size()) << "Unexpected number of code pages";
+	EXPECT_EQ(7, mode_pages.size()) << "Unexpected number of code pages";
 	EXPECT_EQ(12, mode_pages[1].size());
 	EXPECT_EQ(24, mode_pages[3].size());
 	EXPECT_EQ(24, mode_pages[4].size());
 	EXPECT_EQ(12, mode_pages[8].size());
 	EXPECT_EQ(8, mode_pages[13].size());
 	EXPECT_EQ(16, mode_pages[14].size());
+	EXPECT_EQ(30, mode_pages[48].size());
 }
 
 TEST(ModePagesTest, SCSIMO_AddModePages)
