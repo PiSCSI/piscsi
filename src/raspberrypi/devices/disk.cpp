@@ -57,12 +57,9 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 
 Disk::~Disk()
 {
-	// Save disk cache
-	if (IsReady()) {
-		// Only if ready...
-		if (disk.dcache) {
-			disk.dcache->Save();
-		}
+	// Save disk cache, only if ready
+	if (IsReady() && disk.dcache) {
+		disk.dcache->Save();
 	}
 
 	delete disk.dcache;
