@@ -42,7 +42,7 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 		LOGERROR("Can't if_nametoindex: %s", strerror(errno))
 		return false;
 	}
-	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
+	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		LOGERROR("Can't ioctl %s: %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", strerror(errno))
 		return false;
