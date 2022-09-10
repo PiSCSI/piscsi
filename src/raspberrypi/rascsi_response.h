@@ -31,7 +31,7 @@ public:
 	RascsiResponse(RascsiResponse&) = delete;
 	RascsiResponse& operator=(const RascsiResponse&) = delete;
 
-	bool GetImageFile(PbImageFile *, const string&);
+	bool GetImageFile(PbImageFile *, const string&) const;
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
 	void GetDevices(PbServerInfo&);

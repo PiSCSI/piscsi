@@ -439,7 +439,7 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t crc32(BYTE *buf, int length) {
+uint32_t crc32(const BYTE *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];

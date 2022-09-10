@@ -115,7 +115,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	}
 } //NOSONAR The alloced memory is managed by protobuf
 
-bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename)
+bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename) const
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);

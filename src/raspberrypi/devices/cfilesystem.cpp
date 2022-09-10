@@ -1049,7 +1049,7 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 void CHostFilename::SetEntryName()
 {
 	// Set file name
-	BYTE* p = m_szHuman;
+	const BYTE* p = m_szHuman;
 	size_t i;
 	for (i = 0; i < 8; i++) {
 		if (p < m_pszHumanExt)
@@ -2092,7 +2092,7 @@ BOOL CHostFiles::Find(DWORD nUnit, const CHostEntry* pEntry)
 /// Find file name
 //
 //---------------------------------------------------------------------------
-const CHostFilename* CHostFiles::Find(CHostPath* pPath)
+const CHostFilename* CHostFiles::Find(const CHostPath* pPath)
 {
 	ASSERT(pPath);
 
@@ -2721,7 +2721,7 @@ DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 /// $41 - Directory check
 //
 //---------------------------------------------------------------------------
-int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
@@ -2748,7 +2748,7 @@ int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $42 - Create directory
 //
 //---------------------------------------------------------------------------
-int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
@@ -2790,7 +2790,7 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $43 - Delete directory
 //
 //---------------------------------------------------------------------------
-int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
@@ -2840,7 +2840,7 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $44 - Change file name
 //
 //---------------------------------------------------------------------------
-int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew)
+int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew) const
 {
 	ASSERT(pNamests);
 
@@ -2898,7 +2898,7 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 /// $45 - Delete file
 //
 //---------------------------------------------------------------------------
-int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
@@ -2938,7 +2938,7 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $46 - Get/set file attribute
 //
 //---------------------------------------------------------------------------
-int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute)
+int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute) const
 {
 	ASSERT(pNamests);
 
