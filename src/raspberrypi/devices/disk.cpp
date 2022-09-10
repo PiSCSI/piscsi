@@ -60,7 +60,9 @@ Disk::~Disk()
 	// Save disk cache
 	if (IsReady()) {
 		// Only if ready...
-		FlushCache();
+		if (disk.dcache) {
+			disk.dcache->Save();
+		}
 	}
 
 	delete disk.dcache;

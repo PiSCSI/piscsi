@@ -11,14 +11,13 @@
 
 #pragma once
 
-#include "scsi_primary_commands.h"
-
-class ScsiBlockCommands : virtual public ScsiPrimaryCommands
+class ScsiBlockCommands
 {
+
 public:
 
 	ScsiBlockCommands() = default;
-	~ScsiBlockCommands() override = default;
+	virtual ~ScsiBlockCommands() = default;
 
 	// Mandatory commands
 	virtual void FormatUnit() = 0;

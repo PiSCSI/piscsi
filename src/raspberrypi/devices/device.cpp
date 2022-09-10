@@ -14,13 +14,9 @@
 #include "rascsi_exceptions.h"
 #include "device.h"
 
-unordered_set<Device *> Device::devices;
-
 Device::Device(const string& t) : type(t)
 {
 	assert(type.length() == 4);
-
-	devices.insert(this);
 
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);

@@ -48,11 +48,9 @@ DiskTrack::~DiskTrack()
 	// Release memory, but do not save automatically
 	if (dt.buffer) {
 		free(dt.buffer);
-		dt.buffer = nullptr;
 	}
 	if (dt.changemap) {
 		free(dt.changemap);
-		dt.changemap = nullptr;
 	}
 }
 

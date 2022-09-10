@@ -25,45 +25,6 @@
 extern DeviceFactory& device_factory;
 extern ControllerManager& controller_manager;
 
-class MockBus : public BUS
-{
-public:
-
-	MOCK_METHOD(bool, Init, (mode_e), (override));
-	MOCK_METHOD(void, Reset, (), (override));
-	MOCK_METHOD(void, Cleanup, (), (override));
-	MOCK_METHOD(bool, GetBSY, (), (const override));
-	MOCK_METHOD(void, SetBSY, (bool), (override));
-	MOCK_METHOD(bool, GetSEL, (), (const override));
-	MOCK_METHOD(void, SetSEL, (bool), (override));
-	MOCK_METHOD(bool, GetATN, (), (const override));
-	MOCK_METHOD(void, SetATN, (bool), (override));
-	MOCK_METHOD(bool, GetACK, (), (const override));
-	MOCK_METHOD(void, SetACK, (bool), (override));
-	MOCK_METHOD(bool, GetRST, (), (const override));
-	MOCK_METHOD(void, SetRST, (bool), (override));
-	MOCK_METHOD(bool, GetMSG, (), (const override));
-	MOCK_METHOD(void, SetMSG, (bool), (override));
-	MOCK_METHOD(bool, GetCD, (), (const override));
-	MOCK_METHOD(void, SetCD, (bool), (override));
-	MOCK_METHOD(bool, GetIO, (), (override));
-	MOCK_METHOD(void, SetIO, (bool), (override));
-	MOCK_METHOD(bool, GetREQ, (), (const override));
-	MOCK_METHOD(void, SetREQ, (bool), (override));
-	MOCK_METHOD(BYTE, GetDAT, (), (override));
-	MOCK_METHOD(void, SetDAT, (BYTE), (override));
-	MOCK_METHOD(bool, GetDP, (), (const, override));
-	MOCK_METHOD(DWORD, Acquire,(), (override));
-	MOCK_METHOD(int, CommandHandShake, (BYTE *), (override));
-	MOCK_METHOD(int, ReceiveHandShake, (BYTE *, int), (override));
-	MOCK_METHOD(int, SendHandShake, (BYTE *, int, int), (override));
-	MOCK_METHOD(bool, GetSignal, (int), (const, override));
-	MOCK_METHOD(void, SetSignal, (int, bool), (override));
-
-	MockBus() = default;
-	~MockBus() final = default;
-};
-
 class MockAbstractController : public AbstractController
 {
 public:

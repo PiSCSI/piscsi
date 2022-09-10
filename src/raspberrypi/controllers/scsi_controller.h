@@ -69,7 +69,7 @@ class ScsiController : public AbstractController
 
 public:
 
-	ScsiController(BUS *, int);
+	ScsiController(shared_ptr<BUS>, int);
 	~ScsiController() override;
 	ScsiController(ScsiController&) = delete;
 	ScsiController& operator=(const ScsiController&) = delete;

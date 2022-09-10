@@ -32,7 +32,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 	properties->set_stoppable(device->IsStoppable());
 	properties->set_removable(device->IsRemovable());
 	properties->set_lockable(device->IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(device) != nullptr);
 	properties->set_supports_params(device->SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
@@ -56,9 +56,9 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	const Device *device = device_factory->CreateDevice(type, "", -1);
+	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	device_factory->DeleteDevice(device);
+	device_factory->DeleteDevice(device); //NOSONAR The alloced memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
@@ -94,7 +94,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
-	if (device->SupportsParams()) {
+	if (device->SupportsParams()) { //NOSONAR The alloced memory is managed by protobuf
 		for (const auto& [key, value] : device->GetParams()) {
 			AddParam(*pb_device, key, value);
 		}
@@ -113,7 +113,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
-}
+} //NOSONAR The alloced memory is managed by protobuf
 
 bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename)
 {
@@ -209,7 +209,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
-	result.set_status(true);
+	result.set_status(true); //NOSONAR The alloced memory is managed by protobuf
 }
 
 PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
@@ -280,14 +280,14 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 	auto server_info = make_unique<PbServerInfo>().release();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level)); //NOSONAR The alloced memory is managed by protobuf
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The alloced memory is managed by protobuf
 	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
-	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info);
+	server_info->set_allocated_mapping_info(GetMappingInfo(result)); //NOSONAR The alloced memory is managed by protobuf
+	GetDevices(*server_info); //NOSONAR The alloced memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
-	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth)); //NOSONAR The alloced memory is managed by protobuf
 
 	result.set_status(true);
 

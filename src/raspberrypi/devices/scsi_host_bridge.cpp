@@ -304,8 +304,8 @@ void SCSIBR::SendMessage10()
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
 		delete[] ctrl->buffer;
-		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 	}
 
 	// Set transfer amount

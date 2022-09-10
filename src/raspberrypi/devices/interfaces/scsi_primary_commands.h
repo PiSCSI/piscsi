@@ -13,6 +13,7 @@
 
 class ScsiPrimaryCommands
 {
+
 public:
 
 	ScsiPrimaryCommands() = default;

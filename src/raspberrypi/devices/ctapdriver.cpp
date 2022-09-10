@@ -25,7 +25,7 @@
 #include "rascsi_exceptions.h"
 #include <sstream>
 
-#define BRIDGE_NAME "rascsi_bridge"
+static const char *BRIDGE_NAME = "rascsi_bridge";
 
 using namespace std;
 using namespace ras_util;
@@ -381,7 +381,8 @@ void CTapDriver::Cleanup()
 	}
 }
 
-bool CTapDriver::Enable(){
+bool CTapDriver::Enable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", true);
@@ -389,7 +390,8 @@ bool CTapDriver::Enable(){
 	return result;
 }
 
-bool CTapDriver::Disable(){
+bool CTapDriver::Disable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", false);
@@ -397,7 +399,8 @@ bool CTapDriver::Disable(){
 	return result;
 }
 
-void CTapDriver::Flush(){
+void CTapDriver::Flush()
+{
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);

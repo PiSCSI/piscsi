@@ -212,11 +212,8 @@ void SCSIPrinter::SendDiagnostic()
 
 void SCSIPrinter::StopPrint()
 {
-	CheckReservation();
-
-	// Nothing to do, printing has not yet been started
-
-	EnterStatusPhase();
+	// Both command implemntations are identical
+	TestUnitReady();
 }
 
 bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
@@ -234,7 +231,7 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length)
 
-	uint32_t num_written = (uint32_t)write(fd, buf, length);
+	auto num_written = (uint32_t)write(fd, buf, length);
 
 	return num_written == length;
 }

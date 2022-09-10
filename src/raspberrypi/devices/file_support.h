@@ -21,14 +21,10 @@ using id_set = pair<int, int>;
 
 class FileSupport
 {
-	friend class ControllerManager;
-
 	Filepath diskpath;
 
 	// The list of image files in use and the IDs and LUNs using these files
 	static unordered_map<string, id_set> reserved_files;
-
-	static void UnreserveAll();
 
 public:
 
@@ -42,6 +38,7 @@ public:
 
 	void ReserveFile(const Filepath&, int, int) const;
 	void UnreserveFile();
+	static void UnreserveAll();
 
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)

@@ -23,14 +23,12 @@ using namespace rascsi_interface;
 
 using Geometry = pair<uint32_t, uint32_t>;
 
-class Device;
+class PrimaryDevice;
 
 class DeviceFactory
 {
-	friend class ControllerManager;
-
 	DeviceFactory();
-	~DeviceFactory();
+	~DeviceFactory() = default;
 	DeviceFactory(DeviceFactory&) = delete;
 	DeviceFactory& operator=(const DeviceFactory&) = delete;
 
@@ -38,10 +36,11 @@ public:
 
 	static DeviceFactory& instance();
 
-	Device *CreateDevice(PbDeviceType, const string&, int);
-	void DeleteDevice(const Device *) const;
-	const Device *GetDeviceByIdAndLun(int, int) const;
-	list<Device *> GetAllDevices() const;
+	PrimaryDevice *CreateDevice(PbDeviceType, const string&, int);
+	void DeleteDevice(const PrimaryDevice *) const;
+	void DeleteAllDevices() const;
+	const PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
+	list<PrimaryDevice *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
@@ -50,8 +49,6 @@ public:
 	unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
 private:
-
-	void DeleteAllDevices() const;
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
@@ -64,5 +61,5 @@ private:
 
 	string GetExtension(const string&) const;
 
-	static std::multimap<int, Device *> devices;
+	static std::multimap<int, unique_ptr<PrimaryDevice>> devices;
 };

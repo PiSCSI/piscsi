@@ -53,8 +53,8 @@ public:
 	int Rx(BYTE *buf);						// Receive
 	int Tx(const BYTE *buf, int len);					// Send
 	bool PendingPackets();						// Check if there are IP packets available
-	bool Enable();						// Enable the ras0 interface
-	bool Disable();				// Disable the ras0 interface
+	bool Enable() const;		// Enable the ras0 interface
+	bool Disable() const;		// Disable the ras0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:

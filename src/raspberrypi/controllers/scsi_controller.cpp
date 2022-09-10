@@ -23,7 +23,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS *bus, int target_id) : AbstractController(bus, target_id)
+ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.

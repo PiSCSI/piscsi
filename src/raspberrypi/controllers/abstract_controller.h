@@ -13,6 +13,7 @@
 
 #include "phase_handler.h"
 #include <unordered_map>
+#include <memory>
 
 using namespace std;
 
@@ -57,7 +58,7 @@ public:
 		unordered_map<int, PrimaryDevice *> luns;
 	};
 
-	AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {}
+	AbstractController(shared_ptr<BUS> bus, int target_id) : bus(bus), target_id(target_id) {}
 	~AbstractController() override = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
@@ -91,7 +92,7 @@ public:
 
 protected:
 
-	BUS *bus;
+	shared_ptr<BUS> bus;
 
 	ctrl_t ctrl = {};
 

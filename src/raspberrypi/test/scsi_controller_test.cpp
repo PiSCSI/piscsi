@@ -12,8 +12,7 @@
 
 TEST(ScsiControllerTest, ScsiController)
 {
-	MockBus bus;
-	MockScsiController controller(&bus, 0);
+	MockScsiController controller(nullptr, 0);
 
 	EXPECT_EQ(32, controller.GetMaxLuns());
 

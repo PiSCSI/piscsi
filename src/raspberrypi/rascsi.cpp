@@ -56,7 +56,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-unique_ptr<GPIOBUS> bus;			// GPIO Bus
+shared_ptr<GPIOBUS> bus;			// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
@@ -176,7 +176,7 @@ bool InitService(int port)
 bool InitBus()
 {
 	// GPIOBUS creation
-	bus = make_unique<GPIOBUS>();
+	bus = make_shared<GPIOBUS>();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
@@ -261,7 +261,7 @@ string ValidateLunSetup(const PbCommand& command)
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const Device *device : device_factory.GetAllDevices()) {
+	for (const auto device : device_factory.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
@@ -368,7 +368,9 @@ string SetReservedIds(string_view ids)
 
 void DetachAll()
 {
-	controller_manager.DeleteAllControllersAndDevices();
+	controller_manager.DeleteAllControllers();
+	DeviceFactory::instance().DeleteAllDevices();
+	FileSupport::UnreserveAll();
 
 	LOGINFO("Detached all devices")
 }
@@ -390,7 +392,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	string filename = GetParam(pb_device, "file");
 
-	Device *device = device_factory.CreateDevice(type, filename, id);
+	PrimaryDevice *device = device_factory.CreateDevice(type, filename, id);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
@@ -450,7 +452,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	Filepath filepath;
-	if (file_support && !filename.empty()) {
+	if (file_support != nullptr && !filename.empty()) {
 		filepath.SetPath(filename.c_str());
 		string initial_filename = filepath.GetPath();
 
@@ -512,11 +514,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				", unit " +to_string(unit) + " failed");
 	}
 
-	// Replace with the newly created unit
 	pthread_mutex_lock(&ctrl_mutex);
 
-	if (auto primary_device = static_cast<PrimaryDevice *>(device);
-		!controller_manager.CreateScsiController(bus.get(), primary_device)) {
+	if (!controller_manager.CreateScsiController(bus, device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
@@ -1510,7 +1510,7 @@ int main(int argc, char* argv[])
 		pthread_mutex_lock(&ctrl_mutex);
 
 		// Identify the responsible controller
-		AbstractController *controller = controller_manager.IdentifyController(id_data);
+		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
