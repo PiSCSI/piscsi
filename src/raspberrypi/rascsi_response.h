@@ -28,6 +28,8 @@ public:
 	RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
 		: device_factory(device_factory), rascsi_image(rascsi_image) {}
 	~RascsiResponse() = default;
+	RascsiResponse(RascsiResponse&) = delete;
+	RascsiResponse& operator=(const RascsiResponse&) = delete;
 
 	bool GetImageFile(PbImageFile *, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
