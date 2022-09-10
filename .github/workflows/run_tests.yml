@@ -1,6 +1,6 @@
 name: Run automated unit tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   Tests_and_SonarCloud_Analysis:
