@@ -212,8 +212,8 @@ bool WaitPhase(BUS::phase_t phase)
 	DWORD now;
 
 	// Timeout (3000ms)
-	now = SysTimer::instance()->GetTimerLow();
-	while ((SysTimer::instance()->GetTimerLow() - now) < 3 * 1000 * 1000) {
+	now = SysTimer::GetTimerLow();
+	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
 			return true;
