@@ -36,8 +36,8 @@ public:
 	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
-	void DeleteAllControllers();
-	void ResetAllControllers();
+	void DeleteAllControllers() const;
+	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 
 	inline static unordered_map<int, shared_ptr<AbstractController>> controllers;

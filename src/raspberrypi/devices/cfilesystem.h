@@ -802,45 +802,46 @@ private:
 //
 //===========================================================================
 class CHostEntry {
+
 public:
+
+	/// Max number of drive candidates
+	static const int DRIVE_MAX = 10;
+
 	CHostEntry();
 	~CHostEntry();
 	CHostEntry(CHostEntry&) = delete;
 	CHostEntry& operator=(const CHostEntry&) = delete;
 
-	void  Init();								///< Initialization (when the driver is installed)
-	void  Clean();								///< Release (when starting up or resetting)
+	void Init() const;							///< Initialization (when the driver is installed)
+	void Clean();								///< Release (when starting up or resetting)
 
 	// Cache operations
-	void  CleanCache() const;							///< Update all cache
-	void  CleanCache(DWORD nUnit);						///< Update cache for the specified unit
-	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
-	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
-	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
-	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
+	void CleanCache() const;							///< Update all cache
+	void CleanCache(DWORD nUnit) const;						///< Update cache for the specified unit
+	void CleanCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache for the specified path
+	void CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache below the specified path
+	void DeleteCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Delete cache for the specified path
+	BOOL Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
+	void ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
-	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);
-	BOOL  isWriteProtect(DWORD nUnit) const;
-	BOOL  isEnable(DWORD nUnit) const;					///< Is it accessible?
-	BOOL  isMediaOffline(DWORD nUnit) const;
-	BYTE  GetMediaByte(DWORD nUnit) const;
-	DWORD  GetStatus(DWORD nUnit) const;					///< Get drive status
+	void SetDrv(DWORD nUnit, CHostDrv* pDrv);
+	BOOL isWriteProtect(DWORD nUnit) const;
+	BOOL isEnable(DWORD nUnit) const;					///< Is it accessible?
+	BOOL isMediaOffline(DWORD nUnit) const;
+	BYTE GetMediaByte(DWORD nUnit) const;
+	DWORD GetStatus(DWORD nUnit) const;					///< Get drive status
 	BOOL CheckMedia(DWORD nUnit) const;						///< Media change check
-	void Eject(DWORD nUnit);
-	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< Get volume label
-	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
-	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-										///< Get cluster size from cache
-
-	enum {
-		DriveMax = 10							///< Max number of drive candidates
-	};
+	void Eject(DWORD nUnit) const;
+	void GetVolume(DWORD nUnit, TCHAR* szLabel) const;				///< Get volume label
+	BOOL GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	DWORD GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
+	BOOL GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
 
 private:
-	CHostDrv* m_pDrv[DriveMax];						///< Host side drive object
+
+	CHostDrv* m_pDrv[DRIVE_MAX];					///< Host side drive object
 	DWORD m_nTimeout;							///< Last time a timeout check was carried out
 };
 
@@ -925,7 +926,7 @@ public:
 	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
 
 	enum {
-		DriveMax = CHostEntry::DriveMax					///< Max number of drive candidates
+		DriveMax = CHostEntry::DRIVE_MAX					///< Max number of drive candidates
 	};
 
 private:

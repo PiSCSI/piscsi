@@ -49,12 +49,12 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 	return it == controllers.end() ? nullptr : it->second;
 }
 
-void ControllerManager::DeleteAllControllers()
+void ControllerManager::DeleteAllControllers() const
 {
 	controllers.clear();
 }
 
-void ControllerManager::ResetAllControllers()
+void ControllerManager::ResetAllControllers() const
 {
 	for (const auto& [id, controller] : controllers) {
 		controller->Reset();
