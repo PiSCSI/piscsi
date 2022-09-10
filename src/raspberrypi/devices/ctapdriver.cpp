@@ -70,7 +70,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	return true;
 }
 
-static bool is_interface_up(const string& interface) {
+static bool is_interface_up(string_view interface) {
 	string file = "/sys/class/net/";
 	file += interface;
 	file += "/carrier";
@@ -407,7 +407,7 @@ void CTapDriver::Flush()
 	}
 }
 
-void CTapDriver::GetMacAddr(BYTE *mac)
+void CTapDriver::GetMacAddr(BYTE *mac) const
 {
 	ASSERT(mac);
 
@@ -419,7 +419,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-bool CTapDriver::PendingPackets()
+bool CTapDriver::PendingPackets() const
 {
 	pollfd fds;
 
