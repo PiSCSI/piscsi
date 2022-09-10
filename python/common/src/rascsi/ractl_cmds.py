@@ -40,7 +40,7 @@ class RaCtlCmds:
         version = (str(result.server_info.version_info.major_version) + "." +
                    str(result.server_info.version_info.minor_version) + "." +
                    str(result.server_info.version_info.patch_version))
-        log_levels = result.server_info.log_level_info.log_levels
+        log_levels = list(result.server_info.log_level_info.log_levels)
         current_log_level = result.server_info.log_level_info.current_log_level
         reserved_ids = list(result.server_info.reserved_ids_info.ids)
         image_dir = result.server_info.image_files_info.default_image_folder
@@ -113,7 +113,7 @@ class RaCtlCmds:
         result = proto.PbResult()
         result.ParseFromString(data)
         ifs = result.network_interfaces_info.name
-        return {"status": result.status, "ifs": ifs}
+        return {"status": result.status, "ifs": list(ifs)}
 
     def get_device_types(self):
         """
@@ -140,7 +140,7 @@ class RaCtlCmds:
                     "removable": device.properties.removable,
                     "supports_file": device.properties.supports_file,
                     "params": params,
-                    "block_sizes": device.properties.block_sizes,
+                    "block_sizes": list(device.properties.block_sizes),
                     }
         return {"status": result.status, "device_types": device_types}
 
@@ -394,7 +394,7 @@ class RaCtlCmds:
 
             dpath = result.devices_info.devices[i].file.name
             dfile = dpath.replace(image_files_info["images_dir"] + "/", "")
-            dparam = result.devices_info.devices[i].params
+            dparam = dict(result.devices_info.devices[i].params)
             dven = result.devices_info.devices[i].vendor
             dprod = result.devices_info.devices[i].product
             drev = result.devices_info.devices[i].revision
