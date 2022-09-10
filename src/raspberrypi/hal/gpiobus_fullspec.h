@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #pragma once
-
 //
 // RaSCSI standard (SCSI logic, standard pin assignment)
 //
@@ -42,14 +41,13 @@ const static int PIN_DT4 = 14;				// Data 4
 const static int PIN_DT5 = 15;				// Data 5
 const static int PIN_DT6 = 16;				// Data 6
 const static int PIN_DT7 = 17;				// Data 7
-const static int PIN_DP	=  18;				// Data parity
+const static int PIN_DP	 = 18;				// Data parity
 const static int PIN_ATN = 19;				// ATN
 const static int PIN_RST = 20;				// RST
 const static int PIN_ACK = 21;				// ACK
 const static int PIN_REQ = 22;				// REQ
 const static int PIN_MSG = 23;				// MSG
-const static int PIN_CD	=  24;				// CD
-const static int PIN_IO	=  25;				// IO
+const static int PIN_CD	 = 24;				// CD
+const static int PIN_IO	 = 25;				// IO
 const static int PIN_BSY = 26;				// BSY
 const static int PIN_SEL = 27;				// SEL
-
