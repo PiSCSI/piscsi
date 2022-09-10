@@ -34,6 +34,7 @@ private:
 
 	CDTrack() = default;
 	virtual ~CDTrack() final = default;
+	CDTrack(CDTrack&) = delete;
 
 public:
 
@@ -65,14 +66,15 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
+	// Maximum number of tracks
+	static const int TRACK_MAX = 96;
 
 public:
-	enum {
-		TrackMax = 96							// Maximum number of tracks
-	};
 
 	explicit SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD() override;
+	SCSICD(SCSICD&) = delete;
+	SCSICD& operator=(const SCSICD&) = delete;
 
 	bool Dispatch() override;
 
@@ -89,6 +91,7 @@ protected:
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
+
 	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
@@ -111,7 +114,7 @@ private:
 	// Track management
 	void ClearTrack();						// Clear the track
 	int SearchTrack(DWORD lba) const;		// Track search
-	CDTrack* track[TrackMax] = {};			// Track opbject references
+	CDTrack* track[TRACK_MAX] = {};			// Track opbject references
 	int tracks = 0;							// Effective number of track objects
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track

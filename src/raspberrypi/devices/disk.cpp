@@ -23,7 +23,7 @@
 
 using namespace scsi_defs;
 
-Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands(), dispatcher({})
+Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 {
 	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
@@ -98,8 +98,7 @@ void Disk::Open(const Filepath& path)
 	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
-	Fileio fio;
-	if (fio.Open(path, Fileio::ReadWrite)) {
+	if (Fileio fio; fio.Open(path, Fileio::ReadWrite)) {
 		// Write permission
 		fio.Close();
 	} else {
@@ -341,7 +340,7 @@ bool Disk::Eject(bool force)
 int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Get length, clear buffer
-	int length = (int)cdb[4];
+	auto length = (int)cdb[4];
 	if (length > max_length) {
 		length = max_length;
 	}
@@ -360,16 +359,16 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
 
 			uint64_t disk_blocks = GetBlockCount();
-			buf[4] = disk_blocks >> 24;
-			buf[5] = disk_blocks >> 16;
-			buf[6] = disk_blocks >> 8;
-			buf[7] = disk_blocks;
+			buf[4] = (BYTE)(disk_blocks >> 24);
+			buf[5] = (BYTE)(disk_blocks >> 16);
+			buf[6] = (BYTE)(disk_blocks >> 8);
+			buf[7] = (BYTE)disk_blocks;
 
 			// Block descriptor (block length)
 			uint32_t disk_size = GetSectorSizeInBytes();
-			buf[9] = disk_size >> 16;
-			buf[10] = disk_size >> 8;
-			buf[11] = disk_size;
+			buf[9] = (BYTE)(disk_size >> 16);
+			buf[10] = (BYTE)(disk_size >> 8);
+			buf[11] = (BYTE)disk_size;
 		}
 
 		size = 12;
@@ -386,7 +385,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 
 	// Final setting of mode data length
-	buf[0] = size;
+	buf[0] = (BYTE)size;
 
 	return size;
 }
@@ -417,14 +416,14 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 				// Short LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[8] = disk_blocks >> 24;
-				buf[9] = disk_blocks >> 16;
-				buf[10] = disk_blocks >> 8;
-				buf[11] = disk_blocks;
+				buf[8] = (BYTE)(disk_blocks >> 24);
+				buf[9] = (BYTE)(disk_blocks >> 16);
+				buf[10] = (BYTE)(disk_blocks >> 8);
+				buf[11] = (BYTE)disk_blocks;
 
-				buf[13] = disk_size >> 16;
-				buf[14] = disk_size >> 8;
-				buf[15] = disk_size;
+				buf[13] = (BYTE)(disk_size >> 16);
+				buf[14] = (BYTE)(disk_size >> 8);
+				buf[15] = (BYTE)disk_size;
 
 				size = 16;
 			}
@@ -437,19 +436,19 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 				// Long LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[8] = disk_blocks >> 56;
-				buf[9] = disk_blocks >> 48;
-				buf[10] = disk_blocks >> 40;
-				buf[11] = disk_blocks >> 32;
-				buf[12] = disk_blocks >> 24;
-				buf[13] = disk_blocks >> 16;
-				buf[14] = disk_blocks >> 8;
-				buf[15] = disk_blocks;
+				buf[8] = (BYTE)(disk_blocks >> 56);
+				buf[9] = (BYTE)(disk_blocks >> 48);
+				buf[10] = (BYTE)(disk_blocks >> 40);
+				buf[11] = (BYTE)(disk_blocks >> 32);
+				buf[12] = (BYTE)(disk_blocks >> 24);
+				buf[13] = (BYTE)(disk_blocks >> 16);
+				buf[14] = (BYTE)(disk_blocks >> 8);
+				buf[15] = (BYTE)disk_blocks;
 
-				buf[20] = disk_size >> 24;
-				buf[21] = disk_size >> 16;
-				buf[22] = disk_size >> 8;
-				buf[23] = disk_size;
+				buf[20] = (BYTE)(disk_size >> 24);
+				buf[21] = (BYTE)(disk_size >> 16);
+				buf[22] = (BYTE)(disk_size >> 8);
+				buf[23] = (BYTE)disk_size;
 
 				size = 24;
 			}
@@ -467,8 +466,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 
 	// Final setting of mode data length
-	buf[0] = size >> 8;
-	buf[1] = size;
+	buf[0] = (BYTE)(size >> 8);
+	buf[1] = (BYTE)size;
 
 	return size;
 }
@@ -989,14 +988,14 @@ uint32_t Disk::GetSectorSizeInBytes() const
 	return disk.size ? 1 << disk.size : 0;
 }
 
-void Disk::SetSectorSizeInBytes(uint32_t size)
+void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 {
-	unordered_set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
-	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
-		throw io_exception("Invalid block size of " + to_string(size) + " bytes");
+	if (unordered_set<uint32_t> sizes = DeviceFactory::instance().GetSectorSizes(GetType());
+		!sizes.empty() && sizes.find(size_in_bytes) == sizes.end()) {
+		throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
 	}
 
-	switch (size) {
+	switch (size_in_bytes) {
 		case 512:
 			disk.size = 9;
 			break;
@@ -1024,9 +1023,9 @@ uint32_t Disk::GetSectorSizeShiftCount() const
 	return disk.size;
 }
 
-void Disk::SetSectorSizeShiftCount(uint32_t size)
+void Disk::SetSectorSizeShiftCount(uint32_t shift_count)
 {
-	disk.size = size;
+	disk.size = shift_count;
 }
 
 bool Disk::IsSectorSizeConfigurable() const
@@ -1034,9 +1033,9 @@ bool Disk::IsSectorSizeConfigurable() const
 	return !sector_sizes.empty();
 }
 
-void Disk::SetSectorSizes(const unordered_set<uint32_t>& sector_sizes)
+void Disk::SetSectorSizes(const unordered_set<uint32_t>& sizes)
 {
-	this->sector_sizes = sector_sizes;
+	sector_sizes = sizes;
 }
 
 uint32_t Disk::GetConfiguredSectorSize() const
@@ -1044,16 +1043,16 @@ uint32_t Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
+bool Disk::SetConfiguredSectorSize(uint32_t size)
 {
 	const DeviceFactory& device_factory = DeviceFactory::instance();
 
-	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
-	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
+	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
+		sizes.find(size) == sizes.end()) {
 		return false;
 	}
 
-	this->configured_sector_size = configured_sector_size;
+	configured_sector_size = size;
 
 	return true;
 }

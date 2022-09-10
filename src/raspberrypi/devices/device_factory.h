@@ -31,6 +31,8 @@ class DeviceFactory
 
 	DeviceFactory();
 	~DeviceFactory();
+	DeviceFactory(DeviceFactory&) = delete;
+	DeviceFactory& operator=(const DeviceFactory&) = delete;
 
 public:
 

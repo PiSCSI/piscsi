@@ -42,6 +42,8 @@ private:
 public:
 	DiskTrack();
 	~DiskTrack();
+	DiskTrack(DiskTrack&) = delete;
+	DiskTrack& operator=(const DiskTrack&) = delete;
 
 private:
 	friend class DiskCache;
@@ -68,6 +70,8 @@ public:
 
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache();
+	DiskCache(DiskCache&) = delete;
+	DiskCache& operator=(const DiskCache&) = delete;
 
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 

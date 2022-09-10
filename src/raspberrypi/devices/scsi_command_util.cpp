@@ -27,7 +27,7 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 			if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
 					buf[11] != (BYTE)sector_size) {
 				// See below for details
-				LOGWARN("In order to change the sector size use the -b option when launching rascsi");
+				LOGWARN("In order to change the sector size use the -b option when launching rascsi")
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 
@@ -46,14 +46,14 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 				if (buf[0xc] != (BYTE)(sector_size >> 8) || buf[0xd] != (BYTE)sector_size) {
 					// With rascsi it is not possible to permanently (by formatting) change the sector size,
 					// because the size is an externally configurable setting only
-					LOGWARN("In order to change the sector size use the -b option when launching rascsi");
+					LOGWARN("In order to change the sector size use the -b option when launching rascsi")
 					throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 				}
 
 				has_valid_page_code = true;
 			}
 			else {
-				LOGWARN("Unknown MODE SELECT page code: $%02X", page);
+				LOGWARN("Unknown MODE SELECT page code: $%02X", page)
 			}
 
 			// Advance to the next page
@@ -77,17 +77,12 @@ void scsi_command_util::EnrichFormatPage(map<int, vector<BYTE>>& pages, bool cha
 	if (changeable) {
 		// The sector size is simulated to be changeable, see the MODE SELECT implementation for details
 		vector<BYTE>& format_page = pages[3];
-		format_page[12] = sector_size >> 8;
-		format_page[13] = sector_size;
+		format_page[12] = (BYTE)(sector_size >> 8);
+		format_page[13] = (BYTE)sector_size;
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Vendor special page to make drive Apple compatible
-//
-//---------------------------------------------------------------------------
-void scsi_command_util::AddAppleVendorModePage(map<int, vector<BYTE>>& pages, int page, bool changeable)
+void scsi_command_util::AddAppleVendorModePage(map<int, vector<BYTE>>& pages, int, bool changeable)
 {
 	// Page code 48 (30h) - Apple Vendor Mode Page
 	// Needed for SCCD for stock Apple driver support

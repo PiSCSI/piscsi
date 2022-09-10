@@ -26,6 +26,8 @@ public:
 
 	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
 	~SCSIMO() override = default;
+	SCSIMO(SCSIMO&) = delete;
+	SCSIMO& operator=(const SCSIMO&) = delete;
 
 	void Open(const Filepath& path) override;
 
@@ -43,7 +45,7 @@ private:
 
 	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
 
-	void SetGeometries(const unordered_map<uint64_t, Geometry>& geometries) { this->geometries = geometries; }
+	void SetGeometries(const unordered_map<uint64_t, Geometry>& g) { geometries = g; }
 	bool SetGeometryForCapacity(uint64_t);
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction

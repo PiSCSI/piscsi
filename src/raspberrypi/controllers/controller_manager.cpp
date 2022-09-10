@@ -32,7 +32,7 @@ bool ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
 {
 	AbstractController *controller = FindController(device->GetId());
 	if (controller == nullptr) {
-		controller = new ScsiController(bus, device->GetId());
+		controller = make_unique<ScsiController>(bus, device->GetId()).release();
 		controllers[device->GetId()] = controller;
 	}
 

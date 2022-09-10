@@ -20,7 +20,7 @@
 #include "scsimo.h"
 
 SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-	: Disk("SCMO"), geometries({})
+	: Disk("SCMO")
 {
 	SetSectorSizes(sector_sizes);
 	SetGeometries(geometries);
@@ -48,9 +48,6 @@ void SCSIMO::Open(const Filepath& path)
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
-
-	// Effective size must be a multiple of the sector size
-	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
 	SetReadOnly(false);
 	SetProtectable(true);
@@ -219,8 +216,7 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 }
 
 bool SCSIMO::SetGeometryForCapacity(uint64_t capacity) {
-	const auto& geometry = geometries.find(capacity);
-	if (geometry != geometries.end()) {
+	if (const auto& geometry = geometries.find(capacity); geometry != geometries.end()) {
 		SetSectorSizeInBytes(geometry->second.first);
 		SetBlockCount(geometry->second.second);
 

@@ -75,7 +75,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		disk.image_offset = 0;
-		image_size = size;
+		image_size = (int)size;
 		sector_size = 512;
 		sectors = 25;
 		heads = 8;
@@ -100,7 +100,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 			heads = getWordLE(&root_sector[0x118]);
 			sectors = getWordLE(&root_sector[0x11a]);
 			sector_size = getWordLE(&root_sector[0x11c]);
-			image_size = (off_t)cylinders * heads * sectors * sector_size;
+			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
 		}
 		else {
 			throw io_exception("Invalid NEC image file format");
@@ -124,7 +124,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	if (size <= 0 || size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
-	SetSectorSizeShiftCount(size);
+	SetSectorSizeShiftCount((uint32_t)size);
 
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);

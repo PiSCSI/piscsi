@@ -43,8 +43,7 @@ static void convert(char const *src, char const *dest,
 		return;
 	}
 
-	size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out);
-	if (ret == (size_t)-1) {
+	if (size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out); ret == (size_t)-1) {
 		return;
 	}
 
@@ -853,7 +852,7 @@ void CHostFilename::ConvertHuman(int nCount)
 		}
 		nMax--;
 		pNumber--;
-		BYTE c = (BYTE)((nOption >> 24) & 0x7F);
+		auto c = (BYTE)((nOption >> 24) & 0x7F);
 		if (c == 0)
 			c = XM6_HOST_FILENAME_MARK;
 		*pNumber = c;
@@ -867,9 +866,9 @@ void CHostFilename::ConvertHuman(int nCount)
 
 	{
 		strcpy(szHost, m_szHost);
-		const BYTE* pRead = (const BYTE*)szHost;
+		auto pRead = (const BYTE*)szHost;
 		BYTE* pWrite = szHuman;
-		const BYTE* pPeriod = SeparateExt(pRead);
+		const auto pPeriod = SeparateExt(pRead);
 
 		for (bool bFirst = true;; bFirst = false) {
 			BYTE c = *pRead++;
@@ -935,14 +934,14 @@ void CHostFilename::ConvertHuman(int nCount)
 		// Delete spaces at the end
 		while (pExt < pLast - 1 && *(pLast - 1) == ' ') {
 			pLast--;
-			BYTE* p = (BYTE*)pLast;
+			auto p = (BYTE*)pLast;
 			*p = '\0';
 		}
 
 		// Delete if the file name disappeared after conversion
 		if (pExt + 1 >= pLast) {
 			pLast = pExt;
-			BYTE* p = (BYTE*)pLast;
+			auto p = (BYTE*)pLast;
 			*p = '\0';		// Just in case
 		}
 	} else {
@@ -978,7 +977,7 @@ void CHostFilename::ConvertHuman(int nCount)
 		pStop = pFirst;
 
 	// Evaluate base name
-	pCut = (BYTE*)strchr((const char*)pCut, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
+	pCut = (const BYTE*)strchr((const char*)pCut, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pCut == nullptr)
 		pCut = pLast;
 	if ((size_t)(pCut - pFirst) > nMax)
@@ -993,8 +992,8 @@ void CHostFilename::ConvertHuman(int nCount)
 	}
 
 	// Shorten base name
-	size_t nExt = pExt - pSecond;	// Length of extension segment
-	if ((size_t)(pCut - pFirst) + nExt > nMax)
+	// Length of extension segment
+	if (size_t nExt = pExt - pSecond; (size_t)(pCut - pFirst) + nExt > nMax)
 		pCut = pFirst + nMax - nExt;
 	// If in the middle of a 2 byte char, shorten even further
 	for (p = pFirst; p < pCut; p++) {
@@ -1053,7 +1052,7 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 	strcpy((char*)m_szHuman, (const char*)szHuman);
 	m_bCorrect = TRUE;
 	m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
-	m_pszHumanExt = (BYTE*)SeparateExt(m_szHuman);
+	m_pszHumanExt = SeparateExt(m_szHuman);
 }
 
 //---------------------------------------------------------------------------
@@ -1099,7 +1098,7 @@ void CHostFilename::SetEntryName()
 //---------------------------------------------------------------------------
 BOOL CHostFilename::isReduce() const
 {
-	return strcmp((char *)m_szHost, (const char*)m_szHuman) != 0;
+	return strcmp((char *)m_szHost, (char*)m_szHuman) != 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1129,16 +1128,15 @@ const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 	const BYTE* pLast = pFirst + nLength;
 
 	// Confirm the position of the Human68k extension
-	const BYTE* pExt = (BYTE*)strrchr((const char*)pFirst, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
+	auto pExt = (const BYTE*)strrchr((const char*)pFirst, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pExt == nullptr)
 		pExt = pLast;
 	// Special handling of the pattern where the file name is 20~22 chars, and the 19th char is '.' or ends with '.'
 	if (20 <= nLength && nLength <= 22 && pFirst[18] == '.' && pFirst[nLength - 1] == '.')
 		pExt = pFirst + 18;
 	// Calculate the number of chars in the extension (-1:None 0:Only period 1~3:Human68k extension 4 or above:extension name)
-	size_t nExt = pLast - pExt - 1;
 	// Consider it an extension only when '.' is anywhere except the beginning of the string, and between 1~3 chars long
-	if (pExt == pFirst || nExt < 1 || nExt > 3)
+	if (size_t nExt = pLast - pExt - 1; pExt == pFirst || nExt < 1 || nExt > 3)
 		pExt = pLast;
 
 	return pExt;
@@ -1183,7 +1181,7 @@ CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
 	ASSERT(nLength < FILEPATH_MAX);
 
 	size_t n = offsetof(ring_t, f) + CHostFilename::Offset() + (nLength + 1) * sizeof(TCHAR);
-	ring_t* p = (ring_t*)malloc(n);
+	auto p = (ring_t*)malloc(n);
 	ASSERT(p);
 
 	p->r.Init();	// This is nothing to worry about!
@@ -1380,15 +1378,14 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAt
 
 	// Find something that matches perfectly with either of the stored file names
 	const ring_t* p = (ring_t*)m_cRing.Next();
-	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
+	for (; p != (const ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
 		if (p->f.CheckAttribute(nHumanAttribute) == 0)
 			continue;
 		// Calulate number of chars
 		const BYTE* pBufFirst = p->f.GetHuman();
 		const BYTE* pBufLast = p->f.GetHumanLast();
-		size_t nBufLength = pBufLast - pBufFirst;
 		// Check number of chars
-		if (nLength != nBufLength)
+		if (size_t nBufLength = pBufLast - pBufFirst; nLength != nBufLength)
 			continue;
 		// File name check
 		if (Compare(pFirst, pLast, pBufFirst, pBufLast) == 0)
@@ -1418,7 +1415,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 	const BYTE* pExt = CHostFilename::SeparateExt(pFirst);
 
 	// Move to the start position
-	const ring_t* p = (ring_t*)m_cRing.Next();
+	auto p = (const ring_t*)m_cRing.Next();
 	if (pFind->count > 0) {
 		if (pFind->id == m_nId) {
 			// If the same directory entry, continue right away from the previous position
@@ -1426,12 +1423,12 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 		} else {
 			// Find the start position in the directory entry contents
 			DWORD n = 0;
-			for (;; p = (ring_t*)p->r.Next()) {
-				if (p == (ring_t*)&m_cRing) {
+			for (;; p = (const ring_t*)p->r.Next()) {
+				if (p == (const ring_t*)&m_cRing) {
 					// Extrapolate from the count when the same entry isn't found (just in case)
-					p = (ring_t*)m_cRing.Next();
+					p = (const ring_t*)m_cRing.Next();
 					n = 0;
-					for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
+					for (; p != (const ring_t*)&m_cRing; p = (const ring_t*)p->r.Next()) {
 						if (n >= pFind->count)
 							break;
 						n++;
@@ -1449,7 +1446,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 	}
 
 	// Find files
-	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
+	for (; p != (const ring_t*)&m_cRing; p = (const ring_t*)p->r.Next()) {
 		pFind->count++;
 
 		if (p->f.CheckAttribute(nHumanAttribute) == 0)
@@ -1469,10 +1466,10 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 		if (strcmp((const char*)pExt, ".???") == 0 ||
 			Compare(pExt, pLast, pBufExt, pBufLast) == 0) {
 			// Store the contents of the next candidate's directory entry
-			const ring_t* pNext = (ring_t*)p->r.Next();
+			const auto pNext = (const ring_t*)p->r.Next();
 			pFind->id = m_nId;
 			pFind->pos = pNext;
-			if (pNext != (ring_t*)&m_cRing)
+			if (pNext != (const ring_t*)&m_cRing)
 				memcpy(&pFind->entry, pNext->f.GetEntry(), sizeof(pFind->entry));
 			else
 				memset(&pFind->entry, 0, sizeof(pFind->entry));
@@ -1623,13 +1620,12 @@ void CHostPath::Refresh()
 			nHumanAttribute |= Human68k::AT_READONLY;
 		pFilename->SetEntryAttribute(nHumanAttribute);
 
-		DWORD nHumanSize = (DWORD)sb.st_size;
+		auto nHumanSize = (DWORD)sb.st_size;
 		pFilename->SetEntrySize(nHumanSize);
 
 		WORD nHumanDate = 0;
 		WORD nHumanTime = 0;
-		const tm* pt = localtime(&sb.st_mtime);
-		if (pt) {
+		if (const tm* pt = localtime(&sb.st_mtime); pt) {
 			nHumanDate = (WORD)(((pt->tm_year - 80) << 9) | ((pt->tm_mon + 1) << 5) | pt->tm_mday);
 			nHumanTime = (WORD)((pt->tm_hour << 11) | (pt->tm_min << 5) | (pt->tm_sec >> 1));
 		}
@@ -2216,8 +2212,7 @@ void CHostFilesManager::Init()
 
 	// Allocate memory
 	for (DWORD i = 0; i < XM6_HOST_FILES_MAX; i++) {
-		ring_t* p = new ring_t;
-		ASSERT(p);
+		auto p = new ring_t();
 		p->r.Insert(&m_cRing);
 	}
 }
@@ -2277,7 +2272,7 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 	pFiles->SetKey(0);
 
 	// Move to the end of the ring
-	ring_t* p = (ring_t*)((size_t)pFiles - offsetof(ring_t, f));
+	auto p = (ring_t*)((size_t)pFiles - offsetof(ring_t, f));
 	p->r.InsertTail(&m_cRing);
 }
 
@@ -2373,8 +2368,7 @@ BOOL CHostFcb::Open()
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// Fail if directory
-	struct stat st; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
-	if (stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
+	if (struct stat st; stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
 		return FALSE || m_bFlag;
 	}
 
@@ -2570,7 +2564,7 @@ void CHostFcbManager::Init()
 
 	// Memory allocation
 	for (DWORD i = 0; i < XM6_HOST_FCB_MAX; i++) {
-		ring_t* p = new ring_t;
+		auto p = new ring_t;
 		ASSERT(p);
 		p->r.Insert(&m_cRing);
 	}
@@ -2640,7 +2634,7 @@ void CHostFcbManager::Free(CHostFcb* pFcb)
 	pFcb->Close();
 
 	// Move to the end of the ring
-	ring_t* p = (ring_t*)((size_t)pFcb - offsetof(ring_t, f));
+	auto p = (ring_t*)((size_t)pFcb - offsetof(ring_t, f));
 	p->r.InsertTail(&m_cRing);
 }
 
@@ -2740,7 +2734,7 @@ void CFileSys::Init()
 			continue;
 
 		// Create 1 unit file system
-		CHostDrv* p = new CHostDrv;	// std::nothrow
+		auto p = new CHostDrv;
 		if (p) {
 			m_cEntry.SetDrv(nUnit, p);
 			p->Init(m_szBase[n], m_nFlag[n]);
@@ -3728,7 +3722,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 	const CHostFiles* pHostFiles = m_cFiles.Search(nSector);
 	if (pHostFiles) {
 		// Generate pseudo-directory entry
-		Human68k::dirent_t* dir = (Human68k::dirent_t*)pBuffer;
+		auto dir = (Human68k::dirent_t*)pBuffer;
 		memcpy(pBuffer, pHostFiles->GetEntry(), sizeof(*dir));
 		memset(pBuffer + sizeof(*dir), 0xE5, 0x200 - sizeof(*dir));
 
@@ -3900,10 +3894,8 @@ int CFileSys::CheckMedia(DWORD nUnit) const
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
 
 	// Media change check
-	BOOL bResult = m_cEntry.CheckMedia(nUnit);
-
 	// Throw error when media is not inserted
-	if (bResult == FALSE) {
+	if (BOOL bResult = m_cEntry.CheckMedia(nUnit); bResult == FALSE) {
 		return FS_INVALIDFUNC;
 	}
 
@@ -4046,8 +4038,7 @@ BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
 
 	// Get volume label
 	TCHAR szVolume[32];
-	BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume);
-	if (bResult == FALSE) {
+	if (BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); bResult == FALSE) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (m_cEntry.isEnable(nUnit) == FALSE)
 			return FALSE;

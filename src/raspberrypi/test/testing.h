@@ -61,7 +61,7 @@ public:
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
 	MockBus() = default;
-	~MockBus() = default;
+	~MockBus() final = default;
 };
 
 class MockAbstractController : public AbstractController
@@ -98,7 +98,7 @@ public:
 	MOCK_METHOD(void, Reset, (), (override));
 
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
-	~MockAbstractController() = default;
+	~MockAbstractController() final = default;
 };
 
 class MockScsiController : public ScsiController
@@ -136,8 +136,7 @@ public:
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 
-	MockScsiController(BUS *bus, int target_id) : ScsiController(bus, target_id) {}
-	~MockScsiController() = default;
+	using ScsiController::ScsiController;
 };
 
 class MockPrimaryDevice : public PrimaryDevice
@@ -147,7 +146,7 @@ public:
 	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() = default;
+	~MockPrimaryDevice() final = default;
 
 	// Make protected methods visible for testing
 
@@ -164,7 +163,7 @@ class MockModePageDevice : public ModePageDevice
 public:
 
 	MockModePageDevice() : ModePageDevice("test") {}
-	~MockModePageDevice() = default;
+	~MockModePageDevice() final = default;
 
 	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
@@ -191,7 +190,7 @@ class MockSCSIHD : public SCSIHD
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
 	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
-	~MockSCSIHD() = default;
+	~MockSCSIHD() final = default;
 };
 
 class MockSCSIHD_NEC : public SCSIHD_NEC
@@ -199,7 +198,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
 	MockSCSIHD_NEC() = default;
-	~MockSCSIHD_NEC() = default;
+	~MockSCSIHD_NEC() final = default;
 };
 
 class MockSCSICD : public SCSICD
@@ -207,7 +206,7 @@ class MockSCSICD : public SCSICD
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
 	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
-	~MockSCSICD() = default;
+	~MockSCSICD() final = default;
 };
 
 class MockSCSIMO : public SCSIMO
@@ -216,7 +215,7 @@ class MockSCSIMO : public SCSIMO
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) {}
-	~MockSCSIMO() = default;
+	~MockSCSIMO() final = default;
 };
 
 class MockHostServices : public HostServices
@@ -224,5 +223,5 @@ class MockHostServices : public HostServices
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
 	MockHostServices() = default;
-	~MockHostServices() = default;
+	~MockHostServices() final = default;
 };

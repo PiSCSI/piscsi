@@ -24,7 +24,7 @@ using namespace rascsi_interface;
 
 multimap<int, Device *> DeviceFactory::devices;
 
-DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_params({}), extension_mapping({})
+DeviceFactory::DeviceFactory()
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
@@ -125,8 +125,7 @@ list<Device *> DeviceFactory::GetAllDevices() const
 string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
-	size_t separator = filename.rfind('.');
-	if (separator != string::npos) {
+	if (size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -136,8 +135,7 @@ string DeviceFactory::GetExtension(const string& filename) const
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	const auto& it = extension_mapping.find(GetExtension(filename));
-	if (it != extension_mapping.end()) {
+	if (const auto& it = extension_mapping.find(GetExtension(filename)); it != extension_mapping.end()) {
 		return it->second;
 	}
 	else if (filename == "bridge") {
@@ -289,7 +287,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        // Only list interfaces that are up
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
-	        	network_interfaces.push_back(tmp->ifa_name);
+	        	network_interfaces.emplace_back(tmp->ifa_name);
 	        }
 
 	        close(fd);

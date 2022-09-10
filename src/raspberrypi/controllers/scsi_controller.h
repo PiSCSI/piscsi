@@ -31,34 +31,34 @@ class ScsiController : public AbstractController
 	static const int MAX_SYNC_PERIOD = 50;
 
 	// REQ/ACK offset(limited to 16)
-	static const int MAX_SYNC_OFFSET = 16;
+	static const BYTE MAX_SYNC_OFFSET = 16;
 
 	static const int UNKNOWN_INITIATOR_ID = -1;
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	enum rw_command : int {
-		eCmdRead6 = 0x08,
-		eCmdWrite6 = 0x0A,
-		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-		eCmdModeSelect6 = 0x15,
-		eCmdRead10 = 0x28,
-		eCmdWrite10 = 0x2A,
-		eCmdVerify10 = 0x2E,
-		eCmdVerify = 0x2F,
-		eCmdModeSelect10 = 0x55,
-		eCmdRead16 = 0x88,
-		eCmdWrite16 = 0x8A,
-		eCmdVerify16 = 0x8F,
-		eCmdWriteLong10 = 0x3F,
-		eCmdWriteLong16 = 0x9F
+		eRwCmdRead6 = 0x08,
+		eRwCmdWrite6 = 0x0A,
+		eRwCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eRwCmdModeSelect6 = 0x15,
+		eRwCmdRead10 = 0x28,
+		eRwCmdWrite10 = 0x2A,
+		eRwCmdVerify10 = 0x2E,
+		eRwCmdVerify = 0x2F,
+		eRwCmdModeSelect10 = 0x55,
+		eRwCmdRead16 = 0x88,
+		eRwCmdWrite16 = 0x8A,
+		eRwCmdVerify16 = 0x8F,
+		eRwCmdWriteLong10 = 0x3F,
+		eRwCmdWriteLong16 = 0x9F
 	};
 
 	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
-		int syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
-		int syncoffset;					// Synchronous transfer offset
+		BYTE syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
+		BYTE syncoffset;					// Synchronous transfer offset
 		int syncack;					// Number of synchronous transfer ACKs
 
 		// ATN message
@@ -71,6 +71,8 @@ public:
 
 	ScsiController(BUS *, int);
 	~ScsiController() override;
+	ScsiController(ScsiController&) = delete;
+	ScsiController& operator=(const ScsiController&) = delete;
 
 	void Reset() override;
 
@@ -78,13 +80,13 @@ public:
 
 	int GetEffectiveLun() const override;
 
-	int GetMaxLuns() const override { return LUN_MAX; };
+	int GetMaxLuns() const override { return LUN_MAX; }
 
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
 
 	int GetInitiatorId() const override { return initiator_id; }
-	void SetByteTransfer(bool is_byte_transfer) override { this->is_byte_transfer = is_byte_transfer; }
+	void SetByteTransfer(bool b) override { is_byte_transfer = b; }
 
 	void Status() override;
 	void DataIn() override;
@@ -105,7 +107,7 @@ private:
 	uint32_t bytes_to_transfer = 0;
 
 	// Phases
-	void SetPhase(BUS::phase_t phase) override { ctrl.phase = phase; }
+	void SetPhase(BUS::phase_t p) override { ctrl.phase = p; }
 	void BusFree() override;
 	void Selection() override;
 	void Command() override;
@@ -124,7 +126,7 @@ private:
 	void FlushUnit();
 	void Receive();
 
-	void ScheduleShutdown(rascsi_shutdown_mode shutdown_mode) override { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 	void Sleep();
 

@@ -27,11 +27,6 @@ Device::Device(const string& t) : type(t)
 	revision = rev;
 }
 
-Device::~Device()
-{
-	devices.erase(this);
-}
-
 void Device::Reset()
 {
 	locked = false;

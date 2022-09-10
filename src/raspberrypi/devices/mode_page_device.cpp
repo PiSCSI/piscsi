@@ -16,7 +16,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id), dispatcher({})
+ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
 	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
@@ -56,20 +56,20 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 	vector<BYTE> result;
 
 	vector<BYTE> page0;
-	for (auto const& page : pages) {
+	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
-		if (page.first) {
+		if (index) {
 			size_t offset = result.size();
 
 			// Page data
-			result.insert(result.end(), page.second.begin(), page.second.end());
+			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
-			result[offset] |= page.first;
+			result[offset] |= index;
 			// Page payload size
-			result[offset + 1] = page.second.size() - 2;
+			result[offset + 1] = (BYTE)(data.size() - 2);
 		}
 		else {
-			page0 = page.second;
+			page0 = data;
 		}
 	}
 
@@ -80,14 +80,14 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[offset + 1] = page0.size() - 2;
+		result[offset + 1] = (BYTE)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes
 	size_t size = (size_t)max_length < result.size() ? max_length : result.size();
 	memcpy(buf, result.data(), size);
 
-	return size;
+	return (int)size;
 }
 
 void ModePageDevice::ModeSense6()

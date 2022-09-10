@@ -48,7 +48,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands(), dispatcher({})
+SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -148,12 +148,12 @@ void SCSIPrinter::Print()
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	LOGTRACE("Receiving %d bytes to be printed", length);
+	LOGTRACE("Receiving %d bytes to be printed", length)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
 	if (length > (uint32_t)ctrl->bufsize) {
-		LOGERROR("Transfer buffer overflow");
+		LOGERROR("Transfer buffer overflow")
 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -187,12 +187,12 @@ void SCSIPrinter::SynchronizeBuffer()
 	cmd.replace(file_position, 2, filename);
 	cmd = "sudo -u lp " + cmd;
 
-	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
+	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
 
-	LOGDEBUG("Executing '%s'", cmd.c_str());
+	LOGDEBUG("Executing '%s'", cmd.c_str())
 
 	if (system(cmd.c_str())) {
-		LOGERROR("Printing failed, the printing system might not be configured");
+		LOGERROR("Printing failed, the printing system might not be configured")
 
 		unlink(filename);
 
@@ -206,9 +206,8 @@ void SCSIPrinter::SynchronizeBuffer()
 
 void SCSIPrinter::SendDiagnostic()
 {
-	CheckReservation();
-
-	EnterStatusPhase();
+	// Both command implemntations are identical
+	TestUnitReady();
 }
 
 void SCSIPrinter::StopPrint()
@@ -226,16 +225,16 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
 		if (fd == -1) {
-			LOGERROR("Can't create printer output file: %s", strerror(errno));
+			LOGERROR("Can't create printer output file: %s", strerror(errno))
 			return false;
 		}
 
-		LOGTRACE("Created printer output file '%s'", filename);
+		LOGTRACE("Created printer output file '%s'", filename)
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer output file", length);
+	LOGTRACE("Appending %d byte(s) to printer output file", length)
 
-	uint32_t num_written = write(fd, buf, length);
+	uint32_t num_written = (uint32_t)write(fd, buf, length);
 
 	return num_written == length;
 }

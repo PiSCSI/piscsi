@@ -102,7 +102,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	int length = (int)cdb[4];
+	auto length = (int)cdb[4];
 	if (length > max_length) {
 		length = max_length;
 	}
@@ -121,7 +121,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 		size = length;
 	}
 
-	buf[0] = size;
+	buf[0] = (BYTE)size;
 
 	return size;
 }
@@ -152,8 +152,8 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		size = length;
 	}
 
-	buf[0] = size >> 8;
-	buf[1] = size;
+	buf[0] = (BYTE)(size >> 8);
+	buf[1] = (BYTE)size;
 
 	return size;
 }
@@ -174,15 +174,15 @@ void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool chan
 		buf[2] = 0x01;
 		buf[3] = 0x00;
 
-		std::time_t t = std::time(NULL);
+		std::time_t t = std::time(nullptr);
 		std::tm tm = *std::localtime(&t);
-		buf[4] = tm.tm_year;
-		buf[5] = tm.tm_mon;
-		buf[6] = tm.tm_mday;
-		buf[7] = tm.tm_hour;
-		buf[8] = tm.tm_min;
+		buf[4] = (BYTE)tm.tm_year;
+		buf[5] = (BYTE)tm.tm_mon;
+		buf[6] = (BYTE)tm.tm_mday;
+		buf[7] = (BYTE)tm.tm_hour;
+		buf[8] = (BYTE)tm.tm_min;
 		// Ignore leap second for simplicity
-		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
+		buf[9] = (BYTE)(tm.tm_sec < 60 ? tm.tm_sec : 59);
 
 		pages[32] = buf;
 	}
