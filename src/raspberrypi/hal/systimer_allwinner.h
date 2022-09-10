@@ -21,15 +21,15 @@
 class SysTimer_AllWinner : SysTimer
 {
 public:
-	override void Init(uint32_t *syst, uint32_t *armt);
+	void Init();
 										// Initialization
-	override uint32_t GetTimerLow();
+	uint32_t GetTimerLow();
 										// Get system timer low byte
-	override uint32_t GetTimerHigh();
+	uint32_t GetTimerHigh();
 										// Get system timer high byte
-	override void SleepNsec(uint32_t nsec);
+	void SleepNsec(uint32_t nsec);
 										// Sleep for N nanoseconds
-	override void SleepUsec(uint32_t usec);
+	void SleepUsec(uint32_t usec);
 										// Sleep for N microseconds
 
 private:
