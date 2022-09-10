@@ -594,7 +594,11 @@ private:
 //===========================================================================
 class CHostFiles {
 public:
-	CHostFiles() { SetKey(0); }
+	CHostFiles() = default;
+	~CHostFiles() = default;
+	CHostFiles(CHostFiles&) = delete;
+	CHostFiles& operator=(const CHostFiles&) = delete;
+
 	void Init();
 
 	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
@@ -625,16 +629,15 @@ public:
 	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 private:
-	DWORD m_nKey;						///< FILES buffer address for Human68k; 0 is unused
-	DWORD m_nHumanWildcard;					///< Human68k wildcard data
-	DWORD m_nHumanAttribute;				///< Human68k search attribute
-	CHostPath::find_t m_findNext;				///< Next search location data
-	Human68k::dirent_t m_dirHuman;				///< Search results: Human68k file data
-	BYTE m_szHumanFilename[24];				///< Human68k file name
-	BYTE m_szHumanResult[24];				///< Search results: Human68k file name
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-								///< Human68k path name
-	TCHAR m_szHostResult[FILEPATH_MAX];			///< Search results: host's full path name
+	DWORD m_nKey = 0;						///< FILES buffer address for Human68k; 0 is unused
+	DWORD m_nHumanWildcard = 0;				///< Human68k wildcard data
+	DWORD m_nHumanAttribute = 0;			///< Human68k search attribute
+	CHostPath::find_t m_findNext = {};		///< Next search location data
+	Human68k::dirent_t m_dirHuman = {};		///< Search results: Human68k file data
+	BYTE m_szHumanFilename[24] = {};		///< Human68k file name
+	BYTE m_szHumanResult[24] = {};			///< Search results: Human68k file name
+	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};	///< Human68k path name
+	TCHAR m_szHostResult[FILEPATH_MAX] = {};	///< Search results: host's full path name
 };
 
 //===========================================================================
