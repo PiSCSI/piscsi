@@ -755,13 +755,6 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 //
 //===========================================================================
 
-CHostFilename::CHostFilename()
-{
-	m_bCorrect = FALSE;
-	m_pszHumanExt = FALSE;
-	m_pszHumanLast = FALSE;
-}
-
 //---------------------------------------------------------------------------
 //
 /// Set host side name

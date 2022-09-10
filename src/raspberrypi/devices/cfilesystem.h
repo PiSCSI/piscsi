@@ -18,47 +18,47 @@
 //	Status code definitions
 //
 //---------------------------------------------------------------------------
-#define FS_INVALIDFUNC		0xFFFFFFFF	///< Executed an invalid function
-#define FS_FILENOTFND		0xFFFFFFFE	///< The selected file can not be found
-#define FS_DIRNOTFND		0xFFFFFFFD	///< The selected directory can not be found
-#define FS_OVEROPENED		0xFFFFFFFC	///< There are too many files open
-#define FS_CANTACCESS		0xFFFFFFFB	///< Can not access the direcory or volume
-#define FS_NOTOPENED		0xFFFFFFFA	///< The selected handle is not opened
-#define FS_INVALIDMEM		0xFFFFFFF9	///< Memory management has been destroyed
-#define FS_OUTOFMEM		0xFFFFFFF8	///< Insufficient memory for execution
-#define FS_INVALIDPTR		0xFFFFFFF7	///< Selected an invalid memory management pointer
-#define FS_INVALIDENV		0xFFFFFFF6	///< Selected an invalid environment
-#define FS_ILLEGALFMT		0xFFFFFFF5	///< The exeucted file is in an invalid format
-#define FS_ILLEGALMOD		0xFFFFFFF4	///< Invalid open access mode
-#define FS_INVALIDPATH		0xFFFFFFF3	///< Mistake in selected file name
-#define FS_INVALIDPRM		0xFFFFFFF2	///< Called with an invalid parameter
-#define FS_INVALIDDRV		0xFFFFFFF1	///< Mistake in selected drive
-#define FS_DELCURDIR		0xFFFFFFF0	///< Unable to delete the current directory
-#define FS_NOTIOCTRL		0xFFFFFFEF	///< Unable to use IOCTRL with the device
-#define FS_LASTFILE		0xFFFFFFEE	///< Can not find any more files
-#define FS_CANTWRITE		0xFFFFFFED	///< Selected file can not be written
-#define FS_DIRALREADY		0xFFFFFFEC	///< Selected directory is already registered
-#define FS_CANTDELETE		0xFFFFFFEB	///< Can not delete because of a file
-#define FS_CANTRENAME		0xFFFFFFEA	///< Can not rename because of a file
-#define FS_DISKFULL		0xFFFFFFE9	///< Can not create a file because the disk is full
-#define FS_DIRFULL		0xFFFFFFE8	///< Can not create a file because the directory is full
-#define FS_CANTSEEK		0xFFFFFFE7	///< Can not seek in the selected location
-#define FS_SUPERVISOR		0xFFFFFFE6	///< Selected supervisor in supervisor mode
-#define FS_THREADNAME		0xFFFFFFE5	///< A thread with this name already exists
-#define FS_BUFWRITE		0xFFFFFFE4	///< Writing to inter-process communication buffers is disallowed
-#define FS_BACKGROUND		0xFFFFFFE3	///< Unable to start a background process
-#define FS_OUTOFLOCK		0xFFFFFFE0	///< Insufficient lock space
-#define FS_LOCKED		0xFFFFFFDF	///< Can not access because it is locked
-#define FS_DRIVEOPENED		0xFFFFFFDE	///< Selected drive has an open handler
-#define FS_LINKOVER		0xFFFFFFDD	///< The symbolic link is nested over 16 times
-#define FS_FILEEXIST		0xFFFFFFB0	///< The file exists
+static const int FS_INVALIDFUNC	=	0xFFFFFFFF;	///< Executed an invalid function
+static const int FS_FILENOTFND =	0xFFFFFFFE;	///< The selected file can not be found
+static const int FS_DIRNOTFND =		0xFFFFFFFD;	///< The selected directory can not be found
+static const int FS_OVEROPENED =	0xFFFFFFFC;	///< There are too many files open
+static const int FS_CANTACCESS =	0xFFFFFFFB;	///< Can not access the direcory or volume
+static const int FS_NOTOPENED =		0xFFFFFFFA;	///< The selected handle is not opened
+static const int FS_INVALIDMEM =	0xFFFFFFF9;	///< Memory management has been destroyed
+static const int FS_OUTOFMEM =		0xFFFFFFF8;	///< Insufficient memory for execution
+static const int FS_INVALIDPTR =	0xFFFFFFF7;	///< Selected an invalid memory management pointer
+static const int FS_INVALIDENV =	0xFFFFFFF6;	///< Selected an invalid environment
+static const int FS_ILLEGALFMT =	0xFFFFFFF5;	///< The exeucted file is in an invalid format
+static const int FS_ILLEGALMOD =	0xFFFFFFF4;	///< Invalid open access mode
+static const int FS_INVALIDPATH =	0xFFFFFFF3;	///< Mistake in selected file name
+static const int FS_INVALIDPRM =	0xFFFFFFF2;	///< Called with an invalid parameter
+static const int FS_INVALIDDRV =	0xFFFFFFF1;	///< Mistake in selected drive
+static const int FS_DELCURDIR =		0xFFFFFFF0;	///< Unable to delete the current directory
+static const int FS_NOTIOCTRL =		0xFFFFFFEF;	///< Unable to use IOCTRL with the device
+static const int FS_LASTFILE =		0xFFFFFFEE;	///< Can not find any more files
+static const int FS_CANTWRITE =		0xFFFFFFED;	///< Selected file can not be written
+static const int FS_DIRALREADY =	0xFFFFFFEC;	///< Selected directory is already registered
+static const int FS_CANTDELETE =	0xFFFFFFEB;	///< Can not delete because of a file
+static const int FS_CANTRENAME =	0xFFFFFFEA;	///< Can not rename because of a file
+static const int FS_DISKFULL =		0xFFFFFFE9;	///< Can not create a file because the disk is full
+static const int FS_DIRFULL =		0xFFFFFFE8;	///< Can not create a file because the directory is full
+static const int FS_CANTSEEK =		0xFFFFFFE7;	///< Can not seek in the selected location
+static const int FS_SUPERVISOR =	0xFFFFFFE6;	///< Selected supervisor in supervisor mode
+static const int FS_THREADNAME =	0xFFFFFFE5;	///< A thread with this name already exists
+static const int FS_BUFWRITE =		0xFFFFFFE4;	///< Writing to inter-process communication buffers is disallowed
+static const int FS_BACKGROUND =	0xFFFFFFE3;	///< Unable to start a background process
+static const int FS_OUTOFLOCK =		0xFFFFFFE0;	///< Insufficient lock space
+static const int FS_LOCKED =		0xFFFFFFDF;	///< Can not access because it is locked
+static const int FS_DRIVEOPENED =	0xFFFFFFDE;	///< Selected drive has an open handler
+static const int FS_LINKOVER =		0xFFFFFFDD;	///< The symbolic link is nested over 16 times
+static const int FS_FILEEXIST =		0xFFFFFFB0;	///< The file exists
 
-#define FS_FATAL_MEDIAOFFLINE	0xFFFFFFA3	///< No media inserted
-#define FS_FATAL_WRITEPROTECT	0xFFFFFFA2	///< Write protected
-#define FS_FATAL_INVALIDCOMMAND	0xFFFFFFA1	///< Invalid command number
-#define FS_FATAL_INVALIDUNIT	0xFFFFFFA0	///< Invalid unit number
+static const int FS_FATAL_MEDIAOFFLINE =	0xFFFFFFA3;	///< No media inserted
+static const int FS_FATAL_WRITEPROTECT =	0xFFFFFFA2;	///< Write protected
+static const int FS_FATAL_INVALIDCOMMAND =	0xFFFFFFA1;	///< Invalid command number
+static const int FS_FATAL_INVALIDUNIT =	0xFFFFFFA0;	///< Invalid unit number
 
-#define HUMAN68K_PATH_MAX	96		///< Longest path allowed in Human68k
+static const int HUMAN68K_PATH_MAX = 96;		///< Longest path allowed in Human68k
 
 //===========================================================================
 //
@@ -440,47 +440,51 @@ private:
 //===========================================================================
 class CHostFilename {
 public:
-	CHostFilename();
-	static size_t  Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
+	CHostFilename() = default;
+	~CHostFilename() = default;
+	CHostFilename(CHostFilename&) = delete;
+	CHostFilename& operator=(const CHostFilename&) = delete;
 
-	void  SetHost(const TCHAR* szHost);					///< Set the name of the host
-	const TCHAR*  GetHost() const { return m_szHost; }	///< Get the name of the host
-	void  ConvertHuman(int nCount = -1);					///< Convert the Human68k name
-	void  CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
-	BOOL  isReduce() const;							///< Inspect if the Human68k name is generated
-	BOOL  isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
-	const BYTE*  GetHuman() const { return m_szHuman; }	///< Get Human68k file name
-	const BYTE*  GetHumanLast() const 
+	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
+
+	void SetHost(const TCHAR* szHost);					///< Set the name of the host
+	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
+	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
+	void CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
+	BOOL isReduce() const;							///< Inspect if the Human68k name is generated
+	BOOL isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
+	const BYTE* GetHuman() const { return m_szHuman; }	///< Get Human68k file name
+	const BYTE* GetHumanLast() const
 	{ return m_pszHumanLast; }				///< Get Human68k file name
-	const BYTE*  GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
-	void  SetEntryName();							///< Set Human68k directory entry
-	void  SetEntryAttribute(BYTE nHumanAttribute)
+	const BYTE* GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
+	void SetEntryName();							///< Set Human68k directory entry
+	void SetEntryAttribute(BYTE nHumanAttribute)
 	{ m_dirHuman.attr = nHumanAttribute; }			///< Set Human68k directory entry
 	void  SetEntrySize(DWORD nHumanSize)
 	{ m_dirHuman.size = nHumanSize; }				///< Set Human68k directory entry
-	void  SetEntryDate(WORD nHumanDate)
+	void SetEntryDate(WORD nHumanDate)
 	{ m_dirHuman.date = nHumanDate; }				///< Set Human68k directory entry
-	void  SetEntryTime(WORD nHumanTime)
+	void SetEntryTime(WORD nHumanTime)
 	{ m_dirHuman.time = nHumanTime; }				///< Set Human68k directory entry
-	void  SetEntryCluster(WORD nHumanCluster)
+	void SetEntryCluster(WORD nHumanCluster)
 	{ m_dirHuman.cluster = nHumanCluster; }			///< Set Human68k directory entry
 	const Human68k::dirent_t*  GetEntry() const 
 	{ return &m_dirHuman; }					///< Get Human68k directory entry
-	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
-	BOOL  isSameEntry(const Human68k::dirent_t* pdirHuman) const
+	BOOL CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
+	BOOL isSameEntry(const Human68k::dirent_t* pdirHuman) const
 	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
 										///< Determine Human68k directory entry match
 
 	// Path name operations
-	static const BYTE*  SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
+	static const BYTE* SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
 
 private:
-	static BYTE*  CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
+	static BYTE* CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
 										///< Copy Human68k file name elements
 
-	const BYTE* m_pszHumanLast;		///< Last position of the Human68k internal name of the relevant entry
-	const BYTE* m_pszHumanExt;		///< Position of the extension of the Human68k internal name of the relevant entry
-	BOOL m_bCorrect;			///< TRUE if the relevant entry of the Human68k internal name is correct
+	const BYTE* m_pszHumanLast = 0;		///< Last position of the Human68k internal name of the relevant entry
+	const BYTE* m_pszHumanExt = 0;		///< Position of the extension of the Human68k internal name of the relevant entry
+	BOOL m_bCorrect = FALSE;			///< TRUE if the relevant entry of the Human68k internal name is correct
 	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
 	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];		///< The host name of the relevant entry (variable length)

@@ -563,12 +563,10 @@ void ScsiController::Send()
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (ctrl.phase == BUS::datain) {
-		if (ctrl.blocks != 0) {
-			// set next buffer (set offset, length)
-			result = XferIn(ctrl.buffer);
-			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
-		}
+	if (ctrl.phase == BUS::datain && ctrl.blocks != 0) {
+		// set next buffer (set offset, length)
+		result = XferIn(ctrl.buffer);
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
 	}
 
 	// If result FALSE, move to status phase
