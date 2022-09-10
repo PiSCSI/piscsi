@@ -488,11 +488,9 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 	// Get and check the last track number
 	int last = tracks[tracks.size() - 1]->GetTrackNo();
-	if ((int)cdb[6] > last) {
-		// Except for AA
-		if (cdb[6] != 0xaa) {
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		}
+	// Except for AA
+	if ((int)cdb[6] > last && cdb[6] != 0xaa) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Check start index

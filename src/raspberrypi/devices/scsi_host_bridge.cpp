@@ -352,11 +352,9 @@ void SCSIBR::ReceivePacket()
 	packet_len = tap->Rx(packet_buf);
 
 	// Check if received packet
-	if (memcmp(packet_buf, mac_addr, 6) != 0) {
-		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
-			packet_len = 0;
-			return;
-		}
+	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
+		packet_len = 0;
+		return;
 	}
 
 	// Discard if it exceeds the buffer size
