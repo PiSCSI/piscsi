@@ -15,7 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
+#include "hal/systimer.h"
 #include "rascsi_exceptions.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"

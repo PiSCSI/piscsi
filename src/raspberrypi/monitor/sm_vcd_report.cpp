@@ -17,7 +17,7 @@
 #include <fstream>
 #include "data_sample.h"
 #include "sm_reports.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 
 using namespace std;
 

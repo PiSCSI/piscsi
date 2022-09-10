@@ -13,7 +13,8 @@
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
+#include "hal/systimer.h"
 #include "rascsi_version.h"
 
 //---------------------------------------------------------------------------

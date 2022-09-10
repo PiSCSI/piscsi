@@ -10,7 +10,7 @@
 
 #include "os.h"
 #include "log.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 #include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
