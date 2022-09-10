@@ -202,17 +202,6 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 //
 //===========================================================================
 
-CHostDrv::CHostDrv()
-{
-	m_bWriteProtect = FALSE;
-	m_bEnable = FALSE;
-	m_capCache.sectors = 0;
-	m_bVolumeCache = FALSE;
-	m_szVolumeCache[0] = _T('\0');
-	m_szBase[0] = _T('\0');
-	m_nRing = 0;
-}
-
 CHostDrv::~CHostDrv()
 {
 	CHostPath* p;
@@ -247,6 +236,8 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 	ASSERT(m_nRing == 0);
+
+	m_capCache.sectors = 0;
 
 	// Receive parameters
 	if (nFlag & FSFLAG_WRITE_PROTECT)
@@ -1150,18 +1141,6 @@ const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 
 DWORD CHostPath::g_nId;				///< Identifier creation counter
 
-CHostPath::CHostPath()
-{
-	m_bRefresh = TRUE;
-	m_nId = 0;
-	m_tBackup = FALSE;
-
-#ifdef _DEBUG
-	// Initialization is not required because this value always gets updated (used for debugging or initialization operation)
-	m_nId = 0;
-#endif	// _DEBUG
-}
-
 CHostPath::~CHostPath()
 {
 	Clean();
@@ -1796,7 +1775,7 @@ void CHostEntry::Clean()
 /// Update all cache
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCache()
+void CHostEntry::CleanCache() const
 {
 
 	for (size_t i = 0; i < DriveMax; i++) {

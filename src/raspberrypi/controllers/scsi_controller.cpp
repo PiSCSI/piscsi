@@ -56,7 +56,7 @@ void ScsiController::Reset()
 	bytes_to_transfer = 0;
 
 	// Reset all LUNs
-	for (auto& [lun, device] : ctrl.luns) {
+	for (const auto& [lun, device] : ctrl.luns) {
 		device->Reset();
 	}
 }

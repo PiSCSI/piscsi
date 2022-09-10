@@ -526,7 +526,7 @@ public:
 		void  Clear() { count = 0; }	///< Initialize
 	};
 
-	CHostPath();
+	CHostPath() = default;
 	~CHostPath();
 	CHostPath(CHostPath&) = delete;
 	CHostPath& operator=(const CHostPath&) = delete;
@@ -558,9 +558,9 @@ private:
 										///< Compare string (with support for wildcards)
 
 	CRing m_cRing;								///< For CHostFilename linking
-	time_t m_tBackup;							///< For time stamp restoration
-	BOOL m_bRefresh;							///< Refresh flag
-	DWORD m_nId;								///< Unique ID (When the value has changed, it means an update has been made)
+	time_t m_tBackup = FALSE;					///< For time stamp restoration
+	BOOL m_bRefresh = TRUE;						///< Refresh flag
+	DWORD m_nId = 0;								///< Unique ID (When the value has changed, it means an update has been made)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];						///< The host side name for the relevant entry
 
@@ -740,7 +740,7 @@ private:
 class CHostDrv
 {
 public:
-	CHostDrv();
+	CHostDrv() = default;
 	~CHostDrv();
 	CHostDrv(CHostDrv&) = delete;
 	CHostDrv& operator=(const CHostDrv&) = delete;
@@ -782,14 +782,14 @@ private:
 		CHostPath f;
 	};
 
-	BOOL m_bWriteProtect;						///< TRUE if write-protected
-	BOOL m_bEnable;							///< TRUE if media is usable
-	DWORD m_nRing;							///< Number of stored path names
+	BOOL m_bWriteProtect = FALSE;						///< TRUE if write-protected
+	BOOL m_bEnable = FALSE;							///< TRUE if media is usable
+	DWORD m_nRing = 0;							///< Number of stored path names
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
-	BOOL m_bVolumeCache;						///< TRUE if the volume label has been read
-	TCHAR m_szVolumeCache[24];					///< Volume label cache
-	TCHAR m_szBase[FILEPATH_MAX];					///< Base path
+	BOOL m_bVolumeCache = FALSE;						///< TRUE if the volume label has been read
+	TCHAR m_szVolumeCache[24] = {};					///< Volume label cache
+	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
 
 //===========================================================================
@@ -808,7 +808,7 @@ public:
 	void  Clean();								///< Release (when starting up or resetting)
 
 	// Cache operations
-	void  CleanCache();							///< Update all cache
+	void  CleanCache() const;							///< Update all cache
 	void  CleanCache(DWORD nUnit);						///< Update cache for the specified unit
 	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
 	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
