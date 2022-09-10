@@ -37,10 +37,10 @@ private:
 		BOOL *changemap;						// Changed map
 		BOOL raw;							// RAW mode flag
 		off_t imgoffset;						// Offset to actual data
-	} dt;
+	} dt = {};
 
 public:
-	DiskTrack();
+	DiskTrack() = default;
 	~DiskTrack();
 	DiskTrack(DiskTrack&) = delete;
 	DiskTrack& operator=(const DiskTrack&) = delete;

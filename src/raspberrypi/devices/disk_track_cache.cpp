@@ -27,22 +27,6 @@
 //
 //===========================================================================
 
-DiskTrack::DiskTrack()
-{
-	// Initialization of internal information
-	dt.track = 0;
-	dt.size = 0;
-	dt.sectors = 0;
-	dt.raw = FALSE;
-	dt.init = FALSE;
-	dt.changed = FALSE;
-	dt.length = 0;
-	dt.buffer = nullptr;
-	dt.maplen = 0;
-	dt.changemap = nullptr;
-	dt.imgoffset = 0;
-}
-
 DiskTrack::~DiskTrack()
 {
 	// Release memory, but do not save automatically

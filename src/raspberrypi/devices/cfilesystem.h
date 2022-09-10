@@ -808,7 +808,7 @@ public:
 	/// Max number of drive candidates
 	static const int DRIVE_MAX = 10;
 
-	CHostEntry();
+	CHostEntry() = default;
 	~CHostEntry();
 	CHostEntry(CHostEntry&) = delete;
 	CHostEntry& operator=(const CHostEntry&) = delete;
@@ -841,8 +841,8 @@ public:
 
 private:
 
-	CHostDrv* m_pDrv[DRIVE_MAX];					///< Host side drive object
-	DWORD m_nTimeout;							///< Last time a timeout check was carried out
+	CHostDrv* m_pDrv[DRIVE_MAX] = {};				///< Host side drive object
+	DWORD m_nTimeout = 0;							///< Last time a timeout check was carried out
 };
 
 //===========================================================================
@@ -879,7 +879,7 @@ The easy solution is to put the content of 'class CFileSys' into 'class CWindrv'
 class CFileSys
 {
 public:
-	CFileSys();
+	CFileSys() = default;
 	virtual ~CFileSys() = default;
 
 	void Reset();								///< Reset (close all)
@@ -952,7 +952,7 @@ private:
 	DWORD m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
 										///< Entity that the virtual sector points to
 
-	DWORD m_nFlag[DriveMax];						///< Candidate runtime flag for base path restoration
-	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< Candidate for base path restoration
+	DWORD m_nFlag[DriveMax] = {};					///< Candidate runtime flag for base path restoration
+	TCHAR m_szBase[DriveMax][FILEPATH_MAX] = {};	///< Candidate for base path restoration
 	static DWORD g_nOption;							///< File name change flag
 };

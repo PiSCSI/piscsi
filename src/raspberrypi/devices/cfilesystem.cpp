@@ -1710,15 +1710,6 @@ void CHostPath::Release()
 //
 //===========================================================================
 
-CHostEntry::CHostEntry()
-{
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		m_pDrv[n] = nullptr;
-	}
-
-	m_nTimeout = 0;
-}
-
 CHostEntry::~CHostEntry()
 {
 	Clean();
@@ -2614,16 +2605,6 @@ void CHostFcbManager::Free(CHostFcb* pFcb)
 //===========================================================================
 
 DWORD CFileSys::g_nOption;		// File name conversion flag
-
-CFileSys::CFileSys()
-{
-	for (size_t n = 0; n < CHostEntry::DRIVE_MAX; n++) {
-		m_nFlag[n] = 0;
-		m_szBase[n][0] = _T('\0');
-	}
-
-	ASSERT(g_nOption == 0);
-}
 
 //---------------------------------------------------------------------------
 //
