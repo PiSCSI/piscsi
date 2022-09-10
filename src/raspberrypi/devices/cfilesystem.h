@@ -236,7 +236,7 @@ deeply in the system, which is why this value is set this high.
 
 Default is 20 buffers.
 */
-#define XM6_HOST_FILES_MAX	20
+static const int XM6_HOST_FILES_MAX = 20;
 
 /// Number of FCB buffers
 /**
@@ -244,7 +244,7 @@ This decides how many files can be opened at the same time.
 
 Default is 100 files.
 */
-#define XM6_HOST_FCB_MAX	100
+static const int XM6_HOST_FCB_MAX = 100;
 
 /// Max number of virtual clusters and sectors
 /**
@@ -253,7 +253,7 @@ Allocating a generous amount to exceed the number of threads lzdsys uses for acc
 
 Default is 10 sectors.
 */
-#define XM6_HOST_PSEUDO_CLUSTER_MAX	10
+static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 10;
 
 /// Number of caches for directory entries
 /**
@@ -264,7 +264,7 @@ and the host OS gets under a heavy load, so be careful.
 
 Default is 16.
 */
-#define XM6_HOST_DIRENTRY_CACHE_MAX	16
+static const int XM6_HOST_DIRENTRY_CACHE_MAX = 16;
 
 /// Max number of entries that can be stored per directory
 /**
@@ -276,7 +276,7 @@ file manager, the upper limit is 2560 files. This is one good example to use as 
 
 Default is around 60000 entries. (Upper limit of the FAT root directory)
 */
-#define XM6_HOST_DIRENTRY_FILE_MAX	65535
+static const int XM6_HOST_DIRENTRY_FILE_MAX	= 65535;
 
 /// Max number of patterns for file name deduplication
 /**
@@ -295,7 +295,7 @@ only the first entry will ever be accessed.
 
 Default is 36 patterns.
 */
-#define XM6_HOST_FILENAME_PATTERN_MAX	36
+static const int XM6_HOST_FILENAME_PATTERN_MAX = 36;
 
 /// Duplicate file identification mark
 /**
@@ -304,7 +304,7 @@ Do not use a command shell escape character, or similar protected symbol.
 
 Default is '@'.
 */
-#define XM6_HOST_FILENAME_MARK	'@'
+static const char XM6_HOST_FILENAME_MARK = '@';
 
 /// WINDRV operational flags
 /**
