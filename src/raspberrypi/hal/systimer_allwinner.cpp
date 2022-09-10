@@ -11,7 +11,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/systimer_allwinner.h"
+#include "hal/systimer.h"
 #include <sys/mman.h>
 
 #include "os.h"
@@ -20,41 +20,58 @@
 #include "config.h"
 #include "log.h"
 
+
+ControllerManager& ControllerManager::instance()
+{
+	// If we haven't set up the private instance yet, do that now
+	if(private_instance == nullptr){
+		if(SBC_Version::IsRaspberryPi()){
+			private_instance = std::make_shared<SysTimer_Raspberry>();
+			private_instance->Init();
+		}
+		else if(SBC_Version::IsBananaPi()){
+			private_instance = std::make_shared<SysTimer_AllWinner>();
+			private_instance->Init();
+		}
+	}
+	return private_instance;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Initialize the system timer
 //
 //---------------------------------------------------------------------------
-void SysTimer_AllWinner::Init()
+void SysTimer::Init(DWORD *syst, DWORD *armt)
 {
 	// RPI Mailbox property interface
 	// Get max clock rate
 	//  Tag: 0x00030004
-	// //
-	// //  Request: Length: 4
-	// //   Value: u32: clock id
-	// //  Response: Length: 8
-	// //   Value: u32: clock id, u32: rate (in Hz)
-	// //
-	// // Clock id
-	// //  0x000000004: CORE
-	// DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
+	//
+	//  Request: Length: 4
+	//   Value: u32: clock id
+	//  Response: Length: 8
+	//   Value: u32: clock id, u32: rate (in Hz)
+	//
+	// Clock id
+	//  0x000000004: CORE
+	DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 
-	// // Save the base address
-	// systaddr = syst;
-	// armtaddr = armt;
+	// Save the base address
+	systaddr = syst;
+	armtaddr = armt;
 
-	// // Change the ARM timer to free run mode
-	// armtaddr[ARMT_CTRL] = 0x00000282;
+	// Change the ARM timer to free run mode
+	armtaddr[ARMT_CTRL] = 0x00000282;
 
-	// // Get the core frequency
-	// corefreq = 0;
-	// int fd = open("/dev/vcio", O_RDONLY);
-	// if (fd >= 0) {
-	// 	ioctl(fd, _IOWR(100, 0, char *), maxclock);
-	// 	corefreq = maxclock[6] / 1000000;
-	// }
-	// close(fd);
+	// Get the core frequency
+	corefreq = 0;
+	int fd = open("/dev/vcio", O_RDONLY);
+	if (fd >= 0) {
+		ioctl(fd, _IOWR(100, 0, char *), maxclock);
+		corefreq = maxclock[6] / 1000000;
+	}
+	close(fd);
 }
 
 //---------------------------------------------------------------------------
@@ -62,7 +79,7 @@ void SysTimer_AllWinner::Init()
 //	Get system timer low byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer_AllWinner::GetTimerLow() {
+DWORD SysTimer::GetTimerLow() {
 	return systaddr[SYST_CLO];
 }
 
@@ -71,7 +88,7 @@ DWORD SysTimer_AllWinner::GetTimerLow() {
 //	Get system timer high byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer_AllWinner::GetTimerHigh() {
+DWORD SysTimer::GetTimerHigh() {
 	return systaddr[SYST_CHI];
 }
 
@@ -80,7 +97,7 @@ DWORD SysTimer_AllWinner::GetTimerHigh() {
 //	Sleep in nanoseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_AllWinner::SleepNsec(DWORD nsec)
+void SysTimer::instance.SleepNsec(DWORD nsec)
 {
 	// If time is 0, don't do anything
 	if (nsec == 0) {
@@ -107,7 +124,7 @@ void SysTimer_AllWinner::SleepNsec(DWORD nsec)
 //	Sleep in microseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_AllWinner::SleepUsec(DWORD usec)
+void SysTimer::instance.SleepUsec(DWORD usec)
 {
 	// If time is 0, don't do anything
 	if (usec == 0) {

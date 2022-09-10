@@ -11,22 +11,31 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/systimer_raspberry.h"
+#include "hal/systimer.h"
 #include <sys/mman.h>
-#include <memory>
 
 #include "os.h"
 #include "hal/gpiobus.h"
-#include "hal/sbc_version.h"
 
 #include "config.h"
 #include "log.h"
 
-static volatile uint32_t *systaddr = 0;
-									// System timer address
-static volatile uint32_t *armtaddr = 0;
-									// ARM timer address
-static volatile uint32_t corefreq = 0;
+
+ControllerManager& ControllerManager::instance()
+{
+	// If we haven't set up the private instance yet, do that now
+	if(private_instance == nullptr){
+		if(SBC_Version::IsRaspberryPi()){
+			private_instance = std::make_shared<SysTimer_Raspberry>();
+			private_instance->Init();
+		}
+		else if(SBC_Version::IsBananaPi()){
+			private_instance = std::make_shared<SysTimer_AllWinner>();
+			private_instance->Init();
+		}
+	}
+	return private_instance;
+}
 
 //---------------------------------------------------------------------------
 //
@@ -47,7 +56,7 @@ void SysTimer_Raspberry::Init()
 	}
 
 	// Map peripheral region memory
-	void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
+	map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
 	if (map == MAP_FAILED) {
         LOGERROR("Error: Unable to map memory")
 		close(fd);
@@ -69,7 +78,7 @@ void SysTimer_Raspberry::Init()
 
 	// Save the base address
 	systaddr = (DWORD *)map + SYST_OFFSET / sizeof(DWORD);
-	armtaddr = (DWORD *)map + ARMT_OFFSET / sizeof(DWORD);
+	armtaddr = (DWORD *)map + ARMT_OFFSET / sizeof(DWORD));
 
 	// Change the ARM timer to free run mode
 	armtaddr[ARMT_CTRL] = 0x00000282;

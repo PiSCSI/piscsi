@@ -98,7 +98,7 @@ void SBC_Version::Init(){
 	str_buffer << input_stream.rdbuf();
 	device_tree_model = str_buffer.str();
 
-	for (const auto& [key, value] : m_proc_device_tree_mapping) {
+	for (const auto& [key, value] : m_device_model_map) {
 		if(device_tree_model.rfind(key,0) == 0){
 			m_sbc_version = value;
 			LOGINFO("Detected device %s", GetString()->c_str());
