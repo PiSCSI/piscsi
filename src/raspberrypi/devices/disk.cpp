@@ -121,9 +121,7 @@ void Disk::FlushCache()
 
 void Disk::Rezero()
 {
-	CheckReady();
-
-	EnterStatusPhase();
+	Seek();
 }
 
 void Disk::FormatUnit()
@@ -135,9 +133,7 @@ void Disk::FormatUnit()
 
 void Disk::ReassignBlocks()
 {
-	CheckReady();
-
-	EnterStatusPhase();
+	Seek();
 }
 
 void Disk::Read(access_mode mode)
