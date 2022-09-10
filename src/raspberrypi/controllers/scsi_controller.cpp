@@ -292,7 +292,7 @@ void ScsiController::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-	execstart = SysTimer::GetTimerLow();
+	execstart = SysTimer::instance().GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
@@ -356,7 +356,7 @@ void ScsiController::Status()
 		if (execstart > 0) {
 			Sleep();
 		} else {
-			SysTimer::SleepUsec(5);
+			SysTimer::instance().SleepUsec(5);
 		}
 
 		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status)
@@ -1220,8 +1220,8 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
-	if (uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
-		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
+	if (uint32_t time = SysTimer::instance().GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
+		SysTimer::instance().SleepUsec(MIN_EXEC_TIME - time);
 	}
 	execstart = 0;
 }

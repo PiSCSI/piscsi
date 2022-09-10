@@ -18,11 +18,11 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -O0 -g -Wall -DDEBUG
+	CXXFLAGS += -O0 -g  -DDEBUG
 	BUILD_TYPE = Debug
 else
 	# Release compiler flags
-	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
+	CXXFLAGS += -O0 -g -DDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")
@@ -58,6 +58,7 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
+REGISTERS_TEST = registers
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -204,6 +205,9 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
+$(REGISTERS_TEST): registers.c
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
 
 # Phony rules for building individual utilities
 .PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON)
@@ -217,7 +221,7 @@ $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
+	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE) $(REGISTERS_TEST)
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
