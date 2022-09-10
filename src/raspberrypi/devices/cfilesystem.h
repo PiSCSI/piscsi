@@ -673,41 +673,40 @@ private:
 //===========================================================================
 class CHostFcb {
 public:
-	CHostFcb() { SetKey(0); Init(); }
+	CHostFcb() = default;
 	~CHostFcb() { Close(); }
 	CHostFcb(CHostFcb&) = delete;
 	CHostFcb& operator=(const CHostFcb&) = delete;
 
-	void  Init();
+	void Init();
 
-	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
-	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
-	void  SetUpdate() { m_bUpdate = TRUE; }				///< Update
-	BOOL  isUpdate() const { return m_bUpdate; }			///< Get update state
-	BOOL  SetMode(DWORD nHumanMode);						///< Set file open mode
-	void  SetFilename(const TCHAR* szFilename);					///< Set file name
-	void  SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
-	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
+	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
+	BOOL isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void SetUpdate() { m_bUpdate = TRUE; }				///< Update
+	BOOL isUpdate() const { return m_bUpdate; }			///< Get update state
+	BOOL SetMode(DWORD nHumanMode);						///< Set file open mode
+	void SetFilename(const TCHAR* szFilename);					///< Set file name
+	void SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
+	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
-	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
-	BOOL  Open();									///< Open file
-	BOOL  Rewind(DWORD nOffset) const;							///< Seek file
-	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file
-	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
-	BOOL  Truncate() const;								///< Truncate file
-	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
-	BOOL  TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
-	BOOL  Close();									///< Close file
+	BOOL Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
+	BOOL Open();									///< Open file
+	BOOL Rewind(DWORD nOffset) const;							///< Seek file
+	DWORD Read(BYTE* pBuffer, DWORD nSize);					///< Read file
+	DWORD Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
+	BOOL Truncate() const;								///< Truncate file
+	DWORD Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
+	BOOL TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
+	BOOL Close();									///< Close file
 
 private:
-	DWORD m_nKey;									///< Human68k FCB buffer address (0 if unused)
-	BOOL m_bUpdate;									///< Update flag
-	FILE* m_pFile;									///< Host side file object
-	const char* m_pszMode;								///< Host side file open mode
-	bool m_bFlag;									///< Host side file open flag
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-											///< Human68k path name
-	TCHAR m_szFilename[FILEPATH_MAX];						///< Host side file name
+	DWORD m_nKey = 0;								///< Human68k FCB buffer address (0 if unused)
+	BOOL m_bUpdate = FALSE;							///< Update flag
+	FILE* m_pFile = nullptr;						///< Host side file object
+	const char* m_pszMode = nullptr;				///< Host side file open mode
+	bool m_bFlag = false;							///< Host side file open flag
+	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};		///< Human68k path name
+	TCHAR m_szFilename[FILEPATH_MAX] = {};			///< Host side file name
 };
 
 //===========================================================================

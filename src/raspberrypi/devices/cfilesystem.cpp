@@ -2244,12 +2244,6 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 //
 //===========================================================================
 
-void CHostFcb::Init()
-{
-	m_bUpdate = FALSE;
-	m_pFile = nullptr;
-}
-
 //---------------------------------------------------------------------------
 //
 /// Set file open mode
