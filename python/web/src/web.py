@@ -89,10 +89,12 @@ def get_supported_locales():
     """
     Returns a list of Locale objects that the Web Interfaces supports
     """
-    locales = BABEL.list_translations()
-    locales.append(Locale("en"))
-    sorted_locales = sorted(locales, key=lambda x: x.language)
-    return sorted_locales
+    locales = [
+        {"language": x.language, "display_name": x.display_name}
+        for x in [*BABEL.list_translations(), Locale("en")]
+        ]
+
+    return sorted(locales, key=lambda x: x["language"])
 
 
 # pylint: disable=too-many-locals
