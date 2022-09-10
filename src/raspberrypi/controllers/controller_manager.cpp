@@ -21,7 +21,7 @@ ControllerManager& ControllerManager::instance()
 	return instance;
 }
 
-bool ControllerManager::CreateScsiController(shared_ptr<BUS> bus, PrimaryDevice *device)
+bool ControllerManager::CreateScsiController(shared_ptr<BUS> bus, PrimaryDevice *device) const
 {
 	shared_ptr<AbstractController> controller = FindController(device->GetId());
 	if (controller == nullptr) {

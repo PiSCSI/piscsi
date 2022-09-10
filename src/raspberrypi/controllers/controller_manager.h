@@ -33,7 +33,7 @@ public:
 
 	static ControllerManager& instance();
 
-	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *);
+	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *) const;
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	void DeleteAllControllers() const;
