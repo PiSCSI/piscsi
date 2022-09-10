@@ -1082,7 +1082,7 @@ void CHostFilename::SetEntryName()
 //---------------------------------------------------------------------------
 BOOL CHostFilename::isReduce() const
 {
-	return strcmp((char *)m_szHost, (char*)m_szHuman) != 0;
+	return strcmp((const char *)m_szHost, (const char*)m_szHuman) != 0;
 }
 
 //---------------------------------------------------------------------------
@@ -2080,7 +2080,7 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 /// Find file on the Human68k side and create data on the host side
 //
 //---------------------------------------------------------------------------
-BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
+BOOL CHostFiles::Find(DWORD nUnit, const CHostEntry* pEntry)
 {
 	ASSERT(pEntry);
 
@@ -3278,7 +3278,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 /// $4B - File close
 //
 //---------------------------------------------------------------------------
-int CFileSys::Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* /* pFcb */)
+int CFileSys::Close(DWORD nUnit, DWORD nKey, const Human68k::fcb_t* /* pFcb */)
 {
 	ASSERT(nKey);
 
@@ -3521,7 +3521,7 @@ int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 /// $51 - Inspect/control drive status
 //
 //---------------------------------------------------------------------------
-int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
+int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive) const
 {
 	ASSERT(pCtrlDrive);
 
@@ -3983,7 +3983,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
+BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 {
 	ASSERT(pFiles);
 

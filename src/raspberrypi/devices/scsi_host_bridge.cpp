@@ -388,7 +388,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(BYTE *buf, int len)
+void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
 	assert(tap);
 
@@ -1144,7 +1144,7 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 //	File system write (input option data)
 //
 //---------------------------------------------------------------------------
-void SCSIBR::WriteFsOpt(BYTE *buf, int num)
+void SCSIBR::WriteFsOpt(const BYTE *buf, int num)
 {
 	memcpy(fsopt, buf, num);
 }

@@ -605,7 +605,7 @@ public:
 	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
 	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
 	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry) ;				///< Find files on the Human68k side, generating data on the host side
+	BOOL  Find(DWORD nUnit, const class CHostEntry* pEntry) ;				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename*  Find(CHostPath* pPath);					///< Find file name
 	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
 	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
@@ -902,7 +902,7 @@ public:
 										///< $49 - Create file
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
 										///< $4A - Open file
-	int Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb);		///< $4B - Close file
+	int Close(DWORD nUnit, DWORD nKey, const Human68k::fcb_t* pFcb);		///< $4B - Close file
 	int Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pAddress, DWORD nSize);
 										///< $4C - Read file
 	int Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pAddress, DWORD nSize);
@@ -911,7 +911,7 @@ public:
 	DWORD TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime);
 										///< $4F - Get / set file timestamp
 	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< $50 - Get capacity
-	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - Inspect / control drive status
+	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive) const;		///< $51 - Inspect / control drive status
 	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const;				///< $52 - Get DPB
 	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
 	int DiskWrite(DWORD nUnit) const;						///< $54 - Write sectors
@@ -931,7 +931,7 @@ public:
 
 private:
 	void  InitOption(const Human68k::argument_t* pArgument);
-	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< Get volume label
+	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
 
 	DWORD m_nUnits = 0;								///< Number of current drive objects (Changes for every resume)
 

@@ -60,7 +60,7 @@ private:
 	void SetMacAddr(const BYTE *buf);			// Set MAC address
 	void ReceivePacket();						// Receive a packet
 	void GetPacketBuf(BYTE *buf);				// Get a packet
-	void SendPacket(BYTE *buf, int len);		// Send a packet
+	void SendPacket(const BYTE *buf, int len);	// Send a packet
 
 	CTapDriver *tap = nullptr;					// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
@@ -73,7 +73,7 @@ private:
 	int ReadFsOut(BYTE *buf) const;				// Read filesystem (return data)
 	int ReadFsOpt(BYTE *buf) const;				// Read file system (optional data)
 	void WriteFs(int func, BYTE *buf);			// File system write (execute)
-	void WriteFsOpt(BYTE *buf, int len);		// File system write (optional data)
+	void WriteFsOpt(const BYTE *buf, int len);	// File system write (optional data)
 
 	// Command handlers
 	void FS_InitDevice(BYTE *buf);				// $40 - boot
