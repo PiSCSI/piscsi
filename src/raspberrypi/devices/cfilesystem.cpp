@@ -845,8 +845,8 @@ void CHostFilename::ConvertHuman(int nCount)
 	// Char conversion
 	BYTE szHuman[FILEPATH_MAX];
 	const BYTE* pFirst = szHuman;
-	const BYTE* pLast;
-	const BYTE* pExt = nullptr;
+	BYTE* pLast;
+	BYTE* pExt = nullptr;
 
 	{
 		strcpy(szHost, m_szHost);
@@ -918,15 +918,14 @@ void CHostFilename::ConvertHuman(int nCount)
 		// Delete spaces at the end
 		while (pExt < pLast - 1 && *(pLast - 1) == ' ') {
 			pLast--;
-			auto p = (BYTE*)pLast;
+			auto p = pLast;
 			*p = '\0';
 		}
 
 		// Delete if the file name disappeared after conversion
 		if (pExt + 1 >= pLast) {
 			pLast = pExt;
-			auto p = (BYTE*)pLast;
-			*p = '\0';		// Just in case
+			*pLast = '\0';		// Just in case
 		}
 	} else {
 		pExt = pLast;
