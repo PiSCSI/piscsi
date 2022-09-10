@@ -37,7 +37,7 @@ public:
 	void SetPath(const Filepath& path) { diskpath = path; }
 
 	void ReserveFile(const Filepath&, int, int) const;
-	void UnreserveFile();
+	void UnreserveFile() const;
 	static void UnreserveAll();
 
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }

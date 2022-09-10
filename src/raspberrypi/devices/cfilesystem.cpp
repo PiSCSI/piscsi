@@ -2529,7 +2529,6 @@ CHostFcbManager::~CHostFcbManager()
 //---------------------------------------------------------------------------
 void CHostFcbManager::Init()
 {
-
 	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
@@ -2547,9 +2546,8 @@ void CHostFcbManager::Init()
 // Clean (at startup/reset)
 //
 //---------------------------------------------------------------------------
-void CHostFcbManager::Clean()
+void CHostFcbManager::Clean() const
 {
-
 	//  Fast task killer
 	CRing* p;
 	while ((p = m_cRing.Next()) != &m_cRing) {
@@ -2620,27 +2618,12 @@ DWORD CFileSys::g_nOption;		// File name conversion flag
 
 CFileSys::CFileSys()
 {
-	m_nHostSectorCount = 0;
-
-	// Config data initialization
-	m_nDrives = 0;
-
 	for (size_t n = 0; n < CHostEntry::DRIVE_MAX; n++) {
 		m_nFlag[n] = 0;
 		m_szBase[n][0] = _T('\0');
 	}
 
-	// Initialize TwentyOne option monitoring
-	m_nKernel = 0;
-	m_nKernelSearch = 0;
-
-	// Initialize operational flags
-	m_nOptionDefault = 0;
-	m_nOption = 0;
 	ASSERT(g_nOption == 0);
-
-	// Number of registered drives are 0
-	m_nUnits = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -2650,7 +2633,6 @@ CFileSys::CFileSys()
 //---------------------------------------------------------------------------
 void CFileSys::Reset()
 {
-
 	// Initialize virtual sectors
 	m_nHostSectorCount = 0;
 	memset(m_nHostSectorBuffer, 0, sizeof(m_nHostSectorBuffer));
@@ -2679,7 +2661,6 @@ void CFileSys::Reset()
 //---------------------------------------------------------------------------
 void CFileSys::Init()
 {
-
 	// Initialize file search memory (device startup and load)
 	m_cFiles.Init();
 
@@ -2727,7 +2708,6 @@ void CFileSys::Init()
 //---------------------------------------------------------------------------
 DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 {
-
 	InitOption(pArgument);
 
 	// File system initialization

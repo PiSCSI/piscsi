@@ -482,8 +482,8 @@ private:
 	static BYTE* CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
 										///< Copy Human68k file name elements
 
-	const BYTE* m_pszHumanLast = 0;		///< Last position of the Human68k internal name of the relevant entry
-	const BYTE* m_pszHumanExt = 0;		///< Position of the extension of the Human68k internal name of the relevant entry
+	const BYTE* m_pszHumanLast = nullptr;		///< Last position of the Human68k internal name of the relevant entry
+	const BYTE* m_pszHumanExt = nullptr;		///< Position of the extension of the Human68k internal name of the relevant entry
 	BOOL m_bCorrect = FALSE;			///< TRUE if the relevant entry of the Human68k internal name is correct
 	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
 	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
@@ -718,7 +718,7 @@ public:
 	~CHostFcbManager();
 	#endif	// _DEBUG
 	void  Init();								///< Initialization (when the driver is installed)
-	void  Clean();								///< Release (when starting up or resetting)
+	void  Clean() const;						///< Release (when starting up or resetting)
 
 	CHostFcb*  Alloc(DWORD nKey);
 	CHostFcb*  Search(DWORD nKey);
@@ -933,17 +933,17 @@ private:
 	void  InitOption(const Human68k::argument_t* pArgument);
 	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< Get volume label
 
-	DWORD m_nUnits;								///< Number of current drive objects (Changes for every resume)
+	DWORD m_nUnits = 0;								///< Number of current drive objects (Changes for every resume)
 
-	DWORD m_nOption;							///< Current runtime flag
-	DWORD m_nOptionDefault;							///< Runtime flag at reset
+	DWORD m_nOption = 0;							///< Current runtime flag
+	DWORD m_nOptionDefault = 0;						///< Runtime flag at reset
 
-	DWORD m_nDrives;							///< Number of candidates for base path status restoration (scan every time if 0)
+	DWORD m_nDrives = 0;							///< Number of candidates for base path status restoration (scan every time if 0)
 
-	DWORD m_nKernel;							///< Counter for kernel check
-	DWORD m_nKernelSearch;							///< Initial address for NUL device
+	DWORD m_nKernel = 0;							///< Counter for kernel check
+	DWORD m_nKernelSearch = 0;						///< Initial address for NUL device
 
-	DWORD m_nHostSectorCount;						///< Virtual sector identifier
+	DWORD m_nHostSectorCount = 0;					///< Virtual sector identifier
 
 	CHostFilesManager m_cFiles;						///< File search memory
 	CHostFcbManager m_cFcb;							///< FCB operation memory

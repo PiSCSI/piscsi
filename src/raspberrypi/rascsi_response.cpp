@@ -492,7 +492,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 }
 
 void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperationMetaData *meta_data,
-		const PbOperation& operation, const string& description)
+		const PbOperation& operation, const string& description) const
 {
 	meta_data->set_server_side_name(PbOperation_Name(operation));
 	meta_data->set_description(description);
