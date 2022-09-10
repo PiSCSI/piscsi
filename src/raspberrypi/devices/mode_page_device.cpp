@@ -123,7 +123,7 @@ void ModePageDevice::ModeSelect10()
 	EnterDataOutPhase();
 }
 
-int ModePageDevice::ModeSelectCheck(int length)
+int ModePageDevice::ModeSelectCheck(int length) const
 {
 	// Error if save parameters are set for other types than of SCHD, SCRM or SCMO
 	// TODO The assumption above is not correct, and this code should be located elsewhere
@@ -134,13 +134,13 @@ int ModePageDevice::ModeSelectCheck(int length)
 	return length;
 }
 
-int ModePageDevice::ModeSelectCheck6()
+int ModePageDevice::ModeSelectCheck6() const
 {
 	// Receive the data specified by the parameter length
 	return ModeSelectCheck(ctrl->cmd[4]);
 }
 
-int ModePageDevice::ModeSelectCheck10()
+int ModePageDevice::ModeSelectCheck10() const
 {
 	// Receive the data specified by the parameter length
 	int length = ctrl->cmd[7];

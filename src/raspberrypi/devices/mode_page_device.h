@@ -50,7 +50,7 @@ private:
 	void ModeSelect6();
 	void ModeSelect10();
 
-	int ModeSelectCheck(int);
-	int ModeSelectCheck6();
-	int ModeSelectCheck10();
+	int ModeSelectCheck(int) const;
+	int ModeSelectCheck6() const;
+	int ModeSelectCheck10() const;
 };
