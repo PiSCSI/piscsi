@@ -32,8 +32,10 @@ class FileSupport
 
 public:
 
-	FileSupport() : diskpath({}) {}
+	FileSupport() = default;
 	virtual ~FileSupport() = default;
+	FileSupport(FileSupport&) = delete;
+	FileSupport& operator=(const FileSupport&) = delete;
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }

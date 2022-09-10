@@ -12,7 +12,7 @@
 
 class TestFileSupport : public FileSupport
 {
-	void Open(const Filepath&) {
+	void Open(const Filepath&) final {
 		// Do nothing when running unit tests
 	}
 };

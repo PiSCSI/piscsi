@@ -59,6 +59,8 @@ public:
 
 	AbstractController(BUS *bus, int target_id) : bus(bus), target_id(target_id) {}
 	~AbstractController() override = default;
+	AbstractController(AbstractController&) = delete;
+	AbstractController& operator=(const AbstractController&) = delete;
 
 	virtual BUS::phase_t Process(int) = 0;
 

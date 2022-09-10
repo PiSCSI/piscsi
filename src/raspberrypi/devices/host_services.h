@@ -23,6 +23,8 @@ public:
 
 	HostServices();
 	~HostServices() override = default;
+	HostServices(HostServices&) = delete;
+	HostServices& operator=(const HostServices&) = delete;
 
 	bool Dispatch() override;
 

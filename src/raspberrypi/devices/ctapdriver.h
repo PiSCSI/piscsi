@@ -37,8 +37,10 @@ private:
 	friend class SCSIDaynaPort;
 	friend class SCSIBR;
 
-	CTapDriver() : interfaces({}), inet({}) {}
+	CTapDriver() = default;
 	~CTapDriver() = default;
+	CTapDriver(CTapDriver&) = delete;
+	CTapDriver& operator=(const CTapDriver&) = delete;
 
 	bool Init(const unordered_map<string, string>&);
 

@@ -15,7 +15,7 @@ TEST(ControllerManagerTest, ControllerManager)
 	const int ID = 4;
 	const int LUN = 6;
 
-	PrimaryDevice *device = static_cast<PrimaryDevice *>(device_factory.CreateDevice(UNDEFINED, "services", ID));
+	auto device = static_cast<PrimaryDevice *>(device_factory.CreateDevice(UNDEFINED, "services", ID));
 	device->SetId(ID);
 	device->SetLun(LUN);
 

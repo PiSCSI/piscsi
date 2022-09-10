@@ -25,8 +25,7 @@ void FileSupport::UnreserveFile()
 
 bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& lun)
 {
-	const auto& it = reserved_files.find(path.GetPath());
-	if (it != reserved_files.end()) {
+	if (const auto& it = reserved_files.find(path.GetPath()); it != reserved_files.end()) {
 		id = it->second.first;
 		lun = it->second.second;
 

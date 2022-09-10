@@ -25,7 +25,7 @@ static const char *DEFAULT_PRODUCT = "SCSI HD";
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
 	: Disk(removable ? "SCRM" : "SCHD")
 {
-	this->scsi_level = level;
+	scsi_level = level;
 
 	SetSectorSizes(sector_sizes);
 }

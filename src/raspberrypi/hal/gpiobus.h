@@ -110,6 +110,28 @@
 //
 //---------------------------------------------------------------------------
 
+#ifdef CONNECT_TYPE_STANDARD
+//
+// RaSCSI standard (SCSI logic, standard pin assignment)
+//
+#define CONNECT_DESC "STANDARD"				// Startup message
+
+// Select signal control mode
+#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
+
+// Control signal pin assignment (-1 means no control)
+#define	PIN_ACT		4						// ACTIVE
+#define	PIN_ENB		5						// ENABLE
+#define PIN_IND		-1						// INITIATOR CTRL DIRECTION
+#define PIN_TAD		-1						// TARGET CTRL DIRECTION
+#define PIN_DTD		-1						// DATA DIRECTION
+
+// Control signal output logic
+#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
+#define ENB_ON		TRUE					// ENABLE SIGNAL ON
+#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
+#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
+#define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
 
 #define ALL_SCSI_PINS \

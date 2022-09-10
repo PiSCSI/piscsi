@@ -57,12 +57,12 @@ void ScsiController::Reset()
 	bytes_to_transfer = 0;
 
 	// Reset all LUNs
-	for (auto& lun : ctrl.luns) {
-		lun.second->Reset();
+	for (auto& [lun, device] : ctrl.luns) {
+		device->Reset();
 	}
 }
 
-BUS::phase_t ScsiController::Process(int initiator_id)
+BUS::phase_t ScsiController::Process(int id)
 {
 	// Get bus information
 	bus->Acquire();
@@ -80,14 +80,14 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 		return ctrl.phase;
 	}
 
-	if (initiator_id != UNKNOWN_INITIATOR_ID) {
-		LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, initiator_id)
+	if (id != UNKNOWN_INITIATOR_ID) {
+		LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, id)
 	}
 	else {
 		LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__)
 	}
 
-	this->initiator_id = initiator_id;
+	initiator_id = id;
 
 	try {
 		// Phase processing
@@ -129,7 +129,7 @@ BUS::phase_t ScsiController::Process(int initiator_id)
 				break;
 		}
 	}
-	catch(const scsi_error_exception& e) {
+	catch(const scsi_error_exception&) {
 		// Any exception should have been handled during the phase processing
 		assert(false);
 
@@ -208,8 +208,7 @@ void ScsiController::Selection()
 {
 	if (ctrl.phase != BUS::selection) {
 		// A different device controller was selected
-		int id = 1 << GetTargetId();
-		if ((bus->GetDAT() & id) == 0) {
+		if (int id = 1 << GetTargetId(); (bus->GetDAT() & id) == 0) {
 			return;
 		}
 
@@ -546,11 +545,10 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length,
+		if (int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
-
-		// If you cannot send all, move to status phase
-		if (len != (int)ctrl.length) {
+			len != (int)ctrl.length) {
+			// If you cannot send all, move to status phase
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -823,7 +821,7 @@ bool ScsiController::XferMsg(int msg)
 
 	// Save message out data
 	if (scsi.atnmsg) {
-		scsi.msb[scsi.msc] = msg;
+		scsi.msb[scsi.msc] = (BYTE)msg;
 		scsi.msc++;
 		scsi.msc %= 256;
 	}
@@ -1013,8 +1011,8 @@ bool ScsiController::XferOut(bool cont)
 
 	is_byte_transfer = false;
 
-	PrimaryDevice *device = GetDeviceForLun(GetEffectiveLun());
-	if (device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
+	if (auto device = GetDeviceForLun(GetEffectiveLun());
+		device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
 		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
 	}
 
@@ -1027,24 +1025,24 @@ void ScsiController::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	Disk *disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return;
 	}
 
 	// WRITE system only
 	switch ((ScsiController::rw_command)ctrl.cmd[0]) {
-		case ScsiController::eCmdWrite6:
-		case ScsiController::eCmdWrite10:
-		case ScsiController::eCmdWrite16:
-		case ScsiController::eCmdWriteLong10:
-		case ScsiController::eCmdWriteLong16:
-		case ScsiController::eCmdVerify10:
-		case ScsiController::eCmdVerify16:
+		case ScsiController::eRwCmdWrite6:
+		case ScsiController::eRwCmdWrite10:
+		case ScsiController::eRwCmdWrite16:
+		case ScsiController::eRwCmdWriteLong10:
+		case ScsiController::eRwCmdWriteLong16:
+		case ScsiController::eRwCmdVerify10:
+		case ScsiController::eRwCmdVerify16:
 			break;
 
-		case ScsiController::eCmdModeSelect6:
-		case ScsiController::eCmdModeSelect10:
+		case ScsiController::eRwCmdModeSelect6:
+		case ScsiController::eRwCmdModeSelect10:
             // TODO What is this special handling of ModeSelect good for?
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
@@ -1058,12 +1056,12 @@ void ScsiController::FlushUnit()
 			}
             break;
 
-		case ScsiController::eCmdSetMcastAddr:
+		case ScsiController::eRwCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 
 		default:
-			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
+			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0])
 			break;
 	}
 }
@@ -1089,14 +1087,14 @@ bool ScsiController::XferIn(BYTE *buf)
 
 	// Limited to read commands
 	switch (ctrl.cmd[0]) {
-		case eCmdRead6:
-		case eCmdRead10:
-		case eCmdRead16:
+		case eRwCmdRead6:
+		case eRwCmdRead10:
+		case eRwCmdRead16:
 			// Read from disk
 			try {
 				ctrl.length = ((Disk *)GetDeviceForLun(lun))->Read(ctrl.cmd, buf, ctrl.next);
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_error_exception&) {
 				// If there is an error, go to the status phase
 				return false;
 			}
@@ -1127,15 +1125,15 @@ bool ScsiController::XferIn(BYTE *buf)
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
-	Disk *disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return false;
 	}
 
 	// Limited to write commands
 	switch (ctrl.cmd[0]) {
-		case eCmdModeSelect6:
-		case eCmdModeSelect10:
+		case eRwCmdModeSelect6:
+		case eRwCmdModeSelect10:
 			try {
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
@@ -1145,17 +1143,16 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			}
 			break;
 
-		case eCmdWrite6:
-		case eCmdWrite10:
-		case eCmdWrite16:
+		case eRwCmdWrite6:
+		case eRwCmdWrite10:
+		case eRwCmdWrite16:
 		// TODO Verify has to verify, not to write
-		case eCmdVerify10:
-		case eCmdVerify16:
+		case eRwCmdVerify10:
+		case eRwCmdVerify16:
 		{
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
-			SCSIBR *bridge = dynamic_cast<SCSIBR *>(disk);
-			if (bridge) {
+			if (auto bridge = dynamic_cast<SCSIBR *>(disk); bridge) {
 				if (!bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// Write failed
 					return false;
@@ -1167,8 +1164,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
-			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(disk);
-			if (daynaport) {
+			if (auto daynaport = dynamic_cast<SCSIDaynaPort *>(disk); daynaport) {
 				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, 0);
 
 				ctrl.offset = 0;
@@ -1196,7 +1192,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				ctrl.length = disk->WriteCheck(ctrl.next - 1);
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_error_exception&) {
 				// Cannot write
 				return false;
 			}
@@ -1205,7 +1201,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 		}
 
-		case eCmdSetMcastAddr:
+		case eRwCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__)
 			break;
 
@@ -1224,8 +1220,7 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
-	uint32_t time = SysTimer::GetTimerLow() - execstart;
-	if (time < MIN_EXEC_TIME) {
+	if (uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
 		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 	}
 	execstart = 0;

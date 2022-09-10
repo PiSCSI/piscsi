@@ -29,9 +29,12 @@ class Fileio;
 //===========================================================================
 class Filepath
 {
+
 public:
+
 	Filepath();
 	virtual ~Filepath() = default;
+	Filepath(Filepath&) = delete;
 	Filepath& operator=(const Filepath& path);
 
 	void Clear();
@@ -40,6 +43,7 @@ public:
 	const char *GetFileExt() const;		// Get short name (LPCTSTR)
 
 private:
+
 	void Split();						// Split the path
 	TCHAR m_szPath[_MAX_PATH];			// File path
 	TCHAR m_szDir[_MAX_DIR];			// Directory

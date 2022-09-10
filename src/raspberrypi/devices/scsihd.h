@@ -21,10 +21,13 @@
 
 class SCSIHD : public Disk, public FileSupport
 {
+
 public:
 
 	SCSIHD(const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
-	virtual ~SCSIHD() {}
+	~SCSIHD() override = default;
+	SCSIHD(SCSIHD&) = delete;
+	SCSIHD& operator=(const SCSIHD&) = delete;
 
 	void FinalizeSetup(const Filepath&, off_t);
 

@@ -15,7 +15,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id), dispatcher({})
+PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	// Mandatory SCSI primary commands
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
@@ -31,9 +31,9 @@ bool PrimaryDevice::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]);
 }
 
-void PrimaryDevice::SetController(AbstractController *controller)
+void PrimaryDevice::SetController(AbstractController *c)
 {
-	this->controller = controller;
+	controller = c;
 	ctrl = controller->GetCtrl();
 }
 
@@ -59,12 +59,10 @@ void PrimaryDevice::Inquiry()
 	}
 
 	memcpy(ctrl->buffer, buf.data(), allocation_length);
-	ctrl->length = allocation_length;
-
-	int lun = controller->GetEffectiveLun();
+	ctrl->length = (uint32_t)allocation_length;
 
 	// Report if the device does not support the requested LUN
-	if (!controller->HasDeviceForLun(lun)) {
+	if (int lun = controller->GetEffectiveLun(); !controller->HasDeviceForLun(lun)) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
@@ -91,12 +89,12 @@ void PrimaryDevice::ReportLuns()
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
 		if (controller->HasDeviceForLun(lun)) {
 			size += 8;
-			buf[size + 7] = lun;
+			buf[size + 7] = (BYTE)lun;
 		}
 	}
 
-	buf[2] = size >> 8;
-	buf[3] = size;
+	buf[2] = (BYTE)(size >> 8);
+	buf[3] = (BYTE)size;
 
 	size += 8;
 
@@ -131,7 +129,7 @@ void PrimaryDevice::RequestSense()
     }
 
     memcpy(ctrl->buffer, buf.data(), allocation_length);
-    ctrl->length = allocation_length;
+    ctrl->length = (uint32_t)allocation_length;
 
     EnterDataInPhase();
 }
@@ -172,10 +170,10 @@ vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	// buf[2] ... SCSI compliance level of command system
 	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
-	buf[0] = type;
+	buf[0] = (BYTE)type;
 	buf[1] = is_removable ? 0x80 : 0x00;
-	buf[2] = level;
-	buf[3] = level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS;
+	buf[2] = (BYTE)level;
+	buf[3] = (BYTE)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
@@ -198,10 +196,10 @@ vector<BYTE> PrimaryDevice::HandleRequestSense()
 	// Current error
 	buf[0] = 0x70;
 
-	buf[2] = GetStatusCode() >> 16;
+	buf[2] = (BYTE)(GetStatusCode() >> 16);
 	buf[7] = 10;
-	buf[12] = GetStatusCode() >> 8;
-	buf[13] = GetStatusCode();
+	buf[12] = (BYTE)(GetStatusCode() >> 8);
+	buf[13] = (BYTE)GetStatusCode();
 
 	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12])
 

@@ -168,11 +168,12 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##              the text versions of the manpages
 ##   docs     : Re-generate the text versions of the man pages
 ##   test     : Build and run unit tests
-##   coverage : Build and run unit tests and create coverage HTML files.
+##   coverage : Build and run unit tests and create coverage SonarQube files.
+##   lcov     : Build and run unit tests and create coverage HTML files.
 ##              Note that you have to run 'make clean' before switching
-##              between coverage and no-coverage builds.
+##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs test coverage
+.PHONY: all ALL docs test coverage lcov
 all: $(BIN_ALL) docs
 
 test: $(BINDIR)/$(RASCSI_TEST)
@@ -180,6 +181,9 @@ test: $(BINDIR)/$(RASCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
+
+lcov: CXXFLAGS += --coverage
+lcov: test
 	lcov -q -c -d . --include '*/raspberrypi/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 

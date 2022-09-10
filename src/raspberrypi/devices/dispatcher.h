@@ -23,13 +23,15 @@ class Dispatcher
 {
 public:
 
-	Dispatcher() : commands({}) {}
+	Dispatcher() = default;
 	~Dispatcher()
 	{
 		for (auto const& [name, command] : commands) {
 			delete command;
 		}
 	}
+	Dispatcher(Dispatcher&) = delete;
+	Dispatcher& operator=(const Dispatcher&) = delete;
 
 	using operation = void (T::*)();
 	using command_t = struct _command_t {
@@ -47,8 +49,7 @@ public:
 
 	bool Dispatch(T *instance, DWORD cmd)
 	{
-		const auto& it = commands.find(static_cast<scsi_command>(cmd));
-		if (it != commands.end()) {
+		if (const auto& it = commands.find(static_cast<scsi_command>(cmd)); it != commands.end()) {
 			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd)
 
 			(instance->*it->second->execute)();
