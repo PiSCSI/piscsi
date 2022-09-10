@@ -717,7 +717,7 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 	ASSERT(pFiles);
 
 	// Get path name and build cache
-	CHostPath* pPath = CopyCache(pFiles);
+	const CHostPath* pPath = CopyCache(pFiles);
 	if (pPath == nullptr) {
 		pPath = MakeCache(pFiles);
 		if (pPath == nullptr) {
