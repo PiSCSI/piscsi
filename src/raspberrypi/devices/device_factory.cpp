@@ -22,7 +22,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-multimap<int, Device *> DeviceFactory::devices;
+multimap<int, unique_ptr<PrimaryDevice>> DeviceFactory::devices;
 
 DeviceFactory::DeviceFactory()
 {
@@ -66,25 +66,19 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["iso"] = SCCD;
 }
 
-DeviceFactory::~DeviceFactory()
-{
-	DeleteAllDevices();
-}
-
 DeviceFactory& DeviceFactory::instance()
 {
 	static DeviceFactory instance;
 	return instance;
 }
 
-void DeviceFactory::DeleteDevice(const Device *device) const
+void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
 {
 	auto iterpair = devices.equal_range(device->GetId());
 
 	for (auto it = iterpair.first; it != iterpair.second; ++it) {
 		if (it->second->GetLun() == device->GetLun()) {
 			devices.erase(it);
-			delete device;
 
 			break;
 		}
@@ -93,30 +87,26 @@ void DeviceFactory::DeleteDevice(const Device *device) const
 
 void DeviceFactory::DeleteAllDevices() const
 {
-	for (const auto& [id, device] : devices) {
-		delete device;
-	}
-
 	devices.clear();
 }
 
-const Device * DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
+const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
 {
 	for (const auto& [id, device] : devices) {
 		if (device->GetId() == i && device->GetLun() == lun) {
-			return device;
+			return device.get();
 		}
 	}
 
 	return nullptr;
 }
 
-list<Device *> DeviceFactory::GetAllDevices() const
+list<PrimaryDevice *> DeviceFactory::GetAllDevices() const
 {
-	list<Device *> result;
+	list<PrimaryDevice *> result;
 
 	for (const auto& [id, device] : devices) {
-		result.push_back(device);
+		result.push_back(device.get());
 	}
 
 	return result;
@@ -155,7 +145,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
+PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -165,7 +155,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		}
 	}
 
-	unique_ptr<Device> device;
+	unique_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
@@ -248,7 +238,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 
 	assert(device != nullptr);
 
-	Device *d = device.release();
+	PrimaryDevice *d = device.release();
 
 	if (d != nullptr) {
 		d->SetId(id);

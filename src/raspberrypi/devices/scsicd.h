@@ -28,15 +28,13 @@
 //===========================================================================
 class CDTrack
 {
-private:
 
-	friend class SCSICD;
+public:
 
 	CDTrack() = default;
 	virtual ~CDTrack() final = default;
 	CDTrack(CDTrack&) = delete;
-
-public:
+	CDTrack& operator=(const CDTrack&) = delete;
 
 	void Init(int track, DWORD first, DWORD last);
 
@@ -66,8 +64,6 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
-	// Maximum number of tracks
-	static const int TRACK_MAX = 96;
 
 public:
 
@@ -114,8 +110,7 @@ private:
 	// Track management
 	void ClearTrack();						// Clear the track
 	int SearchTrack(DWORD lba) const;		// Track search
-	CDTrack* track[TRACK_MAX] = {};			// Track opbject references
-	int tracks = 0;							// Effective number of track objects
+	vector<unique_ptr<CDTrack>> tracks;		// Track opbject references
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track
 };

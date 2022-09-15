@@ -57,10 +57,9 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 
 Disk::~Disk()
 {
-	// Save disk cache
-	if (IsReady()) {
-		// Only if ready...
-		FlushCache();
+	// Save disk cache, only if ready
+	if (IsReady() && disk.dcache) {
+		disk.dcache->Save();
 	}
 
 	delete disk.dcache;
@@ -122,9 +121,7 @@ void Disk::FlushCache()
 
 void Disk::Rezero()
 {
-	CheckReady();
-
-	EnterStatusPhase();
+	Seek();
 }
 
 void Disk::FormatUnit()
@@ -136,9 +133,7 @@ void Disk::FormatUnit()
 
 void Disk::ReassignBlocks()
 {
-	CheckReady();
-
-	EnterStatusPhase();
+	Seek();
 }
 
 void Disk::Read(access_mode mode)

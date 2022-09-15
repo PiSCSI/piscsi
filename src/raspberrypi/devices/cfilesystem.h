@@ -18,47 +18,47 @@
 //	Status code definitions
 //
 //---------------------------------------------------------------------------
-#define FS_INVALIDFUNC		0xFFFFFFFF	///< Executed an invalid function
-#define FS_FILENOTFND		0xFFFFFFFE	///< The selected file can not be found
-#define FS_DIRNOTFND		0xFFFFFFFD	///< The selected directory can not be found
-#define FS_OVEROPENED		0xFFFFFFFC	///< There are too many files open
-#define FS_CANTACCESS		0xFFFFFFFB	///< Can not access the direcory or volume
-#define FS_NOTOPENED		0xFFFFFFFA	///< The selected handle is not opened
-#define FS_INVALIDMEM		0xFFFFFFF9	///< Memory management has been destroyed
-#define FS_OUTOFMEM		0xFFFFFFF8	///< Insufficient memory for execution
-#define FS_INVALIDPTR		0xFFFFFFF7	///< Selected an invalid memory management pointer
-#define FS_INVALIDENV		0xFFFFFFF6	///< Selected an invalid environment
-#define FS_ILLEGALFMT		0xFFFFFFF5	///< The exeucted file is in an invalid format
-#define FS_ILLEGALMOD		0xFFFFFFF4	///< Invalid open access mode
-#define FS_INVALIDPATH		0xFFFFFFF3	///< Mistake in selected file name
-#define FS_INVALIDPRM		0xFFFFFFF2	///< Called with an invalid parameter
-#define FS_INVALIDDRV		0xFFFFFFF1	///< Mistake in selected drive
-#define FS_DELCURDIR		0xFFFFFFF0	///< Unable to delete the current directory
-#define FS_NOTIOCTRL		0xFFFFFFEF	///< Unable to use IOCTRL with the device
-#define FS_LASTFILE		0xFFFFFFEE	///< Can not find any more files
-#define FS_CANTWRITE		0xFFFFFFED	///< Selected file can not be written
-#define FS_DIRALREADY		0xFFFFFFEC	///< Selected directory is already registered
-#define FS_CANTDELETE		0xFFFFFFEB	///< Can not delete because of a file
-#define FS_CANTRENAME		0xFFFFFFEA	///< Can not rename because of a file
-#define FS_DISKFULL		0xFFFFFFE9	///< Can not create a file because the disk is full
-#define FS_DIRFULL		0xFFFFFFE8	///< Can not create a file because the directory is full
-#define FS_CANTSEEK		0xFFFFFFE7	///< Can not seek in the selected location
-#define FS_SUPERVISOR		0xFFFFFFE6	///< Selected supervisor in supervisor mode
-#define FS_THREADNAME		0xFFFFFFE5	///< A thread with this name already exists
-#define FS_BUFWRITE		0xFFFFFFE4	///< Writing to inter-process communication buffers is disallowed
-#define FS_BACKGROUND		0xFFFFFFE3	///< Unable to start a background process
-#define FS_OUTOFLOCK		0xFFFFFFE0	///< Insufficient lock space
-#define FS_LOCKED		0xFFFFFFDF	///< Can not access because it is locked
-#define FS_DRIVEOPENED		0xFFFFFFDE	///< Selected drive has an open handler
-#define FS_LINKOVER		0xFFFFFFDD	///< The symbolic link is nested over 16 times
-#define FS_FILEEXIST		0xFFFFFFB0	///< The file exists
+static const int FS_INVALIDFUNC	=	0xFFFFFFFF;	///< Executed an invalid function
+static const int FS_FILENOTFND =	0xFFFFFFFE;	///< The selected file can not be found
+static const int FS_DIRNOTFND =		0xFFFFFFFD;	///< The selected directory can not be found
+static const int FS_OVEROPENED =	0xFFFFFFFC;	///< There are too many files open
+static const int FS_CANTACCESS =	0xFFFFFFFB;	///< Can not access the direcory or volume
+static const int FS_NOTOPENED =		0xFFFFFFFA;	///< The selected handle is not opened
+static const int FS_INVALIDMEM =	0xFFFFFFF9;	///< Memory management has been destroyed
+static const int FS_OUTOFMEM =		0xFFFFFFF8;	///< Insufficient memory for execution
+static const int FS_INVALIDPTR =	0xFFFFFFF7;	///< Selected an invalid memory management pointer
+static const int FS_INVALIDENV =	0xFFFFFFF6;	///< Selected an invalid environment
+static const int FS_ILLEGALFMT =	0xFFFFFFF5;	///< The exeucted file is in an invalid format
+static const int FS_ILLEGALMOD =	0xFFFFFFF4;	///< Invalid open access mode
+static const int FS_INVALIDPATH =	0xFFFFFFF3;	///< Mistake in selected file name
+static const int FS_INVALIDPRM =	0xFFFFFFF2;	///< Called with an invalid parameter
+static const int FS_INVALIDDRV =	0xFFFFFFF1;	///< Mistake in selected drive
+static const int FS_DELCURDIR =		0xFFFFFFF0;	///< Unable to delete the current directory
+static const int FS_NOTIOCTRL =		0xFFFFFFEF;	///< Unable to use IOCTRL with the device
+static const int FS_LASTFILE =		0xFFFFFFEE;	///< Can not find any more files
+static const int FS_CANTWRITE =		0xFFFFFFED;	///< Selected file can not be written
+static const int FS_DIRALREADY =	0xFFFFFFEC;	///< Selected directory is already registered
+static const int FS_CANTDELETE =	0xFFFFFFEB;	///< Can not delete because of a file
+static const int FS_CANTRENAME =	0xFFFFFFEA;	///< Can not rename because of a file
+static const int FS_DISKFULL =		0xFFFFFFE9;	///< Can not create a file because the disk is full
+static const int FS_DIRFULL =		0xFFFFFFE8;	///< Can not create a file because the directory is full
+static const int FS_CANTSEEK =		0xFFFFFFE7;	///< Can not seek in the selected location
+static const int FS_SUPERVISOR =	0xFFFFFFE6;	///< Selected supervisor in supervisor mode
+static const int FS_THREADNAME =	0xFFFFFFE5;	///< A thread with this name already exists
+static const int FS_BUFWRITE =		0xFFFFFFE4;	///< Writing to inter-process communication buffers is disallowed
+static const int FS_BACKGROUND =	0xFFFFFFE3;	///< Unable to start a background process
+static const int FS_OUTOFLOCK =		0xFFFFFFE0;	///< Insufficient lock space
+static const int FS_LOCKED =		0xFFFFFFDF;	///< Can not access because it is locked
+static const int FS_DRIVEOPENED =	0xFFFFFFDE;	///< Selected drive has an open handler
+static const int FS_LINKOVER =		0xFFFFFFDD;	///< The symbolic link is nested over 16 times
+static const int FS_FILEEXIST =		0xFFFFFFB0;	///< The file exists
 
-#define FS_FATAL_MEDIAOFFLINE	0xFFFFFFA3	///< No media inserted
-#define FS_FATAL_WRITEPROTECT	0xFFFFFFA2	///< Write protected
-#define FS_FATAL_INVALIDCOMMAND	0xFFFFFFA1	///< Invalid command number
-#define FS_FATAL_INVALIDUNIT	0xFFFFFFA0	///< Invalid unit number
+static const int FS_FATAL_MEDIAOFFLINE =	0xFFFFFFA3;	///< No media inserted
+static const int FS_FATAL_WRITEPROTECT =	0xFFFFFFA2;	///< Write protected
+static const int FS_FATAL_INVALIDCOMMAND =	0xFFFFFFA1;	///< Invalid command number
+static const int FS_FATAL_INVALIDUNIT =	0xFFFFFFA0;	///< Invalid unit number
 
-#define HUMAN68K_PATH_MAX	96		///< Longest path allowed in Human68k
+static const int HUMAN68K_PATH_MAX = 96;		///< Longest path allowed in Human68k
 
 //===========================================================================
 //
@@ -236,7 +236,7 @@ deeply in the system, which is why this value is set this high.
 
 Default is 20 buffers.
 */
-#define XM6_HOST_FILES_MAX	20
+static const int XM6_HOST_FILES_MAX = 20;
 
 /// Number of FCB buffers
 /**
@@ -244,7 +244,7 @@ This decides how many files can be opened at the same time.
 
 Default is 100 files.
 */
-#define XM6_HOST_FCB_MAX	100
+static const int XM6_HOST_FCB_MAX = 100;
 
 /// Max number of virtual clusters and sectors
 /**
@@ -253,7 +253,7 @@ Allocating a generous amount to exceed the number of threads lzdsys uses for acc
 
 Default is 10 sectors.
 */
-#define XM6_HOST_PSEUDO_CLUSTER_MAX	10
+static const int XM6_HOST_PSEUDO_CLUSTER_MAX = 10;
 
 /// Number of caches for directory entries
 /**
@@ -264,7 +264,7 @@ and the host OS gets under a heavy load, so be careful.
 
 Default is 16.
 */
-#define XM6_HOST_DIRENTRY_CACHE_MAX	16
+static const int XM6_HOST_DIRENTRY_CACHE_MAX = 16;
 
 /// Max number of entries that can be stored per directory
 /**
@@ -276,7 +276,7 @@ file manager, the upper limit is 2560 files. This is one good example to use as 
 
 Default is around 60000 entries. (Upper limit of the FAT root directory)
 */
-#define XM6_HOST_DIRENTRY_FILE_MAX	65535
+static const int XM6_HOST_DIRENTRY_FILE_MAX	= 65535;
 
 /// Max number of patterns for file name deduplication
 /**
@@ -295,7 +295,7 @@ only the first entry will ever be accessed.
 
 Default is 36 patterns.
 */
-#define XM6_HOST_FILENAME_PATTERN_MAX	36
+static const int XM6_HOST_FILENAME_PATTERN_MAX = 36;
 
 /// Duplicate file identification mark
 /**
@@ -304,7 +304,7 @@ Do not use a command shell escape character, or similar protected symbol.
 
 Default is '@'.
 */
-#define XM6_HOST_FILENAME_MARK	'@'
+static const char XM6_HOST_FILENAME_MARK = '@';
 
 /// WINDRV operational flags
 /**
@@ -440,47 +440,51 @@ private:
 //===========================================================================
 class CHostFilename {
 public:
-	CHostFilename();
-	static size_t  Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
+	CHostFilename() = default;
+	~CHostFilename() = default;
+	CHostFilename(CHostFilename&) = delete;
+	CHostFilename& operator=(const CHostFilename&) = delete;
 
-	void  SetHost(const TCHAR* szHost);					///< Set the name of the host
-	const TCHAR*  GetHost() const { return m_szHost; }	///< Get the name of the host
-	void  ConvertHuman(int nCount = -1);					///< Convert the Human68k name
-	void  CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
-	BOOL  isReduce() const;							///< Inspect if the Human68k name is generated
-	BOOL  isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
-	const BYTE*  GetHuman() const { return m_szHuman; }	///< Get Human68k file name
-	const BYTE*  GetHumanLast() const 
+	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
+
+	void SetHost(const TCHAR* szHost);					///< Set the name of the host
+	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
+	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
+	void CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
+	BOOL isReduce() const;							///< Inspect if the Human68k name is generated
+	BOOL isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
+	const BYTE* GetHuman() const { return m_szHuman; }	///< Get Human68k file name
+	const BYTE* GetHumanLast() const
 	{ return m_pszHumanLast; }				///< Get Human68k file name
-	const BYTE*  GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
-	void  SetEntryName();							///< Set Human68k directory entry
-	void  SetEntryAttribute(BYTE nHumanAttribute)
+	const BYTE* GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
+	void SetEntryName();							///< Set Human68k directory entry
+	void SetEntryAttribute(BYTE nHumanAttribute)
 	{ m_dirHuman.attr = nHumanAttribute; }			///< Set Human68k directory entry
 	void  SetEntrySize(DWORD nHumanSize)
 	{ m_dirHuman.size = nHumanSize; }				///< Set Human68k directory entry
-	void  SetEntryDate(WORD nHumanDate)
+	void SetEntryDate(WORD nHumanDate)
 	{ m_dirHuman.date = nHumanDate; }				///< Set Human68k directory entry
-	void  SetEntryTime(WORD nHumanTime)
+	void SetEntryTime(WORD nHumanTime)
 	{ m_dirHuman.time = nHumanTime; }				///< Set Human68k directory entry
-	void  SetEntryCluster(WORD nHumanCluster)
+	void SetEntryCluster(WORD nHumanCluster)
 	{ m_dirHuman.cluster = nHumanCluster; }			///< Set Human68k directory entry
 	const Human68k::dirent_t*  GetEntry() const 
 	{ return &m_dirHuman; }					///< Get Human68k directory entry
-	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
-	BOOL  isSameEntry(const Human68k::dirent_t* pdirHuman) const
+	BOOL CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
+	BOOL isSameEntry(const Human68k::dirent_t* pdirHuman) const
 	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
 										///< Determine Human68k directory entry match
 
 	// Path name operations
-	static const BYTE*  SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
+	static const BYTE* SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
 
 private:
-	static BYTE*  CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
+	static BYTE* CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
 										///< Copy Human68k file name elements
 
-	const BYTE* m_pszHumanLast;		///< Last position of the Human68k internal name of the relevant entry
-	const BYTE* m_pszHumanExt;		///< Position of the extension of the Human68k internal name of the relevant entry
-	BOOL m_bCorrect;			///< TRUE if the relevant entry of the Human68k internal name is correct
+	const BYTE* m_pszHumanLast = nullptr;		///< Last position of the Human68k internal name of the relevant entry
+	const BYTE* m_pszHumanExt = nullptr;		///< Position of the extension of the Human68k internal name of the relevant entry
+	BOOL m_bCorrect = FALSE;			///< TRUE if the relevant entry of the Human68k internal name is correct
 	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
 	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];		///< The host name of the relevant entry (variable length)
@@ -526,7 +530,7 @@ public:
 		void  Clear() { count = 0; }	///< Initialize
 	};
 
-	CHostPath();
+	CHostPath() = default;
 	~CHostPath();
 	CHostPath(CHostPath&) = delete;
 	CHostPath& operator=(const CHostPath&) = delete;
@@ -558,9 +562,9 @@ private:
 										///< Compare string (with support for wildcards)
 
 	CRing m_cRing;								///< For CHostFilename linking
-	time_t m_tBackup;							///< For time stamp restoration
-	BOOL m_bRefresh;							///< Refresh flag
-	DWORD m_nId;								///< Unique ID (When the value has changed, it means an update has been made)
+	time_t m_tBackup = FALSE;					///< For time stamp restoration
+	BOOL m_bRefresh = TRUE;						///< Refresh flag
+	DWORD m_nId = 0;								///< Unique ID (When the value has changed, it means an update has been made)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];						///< The host side name for the relevant entry
 
@@ -590,47 +594,50 @@ private:
 //===========================================================================
 class CHostFiles {
 public:
-	CHostFiles() { SetKey(0); }
-	void  Init();
+	CHostFiles() = default;
+	~CHostFiles() = default;
+	CHostFiles(CHostFiles&) = delete;
+	CHostFiles& operator=(const CHostFiles&) = delete;
 
-	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
-	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
-	void  SetPath(const Human68k::namests_t* pNamests);				///< Create path and file name internally
-	BOOL  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< Check if root directory
-	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
-	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
-	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
-	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry) ;				///< Find files on the Human68k side, generating data on the host side
-	const CHostFilename*  Find(CHostPath* pPath);					///< Find file name
-	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
-	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
-	void  AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
-	void  AddFilename();								///< Add the new Human68k file name to the name on the host side
+	void Init();
 
-	const TCHAR*  GetPath() const { return m_szHostResult; }		///< Get the name on the host side
+	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
+	BOOL isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void SetPath(const Human68k::namests_t* pNamests);				///< Create path and file name internally
+	BOOL isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< Check if root directory
+	void SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
+	void SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
+	BOOL isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
+	void SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
+	BOOL Find(DWORD nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
+	const CHostFilename* Find(const CHostPath* pPath);					///< Find file name
+	void SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
+	void SetResult(const TCHAR* szPath);						///< Set names on the host side
+	void AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
+	void AddFilename();								///< Add the new Human68k file name to the name on the host side
 
-	const Human68k::dirent_t*  GetEntry() const { return &m_dirHuman; }///< Get Human68k directory entry
+	const TCHAR* GetPath() const { return m_szHostResult; }		///< Get the name on the host side
 
-	DWORD  GetAttribute() const { return m_dirHuman.attr; }		///< Get Human68k attribute
-	WORD  GetDate() const { return m_dirHuman.date; }			///< Get Human68k date
-	WORD  GetTime() const { return m_dirHuman.time; }			///< Get Human68k time
-	DWORD  GetSize() const { return m_dirHuman.size; }		///< Get Human68k file size
-	const BYTE*  GetHumanFilename() const { return m_szHumanFilename; }///< Get Human68k file name
-	const BYTE*  GetHumanResult() const { return m_szHumanResult; }	///< Get Human68k file name search results
-	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
+	const Human68k::dirent_t* GetEntry() const { return &m_dirHuman; }///< Get Human68k directory entry
+
+	DWORD GetAttribute() const { return m_dirHuman.attr; }		///< Get Human68k attribute
+	WORD GetDate() const { return m_dirHuman.date; }			///< Get Human68k date
+	WORD GetTime() const { return m_dirHuman.time; }			///< Get Human68k time
+	DWORD GetSize() const { return m_dirHuman.size; }		///< Get Human68k file size
+	const BYTE* GetHumanFilename() const { return m_szHumanFilename; }///< Get Human68k file name
+	const BYTE* GetHumanResult() const { return m_szHumanResult; }	///< Get Human68k file name search results
+	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 private:
-	DWORD m_nKey;						///< FILES buffer address for Human68k; 0 is unused
-	DWORD m_nHumanWildcard;					///< Human68k wildcard data
-	DWORD m_nHumanAttribute;				///< Human68k search attribute
-	CHostPath::find_t m_findNext;				///< Next search location data
-	Human68k::dirent_t m_dirHuman;				///< Search results: Human68k file data
-	BYTE m_szHumanFilename[24];				///< Human68k file name
-	BYTE m_szHumanResult[24];				///< Search results: Human68k file name
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-								///< Human68k path name
-	TCHAR m_szHostResult[FILEPATH_MAX];			///< Search results: host's full path name
+	DWORD m_nKey = 0;						///< FILES buffer address for Human68k; 0 is unused
+	DWORD m_nHumanWildcard = 0;				///< Human68k wildcard data
+	DWORD m_nHumanAttribute = 0;			///< Human68k search attribute
+	CHostPath::find_t m_findNext = {};		///< Next search location data
+	Human68k::dirent_t m_dirHuman = {};		///< Search results: Human68k file data
+	BYTE m_szHumanFilename[24] = {};		///< Human68k file name
+	BYTE m_szHumanResult[24] = {};			///< Search results: Human68k file name
+	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};	///< Human68k path name
+	TCHAR m_szHostResult[FILEPATH_MAX] = {};	///< Search results: host's full path name
 };
 
 //===========================================================================
@@ -666,41 +673,40 @@ private:
 //===========================================================================
 class CHostFcb {
 public:
-	CHostFcb() { SetKey(0); Init(); }
+	CHostFcb() = default;
 	~CHostFcb() { Close(); }
 	CHostFcb(CHostFcb&) = delete;
 	CHostFcb& operator=(const CHostFcb&) = delete;
 
-	void  Init();
+	void Init();
 
-	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
-	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
-	void  SetUpdate() { m_bUpdate = TRUE; }				///< Update
-	BOOL  isUpdate() const { return m_bUpdate; }			///< Get update state
-	BOOL  SetMode(DWORD nHumanMode);						///< Set file open mode
-	void  SetFilename(const TCHAR* szFilename);					///< Set file name
-	void  SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
-	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
+	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
+	BOOL isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void SetUpdate() { m_bUpdate = TRUE; }				///< Update
+	BOOL isUpdate() const { return m_bUpdate; }			///< Get update state
+	BOOL SetMode(DWORD nHumanMode);						///< Set file open mode
+	void SetFilename(const TCHAR* szFilename);					///< Set file name
+	void SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
+	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
-	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
-	BOOL  Open();									///< Open file
-	BOOL  Rewind(DWORD nOffset) const;							///< Seek file
-	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file
-	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
-	BOOL  Truncate() const;								///< Truncate file
-	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
-	BOOL  TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
-	BOOL  Close();									///< Close file
+	BOOL Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
+	BOOL Open();									///< Open file
+	BOOL Rewind(DWORD nOffset) const;							///< Seek file
+	DWORD Read(BYTE* pBuffer, DWORD nSize);					///< Read file
+	DWORD Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
+	BOOL Truncate() const;								///< Truncate file
+	DWORD Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
+	BOOL TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
+	BOOL Close();									///< Close file
 
 private:
-	DWORD m_nKey;									///< Human68k FCB buffer address (0 if unused)
-	BOOL m_bUpdate;									///< Update flag
-	FILE* m_pFile;									///< Host side file object
-	const char* m_pszMode;								///< Host side file open mode
-	bool m_bFlag;									///< Host side file open flag
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-											///< Human68k path name
-	TCHAR m_szFilename[FILEPATH_MAX];						///< Host side file name
+	DWORD m_nKey = 0;								///< Human68k FCB buffer address (0 if unused)
+	BOOL m_bUpdate = FALSE;							///< Update flag
+	FILE* m_pFile = nullptr;						///< Host side file object
+	const char* m_pszMode = nullptr;				///< Host side file open mode
+	bool m_bFlag = false;							///< Host side file open flag
+	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};		///< Human68k path name
+	TCHAR m_szFilename[FILEPATH_MAX] = {};			///< Host side file name
 };
 
 //===========================================================================
@@ -714,7 +720,7 @@ public:
 	~CHostFcbManager();
 	#endif	// _DEBUG
 	void  Init();								///< Initialization (when the driver is installed)
-	void  Clean();								///< Release (when starting up or resetting)
+	void  Clean() const;						///< Release (when starting up or resetting)
 
 	CHostFcb*  Alloc(DWORD nKey);
 	CHostFcb*  Search(DWORD nKey);
@@ -740,36 +746,36 @@ private:
 class CHostDrv
 {
 public:
-	CHostDrv();
+	CHostDrv() = default;
 	~CHostDrv();
 	CHostDrv(CHostDrv&) = delete;
 	CHostDrv& operator=(const CHostDrv&) = delete;
 
-	void  Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
+	void Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
-	BOOL  isWriteProtect() const { return m_bWriteProtect; }
-	BOOL  isEnable() const { return m_bEnable; }		///< Is it accessible?
-	BOOL  isMediaOffline() const;
-	BYTE  GetMediaByte() const;
-	DWORD  GetStatus() const;
-	void  SetEnable(BOOL bEnable);						///< Set media status
+	BOOL isWriteProtect() const { return m_bWriteProtect; }
+	BOOL isEnable() const { return m_bEnable; }		///< Is it accessible?
+	BOOL isMediaOffline() const;
+	BYTE GetMediaByte() const;
+	DWORD GetStatus() const;
+	void SetEnable(BOOL bEnable);						///< Set media status
 	BOOL CheckMedia();							///< Check if media was changed
 	void Update();								///< Update media status
 	void Eject();
-	void  GetVolume(TCHAR* szLabel);					///< Get volume label
-	BOOL  GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
-	DWORD  GetCapacity(Human68k::capacity_t* pCapacity);
-	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
+	void GetVolume(TCHAR* szLabel);					///< Get volume label
+	BOOL GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
+	DWORD GetCapacity(Human68k::capacity_t* pCapacity);
+	BOOL GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
 	// Cache operations
-	void  CleanCache() const;							///< Update all cache
-	void  CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
-	void  CleanCacheChild(const BYTE* szHumanPath) const;				///< Update all cache below the specified path
-	void  DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
-	CHostPath*  FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
-	CHostPath*  CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
-	CHostPath*  MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
-	BOOL  Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
+	void CleanCache() const;							///< Update all cache
+	void CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
+	void CleanCacheChild(const BYTE* szHumanPath) const;	///< Update all cache below the specified path
+	void DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
+	CHostPath* FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
+	CHostPath* CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
+	CHostPath* MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
+	BOOL Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
 
 private:
 	// Path name operations
@@ -782,14 +788,14 @@ private:
 		CHostPath f;
 	};
 
-	BOOL m_bWriteProtect;						///< TRUE if write-protected
-	BOOL m_bEnable;							///< TRUE if media is usable
-	DWORD m_nRing;							///< Number of stored path names
+	BOOL m_bWriteProtect = FALSE;						///< TRUE if write-protected
+	BOOL m_bEnable = FALSE;							///< TRUE if media is usable
+	DWORD m_nRing = 0;							///< Number of stored path names
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
-	BOOL m_bVolumeCache;						///< TRUE if the volume label has been read
-	TCHAR m_szVolumeCache[24];					///< Volume label cache
-	TCHAR m_szBase[FILEPATH_MAX];					///< Base path
+	BOOL m_bVolumeCache = FALSE;						///< TRUE if the volume label has been read
+	TCHAR m_szVolumeCache[24] = {};					///< Volume label cache
+	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
 
 //===========================================================================
@@ -798,46 +804,47 @@ private:
 //
 //===========================================================================
 class CHostEntry {
+
 public:
-	CHostEntry();
+
+	/// Max number of drive candidates
+	static const int DRIVE_MAX = 10;
+
+	CHostEntry() = default;
 	~CHostEntry();
 	CHostEntry(CHostEntry&) = delete;
 	CHostEntry& operator=(const CHostEntry&) = delete;
 
-	void  Init();								///< Initialization (when the driver is installed)
-	void  Clean();								///< Release (when starting up or resetting)
+	void Init() const;							///< Initialization (when the driver is installed)
+	void Clean();								///< Release (when starting up or resetting)
 
 	// Cache operations
-	void  CleanCache();							///< Update all cache
-	void  CleanCache(DWORD nUnit);						///< Update cache for the specified unit
-	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
-	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
-	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
-	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
+	void CleanCache() const;							///< Update all cache
+	void CleanCache(DWORD nUnit) const;						///< Update cache for the specified unit
+	void CleanCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache for the specified path
+	void CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache below the specified path
+	void DeleteCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Delete cache for the specified path
+	BOOL Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
+	void ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
-	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);
-	BOOL  isWriteProtect(DWORD nUnit) const;
-	BOOL  isEnable(DWORD nUnit) const;					///< Is it accessible?
-	BOOL  isMediaOffline(DWORD nUnit) const;
-	BYTE  GetMediaByte(DWORD nUnit) const;
-	DWORD  GetStatus(DWORD nUnit) const;					///< Get drive status
+	void SetDrv(DWORD nUnit, CHostDrv* pDrv);
+	BOOL isWriteProtect(DWORD nUnit) const;
+	BOOL isEnable(DWORD nUnit) const;					///< Is it accessible?
+	BOOL isMediaOffline(DWORD nUnit) const;
+	BYTE GetMediaByte(DWORD nUnit) const;
+	DWORD GetStatus(DWORD nUnit) const;					///< Get drive status
 	BOOL CheckMedia(DWORD nUnit) const;						///< Media change check
-	void Eject(DWORD nUnit);
-	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< Get volume label
-	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
-	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-										///< Get cluster size from cache
-
-	enum {
-		DriveMax = 10							///< Max number of drive candidates
-	};
+	void Eject(DWORD nUnit) const;
+	void GetVolume(DWORD nUnit, TCHAR* szLabel) const;				///< Get volume label
+	BOOL GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	DWORD GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
+	BOOL GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
 
 private:
-	CHostDrv* m_pDrv[DriveMax];						///< Host side drive object
-	DWORD m_nTimeout;							///< Last time a timeout check was carried out
+
+	CHostDrv* m_pDrv[DRIVE_MAX] = {};				///< Host side drive object
+	DWORD m_nTimeout = 0;							///< Last time a timeout check was carried out
 };
 
 //===========================================================================
@@ -874,7 +881,7 @@ The easy solution is to put the content of 'class CFileSys' into 'class CWindrv'
 class CFileSys
 {
 public:
-	CFileSys();
+	CFileSys() = default;
 	virtual ~CFileSys() = default;
 
 	void Reset();								///< Reset (close all)
@@ -882,13 +889,13 @@ public:
 
 	// Command handlers
 	DWORD InitDevice(const Human68k::argument_t* pArgument);		///< $40 - Device startup
-	int CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $41 - Directory check
-	int MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $42 - Create directory
-	int RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests);	///< $43 - Delete directory
-	int Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew);
+	int CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests) const;		///< $41 - Directory check
+	int MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests) const;		///< $42 - Create directory
+	int RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests) const;	///< $43 - Delete directory
+	int Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew) const;
 										///< $44 - Change file name
-	int Delete(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $45 - Delete file
-	int Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute);
+	int Delete(DWORD nUnit, const Human68k::namests_t* pNamests) const;		///< $45 - Delete file
+	int Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute) const;
 										///< $46 - Get / set file attribute
 	int Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles);
 										///< $47 - Find file
@@ -897,7 +904,7 @@ public:
 										///< $49 - Create file
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
 										///< $4A - Open file
-	int Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb);		///< $4B - Close file
+	int Close(DWORD nUnit, DWORD nKey, const Human68k::fcb_t* pFcb);		///< $4B - Close file
 	int Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pAddress, DWORD nSize);
 										///< $4C - Read file
 	int Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pAddress, DWORD nSize);
@@ -906,7 +913,7 @@ public:
 	DWORD TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime);
 										///< $4F - Get / set file timestamp
 	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< $50 - Get capacity
-	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - Inspect / control drive status
+	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive) const;		///< $51 - Inspect / control drive status
 	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const;				///< $52 - Get DPB
 	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
 	int DiskWrite(DWORD nUnit) const;						///< $54 - Write sectors
@@ -921,24 +928,24 @@ public:
 	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
 
 	enum {
-		DriveMax = CHostEntry::DriveMax					///< Max number of drive candidates
+		DriveMax = CHostEntry::DRIVE_MAX					///< Max number of drive candidates
 	};
 
 private:
 	void  InitOption(const Human68k::argument_t* pArgument);
-	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< Get volume label
+	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
 
-	DWORD m_nUnits;								///< Number of current drive objects (Changes for every resume)
+	DWORD m_nUnits = 0;								///< Number of current drive objects (Changes for every resume)
 
-	DWORD m_nOption;							///< Current runtime flag
-	DWORD m_nOptionDefault;							///< Runtime flag at reset
+	DWORD m_nOption = 0;							///< Current runtime flag
+	DWORD m_nOptionDefault = 0;						///< Runtime flag at reset
 
-	DWORD m_nDrives;							///< Number of candidates for base path status restoration (scan every time if 0)
+	DWORD m_nDrives = 0;							///< Number of candidates for base path status restoration (scan every time if 0)
 
-	DWORD m_nKernel;							///< Counter for kernel check
-	DWORD m_nKernelSearch;							///< Initial address for NUL device
+	DWORD m_nKernel = 0;							///< Counter for kernel check
+	DWORD m_nKernelSearch = 0;						///< Initial address for NUL device
 
-	DWORD m_nHostSectorCount;						///< Virtual sector identifier
+	DWORD m_nHostSectorCount = 0;					///< Virtual sector identifier
 
 	CHostFilesManager m_cFiles;						///< File search memory
 	CHostFcbManager m_cFcb;							///< FCB operation memory
@@ -947,7 +954,7 @@ private:
 	DWORD m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
 										///< Entity that the virtual sector points to
 
-	DWORD m_nFlag[DriveMax];						///< Candidate runtime flag for base path restoration
-	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< Candidate for base path restoration
+	DWORD m_nFlag[DriveMax] = {};					///< Candidate runtime flag for base path restoration
+	TCHAR m_szBase[DriveMax][FILEPATH_MAX] = {};	///< Candidate for base path restoration
 	static DWORD g_nOption;							///< File name change flag
 };

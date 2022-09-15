@@ -30,7 +30,7 @@ using namespace std;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-GPIOBUS *bus;                 // GPIO Bus
+unique_ptr<GPIOBUS> bus;      // GPIO Bus
 
 DWORD buff_size = 1000000;
 data_capture *data_buffer;
@@ -183,7 +183,7 @@ bool Init()
     }
 
     // GPIO Initialization
-    bus = new GPIOBUS();
+    bus = make_unique<GPIOBUS>();
     if (!bus->Init())
     {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
@@ -217,7 +217,6 @@ void Cleanup()
     {
         // Cleanup the Bus
         bus->Cleanup();
-        delete bus;
     }
 }
 

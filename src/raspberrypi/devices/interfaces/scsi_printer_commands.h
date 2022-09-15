@@ -11,14 +11,13 @@
 
 #pragma once
 
-#include "scsi_primary_commands.h"
-
-class ScsiPrinterCommands : virtual public ScsiPrimaryCommands
+class ScsiPrinterCommands
 {
+
 public:
 
 	ScsiPrinterCommands() = default;
-	~ScsiPrinterCommands() override = default;
+	virtual ~ScsiPrinterCommands() = default;
 
 	// Mandatory commands
 	virtual void Print() = 0;

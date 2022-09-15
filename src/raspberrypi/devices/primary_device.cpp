@@ -182,7 +182,7 @@ vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	return buf;
 }
 
-vector<BYTE> PrimaryDevice::HandleRequestSense()
+vector<BYTE> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {

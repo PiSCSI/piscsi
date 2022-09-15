@@ -25,7 +25,7 @@
 #include "rascsi_exceptions.h"
 #include <sstream>
 
-#define BRIDGE_NAME "rascsi_bridge"
+static const char *BRIDGE_NAME = "rascsi_bridge";
 
 using namespace std;
 using namespace ras_util;
@@ -42,7 +42,7 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 		LOGERROR("Can't if_nametoindex: %s", strerror(errno))
 		return false;
 	}
-	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
+	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		LOGERROR("Can't ioctl %s: %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", strerror(errno))
 		return false;
@@ -70,7 +70,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	return true;
 }
 
-static bool is_interface_up(const string& interface) {
+static bool is_interface_up(string_view interface) {
 	string file = "/sys/class/net/";
 	file += interface;
 	file += "/carrier";
@@ -381,7 +381,8 @@ void CTapDriver::Cleanup()
 	}
 }
 
-bool CTapDriver::Enable(){
+bool CTapDriver::Enable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", true);
@@ -389,7 +390,8 @@ bool CTapDriver::Enable(){
 	return result;
 }
 
-bool CTapDriver::Disable(){
+bool CTapDriver::Disable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", false);
@@ -397,14 +399,15 @@ bool CTapDriver::Disable(){
 	return result;
 }
 
-void CTapDriver::Flush(){
+void CTapDriver::Flush()
+{
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);
 	}
 }
 
-void CTapDriver::GetMacAddr(BYTE *mac)
+void CTapDriver::GetMacAddr(BYTE *mac) const
 {
 	ASSERT(mac);
 
@@ -416,7 +419,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-bool CTapDriver::PendingPackets()
+bool CTapDriver::PendingPackets() const
 {
 	pollfd fds;
 
@@ -436,7 +439,7 @@ bool CTapDriver::PendingPackets()
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t crc32(BYTE *buf, int length) {
+uint32_t crc32(const BYTE *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];

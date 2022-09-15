@@ -35,6 +35,7 @@
 
 #include "rascsi_exceptions.h"
 #include "device.h"
+#include "device_factory.h"
 #include "host_services.h"
 
 using namespace scsi_defs;
@@ -69,7 +70,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : devices) {
+		for (Device *device : DeviceFactory::instance().GetAllDevices()) {
 			device->FlushCache();
 		}
 
@@ -175,14 +176,15 @@ void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool chan
 		buf[3] = 0x00;
 
 		std::time_t t = std::time(nullptr);
-		std::tm tm = *std::localtime(&t);
-		buf[4] = (BYTE)tm.tm_year;
-		buf[5] = (BYTE)tm.tm_mon;
-		buf[6] = (BYTE)tm.tm_mday;
-		buf[7] = (BYTE)tm.tm_hour;
-		buf[8] = (BYTE)tm.tm_min;
+		tm localtime;
+		localtime_r(&t, &localtime);
+		buf[4] = (BYTE)localtime.tm_year;
+		buf[5] = (BYTE)localtime.tm_mon;
+		buf[6] = (BYTE)localtime.tm_mday;
+		buf[7] = (BYTE)localtime.tm_hour;
+		buf[8] = (BYTE)localtime.tm_min;
 		// Ignore leap second for simplicity
-		buf[9] = (BYTE)(tm.tm_sec < 60 ? tm.tm_sec : 59);
+		buf[9] = (BYTE)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
 		pages[32] = buf;
 	}

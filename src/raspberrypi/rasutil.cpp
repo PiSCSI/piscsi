@@ -37,7 +37,7 @@ bool ras_util::GetAsInt(const string& value, int& result)
 string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 {
 	if (pb_devices.empty()) {
-		return "No images currently attached.";
+		return "No devices currently attached.";
 	}
 
 	ostringstream s;

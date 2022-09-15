@@ -299,11 +299,11 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Create only one data track
-	assert(!track[0]);
-	track[0] = new CDTrack();
-	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(false, path);
-	tracks = 1;
+	assert(!tracks.size());
+	auto track = make_unique<CDTrack>();
+	track->Init(1, 0, GetBlockCount() - 1);
+	track->SetPath(false, path);
+	tracks.push_back(move(track));
 	dataindex = 0;
 }
 
@@ -332,11 +332,11 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
-	ASSERT(!track[0]);
-	track[0] = new CDTrack();
-	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(false, path);
-	tracks = 1;
+	ASSERT(!tracks.size());
+	auto track = make_unique<CDTrack>();
+	track->Init(1, 0, GetBlockCount() - 1);
+	track->SetPath(false, path);
+	tracks.push_back(move(track));
 	dataindex = 0;
 }
 
@@ -440,7 +440,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
-	assert(track[index]);
+	assert(tracks[index]);
 
 	// If different from the current data track
 	if (dataindex != index) {
@@ -449,12 +449,12 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		disk.dcache = nullptr;
 
 		// Reset the number of blocks
-		SetBlockCount(track[index]->GetBlocks());
+		SetBlockCount(tracks[index]->GetBlocks());
 		ASSERT(GetBlockCount() > 0);
 
 		// Recreate the disk cache
 		Filepath path;
-		track[index]->GetPath(path);
+		tracks[index]->GetPath(path);
 		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
@@ -475,8 +475,8 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	CheckReady();
 
 	// If ready, there is at least one track
-	assert(tracks > 0);
-	assert(track[0]);
+	assert(tracks.size() > 0);
+	assert(tracks[0]);
 
 	// Get allocation length, clear buffer
 	int length = cdb[7] << 8;
@@ -487,35 +487,33 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	bool msf = cdb[1] & 0x02;
 
 	// Get and check the last track number
-	int last = track[tracks - 1]->GetTrackNo();
-	if ((int)cdb[6] > last) {
-		// Except for AA
-		if (cdb[6] != 0xaa) {
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		}
+	int last = tracks[tracks.size() - 1]->GetTrackNo();
+	// Except for AA
+	if ((int)cdb[6] > last && cdb[6] != 0xaa) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Check start index
 	int index = 0;
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
-		while (track[index]) {
-			if ((int)cdb[6] == track[index]->GetTrackNo()) {
+		while (tracks[index]) {
+			if ((int)cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
 			index++;
 		}
 
 		// AA if not found or internal error
-		if (!track[index]) {
+		if (!tracks[index]) {
 			if (cdb[6] == 0xaa) {
 				// Returns the final LBA+1 because it is AA
 				buf[0] = 0x00;
 				buf[1] = 0x0a;
-				buf[2] = (BYTE)track[0]->GetTrackNo();
+				buf[2] = (BYTE)tracks[0]->GetTrackNo();
 				buf[3] = (BYTE)last;
 				buf[6] = 0xaa;
-				DWORD lba = track[tracks - 1]->GetLast() + 1;
+				DWORD lba = tracks[tracks.size() - 1]->GetLast() + 1;
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
@@ -531,20 +529,20 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Number of track descriptors returned this time (number of loops)
-	int loop = last - track[index]->GetTrackNo() + 1;
+	int loop = last - tracks[index]->GetTrackNo() + 1;
 	assert(loop >= 1);
 
 	// Create header
 	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
 	buf[1] = (BYTE)((loop << 3) + 2);
-	buf[2] = (BYTE)track[0]->GetTrackNo();
+	buf[2] = (BYTE)tracks[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
 	buf += 4;
 
 	// Loop....
 	for (int i = 0; i < loop; i++) {
 		// ADR and Control
-		if (track[index]->IsAudio()) {
+		if (tracks[index]->IsAudio()) {
 			// audio track
 			buf[1] = 0x10;
 		} else {
@@ -553,14 +551,14 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 		}
 
 		// track number
-		buf[2] = (BYTE)track[index]->GetTrackNo();
+		buf[2] = (BYTE)tracks[index]->GetTrackNo();
 
 		// track address
 		if (msf) {
-			LBAtoMSF(track[index]->GetFirst(), &buf[4]);
+			LBAtoMSF(tracks[index]->GetFirst(), &buf[4]);
 		} else {
-			buf[6] = (BYTE)(track[index]->GetFirst() >> 8);
-			buf[7] = (BYTE)(track[index]->GetFirst());
+			buf[6] = (BYTE)(tracks[index]->GetFirst() >> 8);
+			buf[7] = (BYTE)(tracks[index]->GetFirst());
 		}
 
 		// Advance buffer pointer and index
@@ -615,14 +613,7 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 
 void SCSICD::ClearTrack()
 {
-	// delete the track object
-	for (auto t: track) {
-		delete t;
-		t = nullptr;
-	}
-
-	// Number of tracks is 0
-	tracks = 0;
+	tracks.clear();
 
 	// No settings for data and audio
 	dataindex = -1;
@@ -638,10 +629,10 @@ void SCSICD::ClearTrack()
 int SCSICD::SearchTrack(DWORD lba) const
 {
 	// Track loop
-	for (int i = 0; i < tracks; i++) {
+	for (size_t i = 0; i < tracks.size(); i++) {
 		// Listen to the track
-		assert(track[i]);
-		if (track[i]->IsValid(lba)) {
+		assert(tracks[i]);
+		if (tracks[i]->IsValid(lba)) {
 			return i;
 		}
 	}

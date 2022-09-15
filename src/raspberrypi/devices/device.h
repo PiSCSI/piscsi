@@ -10,7 +10,6 @@
 #pragma once
 
 #include "scsi.h"
-#include <unordered_set>
 #include <unordered_map>
 #include <string>
 
@@ -86,8 +85,6 @@ protected:
 
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
-
-	static unordered_set<Device *> devices;
 
 	explicit Device(const string&);
 

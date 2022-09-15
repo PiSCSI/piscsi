@@ -19,8 +19,9 @@
 
 using namespace std;
 
-class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
+class PrimaryDevice: public ScsiPrimaryCommands, public Device
 {
+
 public:
 
 	explicit PrimaryDevice(const string&);
@@ -54,7 +55,7 @@ private:
 	void ReportLuns() override;
 	void Inquiry() override;
 
-	vector<BYTE> HandleRequestSense();
+	vector<BYTE> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
 };

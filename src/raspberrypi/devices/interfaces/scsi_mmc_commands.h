@@ -11,14 +11,13 @@
 
 #pragma once
 
-#include "scsi_primary_commands.h"
-
-class ScsiMmcCommands : virtual public ScsiPrimaryCommands
+class ScsiMmcCommands
 {
+
 public:
 
 	ScsiMmcCommands() = default;
-	~ScsiMmcCommands() override = default;
+	virtual ~ScsiMmcCommands() = default;
 
 	virtual void ReadToc() = 0;
 	virtual void GetEventStatusNotification() = 0;

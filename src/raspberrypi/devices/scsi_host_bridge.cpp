@@ -304,8 +304,8 @@ void SCSIBR::SendMessage10()
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
 		delete[] ctrl->buffer;
-		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 	}
 
 	// Set transfer amount
@@ -352,11 +352,9 @@ void SCSIBR::ReceivePacket()
 	packet_len = tap->Rx(packet_buf);
 
 	// Check if received packet
-	if (memcmp(packet_buf, mac_addr, 6) != 0) {
-		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
-			packet_len = 0;
-			return;
-		}
+	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
+		packet_len = 0;
+		return;
 	}
 
 	// Discard if it exceeds the buffer size
@@ -388,7 +386,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(BYTE *buf, int len)
+void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
 	assert(tap);
 
@@ -1144,7 +1142,7 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 //	File system write (input option data)
 //
 //---------------------------------------------------------------------------
-void SCSIBR::WriteFsOpt(BYTE *buf, int num)
+void SCSIBR::WriteFsOpt(const BYTE *buf, int num)
 {
 	memcpy(fsopt, buf, num);
 }

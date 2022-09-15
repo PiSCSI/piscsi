@@ -202,17 +202,6 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 //
 //===========================================================================
 
-CHostDrv::CHostDrv()
-{
-	m_bWriteProtect = FALSE;
-	m_bEnable = FALSE;
-	m_capCache.sectors = 0;
-	m_bVolumeCache = FALSE;
-	m_szVolumeCache[0] = _T('\0');
-	m_szBase[0] = _T('\0');
-	m_nRing = 0;
-}
-
 CHostDrv::~CHostDrv()
 {
 	CHostPath* p;
@@ -247,6 +236,8 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 	ASSERT(m_nRing == 0);
+
+	m_capCache.sectors = 0;
 
 	// Receive parameters
 	if (nFlag & FSFLAG_WRITE_PROTECT)
@@ -726,7 +717,7 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 	ASSERT(pFiles);
 
 	// Get path name and build cache
-	CHostPath* pPath = CopyCache(pFiles);
+	const CHostPath* pPath = CopyCache(pFiles);
 	if (pPath == nullptr) {
 		pPath = MakeCache(pFiles);
 		if (pPath == nullptr) {
@@ -763,13 +754,6 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 //	Directory entry: File name
 //
 //===========================================================================
-
-CHostFilename::CHostFilename()
-{
-	m_bCorrect = FALSE;
-	m_pszHumanExt = FALSE;
-	m_pszHumanLast = FALSE;
-}
 
 //---------------------------------------------------------------------------
 //
@@ -861,8 +845,8 @@ void CHostFilename::ConvertHuman(int nCount)
 	// Char conversion
 	BYTE szHuman[FILEPATH_MAX];
 	const BYTE* pFirst = szHuman;
-	const BYTE* pLast;
-	const BYTE* pExt = nullptr;
+	BYTE* pLast;
+	BYTE* pExt = nullptr;
 
 	{
 		strcpy(szHost, m_szHost);
@@ -934,15 +918,14 @@ void CHostFilename::ConvertHuman(int nCount)
 		// Delete spaces at the end
 		while (pExt < pLast - 1 && *(pLast - 1) == ' ') {
 			pLast--;
-			auto p = (BYTE*)pLast;
+			auto p = pLast;
 			*p = '\0';
 		}
 
 		// Delete if the file name disappeared after conversion
 		if (pExt + 1 >= pLast) {
 			pLast = pExt;
-			auto p = (BYTE*)pLast;
-			*p = '\0';		// Just in case
+			*pLast = '\0';		// Just in case
 		}
 	} else {
 		pExt = pLast;
@@ -1065,7 +1048,7 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 void CHostFilename::SetEntryName()
 {
 	// Set file name
-	BYTE* p = m_szHuman;
+	const BYTE* p = m_szHuman;
 	size_t i;
 	for (i = 0; i < 8; i++) {
 		if (p < m_pszHumanExt)
@@ -1098,7 +1081,7 @@ void CHostFilename::SetEntryName()
 //---------------------------------------------------------------------------
 BOOL CHostFilename::isReduce() const
 {
-	return strcmp((char *)m_szHost, (char*)m_szHuman) != 0;
+	return strcmp((const char *)m_szHost, (const char*)m_szHuman) != 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1149,18 +1132,6 @@ const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 //===========================================================================
 
 DWORD CHostPath::g_nId;				///< Identifier creation counter
-
-CHostPath::CHostPath()
-{
-	m_bRefresh = TRUE;
-	m_nId = 0;
-	m_tBackup = FALSE;
-
-#ifdef _DEBUG
-	// Initialization is not required because this value always gets updated (used for debugging or initialization operation)
-	m_nId = 0;
-#endif	// _DEBUG
-}
 
 CHostPath::~CHostPath()
 {
@@ -1739,22 +1710,13 @@ void CHostPath::Release()
 //
 //===========================================================================
 
-CHostEntry::CHostEntry()
-{
-	for (size_t n = 0; n < DriveMax; n++) {
-		m_pDrv[n] = nullptr;
-	}
-
-	m_nTimeout = 0;
-}
-
 CHostEntry::~CHostEntry()
 {
 	Clean();
 
 #ifdef _DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DriveMax; n++) {
+	for (size_t n = 0; n < DRIVE_MAX; n++) {
 		ASSERT(m_pDrv[n] == nullptr);
 	}
 #endif	// _DEBUG
@@ -1765,15 +1727,15 @@ CHostEntry::~CHostEntry()
 /// Initialize (when the driver is installed)
 //
 //---------------------------------------------------------------------------
-void CHostEntry::Init()
+void CHostEntry::Init() const
 {
 
 #ifdef _DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DriveMax; n++) {
+	for (size_t n = 0; n < DRIVE_MAX; n++) {
 		ASSERT(m_pDrv[n] == nullptr);
 	}
-#endif	// _DEBUG
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1785,7 +1747,7 @@ void CHostEntry::Clean()
 {
 
 	// Delete object
-	for (size_t n = 0; n < DriveMax; n++) {
+	for (size_t n = 0; n < DRIVE_MAX; n++) {
 		delete m_pDrv[n];
 		m_pDrv[n] = nullptr;
 	}
@@ -1796,10 +1758,10 @@ void CHostEntry::Clean()
 /// Update all cache
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCache()
+void CHostEntry::CleanCache() const
 {
 
-	for (size_t i = 0; i < DriveMax; i++) {
+	for (size_t i = 0; i < DRIVE_MAX; i++) {
 		if (m_pDrv[i])
 			m_pDrv[i]->CleanCache();
 	}
@@ -1812,9 +1774,9 @@ void CHostEntry::CleanCache()
 /// Update the cache for the specified unit
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCache(DWORD nUnit)
+void CHostEntry::CleanCache(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->CleanCache();
@@ -1825,10 +1787,10 @@ void CHostEntry::CleanCache(DWORD nUnit)
 /// Update the cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
+void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath) const
 {
 	ASSERT(szHumanPath);
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->CleanCache(szHumanPath);
@@ -1839,10 +1801,10 @@ void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
 /// Update all cache for the specified path and below
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
+void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath) const
 {
 	ASSERT(szHumanPath);
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->CleanCacheChild(szHumanPath);
@@ -1853,10 +1815,10 @@ void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
 /// Delete cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
+void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath) const
 {
 	ASSERT(szHumanPath);
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->DeleteCache(szHumanPath);
@@ -1870,7 +1832,7 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles) const
 {
 	ASSERT(pFiles);
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->Find(pFiles);
@@ -1883,7 +1845,7 @@ BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles) const
 //---------------------------------------------------------------------------
 void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit] == nullptr);
 
 	m_pDrv[nUnit] = pDrv;
@@ -1896,7 +1858,7 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->isWriteProtect();
@@ -1909,7 +1871,7 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isEnable(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->isEnable();
@@ -1922,7 +1884,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isMediaOffline(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->isMediaOffline();
@@ -1935,7 +1897,7 @@ BOOL CHostEntry::isMediaOffline(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetMediaByte();
@@ -1948,7 +1910,7 @@ BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetStatus(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetStatus();
@@ -1961,7 +1923,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::CheckMedia(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->CheckMedia();
@@ -1972,9 +1934,9 @@ BOOL CHostEntry::CheckMedia(DWORD nUnit) const
 /// Eject
 //
 //---------------------------------------------------------------------------
-void CHostEntry::Eject(DWORD nUnit)
+void CHostEntry::Eject(DWORD nUnit) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->Eject();
@@ -1985,9 +1947,9 @@ void CHostEntry::Eject(DWORD nUnit)
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
+void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	m_pDrv[nUnit]->GetVolume(szLabel);
@@ -2000,7 +1962,7 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetVolumeCache(szLabel);
@@ -2013,7 +1975,7 @@ BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetCapacity(pCapacity);
@@ -2026,7 +1988,7 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) cons
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(nUnit < DriveMax);
+	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetCapacityCache(pCapacity);
@@ -2108,7 +2070,7 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 /// Find file on the Human68k side and create data on the host side
 //
 //---------------------------------------------------------------------------
-BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
+BOOL CHostFiles::Find(DWORD nUnit, const CHostEntry* pEntry)
 {
 	ASSERT(pEntry);
 
@@ -2120,7 +2082,7 @@ BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
 /// Find file name
 //
 //---------------------------------------------------------------------------
-const CHostFilename* CHostFiles::Find(CHostPath* pPath)
+const CHostFilename* CHostFiles::Find(const CHostPath* pPath)
 {
 	ASSERT(pPath);
 
@@ -2281,12 +2243,6 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 //	FCB processing
 //
 //===========================================================================
-
-void CHostFcb::Init()
-{
-	m_bUpdate = FALSE;
-	m_pFile = nullptr;
-}
 
 //---------------------------------------------------------------------------
 //
@@ -2557,7 +2513,6 @@ CHostFcbManager::~CHostFcbManager()
 //---------------------------------------------------------------------------
 void CHostFcbManager::Init()
 {
-
 	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
@@ -2575,9 +2530,8 @@ void CHostFcbManager::Init()
 // Clean (at startup/reset)
 //
 //---------------------------------------------------------------------------
-void CHostFcbManager::Clean()
+void CHostFcbManager::Clean() const
 {
-
 	//  Fast task killer
 	CRing* p;
 	while ((p = m_cRing.Next()) != &m_cRing) {
@@ -2646,31 +2600,6 @@ void CHostFcbManager::Free(CHostFcb* pFcb)
 
 DWORD CFileSys::g_nOption;		// File name conversion flag
 
-CFileSys::CFileSys()
-{
-	m_nHostSectorCount = 0;
-
-	// Config data initialization
-	m_nDrives = 0;
-
-	for (size_t n = 0; n < DriveMax; n++) {
-		m_nFlag[n] = 0;
-		m_szBase[n][0] = _T('\0');
-	}
-
-	// Initialize TwentyOne option monitoring
-	m_nKernel = 0;
-	m_nKernelSearch = 0;
-
-	// Initialize operational flags
-	m_nOptionDefault = 0;
-	m_nOption = 0;
-	ASSERT(g_nOption == 0);
-
-	// Number of registered drives are 0
-	m_nUnits = 0;
-}
-
 //---------------------------------------------------------------------------
 //
 /// Reset (close all)
@@ -2678,7 +2607,6 @@ CFileSys::CFileSys()
 //---------------------------------------------------------------------------
 void CFileSys::Reset()
 {
-
 	// Initialize virtual sectors
 	m_nHostSectorCount = 0;
 	memset(m_nHostSectorBuffer, 0, sizeof(m_nHostSectorBuffer));
@@ -2707,7 +2635,6 @@ void CFileSys::Reset()
 //---------------------------------------------------------------------------
 void CFileSys::Init()
 {
-
 	// Initialize file search memory (device startup and load)
 	m_cFiles.Init();
 
@@ -2755,7 +2682,6 @@ void CFileSys::Init()
 //---------------------------------------------------------------------------
 DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 {
-
 	InitOption(pArgument);
 
 	// File system initialization
@@ -2769,12 +2695,12 @@ DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 /// $41 - Directory check
 //
 //---------------------------------------------------------------------------
-int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
@@ -2796,12 +2722,12 @@ int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $42 - Create directory
 //
 //---------------------------------------------------------------------------
-int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -2838,12 +2764,12 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $43 - Delete directory
 //
 //---------------------------------------------------------------------------
-int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -2888,12 +2814,12 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $44 - Change file name
 //
 //---------------------------------------------------------------------------
-int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew)
+int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -2946,12 +2872,12 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 /// $45 - Delete file
 //
 //---------------------------------------------------------------------------
-int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
+int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -2986,12 +2912,12 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 /// $46 - Get/set file attribute
 //
 //---------------------------------------------------------------------------
-int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute)
+int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute) const
 {
 	ASSERT(pNamests);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3020,9 +2946,8 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 		return FS_FATAL_WRITEPROTECT;
 
 	// Generate attribute
-	DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) |
-		(f.GetAttribute() & ~Human68k::AT_READONLY);
-	if (f.GetAttribute() != nAttribute) {
+	if (DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) | (f.GetAttribute() & ~Human68k::AT_READONLY);
+		f.GetAttribute() != nAttribute) {
 		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(f.GetPath()), &sb))
 			return FS_FILENOTFND;
@@ -3065,7 +2990,7 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 	}
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3150,7 +3075,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 	ASSERT(pFiles);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3195,7 +3120,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	ASSERT(pFcb);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -3263,7 +3188,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	ASSERT(pFcb);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3327,12 +3252,12 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 /// $4B - File close
 //
 //---------------------------------------------------------------------------
-int CFileSys::Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* /* pFcb */)
+int CFileSys::Close(DWORD nUnit, DWORD nKey, const Human68k::fcb_t* /* pFcb */)
 {
 	ASSERT(nKey);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3508,7 +3433,7 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 		return ((DWORD)pFcb->date << 16) | pFcb->time;
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -3551,7 +3476,7 @@ int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 	ASSERT(pCapacity);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -3570,12 +3495,12 @@ int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 /// $51 - Inspect/control drive status
 //
 //---------------------------------------------------------------------------
-int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
+int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive) const
 {
 	ASSERT(pCtrlDrive);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
@@ -3618,7 +3543,7 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const
 	ASSERT(pDpb);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 
 	Human68k::capacity_t cap;
@@ -3698,7 +3623,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 	ASSERT(pBuffer);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
@@ -3778,7 +3703,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 int CFileSys::DiskWrite(DWORD nUnit) const
 {
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -3806,7 +3731,7 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 	ASSERT(pIoctrl);
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
@@ -3870,7 +3795,7 @@ int CFileSys::Flush(DWORD nUnit) const
 {
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error returning from a mint command when resuming with an invalid drive
@@ -3888,7 +3813,7 @@ int CFileSys::CheckMedia(DWORD nUnit) const
 {
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
 		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
@@ -3911,7 +3836,7 @@ int CFileSys::Lock(DWORD nUnit) const
 {
 
 	// Unit check
-	if (nUnit >= DriveMax)
+	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
@@ -3971,7 +3896,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			nMode = 0;
 		} else if (c == '/') {
 			// Specify default base path
-			if (m_nDrives < DriveMax) {
+			if (m_nDrives < CHostEntry::DRIVE_MAX) {
 				p--;
 				strcpy(m_szBase[m_nDrives], (const char *)p);
 				m_nDrives++;
@@ -4032,7 +3957,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
+BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 {
 	ASSERT(pFiles);
 

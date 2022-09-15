@@ -24,12 +24,7 @@ class Dispatcher
 public:
 
 	Dispatcher() = default;
-	~Dispatcher()
-	{
-		for (auto const& [name, command] : commands) {
-			delete command;
-		}
-	}
+	~Dispatcher() = default;
 	Dispatcher(Dispatcher&) = delete;
 	Dispatcher& operator=(const Dispatcher&) = delete;
 
@@ -40,11 +35,11 @@ public:
 
 		_command_t(const char* _name, operation _execute) : name(_name), execute(_execute) { };
 	};
-	unordered_map<scsi_command, command_t*> commands;
+	unordered_map<scsi_command, unique_ptr<command_t>> commands;
 
 	void AddCommand(scsi_command opcode, const char* name, operation execute)
 	{
-		commands[opcode] = new command_t(name, execute);
+		commands[opcode] = make_unique<command_t>(name, execute);
 	}
 
 	bool Dispatch(T *instance, DWORD cmd)

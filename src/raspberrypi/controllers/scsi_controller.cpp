@@ -24,7 +24,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS *bus, int target_id) : AbstractController(bus, target_id)
+ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -57,7 +57,7 @@ void ScsiController::Reset()
 	bytes_to_transfer = 0;
 
 	// Reset all LUNs
-	for (auto& [lun, device] : ctrl.luns) {
+	for (const auto& [lun, device] : ctrl.luns) {
 		device->Reset();
 	}
 }
@@ -564,12 +564,10 @@ void ScsiController::Send()
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (ctrl.phase == BUS::datain) {
-		if (ctrl.blocks != 0) {
-			// set next buffer (set offset, length)
-			result = XferIn(ctrl.buffer);
-			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
-		}
+	if (ctrl.phase == BUS::datain && ctrl.blocks != 0) {
+		// set next buffer (set offset, length)
+		result = XferIn(ctrl.buffer);
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
 	}
 
 	// If result FALSE, move to status phase

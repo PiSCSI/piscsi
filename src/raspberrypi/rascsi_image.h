@@ -22,6 +22,8 @@ public:
 
 	RascsiImage();
 	~RascsiImage() = default;
+	RascsiImage(RascsiImage&) = delete;
+	RascsiImage& operator=(const RascsiImage&) = delete;
 
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
@@ -31,11 +33,11 @@ public:
 	string SetDefaultImageFolder(const string&);
 	bool IsValidSrcFilename(const string&) const;
 	bool IsValidDstFilename(const string&) const;
-	bool CreateImage(const CommandContext&, const PbCommand&);
-	bool DeleteImage(const CommandContext&, const PbCommand&);
-	bool RenameImage(const CommandContext&, const PbCommand&);
-	bool CopyImage(const CommandContext&, const PbCommand&);
-	bool SetImagePermissions(const CommandContext&, const PbCommand&);
+	bool CreateImage(const CommandContext&, const PbCommand&) const;
+	bool DeleteImage(const CommandContext&, const PbCommand&) const;
+	bool RenameImage(const CommandContext&, const PbCommand&) const;
+	bool CopyImage(const CommandContext&, const PbCommand&) const;
+	bool SetImagePermissions(const CommandContext&, const PbCommand&) const;
 
 private:
 
