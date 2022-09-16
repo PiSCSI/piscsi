@@ -370,7 +370,7 @@ string SetReservedIds(string_view ids)
 void DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	DeviceFactory::instance().DeleteAllDevices();
+	device_factory.DeleteAllDevices();
 	FileSupport::UnreserveAll();
 
 	LOGINFO("Detached all devices")
