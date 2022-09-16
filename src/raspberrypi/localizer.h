@@ -47,7 +47,7 @@ public:
 	Localizer();
 	~Localizer() = default;
 
-	string Localize(LocalizationKey, const string&, const string& = "", const string& = "", const string& = "");
+	string Localize(LocalizationKey, const string&, const string& = "", const string& = "", const string& = "") const;
 
 private:
 

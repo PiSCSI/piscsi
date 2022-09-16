@@ -132,23 +132,27 @@ void Localizer::Add(LocalizationKey key, const string& locale, string_view value
 }
 
 string Localizer::Localize(LocalizationKey key, const string& locale, const string& arg1, const string& arg2,
-		const string &arg3)
+		const string &arg3) const
 {
 	string locale_lower = locale;
 	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
 
-	unordered_map<LocalizationKey, string> messages = localized_messages[locale_lower];
-	if (messages.empty()) {
+	unordered_map<LocalizationKey, string> messages;
+
+	auto it = localized_messages.find(locale_lower);
+	if (it == localized_messages.end()) {
 		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
 		if (locale_lower.length() > 2) {
-			messages = localized_messages[locale_lower.substr(0, 2)];
+			it = localized_messages.find(locale_lower.substr(0, 2));
 		}
-		if (messages.empty()) {
-			messages = localized_messages["en"];
+		if (it == localized_messages.end()) {
+			it = localized_messages.find("en");
 		}
 	}
 
-	assert(!messages.empty());
+	assert(it != localized_messages.end());
+
+	messages = it->second;
 
 	string message = messages[key];
 	if (messages.empty()) {

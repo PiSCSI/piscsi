@@ -991,8 +991,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string name;
 	string log_level;
 
-	string locale = setlocale(LC_MESSAGES, "");
-	if (locale == "C") {
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
 		locale = "en";
 	}
 
