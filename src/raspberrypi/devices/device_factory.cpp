@@ -74,8 +74,8 @@ DeviceFactory& DeviceFactory::instance()
 
 void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
 {
-	auto [start, end] = devices.equal_range(device->GetId());
-	for (auto it = start; it != end; ++it) {
+	auto [begin, end] = devices.equal_range(device->GetId());
+	for (auto it = begin; it != end; ++it) {
 		if (it->second->GetLun() == device->GetLun()) {
 			devices.erase(it);
 
