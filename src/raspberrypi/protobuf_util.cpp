@@ -23,7 +23,7 @@ using namespace rascsi_interface;
 static const char COMPONENT_SEPARATOR = ':';
 static const char KEY_VALUE_SEPARATOR = '=';
 
-Localizer localizer;
+const Localizer localizer;
 
 void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
