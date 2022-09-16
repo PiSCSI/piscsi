@@ -26,8 +26,6 @@ public:
 
 DeviceFactory& device_factory = DeviceFactory::instance();
 
-ControllerManager& controller_manager = ControllerManager::instance();
-
 int main(int, char*[])
 {
   testing::AddGlobalTestEnvironment(new Environment());

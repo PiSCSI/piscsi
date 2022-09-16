@@ -23,7 +23,6 @@
 // Note that these global variables are convenient,
 // but might cause issues because they are reused by all tests
 extern DeviceFactory& device_factory;
-extern ControllerManager& controller_manager;
 
 class MockAbstractController : public AbstractController
 {

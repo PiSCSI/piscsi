@@ -14,6 +14,7 @@ TEST(ControllerManagerTest, ControllerManager)
 {
 	const int ID = 4;
 	const int LUN = 6;
+	ControllerManager controller_manager;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device->SetId(ID);

@@ -66,7 +66,7 @@ string current_log_level;			// Some versions of spdlog do not support get_log_le
 string access_token;
 unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-ControllerManager&controller_manager = ControllerManager::instance();
+ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 void DetachAll();

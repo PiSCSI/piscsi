@@ -15,12 +15,6 @@
 
 using namespace std;
 
-ControllerManager& ControllerManager::instance()
-{
-	static ControllerManager instance;
-	return instance;
-}
-
 bool ControllerManager::CreateScsiController(shared_ptr<BUS> bus, PrimaryDevice *device)
 {
 	shared_ptr<AbstractController> controller = FindController(device->GetId());
