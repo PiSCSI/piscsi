@@ -89,12 +89,12 @@ private:
 	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data
-	cache_t cache[CACHE_MAX];						// Cache management
-	DWORD serial;								// Last serial number
+	cache_t cache[CACHE_MAX] = {};				// Cache management
+	DWORD serial = 0;							// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
-	BOOL cd_raw;								// CD-ROM RAW mode
+	BOOL cd_raw = FALSE;						// CD-ROM RAW mode
 	off_t imgoffset;							// Offset to actual data
 };
 

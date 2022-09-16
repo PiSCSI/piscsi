@@ -328,18 +328,10 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
-	// Cache work
-	for (int i = 0; i < CACHE_MAX; i++) {
-		cache[i].disktrk = nullptr;
-		cache[i].serial = 0;
-	}
-
 	// Other
-	serial = 0;
 	sec_path = path;
 	sec_size = size;
 	sec_blocks = blocks;
-	cd_raw = FALSE;
 	imgoffset = imgoff;
 }
 
@@ -358,11 +350,11 @@ void DiskCache::SetRawMode(BOOL raw)
 bool DiskCache::Save()
 {
 	// Save track
-	for (int i = 0; i < CACHE_MAX; i++) {
+	for (cache_t c : cache) {
 		// Is it a valid track?
-		if (cache[i].disktrk) {
+		if (c.disktrk) {
 			// Save
-			if (!cache[i].disktrk->Save(sec_path)) {
+			if (!c.disktrk->Save(sec_path)) {
 				return false;
 			}
 		}
@@ -395,10 +387,10 @@ bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 void DiskCache::Clear()
 {
 	// Free the cache
-	for (int i = 0; i < CACHE_MAX; i++) {
-		if (cache[i].disktrk) {
-			delete cache[i].disktrk;
-			cache[i].disktrk = nullptr;
+	for (cache_t c : cache) {
+		if (c.disktrk) {
+			delete c.disktrk;
+			c.disktrk = nullptr;
 		}
 	}
 }
@@ -454,12 +446,12 @@ DiskTrack* DiskCache::Assign(int track)
 	ASSERT(track >= 0);
 
 	// First, check if it is already assigned
-	for (int i = 0; i < CACHE_MAX; i++) {
-		if (cache[i].disktrk) {
-			if (cache[i].disktrk->GetTrack() == track) {
+	for (cache_t c : cache) {
+		if (c.disktrk) {
+			if (c.disktrk->GetTrack() == track) {
 				// Track match
-				cache[i].serial = serial;
-				return cache[i].disktrk;
+				c.serial = serial;
+				return c.disktrk;
 			}
 		}
 	}
@@ -562,7 +554,7 @@ void DiskCache::UpdateSerialNumber()
 		return;
 	}
 
-	// Clear serial of all caches (loop in 32bit)
+	// Clear serial of all caches
 	for (int i = 0; i < CACHE_MAX; i++) {
 		cache[i].serial = 0;
 	}
