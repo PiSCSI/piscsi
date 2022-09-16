@@ -182,6 +182,8 @@ class MockHostServices : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
-	MockHostServices() = default;
+public:
+
+	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
 	~MockHostServices() final = default;
 };
