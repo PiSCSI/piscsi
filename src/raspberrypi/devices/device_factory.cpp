@@ -276,7 +276,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
 	        	network_interfaces.emplace_back(tmp->ifa_name);
 	        }
 

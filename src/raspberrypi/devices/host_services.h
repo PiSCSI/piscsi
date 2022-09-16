@@ -23,7 +23,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	HostServices(const DeviceFactory *);
+	explicit HostServices(const DeviceFactory *);
 	~HostServices() override = default;
 	HostServices(HostServices&) = delete;
 	HostServices& operator=(const HostServices&) = delete;

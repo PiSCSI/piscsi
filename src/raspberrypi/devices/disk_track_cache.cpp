@@ -324,15 +324,12 @@ bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 //===========================================================================
 
 DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff)
+	: sec_size(size), sec_blocks(blocks), imgoffset(imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
-	// Other
 	sec_path = path;
-	sec_size = size;
-	sec_blocks = blocks;
-	imgoffset = imgoff;
 }
 
 DiskCache::~DiskCache()
@@ -351,12 +348,9 @@ bool DiskCache::Save()
 {
 	// Save track
 	for (cache_t c : cache) {
-		// Is it a valid track?
-		if (c.disktrk) {
-			// Save
-			if (!c.disktrk->Save(sec_path)) {
-				return false;
-			}
+		// Save if this is a valid track
+		if (c.disktrk && !c.disktrk->Save(sec_path)) {
+			return false;
 		}
 	}
 
@@ -447,12 +441,10 @@ DiskTrack* DiskCache::Assign(int track)
 
 	// First, check if it is already assigned
 	for (cache_t c : cache) {
-		if (c.disktrk) {
-			if (c.disktrk->GetTrack() == track) {
-				// Track match
-				c.serial = serial;
-				return c.disktrk;
-			}
+		if (c.disktrk && c.disktrk->GetTrack() == track) {
+			// Track match
+			c.serial = serial;
+			return c.disktrk;
 		}
 	}
 
