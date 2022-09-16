@@ -137,8 +137,6 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 	string locale_lower = locale;
 	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
 
-	unordered_map<LocalizationKey, string> messages;
-
 	auto it = localized_messages.find(locale_lower);
 	if (it == localized_messages.end()) {
 		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
@@ -152,12 +150,12 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 
 	assert(it != localized_messages.end());
 
-	messages = it->second;
-
-	string message = messages[key];
+	auto messages = it->second;
 	if (messages.empty()) {
 		return "Missing localization for enum value " + to_string(key);
 	}
+
+	string message = messages[key];
 
 	message = regex_replace(message, regex("%1"), arg1);
 	message = regex_replace(message, regex("%2"), arg2);
