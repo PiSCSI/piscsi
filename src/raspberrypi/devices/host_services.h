@@ -16,12 +16,14 @@
 
 using namespace std;
 
+class DeviceFactory;
+
 class HostServices: public ModePageDevice
 {
 
 public:
 
-	HostServices();
+	HostServices(const DeviceFactory *);
 	~HostServices() override = default;
 	HostServices(HostServices&) = delete;
 	HostServices& operator=(const HostServices&) = delete;
@@ -48,4 +50,6 @@ private:
 	int ModeSense10(const DWORD *, BYTE *, int) override;
 
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
+
+	const DeviceFactory *device_factory;
 };
