@@ -460,7 +460,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	return operation_info.release();
 }
 
-PbOperationMetaData *RascsiResponse::CreateOperation(unique_ptr<PbOperationInfo>& operation_info,
+PbOperationMetaData *RascsiResponse::CreateOperation(const unique_ptr<PbOperationInfo>& operation_info,
 		const PbOperation& operation, const string& description) const
 {
 	auto meta_data = make_unique<PbOperationMetaData>();
