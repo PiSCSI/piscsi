@@ -387,8 +387,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	if (unit >= AbstractController::LUN_MAX) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX)
-				+ ")");
+		return ReturnLocalizedError(context, ERROR_INVALID_LUN, to_string(unit), to_string(AbstractController::LUN_MAX));
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -449,7 +448,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
 		device_factory.DeleteDevice(device);
 
-		return ReturnStatus(context, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
+		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
 	Filepath filepath;
@@ -511,8 +510,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!device->Init(params)) {
 		device_factory.DeleteDevice(device);
 
-		return ReturnStatus(context, false, "Initialization of " + PbDeviceType_Name(type) + " device, ID " +to_string(id) +
-				", unit " +to_string(unit) + " failed");
+		return ReturnLocalizedError(context, ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
 	}
 
 	pthread_mutex_lock(&ctrl_mutex);
@@ -520,7 +518,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!controller_manager.CreateScsiController(bus, device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		return ReturnStatus(context, false, "Couldn't create SCSI controller instance");
+		return ReturnLocalizedError(context, ERROR_SCSI_CONTROLLER);
 	}
 	pthread_mutex_unlock(&ctrl_mutex);
 
@@ -543,7 +541,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		for (const Device *d : device_factory.GetAllDevices()) {
 			// LUN 0 can only be detached if there is no other LUN anymore
 			if (d->GetId() == device->GetId() && d->GetLun()) {
-				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
+				return ReturnLocalizedError(context, ERROR_LUN0);
 			}
 		}
 	}
@@ -563,7 +561,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
 			pthread_mutex_unlock(&ctrl_mutex);
 
-			return ReturnStatus(context, false, "Couldn't detach device");
+			return ReturnLocalizedError(context, ERROR_DETACH);
 		}
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
@@ -716,8 +714,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
 	if (id >= ControllerManager::DEVICE_MAX) {
-		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-"
-				+ to_string(ControllerManager::DEVICE_MAX - 1) + ")");
+		return ReturnLocalizedError(context, ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
@@ -726,7 +723,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Check the Unit Number
 	if (unit < 0 || unit >= AbstractController::LUN_MAX) {
-		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(AbstractController::LUN_MAX - 1) + ")");
+		return ReturnLocalizedError(context, ERROR_INVALID_LUN, to_string(unit), to_string(AbstractController::LUN_MAX - 1));
 	}
 
 	if (operation == ATTACH) {
@@ -749,18 +746,18 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnStatus(context, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't stoppable)");
+		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_STOPPABLE, device->GetType());
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnStatus(context, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
+		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_REMOVABLE, device->GetType());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnStatus(context, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't protectable)");
+		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_PROTECTABLE, device->GetType());
 	}
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnStatus(context, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't ready)");
+		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_READY, device->GetType());
 	}
 
 	switch (operation) {
@@ -1320,7 +1317,7 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 							SerializeMessage(context.fd, result);
 						}
 						else {
-							ReturnStatus(context, false, "Can't get image file info for '" + filename + "'");
+							ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
 						}
 					}
 					break;
@@ -1389,14 +1386,6 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-#ifndef NDEBUG
-	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
-	// TODO Move to unit test?
-	PbResult pb_operation_info_result;
-	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
-	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
-#endif
 
 	BUS::phase_t phase;
 
