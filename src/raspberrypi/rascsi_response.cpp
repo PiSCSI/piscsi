@@ -353,11 +353,11 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	auto operation_info = make_unique<PbOperationInfo>();
 
 	auto operation = CreateOperation(*operation_info, ATTACH, "Attach device, device-specific parameters are required");
-	AddOperationParameter(operation, "name", "Image file name in case of a mass storage device");
-	AddOperationParameter(operation, "interface", "Comma-separated prioritized network interface list");
-	AddOperationParameter(operation, "inet", "IP address and netmask of the network bridge");
-	AddOperationParameter(operation, "cmd", "Print command for the printer device");
-	AddOperationParameter(operation, "timeout", "Reservation timeout for the printer device in seconds");
+	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device");
+	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list");
+	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge");
+	AddOperationParameter(*operation, "cmd", "Print command for the printer device");
+	AddOperationParameter(*operation, "timeout", "Reservation timeout for the printer device in seconds");
 
 	CreateOperation(*operation_info, DETACH, "Detach device, device-specific parameters are required");
 
@@ -368,7 +368,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	CreateOperation(*operation_info, STOP, "Stop device, device-specific parameters are required");
 
 	operation = CreateOperation(*operation_info, INSERT, "Insert medium, device-specific parameters are required");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	CreateOperation(*operation_info, EJECT, "Eject medium, device-specific parameters are required");
 
@@ -378,9 +378,9 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 
 	operation = CreateOperation(*operation_info, SERVER_INFO, "Get rascsi server information");
 	if (depth) {
-		AddOperationParameter(operation, "folder_pattern", "Pattern for filtering image folder names");
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(operation, "file_pattern", "Pattern for filtering image file names");
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
 	CreateOperation(*operation_info, VERSION_INFO, "Get rascsi server version");
 
@@ -390,12 +390,12 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 
 	operation = CreateOperation(*operation_info, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 	if (depth) {
-		AddOperationParameter(operation, "folder_pattern", "Pattern for filtering image folder names");
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(operation, "file_pattern", "Pattern for filtering image file names");
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
 	operation = CreateOperation(*operation_info, IMAGE_FILE_INFO, "Get information on image file");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	CreateOperation(*operation_info, LOG_LEVEL_INFO, "Get log level information");
 
@@ -406,16 +406,16 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	CreateOperation(*operation_info, RESERVED_IDS_INFO, "Get list of reserved device IDs");
 
 	operation = CreateOperation(*operation_info, DEFAULT_FOLDER, "Set default image file folder");
-	AddOperationParameter(operation, "folder", "Default image file folder name", "", true);
+	AddOperationParameter(*operation, "folder", "Default image file folder name", "", true);
 
 	operation = CreateOperation(*operation_info, LOG_LEVEL, "Set log level");
-	AddOperationParameter(operation, "level", "New log level", "", true);
+	AddOperationParameter(*operation, "level", "New log level", "", true);
 
 	operation = CreateOperation(*operation_info, RESERVE_IDS, "Reserve device IDs");
-	AddOperationParameter(operation, "ids", "Comma-separated device ID list", "", true);
+	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
 	operation = CreateOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	PbOperationParameter *parameter = AddOperationParameter(operation, "mode", "Shutdown mode", "", true);
+	PbOperationParameter *parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
 	parameter->add_permitted_values("rascsi");
 	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
@@ -424,34 +424,34 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	}
 
 	operation = CreateOperation(*operation_info, CREATE_IMAGE, "Create an image file");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
-	AddOperationParameter(operation, "size", "Image file size in bytes", "", true);
-	parameter = AddOperationParameter(operation, "read_only",  "Read-only flag", "false");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "size", "Image file size in bytes", "", true);
+	parameter = AddOperationParameter(*operation, "read_only",  "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
 
 	operation = CreateOperation(*operation_info, DELETE_IMAGE, "Delete image file");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, RENAME_IMAGE, "Rename image file");
-	AddOperationParameter(operation, "from", "Source image file name", "", true);
-	AddOperationParameter(operation, "to", "Destination image file name", "", true);
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
 
 	operation = CreateOperation(*operation_info, COPY_IMAGE, "Copy image file");
-	AddOperationParameter(operation, "from", "Source image file name", "", true);
-	AddOperationParameter(operation, "to", "Destination image file name", "", true);
-	parameter = AddOperationParameter(operation, "read_only", "Read-only flag", "false");
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
+	parameter = AddOperationParameter(*operation, "read_only", "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
 
 	operation = CreateOperation(*operation_info, PROTECT_IMAGE, "Write-protect image file");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, UNPROTECT_IMAGE, "Make image file writable");
-	AddOperationParameter(operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
 	operation = CreateOperation(*operation_info, CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
-	AddOperationParameter(operation, "token", "Authentication token to be checked", "", true);
+	AddOperationParameter(*operation, "token", "Authentication token to be checked", "", true);
 
 	CreateOperation(*operation_info, OPERATION_INFO, "Get operation meta data");
 
@@ -471,10 +471,10 @@ PbOperationMetaData *RascsiResponse::CreateOperation(PbOperationInfo& operation_
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
-PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,
+PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
 		const string& description, const string& default_value, bool is_mandatory)
 {
-	auto parameter = unique_ptr<PbOperationParameter>(meta_data->add_parameters());
+	auto parameter = unique_ptr<PbOperationParameter>(meta_data.add_parameters());
 	parameter->set_name(name);
 	parameter->set_description(description);
 	parameter->set_default_value(default_value);

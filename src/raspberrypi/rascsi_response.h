@@ -58,6 +58,6 @@ private:
 	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
-	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,
+	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false);
 };
