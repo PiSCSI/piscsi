@@ -55,11 +55,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 
 	// NEC root sector
 	BYTE root_sector[512];
-	if (size >= (off_t)sizeof(root_sector)) {
-		if (!fio.Read(root_sector, sizeof(root_sector))) {
-			fio.Close();
-			throw io_exception("Can't read NEC hard disk file root sector");
-		}
+	if (size >= (off_t)sizeof(root_sector) && !fio.Read(root_sector, sizeof(root_sector))) {
+		fio.Close();
+		throw io_exception("Can't read NEC hard disk file root sector");
 	}
 	fio.Close();
 

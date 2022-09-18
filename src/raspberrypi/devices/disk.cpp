@@ -643,7 +643,7 @@ int Disk::Read(const DWORD *, BYTE *buf, uint64_t block)
 	}
 
 	// leave it to the cache
-	if (!disk.dcache->ReadSector(buf, block)) {
+	if (!disk.dcache->ReadSector(buf, (uint32_t)block)) {
 		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
@@ -690,7 +690,7 @@ void Disk::Write(const DWORD *, BYTE *buf, uint64_t block)
 	}
 
 	// Leave it to the cache
-	if (!disk.dcache->WriteSector(buf, block)) {
+	if (!disk.dcache->WriteSector(buf, (uint32_t)block)) {
 		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 	}
 }
