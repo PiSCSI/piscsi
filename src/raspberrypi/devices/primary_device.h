@@ -55,7 +55,7 @@ private:
 	void ReportLuns() override;
 	void Inquiry() override;
 
-	vector<BYTE> HandleRequestSense() const;
+	vector<byte> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
 };

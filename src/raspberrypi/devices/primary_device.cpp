@@ -121,7 +121,7 @@ void PrimaryDevice::RequestSense()
 		ctrl->status = 0x00;
 	}
 
-    vector<BYTE> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
+    vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
 	size_t allocation_length = ctrl->cmd[4];
     if (allocation_length > buf.size()) {
@@ -182,7 +182,7 @@ vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	return buf;
 }
 
-vector<BYTE> PrimaryDevice::HandleRequestSense() const
+vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
@@ -191,15 +191,15 @@ vector<BYTE> PrimaryDevice::HandleRequestSense() const
 
 	// Set 18 bytes including extended sense data
 
-	vector<BYTE> buf(18);
+	vector<byte> buf(18);
 
 	// Current error
-	buf[0] = 0x70;
+	buf[0] = (byte)0x70;
 
-	buf[2] = (BYTE)(GetStatusCode() >> 16);
-	buf[7] = 10;
-	buf[12] = (BYTE)(GetStatusCode() >> 8);
-	buf[13] = (BYTE)GetStatusCode();
+	buf[2] = (byte)(GetStatusCode() >> 16);
+	buf[7] = (byte)10;
+	buf[12] = (byte)(GetStatusCode() >> 8);
+	buf[13] = (byte)GetStatusCode();
 
 	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12])
 
