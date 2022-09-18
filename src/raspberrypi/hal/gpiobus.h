@@ -308,7 +308,7 @@ public:
 	GPIOBUS()= default;
 	~GPIOBUS() final = default;
 										// Destructor
-	bool Init(mode_e mode = TARGET) override;
+	bool Init(mode_e mode = mode_e::TARGET) override;
 										// Initialization
 	void Reset() override;
 										// Reset
@@ -448,7 +448,7 @@ private:
 										// Set GPIO drive strength
 
 
-	mode_e actmode = TARGET;			// Operation mode
+	mode_e actmode = mode_e::TARGET;	// Operation mode
 
 	uint32_t baseaddr = 0;				// Base address
 

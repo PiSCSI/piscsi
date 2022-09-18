@@ -21,7 +21,7 @@ class BUS
 {
 public:
 	// Operation modes definition
-	enum mode_e {
+	enum class mode_e {
 		TARGET = 0,
 		INITIATOR = 1,
 		MONITOR = 2,

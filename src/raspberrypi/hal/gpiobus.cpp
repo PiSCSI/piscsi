@@ -438,7 +438,7 @@ void GPIOBUS::SetBSY(bool ast)
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		if (ast) {
 			// Turn on ACTIVE signal
 			SetControl(PIN_ACT, ACT_ON);
@@ -474,7 +474,7 @@ bool GPIOBUS::GetSEL() const
 
 void GPIOBUS::SetSEL(bool ast)
 {
-	if (actmode == INITIATOR && ast) {
+	if (actmode == mode_e::INITIATOR && ast) {
 		// Turn on ACTIVE signal
 		SetControl(PIN_ACT, ACT_ON);
 	}
@@ -547,7 +547,7 @@ bool GPIOBUS::GetIO()
 {
 	bool ast = GetSignal(PIN_IO);
 
-	if (actmode == INITIATOR) {
+	if (actmode == mode_e::INITIATOR) {
 		// Change the data input/output direction by IO signal
 		if (ast) {
 			SetControl(PIN_DTD, DTD_IN);
@@ -581,7 +581,7 @@ void GPIOBUS::SetIO(bool ast)
 {
 	SetSignal(PIN_IO, ast);
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		// Change the data input/output direction by IO signal
 		if (ast) {
 			SetControl(PIN_DTD, DTD_OUT);
@@ -692,7 +692,7 @@ bool GPIOBUS::GetDP() const
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
 	// Only works in TARGET mode
-	if (actmode != TARGET) {
+	if (actmode != mode_e::TARGET) {
 		return 0;
 	}
 
@@ -818,7 +818,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 	// Disable IRQs
 	DisableIRQ();
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		for (i = 0; i < count; i++) {
 			// Assert the REQ signal
 			SetSignal(PIN_REQ, ON);
@@ -918,7 +918,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 	// Disable IRQs
 	DisableIRQ();
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
