@@ -344,7 +344,7 @@ void DiskCache::SetRawMode(BOOL raw)
 	cd_raw = raw;
 }
 
-bool DiskCache::Save()
+bool DiskCache::Save() const
 {
 	// Save track
 	for (cache_t c : cache) {
@@ -381,7 +381,7 @@ bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 void DiskCache::Clear()
 {
 	// Free the cache
-	for (cache_t c : cache) {
+	for (cache_t& c : cache) {
 		if (c.disktrk) {
 			delete c.disktrk;
 			c.disktrk = nullptr;
@@ -547,8 +547,8 @@ void DiskCache::UpdateSerialNumber()
 	}
 
 	// Clear serial of all caches
-	for (int i = 0; i < CACHE_MAX; i++) {
-		cache[i].serial = 0;
+	for (cache_t& c : cache) {
+		c.serial = 0;
 	}
 }
 

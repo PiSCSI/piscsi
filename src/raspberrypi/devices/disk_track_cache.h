@@ -76,7 +76,7 @@ public:
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
 	// Access
-	bool Save();							// Save and release all
+	bool Save() const;							// Save and release all
 	bool ReadSector(BYTE *buf, uint32_t block);				// Sector Read
 	bool WriteSector(const BYTE *buf, uint32_t block);			// Sector Write
 	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
