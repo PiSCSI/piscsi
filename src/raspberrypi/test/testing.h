@@ -153,7 +153,7 @@ class MockSCSIHD : public SCSIHD
 	~MockSCSIHD() final = default;
 };
 
-class MockSCSIHD_NEC : public SCSIHD_NEC
+class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
