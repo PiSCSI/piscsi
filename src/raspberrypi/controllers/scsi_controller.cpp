@@ -521,7 +521,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		lun = 0;
 	}
 
-	if (sense_key || asc) {
+	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode((sense_key << 16) | (asc << 8));
 	}
