@@ -115,7 +115,7 @@ public:
 private:
 	static const array<phase_t, 8> phase_table;
 
-	static const char* phase_str_table[];
+	static const array<const char *, 12> phase_str_table;
 };
 
 namespace scsi_defs {

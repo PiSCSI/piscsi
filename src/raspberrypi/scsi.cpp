@@ -77,7 +77,7 @@ const array<BUS::phase_t, 8> BUS::phase_table = {
 //      This MUST be kept in sync with the phase_t enum type!
 //
 //---------------------------------------------------------------------------
-const char* BUS::phase_str_table[] = {
+const array<const char*, 12> BUS::phase_str_table = {
 	"busfree",		
 	"arbitration",	
 	"selection",		
