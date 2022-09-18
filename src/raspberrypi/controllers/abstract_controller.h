@@ -38,7 +38,7 @@ public:
 	// These data are not internal, otherwise they could all be private
 	using ctrl_t = struct _ctrl_t {
 		// General
-		BUS::phase_t phase = BUS::busfree;	// Transition phase
+		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
 		DWORD cmd[16];					// Command data

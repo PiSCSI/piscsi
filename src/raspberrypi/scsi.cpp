@@ -20,12 +20,12 @@ BUS::phase_t BUS::GetPhase()
 {
 	// Selection Phase
 	if (GetSEL()) {
-		return selection;
+		return phase_t::selection;
 	}
 
 	// Bus busy phase
 	if (!GetBSY()) {
-		return busfree;
+		return phase_t::busfree;
 	}
 
 	// Get target phase from bus signal line
@@ -42,7 +42,7 @@ BUS::phase_t BUS::GetPhase()
 //---------------------------------------------------------------------------
 const char* BUS::GetPhaseStrRaw(phase_t current_phase){
 	if(current_phase <= phase_t::reserved){
-		return phase_str_table[current_phase];
+		return phase_str_table[(int)current_phase];
 	}
 	else
 	{
@@ -59,14 +59,14 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase){
 //---------------------------------------------------------------------------
 const BUS::phase_t BUS::phase_table[8] = {
 	//        	   | MSG|C/D|I/O | 
-	dataout,	// |  0 | 0 | 0  | 
-	datain,		// |  0 | 0 | 1  | 
-	command,	// |  0 | 1 | 0  | 
-	status,		// |  0 | 1 | 1  | 
-	reserved,	// |  1 | 0 | 0  | 
-	reserved,	// |  1 | 0 | 1  | 
-	msgout,		// |  1 | 1 | 0  | 
-	msgin		// |  1 | 1 | 1  | 
+	phase_t::dataout,	// |  0 | 0 | 0  |
+	phase_t::datain,	// |  0 | 0 | 1  |
+	phase_t::command,	// |  0 | 1 | 0  |
+	phase_t::status,	// |  0 | 1 | 1  |
+	phase_t::reserved,	// |  1 | 0 | 0  |
+	phase_t::reserved,	// |  1 | 0 | 1  |
+	phase_t::msgout,	// |  1 | 1 | 0  |
+	phase_t::msgin		// |  1 | 1 | 1  |
 };
 
 

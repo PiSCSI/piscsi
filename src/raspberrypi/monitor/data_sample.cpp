@@ -22,13 +22,13 @@ BUS::phase_t GetPhase(const data_capture *sample)
 	// Selection Phase
 	if (GetSel(sample))
 	{
-		return BUS::selection;
+		return BUS::phase_t::selection;
 	}
 
 	// Bus busy phase
 	if (!GetBsy(sample))
 	{
-		return BUS::busfree;
+		return BUS::phase_t::busfree;
 	}
 
 	// Get target phase from bus signal line

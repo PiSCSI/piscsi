@@ -28,7 +28,7 @@ public:
 	};
 
 	//	Phase definitions
-	enum phase_t : BYTE {
+	enum class phase_t : BYTE {
 		busfree,
 		arbitration,
 		selection,

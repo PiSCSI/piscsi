@@ -77,9 +77,9 @@ static BYTE get_data_field(DWORD data)
 static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char symbol)
 {
     BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if (prev_value[pin] != new_value)
+    if (prev_value[pin] != (int)new_value)
     {
-        prev_value[pin] = new_value;
+        prev_value[pin] = (int)new_value;
         fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }

@@ -1452,7 +1452,7 @@ int main(int argc, char* argv[])
 	// Main Loop
 	while (running) {
 		// Work initialization
-		phase = BUS::busfree;
+		phase = BUS::phase_t::busfree;
 
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
@@ -1504,13 +1504,13 @@ int main(int argc, char* argv[])
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
-			if (controller->Process(initiator_id) == BUS::selection) {
-				phase = BUS::selection;
+			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
+				phase = BUS::phase_t::selection;
 			}
 		}
 
 		// Return to bus monitoring if the selection phase has not started
-		if (phase != BUS::selection) {
+		if (phase != BUS::phase_t::selection) {
 			pthread_mutex_unlock(&ctrl_mutex);
 			continue;
 		}
@@ -1530,7 +1530,7 @@ int main(int argc, char* argv[])
 			phase = controller->Process(initiator_id);
 
 			// End when the bus is free
-			if (phase == BUS::busfree) {
+			if (phase == BUS::phase_t::busfree) {
 				break;
 			}
 		}

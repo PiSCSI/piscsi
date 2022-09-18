@@ -1416,15 +1416,15 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	if (GetPinRaw(raw_data, PIN_SEL)) 
 	{
 		if(GetPinRaw(raw_data, PIN_IO)){
-			return BUS::reselection;
+			return BUS::phase_t::reselection;
 		}else{
-			return BUS::selection;
+			return BUS::phase_t::selection;
 		}
 	}
 
 	// Bus busy phase
 	if (!GetPinRaw(raw_data, PIN_BSY)) {
-		return BUS::busfree;
+		return BUS::phase_t::busfree;
 	}
 
 	// Get target phase from bus signal line

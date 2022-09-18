@@ -39,7 +39,7 @@ ScsiController::~ScsiController()
 
 void ScsiController::Reset()
 {
-	SetPhase(BUS::busfree);
+	SetPhase(BUS::phase_t::busfree);
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
 	execstart = 0;
@@ -92,35 +92,35 @@ BUS::phase_t ScsiController::Process(int id)
 	try {
 		// Phase processing
 		switch (ctrl.phase) {
-			case BUS::busfree:
+			case BUS::phase_t::busfree:
 				BusFree();
 				break;
 
-			case BUS::selection:
+			case BUS::phase_t::selection:
 				Selection();
 				break;
 
-			case BUS::dataout:
+			case BUS::phase_t::dataout:
 				DataOut();
 				break;
 
-			case BUS::datain:
+			case BUS::phase_t::datain:
 				DataIn();
 				break;
 
-			case BUS::command:
+			case BUS::phase_t::command:
 				Command();
 				break;
 
-			case BUS::status:
+			case BUS::phase_t::status:
 				Status();
 				break;
 
-			case BUS::msgout:
+			case BUS::phase_t::msgout:
 				MsgOut();
 				break;
 
-			case BUS::msgin:
+			case BUS::phase_t::msgin:
 				MsgIn();
 				break;
 
@@ -146,10 +146,10 @@ BUS::phase_t ScsiController::Process(int id)
 
 void ScsiController::BusFree()
 {
-	if (ctrl.phase != BUS::busfree) {
+	if (ctrl.phase != BUS::phase_t::busfree) {
 		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__)
 
-		SetPhase(BUS::busfree);
+		SetPhase(BUS::phase_t::busfree);
 
 		bus->SetREQ(false);
 		bus->SetMSG(false);
@@ -206,7 +206,7 @@ void ScsiController::BusFree()
 
 void ScsiController::Selection()
 {
-	if (ctrl.phase != BUS::selection) {
+	if (ctrl.phase != BUS::phase_t::selection) {
 		// A different device controller was selected
 		if (int id = 1 << GetTargetId(); (bus->GetDAT() & id) == 0) {
 			return;
@@ -219,7 +219,7 @@ void ScsiController::Selection()
 
 		LOGTRACE("%s Selection Phase Target ID=%d", __PRETTY_FUNCTION__, GetTargetId())
 
-		SetPhase(BUS::selection);
+		SetPhase(BUS::phase_t::selection);
 
 		// Raise BSY and respond
 		bus->SetBSY(true);
@@ -239,10 +239,10 @@ void ScsiController::Selection()
 
 void ScsiController::Command()
 {
-	if (ctrl.phase != BUS::command) {
+	if (ctrl.phase != BUS::phase_t::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__)
 
-		SetPhase(BUS::command);
+		SetPhase(BUS::phase_t::command);
 
 		bus->SetMSG(false);
 		bus->SetCD(true);
@@ -287,7 +287,7 @@ void ScsiController::Execute()
 {
 	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
 
-	SetPhase(BUS::execute);
+	SetPhase(BUS::phase_t::execute);
 
 	// Initialization for data transfer
 	ctrl.offset = 0;
@@ -351,7 +351,7 @@ void ScsiController::Execute()
 
 void ScsiController::Status()
 {
-	if (ctrl.phase != BUS::status) {
+	if (ctrl.phase != BUS::phase_t::status) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
@@ -361,7 +361,7 @@ void ScsiController::Status()
 
 		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status)
 
-		SetPhase(BUS::status);
+		SetPhase(BUS::phase_t::status);
 
 		// Signal line operated by the target
 		bus->SetMSG(false);
@@ -382,10 +382,10 @@ void ScsiController::Status()
 
 void ScsiController::MsgIn()
 {
-	if (ctrl.phase != BUS::msgin) {
+	if (ctrl.phase != BUS::phase_t::msgin) {
 		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__)
 
-		SetPhase(BUS::msgin);
+		SetPhase(BUS::phase_t::msgin);
 
 		bus->SetMSG(true);
 		bus->SetCD(true);
@@ -406,17 +406,17 @@ void ScsiController::MsgOut()
 {
 	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId())
 
-	if (ctrl.phase != BUS::msgout) {
+	if (ctrl.phase != BUS::phase_t::msgout) {
 		LOGTRACE("Message Out Phase")
 
 	    // process the IDENTIFY message
-		if (ctrl.phase == BUS::selection) {
+		if (ctrl.phase == BUS::phase_t::selection) {
 			scsi.atnmsg = true;
 			scsi.msc = 0;
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
 
-		SetPhase(BUS::msgout);
+		SetPhase(BUS::phase_t::msgout);
 
 		bus->SetMSG(true);
 		bus->SetCD(true);
@@ -435,7 +435,7 @@ void ScsiController::MsgOut()
 
 void ScsiController::DataIn()
 {
-	if (ctrl.phase != BUS::datain) {
+	if (ctrl.phase != BUS::phase_t::datain) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
@@ -449,7 +449,7 @@ void ScsiController::DataIn()
 
 		LOGTRACE("%s Going into Data-in Phase", __PRETTY_FUNCTION__)
 
-		SetPhase(BUS::datain);
+		SetPhase(BUS::phase_t::datain);
 
 		bus->SetMSG(false);
 		bus->SetCD(false);
@@ -467,7 +467,7 @@ void ScsiController::DataIn()
 
 void ScsiController::DataOut()
 {
-	if (ctrl.phase != BUS::dataout) {
+	if (ctrl.phase != BUS::phase_t::dataout) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
@@ -481,7 +481,7 @@ void ScsiController::DataOut()
 
 		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__)
 
-		SetPhase(BUS::dataout);
+		SetPhase(BUS::phase_t::dataout);
 
 		// Signal line operated by the target
 		bus->SetMSG(false);
@@ -509,7 +509,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	// Bus free for status phase and message in phase
-	if (ctrl.phase == BUS::status || ctrl.phase == BUS::msgin) {
+	if (ctrl.phase == BUS::phase_t::status || ctrl.phase == BUS::phase_t::msgin) {
 		BusFree();
 		return;
 	}
@@ -564,7 +564,7 @@ void ScsiController::Send()
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (ctrl.phase == BUS::datain && ctrl.blocks != 0) {
+	if (ctrl.phase == BUS::phase_t::datain && ctrl.blocks != 0) {
 		// set next buffer (set offset, length)
 		result = XferIn(ctrl.buffer);
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
@@ -585,10 +585,10 @@ void ScsiController::Send()
 	}
 
 	// Move to next phase
-	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), ctrl.phase)
+	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), (int)ctrl.phase)
 	switch (ctrl.phase) {
 		// Message in phase
-		case BUS::msgin:
+		case BUS::phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
 				// flag off
@@ -603,13 +603,13 @@ void ScsiController::Send()
 			break;
 
 		// Data-in Phase
-		case BUS::datain:
+		case BUS::phase_t::datain:
 			// status phase
 			Status();
 			break;
 
 		// status phase
-		case BUS::status:
+		case BUS::phase_t::status:
 			// Message in phase
 			ctrl.length = 1;
 			ctrl.blocks = 1;
@@ -665,7 +665,7 @@ void ScsiController::Receive()
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
 	switch (ctrl.phase) {
-		case BUS::dataout:
+		case BUS::phase_t::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
 				result = XferOut(false);
@@ -675,7 +675,7 @@ void ScsiController::Receive()
 			}
 			break;
 
-		case BUS::msgout:
+		case BUS::phase_t::msgout:
 			ctrl.message = ctrl.buffer[0];
 			if (!XferMsg(ctrl.message)) {
 				// Immediately free the bus if message output fails
@@ -706,7 +706,7 @@ void ScsiController::Receive()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		case BUS::command:
+		case BUS::phase_t::command:
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (int i = 0; i < len; i++) {
@@ -717,7 +717,7 @@ void ScsiController::Receive()
 			Execute();
 			break;
 
-		case BUS::msgout:
+		case BUS::phase_t::msgout:
 			// Continue message out phase as long as ATN keeps asserting
 			if (bus->GetATN()) {
 				// Data transfer is 1 byte x 1 block
@@ -801,7 +801,7 @@ void ScsiController::Receive()
 			Command();
 			break;
 
-		case BUS::dataout:
+		case BUS::phase_t::dataout:
 			FlushUnit();
 
 			Status();
@@ -815,7 +815,7 @@ void ScsiController::Receive()
 
 bool ScsiController::XferMsg(int msg)
 {
-	assert(ctrl.phase == BUS::msgout);
+	assert(ctrl.phase == BUS::phase_t::msgout);
 
 	// Save message out data
 	if (scsi.atnmsg) {
@@ -866,11 +866,11 @@ void ScsiController::ReceiveBytes()
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
 	switch (ctrl.phase) {
 
-		case BUS::dataout:
+		case BUS::phase_t::dataout:
 			result = XferOut(false);
 			break;
 
-		case BUS::msgout:
+		case BUS::phase_t::msgout:
 			ctrl.message = ctrl.buffer[0];
 			if (!XferMsg(ctrl.message)) {
 				// Immediately free the bus if message output fails
@@ -894,7 +894,7 @@ void ScsiController::ReceiveBytes()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		case BUS::command:
+		case BUS::phase_t::command:
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (uint32_t i = 0; i < len; i++) {
@@ -905,7 +905,7 @@ void ScsiController::ReceiveBytes()
 			Execute();
 			break;
 
-		case BUS::msgout:
+		case BUS::phase_t::msgout:
 			// Continue message out phase as long as ATN keeps asserting
 			if (bus->GetATN()) {
 				// Data transfer is 1 byte x 1 block
@@ -989,7 +989,7 @@ void ScsiController::ReceiveBytes()
 			Command();
 			break;
 
-		case BUS::dataout:
+		case BUS::phase_t::dataout:
 			Status();
 			break;
 
@@ -1001,7 +1001,7 @@ void ScsiController::ReceiveBytes()
 
 bool ScsiController::XferOut(bool cont)
 {
-	assert(ctrl.phase == BUS::dataout);
+	assert(ctrl.phase == BUS::phase_t::dataout);
 
 	if (!is_byte_transfer) {
 		return XferOutBlockOriented(cont);
@@ -1021,7 +1021,7 @@ bool ScsiController::XferOut(bool cont)
 
 void ScsiController::FlushUnit()
 {
-	assert(ctrl.phase == BUS::dataout);
+	assert(ctrl.phase == BUS::phase_t::dataout);
 
 	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
@@ -1074,7 +1074,7 @@ void ScsiController::FlushUnit()
 //---------------------------------------------------------------------------
 bool ScsiController::XferIn(BYTE *buf)
 {
-	assert(ctrl.phase == BUS::datain);
+	assert(ctrl.phase == BUS::phase_t::datain);
 
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
 
