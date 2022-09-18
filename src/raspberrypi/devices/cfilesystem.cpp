@@ -108,8 +108,7 @@ void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 	ASSERT(szPath);
 
 	BYTE* p = szPath;
-	for (size_t i = 0; i < 65; i++) {
-		BYTE c = path[i];
+	for (BYTE c : path) {
 		if (c == '\0')
 			break;
 		if (c == 0x09) {
