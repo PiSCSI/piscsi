@@ -1744,11 +1744,10 @@ void CHostEntry::Init() const
 //---------------------------------------------------------------------------
 void CHostEntry::Clean()
 {
-
 	// Delete object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		delete m_pDrv[n];
-		m_pDrv[n] = nullptr;
+	for (auto& d: m_pDrv) {
+		delete d;
+		d = nullptr;
 	}
 }
 
@@ -1759,8 +1758,7 @@ void CHostEntry::Clean()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache() const
 {
-
-	for (auto d : m_pDrv) {
+	for (auto& d : m_pDrv) {
 		if (d)
 			d->CleanCache();
 	}
