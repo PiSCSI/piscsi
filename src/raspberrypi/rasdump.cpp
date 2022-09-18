@@ -100,7 +100,7 @@ bool Init()
 	}
 
 	// GPIO Initialization
-	if (!bus.Init(BUS::INITIATOR)) {
+	if (!bus.Init(BUS::mode_e::INITIATOR)) {
 		return false;
 	}
 
@@ -278,7 +278,7 @@ bool Command(BYTE *buf, int length)
 	int count;
 
 	// Waiting for Phase
-	if (!WaitPhase(BUS::command)) {
+	if (!WaitPhase(BUS::phase_t::command)) {
 		return false;
 	}
 
@@ -303,7 +303,7 @@ bool Command(BYTE *buf, int length)
 int DataIn(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::datain)) {
+	if (!WaitPhase(BUS::phase_t::datain)) {
 		return -1;
 	}
 
@@ -319,7 +319,7 @@ int DataIn(BYTE *buf, int length)
 int DataOut(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::dataout)) {
+	if (!WaitPhase(BUS::phase_t::dataout)) {
 		return -1;
 	}
 
@@ -337,7 +337,7 @@ int Status()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::status)) {
+	if (!WaitPhase(BUS::phase_t::status)) {
 		return -2;
 	}
 
@@ -360,7 +360,7 @@ int MessageIn()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::msgin)) {
+	if (!WaitPhase(BUS::phase_t::msgin)) {
 		return -2;
 	}
 
