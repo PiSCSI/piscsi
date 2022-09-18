@@ -375,7 +375,7 @@ vector<BYTE> SCSICD::InquiryInternal() const
 //	memcpy(&buf[37],"1999/01/01",10);
 }
 
-void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	super::AddModePages(pages, page, changeable);
 
@@ -390,26 +390,26 @@ void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
-void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void SCSICD::AddCDROMPage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(8);
+	vector<byte> buf(8);
 
 	// No changeable area
 	if (!changeable) {
 		// 2 seconds for inactive timer
-		buf[3] = 0x05;
+		buf[3] = (byte)0x05;
 
 		// MSF multiples are 60 and 75 respectively
-		buf[5] = 60;
-		buf[7] = 75;
+		buf[5] = (byte)60;
+		buf[7] = (byte)75;
 	}
 
 	pages[13] = buf;
 }
 
-void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
+void SCSICD::AddCDDAPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<BYTE> buf(16);
+	vector<byte> buf(16);
 
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks
@@ -417,7 +417,7 @@ void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
 	pages[14] = buf;
 }
 
-void SCSICD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {

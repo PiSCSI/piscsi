@@ -129,10 +129,10 @@ public:
 	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), (const override));
 	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (const override));
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
+	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
-			vector<BYTE> buf(255);
+			vector<byte> buf(255);
 			pages[page] = buf;
 		}
 	}

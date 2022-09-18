@@ -37,9 +37,9 @@ public:
 
 	vector<BYTE> InquiryInternal() const override;
 
-	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
+	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
 

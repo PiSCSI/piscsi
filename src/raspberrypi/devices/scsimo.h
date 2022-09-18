@@ -37,13 +37,13 @@ public:
 protected:
 
 	void SetDeviceParameters(BYTE *) const override;
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
-	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
+	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 
 	void SetGeometries(const unordered_map<uint64_t, Geometry>& g) { geometries = g; }
 	bool SetGeometryForCapacity(uint64_t);

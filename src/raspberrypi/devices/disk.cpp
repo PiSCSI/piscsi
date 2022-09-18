@@ -475,7 +475,7 @@ void Disk::SetDeviceParameters(BYTE *buf) const
 	}
 }
 
-void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void Disk::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -501,18 +501,18 @@ void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable
 	AddVendorPage(pages, page, changeable);
 }
 
-void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
+void Disk::AddErrorPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<BYTE> buf(12);
+	vector<byte> buf(12);
 
 	// Retry count is 0, limit time uses internal default value
 
 	pages[1] = buf;
 }
 
-void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void Disk::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(24);
+	vector<byte> buf(24);
 
 	// No changeable area
 	if (changeable) {
@@ -523,41 +523,41 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 
 	if (IsReady()) {
 		// Set the number of tracks in one zone to 8
-		buf[0x03] = 0x08;
+		buf[0x03] = (byte)0x08;
 
 		// Set sector/track to 25
-		buf[0x0a] = 0x00;
-		buf[0x0b] = 0x19;
+		buf[0x0a] = (byte)0x00;
+		buf[0x0b] = (byte)0x19;
 
 		// Set the number of bytes in the physical sector
 		int size = 1 << disk.size;
-		buf[0x0c] = (BYTE)(size >> 8);
-		buf[0x0d] = (BYTE)size;
+		buf[0x0c] = (byte)(size >> 8);
+		buf[0x0d] = (byte)size;
 
 		// Interleave 1
-		buf[0x0e] = 0x00;
-		buf[0x0f] = 0x01;
+		buf[0x0e] = (byte)0x00;
+		buf[0x0f] = (byte)0x01;
 
 		// Track skew factor 11
-		buf[0x10] = 0x00;
-		buf[0x11] = 0x0b;
+		buf[0x10] = (byte)0x00;
+		buf[0x11] = (byte)0x0b;
 
 		// Cylinder skew factor 20
-		buf[0x12] = 0x00;
-		buf[0x13] = 0x14;
+		buf[0x12] = (byte)0x00;
+		buf[0x13] = (byte)0x14;
 	}
 
-	buf[20] = IsRemovable() ? 0x20 : 0x00;
+	buf[20] = IsRemovable() ? (byte)0x20 : (byte)0x00;
 
 	// Hard-sectored
-	buf[20] |= 0x40;
+	buf[20] |= (byte)0x40;
 
 	pages[3] = buf;
 }
 
-void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
+void Disk::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(24);
+	vector<byte> buf(24);
 
 	// No changeable area
 	if (changeable) {
@@ -572,24 +572,24 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 		uint64_t cylinders = disk.blocks;
 		cylinders >>= 3;
 		cylinders /= 25;
-		buf[0x02] = (BYTE)(cylinders >> 16);
-		buf[0x03] = (BYTE)(cylinders >> 8);
-		buf[0x04] = (BYTE)cylinders;
+		buf[0x02] = (byte)(cylinders >> 16);
+		buf[0x03] = (byte)(cylinders >> 8);
+		buf[0x04] = (byte)cylinders;
 
 		// Fix the head at 8
-		buf[0x05] = 0x8;
+		buf[0x05] = (byte)0x8;
 
 		// Medium rotation rate 7200
-		buf[0x14] = 0x1c;
-		buf[0x15] = 0x20;
+		buf[0x14] = (byte)0x1c;
+		buf[0x15] = (byte)0x20;
 	}
 
 	pages[4] = buf;
 }
 
-void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool changeable) const
+void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(12);
+	vector<byte> buf(12);
 
 	// No changeable area
 	if (changeable) {
@@ -601,21 +601,21 @@ void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool changeable) const
 	// Only read cache is valid
 
 	// Disable pre-fetch transfer length
-	buf[0x04] = 0xff;
-	buf[0x05] = 0xff;
+	buf[0x04] = (byte)0xff;
+	buf[0x05] = (byte)0xff;
 
 	// Maximum pre-fetch
-	buf[0x08] = 0xff;
-	buf[0x09] = 0xff;
+	buf[0x08] = (byte)0xff;
+	buf[0x09] = (byte)0xff;
 
 	// Maximum pre-fetch ceiling
-	buf[0x0a] = 0xff;
-	buf[0x0b] = 0xff;
+	buf[0x0a] = (byte)0xff;
+	buf[0x0b] = (byte)0xff;
 
 	pages[8] = buf;
 }
 
-void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
+void Disk::AddVendorPage(map<int, vector<byte>>&, int, bool) const
 {
 	// Nothing to add by default
 }

@@ -126,12 +126,12 @@ protected:
 	virtual void Open(const Filepath&);
 
 	virtual void SetDeviceParameters(BYTE *) const;
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
-	void AddCachePage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
+	void AddCachePage(map<int, vector<byte>>&, bool) const;
+	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
 	unordered_set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const unordered_set<uint32_t>&);
 	void SetSectorSizeInBytes(uint32_t);

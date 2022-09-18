@@ -39,8 +39,8 @@ public:
 	vector<BYTE> InquiryInternal() const override;
 	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 

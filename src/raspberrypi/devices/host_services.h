@@ -38,7 +38,7 @@ public:
 
 protected:
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
@@ -62,7 +62,7 @@ private:
 	int ModeSense6(const DWORD *, BYTE *, int) const override;
 	int ModeSense10(const DWORD *, BYTE *, int) const override;
 
-	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
+	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 
 	const DeviceFactory *device_factory;
 };

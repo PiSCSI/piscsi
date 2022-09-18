@@ -72,22 +72,22 @@ void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length
 	}
 }
 
-void scsi_command_util::EnrichFormatPage(map<int, vector<BYTE>>& pages, bool changeable, int sector_size)
+void scsi_command_util::EnrichFormatPage(map<int, vector<byte>>& pages, bool changeable, int sector_size)
 {
 	if (changeable) {
 		// The sector size is simulated to be changeable, see the MODE SELECT implementation for details
-		vector<BYTE>& format_page = pages[3];
-		format_page[12] = (BYTE)(sector_size >> 8);
-		format_page[13] = (BYTE)sector_size;
+		vector<byte>& format_page = pages[3];
+		format_page[12] = (byte)(sector_size >> 8);
+		format_page[13] = (byte)sector_size;
 	}
 }
 
-void scsi_command_util::AddAppleVendorModePage(map<int, vector<BYTE>>& pages, int, bool changeable)
+void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, int, bool changeable)
 {
 	// Page code 48 (30h) - Apple Vendor Mode Page
 	// Needed for SCCD for stock Apple driver support
 	// Needed for SCHD for stock Apple HD SC Setup
-	vector<BYTE> buf(30);
+	vector<byte> buf(30);
 
 	// No changeable area
 	if (!changeable) {

@@ -83,8 +83,8 @@ public:
 
 protected:
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
@@ -92,8 +92,8 @@ private:
 
 	Dispatcher<SCSICD> dispatcher;
 
-	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
-	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
+	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
+	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
 
 	// Open
 	void OpenCue(const Filepath& path) const;

@@ -44,7 +44,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
-	map<int, vector<BYTE>> pages;
+	map<int, vector<byte>> pages;
 	AddModePages(pages, page, changeable);
 
 	if (pages.empty()) {
@@ -53,9 +53,9 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 	}
 
 	// Holds all mode page data
-	vector<BYTE> result;
+	vector<byte> result;
 
-	vector<BYTE> page0;
+	vector<byte> page0;
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
@@ -64,9 +64,9 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
-			result[offset] |= index;
+			result[offset] |= (byte)index;
 			// Page payload size
-			result[offset + 1] = (BYTE)(data.size() - 2);
+			result[offset + 1] = (byte)(data.size() - 2);
 		}
 		else {
 			page0 = data;
@@ -80,7 +80,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[offset + 1] = (BYTE)(page0.size() - 2);
+		result[offset + 1] = (byte)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes

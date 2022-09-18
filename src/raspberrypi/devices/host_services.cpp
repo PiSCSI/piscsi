@@ -146,14 +146,14 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length) const
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void HostServices::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages, changeable);
 	}
 }
 
-void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	if (!changeable) {
 		std::time_t t = std::time(nullptr);
@@ -169,7 +169,7 @@ void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool chan
 		// Ignore leap second for simplicity
 		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
-		vector<BYTE> buf(10);
+		vector<byte> buf(10);
 		memcpy(&buf[2], &datetime, sizeof(datetime));
 		pages[32] = buf;
 	}
