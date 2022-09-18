@@ -115,7 +115,7 @@ private:
 };
 
 namespace scsi_defs {
-	enum scsi_level : int {
+	enum class scsi_level : int {
 		SCSI_1_CCS = 1,
 		SCSI_2 = 2,
 		SPC = 3,
