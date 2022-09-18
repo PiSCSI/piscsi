@@ -1699,7 +1699,6 @@ void CHostPath::Restore() const
 //---------------------------------------------------------------------------
 void CHostPath::Release()
 {
-
 	m_bRefresh = TRUE;
 }
 
@@ -1713,10 +1712,10 @@ CHostEntry::~CHostEntry()
 {
 	Clean();
 
-#ifdef _DEBUG
+#ifdef DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		ASSERT(m_pDrv[n] == nullptr);
+	for (const CHostDrv *d : m_pDrv) {
+		assert(d == nullptr);
 	}
 #endif	// _DEBUG
 }
@@ -1728,11 +1727,10 @@ CHostEntry::~CHostEntry()
 //---------------------------------------------------------------------------
 void CHostEntry::Init() const
 {
-
-#ifdef _DEBUG
+#ifdef DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		ASSERT(m_pDrv[n] == nullptr);
+	for (const CHostDrv *d : m_pDrv) {
+		assert(d == nullptr);
 	}
 #endif
 }
@@ -1745,7 +1743,7 @@ void CHostEntry::Init() const
 void CHostEntry::Clean()
 {
 	// Delete object
-	for (auto& d: m_pDrv) {
+	for (CHostDrv *d: m_pDrv) {
 		delete d;
 		d = nullptr;
 	}
@@ -1758,7 +1756,7 @@ void CHostEntry::Clean()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache() const
 {
-	for (auto& d : m_pDrv) {
+	for (const CHostDrv *d : m_pDrv) {
 		if (d)
 			d->CleanCache();
 	}
