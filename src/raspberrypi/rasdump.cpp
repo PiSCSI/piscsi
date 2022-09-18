@@ -838,9 +838,9 @@ int main(int argc, char* argv[])
 
 	// File Open
 	if (restore) {
-		omode = Fileio::ReadOnly;
+		omode = Fileio::OpenMode::ReadOnly;
 	} else {
-		omode = Fileio::WriteOnly;
+		omode = Fileio::OpenMode::WriteOnly;
 	}
 	if (!fio.Open(hdsfile.GetPath(), omode)) {
 		fprintf(stderr, "Error : Can't open hds file\n");
