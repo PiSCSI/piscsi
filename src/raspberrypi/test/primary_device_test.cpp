@@ -55,6 +55,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 {
 	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
+	MockPrimaryDevice d;
 
 	device.SetController(&controller);
 
@@ -62,8 +63,8 @@ TEST(PrimaryDeviceTest, Inquiry)
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
 
-	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
-		return device.HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	ON_CALL(device, InquiryInternal()).WillByDefault([&d]() {
+		return d.HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 	});
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
@@ -81,8 +82,8 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_EQ(scsi_level::SCSI_2, controller.ctrl.buffer[3]) << "Wrong response level";
 	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
 
-	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
-		return device.HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
+	ON_CALL(device, InquiryInternal()).WillByDefault([&d]() {
+		return d.HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
 	});
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
