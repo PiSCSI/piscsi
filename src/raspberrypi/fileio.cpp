@@ -28,7 +28,7 @@ Fileio::~Fileio()
 	Close();
 }
 
-BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
+BOOL Fileio::Load(const Filepath& path, BYTE *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -48,7 +48,7 @@ BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
 	return TRUE;
 }
 
-BOOL Fileio::Save(const Filepath& path, const void *buffer, int size)
+BOOL Fileio::Save(const Filepath& path, const BYTE *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -145,7 +145,7 @@ BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 	return OpenDIO(path.GetPath(), mode);
 }
 
-BOOL Fileio::Read(void *buffer, int size) const
+BOOL Fileio::Read(BYTE *buffer, int size) const
 {
 	long count;
 
@@ -161,7 +161,7 @@ BOOL Fileio::Read(void *buffer, int size) const
 	return TRUE;
 }
 
-BOOL Fileio::Write(const void *buffer, int size) const
+BOOL Fileio::Write(const BYTE *buffer, int size) const
 {
 	long count;
 

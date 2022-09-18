@@ -202,7 +202,7 @@ void SCSICD::Open(const Filepath& path)
 
 		// Judge whether it is a CUE sheet or an ISO file
 		TCHAR file[5];
-		fio.Read(file, 4);
+		fio.Read((BYTE *)file, 4);
 		file[4] = '\0';
 		fio.Close();
 

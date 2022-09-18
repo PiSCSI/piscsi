@@ -47,16 +47,16 @@ public:
 	Fileio(Fileio&) = delete;
 	Fileio& operator=(const Fileio&) = delete;
 
-	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
-	BOOL Save(const Filepath& path, const void *buffer, int size);	// Save RAM
+	BOOL Load(const Filepath& path, BYTE *buffer, int size);	// Load ROM, RAM
+	BOOL Save(const Filepath& path, const BYTE *buffer, int size);	// Save RAM
 
 	BOOL Open(const char *fname, OpenMode mode);
 	BOOL Open(const Filepath& path, OpenMode mode);
 	BOOL OpenDIO(const char *fname, OpenMode mode);
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
 	BOOL Seek(off_t offset, BOOL relative = FALSE) const;
-	BOOL Read(void *buffer, int size) const;
-	BOOL Write(const void *buffer, int size) const;
+	BOOL Read(BYTE *buffer, int size) const;
+	BOOL Write(const BYTE *buffer, int size) const;
 	off_t GetFileSize() const;
 	off_t GetFilePos() const;
 	void Close();
