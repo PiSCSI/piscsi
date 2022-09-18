@@ -121,13 +121,13 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	}
 	size_t size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16) + ((int)header_buf[1] << 8) + (int)header_buf[0];
 	if (size <= 0) {
-		throw io_exception("Broken protobuf message header");
+		throw io_exception("Invalid protobuf message header");
 	}
 
 	// Read the binary protobuf data
 	vector<byte> data_buf(size);
 	bytes_read = ReadNBytes(fd, data_buf.data(), data_buf.size());
-	if (bytes_read < size) {
+	if (bytes_read < data_buf.size()) {
 		throw io_exception("Missing protobuf message data");
 	}
 
