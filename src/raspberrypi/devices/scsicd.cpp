@@ -179,7 +179,7 @@ void SCSICD::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
@@ -241,7 +241,7 @@ void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open ISO CD-ROM file");
 	}
 
@@ -311,7 +311,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open CD-ROM file");
 	}
 

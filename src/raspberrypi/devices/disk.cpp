@@ -97,7 +97,7 @@ void Disk::Open(const Filepath& path)
 	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
-	if (Fileio fio; fio.Open(path, Fileio::ReadWrite)) {
+	if (Fileio fio; fio.Open(path, Fileio::OpenMode::ReadWrite)) {
 		// Write permission
 		fio.Close();
 	} else {

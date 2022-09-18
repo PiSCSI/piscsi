@@ -130,7 +130,7 @@ bool DiskTrack::Load(const Filepath& path)
 
 	// Read from File
 	Fileio fio;
-	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
+	if (!fio.OpenDIO(path, Fileio::OpenMode::ReadOnly)) {
 		return false;
 	}
 	if (dt.raw) {
@@ -202,7 +202,7 @@ bool DiskTrack::Save(const Filepath& path)
 
 	// Open file
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadWrite)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadWrite)) {
 		return false;
 	}
 

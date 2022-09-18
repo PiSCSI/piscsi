@@ -28,46 +28,6 @@ Fileio::~Fileio()
 	Close();
 }
 
-BOOL Fileio::Load(const Filepath& path, BYTE *buffer, int size)
-{
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle < 0);
-
-	if (!Open(path, ReadOnly)) {
-		return FALSE;
-	}
-
-	if (!Read(buffer, size)) {
-		Close();
-		return FALSE;
-	}
-
-	Close();
-
-	return TRUE;
-}
-
-BOOL Fileio::Save(const Filepath& path, const BYTE *buffer, int size)
-{
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle < 0);
-
-	if (!Open(path, WriteOnly)) {
-		return FALSE;
-	}
-
-	if (!Write(buffer, size)) {
-		Close();
-		return FALSE;
-	}
-
-	Close();
-
-	return TRUE;
-}
-
 BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
 {
 	mode_t omode;
@@ -85,15 +45,15 @@ BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
 	omode = directIO ? O_DIRECT : 0;
 
 	switch (mode) {
-		case ReadOnly:
+		case OpenMode::ReadOnly:
 			handle = open(fname, O_RDONLY | omode);
 			break;
 
-		case WriteOnly:
+		case OpenMode::WriteOnly:
 			handle = open(fname, O_CREAT | O_WRONLY | O_TRUNC | omode, 0666);
 			break;
 
-		case ReadWrite:
+		case OpenMode::ReadWrite:
 			// Make sure RW does not succeed when reading from CD-ROM
 			if (access(fname, 0x06) != 0) {
 				return FALSE;

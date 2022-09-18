@@ -36,7 +36,7 @@
 class Fileio
 {
 public:
-	enum OpenMode {
+	enum class OpenMode {
 		ReadOnly,
 		WriteOnly,
 		ReadWrite
@@ -46,9 +46,6 @@ public:
 	virtual ~Fileio();
 	Fileio(Fileio&) = delete;
 	Fileio& operator=(const Fileio&) = delete;
-
-	BOOL Load(const Filepath& path, BYTE *buffer, int size);	// Load ROM, RAM
-	BOOL Save(const Filepath& path, const BYTE *buffer, int size);	// Save RAM
 
 	BOOL Open(const char *fname, OpenMode mode);
 	BOOL Open(const Filepath& path, OpenMode mode);
