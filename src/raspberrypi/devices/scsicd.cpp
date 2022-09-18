@@ -347,7 +347,7 @@ void SCSICD::ReadToc()
 	EnterDataInPhase();
 }
 
-vector<BYTE> SCSICD::InquiryInternal() const
+vector<byte> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 

@@ -43,7 +43,7 @@ public:
 	bool Dispatch() override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	int GetMessage10(const DWORD *, BYTE *);
 	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
 	void TestUnitReady() override;

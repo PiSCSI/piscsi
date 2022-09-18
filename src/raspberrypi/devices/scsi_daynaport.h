@@ -51,7 +51,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
 	bool WriteBytes(const DWORD *, const BYTE *, uint64_t);
 	int WriteCheck(uint64_t block) override;

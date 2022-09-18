@@ -51,7 +51,7 @@ void PrimaryDevice::Inquiry()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	vector<BYTE> buf = InquiryInternal();
+	vector<byte> buf = InquiryInternal();
 
 	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
 	if (allocation_length > buf.size()) {
@@ -160,9 +160,9 @@ void PrimaryDevice::CheckReady()
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__)
 }
 
-vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
+vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
-	vector<BYTE> buf(0x1F + 5);
+	vector<byte> buf(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... SCSI device type
@@ -170,11 +170,11 @@ vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	// buf[2] ... SCSI compliance level of command system
 	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
-	buf[0] = (BYTE)type;
-	buf[1] = is_removable ? 0x80 : 0x00;
-	buf[2] = (BYTE)level;
-	buf[3] = (BYTE)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
-	buf[4] = 0x1F;
+	buf[0] = (byte)type;
+	buf[1] = (byte)(is_removable ? 0x80 : 0x00);
+	buf[2] = (byte)level;
+	buf[3] = (byte)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
+	buf[4] = (byte)0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);

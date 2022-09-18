@@ -31,7 +31,7 @@ public:
 
 	void Open(const Filepath& path) override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 protected:

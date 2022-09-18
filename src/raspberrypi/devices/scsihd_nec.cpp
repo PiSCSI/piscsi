@@ -132,7 +132,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD_NEC::InquiryInternal() const
+vector<byte> SCSIHD_NEC::InquiryInternal() const
 {
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }

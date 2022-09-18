@@ -115,14 +115,14 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-vector<BYTE> SCSIDaynaPort::InquiryInternal() const
+vector<byte> SCSIDaynaPort::InquiryInternal() const
 {
-	vector<BYTE> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<byte> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
-	buf[4]++;
-	buf.push_back(0);
+	buf[4] = (byte)((int)buf[4] + 1);
+	buf.push_back((byte)0);
 
 	return buf;
 }

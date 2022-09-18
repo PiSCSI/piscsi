@@ -30,7 +30,7 @@ public:
 
 	bool Dispatch() override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
 	void StartStopUnit();
 

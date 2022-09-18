@@ -77,7 +77,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	int ReadToc(const DWORD *cdb, BYTE *buf);
 

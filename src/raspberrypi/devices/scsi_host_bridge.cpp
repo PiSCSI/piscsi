@@ -87,26 +87,26 @@ bool SCSIBR::Dispatch()
 	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
 }
 
-vector<BYTE> SCSIBR::InquiryInternal() const
+vector<byte> SCSIBR::InquiryInternal() const
 {
-	vector<BYTE> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<byte> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
-	auto buf = vector<BYTE>(0x1F + 8 + 5);
+	auto buf = vector<byte>(0x1F + 8 + 5);
 	memcpy(buf.data(), b.data(), b.size());
 
-	buf[4] = 0x1F + 8;
+	buf[4] = (byte)(0x1F + 8);
 
 	// Optional function valid flag
-	buf[36] = '0';
+	buf[36] = (byte)'0';
 
 	// TAP Enable
 	if (m_bTapEnable) {
-		buf[37] = '1';
+		buf[37] = (byte)'1';
 	}
 
 	// CFileSys Enable
-	buf[38] = '1';
+	buf[38] = (byte)'1';
 
 	return buf;
 }

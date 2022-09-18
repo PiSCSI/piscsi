@@ -36,7 +36,7 @@ public:
 	void Open(const Filepath&) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;

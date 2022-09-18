@@ -103,7 +103,7 @@ class MockPrimaryDevice : public PrimaryDevice
 {
 public:
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
 	~MockPrimaryDevice() final = default;
@@ -113,7 +113,7 @@ public:
 	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
 	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
 	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
-	vector<BYTE> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
+	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
 		return PrimaryDevice::HandleInquiry(type, level, is_removable);
 	}
 };
@@ -125,7 +125,7 @@ public:
 	MockModePageDevice() : ModePageDevice("test") {}
 	~MockModePageDevice() final = default;
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), (const override));
 	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (const override));
 

@@ -62,7 +62,7 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-vector<BYTE> SCSIMO::InquiryInternal() const
+vector<byte> SCSIMO::InquiryInternal() const
 {
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }

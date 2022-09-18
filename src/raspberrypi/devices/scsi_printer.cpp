@@ -94,7 +94,7 @@ void SCSIPrinter::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<BYTE> SCSIPrinter::InquiryInternal() const
+vector<byte> SCSIPrinter::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }

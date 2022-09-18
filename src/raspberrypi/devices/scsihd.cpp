@@ -95,7 +95,7 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD::InquiryInternal() const
+vector<byte> SCSIHD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }

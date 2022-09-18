@@ -35,7 +35,7 @@ public:
 
 	bool Init(const unordered_map<string, string>&) override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
 	void ReserveUnit() override;
 	void ReleaseUnit() override;

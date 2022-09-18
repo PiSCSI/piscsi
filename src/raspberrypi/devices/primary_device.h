@@ -37,8 +37,8 @@ public:
 
 protected:
 
-	vector<BYTE> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
-	virtual vector<BYTE> InquiryInternal() const = 0;
+	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
+	virtual vector<byte> InquiryInternal() const = 0;
 	void CheckReady();
 
 	void EnterStatusPhase() { controller->Status(); }
