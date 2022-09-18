@@ -118,8 +118,8 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 
-	int ModeSense6(const DWORD *, BYTE *, int) override;
-	int ModeSense10(const DWORD *, BYTE *, int) override;
+	int ModeSense6(const DWORD *, BYTE *, int) const override;
+	int ModeSense10(const DWORD *, BYTE *, int) const override;
 
 protected:
 

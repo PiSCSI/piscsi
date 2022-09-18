@@ -332,7 +332,7 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
+int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length) const
 {
 	// Get length, clear buffer
 	auto length = (int)cdb[4];
@@ -385,7 +385,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
+int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length) const
 {
 	// Get length, clear buffer
 	int length = (cdb[7] << 8) | cdb[8];
