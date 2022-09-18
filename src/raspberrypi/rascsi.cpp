@@ -1209,7 +1209,7 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 
 			// Read magic string
 			vector<byte> magic(6);
-			size_t bytes_read = ReadNBytes(context.fd, magic, magic.size());
+			size_t bytes_read = ReadBytes(context.fd, magic);
 			if (!bytes_read) {
 				continue;
 			}
