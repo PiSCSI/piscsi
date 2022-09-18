@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <list>
 #include <string>
+#include <array>
 
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
@@ -58,7 +59,7 @@ public:
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	BYTE m_MacAddr[6] = {};						// MAC Address
+	array<byte, 6> m_MacAddr = {};				// MAC Address
 	int m_hTAP = -1;							// File handle
 
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];

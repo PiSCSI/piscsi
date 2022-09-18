@@ -325,7 +325,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Got the MAC")
 
 	// Save MAC address
-	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
+	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
 
 	close(ip_fd);
 	close(br_socket_fd);
@@ -411,7 +411,7 @@ void CTapDriver::GetMacAddr(BYTE *mac) const
 {
 	ASSERT(mac);
 
-	memcpy(mac, m_MacAddr, sizeof(m_MacAddr));
+	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
 
 //---------------------------------------------------------------------------
