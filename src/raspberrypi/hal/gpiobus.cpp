@@ -358,7 +358,7 @@ void GPIOBUS::Reset()
 		SetSignal(j, OFF);
 	}
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		// Target mode
 
 		// Set target signal to input
