@@ -32,10 +32,10 @@
 
 using namespace scsi_defs;
 
-const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
+const byte SCSIDaynaPort::m_bcast_addr[6] = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
+const byte SCSIDaynaPort::m_apple_talk_addr[6] = { (byte)0x09, (byte)0x00, (byte)0x07, (byte)0xff, (byte)0xff, (byte)0xff };
 
-// TODO Disk should not be the superclass
+// TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
@@ -99,12 +99,12 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	// }
 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
 	// TODO: Remove this hard-coded address
-	m_mac_addr[0]=0x00;
-	m_mac_addr[1]=0x80;
-	m_mac_addr[2]=0x19;
-	m_mac_addr[3]=0x10;
-	m_mac_addr[4]=0x98;
-	m_mac_addr[5]=0xE3;
+	m_mac_addr[0] = (byte)0x00;
+	m_mac_addr[1] = (byte)0x80;
+	m_mac_addr[2] = (byte)0x19;
+	m_mac_addr[3] = (byte)0x10;
+	m_mac_addr[4] = (byte)0x98;
+	m_mac_addr[5] = (byte)0xE3;
 #endif	// linux
 
 	return true;
@@ -190,7 +190,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 		if (rx_packet_size <= 0) {
 			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__)
 			response->length = 0;
-			response->flags = e_no_more_data;
+			response->flags = read_data_flags_t::e_no_more_data;
 			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
@@ -238,7 +238,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 			if (!m_tap->PendingPackets())
 			{
 				response->length = 0;
-				response->flags = e_no_more_data;
+				response->flags = read_data_flags_t::e_no_more_data;
 				return DAYNAPORT_READ_HEADER_SZ;
 			}
 		}
@@ -281,7 +281,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 	} // end while
 
 	response->length = 0;
-	response->flags = e_no_more_data;
+	response->flags = read_data_flags_t::e_no_more_data;
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
@@ -530,7 +530,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-	switch(ctrl->cmd[5]){
+	switch((byte)ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
 			EnterStatusPhase();

@@ -74,11 +74,11 @@ public:
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	static const BYTE CMD_SCSILINK_STATS        = 0x09;
-	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
-	static const BYTE CMD_SCSILINK_SET          = 0x0C;
-	static const BYTE CMD_SCSILINK_SETMODE      = 0x80;
-	static const BYTE CMD_SCSILINK_SETMAC       = 0x40;
+	static const byte CMD_SCSILINK_STATS        = (byte)0x09;
+	static const byte CMD_SCSILINK_ENABLE       = (byte)0x0E;
+	static const byte CMD_SCSILINK_SET          = (byte)0x0C;
+	static const byte CMD_SCSILINK_SETMODE      = (byte)0x80;
+	static const byte CMD_SCSILINK_SETMAC       = (byte)0x40;
 
 	// When we're reading the Linux tap device, most of the messages will not be for us, so we
 	// need to filter through those. However, we don't want to keep re-reading the packets
@@ -96,15 +96,7 @@ private:
 
 	Dispatcher<SCSIDaynaPort> dispatcher;
 
-	using scsi_cmd_daynaport_write_t = struct __attribute__((packed)) {
-		BYTE operation_code;
-		BYTE misc_cdb_information;
-		BYTE logical_block_address;
-		uint16_t length;
-		BYTE format;
-	};
-
-	enum read_data_flags_t : uint32_t {
+	enum class read_data_flags_t : uint32_t {
 		e_no_more_data = 0x00000000,
 		e_more_data_available = 0x00000001,
 		e_dropped_packets = 0xFFFFFFFF,
@@ -113,32 +105,32 @@ private:
 	using scsi_resp_read_t = struct __attribute__((packed)) {
 		uint32_t length;
 		read_data_flags_t flags;
-		BYTE pad;
-		BYTE data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
+		byte pad;
+		byte data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
 	};
 
 	using scsi_resp_link_stats_t = struct __attribute__((packed)) {
-		BYTE mac_address[6];
+		byte mac_address[6];
 		uint32_t frame_alignment_errors;
 		uint32_t crc_errors;
 		uint32_t frames_lost;
 	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
-		.mac_address = { 0x00, 0x80, 0x19, 0x10, 0x98, 0xE3 },//MAC address of @PotatoFi's DayanPort
+		.mac_address = { (byte)0x00, (byte)0x80,(byte) 0x19, (byte)0x10, (byte)0x98, (byte)0xE3 },//MAC address of @PotatoFi's DayanPort
 		.frame_alignment_errors = 0,
 		.crc_errors = 0,
 		.frames_lost = 0,
 	};
 
-	const BYTE m_daynacom_mac_prefix[3] = { 0x00, 0x80, 0x19 };
+	const byte m_daynacom_mac_prefix[3] = { (byte)0x00, (byte)0x80, (byte)0x19 };
 
 	CTapDriver *m_tap = nullptr;
 										// TAP driver
 	bool m_bTapEnable = false;
 										// TAP valid flag
-	BYTE m_mac_addr[6];
+	byte m_mac_addr[6];
 										// MAC Address
-	static const BYTE m_bcast_addr[6];
-	static const BYTE m_apple_talk_addr[6];
+	static const byte m_bcast_addr[6];
+	static const byte m_apple_talk_addr[6];
 };
