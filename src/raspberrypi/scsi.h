@@ -10,7 +10,11 @@
 //---------------------------------------------------------------------------
 
 #pragma once
+
 #include "os.h"
+#include <array>
+
+using namespace std;
 
 //===========================================================================
 //
@@ -109,7 +113,7 @@ public:
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay
 private:
-	static const phase_t phase_table[8];
+	static const array<phase_t, 8> phase_table;
 
 	static const char* phase_str_table[];
 };
