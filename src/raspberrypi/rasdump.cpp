@@ -953,16 +953,12 @@ int main(int argc, char* argv[])
 		fflush(stdout);
 
 		if (restore) {
-			if (fio.Read(buffer, dsiz)) {
-				if (Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-					continue;
-				}
+			if (fio.Read(buffer, dsiz) && Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
+				continue;
 			}
 		} else {
-			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-				if (fio.Write(buffer, dsiz)) {
-					continue;
-				}
+			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0 && fio.Write(buffer, dsiz)) {
+				continue;
 			}
 		}
 
