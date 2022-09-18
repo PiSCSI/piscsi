@@ -126,7 +126,7 @@ namespace scsi_defs {
 		SPC_6 = 8
 	};
 
-	enum device_type : int {
+	enum class device_type : int {
 		DIRECT_ACCESS = 0,
 		PRINTER = 2,
 		PROCESSOR = 3,

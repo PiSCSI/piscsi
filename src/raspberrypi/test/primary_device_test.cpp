@@ -75,7 +75,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());
-	EXPECT_EQ(device_type::PROCESSOR, controller.ctrl.buffer[0]);
+	EXPECT_EQ(device_type::PROCESSOR, (device_type)controller.ctrl.buffer[0]);
 	EXPECT_EQ(0x00, controller.ctrl.buffer[1]) << "Device was not reported as non-removable";
 	EXPECT_EQ(scsi_level::SPC_3, controller.ctrl.buffer[2]) << "Wrong SCSI level";
 	EXPECT_EQ(scsi_level::SCSI_2, controller.ctrl.buffer[3]) << "Wrong response level";
@@ -87,7 +87,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());
-	EXPECT_EQ(device_type::DIRECT_ACCESS, controller.ctrl.buffer[0]);
+	EXPECT_EQ(device_type::DIRECT_ACCESS, (device_type)controller.ctrl.buffer[0]);
 	EXPECT_EQ(0x80, controller.ctrl.buffer[1]) << "Device was not reported as removable";
 	EXPECT_EQ(scsi_level::SCSI_1_CCS, controller.ctrl.buffer[2]) << "Wrong SCSI level";
 	EXPECT_EQ(scsi_level::SCSI_1_CCS, controller.ctrl.buffer[3]) << "Wrong response level";
