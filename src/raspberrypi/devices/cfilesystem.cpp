@@ -1760,9 +1760,9 @@ void CHostEntry::Clean()
 void CHostEntry::CleanCache() const
 {
 
-	for (size_t i = 0; i < DRIVE_MAX; i++) {
-		if (m_pDrv[i])
-			m_pDrv[i]->CleanCache();
+	for (auto d : m_pDrv) {
+		if (d)
+			d->CleanCache();
 	}
 
 	CHostPath::InitId();
