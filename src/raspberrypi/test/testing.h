@@ -126,8 +126,8 @@ public:
 	~MockModePageDevice() final = default;
 
 	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
-	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), ());
+	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (const override));
 
 	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
