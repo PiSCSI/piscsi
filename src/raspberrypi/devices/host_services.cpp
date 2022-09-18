@@ -54,6 +54,7 @@ void HostServices::StartStopUnit()
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
+
 	if (!start) {
 		// Flush any caches
 		for (Device *device : device_factory->GetAllDevices()) {
