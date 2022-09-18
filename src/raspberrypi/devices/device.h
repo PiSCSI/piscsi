@@ -71,7 +71,7 @@ class Device
 	//			Sense Key
 	//			Additional Sense Code (ASC)
 	//	LSB		Additional Sense Code Qualifier(ASCQ)
-	int status_code = scsi_defs::status::GOOD;
+	int status_code = 0;
 
 protected:
 

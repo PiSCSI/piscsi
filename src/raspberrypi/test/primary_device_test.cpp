@@ -48,7 +48,7 @@ TEST(PrimaryDeviceTest, UnitReady)
 	device.SetReady(true);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(device.Dispatch());
-	EXPECT_TRUE(controller.ctrl.status == scsi_defs::status::GOOD);
+	EXPECT_EQ(0, controller.ctrl.status);
 }
 
 TEST(PrimaryDeviceTest, Inquiry)
@@ -129,7 +129,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 	device.SetReady(true);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch());
-	EXPECT_TRUE(controller.ctrl.status == scsi_defs::status::GOOD);
+	EXPECT_EQ(0, controller.ctrl.status);
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)

@@ -187,7 +187,7 @@ namespace scsi_defs {
 		eCmdReportLuns = 0xA0
 	};
 
-	enum status : int {
+	enum class status : int {
 		GOOD = 0x00,
 		CHECK_CONDITION = 0x02,
 		CONDITION_MET = 0x04,
@@ -199,7 +199,7 @@ namespace scsi_defs {
 		QUEUE_FULL = 0x28
 	};
 
-	enum sense_key : int {
+	enum class sense_key : int {
 		NO_SENSE = 0x00,
 		RECOVERED_ERROR = 0x01,
 		NOT_READY = 0x02,
@@ -217,7 +217,7 @@ namespace scsi_defs {
 		COMPLETED = 0x0f
 	};
 
-	enum asc : int {
+	enum class asc : int {
 		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
 		WRITE_FAULT = 0x03,
 		READ_FAULT = 0x11,

@@ -515,7 +515,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	int lun = GetEffectiveLun();
-	if (!HasDeviceForLun(lun) || asc == INVALID_LUN) {
+	if (!HasDeviceForLun(lun) || asc == asc::INVALID_LUN) {
 		assert(HasDeviceForLun(0));
 
 		lun = 0;
@@ -523,10 +523,10 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		GetDeviceForLun(lun)->SetStatusCode((sense_key << 16) | (asc << 8));
+		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
-	ctrl.status = status;
+	ctrl.status = (int)status;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)
