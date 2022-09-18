@@ -927,9 +927,7 @@ public:
 	DWORD GetDefault() const { return m_nOptionDefault; }	///< Get default options
 	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
 
-	enum {
-		DriveMax = CHostEntry::DRIVE_MAX					///< Max number of drive candidates
-	};
+	static const int DriveMax = CHostEntry::DRIVE_MAX;			///< Max number of drive candidates
 
 private:
 	void  InitOption(const Human68k::argument_t* pArgument);
