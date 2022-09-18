@@ -301,7 +301,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, GetBlockCount() - 1);
+	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -334,7 +334,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Create only one data track
 	ASSERT(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, GetBlockCount() - 1);
+	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -433,7 +433,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	CheckReady();
 
 	// Search for the track
-	int index = SearchTrack(block);
+	int index = SearchTrack((int)block);
 
 	// If invalid, out of range
 	if (index < 0) {
@@ -455,7 +455,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
+		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index
@@ -633,7 +633,7 @@ int SCSICD::SearchTrack(DWORD lba) const
 		// Listen to the track
 		assert(tracks[i]);
 		if (tracks[i]->IsValid(lba)) {
-			return i;
+			return (int)i;
 		}
 	}
 
