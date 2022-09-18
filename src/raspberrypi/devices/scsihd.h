@@ -21,6 +21,7 @@
 
 class SCSIHD : public Disk, public FileSupport
 {
+	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
 
 public:
 
