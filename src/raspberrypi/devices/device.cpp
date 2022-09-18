@@ -13,14 +13,17 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "device.h"
+#include <iomanip>
+
+using namespace std;
 
 Device::Device(const string& t) : type(t)
 {
 	assert(type.length() == 4);
 
-	char rev[5];
-	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
-	revision = rev;
+	ostringstream os;
+	os << setw(2) << setfill('0') << rascsi_major_version << setw(2) << setfill('0') << rascsi_minor_version;
+	revision = os.str();
 }
 
 void Device::Reset()
