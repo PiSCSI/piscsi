@@ -389,7 +389,7 @@ void DiskCache::Clear()
 	}
 }
 
-bool DiskCache::ReadSector(BYTE *buf, int block)
+bool DiskCache::ReadSector(BYTE *buf, uint32_t block)
 {
 	ASSERT(sec_size != 0);
 
@@ -409,7 +409,7 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-bool DiskCache::WriteSector(const BYTE *buf, int block)
+bool DiskCache::WriteSector(const BYTE *buf, uint32_t block)
 {
 	ASSERT(sec_size != 0);
 

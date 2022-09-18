@@ -77,8 +77,8 @@ public:
 
 	// Access
 	bool Save();							// Save and release all
-	bool ReadSector(BYTE *buf, int block);				// Sector Read
-	bool WriteSector(const BYTE *buf, int block);			// Sector Write
+	bool ReadSector(BYTE *buf, uint32_t block);				// Sector Read
+	bool WriteSector(const BYTE *buf, uint32_t block);			// Sector Write
 	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:

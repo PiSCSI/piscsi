@@ -94,7 +94,7 @@ void Disk::Open(const Filepath& path)
 
 	// Cache initialization
 	assert (!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
+	disk.dcache = new DiskCache(path, disk.size, (uint32_t)disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	if (Fileio fio; fio.Open(path, Fileio::OpenMode::ReadWrite)) {
@@ -776,7 +776,12 @@ void Disk::ReadCapacity10()
 	BYTE *buf = ctrl->buffer;
 
 	// Create end of logical block address (disk.blocks-1)
-	uint32_t blocks = disk.blocks - 1;
+	uint64_t blocks = disk.blocks - 1;
+
+	// If the capacity exceeds 32 bit, -1 must be returned and the client has to use READ CAPACITY(16)
+	if (blocks > 4294967295) {
+		blocks = -1;
+	}
 	buf[0] = (BYTE)(blocks >> 24);
 	buf[1] = (BYTE)(blocks >> 16);
 	buf[2] = (BYTE)(blocks >> 8);
