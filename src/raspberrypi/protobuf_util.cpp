@@ -115,7 +115,7 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 {
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
-	if (ReadNBytes(fd, header_buf.data(), header_buf.size()) < header_buf.size()) {
+	if (ReadNBytes(fd, header_buf, header_buf.size()) < header_buf.size()) {
 		return;
 	}
 
@@ -126,7 +126,7 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 
 	// Read the binary protobuf data
 	vector<byte> data_buf(size);
-	if (ReadNBytes(fd, data_buf.data(), data_buf.size()) < data_buf.size()) {
+	if (ReadNBytes(fd, data_buf, data_buf.size()) < data_buf.size()) {
 		throw io_exception("Missing protobuf message data");
 	}
 
@@ -135,11 +135,11 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	message.ParseFromString(data);
 }
 
-size_t protobuf_util::ReadNBytes(int fd, byte *buf, size_t n)
+size_t protobuf_util::ReadNBytes(int fd, vector<byte>& buf, size_t n)
 {
 	size_t offset = 0;
 	while (offset < n) {
-		ssize_t len = read(fd, buf + offset, n - offset);
+		ssize_t len = read(fd, &buf.data()[offset], n - offset);
 		if (len <= 0) {
 			return len;
 		}

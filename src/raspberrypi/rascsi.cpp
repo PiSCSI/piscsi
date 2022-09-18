@@ -1209,11 +1209,11 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 
 			// Read magic string
 			vector<byte> magic(6);
-			size_t bytes_read = ReadNBytes(context.fd, magic.data(), magic.size());
+			size_t bytes_read = ReadNBytes(context.fd, magic, magic.size());
 			if (!bytes_read) {
 				continue;
 			}
-			if (bytes_read != magic.size() || strncmp((const char *)magic.data(), "RASCSI", magic.size())) {
+			if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 				throw io_exception("Invalid magic");
 			}
 
