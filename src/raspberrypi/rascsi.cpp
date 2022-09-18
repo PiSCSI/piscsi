@@ -91,7 +91,7 @@ void Banner(int argc, char* argv[])
 {
 	FPRT(stdout,"SCSI Target Emulator RaSCSI Reloaded ");
 	FPRT(stdout,"version %s (%s, %s)\n",
-		rascsi_get_version_string(),
+		rascsi_get_version_string().c_str(),
 		__DATE__,
 		__TIME__);
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
