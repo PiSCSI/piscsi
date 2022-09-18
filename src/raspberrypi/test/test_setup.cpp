@@ -24,7 +24,7 @@ public:
 	void SetUp() override { spdlog::set_level(spdlog::level::off); }
 };
 
-DeviceFactory& device_factory = DeviceFactory::instance();
+const DeviceFactory& device_factory = DeviceFactory::instance();
 
 int main(int, char*[])
 {
