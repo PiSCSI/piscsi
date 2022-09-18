@@ -403,7 +403,8 @@ void CTapDriver::Flush()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while(PendingPackets()){
-		(void)Rx(m_garbage_buffer);
+		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
+		(void)Rx(m_garbage_buffer.data());
 	}
 }
 

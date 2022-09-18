@@ -59,10 +59,8 @@ public:
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	array<byte, 6> m_MacAddr = {};				// MAC Address
-	int m_hTAP = -1;							// File handle
-
-	BYTE m_garbage_buffer[ETH_FRAME_LEN];
+	array<byte, 6> m_MacAddr;			// MAC Address
+	int m_hTAP = -1;					// File handle
 
 	pcap_t *m_pcap = nullptr;
 	pcap_dumper_t *m_pcap_dumper = nullptr;
