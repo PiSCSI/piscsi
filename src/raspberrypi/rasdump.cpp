@@ -65,7 +65,7 @@ bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
 	printf("version %s (%s, %s)\n",
-		rascsi_get_version_string(),
+		rascsi_get_version_string().c_str(),
 		__DATE__,
 		__TIME__);
 
