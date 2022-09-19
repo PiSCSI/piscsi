@@ -33,9 +33,6 @@ public:
 		RESTART_PI
 	};
 
-	// Internal data definition
-	// TODO Some of these data are probably device specific, and in this case they should be moved.
-	// These data are not internal, otherwise they could all be private
 	using ctrl_t = struct _ctrl_t {
 		// General
 		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
