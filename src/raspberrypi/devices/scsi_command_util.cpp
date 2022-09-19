@@ -17,6 +17,8 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int 
 {
 	assert(length >= 0);
 
+	int offset = 0;
+
 	// PF
 	if (cdb[1] & 0x10) {
 		bool has_valid_page_code = false;
@@ -31,7 +33,7 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int 
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 
-			buf += 12;
+			offset += 12;
 			length -= 12;
 		}
 
@@ -39,11 +41,11 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int 
 		// TODO The length handling is wrong in case of length < size
 		while (length > 0) {
 			// Format device page
-			if (int page = buf[0]; page == 0x03) {
+			if (int page = buf[offset]; page == 0x03) {
 				// With this page the sector size for a subsequent FORMAT can be selected, but only very few
 				// drives support this, e.g FUJITSU M2624S
 				// We are fine as long as the current sector size remains unchanged
-				if (buf[0xc] != (BYTE)(sector_size >> 8) || buf[0xd] != (BYTE)sector_size) {
+				if (buf[offset + 0xc] != (BYTE)(sector_size >> 8) || buf[offset + 0xd] != (BYTE)sector_size) {
 					// With rascsi it is not possible to permanently (by formatting) change the sector size,
 					// because the size is an externally configurable setting only
 					LOGWARN("In order to change the sector size use the -b option when launching rascsi")
@@ -57,9 +59,9 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int 
 			}
 
 			// Advance to the next page
-			int size = buf[1] + 2;
+			int size = buf[offset + 1] + 2;
 			length -= size;
-			buf += size;
+			offset += size;
 		}
 
 		if (!has_valid_page_code) {
