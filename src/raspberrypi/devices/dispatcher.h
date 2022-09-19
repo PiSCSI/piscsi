@@ -30,7 +30,7 @@ public:
 
 	using operation = void (T::*)();
 	using command_t = struct _command_t {
-		const char* name;
+		const char *name;
 		operation execute;
 
 		_command_t(const char *_name, operation _execute) : name(_name), execute(_execute) { };

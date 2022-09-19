@@ -148,7 +148,7 @@ void SCSIPrinter::Print()
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	LOGTRACE("Receiving %d bytes to be printed", length)
+	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
@@ -222,14 +222,14 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
 		if (fd == -1) {
-			LOGERROR("Can't create printer output file: %s", strerror(errno))
+			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
 			return false;
 		}
 
 		LOGTRACE("Created printer output file '%s'", filename)
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer output file", length)
+	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
 	auto num_written = (uint32_t)write(fd, buf, length);
 
