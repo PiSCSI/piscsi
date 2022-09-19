@@ -39,7 +39,7 @@ public:
 
 		// commands
 		DWORD cmd[16];					// Command data
-		DWORD status;					// Status data
+		uint32_t status;				// Status data
 		int message;					// Message data
 
 		// Transfer

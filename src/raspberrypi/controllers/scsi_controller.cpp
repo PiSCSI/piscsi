@@ -359,7 +359,7 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status)
+		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, ctrl.status)
 
 		SetPhase(BUS::phase_t::status);
 
@@ -526,7 +526,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
-	ctrl.status = (int)status;
+	ctrl.status = (uint32_t)status;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)
