@@ -523,14 +523,20 @@ void SCSIDaynaPort::SetInterfaceMode()
 
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 	switch(ctrl->cmd[5]){
-		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
+		case CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
 			EnterStatusPhase();
 			break;
 
-		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
+		case CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
 			EnterDataOutPhase();
+			break;
+
+		case CMD_SCSILINK_STATS:
+		case CMD_SCSILINK_ENABLE:
+		case CMD_SCSILINK_SET:
+			LOGWARN("%s Unsupported SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
 			break;
 
 		default:

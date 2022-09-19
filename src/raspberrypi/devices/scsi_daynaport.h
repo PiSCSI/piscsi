@@ -77,9 +77,9 @@ public:
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	// static const int CMD_SCSILINK_STATS        = 0x09;
-	// static const int CMD_SCSILINK_ENABLE       = 0x0E;
-	// static const int CMD_SCSILINK_SET          = 0x0C;
+	static const int CMD_SCSILINK_STATS        = 0x09;
+	static const int CMD_SCSILINK_ENABLE       = 0x0E;
+	static const int CMD_SCSILINK_SET          = 0x0C;
 	static const int CMD_SCSILINK_SETMAC       = 0x40;
 	static const int CMD_SCSILINK_SETMODE      = 0x80;
 
