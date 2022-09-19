@@ -98,6 +98,7 @@ def test_login_with_valid_credentials(pytestconfig, http_client_unauthenticated)
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
+    assert "env" in response_data["data"]
 
 
 # route("/login", methods=["POST"])
@@ -735,6 +736,16 @@ def test_index(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert "devices" in response_data["data"]
+
+
+# route("/env")
+def test_get_env_info(http_client):
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert "running_env" in response_data["data"]
 
 
 # route("/pwa/<path:pwa_path>")

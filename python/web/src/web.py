@@ -260,6 +260,14 @@ def index():
     )
 
 
+@APP.route("/env")
+def env():
+    """
+    Shows information about the app/host environment
+    """
+    return response(**get_env_info())
+
+
 @APP.route("/drive/list", methods=["GET"])
 def drive_list():
     """
@@ -325,7 +333,7 @@ def login():
     if AUTH_GROUP in groups:
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
-            return response()
+            return response(env=get_env_info())
 
     return response(error=True, status_code=401, message=_(
         "You must log in with valid credentials for a user in the '%(group)s' group",
