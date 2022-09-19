@@ -55,7 +55,7 @@ public:
 		unordered_map<int, PrimaryDevice *> luns;
 	};
 
-	AbstractController(shared_ptr<BUS> bus, int target_id) : bus(bus), target_id(target_id) {}
+	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}
 	~AbstractController() override = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
@@ -86,14 +86,11 @@ public:
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
+	int target_id;
 
 protected:
 
 	shared_ptr<BUS> bus;
 
 	ctrl_t ctrl = {};
-
-private:
-
-	int target_id;
 };
