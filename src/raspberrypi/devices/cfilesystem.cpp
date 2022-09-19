@@ -1714,7 +1714,7 @@ CHostEntry::~CHostEntry()
 
 #ifdef DEBUG
 	// Confirm object
-	for (const CHostDrv *d : m_pDrv) {
+	for (const auto& d : m_pDrv) {
 		assert(d == nullptr);
 	}
 #endif	// _DEBUG
@@ -1729,7 +1729,7 @@ void CHostEntry::Init() const
 {
 #ifdef DEBUG
 	// Confirm object
-	for (const CHostDrv *d : m_pDrv) {
+	for (const auto& d : m_pDrv) {
 		assert(d == nullptr);
 	}
 #endif
@@ -1743,7 +1743,7 @@ void CHostEntry::Init() const
 void CHostEntry::Clean()
 {
 	// Delete object
-	for (CHostDrv *d: m_pDrv) {
+	for (auto& d: m_pDrv) {
 		delete d;
 		d = nullptr;
 	}
@@ -1756,7 +1756,7 @@ void CHostEntry::Clean()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache() const
 {
-	for (const CHostDrv *d : m_pDrv) {
+	for (const auto& d : m_pDrv) {
 		if (d)
 			d->CleanCache();
 	}
