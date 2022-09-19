@@ -37,10 +37,7 @@ SCSIBR::SCSIBR() : Disk("SCBR"), fs(new CFileSys())
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
-	if (tap) {
-		tap->Cleanup();
-		delete tap;
-	}
+	tap.Cleanup();
 
 	// Release host file system
 	fs->Reset();
@@ -53,8 +50,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver();
-	m_bTapEnable = tap->Init(GetParams());
+	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface")
 		return false;
@@ -63,7 +59,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
 	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
+		tap.GetMacAddr(mac_addr);
 		mac_addr[5]++;
 	}
 
@@ -341,15 +337,13 @@ void SCSIBR::ReceivePacket()
 {
 	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-	assert(tap);
-
 	// previous packet has not been received
 	if (packet_enable) {
 		return;
 	}
 
 	// Receive packet
-	packet_len = tap->Rx(packet_buf);
+	packet_len = tap.Rx(packet_buf);
 
 	// Check if received packet
 	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
@@ -371,8 +365,6 @@ void SCSIBR::ReceivePacket()
 
 void SCSIBR::GetPacketBuf(BYTE *buf)
 {
-	assert(tap);
-
 	// Size limit
 	int len = packet_len;
 	if (len > 2048) {
@@ -388,9 +380,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 
 void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
-	assert(tap);
-
-	tap->Tx(buf, len);
+	tap.Tx(buf, len);
 }
 
 //---------------------------------------------------------------------------

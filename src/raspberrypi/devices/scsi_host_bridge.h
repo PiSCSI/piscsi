@@ -19,6 +19,7 @@
 
 #include "os.h"
 #include "disk.h"
+#include "ctapdriver.h"
 #include <string>
 
 //===========================================================================
@@ -26,7 +27,6 @@
 //	SCSI Host Bridge
 //
 //===========================================================================
-class CTapDriver;
 class CFileSys;
 
 class SCSIBR : public Disk
@@ -62,7 +62,7 @@ private:
 	void GetPacketBuf(BYTE *buf);				// Get a packet
 	void SendPacket(const BYTE *buf, int len);	// Send a packet
 
-	CTapDriver *tap = nullptr;					// TAP driver
+	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len = 0;							// Receive packet size

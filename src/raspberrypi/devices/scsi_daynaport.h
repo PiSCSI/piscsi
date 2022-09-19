@@ -127,7 +127,7 @@ private:
 		.frames_lost = 0,
 	};
 
-	CTapDriver *m_tap = nullptr;
+	CTapDriver m_tap;
 
 	// TAP valid flag
 	bool m_bTapEnable = false;

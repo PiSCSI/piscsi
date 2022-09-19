@@ -50,10 +50,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 SCSIDaynaPort::~SCSIDaynaPort()
 {
 	// TAP driver release
-	if (m_tap) {
-		m_tap->Cleanup();
-		delete m_tap;
-	}
+	m_tap.Cleanup();
 }
 
 bool SCSIDaynaPort::Dispatch()
@@ -72,8 +69,7 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 
-	m_tap = new CTapDriver();
-	m_bTapEnable = m_tap->Init(GetParams());
+	m_bTapEnable = m_tap.Init(GetParams());
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface")
 
@@ -108,7 +104,7 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 
 void SCSIDaynaPort::Open(const Filepath& path)
 {
-	m_tap->OpenDump(path);
+	m_tap.OpenDump(path);
 }
 
 vector<byte> SCSIDaynaPort::InquiryInternal() const
@@ -179,8 +175,8 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 
 		// The first 2 bytes are reserved for the length of the packet
 		// The next 4 bytes are reserved for a flag field
-		//rx_packet_size = m_tap->Rx(response->data);
-		rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
+		//rx_packet_size = m_tap.Rx(response->data);
+		rx_packet_size = m_tap.Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
 		if (rx_packet_size <= 0) {
@@ -231,7 +227,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
-			if (!m_tap->PendingPackets())
+			if (!m_tap.PendingPackets())
 			{
 				response->length = 0;
 				response->flags = read_data_flags_t::e_no_more_data;
@@ -242,7 +238,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 			// TODO: Need to do some sort of size checking. The buffer can easily overflow, probably.
 
 			// response->length = rx_packet_size;
-			// if(m_tap->PendingPackets()){
+			// if(m_tap.PendingPackets()){
 			// 	response->flags = e_more_data_available;
 			// } else {
 			// 	response->flags = e_no_more_data;
@@ -262,7 +258,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
 			buf[2] = 0;
 			buf[3] = 0;
 			buf[4] = 0;
-			if(m_tap->PendingPackets()){
+			if(m_tap.PendingPackets()){
 				buf[5] = 0x10;
 			} else {
 				buf[5] = 0;
@@ -316,13 +312,13 @@ bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, const BYTE *buf, uint64_t)
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
 
 	if (data_format == 0x00){
-		m_tap->Tx(buf, data_length);
+		m_tap.Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
-		m_tap->Tx(&buf[4], data_length);
+		m_tap.Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else
@@ -395,17 +391,17 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 {
 	bool result;
 	if (cdb[5] & 0x80) {
-		result = m_tap->Enable();
+		result = m_tap.Enable();
 		if (result) {
 			LOGINFO("The DaynaPort interface has been ENABLED.")
 		}
 		else{
 			LOGWARN("Unable to enable the DaynaPort Interface")
 		}
-		m_tap->Flush();
+		m_tap.Flush();
 	}
 	else {
-		result = m_tap->Disable();
+		result = m_tap.Disable();
 		if (result) {
 			LOGINFO("The DaynaPort interface has been DISABLED.")
 		}
