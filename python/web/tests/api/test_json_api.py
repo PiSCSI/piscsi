@@ -823,7 +823,7 @@ def test_show_logs(http_client):
     )
 
     assert response.status_code == 200
-    assert response.text == "-- No entries --\n"
+    assert response.headers["content-type"] == "text/plain"
 
 
 # route("/config/load", methods=["POST"])
