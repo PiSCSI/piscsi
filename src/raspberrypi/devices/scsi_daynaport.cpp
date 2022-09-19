@@ -436,10 +436,10 @@ void SCSIDaynaPort::Read6()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks)
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, record, ctrl->blocks)
 
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
-	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length)
+	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
 
 	// Set next block
 	ctrl->next = record + 1;
@@ -467,7 +467,7 @@ void SCSIDaynaPort::Write6()
 	else {
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, ctrl->length, (int)ctrl->length, data_format)
+	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
 
 	if (ctrl->length <= 0) {
 		throw scsi_error_exception();

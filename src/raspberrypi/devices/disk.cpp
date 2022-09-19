@@ -141,7 +141,7 @@ void Disk::Read(access_mode mode)
 	uint64_t start;
 	if (CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
 		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
-		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length)
+		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
 
 		// Set next block
 		ctrl->next = start + 1;

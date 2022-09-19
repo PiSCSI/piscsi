@@ -350,29 +350,6 @@ void SCSICD::ReadToc()
 vector<byte> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
-
-//
-// The following code worked with the modified Apple CD-ROM drivers. Need to
-// test with the original code to see if it works as well....
-//	buf[4] = 42;	// Required
-//
-//	// Fill with blanks
-//	memset(&buf[8], 0x20, buf[4] - 3);
-//
-//	// Vendor name
-//	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-//
-//	// Product name
-//	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
-//
-//	// Revision (XM6 version number)
-////	sprintf(rev, "1.9a",
-//	////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-//	memcpy(&buf[32], "1.9a", 4);
-//
-//	//strcpy(&buf[35],"A1.9a");
-//	buf[36]=0x20;
-//	memcpy(&buf[37],"1999/01/01",10);
 }
 
 void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
@@ -488,7 +465,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 	// Get and check the last track number
 	int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
-	if ((int)cdb[6] > last && cdb[6] != 0xaa) {
+	if (cdb[6] > last && cdb[6] != 0xaa) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -497,7 +474,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
 		while (tracks[index]) {
-			if ((int)cdb[6] == tracks[index]->GetTrackNo()) {
+			if (cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
 			index++;
