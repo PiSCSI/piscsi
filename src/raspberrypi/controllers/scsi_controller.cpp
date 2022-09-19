@@ -21,6 +21,7 @@
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "scsi_controller.h"
+#include <sstream>
 
 using namespace scsi_defs;
 
@@ -262,10 +263,12 @@ void ScsiController::Command()
 		ctrl.cmd.resize(command_byte_count);
 
 		// Command data transfer
+		stringstream s;
 		for (int i = 0; i < command_byte_count; i++) {
 			ctrl.cmd[i] = ctrl.buffer[i];
-			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
+			s << hex << ctrl.cmd[i];
 		}
+		LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
 		// Clear length and block
 		ctrl.offset = 0;

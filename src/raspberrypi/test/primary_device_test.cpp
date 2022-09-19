@@ -19,6 +19,7 @@ TEST(PrimaryDeviceTest, UnitReady)
 
 	controller.AddDevice(&device);
 
+	controller.ctrl.cmd = vector<int>(6);
 	controller.ctrl.cmd[0] = (int)scsi_command::eCmdTestUnitReady;
 
 	device.SetReset(true);
@@ -58,6 +59,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	device.SetController(&controller);
 
+	controller.ctrl.cmd = vector<int>(6);
 	controller.ctrl.cmd[0] = (int)scsi_command::eCmdInquiry;
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
@@ -119,6 +121,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	controller.AddDevice(&device);
 
+	controller.ctrl.cmd = vector<int>(6);
 	controller.ctrl.cmd[0] = (int)scsi_command::eCmdRequestSense;
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
@@ -148,6 +151,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	controller.AddDevice(&device2);
 	ASSERT_TRUE(controller.HasDeviceForLun(LUN2));
 
+	controller.ctrl.cmd = vector<int>(10);
 	controller.ctrl.cmd[0] = (int)scsi_command::eCmdReportLuns;
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[9] = 255;
@@ -187,6 +191,7 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.AddDevice(&device);
 
+	controller.ctrl.cmd = vector<int>(1);
 	controller.ctrl.cmd[0] = 0xFF;
 	EXPECT_FALSE(device.Dispatch());
 }

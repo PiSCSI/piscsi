@@ -20,18 +20,18 @@ using namespace std;
 
 string rascsi_get_version_string()
 {
-	ostringstream os;
+	stringstream s;
 
-	os << setw(2) << setfill('0') << rascsi_major_version << '.' << setw(2) << setfill('0') << rascsi_minor_version;
+	s << setw(2) << setfill('0') << rascsi_major_version << '.' << setw(2) << setfill('0') << rascsi_minor_version;
 
 	if (rascsi_patch_version < 0) {
-		os << " --DEVELOPMENT BUILD--";
+		s << " --DEVELOPMENT BUILD--";
     }
     else {
-		os << '.' << rascsi_patch_version;
+		s << '.' << rascsi_patch_version;
     }
 
-	return os.str();
+	return s.str();
 }
 
 
