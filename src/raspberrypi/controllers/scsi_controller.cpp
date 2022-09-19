@@ -641,7 +641,7 @@ void ScsiController::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length)
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 		// Receive
 		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
