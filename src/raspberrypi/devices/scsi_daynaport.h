@@ -77,11 +77,11 @@ public:
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	static const byte CMD_SCSILINK_STATS        = byte{0x09};
-	static const byte CMD_SCSILINK_ENABLE       = byte{0x0E};
-	static const byte CMD_SCSILINK_SET          = byte{0x0C};
-	static const byte CMD_SCSILINK_SETMODE      = byte{0x80};
-	static const byte CMD_SCSILINK_SETMAC       = byte{0x40};
+	// static const int CMD_SCSILINK_STATS        = 0x09;
+	// static const int CMD_SCSILINK_ENABLE       = 0x0E;
+	// static const int CMD_SCSILINK_SET          = 0x0C;
+	static const int CMD_SCSILINK_SETMAC       = 0x40;
+	static const int CMD_SCSILINK_SETMODE      = 0x80;
 
 	// When we're reading the Linux tap device, most of the messages will not be for us, so we
 	// need to filter through those. However, we don't want to keep re-reading the packets

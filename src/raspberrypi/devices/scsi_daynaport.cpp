@@ -456,18 +456,18 @@ void SCSIDaynaPort::Write6()
 		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
 	}
 
-	DWORD data_format = ctrl->cmd[5];
+	int data_format = ctrl->cmd[5];
 
 	if(data_format == 0x00) {
-		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8);
+		ctrl->length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
 	}
 	else if (data_format == 0x80) {
-		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8) + 8;
+		ctrl->length = ctrl->cmd[4] + (ctrl->cmd[3] << 8) + 8;
 	}
 	else {
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format)
+		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format)
+	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, ctrl->length, (int)ctrl->length, data_format)
 
 	if (ctrl->length <= 0) {
 		throw scsi_error_exception();
@@ -522,7 +522,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-	switch((byte)ctrl->cmd[5]){
+	switch(ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
 			EnterStatusPhase();
@@ -534,7 +534,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 			break;
 
 		default:
-			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5])
+			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
 			break;
 	}
 }
@@ -543,7 +543,7 @@ void SCSIDaynaPort::SetMcastAddr()
 {
 	ctrl->length = ctrl->cmd[4];
 	if (ctrl->length == 0) {
-		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2])
+		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, ctrl->cmd[2])
 
 		throw scsi_error_exception();
 	}

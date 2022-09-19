@@ -285,7 +285,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
 
 	SetPhase(BUS::phase_t::execute);
 
@@ -299,7 +299,7 @@ void ScsiController::Execute()
 		ctrl.status = 0;
 	}
 
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -328,7 +328,7 @@ void ScsiController::Execute()
 	
 	try {
 		if (!device->Dispatch()) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (BYTE)ctrl.cmd[0])
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, ctrl.cmd[0])
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
@@ -647,7 +647,7 @@ void ScsiController::Receive()
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, (int)ctrl.length, len)
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -1014,7 +1014,7 @@ bool ScsiController::XferOut(bool cont)
 		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
 	}
 
-	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+	LOGWARN("Received an unexpected command ($%02X) in %s", ctrl.cmd[0] , __PRETTY_FUNCTION__)
 
 	return false;
 }
@@ -1048,7 +1048,7 @@ void ScsiController::FlushUnit()
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
-				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0])
+				LOGWARN("Error occured while processing Mode Select command %02X\n", ctrl.cmd[0])
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
 			}
@@ -1059,7 +1059,7 @@ void ScsiController::FlushUnit()
 			break;
 
 		default:
-			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0])
+			LOGWARN("Received an unexpected flush command $%02X\n", ctrl.cmd[0])
 			break;
 	}
 }
@@ -1076,7 +1076,7 @@ bool ScsiController::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::phase_t::datain);
 
-	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0])
+	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -1204,7 +1204,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 
 		default:
-			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			LOGWARN("Received an unexpected command ($%02X) in %s", ctrl.cmd[0] , __PRETTY_FUNCTION__)
 			break;
 	}
 
