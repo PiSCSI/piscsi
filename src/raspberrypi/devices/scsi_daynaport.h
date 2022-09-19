@@ -75,7 +75,7 @@ public:
 
 	bool Dispatch() override;
 
-	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
+	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	static const int CMD_SCSILINK_STATS        = 0x09;
 	static const int CMD_SCSILINK_ENABLE       = 0x0E;
