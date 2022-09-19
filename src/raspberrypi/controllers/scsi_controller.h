@@ -95,7 +95,7 @@ public:
 private:
 
 	// Execution start time
-	DWORD execstart = 0;
+	uint32_t execstart = 0;
 
 	// The initiator ID may be unavailable, e.g. with Atari ACSI and old host adapters
 	int initiator_id = UNKNOWN_INITIATOR_ID;
