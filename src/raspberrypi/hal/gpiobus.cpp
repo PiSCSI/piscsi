@@ -77,36 +77,30 @@ DWORD bcm_host_get_peripheral_address(void)
 
 bool GPIOBUS::Init(mode_e mode)
 {
-#ifndef __arm__
+	// Save operation mode
 	actmode = mode;
 
+#ifndef __arm__
 	// When we're not running on ARM, there is no hardware to talk to, so just return.
 	return true;
 #else
-	void *map;
 	int i;
-	int j;
-	int pullmode;
-	int fd;
 #ifdef USE_SEL_EVENT_ENABLE
 	struct epoll_event ev;
-#endif	// USE_SEL_EVENT_ENABLE
-
-	// Save operation mode
-	actmode = mode;
+#endif
 
 	// Get the base address
 	baseaddr = (DWORD)bcm_host_get_peripheral_address();
 
 	// Open /dev/mem
-	fd = open("/dev/mem", O_RDWR | O_SYNC);
+	int fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
         LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
 		return false;
 	}
 
 	// Map peripheral region memory
-	map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
+	void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
 	if (map == MAP_FAILED) {
         LOGERROR("Error: Unable to map memory")
 		close(fd);
@@ -166,16 +160,16 @@ bool GPIOBUS::Init(mode_e mode)
 
 	// Set pull up/pull down
 #if SIGNAL_CONTROL_MODE == 0
-	pullmode = GPIO_PULLNONE;
+	int pullmode = GPIO_PULLNONE;
 #elif SIGNAL_CONTROL_MODE == 1
-	pullmode = GPIO_PULLUP;
+	int pullmode = GPIO_PULLUP;
 #else
-	pullmode = GPIO_PULLDOWN;
+	int pullmode = GPIO_PULLDOWN;
 #endif
 
 	// Initialize all signals
 	for (i = 0; SignalTable[i] >= 0; i++) {
-		j = SignalTable[i];
+		int j = SignalTable[i];
 		PinSetSignal(j, FALSE);
 		PinConfig(j, GPIO_INPUT);
 		PullConfig(j, pullmode);
@@ -302,12 +296,7 @@ bool GPIOBUS::Init(mode_e mode)
 
 void GPIOBUS::Cleanup()
 {
-#ifndef __arm__
-	return;
-#else
-	int i;
-	int pin;
-
+#ifdef __arm__
 	// Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
 	close(selevreq.fd);
@@ -325,8 +314,8 @@ void GPIOBUS::Cleanup()
 	PinConfig(PIN_DTD, GPIO_INPUT);
 
 	// Initialize all signals
-	for (i = 0; SignalTable[i] >= 0; i++) {
-		pin = SignalTable[i];
+	for (int i = 0; SignalTable[i] >= 0; i++) {
+		int pin = SignalTable[i];
 		PinSetSignal(pin, FALSE);
 		PinConfig(pin, GPIO_INPUT);
 		PullConfig(pin, GPIO_PULLNONE);
