@@ -33,7 +33,7 @@ TEST(ScsiCommandUtilTest, AddAppleVendorModePage)
 {
 	map<int, vector<byte>> pages;
 	vector<byte> vendor_page(30);
-	pages[30] = vendor_page;
+	pages[48] = vendor_page;
 
 	scsi_command_util::AddAppleVendorModePage(pages, true);
 	vendor_page = pages[48];
