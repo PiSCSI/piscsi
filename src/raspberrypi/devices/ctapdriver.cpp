@@ -39,7 +39,7 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
-		LOGERROR("Can't if_nametoindex: %s", strerror(errno))
+		LOGERROR("Can't if_nametoindex %s: %s", ifname, strerror(errno))
 		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
