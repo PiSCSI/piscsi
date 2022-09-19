@@ -90,7 +90,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)cdb[4];
+	int length = cdb[4];
 	if (length > max_length) {
 		length = max_length;
 	}
