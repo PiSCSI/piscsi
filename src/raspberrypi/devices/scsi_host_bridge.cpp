@@ -73,7 +73,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 	SetReady(m_bTapEnable);
 
-// Not terminating on regular Linux PCs is helpful for testing
+// Not terminating on non-ARM PCs is helpful for testing
 #ifndef __arm__
 	return true;
 #else
@@ -95,18 +95,18 @@ vector<byte> SCSIBR::InquiryInternal() const
 	auto buf = vector<byte>(0x1F + 8 + 5);
 	memcpy(buf.data(), b.data(), b.size());
 
-	buf[4] = (byte)(0x1F + 8);
+	buf[4] = byte{0x1F + 8};
 
 	// Optional function valid flag
-	buf[36] = (byte)'0';
+	buf[36] = byte{'0'};
 
 	// TAP Enable
 	if (m_bTapEnable) {
-		buf[37] = (byte)'1';
+		buf[37] = byte{'1'};
 	}
 
 	// CFileSys Enable
-	buf[38] = (byte)'1';
+	buf[38] = byte{'1'};
 
 	return buf;
 }
