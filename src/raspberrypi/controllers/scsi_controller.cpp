@@ -271,10 +271,7 @@ void ScsiController::Command()
 		}
 		LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
-		// Clear length and block
-		ctrl.offset = 0;
 		ctrl.length = 0;
-		ctrl.blocks = 0;
 
 		Execute();
 	}
@@ -282,7 +279,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	SetPhase(BUS::phase_t::execute);
 
@@ -295,8 +292,6 @@ void ScsiController::Execute()
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
-
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
