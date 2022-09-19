@@ -248,23 +248,13 @@ void ScsiController::Command()
 		bus->SetCD(true);
 		bus->SetIO(false);
 
-		// Data transfer is 6 bytes x 1 block
-		ctrl.offset = 0;
-		ctrl.length = 6;
-		ctrl.blocks = 1;
-
-		// If no byte can be received move to the status phase
 		int actual_count = bus->CommandHandShake(ctrl.buffer);
-		if (!actual_count) {
-			LOGERROR("%s No command bytes received", __PRETTY_FUNCTION__)
-			Error(sense_key::ABORTED_COMMAND);
-			return;
-		}
-
 		int command_byte_count = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
+			LOGERROR("%s Command byte count mismatch: expected %d bytes, received %d byte(s)", __PRETTY_FUNCTION__,
+					command_byte_count, actual_count)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -278,6 +268,7 @@ void ScsiController::Command()
 		}
 
 		// Clear length and block
+		ctrl.offset = 0;
 		ctrl.length = 0;
 		ctrl.blocks = 0;
 
