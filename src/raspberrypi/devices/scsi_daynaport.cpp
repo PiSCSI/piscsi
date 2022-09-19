@@ -73,9 +73,9 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface")
 
-// Not terminating on non-ARM PCs is helpful for testing
-#ifdef __arm__
-		return false;
+// Not terminating on regular Linux PCs is helpful for testing
+#if !defined(__x86_64__) && !defined(__X86__)
+	return false;
 #endif
 	} else {
 		LOGDEBUG("Tap interface created")
