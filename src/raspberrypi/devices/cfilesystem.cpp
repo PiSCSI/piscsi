@@ -1717,7 +1717,7 @@ CHostEntry::~CHostEntry()
 	for (const auto& d : m_pDrv) {
 		assert(d == nullptr);
 	}
-#endif	// _DEBUG
+#endif
 }
 
 //---------------------------------------------------------------------------
