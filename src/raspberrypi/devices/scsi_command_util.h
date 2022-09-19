@@ -21,5 +21,5 @@ namespace scsi_command_util
 {
 	void ModeSelect(const vector<int>&, const BYTE *, int, int);
 	void EnrichFormatPage(map<int, vector<byte>>&, bool, int);
-	void AddAppleVendorModePage(map<int, vector<byte>>&, int, bool);
+	void AddAppleVendorModePage(map<int, vector<byte>>&, bool);
 }

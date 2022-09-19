@@ -116,6 +116,6 @@ void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, page, changeable);
+		scsi_command_util::AddAppleVendorModePage(pages, changeable);
 	}
 }

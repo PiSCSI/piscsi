@@ -28,3 +28,18 @@ TEST(ScsiCommandUtilTest, EnrichFormatPage)
 	EXPECT_EQ(byte{SECTOR_SIZE >> 8}, format_page[12]);
 	EXPECT_EQ(byte{0}, format_page[13]);
 }
+
+TEST(ScsiCommandUtilTest, AddAppleVendorModePage)
+{
+	map<int, vector<byte>> pages;
+	vector<byte> vendor_page(30);
+	pages[30] = vendor_page;
+
+	scsi_command_util::AddAppleVendorModePage(pages, true);
+	vendor_page = pages[48];
+	EXPECT_EQ(byte{0}, vendor_page[2]);
+
+	scsi_command_util::AddAppleVendorModePage(pages, false);
+	vendor_page = pages[48];
+	EXPECT_STREQ("APPLE COMPUTER, INC   ", (const char *)&vendor_page[2]);
+}

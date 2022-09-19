@@ -84,7 +84,7 @@ void scsi_command_util::EnrichFormatPage(map<int, vector<byte>>& pages, bool cha
 	}
 }
 
-void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, int, bool changeable)
+void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bool changeable)
 {
 	// Page code 48 (30h) - Apple Vendor Mode Page
 	// Needed for SCCD for stock Apple driver support
@@ -93,9 +93,9 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, in
 
 	// No changeable area
 	if (!changeable) {
-		BYTE apple_data[] = "APPLE COMPUTER, INC   ";
-		memcpy(&buf[2], apple_data, sizeof(apple_data));
+		const char APPLE_DATA[] = "APPLE COMPUTER, INC   ";
+		memcpy(&buf[2], APPLE_DATA, sizeof(APPLE_DATA));
 	}
 
-	pages[0x30] = buf;
+	pages[48] = buf;
 }
