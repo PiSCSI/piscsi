@@ -1089,7 +1089,7 @@ bool ScsiController::XferIn(BYTE *buf)
 		case scsi_command::eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = ((Disk *)GetDeviceForLun(lun))->Read(ctrl.cmd, buf, ctrl.next);
+				ctrl.length = (static_cast<Disk *>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
 			}
 			catch(const scsi_error_exception&) {
 				// If there is an error, go to the status phase
@@ -1108,7 +1108,6 @@ bool ScsiController::XferIn(BYTE *buf)
 			return false;
 	}
 
-	// Succeeded in setting the buffer
 	return true;
 }
 
