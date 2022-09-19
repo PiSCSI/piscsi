@@ -32,7 +32,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	void ModeSelect(const vector<int>&, const BYTE *, int) override;
 
 protected:
 

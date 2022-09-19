@@ -126,8 +126,8 @@ public:
 	~MockModePageDevice() final = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), (const override));
-	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
 
 	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
@@ -138,7 +138,7 @@ public:
 	}
 
 	// Make protected method visible for testing
-	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const {
+	int AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const {
 		return ModePageDevice::AddModePages(cdb, buf, max_length);
 	}
 };

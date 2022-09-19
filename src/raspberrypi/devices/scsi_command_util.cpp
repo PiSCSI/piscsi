@@ -13,7 +13,7 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(const DWORD *cdb, const BYTE *buf, int length, int sector_size)
+void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length, int sector_size)
 {
 	assert(length >= 0);
 

@@ -59,8 +59,8 @@ private:
 
 	Dispatcher<HostServices> dispatcher;
 
-	int ModeSense6(const DWORD *, BYTE *, int) const override;
-	int ModeSense10(const DWORD *, BYTE *, int) const override;
+	int ModeSense6(const vector<int>&, BYTE *, int) const override;
+	int ModeSense10(const vector<int>&, BYTE *, int) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 

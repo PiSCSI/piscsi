@@ -37,7 +37,7 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	void ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;

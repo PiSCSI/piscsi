@@ -27,11 +27,11 @@ public:
 
 	bool Dispatch() override;
 
-	virtual void ModeSelect(const DWORD *, const BYTE *, int);
+	virtual void ModeSelect(const vector<int>&, const BYTE *, int);
 
 protected:
 
-	int AddModePages(const DWORD *, BYTE *, int) const;
+	int AddModePages(const vector<int>&, BYTE *, int) const;
 	virtual void AddModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
 private:
@@ -40,8 +40,8 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	virtual int ModeSense6(const DWORD *, BYTE *, int) const = 0;
-	virtual int ModeSense10(const DWORD *, BYTE *, int) const = 0;
+	virtual int ModeSense6(const vector<int>&, BYTE *, int) const = 0;
+	virtual int ModeSense10(const vector<int>&, BYTE *, int) const = 0;
 
 	void ModeSense6();
 	void ModeSense10();

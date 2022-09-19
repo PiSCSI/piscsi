@@ -150,7 +150,7 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t)
+int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
 {
 	int rx_packet_size = 0;
 	auto response = (scsi_resp_read_t*)buf;
@@ -306,10 +306,10 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, const BYTE *buf, uint64_t)
+bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const BYTE *buf, uint64_t)
 {
-	auto data_format = (BYTE)cdb[5];
-	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
+	int data_format = cdb[5];
+	int data_length = cdb[4] + (cdb[3] << 8);
 
 	if (data_format == 0x00){
 		m_tap.Tx(buf, data_length);
@@ -317,14 +317,14 @@ bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, const BYTE *buf, uint64_t)
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
-		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
+		data_length=buf[1] + (buf[0] << 8);
 		m_tap.Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else
 	{
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format)
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format)
+		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
 
 	return true;
@@ -346,7 +346,7 @@ bool SCSIDaynaPort::WriteBytes(const DWORD *cdb, const BYTE *buf, uint64_t)
 //              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer) const
+int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, BYTE *buffer) const
 {
 	int allocation_length = cdb[4] + (cdb[3] << 8);
 
@@ -387,7 +387,7 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer) const
 //            seconds
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
+bool SCSIDaynaPort::EnableInterface(const vector<int>& cdb)
 {
 	bool result;
 	if (cdb[5] & 0x80) {

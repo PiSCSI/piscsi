@@ -426,7 +426,7 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 }
 
 
-int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 {
 	assert(buf);
 
@@ -467,9 +467,8 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
+int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 {
-	assert(cdb);
 	assert(buf);
 
 	CheckReady();

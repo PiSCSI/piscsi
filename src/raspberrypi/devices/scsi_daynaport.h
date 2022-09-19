@@ -55,14 +55,14 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const DWORD *cdb, BYTE *, uint64_t) override;
-	bool WriteBytes(const DWORD *, const BYTE *, uint64_t);
+	int Read(const vector<int>&, BYTE *, uint64_t) override;
+	bool WriteBytes(const vector<int>&, const BYTE *, uint64_t);
 	int WriteCheck(uint64_t block) override;
 
-	int RetrieveStats(const DWORD *cdb, BYTE *buffer) const;
-	bool EnableInterface(const DWORD *cdb);
+	int RetrieveStats(const vector<int>&, BYTE *) const;
+	bool EnableInterface(const vector<int>&);
 
-	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
+	void SetMacAddr(const vector<int>&, BYTE *);	// Set MAC address
 
 	void TestUnitReady() override;
 	void Read6() override;

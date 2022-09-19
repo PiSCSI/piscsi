@@ -19,7 +19,7 @@ using namespace std;
 
 namespace scsi_command_util
 {
-	void ModeSelect(const DWORD *, const BYTE *, int, int);
+	void ModeSelect(const vector<int>&, const BYTE *, int, int);
 	void EnrichFormatPage(map<int, vector<byte>>&, bool, int);
 	void AddAppleVendorModePage(map<int, vector<byte>>&, int, bool);
 }

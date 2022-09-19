@@ -23,7 +23,7 @@ const unordered_set<uint32_t> sector_sizes;
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
-	DWORD cdb[6];
+	vector<int> cdb(6);
 	BYTE buf[512];
 
 	MockModePageDevice device;
@@ -115,7 +115,7 @@ TEST(ModePagesTest, ModeSelect)
 {
 	const int LENGTH = 12;
 
-	DWORD cdb[16] = {};
+	vector<int> cdb(16);
 	BYTE buf[255] = {};
 
 	// PF (vendor-specific parameter format)

@@ -332,10 +332,10 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length) const
+int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	// Get length, clear buffer
-	auto length = (int)cdb[4];
+	auto length = cdb[4];
 	if (length > max_length) {
 		length = max_length;
 	}
@@ -385,7 +385,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length) const
 	return size;
 }
 
-int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length) const
+int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	// Get length, clear buffer
 	int length = (cdb[7] << 8) | cdb[8];
@@ -620,7 +620,7 @@ void Disk::AddVendorPage(map<int, vector<byte>>&, int, bool) const
 	// Nothing to add by default
 }
 
-void Disk::Format(const DWORD *cdb)
+void Disk::Format(const vector<int>& cdb)
 {
 	CheckReady();
 
@@ -631,7 +631,7 @@ void Disk::Format(const DWORD *cdb)
 }
 
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
-int Disk::Read(const DWORD *, BYTE *buf, uint64_t block)
+int Disk::Read(const vector<int>&, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -670,7 +670,7 @@ int Disk::WriteCheck(uint64_t block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-void Disk::Write(const DWORD *, BYTE *buf, uint64_t block)
+void Disk::Write(const vector<int>&, BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -718,7 +718,7 @@ void Disk::Seek10()
 	}
 }
 
-bool Disk::StartStop(const DWORD *cdb)
+bool Disk::StartStop(const vector<int>& cdb)
 {
 	bool start = cdb[4] & 0x01;
 	bool load = cdb[4] & 0x02;
@@ -750,7 +750,7 @@ bool Disk::StartStop(const DWORD *cdb)
 	return true;
 }
 
-bool Disk::SendDiag(const DWORD *cdb) const
+bool Disk::SendDiag(const vector<int>& cdb) const
 {
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {

@@ -44,8 +44,8 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int GetMessage10(const DWORD *, BYTE *);
-	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
+	int GetMessage10(const vector<int>&, BYTE *);
+	bool WriteBytes(const vector<int>&, BYTE *, uint64_t);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10();

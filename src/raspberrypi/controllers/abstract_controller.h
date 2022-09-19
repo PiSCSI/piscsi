@@ -13,6 +13,7 @@
 
 #include "phase_handler.h"
 #include <unordered_map>
+#include <vector>
 #include <memory>
 
 using namespace std;
@@ -38,7 +39,7 @@ public:
 		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
-		DWORD cmd[16];					// Command data
+		vector<int> cmd = vector<int>(16);	// Command data
 		uint32_t status;				// Status data
 		int message;					// Message data
 

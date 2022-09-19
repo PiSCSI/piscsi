@@ -78,8 +78,8 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	int ReadToc(const DWORD *cdb, BYTE *buf);
+	int Read(const vector<int>&, BYTE *, uint64_t) override;
+	int ReadToc(const vector<int>&, BYTE *);
 
 protected:
 

@@ -113,7 +113,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
+int SCSIBR::GetMessage10(const vector<int>& cdb, BYTE *buf)
 {
 	// Type
 	int type = cdb[2];
@@ -205,7 +205,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
+bool SCSIBR::WriteBytes(const vector<int>& cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
