@@ -38,13 +38,13 @@ using namespace scsi_defs;
 // TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	dispatcher.AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	dispatcher.AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	dispatcher.AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	dispatcher.AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.AddCommand(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.AddCommand(scsi_command::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.AddCommand(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.AddCommand(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.AddCommand(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -56,8 +56,8 @@ SCSIDaynaPort::~SCSIDaynaPort()
 bool SCSIDaynaPort::Dispatch()
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
-			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
+	if (ctrl->cmd[0] == (int)scsi_command::eCmdModeSense6 || ctrl->cmd[0] == (int)scsi_command::eCmdModeSelect6 ||
+			ctrl->cmd[0] == (int)scsi_command::eCmdModeSense10 || ctrl->cmd[0] == (int)scsi_command::eCmdModeSelect10) {
 		return false;
 	}
 

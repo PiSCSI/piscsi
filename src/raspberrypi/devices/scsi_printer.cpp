@@ -50,13 +50,13 @@ using namespace ras_util;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
-	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
-	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
-	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.AddCommand(eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
-	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
-	dispatcher.AddCommand(eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
+	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
+	dispatcher.AddCommand(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
+	dispatcher.AddCommand(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
+	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Print", &SCSIPrinter::Print);
+	dispatcher.AddCommand(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.AddCommand(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+	dispatcher.AddCommand(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
 
 SCSIPrinter::~SCSIPrinter()

@@ -131,11 +131,6 @@ bool CDTrack::IsValid(DWORD lba) const
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Is audio track
-//
-//---------------------------------------------------------------------------
 bool CDTrack::IsAudio() const
 {
 	assert(valid);
@@ -143,18 +138,12 @@ bool CDTrack::IsAudio() const
 	return audio;
 }
 
-//===========================================================================
-//
-//	SCSI CD-ROM
-//
-//===========================================================================
-
 SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	SetSectorSizes(sector_sizes);
 
-	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.AddCommand(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.AddCommand(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 SCSICD::~SCSICD()

@@ -139,7 +139,7 @@ namespace scsi_defs {
 		COMMUNICATIONS = 9
 	};
 
-	enum scsi_command : int {
+	enum class scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,

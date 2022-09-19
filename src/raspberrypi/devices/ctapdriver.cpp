@@ -125,7 +125,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	string dev = "ras0";
-	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ);
+	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
 
 	LOGTRACE("Going to open %s", ifr.ifr_name)
 

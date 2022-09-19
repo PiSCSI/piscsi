@@ -1010,7 +1010,7 @@ bool ScsiController::XferOut(bool cont)
 	is_byte_transfer = false;
 
 	if (auto device = GetDeviceForLun(GetEffectiveLun());
-		device != nullptr && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
+		device != nullptr && ctrl.cmd[0] == (int)scsi_command::eCmdWrite6) {
 		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
 	}
 

@@ -25,34 +25,34 @@ using namespace scsi_defs;
 
 Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 {
-	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
-	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	dispatcher.AddCommand(eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	dispatcher.AddCommand(eCmdRead6, "Read6", &Disk::Read6);
-	dispatcher.AddCommand(eCmdWrite6, "Write6", &Disk::Write6);
-	dispatcher.AddCommand(eCmdSeek6, "Seek6", &Disk::Seek6);
-	dispatcher.AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve);
-	dispatcher.AddCommand(eCmdRelease6, "Release6", &Disk::Release);
-	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	dispatcher.AddCommand(eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	dispatcher.AddCommand(eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	dispatcher.AddCommand(eCmdRead10, "Read10", &Disk::Read10);
-	dispatcher.AddCommand(eCmdWrite10, "Write10", &Disk::Write10);
-	dispatcher.AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
-	dispatcher.AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
-	dispatcher.AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
-	dispatcher.AddCommand(eCmdSeek10, "Seek10", &Disk::Seek10);
-	dispatcher.AddCommand(eCmdVerify10, "Verify10", &Disk::Verify10);
-	dispatcher.AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	dispatcher.AddCommand(eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	dispatcher.AddCommand(eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	dispatcher.AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve);
-	dispatcher.AddCommand(eCmdRelease10, "Release10", &Disk::Release);
-	dispatcher.AddCommand(eCmdRead16, "Read16", &Disk::Read16);
-	dispatcher.AddCommand(eCmdWrite16, "Write16", &Disk::Write16);
-	dispatcher.AddCommand(eCmdVerify16, "Verify16", &Disk::Verify16);
-	dispatcher.AddCommand(eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	dispatcher.AddCommand(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
+	dispatcher.AddCommand(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	dispatcher.AddCommand(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	dispatcher.AddCommand(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
+	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
+	dispatcher.AddCommand(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
+	dispatcher.AddCommand(scsi_command::eCmdReserve6, "Reserve6", &Disk::Reserve);
+	dispatcher.AddCommand(scsi_command::eCmdRelease6, "Release6", &Disk::Release);
+	dispatcher.AddCommand(scsi_command::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	dispatcher.AddCommand(scsi_command::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	dispatcher.AddCommand(scsi_command::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	dispatcher.AddCommand(scsi_command::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	dispatcher.AddCommand(scsi_command::eCmdRead10, "Read10", &Disk::Read10);
+	dispatcher.AddCommand(scsi_command::eCmdWrite10, "Write10", &Disk::Write10);
+	dispatcher.AddCommand(scsi_command::eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
+	dispatcher.AddCommand(scsi_command::eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
+	dispatcher.AddCommand(scsi_command::eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
+	dispatcher.AddCommand(scsi_command::eCmdSeek10, "Seek10", &Disk::Seek10);
+	dispatcher.AddCommand(scsi_command::eCmdVerify10, "Verify10", &Disk::Verify10);
+	dispatcher.AddCommand(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	dispatcher.AddCommand(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	dispatcher.AddCommand(scsi_command::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	dispatcher.AddCommand(scsi_command::eCmdReserve10, "Reserve10", &Disk::Reserve);
+	dispatcher.AddCommand(scsi_command::eCmdRelease10, "Release10", &Disk::Release);
+	dispatcher.AddCommand(scsi_command::eCmdRead16, "Read16", &Disk::Read16);
+	dispatcher.AddCommand(scsi_command::eCmdWrite16, "Write16", &Disk::Write16);
+	dispatcher.AddCommand(scsi_command::eCmdVerify16, "Verify16", &Disk::Verify16);
+	dispatcher.AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 }
 
 Disk::~Disk()

@@ -18,12 +18,12 @@ using namespace scsi_defs;
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	// Mandatory SCSI primary commands
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	dispatcher.AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	dispatcher.AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	dispatcher.AddCommand(scsi_command::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
+	dispatcher.AddCommand(scsi_command::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
 	// Optional commands used by all RaSCSI devices
-	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
+	dispatcher.AddCommand(scsi_command::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
 bool PrimaryDevice::Dispatch()

@@ -18,10 +18,10 @@ using namespace scsi_defs;
 
 ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
-	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
-	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
-	dispatcher.AddCommand(eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
-	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
+	dispatcher.AddCommand(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
+	dispatcher.AddCommand(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
+	dispatcher.AddCommand(scsi_command::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
+	dispatcher.AddCommand(scsi_command::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
 bool ModePageDevice::Dispatch()

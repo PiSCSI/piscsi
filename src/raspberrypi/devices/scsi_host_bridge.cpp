@@ -29,9 +29,9 @@ SCSIBR::SCSIBR() : Disk("SCBR"), fs(new CFileSys())
 	// Create host file system
 	fs->Reset();
 
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	dispatcher.AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	dispatcher.AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.AddCommand(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.AddCommand(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
