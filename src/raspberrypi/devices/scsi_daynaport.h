@@ -32,6 +32,9 @@
 #include "disk.h"
 #include "ctapdriver.h"
 #include <string>
+#include <array>
+
+using namespace std;
 
 //===========================================================================
 //
@@ -124,14 +127,13 @@ private:
 		.frames_lost = 0,
 	};
 
-	const byte m_daynacom_mac_prefix[3] = { byte{0x00}, byte{0x80}, byte{0x19} };
-
 	CTapDriver *m_tap = nullptr;
-										// TAP driver
+
+	// TAP valid flag
 	bool m_bTapEnable = false;
-										// TAP valid flag
-	byte m_mac_addr[6];
-										// MAC Address
-	static const byte m_bcast_addr[6];
-	static const byte m_apple_talk_addr[6];
+
+	array<byte, 6> m_mac_addr;
+
+	// static const array<byte, 6> m_bcast_addr;
+	// static const array<byte, 6> m_apple_talk_addr;
 };

@@ -32,8 +32,8 @@
 
 using namespace scsi_defs;
 
-const byte SCSIDaynaPort::m_bcast_addr[6] = { (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff };
-const byte SCSIDaynaPort::m_apple_talk_addr[6] = { (byte)0x09, (byte)0x00, (byte)0x07, (byte)0xff, (byte)0xff, (byte)0xff };
+// const array<byte, 6> SCSIDaynaPort::m_bcast_addr = { byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff} };
+// const array<byte, 6> SCSIDaynaPort::m_apple_talk_addr = { byte{0x09}, byte{0x00}, byte{0x07}, byte{0xff}, byte{0xff}, byte{0xff} };
 
 // TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
@@ -72,7 +72,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 
-#ifdef __linux__
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init(GetParams());
 	if(!m_bTapEnable){
@@ -90,13 +89,11 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetReady(true);
 	SetReset(false);
 
-	// Generate MAC Address
-	memset(m_mac_addr, 0x00, 6);
-
 	// if (m_bTapEnable) {
 	// 	tap->GetMacAddr(m_mac_addr);
 	// 	m_mac_addr[5]++;
 	// }
+
 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
 	// TODO: Remove this hard-coded address
 	m_mac_addr[0] = (byte)0x00;
@@ -105,7 +102,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	m_mac_addr[3] = (byte)0x10;
 	m_mac_addr[4] = (byte)0x98;
 	m_mac_addr[5] = (byte)0xE3;
-#endif	// linux
 
 	return true;
 }
