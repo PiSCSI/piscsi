@@ -33,19 +33,19 @@ public:
 		const char* name;
 		operation execute;
 
-		_command_t(const char* _name, operation _execute) : name(_name), execute(_execute) { };
+		_command_t(const char *_name, operation _execute) : name(_name), execute(_execute) { };
 	};
 	unordered_map<scsi_command, unique_ptr<command_t>> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, operation execute)
+	void Add(scsi_command opcode, const char *name, operation execute)
 	{
 		commands[opcode] = make_unique<command_t>(name, execute);
 	}
 
-	bool Dispatch(T *instance, DWORD cmd)
+	bool Dispatch(T *instance, scsi_command cmd)
 	{
-		if (const auto& it = commands.find(static_cast<scsi_command>(cmd)); it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd)
+		if (const auto& it = commands.find(cmd); it != commands.end()) {
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (int)cmd)
 
 			(instance->*it->second->execute)();
 

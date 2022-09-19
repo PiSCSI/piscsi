@@ -59,14 +59,14 @@ public:
 	Disk(Disk&) = delete;
 	Disk& operator=(const Disk&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	void MediumChanged();
 	bool Eject(bool) override;
 
 	// Command helpers
 	virtual int WriteCheck(uint64_t);
-	virtual void Write(const vector<int>&, BYTE *, uint64_t);
+	virtual void Write(const vector<int>&, const BYTE *, uint64_t);
 
 	virtual int Read(const vector<int>&, BYTE *, uint64_t);
 

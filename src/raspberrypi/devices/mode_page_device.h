@@ -25,7 +25,7 @@ public:
 	ModePageDevice(ModePageDevice&) = delete;
 	ModePageDevice& operator=(const ModePageDevice&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	virtual void ModeSelect(const vector<int>&, const BYTE *, int);
 

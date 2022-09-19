@@ -50,13 +50,13 @@ using namespace ras_util;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
-	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
-	dispatcher.AddCommand(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
-	dispatcher.AddCommand(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
-	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.AddCommand(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
-	dispatcher.AddCommand(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
-	dispatcher.AddCommand(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
+	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
+	dispatcher.Add(scsi_command::eCmdWrite6, "Print", &SCSIPrinter::Print);
+	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
 
 SCSIPrinter::~SCSIPrinter()
@@ -81,10 +81,10 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-bool SCSIPrinter::Dispatch()
+bool SCSIPrinter::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSIPrinter::TestUnitReady()

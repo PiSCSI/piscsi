@@ -18,16 +18,16 @@ using namespace scsi_defs;
 
 ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
-	dispatcher.AddCommand(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
-	dispatcher.AddCommand(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
-	dispatcher.AddCommand(scsi_command::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
-	dispatcher.AddCommand(scsi_command::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
+	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
+	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
+	dispatcher.Add(scsi_command::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
+	dispatcher.Add(scsi_command::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
-bool ModePageDevice::Dispatch()
+bool ModePageDevice::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const

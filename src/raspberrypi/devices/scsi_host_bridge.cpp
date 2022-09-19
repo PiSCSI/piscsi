@@ -29,9 +29,9 @@ SCSIBR::SCSIBR() : Disk("SCBR"), fs(new CFileSys())
 	// Create host file system
 	fs->Reset();
 
-	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	dispatcher.AddCommand(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	dispatcher.AddCommand(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
@@ -77,10 +77,10 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch()
+bool SCSIBR::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 vector<byte> SCSIBR::InquiryInternal() const

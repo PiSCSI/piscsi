@@ -29,14 +29,14 @@ using namespace scsi_defs;
 
 HostServices::HostServices(const DeviceFactory *factory) : ModePageDevice("SCHS"), device_factory(factory)
 {
-	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
-	dispatcher.AddCommand(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-bool HostServices::Dispatch()
+bool HostServices::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void HostServices::TestUnitReady()

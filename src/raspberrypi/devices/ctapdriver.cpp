@@ -25,8 +25,6 @@
 #include "rascsi_exceptions.h"
 #include <sstream>
 
-static const char *BRIDGE_NAME = "rascsi_bridge";
-
 using namespace std;
 using namespace ras_util;
 

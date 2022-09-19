@@ -40,7 +40,7 @@ public:
 	SCSIBR& operator=(const SCSIBR&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;

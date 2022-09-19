@@ -33,10 +33,10 @@ using namespace std;
 //===========================================================================
 class CTapDriver
 {
-private:
-
 	friend class SCSIDaynaPort;
 	friend class SCSIBR;
+
+	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
 
 	CTapDriver() = default;
 	~CTapDriver() = default;

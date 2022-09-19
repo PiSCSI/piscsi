@@ -28,7 +28,7 @@ public:
 	HostServices(HostServices&) = delete;
 	HostServices& operator=(const HostServices&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;

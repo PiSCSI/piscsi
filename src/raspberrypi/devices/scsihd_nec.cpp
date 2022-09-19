@@ -25,9 +25,9 @@ const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
 //	Extract words that are supposed to be little endian
 //
 //---------------------------------------------------------------------------
-static inline WORD getWordLE(const BYTE *b)
+static inline int getWordLE(const BYTE *b)
 {
-	return ((WORD)(b[1]) << 8) | b[0];
+	return (b[1] << 8) | b[0];
 }
 
 //---------------------------------------------------------------------------

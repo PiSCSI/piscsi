@@ -72,7 +72,7 @@ public:
 	SCSICD(SCSICD&) = delete;
 	SCSICD& operator=(const SCSICD&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	void Open(const Filepath& path) override;
 

@@ -142,8 +142,8 @@ SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), Scsi
 {
 	SetSectorSizes(sector_sizes);
 
-	dispatcher.AddCommand(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	dispatcher.AddCommand(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.Add(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 SCSICD::~SCSICD()
@@ -151,10 +151,10 @@ SCSICD::~SCSICD()
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch()
+bool SCSICD::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSICD::Open(const Filepath& path)
@@ -212,7 +212,6 @@ void SCSICD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
-	assert(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
 
 	// Attention if ready

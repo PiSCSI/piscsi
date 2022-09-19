@@ -31,7 +31,7 @@ public:
 	SCSIPrinter(SCSIPrinter&) = delete;
 	SCSIPrinter& operator=(const SCSIPrinter&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	bool Init(const unordered_map<string, string>&) override;
 

@@ -38,13 +38,13 @@ using namespace scsi_defs;
 // TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
-	dispatcher.AddCommand(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	dispatcher.AddCommand(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	dispatcher.AddCommand(scsi_command::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	dispatcher.AddCommand(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	dispatcher.AddCommand(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	dispatcher.AddCommand(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.Add(scsi_command::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -53,16 +53,16 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	m_tap.Cleanup();
 }
 
-bool SCSIDaynaPort::Dispatch()
+bool SCSIDaynaPort::Dispatch(scsi_command cmd)
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	if (ctrl->cmd[0] == (int)scsi_command::eCmdModeSense6 || ctrl->cmd[0] == (int)scsi_command::eCmdModeSelect6 ||
-			ctrl->cmd[0] == (int)scsi_command::eCmdModeSense10 || ctrl->cmd[0] == (int)scsi_command::eCmdModeSelect10) {
+	if (cmd == scsi_command::eCmdModeSense6 || cmd == scsi_command::eCmdModeSelect6 ||
+			cmd == scsi_command::eCmdModeSense10 || cmd == scsi_command::eCmdModeSelect10) {
 		return false;
 	}
 
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)

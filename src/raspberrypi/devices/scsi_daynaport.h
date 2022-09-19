@@ -73,7 +73,7 @@ public:
 	void EnableInterface();
 	int GetSendDelay() const override;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 

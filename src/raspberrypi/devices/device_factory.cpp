@@ -263,9 +263,9 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
-	struct ifaddrs *addrs;
+	ifaddrs *addrs;
 	getifaddrs(&addrs);
-	struct ifaddrs *tmp = addrs;
+	ifaddrs *tmp = addrs;
 
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&

@@ -318,7 +318,7 @@ void ScsiController::Execute()
 	}
 	
 	try {
-		if (!device->Dispatch()) {
+		if (!device->Dispatch(GetOpcode())) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);

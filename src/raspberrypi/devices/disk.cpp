@@ -25,34 +25,34 @@ using namespace scsi_defs;
 
 Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 {
-	dispatcher.AddCommand(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
-	dispatcher.AddCommand(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	dispatcher.AddCommand(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	dispatcher.AddCommand(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
-	dispatcher.AddCommand(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
-	dispatcher.AddCommand(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
-	dispatcher.AddCommand(scsi_command::eCmdReserve6, "Reserve6", &Disk::Reserve);
-	dispatcher.AddCommand(scsi_command::eCmdRelease6, "Release6", &Disk::Release);
-	dispatcher.AddCommand(scsi_command::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	dispatcher.AddCommand(scsi_command::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	dispatcher.AddCommand(scsi_command::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	dispatcher.AddCommand(scsi_command::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	dispatcher.AddCommand(scsi_command::eCmdRead10, "Read10", &Disk::Read10);
-	dispatcher.AddCommand(scsi_command::eCmdWrite10, "Write10", &Disk::Write10);
-	dispatcher.AddCommand(scsi_command::eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
-	dispatcher.AddCommand(scsi_command::eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
-	dispatcher.AddCommand(scsi_command::eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
-	dispatcher.AddCommand(scsi_command::eCmdSeek10, "Seek10", &Disk::Seek10);
-	dispatcher.AddCommand(scsi_command::eCmdVerify10, "Verify10", &Disk::Verify10);
-	dispatcher.AddCommand(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	dispatcher.AddCommand(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	dispatcher.AddCommand(scsi_command::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	dispatcher.AddCommand(scsi_command::eCmdReserve10, "Reserve10", &Disk::Reserve);
-	dispatcher.AddCommand(scsi_command::eCmdRelease10, "Release10", &Disk::Release);
-	dispatcher.AddCommand(scsi_command::eCmdRead16, "Read16", &Disk::Read16);
-	dispatcher.AddCommand(scsi_command::eCmdWrite16, "Write16", &Disk::Write16);
-	dispatcher.AddCommand(scsi_command::eCmdVerify16, "Verify16", &Disk::Verify16);
-	dispatcher.AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
+	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	dispatcher.Add(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
+	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
+	dispatcher.Add(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
+	dispatcher.Add(scsi_command::eCmdReserve6, "Reserve6", &Disk::Reserve);
+	dispatcher.Add(scsi_command::eCmdRelease6, "Release6", &Disk::Release);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	dispatcher.Add(scsi_command::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	dispatcher.Add(scsi_command::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	dispatcher.Add(scsi_command::eCmdRead10, "Read10", &Disk::Read10);
+	dispatcher.Add(scsi_command::eCmdWrite10, "Write10", &Disk::Write10);
+	dispatcher.Add(scsi_command::eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
+	dispatcher.Add(scsi_command::eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
+	dispatcher.Add(scsi_command::eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
+	dispatcher.Add(scsi_command::eCmdSeek10, "Seek10", &Disk::Seek10);
+	dispatcher.Add(scsi_command::eCmdVerify10, "Verify10", &Disk::Verify10);
+	dispatcher.Add(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	dispatcher.Add(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	dispatcher.Add(scsi_command::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	dispatcher.Add(scsi_command::eCmdReserve10, "Reserve10", &Disk::Reserve);
+	dispatcher.Add(scsi_command::eCmdRelease10, "Release10", &Disk::Release);
+	dispatcher.Add(scsi_command::eCmdRead16, "Read16", &Disk::Read16);
+	dispatcher.Add(scsi_command::eCmdWrite16, "Write16", &Disk::Write16);
+	dispatcher.Add(scsi_command::eCmdVerify16, "Verify16", &Disk::Verify16);
+	dispatcher.Add(scsi_command::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 }
 
 Disk::~Disk()
@@ -65,7 +65,7 @@ Disk::~Disk()
 	delete disk.dcache;
 }
 
-bool Disk::Dispatch()
+bool Disk::Dispatch(scsi_command cmd)
 {
 	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
 	if (disk.is_medium_changed) {
@@ -77,7 +77,7 @@ bool Disk::Dispatch()
 	}
 
 	// The superclass handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 //---------------------------------------------------------------------------
@@ -397,56 +397,53 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 	// Basic Information
 	int size = 8;
 
-	// Add block descriptor if DBD is 0
-	if ((cdb[1] & 0x08) == 0) {
-		// Only if ready
-		if (IsReady()) {
-			uint64_t disk_blocks = GetBlockCount();
-			uint32_t disk_size = GetSectorSizeInBytes();
+	// Add block descriptor if DBD is 0, only if ready
+	if ((cdb[1] & 0x08) == 0 && IsReady()) {
+		uint64_t disk_blocks = GetBlockCount();
+		uint32_t disk_size = GetSectorSizeInBytes();
 
-			// Check LLBAA for short or long block descriptor
-			if ((cdb[1] & 0x10) == 0 || disk_blocks <= 0xFFFFFFFF) {
-				// Mode parameter header, block descriptor length
-				buf[7] = 0x08;
+		// Check LLBAA for short or long block descriptor
+		if ((cdb[1] & 0x10) == 0 || disk_blocks <= 0xFFFFFFFF) {
+			// Mode parameter header, block descriptor length
+			buf[7] = 0x08;
 
-				// Short LBA mode parameter block descriptor (number of blocks and block length)
+			// Short LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[8] = (BYTE)(disk_blocks >> 24);
-				buf[9] = (BYTE)(disk_blocks >> 16);
-				buf[10] = (BYTE)(disk_blocks >> 8);
-				buf[11] = (BYTE)disk_blocks;
+			buf[8] = (BYTE)(disk_blocks >> 24);
+			buf[9] = (BYTE)(disk_blocks >> 16);
+			buf[10] = (BYTE)(disk_blocks >> 8);
+			buf[11] = (BYTE)disk_blocks;
 
-				buf[13] = (BYTE)(disk_size >> 16);
-				buf[14] = (BYTE)(disk_size >> 8);
-				buf[15] = (BYTE)disk_size;
+			buf[13] = (BYTE)(disk_size >> 16);
+			buf[14] = (BYTE)(disk_size >> 8);
+			buf[15] = (BYTE)disk_size;
 
-				size = 16;
-			}
-			else {
-				// Mode parameter header, LONGLBA
-				buf[4] = 0x01;
+			size = 16;
+		}
+		else {
+			// Mode parameter header, LONGLBA
+			buf[4] = 0x01;
 
-				// Mode parameter header, block descriptor length
-				buf[7] = 0x10;
+			// Mode parameter header, block descriptor length
+			buf[7] = 0x10;
 
-				// Long LBA mode parameter block descriptor (number of blocks and block length)
+			// Long LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[8] = (BYTE)(disk_blocks >> 56);
-				buf[9] = (BYTE)(disk_blocks >> 48);
-				buf[10] = (BYTE)(disk_blocks >> 40);
-				buf[11] = (BYTE)(disk_blocks >> 32);
-				buf[12] = (BYTE)(disk_blocks >> 24);
-				buf[13] = (BYTE)(disk_blocks >> 16);
-				buf[14] = (BYTE)(disk_blocks >> 8);
-				buf[15] = (BYTE)disk_blocks;
+			buf[8] = (BYTE)(disk_blocks >> 56);
+			buf[9] = (BYTE)(disk_blocks >> 48);
+			buf[10] = (BYTE)(disk_blocks >> 40);
+			buf[11] = (BYTE)(disk_blocks >> 32);
+			buf[12] = (BYTE)(disk_blocks >> 24);
+			buf[13] = (BYTE)(disk_blocks >> 16);
+			buf[14] = (BYTE)(disk_blocks >> 8);
+			buf[15] = (BYTE)disk_blocks;
 
-				buf[20] = (BYTE)(disk_size >> 24);
-				buf[21] = (BYTE)(disk_size >> 16);
-				buf[22] = (BYTE)(disk_size >> 8);
-				buf[23] = (BYTE)disk_size;
+			buf[20] = (BYTE)(disk_size >> 24);
+			buf[21] = (BYTE)(disk_size >> 16);
+			buf[22] = (BYTE)(disk_size >> 8);
+			buf[23] = (BYTE)disk_size;
 
-				size = 24;
-			}
+			size = 24;
 		}
 	}
 
@@ -670,7 +667,7 @@ int Disk::WriteCheck(uint64_t block)
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-void Disk::Write(const vector<int>&, BYTE *buf, uint64_t block)
+void Disk::Write(const vector<int>&, const BYTE *buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
