@@ -90,6 +90,8 @@ public:
 
 protected:
 
+	scsi_defs::scsi_command GetOpcode() const { return (scsi_defs::scsi_command)ctrl.cmd[0]; }
+
 	shared_ptr<BUS> bus;
 
 	ctrl_t ctrl = {};

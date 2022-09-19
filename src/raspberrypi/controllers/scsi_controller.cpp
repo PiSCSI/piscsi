@@ -285,7 +285,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	SetPhase(BUS::phase_t::execute);
 
@@ -295,16 +295,15 @@ void ScsiController::Execute()
 	execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if (GetOpcode() != scsi_command::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
-		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
-				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+		if (GetOpcode() != scsi_command::eCmdInquiry && GetOpcode() != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId())
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
@@ -322,13 +321,13 @@ void ScsiController::Execute()
 	PrimaryDevice *device = GetDeviceForLun(lun);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if (GetOpcode() != scsi_command::eCmdRequestSense) {
 		device->SetStatusCode(0);
 	}
 	
 	try {
 		if (!device->Dispatch()) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, ctrl.cmd[0])
+			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
 
 			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
@@ -340,7 +339,7 @@ void ScsiController::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
+	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId())
@@ -1010,11 +1009,11 @@ bool ScsiController::XferOut(bool cont)
 	is_byte_transfer = false;
 
 	if (auto device = GetDeviceForLun(GetEffectiveLun());
-		device != nullptr && ctrl.cmd[0] == (int)scsi_command::eCmdWrite6) {
+		device != nullptr && GetOpcode() == scsi_command::eCmdWrite6) {
 		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
 	}
 
-	LOGWARN("Received an unexpected command ($%02X) in %s", ctrl.cmd[0] , __PRETTY_FUNCTION__)
+	LOGWARN("Received an unexpected command ($%02X) in %s", (int)GetOpcode(), __PRETTY_FUNCTION__)
 
 	return false;
 }
@@ -1029,7 +1028,7 @@ void ScsiController::FlushUnit()
 	}
 
 	// WRITE system only
-	switch ((rw_command)ctrl.cmd[0]) {
+	switch ((rw_command)GetOpcode()) {
 		case rw_command::eRwCmdWrite6:
 		case rw_command::eRwCmdWrite10:
 		case rw_command::eRwCmdWrite16:
@@ -1048,7 +1047,7 @@ void ScsiController::FlushUnit()
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
-				LOGWARN("Error occured while processing Mode Select command %02X\n", ctrl.cmd[0])
+				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
 			}
@@ -1059,7 +1058,7 @@ void ScsiController::FlushUnit()
 			break;
 
 		default:
-			LOGWARN("Received an unexpected flush command $%02X\n", ctrl.cmd[0])
+			LOGWARN("Received an unexpected flush command $%02X\n", (int)GetOpcode())
 			break;
 	}
 }
@@ -1076,7 +1075,7 @@ bool ScsiController::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::phase_t::datain);
 
-	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, ctrl.cmd[0])
+	LOGTRACE("%s command=%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -1084,7 +1083,7 @@ bool ScsiController::XferIn(BYTE *buf)
 	}
 
 	// Limited to read commands
-	switch ((rw_command)ctrl.cmd[0]) {
+	switch ((rw_command)GetOpcode()) {
 		case rw_command::eRwCmdRead6:
 		case rw_command::eRwCmdRead10:
 		case rw_command::eRwCmdRead16:
@@ -1129,7 +1128,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 	}
 
 	// Limited to write commands
-	switch ((rw_command)ctrl.cmd[0]) {
+	switch ((rw_command)GetOpcode()) {
 		case rw_command::eRwCmdModeSelect6:
 		case rw_command::eRwCmdModeSelect10:
 			try {
@@ -1204,7 +1203,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 
 		default:
-			LOGWARN("Received an unexpected command ($%02X) in %s", ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			LOGWARN("Received an unexpected command ($%02X) in %s", (int)GetOpcode(), __PRETTY_FUNCTION__)
 			break;
 	}
 
