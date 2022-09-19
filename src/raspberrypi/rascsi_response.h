@@ -49,7 +49,7 @@ private:
 	DeviceFactory *device_factory;
 	const RascsiImage *rascsi_image;
 
-	static list<string> log_levels;
+	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
 	PbDeviceProperties *GetDeviceProperties(const Device *);
 	void GetDevice(const Device *, PbDevice *);

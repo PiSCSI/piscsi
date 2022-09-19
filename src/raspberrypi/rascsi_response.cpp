@@ -19,9 +19,6 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
-
-
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
