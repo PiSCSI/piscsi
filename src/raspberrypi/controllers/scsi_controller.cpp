@@ -254,23 +254,25 @@ void ScsiController::Command()
 		ctrl.blocks = 1;
 
 		// If no byte can be received move to the status phase
-		int command_byte_count = bus->CommandHandShake(ctrl.buffer);
-		if (!command_byte_count) {
+		int actual_count = bus->CommandHandShake(ctrl.buffer);
+		if (!actual_count) {
 			LOGERROR("%s No command bytes received", __PRETTY_FUNCTION__)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
-		ctrl.length = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+		int command_byte_count = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 		// If not able to receive all, move to the status phase
-		if (command_byte_count != (int)ctrl.length) {
+		if (actual_count != command_byte_count) {
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
+		ctrl.cmd.resize(command_byte_count);
+
 		// Command data transfer
-		for (int i = 0; i < (int)ctrl.length; i++) {
+		for (int i = 0; i < command_byte_count; i++) {
 			ctrl.cmd[i] = ctrl.buffer[i];
 			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
 		}

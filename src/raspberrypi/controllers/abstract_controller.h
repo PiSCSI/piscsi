@@ -39,7 +39,7 @@ public:
 		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
-		vector<int> cmd = vector<int>(16);	// Command data
+		vector<int> cmd;				// Command data
 		uint32_t status;				// Status data
 		int message;					// Message data
 
