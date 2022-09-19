@@ -248,11 +248,6 @@ void ScsiController::Command()
 		bus->SetCD(true);
 		bus->SetIO(false);
 
-		// Data transfer is 6 bytes x 1 block
-		ctrl.offset = 0;
-		ctrl.length = 6;
-		ctrl.blocks = 1;
-
 		// If no byte can be received move to the status phase
 		int actual_count = bus->CommandHandShake(ctrl.buffer);
 		if (!actual_count) {
@@ -278,6 +273,7 @@ void ScsiController::Command()
 		}
 
 		// Clear length and block
+		ctrl.offset = 0;
 		ctrl.length = 0;
 		ctrl.blocks = 0;
 
