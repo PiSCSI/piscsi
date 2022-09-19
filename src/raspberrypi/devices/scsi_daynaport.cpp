@@ -78,7 +78,7 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 		LOGERROR("Unable to open the TAP interface")
 
 // Not terminating on regular Linux PCs is helpful for testing
-#if !defined(__x86_64__) && !defined(__X86__)
+#ifdef __arm__
 		return false;
 #endif
 	} else {
