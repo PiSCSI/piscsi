@@ -322,7 +322,7 @@ public:
 	//---------------------------------------------------------------------------
 	inline DWORD Acquire() override
 	{
-	#ifdef __arm__
+	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable
 		// to any real-world RaSCSI application
 		return 0;
@@ -335,7 +335,7 @@ public:
 	#endif	// SIGNAL_CONTROL_MODE
 
 		return signals;
-	#endif
+	#endif // ifdef __x86_64__ || __X86__
 	}
 
 	void SetENB(bool ast);

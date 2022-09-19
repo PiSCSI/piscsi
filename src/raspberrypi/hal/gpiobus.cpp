@@ -80,8 +80,7 @@ bool GPIOBUS::Init(mode_e mode)
 	// Save operation mode
 	actmode = mode;
 
-#ifndef __arm__
-	// When we're not running on ARM, there is no hardware to talk to, so just return.
+#if defined(__x86_64__) || defined(__X86__)
 	return true;
 #else
 	int i;
@@ -290,13 +289,15 @@ bool GPIOBUS::Init(mode_e mode)
 	SetControl(PIN_ENB, ENB_ON);
 
 	return true;
-#endif // __arm__
+#endif // ifdef __x86_64__ || __X86__
 
 }
 
 void GPIOBUS::Cleanup()
 {
-#ifdef __arm__
+#if defined(__x86_64__) || defined(__X86__)
+	return;
+#else
 	// Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
 	close(selevreq.fd);
@@ -323,18 +324,23 @@ void GPIOBUS::Cleanup()
 
 	// Set drive strength back to 8mA
 	DrvConfig(3);
-#endif // __arm__
+#endif // ifdef __x86_64__ || __X86__
 }
 
 void GPIOBUS::Reset()
 {
-#ifdef __arm__
+#if defined(__x86_64__) || defined(__X86__)
+	return;
+#else
+	int i;
+	int j;
+
 	// Turn off active signal
 	SetControl(PIN_ACT, ACT_OFF);
 
 	// Set all signals to off
-	for (int i = 0;; i++) {
-		int j = SignalTable[i];
+	for (i = 0;; i++) {
+		j = SignalTable[i];
 		if (j < 0) {
 			break;
 		}
@@ -401,10 +407,10 @@ void GPIOBUS::Reset()
 		SetMode(PIN_DT7, OUT);
 		SetMode(PIN_DP, OUT);
 	}
-#endif // __arm__
 
 	// Initialize all signals
 	signals = 0;
+#endif // ifdef __x86_64__ || __X86__
 }
 
 void GPIOBUS::SetENB(bool ast)
