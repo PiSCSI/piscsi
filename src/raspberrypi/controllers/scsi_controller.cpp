@@ -1029,18 +1029,18 @@ void ScsiController::FlushUnit()
 	}
 
 	// WRITE system only
-	switch ((ScsiController::rw_command)ctrl.cmd[0]) {
-		case ScsiController::eRwCmdWrite6:
-		case ScsiController::eRwCmdWrite10:
-		case ScsiController::eRwCmdWrite16:
-		case ScsiController::eRwCmdWriteLong10:
-		case ScsiController::eRwCmdWriteLong16:
-		case ScsiController::eRwCmdVerify10:
-		case ScsiController::eRwCmdVerify16:
+	switch ((rw_command)ctrl.cmd[0]) {
+		case rw_command::eRwCmdWrite6:
+		case rw_command::eRwCmdWrite10:
+		case rw_command::eRwCmdWrite16:
+		case rw_command::eRwCmdWriteLong10:
+		case rw_command::eRwCmdWriteLong16:
+		case rw_command::eRwCmdVerify10:
+		case rw_command::eRwCmdVerify16:
 			break;
 
-		case ScsiController::eRwCmdModeSelect6:
-		case ScsiController::eRwCmdModeSelect10:
+		case rw_command::eRwCmdModeSelect6:
+		case rw_command::eRwCmdModeSelect10:
             // TODO What is this special handling of ModeSelect good for?
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
@@ -1054,7 +1054,7 @@ void ScsiController::FlushUnit()
 			}
             break;
 
-		case ScsiController::eRwCmdSetMcastAddr:
+		case rw_command::eRwCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 
@@ -1084,10 +1084,10 @@ bool ScsiController::XferIn(BYTE *buf)
 	}
 
 	// Limited to read commands
-	switch (ctrl.cmd[0]) {
-		case eRwCmdRead6:
-		case eRwCmdRead10:
-		case eRwCmdRead16:
+	switch ((rw_command)ctrl.cmd[0]) {
+		case rw_command::eRwCmdRead6:
+		case rw_command::eRwCmdRead10:
+		case rw_command::eRwCmdRead16:
 			// Read from disk
 			try {
 				ctrl.length = ((Disk *)GetDeviceForLun(lun))->Read(ctrl.cmd, buf, ctrl.next);
@@ -1129,9 +1129,9 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 	}
 
 	// Limited to write commands
-	switch (ctrl.cmd[0]) {
-		case eRwCmdModeSelect6:
-		case eRwCmdModeSelect10:
+	switch ((rw_command)ctrl.cmd[0]) {
+		case rw_command::eRwCmdModeSelect6:
+		case rw_command::eRwCmdModeSelect10:
 			try {
 				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
 			}
@@ -1141,12 +1141,12 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			}
 			break;
 
-		case eRwCmdWrite6:
-		case eRwCmdWrite10:
-		case eRwCmdWrite16:
+		case rw_command::eRwCmdWrite6:
+		case rw_command::eRwCmdWrite10:
+		case rw_command::eRwCmdWrite16:
 		// TODO Verify has to verify, not to write
-		case eRwCmdVerify10:
-		case eRwCmdVerify16:
+		case rw_command::eRwCmdVerify10:
+		case rw_command::eRwCmdVerify16:
 		{
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
@@ -1199,7 +1199,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 		}
 
-		case eRwCmdSetMcastAddr:
+		case rw_command::eRwCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__)
 			break;
 

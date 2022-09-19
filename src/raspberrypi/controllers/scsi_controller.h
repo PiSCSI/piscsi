@@ -37,7 +37,7 @@ class ScsiController : public AbstractController
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
-	enum rw_command : int {
+	enum class rw_command : int {
 		eRwCmdRead6 = 0x08,
 		eRwCmdWrite6 = 0x0A,
 		eRwCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
