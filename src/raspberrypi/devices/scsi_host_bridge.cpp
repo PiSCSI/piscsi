@@ -73,8 +73,8 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 	SetReady(m_bTapEnable);
 
-	// Not terminating on regular Linux PCs is helpful for testing
-#if defined(__x86_64__) || defined(__X86__)
+// Not terminating on regular Linux PCs is helpful for testing
+#ifndef __arm__
 	return true;
 #else
 	return m_bTapEnable;
