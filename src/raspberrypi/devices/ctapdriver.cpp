@@ -118,14 +118,14 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return false;
 	}
 
-	LOGTRACE("Opened tap device %d",m_hTAP)
+	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	char dev[IFNAMSIZ] = "ras0";
-	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+	string dev = "ras0";
+	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ);
 
 	LOGTRACE("Going to open %s", ifr.ifr_name)
 

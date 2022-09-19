@@ -55,7 +55,7 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[TMP_FILENAME_LENGTH + 1];
+	char filename[TMP_FILENAME_LENGTH + 1]; //NOSONAR mkstemp() requires a modifiable string
 	int fd = -1;
 
 	int reserving_initiator = NOT_RESERVED;
