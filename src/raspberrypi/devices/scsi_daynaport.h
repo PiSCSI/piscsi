@@ -74,11 +74,11 @@ public:
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	static const byte CMD_SCSILINK_STATS        = (byte)0x09;
-	static const byte CMD_SCSILINK_ENABLE       = (byte)0x0E;
-	static const byte CMD_SCSILINK_SET          = (byte)0x0C;
-	static const byte CMD_SCSILINK_SETMODE      = (byte)0x80;
-	static const byte CMD_SCSILINK_SETMAC       = (byte)0x40;
+	static const byte CMD_SCSILINK_STATS        = byte{0x09};
+	static const byte CMD_SCSILINK_ENABLE       = byte{0x0E};
+	static const byte CMD_SCSILINK_SET          = byte{0x0C};
+	static const byte CMD_SCSILINK_SETMODE      = byte{0x80};
+	static const byte CMD_SCSILINK_SETMAC       = byte{0x40};
 
 	// When we're reading the Linux tap device, most of the messages will not be for us, so we
 	// need to filter through those. However, we don't want to keep re-reading the packets
@@ -117,13 +117,14 @@ private:
 	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
-		.mac_address = { (byte)0x00, (byte)0x80,(byte) 0x19, (byte)0x10, (byte)0x98, (byte)0xE3 },//MAC address of @PotatoFi's DayanPort
+		//MAC address of @PotatoFi's DayanPort
+		.mac_address = { byte{0x00}, byte{0x80}, byte{0x19}, byte{0x10}, byte{0x98}, byte{0xE3} },
 		.frame_alignment_errors = 0,
 		.crc_errors = 0,
 		.frames_lost = 0,
 	};
 
-	const byte m_daynacom_mac_prefix[3] = { (byte)0x00, (byte)0x80, (byte)0x19 };
+	const byte m_daynacom_mac_prefix[3] = { byte{0x00}, byte{0x80}, byte{0x19} };
 
 	CTapDriver *m_tap = nullptr;
 										// TAP driver
