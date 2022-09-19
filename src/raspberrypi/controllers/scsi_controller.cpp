@@ -22,6 +22,7 @@
 #include "devices/scsi_daynaport.h"
 #include "scsi_controller.h"
 #include <sstream>
+#include <iomanip>
 
 using namespace scsi_defs;
 
@@ -266,7 +267,7 @@ void ScsiController::Command()
 		stringstream s;
 		for (int i = 0; i < command_byte_count; i++) {
 			ctrl.cmd[i] = ctrl.buffer[i];
-			s << hex << ctrl.cmd[i];
+			s << setfill('0') << setw(2) << hex << ctrl.cmd[i];
 		}
 		LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
