@@ -689,15 +689,14 @@ public:
 	void SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
 	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
-	BOOL Create(DWORD nHumanAttribute, BOOL bForce);	///< Create file
-	BOOL Open();									///< Open file
-	BOOL Rewind(DWORD nOffset) const;							///< Seek file
+	bool Create(DWORD nHumanAttribute, bool bForce);	///< Create file
+	bool Open();									///< Open file
 	DWORD Read(BYTE* pBuffer, DWORD nSize);					///< Read file
 	DWORD Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
 	bool Truncate() const;								///< Truncate file
 	DWORD Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
-	BOOL TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
-	BOOL Close();									///< Close file
+	bool TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
+	void Close();									///< Close file
 
 private:
 	DWORD m_nKey = 0;								///< Human68k FCB buffer address (0 if unused)
@@ -900,7 +899,7 @@ public:
 	int Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles);
 										///< $47 - Find file
 	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - Find next file
-	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);
+	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce);
 										///< $49 - Create file
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
 										///< $4A - Open file

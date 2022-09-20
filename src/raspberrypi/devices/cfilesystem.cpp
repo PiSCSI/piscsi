@@ -2284,7 +2284,7 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(DWORD, BOOL bForce)
+bool CHostFcb::Create(DWORD, bool bForce)
 {
 	ASSERT((Human68k::AT_DIRECTORY | Human68k::AT_VOLUME) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
@@ -2294,7 +2294,7 @@ BOOL CHostFcb::Create(DWORD, BOOL bForce)
 	if (bForce == FALSE) {
 		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(m_szFilename), &sb) == 0)
-			return FALSE;
+			return false;
 	}
 
 	// Create file
@@ -2310,13 +2310,13 @@ BOOL CHostFcb::Create(DWORD, BOOL bForce)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Open()
+bool CHostFcb::Open()
 {
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// Fail if directory
 	if (struct stat st; stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
-		return FALSE || m_bFlag;
+		return false || m_bFlag;
 	}
 
 	// File open
@@ -2324,23 +2324,6 @@ BOOL CHostFcb::Open()
 		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
 
 	return m_pFile != nullptr || m_bFlag;
-}
-
-//---------------------------------------------------------------------------
-//
-/// File seek
-///
-/// Return FALSE if error is thrown.
-//
-//---------------------------------------------------------------------------
-BOOL CHostFcb::Rewind(DWORD nOffset) const
-{
-	ASSERT(m_pFile);
-
-	if (fseek(m_pFile, nOffset, SEEK_SET))
-		return FALSE;
-
-	return ftell(m_pFile) != -1L;
 }
 
 //---------------------------------------------------------------------------
@@ -2436,7 +2419,7 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
+bool CHostFcb::TimeStamp(DWORD nHumanTime) const
 {
 	ASSERT(m_pFile || m_bFlag);
 
@@ -2468,18 +2451,14 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Close()
+void CHostFcb::Close()
 {
-	BOOL bResult = TRUE;
-
 	// File close
 	// Always initialize because of the Close→Free (internally one more Close) flow.
 	if (m_pFile) {
 		fclose(m_pFile);
 		m_pFile = nullptr;
 	}
-
-	return bResult;
 }
 
 //===========================================================================
@@ -3104,7 +3083,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 /// $49 - Create new file
 //
 //---------------------------------------------------------------------------
-int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
+int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce)
 {
 	ASSERT(pNamests);
 	ASSERT(nKey);
@@ -3156,7 +3135,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	}
 
 	// Create file
-	if (pHostFcb->Create(nHumanAttribute, bForce) == FALSE) {
+	if (!pHostFcb->Create(nHumanAttribute, bForce)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_FILEEXIST;
 	}
@@ -3230,7 +3209,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	}
 
 	// File open
-	if (pHostFcb->Open() == FALSE) {
+	if (!pHostFcb->Open()) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPATH;
 	}
@@ -3444,7 +3423,7 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 		return FS_NOTOPENED;
 
 	// Set time stamp
-	if (pHostFcb->TimeStamp(nHumanTime) == FALSE) {
+	if (!pHostFcb->TimeStamp(nHumanTime)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPRM;
 	}
@@ -3671,7 +3650,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 			CHostFcb f;
 			f.SetFilename(pHostFiles->GetPath());
 			f.SetMode(Human68k::OP_READ);
-			if (f.Open() == FALSE)
+			if (!f.Open())
 				return FS_INVALIDPRM;
 			memset(pBuffer, 0, 0x200);
 			DWORD nResult = f.Read(pBuffer, 0x200);
