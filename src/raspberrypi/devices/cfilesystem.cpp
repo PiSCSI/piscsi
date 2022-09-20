@@ -390,7 +390,7 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// Get volume label from cache
 ///
 /// Transfer the cached volume label information.
-/// If the cache contents are valid return true, if invalid return false.
+/// Return true if the cache contents are valid.
 //
 //---------------------------------------------------------------------------
 bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
@@ -403,11 +403,6 @@ bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 	return m_bVolumeCache;
 }
 
-//---------------------------------------------------------------------------
-//
-/// Get Capacity
-//
-//---------------------------------------------------------------------------
 DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 {
 	ASSERT(pCapacity);
@@ -444,7 +439,7 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 /// Get capacity from the cache
 ///
 /// Transfer the capacity data stored in cache.
-/// If the contents of the cache is valid return true, is invalid return false.
+/// Return true if the contents of the cache are valid.
 //
 //---------------------------------------------------------------------------
 bool CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
@@ -3023,12 +3018,6 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
 	pFiles->offset = 0;
-
-	// When the file name does not include wildcards, the buffer may be released
-	if (pNamests->wildcard == 0) {
-		// However, there is a chance the virtual selector may be used for emulation, so don't release immediately
-		// m_cFiles.Free(pHostFiles);
-	}
 
 	return 0;
 }
