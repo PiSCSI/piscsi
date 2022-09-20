@@ -1239,7 +1239,7 @@ void GPIOBUS::SetSignal(int pin, bool ast)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::WaitSignal(int pin, BOOL ast)
+bool GPIOBUS::WaitSignal(int pin, int ast)
 {
 	// Get current time
 	uint32_t now = SysTimer::GetTimerLow();

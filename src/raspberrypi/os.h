@@ -87,7 +87,6 @@
 using BYTE = unsigned char;
 using WORD =uint16_t;
 using DWORD = uint32_t;
-using BOOL = int;
 using TCHAR = char;
 
 #if !defined(FALSE)

@@ -429,7 +429,7 @@ private:
 										// Get SCSI input signal value
 	void SetSignal(int pin, bool ast) override;
 										// Set SCSI output signal value
-	bool WaitSignal(int pin, BOOL ast);
+	bool WaitSignal(int pin, int ast);
 										// Wait for a signal to change
 	// Interrupt control
 	void DisableIRQ();
