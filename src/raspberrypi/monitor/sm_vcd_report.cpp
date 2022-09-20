@@ -54,7 +54,7 @@ static BYTE prev_value[32] = {0xFF};
 
 extern double ns_per_loop;
 
-static BOOL get_pin_value(DWORD data, int pin)
+static BYTE get_pin_value(DWORD data, int pin)
 {
     return (data >> pin) & 1;
 }
@@ -86,7 +86,7 @@ static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char 
 
 static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char symbol)
 {
-    BOOL new_value = get_pin_value(data, pin);
+    BYTE new_value = get_pin_value(data, pin);
     if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
