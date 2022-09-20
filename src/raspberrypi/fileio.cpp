@@ -59,11 +59,7 @@ bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 	}
 
 	// Evaluate results
-	if (handle == -1) {
-		return false;
-	}
-
-	return true;
+	return handle != -1;
 }
 
 bool Fileio::Open(const char *fname, OpenMode mode)
@@ -98,12 +94,7 @@ bool Fileio::Read(BYTE *buffer, int size) const
 	assert(size > 0);
 	assert(handle >= 0);
 
-	long count = read(handle, buffer, size);
-	if (count != size) {
-		return false;
-	}
-
-	return true;
+	return read(handle, buffer, size) == size;
 }
 
 bool Fileio::Write(const BYTE *buffer, int size) const
@@ -112,12 +103,7 @@ bool Fileio::Write(const BYTE *buffer, int size) const
 	assert(size > 0);
 	assert(handle >= 0);
 
-	long count = write(handle, buffer, size);
-	if (count != size) {
-		return false;
-	}
-
-	return true;
+	return write(handle, buffer, size) == size;
 }
 
 bool Fileio::Seek(off_t offset, bool relative) const
@@ -130,11 +116,7 @@ bool Fileio::Seek(off_t offset, bool relative) const
 		offset += GetFilePos();
 	}
 
-	if (lseek(handle, offset, SEEK_SET) != offset) {
-		return false;
-	}
-
-	return true;
+	return lseek(handle, offset, SEEK_SET) == offset;
 }
 
 off_t Fileio::GetFileSize() const
@@ -159,7 +141,6 @@ off_t Fileio::GetFilePos() const
 
 	// Get file position in 64bit
 	return lseek(handle, 0, SEEK_CUR);
-
 }
 
 void Fileio::Close()
