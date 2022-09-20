@@ -226,7 +226,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	ASSERT(szBase);
 	ASSERT(strlen(szBase) < FILEPATH_MAX);
 	ASSERT(m_bWriteProtect == FALSE);
-	ASSERT(m_bEnable == FALSE);
+	ASSERT(!m_bEnable);
 	ASSERT(m_capCache.sectors == 0);
 	ASSERT(m_bVolumeCache == FALSE);
 	ASSERT(m_szVolumeCache[0] == _T('\0'));
@@ -275,10 +275,10 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 // Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::isMediaOffline() const
+bool CHostDrv::isMediaOffline() const
 {
 	// Offline status check
-	return m_bEnable == FALSE;
+	return !m_bEnable;
 }
 
 //---------------------------------------------------------------------------
@@ -306,11 +306,11 @@ DWORD CHostDrv::GetStatus() const
 // Media status settings
 //
 //---------------------------------------------------------------------------
-void CHostDrv::SetEnable(BOOL bEnable)
+void CHostDrv::SetEnable(bool bEnable)
 {
 	m_bEnable = bEnable;
 
-	if (bEnable == FALSE) {
+	if (!bEnable) {
 		// Clear cache
 		m_capCache.sectors = 0;
 		m_bVolumeCache = FALSE;
@@ -323,11 +323,11 @@ void CHostDrv::SetEnable(BOOL bEnable)
 // Media change check
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::CheckMedia()
+bool CHostDrv::CheckMedia()
 {
 	// Status update
 	Update();
-	if (m_bEnable == FALSE)
+	if (!m_bEnable)
 		CleanCache();
 
 	return m_bEnable;
@@ -341,10 +341,8 @@ BOOL CHostDrv::CheckMedia()
 void CHostDrv::Update()
 {
 	// Considered as media insertion
-	BOOL bEnable = TRUE;
-
 	// Media status reflected
-	SetEnable(bEnable);
+	SetEnable(TRUE);
 }
 
 //---------------------------------------------------------------------------
@@ -512,8 +510,6 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath) const
 //---------------------------------------------------------------------------
 void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 {
-	ASSERT(szHumanPath);
-
 	auto p = FindCache(szHumanPath);
 	if (p) {
 		delete p;
@@ -1078,7 +1074,7 @@ void CHostFilename::SetEntryName()
 /// Investigate if the Human68k side name has been processed
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::isReduce() const
+bool CHostFilename::isReduce() const
 {
 	return strcmp((const char *)m_szHost, (const char*)m_szHuman) != 0;
 }
@@ -1088,7 +1084,7 @@ BOOL CHostFilename::isReduce() const
 /// Evaluate Human68k directory entry attribute
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
+int CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
 {
 	BYTE nAttribute = m_dirHuman.attr;
 	if ((nAttribute & (Human68k::AT_ARCHIVE | Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0)
@@ -1296,9 +1292,9 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 /// Compare Human68k side name
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
+bool CHostPath::isSameHuman(const BYTE* szHuman) const
 {
-	ASSERT(szHuman);
+	assert(szHuman);
 
 	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
@@ -1306,15 +1302,15 @@ BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 
 	// Check number of chars
 	if (nLength != n)
-		return FALSE;
+		return false;
 
 	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + nLength, szHuman, szHuman + n) == 0;
 }
 
-BOOL CHostPath::isSameChild(const BYTE* szHuman) const
+bool CHostPath::isSameChild(const BYTE* szHuman) const
 {
-	ASSERT(szHuman);
+	assert(szHuman);
 
 	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
@@ -1322,7 +1318,7 @@ BOOL CHostPath::isSameChild(const BYTE* szHuman) const
 
 	// Check number of chars
 	if (nLength < n)
-		return FALSE;
+		return false;
 
 	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + n, szHuman, szHuman + n) == 0;
@@ -1851,7 +1847,7 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 /// Is it write-protected?
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
+bool CHostEntry::isWriteProtect(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1864,7 +1860,7 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 /// Is it accessible?
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isEnable(DWORD nUnit) const
+bool CHostEntry::isEnable(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1877,7 +1873,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 /// Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isMediaOffline(DWORD nUnit) const
+bool CHostEntry::isMediaOffline(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1916,7 +1912,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 /// Media change check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::CheckMedia(DWORD nUnit) const
+bool CHostEntry::CheckMedia(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -2244,7 +2240,7 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 /// Set file open mode
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::SetMode(DWORD nHumanMode)
+bool CHostFcb::SetMode(DWORD nHumanMode)
 {
 	switch (nHumanMode & Human68k::OP_MASK) {
 		case Human68k::OP_READ:
@@ -2257,12 +2253,12 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 			m_pszMode = "r+b";
 			break;
 		default:
-			return FALSE;
+			return false;
 	}
 
 	m_bFlag = (nHumanMode & Human68k::OP_SPECIAL) != 0;
 
-	return TRUE;
+	return true;
 }
 
 void CHostFcb::SetFilename(const TCHAR* szFilename)
@@ -2394,7 +2390,7 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 /// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Truncate() const
+bool CHostFcb::Truncate() const
 {
 	ASSERT(m_pFile);
 
@@ -2542,7 +2538,7 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 	auto p = (ring_t*)m_cRing.Prev();
 
 	// Error if in use (just in case)
-	if (p->f.isSameKey(0) == FALSE) {
+	if (!p->f.isSameKey(0)) {
 		ASSERT(FALSE);
 		return nullptr;
 	}
@@ -3001,7 +2997,7 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 		// Path check
 		CHostFiles f;
 		f.SetPath(pNamests);
-		if (f.isRootPath() == FALSE)
+		if (!f.isRootPath())
 			return FS_FILENOTFND;
 
 		// Immediately return the results without allocating buffer
@@ -3154,7 +3150,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 
 	// Set open mode
 	pFcb->mode = (WORD)((pFcb->mode & ~Human68k::OP_MASK) | Human68k::OP_FULL);
-	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
+	if (!pHostFcb->SetMode(pFcb->mode)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
@@ -3228,7 +3224,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	pHostFcb->SetHumanPath(f.GetHumanPath());
 
 	// Set open mode
-	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
+	if (!pHostFcb->SetMode(pFcb->mode)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
@@ -3340,7 +3336,7 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 	DWORD nResult;
 	if (nSize == 0) {
 		// Truncate
-		if (pHostFcb->Truncate() == FALSE) {
+		if (!pHostFcb->Truncate()) {
 			m_cFcb.Free(pHostFcb);
 			return FS_CANTSEEK;
 		}
@@ -3549,7 +3545,7 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const
 		// Acquire sector data
 		if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
 			// Carry out an extra media check here because it may be skipped when doing a manual eject
-			if (m_cEntry.isEnable(nUnit) == FALSE)
+			if (!m_cEntry.isEnable(nUnit))
 				goto none;
 
 			// Media check
@@ -3788,7 +3784,6 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 //---------------------------------------------------------------------------
 int CFileSys::Flush(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3806,7 +3801,6 @@ int CFileSys::Flush(DWORD nUnit) const
 //---------------------------------------------------------------------------
 int CFileSys::CheckMedia(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3829,7 +3823,6 @@ int CFileSys::CheckMedia(DWORD nUnit) const
 //---------------------------------------------------------------------------
 int CFileSys::Lock(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3852,7 +3845,6 @@ int CFileSys::Lock(DWORD nUnit) const
 //---------------------------------------------------------------------------
 void CFileSys::SetOption(DWORD nOption)
 {
-
 	// Clear cache when option settings change
 	if (m_nOption ^ nOption)
 		m_cEntry.CleanCache();
@@ -3960,7 +3952,7 @@ BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 	TCHAR szVolume[32];
 	if (BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); bResult == FALSE) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
-		if (m_cEntry.isEnable(nUnit) == FALSE)
+		if (!m_cEntry.isEnable(nUnit))
 			return FALSE;
 
 		// Media check

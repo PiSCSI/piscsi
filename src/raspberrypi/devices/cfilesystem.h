@@ -451,8 +451,8 @@ public:
 	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
 	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
 	void CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
-	BOOL isReduce() const;							///< Inspect if the Human68k name is generated
-	BOOL isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
+	bool isReduce() const;							///< Inspect if the Human68k name is generated
+	bool isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
 	const BYTE* GetHuman() const { return m_szHuman; }	///< Get Human68k file name
 	const BYTE* GetHumanLast() const
 	{ return m_pszHumanLast; }				///< Get Human68k file name
@@ -470,9 +470,9 @@ public:
 	{ m_dirHuman.cluster = nHumanCluster; }			///< Set Human68k directory entry
 	const Human68k::dirent_t*  GetEntry() const 
 	{ return &m_dirHuman; }					///< Get Human68k directory entry
-	BOOL CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
-	BOOL isSameEntry(const Human68k::dirent_t* pdirHuman) const
-	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
+	int CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
+	bool isSameEntry(const Human68k::dirent_t* pdirHuman) const
+	{ assert(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
 										///< Determine Human68k directory entry match
 
 	// Path name operations
@@ -484,7 +484,7 @@ private:
 
 	const BYTE* m_pszHumanLast = nullptr;		///< Last position of the Human68k internal name of the relevant entry
 	const BYTE* m_pszHumanExt = nullptr;		///< Position of the extension of the Human68k internal name of the relevant entry
-	BOOL m_bCorrect = FALSE;			///< TRUE if the relevant entry of the Human68k internal name is correct
+	bool m_bCorrect = false;			///< TRUE if the relevant entry of the Human68k internal name is correct
 	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
 	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];		///< The host name of the relevant entry (variable length)
@@ -539,8 +539,8 @@ public:
 
 	void  SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
 	void  SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
-	BOOL  isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
-	BOOL  isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	bool  isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	bool  isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
 	const TCHAR*  GetHost() const { return m_szHost; }	///< Obtain the name on the host side
 	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
 										///< Find file name
@@ -602,12 +602,12 @@ public:
 	void Init();
 
 	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
-	BOOL isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	bool isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
 	void SetPath(const Human68k::namests_t* pNamests);				///< Create path and file name internally
-	BOOL isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< Check if root directory
+	bool isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< Check if root directory
 	void SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
 	void SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
-	BOOL isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
+	bool isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
 	void SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
 	BOOL Find(DWORD nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename* Find(const CHostPath* pPath);					///< Find file name
@@ -681,10 +681,10 @@ public:
 	void Init();
 
 	void SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
-	BOOL isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
-	void SetUpdate() { m_bUpdate = TRUE; }				///< Update
-	BOOL isUpdate() const { return m_bUpdate; }			///< Get update state
-	BOOL SetMode(DWORD nHumanMode);						///< Set file open mode
+	bool isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void SetUpdate() { m_bUpdate = true; }				///< Update
+	bool isUpdate() const { return m_bUpdate; }			///< Get update state
+	bool SetMode(DWORD nHumanMode);						///< Set file open mode
 	void SetFilename(const TCHAR* szFilename);					///< Set file name
 	void SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
 	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
@@ -694,14 +694,14 @@ public:
 	BOOL Rewind(DWORD nOffset) const;							///< Seek file
 	DWORD Read(BYTE* pBuffer, DWORD nSize);					///< Read file
 	DWORD Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
-	BOOL Truncate() const;								///< Truncate file
+	bool Truncate() const;								///< Truncate file
 	DWORD Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
 	BOOL TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
 	BOOL Close();									///< Close file
 
 private:
 	DWORD m_nKey = 0;								///< Human68k FCB buffer address (0 if unused)
-	BOOL m_bUpdate = FALSE;							///< Update flag
+	bool m_bUpdate = false;							///< Update flag
 	FILE* m_pFile = nullptr;						///< Host side file object
 	const char* m_pszMode = nullptr;				///< Host side file open mode
 	bool m_bFlag = false;							///< Host side file open flag
@@ -753,13 +753,13 @@ public:
 
 	void Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
-	BOOL isWriteProtect() const { return m_bWriteProtect; }
-	BOOL isEnable() const { return m_bEnable; }		///< Is it accessible?
-	BOOL isMediaOffline() const;
+	bool isWriteProtect() const { return m_bWriteProtect; }
+	bool isEnable() const { return m_bEnable; }		///< Is it accessible?
+	bool isMediaOffline() const;
 	BYTE GetMediaByte() const;
 	DWORD GetStatus() const;
-	void SetEnable(BOOL bEnable);						///< Set media status
-	BOOL CheckMedia();							///< Check if media was changed
+	void SetEnable(bool);						///< Set media status
+	bool CheckMedia();							///< Check if media was changed
 	void Update();								///< Update media status
 	void Eject();
 	void GetVolume(TCHAR* szLabel);					///< Get volume label
@@ -788,8 +788,8 @@ private:
 		CHostPath f;
 	};
 
-	BOOL m_bWriteProtect = FALSE;						///< TRUE if write-protected
-	BOOL m_bEnable = FALSE;							///< TRUE if media is usable
+	bool m_bWriteProtect = false;						///< TRUE if write-protected
+	bool m_bEnable = false;							///< TRUE if media is usable
 	DWORD m_nRing = 0;							///< Number of stored path names
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
@@ -829,12 +829,12 @@ public:
 
 	// Drive object operations
 	void SetDrv(DWORD nUnit, CHostDrv* pDrv);
-	BOOL isWriteProtect(DWORD nUnit) const;
-	BOOL isEnable(DWORD nUnit) const;					///< Is it accessible?
-	BOOL isMediaOffline(DWORD nUnit) const;
+	bool isWriteProtect(DWORD nUnit) const;
+	bool isEnable(DWORD nUnit) const;					///< Is it accessible?
+	bool isMediaOffline(DWORD nUnit) const;
 	BYTE GetMediaByte(DWORD nUnit) const;
 	DWORD GetStatus(DWORD nUnit) const;					///< Get drive status
-	BOOL CheckMedia(DWORD nUnit) const;						///< Media change check
+	bool CheckMedia(DWORD nUnit) const;						///< Media change check
 	void Eject(DWORD nUnit) const;
 	void GetVolume(DWORD nUnit, TCHAR* szLabel) const;				///< Get volume label
 	BOOL GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
@@ -930,8 +930,8 @@ public:
 	static const int DriveMax = CHostEntry::DRIVE_MAX;			///< Max number of drive candidates
 
 private:
-	void  InitOption(const Human68k::argument_t* pArgument);
-	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
+	void InitOption(const Human68k::argument_t* pArgument);
+	BOOL FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
 
 	DWORD m_nUnits = 0;								///< Number of current drive objects (Changes for every resume)
 
