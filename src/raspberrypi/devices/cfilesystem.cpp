@@ -1454,7 +1454,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 /// Confirm that the file update has been carried out
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isRefresh() const
+bool CHostPath::isRefresh() const
 {
 	return m_bRefresh;
 }
@@ -1488,7 +1488,7 @@ void CHostPath::Refresh()
 	strcpy(szPath, m_szHost);
 
 	// Update refresh flag
-	m_bRefresh = FALSE;
+	m_bRefresh = false;
 
 	// Store previous cache contents
 	CRing cRingBackup;
@@ -1695,7 +1695,7 @@ void CHostPath::Restore() const
 //---------------------------------------------------------------------------
 void CHostPath::Release()
 {
-	m_bRefresh = TRUE;
+	m_bRefresh = true;
 }
 
 //===========================================================================

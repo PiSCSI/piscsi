@@ -535,35 +535,35 @@ public:
 	CHostPath(CHostPath&) = delete;
 	CHostPath& operator=(const CHostPath&) = delete;
 
-	void  Clean();								///< Initialialize for reuse
+	void Clean();								///< Initialialize for reuse
 
-	void  SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
-	void  SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
-	bool  isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
-	bool  isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
-	const TCHAR*  GetHost() const { return m_szHost; }	///< Obtain the name on the host side
-	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
+	void SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
+	void SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
+	bool isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	bool isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	const TCHAR* GetHost() const { return m_szHost; }	///< Obtain the name on the host side
+	const CHostFilename* FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
 										///< Find file name
-	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
+	const CHostFilename* FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
 										///< Find file name (with support for wildcards)
-	BOOL  isRefresh() const;							///< Check that the file change has been done
-	void  Refresh();							///< Refresh file
-	void  Backup();								/// Backup the time stamp on the host side
-	void  Restore() const;							/// Restore the time stamp on the host side
-	void  Release();							///< Update
+	bool isRefresh() const;							///< Check that the file change has been done
+	void Refresh();							///< Refresh file
+	void Backup();								/// Backup the time stamp on the host side
+	void Restore() const;							/// Restore the time stamp on the host side
+	void Release();							///< Update
 
 	// CHostEntry is an external API that we use
-	static void  InitId() { g_nId = 0; }					///< Initialize the counter for the unique ID generation
+	static void InitId() { g_nId = 0; }					///< Initialize the counter for the unique ID generation
 
 private:
-	static ring_t*  Alloc(size_t nLength);					///< Allocate memory for the file name
-	static void  Free(ring_t* pRing);					///< Release memory for the file name
-	static int  Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast);
+	static ring_t* Alloc(size_t nLength);					///< Allocate memory for the file name
+	static void Free(ring_t* pRing);					///< Release memory for the file name
+	static int Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast);
 										///< Compare string (with support for wildcards)
 
 	CRing m_cRing;								///< For CHostFilename linking
-	time_t m_tBackup = FALSE;					///< For time stamp restoration
-	BOOL m_bRefresh = TRUE;						///< Refresh flag
+	time_t m_tBackup = 0;					///< For time stamp restoration
+	bool m_bRefresh = true;						///< Refresh flag
 	DWORD m_nId = 0;								///< Unique ID (When the value has changed, it means an update has been made)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];						///< The host side name for the relevant entry
