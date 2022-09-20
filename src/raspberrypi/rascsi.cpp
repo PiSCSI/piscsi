@@ -1478,7 +1478,7 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
-			int now = SysTimer::GetTimerLow();
+			uint32_t now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus->Acquire();
 				if (!bus->GetBSY()) {

@@ -1242,10 +1242,10 @@ void GPIOBUS::SetSignal(int pin, bool ast)
 bool GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
 	// Get current time
-	DWORD now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 
 	// Calculate timeout (3000ms)
-	DWORD timeout = 3000 * 1000;
+	uint32_t timeout = 3000 * 1000;
 
 	// end immediately if the signal has changed
 	do {

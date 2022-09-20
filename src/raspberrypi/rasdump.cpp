@@ -209,10 +209,8 @@ bool ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 bool WaitPhase(BUS::phase_t phase)
 {
-	DWORD now;
-
 	// Timeout (3000ms)
-	now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {

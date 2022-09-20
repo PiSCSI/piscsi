@@ -109,7 +109,7 @@ void SysTimer::SleepNsec(DWORD nsec)
 	}
 
 	// Calculate the timer difference
-	DWORD diff = corefreq * nsec / 1000;
+	uint32_t diff = corefreq * nsec / 1000;
 
 	// Return if the difference in time is too small
 	if (diff == 0) {
@@ -117,7 +117,7 @@ void SysTimer::SleepNsec(DWORD nsec)
 	}
 
 	// Start
-	DWORD start = armtaddr[ARMT_FREERUN];
+	uint32_t start = armtaddr[ARMT_FREERUN];
 
 	// Loop until timer has elapsed
 	while ((armtaddr[ARMT_FREERUN] - start) < diff);
@@ -135,6 +135,6 @@ void SysTimer::SleepUsec(DWORD usec)
 		return;
 	}
 
-	DWORD now = GetTimerLow();
+	uint32_t now = GetTimerLow();
 	while ((GetTimerLow() - now) < usec);
 }
