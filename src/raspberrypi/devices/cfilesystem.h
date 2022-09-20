@@ -609,7 +609,7 @@ public:
 	void SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
 	bool isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
 	void SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }	///< Set search attribute
-	BOOL Find(DWORD nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
+	bool Find(DWORD nUnit, const class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
 	const CHostFilename* Find(const CHostPath* pPath);					///< Find file name
 	void SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
 	void SetResult(const TCHAR* szPath);						///< Set names on the host side
@@ -774,7 +774,7 @@ public:
 	CHostPath* FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
 	CHostPath* CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
 	CHostPath* MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
-	BOOL Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
+	bool Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
 
 private:
 	// Path name operations
@@ -823,7 +823,7 @@ public:
 	void CleanCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache for the specified path
 	void CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath) const;	///< Update cache below the specified path
 	void DeleteCache(DWORD nUnit, const BYTE* szHumanPath) const;	///< Delete cache for the specified path
-	BOOL Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
+	bool Find(DWORD nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
 	void ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
@@ -930,7 +930,7 @@ public:
 
 private:
 	void InitOption(const Human68k::argument_t* pArgument);
-	BOOL FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
+	bool FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const;		///< Get volume label
 
 	DWORD m_nUnits = 0;								///< Number of current drive objects (Changes for every resume)
 

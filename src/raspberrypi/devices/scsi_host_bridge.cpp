@@ -601,7 +601,7 @@ void SCSIBR::FS_Create(BYTE *buf)
 	DWORD nAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	auto bp = (BOOL*)&buf[i];
+	auto bp = (int*)&buf[i];
 	DWORD bForce = ntohl(*bp);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
