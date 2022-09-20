@@ -106,15 +106,10 @@ bool Fileio::Write(const BYTE *buffer, int size) const
 	return write(handle, buffer, size) == size;
 }
 
-bool Fileio::Seek(off_t offset, bool relative) const
+bool Fileio::Seek(off_t offset) const
 {
 	assert(handle >= 0);
 	assert(offset >= 0);
-
-	// Add current position in case of relative seek
-	if (relative) {
-		offset += GetFilePos();
-	}
 
 	return lseek(handle, offset, SEEK_SET) == offset;
 }

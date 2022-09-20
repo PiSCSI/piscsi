@@ -30,7 +30,7 @@ public:
 	bool Open(const char *fname, OpenMode mode);
 	bool Open(const Filepath& path, OpenMode mode);
 	bool OpenDIO(const Filepath& path, OpenMode mode);
-	bool Seek(off_t offset, bool relative = false) const;
+	bool Seek(off_t offset) const;
 	bool Read(BYTE *buffer, int size) const;
 	bool Write(const BYTE *buffer, int size) const;
 	off_t GetFileSize() const;
