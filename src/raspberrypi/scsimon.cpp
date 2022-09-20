@@ -171,15 +171,15 @@ bool Init()
     // Interrupt handler settings
     if (signal(SIGINT, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
     if (signal(SIGHUP, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
     if (signal(SIGTERM, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
 
     // GPIO Initialization
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
 
     // Start execution
     running = true;
-    bus->SetACT(FALSE);
+    bus->SetACT(false);
 
     (void)gettimeofday(&start_time, nullptr);
 

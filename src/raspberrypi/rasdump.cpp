@@ -852,9 +852,9 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// Assert reset signal
-	bus.SetRST(TRUE);
+	bus.SetRST(true);
 	usleep(1000);
-	bus.SetRST(FALSE);
+	bus.SetRST(false);
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);

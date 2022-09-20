@@ -112,7 +112,7 @@ int CDTrack::GetTrackNo() const
 //---------------------------------------------------------------------------
 bool CDTrack::IsValid(DWORD lba) const
 {
-	// FALSE if the track itself is invalid
+	// false if the track itself is invalid
 	if (!valid) {
 		return false;
 	}
