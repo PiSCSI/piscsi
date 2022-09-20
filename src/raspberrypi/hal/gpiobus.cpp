@@ -1070,7 +1070,7 @@ void GPIOBUS::MakeTable(void)
 
 	int i;
 	int j;
-	BOOL tblParity[256];
+	bool tblParity[256];
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
 	int shift;
