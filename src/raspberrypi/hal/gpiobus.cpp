@@ -617,7 +617,7 @@ void GPIOBUS::SetREQ(bool ast)
 //---------------------------------------------------------------------------
 BYTE GPIOBUS::GetDAT()
 {
-	int data = Acquire();
+	uint32_t data = Acquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
