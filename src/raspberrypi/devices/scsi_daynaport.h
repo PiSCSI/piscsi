@@ -133,7 +133,4 @@ private:
 	bool m_bTapEnable = false;
 
 	array<byte, 6> m_mac_addr;
-
-	// static const array<byte, 6> m_bcast_addr;
-	// static const array<byte, 6> m_apple_talk_addr;
 };
