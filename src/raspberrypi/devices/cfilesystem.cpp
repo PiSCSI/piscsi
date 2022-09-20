@@ -228,7 +228,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	ASSERT(m_bWriteProtect == FALSE);
 	ASSERT(!m_bEnable);
 	ASSERT(m_capCache.sectors == 0);
-	ASSERT(m_bVolumeCache == FALSE);
+	ASSERT(!m_bVolumeCache);
 	ASSERT(m_szVolumeCache[0] == _T('\0'));
 
 	// Confirm that the entity does not exist (just in case)
@@ -313,7 +313,7 @@ void CHostDrv::SetEnable(bool bEnable)
 	if (!bEnable) {
 		// Clear cache
 		m_capCache.sectors = 0;
-		m_bVolumeCache = FALSE;
+		m_bVolumeCache = false;
 		m_szVolumeCache[0] = _T('\0');
 	}
 }
@@ -393,7 +393,7 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// If the cache contents are valid return TRUE, if invalid return FALSE.
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
+bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 {
 	ASSERT(szLabel);
 
@@ -447,9 +447,9 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 /// If the contents of the cache is valid return TRUE, is invalid return FALSE.
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
+bool CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(pCapacity);
+	assert(pCapacity);
 
 	// Transfer contents
 	memcpy(pCapacity, &m_capCache, sizeof(m_capCache));
@@ -477,7 +477,7 @@ void CHostDrv::CleanCache() const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache(const BYTE* szHumanPath)
 {
-	ASSERT(szHumanPath);
+	assert(szHumanPath);
 
 	CHostPath* p = FindCache(szHumanPath);
 	if (p) {
@@ -1951,7 +1951,7 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel) const
 /// Get volume label from cache
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1977,7 +1977,7 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) cons
 /// Get cluster size from cache
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
+bool CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -3522,7 +3522,7 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const
 		media = m_cEntry.GetMediaByte(nUnit);
 
 		// Acquire sector data
-		if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
+		if (!m_cEntry.GetCapacityCache(nUnit, &cap)) {
 			// Carry out an extra media check here because it may be skipped when doing a manual eject
 			if (!m_cEntry.isEnable(nUnit))
 				goto none;
@@ -3608,7 +3608,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 
 	// Acquire sector data
 	Human68k::capacity_t cap;
-	if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
+	if (!m_cEntry.GetCapacityCache(nUnit, &cap)) {
 		// Get drive status
 		m_cEntry.GetCapacity(nUnit, &cap);
 	}
@@ -3929,7 +3929,7 @@ BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 
 	// Get volume label
 	TCHAR szVolume[32];
-	if (BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); bResult == FALSE) {
+	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); !bResult) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (!m_cEntry.isEnable(nUnit))
 			return FALSE;

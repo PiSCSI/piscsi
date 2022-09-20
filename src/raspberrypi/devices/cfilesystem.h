@@ -762,9 +762,9 @@ public:
 	void Update();								///< Update media status
 	void Eject();
 	void GetVolume(TCHAR* szLabel);					///< Get volume label
-	BOOL GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
+	bool GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
 	DWORD GetCapacity(Human68k::capacity_t* pCapacity);
-	BOOL GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
+	bool GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
 	// Cache operations
 	void CleanCache() const;							///< Update all cache
@@ -792,7 +792,7 @@ private:
 	DWORD m_nRing = 0;							///< Number of stored path names
 	CRing m_cRing;							///< For attaching to CHostPath
 	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
-	BOOL m_bVolumeCache = FALSE;						///< TRUE if the volume label has been read
+	bool m_bVolumeCache = false;						///< TRUE if the volume label has been read
 	TCHAR m_szVolumeCache[24] = {};					///< Volume label cache
 	TCHAR m_szBase[FILEPATH_MAX] = {};					///< Base path
 };
@@ -836,9 +836,9 @@ public:
 	bool CheckMedia(DWORD nUnit) const;						///< Media change check
 	void Eject(DWORD nUnit) const;
 	void GetVolume(DWORD nUnit, TCHAR* szLabel) const;				///< Get volume label
-	BOOL GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	bool GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
 	DWORD GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-	BOOL GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
+	bool GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;		///< Get cluster size from cache
 
 private:
 
