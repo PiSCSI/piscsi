@@ -14,12 +14,6 @@
 
 #include "config.h"
 
-//===========================================================================
-//
-//	File I/O
-//
-//===========================================================================
-
 Fileio::~Fileio()
 {
 	ASSERT(handle == -1);
@@ -28,21 +22,19 @@ Fileio::~Fileio()
 	Close();
 }
 
-BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
+bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 {
-	mode_t omode;
-
-	ASSERT(fname);
-	ASSERT(handle < 0);
+	assert(fname);
+	assert(handle < 0);
 
 	// Always fail a read from a null array
 	if (fname[0] == _T('\0')) {
 		handle = -1;
-		return FALSE;
+		return false;
 	}
 
 	// Default mode
-	omode = directIO ? O_DIRECT : 0;
+	mode_t omode = directIO ? O_DIRECT : 0;
 
 	switch (mode) {
 		case OpenMode::ReadOnly:
@@ -56,91 +48,82 @@ BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
 		case OpenMode::ReadWrite:
 			// Make sure RW does not succeed when reading from CD-ROM
 			if (access(fname, 0x06) != 0) {
-				return FALSE;
+				return false;
 			}
 			handle = open(fname, O_RDWR | omode);
 			break;
 
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 
 	// Evaluate results
 	if (handle == -1) {
-		return FALSE;
+		return false;
 	}
 
-	ASSERT(handle >= 0);
-	return TRUE;
+	return true;
 }
 
-BOOL Fileio::Open(const char *fname, OpenMode mode)
+bool Fileio::Open(const char *fname, OpenMode mode)
 {
-
-	return Open(fname, mode, FALSE);
+	return Open(fname, mode, false);
 }
 
-BOOL Fileio::Open(const Filepath& path, OpenMode mode)
+bool Fileio::Open(const Filepath& path, OpenMode mode)
 {
-
 	return Open(path.GetPath(), mode);
 }
 
-BOOL Fileio::OpenDIO(const char *fname, OpenMode mode)
+bool Fileio::OpenDIO(const char *fname, OpenMode mode)
 {
-
 	// Open with included O_DIRECT
-	if (!Open(fname, mode, TRUE)) {
+	if (!Open(fname, mode, true)) {
 		// Normal mode retry (tmpfs etc.)
-		return Open(fname, mode, FALSE);
+		return Open(fname, mode, false);
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
+bool Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 {
-
 	return OpenDIO(path.GetPath(), mode);
 }
 
-BOOL Fileio::Read(BYTE *buffer, int size) const
+bool Fileio::Read(BYTE *buffer, int size) const
 {
-	long count;
+	assert(buffer);
+	assert(size > 0);
+	assert(handle >= 0);
 
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle >= 0);
-
-	count = read(handle, buffer, size);
+	long count = read(handle, buffer, size);
 	if (count != size) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL Fileio::Write(const BYTE *buffer, int size) const
+bool Fileio::Write(const BYTE *buffer, int size) const
 {
-	long count;
+	assert(buffer);
+	assert(size > 0);
+	assert(handle >= 0);
 
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle >= 0);
-
-	count = write(handle, buffer, size);
+	long count = write(handle, buffer, size);
 	if (count != size) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL Fileio::Seek(off_t offset, BOOL relative) const
+bool Fileio::Seek(off_t offset, bool relative) const
 {
-	ASSERT(handle >= 0);
-	ASSERT(offset >= 0);
+	assert(handle >= 0);
+	assert(offset >= 0);
 
 	// Add current position in case of relative seek
 	if (relative) {
@@ -148,24 +131,21 @@ BOOL Fileio::Seek(off_t offset, BOOL relative) const
 	}
 
 	if (lseek(handle, offset, SEEK_SET) != offset) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 off_t Fileio::GetFileSize() const
 {
-	off_t cur;
-	off_t end;
-
-	ASSERT(handle >= 0);
+	assert(handle >= 0);
 
 	// Get file position in 64bit
-	cur = GetFilePos();
+	off_t cur = GetFilePos();
 
 	// Get file size in64bitで
-	end = lseek(handle, 0, SEEK_END);
+	off_t end = lseek(handle, 0, SEEK_END);
 
 	// Return to start position
 	Seek(cur);
@@ -175,19 +155,15 @@ off_t Fileio::GetFileSize() const
 
 off_t Fileio::GetFilePos() const
 {
-	off_t pos;
-
-	ASSERT(handle >= 0);
+	assert(handle >= 0);
 
 	// Get file position in 64bit
-	pos = lseek(handle, 0, SEEK_CUR);
-	return pos;
+	return lseek(handle, 0, SEEK_CUR);
 
 }
 
 void Fileio::Close()
 {
-
 	if (handle != -1) {
 		close(handle);
 		handle = -1;
