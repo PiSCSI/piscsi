@@ -25,18 +25,19 @@ static const int CACHE_MAX = 16;
 class DiskTrack
 {
 private:
+
 	 struct {
 		int track;							// Track Number
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-		int sectors;							// Number of sectors(<0x100)
-		DWORD length;							// Data buffer length
-		BYTE *buffer;							// Data buffer
-		BOOL init;							// Is it initilized?
-		BOOL changed;							// Changed flag
-		DWORD maplen;							// Changed map length
-		BOOL *changemap;						// Changed map
-		BOOL raw;							// RAW mode flag
-		off_t imgoffset;						// Offset to actual data
+		int sectors;						// Number of sectors(<0x100)
+		DWORD length;						// Data buffer length
+		BYTE *buffer;						// Data buffer
+		bool init;							// Is it initilized?
+		bool changed;						// Changed flag
+		DWORD maplen;						// Changed map length
+		bool *changemap;					// Changed map
+		bool raw;							// RAW mode flag
+		off_t imgoffset;					// Offset to actual data
 	} dt = {};
 
 public:
@@ -48,7 +49,7 @@ public:
 private:
 	friend class DiskCache;
 
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);
+	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0);
 	bool Load(const Filepath& path);
 	bool Save(const Filepath& path);
 
@@ -73,7 +74,7 @@ public:
 	DiskCache(DiskCache&) = delete;
 	DiskCache& operator=(const DiskCache&) = delete;
 
-	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
+	void SetRawMode(bool);					// CD-ROM raw mode setting
 
 	// Access
 	bool Save() const;							// Save and release all
@@ -94,7 +95,7 @@ private:
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
-	BOOL cd_raw = FALSE;						// CD-ROM RAW mode
+	bool cd_raw = false;						// CD-ROM RAW mode
 	off_t imgoffset;							// Offset to actual data
 };
 
