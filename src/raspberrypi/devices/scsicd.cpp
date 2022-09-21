@@ -18,6 +18,7 @@
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
+#include <array>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -241,21 +242,21 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Read the first 12 bytes and close
-	BYTE header[12];
-	if (!fio.Read(header, sizeof(header))) {
+	array<BYTE, 12> header;
+	if (!fio.Read(header.data(), header.size())) {
 		fio.Close();
 		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
 
 	// Check if it is RAW format
-	BYTE sync[12];
-	memset(sync, 0xff, sizeof(sync));
+	array<BYTE, 12> sync;
+	memset(sync.data(), 0xff, sync.size());
 	sync[0] = 0x00;
 	sync[11] = 0x00;
 	rawfile = false;
-	if (memcmp(header, sync, sizeof(sync)) == 0) {
+	if (memcmp(header.data(), sync.data(), sync.size()) == 0) {
 		// 00,FFx10,00, so it is presumed to be RAW format
-		if (!fio.Read(header, 4)) {
+		if (!fio.Read(header.data(), 4)) {
 			fio.Close();
 			throw io_exception("Can't read header of raw ISO CD-ROM file");
 		}
