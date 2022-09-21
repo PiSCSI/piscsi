@@ -11,7 +11,7 @@
 //---------------------------------------------------------------------------
 
 #include <sys/mman.h>
-
+#include <sys/ioctl.h>
 #include "os.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
