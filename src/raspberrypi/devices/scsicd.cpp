@@ -37,7 +37,7 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 
 	// Set and enable track number
 	track_no = track;
-	valid = TRUE;
+	valid = true;
 
 	// Remember LBA
 	first_lba = first;

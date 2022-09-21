@@ -18,6 +18,10 @@
 #define FALSE 0
 #endif
 
+#if !defined(TRUE)
+#define TRUE 1
+#endif
+
 //---------------------------------------------------------------------------
 //
 //	Connection method definitions

@@ -24,15 +24,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-//---------------------------------------------------------------------------
-//
-//	Basic Type Definitions
-//
-//---------------------------------------------------------------------------
 using BYTE = unsigned char;
 using WORD = uint16_t;
 using DWORD = uint32_t;
-
-#if !defined(TRUE)
-#define TRUE 1
-#endif
