@@ -1182,15 +1182,13 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 	}
 
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
-		ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
-		return false;
+		return ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
 	if (!PbOperation_IsValid(command.operation())) {
 		LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
-		ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
-		return false;
+		return ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
 	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
