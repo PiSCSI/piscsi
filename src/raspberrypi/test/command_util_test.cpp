@@ -26,3 +26,22 @@ TEST(CommandUtil, AddGetParam)
 	ASSERT_EQ("value", GetParam(device, "key"));
 	ASSERT_EQ("", GetParam(device, "xyz"));
 }
+
+TEST(CommandUtil, ParseParameters)
+{
+	PbDeviceDefinition device1;
+	ParseParameters(device1, "a=b:c=d:e");
+	ASSERT_EQ("b", GetParam(device1, "a"));
+	ASSERT_EQ("d", GetParam(device1, "c"));
+	ASSERT_EQ("", GetParam(device1, "e"));
+
+	// Old style parameters
+	PbDeviceDefinition device2;
+	ParseParameters(device2, "a");
+	ASSERT_EQ("a", GetParam(device2, "file"));
+	ASSERT_EQ("a", GetParam(device2, "interfaces"));
+	PbDeviceDefinition device3;
+	ParseParameters(device3, "bridge");
+	ASSERT_EQ("bridge", GetParam(device3, "file"));
+	ASSERT_EQ("", GetParam(device3, "interfaces"));
+}
