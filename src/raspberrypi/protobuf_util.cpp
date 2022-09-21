@@ -7,12 +7,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include <unistd.h>
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_util.h"
+#include <unistd.h>
+#include <sstream>
 
 using namespace std;
 using namespace rascsi_interface;

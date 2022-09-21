@@ -15,7 +15,6 @@
 #include "rascsi_interface.pb.h"
 #include "command_context.h"
 #include "localizer.h"
-#include <sstream>
 #include <string>
 
 using namespace std;
