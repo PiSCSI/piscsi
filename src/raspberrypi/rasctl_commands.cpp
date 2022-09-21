@@ -25,7 +25,7 @@ using namespace command_util;
 // Separator for the INQUIRY name components
 static const char COMPONENT_SEPARATOR = ':';
 
-SocketConnector protobuf_connector;
+SocketConnector socket_connector;
 
 RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
@@ -71,7 +71,7 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't write magic");
     	}
 
-    	protobuf_connector.SerializeMessage(fd, command);
+    	socket_connector.SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
     	cerr << "Error: " << e.get_msg() << endl;
@@ -85,7 +85,7 @@ void RasctlCommands::SendCommand()
 
     // Receive result
     try {
-    	protobuf_connector.DeserializeMessage(fd, result);
+    	socket_connector.DeserializeMessage(fd, result);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());

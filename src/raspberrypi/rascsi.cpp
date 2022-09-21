@@ -72,7 +72,7 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
-SocketConnector protobuf_connector;
+SocketConnector socket_connector;
 void DetachAll();
 
 //---------------------------------------------------------------------------
@@ -901,7 +901,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 		PbCommand command;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, command);
-		protobuf_connector.SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 		return true;
 	}
 
@@ -939,7 +939,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode == "rascsi") {
 		LOGINFO("RaSCSI shutdown requested");
 
-		protobuf_connector.SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		TerminationHandler(0);
 	}
@@ -953,7 +953,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode == "system") {
 		LOGINFO("System shutdown requested")
 
-		protobuf_connector.SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		DetachAll();
 
@@ -964,7 +964,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	else if (mode == "reboot") {
 		LOGINFO("System reboot requested")
 
-		protobuf_connector.SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		DetachAll();
 
@@ -1136,7 +1136,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	command.set_operation(ATTACH);
 
 	Localizer localizer;
-	CommandContext context(&protobuf_connector, &localizer, -1, locale);
+	CommandContext context(&socket_connector, &localizer, -1, locale);
 	if (!ProcessCmd(context, command)) {
 		return false;
 	}
@@ -1220,13 +1220,13 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case DEVICES_INFO: {
 			rascsi_response.GetDevicesInfo(result, command);
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
 			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
@@ -1234,19 +1234,19 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 			result.set_allocated_server_info(rascsi_response.GetServerInfo(
 					result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case VERSION_INFO: {
 			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
 			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
@@ -1254,7 +1254,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
@@ -1268,7 +1268,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
-					protobuf_connector.SerializeMessage(context.fd, result);
+					socket_connector.SerializeMessage(context.fd, result);
 				}
 				else {
 					ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
@@ -1279,26 +1279,26 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case NETWORK_INTERFACES_INFO: {
 			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case MAPPING_INFO: {
 			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case OPERATION_INFO: {
 			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
 					rascsi_image.GetDepth()));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
 			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
-			protobuf_connector.SerializeMessage(context.fd, result);
+			socket_connector.SerializeMessage(context.fd, result);
 			break;
 		}
 
@@ -1346,11 +1346,11 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 
 	while (true) {
 		Localizer localizer;
-		CommandContext context(&protobuf_connector, &localizer, -1, "");
+		CommandContext context(&socket_connector, &localizer, -1, "");
 
 		try {
 			PbCommand command;
-			context.fd = protobuf_connector.ReadCommand(command, monsocket);
+			context.fd = socket_connector.ReadCommand(command, monsocket);
 			if (context.fd == -1) {
 				continue;
 			}
