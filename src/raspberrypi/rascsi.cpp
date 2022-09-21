@@ -1174,6 +1174,154 @@ void FixCpu(int cpu)
 #endif
 }
 
+static bool ExecuteCommand(PbCommand& command, CommandContext& context)
+{
+	context.locale = GetParam(command, "locale");
+	if (context.locale.empty()) {
+		context.locale = "en";
+	}
+
+	if (!access_token.empty() && access_token != GetParam(command, "token")) {
+		ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
+		return false;
+	}
+
+	if (!PbOperation_IsValid(command.operation())) {
+		LOGERROR("Received unknown command with operation opcode %d", command.operation())
+
+		ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
+		return false;
+	}
+
+	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
+
+	PbResult result;
+
+	switch(command.operation()) {
+		case LOG_LEVEL: {
+			string log_level = GetParam(command, "level");
+			if (bool status = SetLogLevel(log_level); !status) {
+				ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
+			}
+			else {
+				ReturnStatus(context);
+			}
+			break;
+		}
+
+		case DEFAULT_FOLDER: {
+			if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
+				ReturnStatus(context, false, status);
+			}
+			else {
+				ReturnStatus(context);
+			}
+			break;
+		}
+
+		case DEVICES_INFO: {
+			rascsi_response.GetDevicesInfo(result, command);
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case DEVICE_TYPES_INFO: {
+			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case SERVER_INFO: {
+			result.set_allocated_server_info(rascsi_response.GetServerInfo(
+					result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+					GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case VERSION_INFO: {
+			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case LOG_LEVEL_INFO: {
+			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case DEFAULT_IMAGE_FILES_INFO: {
+			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
+					rascsi_image.GetDepth()));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case IMAGE_FILE_INFO: {
+			if (string filename = GetParam(command, "file"); filename.empty()) {
+				ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
+			}
+			else {
+				auto image_file = make_unique<PbImageFile>();
+				bool status = rascsi_response.GetImageFile(image_file.get(), filename);
+				if (status) {
+					result.set_status(true);
+					result.set_allocated_image_file_info(image_file.get());
+					SerializeMessage(context.fd, result);
+				}
+				else {
+					ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
+				}
+			}
+			break;
+		}
+
+		case NETWORK_INTERFACES_INFO: {
+			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case MAPPING_INFO: {
+			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case OPERATION_INFO: {
+			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
+					rascsi_image.GetDepth()));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case RESERVED_IDS_INFO: {
+			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
+			SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case SHUT_DOWN: {
+			ShutDown(context, GetParam(command, "mode"));
+			break;
+		}
+
+		default: {
+			// Wait until we become idle
+			while (active) {
+				usleep(500 * 1000);
+			}
+
+			ProcessCmd(context, command);
+			break;
+		}
+	}
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Monitor Thread
@@ -1207,147 +1355,8 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 				continue;
 			}
 
-			context.locale = GetParam(command, "locale");
-			if (context.locale.empty()) {
-				context.locale = "en";
-			}
-
-			if (!access_token.empty() && access_token != GetParam(command, "token")) {
-				ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
+			if (!ExecuteCommand(command, context)) {
 				continue;
-			}
-
-			if (!PbOperation_IsValid(command.operation())) {
-				LOGERROR("Received unknown command with operation opcode %d", command.operation())
-
-				ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
-				continue;
-			}
-
-			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
-
-			PbResult result;
-
-			switch(command.operation()) {
-				case LOG_LEVEL: {
-					string log_level = GetParam(command, "level");
-					if (bool status = SetLogLevel(log_level); !status) {
-						ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
-					}
-					else {
-						ReturnStatus(context);
-					}
-					break;
-				}
-
-				case DEFAULT_FOLDER: {
-					if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
-						ReturnStatus(context, false, status);
-					}
-					else {
-						ReturnStatus(context);
-					}
-					break;
-				}
-
-				case DEVICES_INFO: {
-					rascsi_response.GetDevicesInfo(result, command);
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case DEVICE_TYPES_INFO: {
-					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case SERVER_INFO: {
-					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
-							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case VERSION_INFO: {
-					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case LOG_LEVEL_INFO: {
-					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case DEFAULT_IMAGE_FILES_INFO: {
-					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-							rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case IMAGE_FILE_INFO: {
-					if (string filename = GetParam(command, "file"); filename.empty()) {
-						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
-					}
-					else {
-						auto image_file = make_unique<PbImageFile>();
-						bool status = rascsi_response.GetImageFile(image_file.get(), filename);
-						if (status) {
-							result.set_status(true);
-							result.set_allocated_image_file_info(image_file.get());
-							SerializeMessage(context.fd, result);
-						}
-						else {
-							ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
-						}
-					}
-					break;
-				}
-
-				case NETWORK_INTERFACES_INFO: {
-					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case MAPPING_INFO: {
-					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case OPERATION_INFO: {
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
-							rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case RESERVED_IDS_INFO: {
-					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case SHUT_DOWN: {
-					ShutDown(context, GetParam(command, "mode"));
-					break;
-				}
-
-				default: {
-					// Wait until we become idle
-					while (active) {
-						usleep(500 * 1000);
-					}
-
-					ProcessCmd(context, command);
-					break;
-				}
 			}
 		}
 		catch(const io_exception& e) {
