@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "socket_connector.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <string>
@@ -48,6 +49,7 @@ public:
 
 private:
 
+	SocketConnector socket_connector;
 	PbCommand command;
 	string hostname;
 	int port;

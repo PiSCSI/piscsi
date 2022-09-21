@@ -25,8 +25,6 @@ using namespace command_util;
 // Separator for the INQUIRY name components
 static const char COMPONENT_SEPARATOR = ':';
 
-SocketConnector socket_connector;
-
 RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
 	: command(command), hostname(hostname), port(port), token(token), locale(locale)
