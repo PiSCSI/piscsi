@@ -21,6 +21,7 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include "scsi_command_util.h"
+#include <array>
 
 using namespace std;
 using namespace scsi_defs;
@@ -335,7 +336,7 @@ void SCSIBR::SetMacAddr(const BYTE *mac)
 
 void SCSIBR::ReceivePacket()
 {
-	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	// previous packet has not been received
 	if (packet_enable) {
@@ -346,7 +347,7 @@ void SCSIBR::ReceivePacket()
 	packet_len = tap.Rx(packet_buf);
 
 	// Check if received packet
-	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
+	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr.data(), bcast_addr.size()) != 0) {
 		packet_len = 0;
 		return;
 	}
