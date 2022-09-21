@@ -13,10 +13,6 @@
 
 #pragma once
 
-#ifndef _LARGEFILE64_SOURCE
-#define _LARGEFILE64_SOURCE
-#endif
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstddef>
