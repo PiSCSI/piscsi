@@ -345,7 +345,7 @@ void DiskCache::SetRawMode(bool raw)
 bool DiskCache::Save() const
 {
 	// Save track
-	for (cache_t c : cache) {
+	for (const cache_t& c : cache) {
 		// Save if this is a valid track
 		if (c.disktrk && !c.disktrk->Save(sec_path)) {
 			return false;
@@ -438,7 +438,7 @@ DiskTrack* DiskCache::Assign(int track)
 	assert(track >= 0);
 
 	// First, check if it is already assigned
-	for (cache_t c : cache) {
+	for (cache_t& c : cache) {
 		if (c.disktrk && c.disktrk->GetTrack() == track) {
 			// Track match
 			c.serial = serial;
