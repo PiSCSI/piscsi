@@ -1048,7 +1048,7 @@ void GPIOBUS::ClearSelectEvent()
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const int GPIOBUS::SignalTable[19] = {
+const array<int, 19> GPIOBUS::SignalTable = {
 	PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3,
 	PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7,	PIN_DP,
 	PIN_SEL,PIN_ATN, PIN_RST, PIN_ACK,
@@ -1063,14 +1063,14 @@ const int GPIOBUS::SignalTable[19] = {
 //---------------------------------------------------------------------------
 void GPIOBUS::MakeTable(void)
 {
-	const int pintbl[] = {
+	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
 		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
 	};
 
 	int i;
 	int j;
-	bool tblParity[256];
+	array<bool, 256> tblParity;
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
 	int shift;

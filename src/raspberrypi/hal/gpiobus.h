@@ -13,6 +13,9 @@
 
 #include "config.h"
 #include "scsi.h"
+#include <array>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -496,6 +499,6 @@ private:
 	DWORD tblDatSet[256];				// Table setting table
 #endif
 
-	static const int SignalTable[19];	// signal table
+	static const array<int, 19> SignalTable;	// signal table
 };
 
