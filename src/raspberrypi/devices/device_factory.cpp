@@ -15,9 +15,10 @@
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "rascsi_exceptions.h"
+#include "host_services.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
-#include "host_services.h"
+#include <sys/ioctl.h>
 
 using namespace std;
 using namespace rascsi_interface;

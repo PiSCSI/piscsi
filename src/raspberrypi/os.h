@@ -21,12 +21,10 @@
 #include <cassert>
 #include <unistd.h>
 #include <utime.h>
-#include <fcntl.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #ifdef __linux

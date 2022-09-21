@@ -11,8 +11,8 @@
 #include "os.h"
 #include "filepath.h"
 #include "fileio.h"
-
 #include "config.h"
+#include <fcntl.h>
 
 Fileio::~Fileio()
 {

@@ -12,13 +12,11 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer.h"
-#include <sys/mman.h>
-
-#include "os.h"
 #include "hal/gpiobus.h"
-
 #include "config.h"
-#include "log.h"
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 
 //---------------------------------------------------------------------------
 //
