@@ -18,9 +18,6 @@
 #pragma once
 
 #include "filepath.h"
-#include <array>
-
-using namespace std;
 
 // Number of tracks to cache
 static const int CACHE_MAX = 16;
@@ -93,7 +90,7 @@ private:
 	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data
-	array<cache_t, CACHE_MAX> cache;			// Cache management
+	cache_t cache[CACHE_MAX] = {};				// Cache management
 	DWORD serial = 0;							// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
