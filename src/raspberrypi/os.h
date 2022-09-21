@@ -19,19 +19,13 @@
 #include <cstdarg>
 #include <cstring>
 #include <cassert>
+#include <cstdint>
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/socket.h>
-
-#ifdef __linux
-#include <sys/epoll.h>
-#include <linux/gpio.h>
-#include <linux/if.h>
-#include <linux/if_tun.h>
-#endif
 
 //---------------------------------------------------------------------------
 //

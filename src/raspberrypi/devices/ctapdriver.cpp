@@ -14,17 +14,21 @@
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>
-#ifdef __linux__
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <linux/sockios.h>
-#endif
 #include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
 #include "rasutil.h"
 #include "rascsi_exceptions.h"
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/epoll.h>
 #include <sstream>
+
+#ifdef __linux__
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <linux/sockios.h>
+#endif
 
 using namespace std;
 using namespace ras_util;

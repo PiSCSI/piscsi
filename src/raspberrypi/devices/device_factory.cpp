@@ -20,6 +20,7 @@
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
+#include <net/if.h>
 
 using namespace std;
 using namespace rascsi_interface;

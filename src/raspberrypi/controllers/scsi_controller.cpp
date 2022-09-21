@@ -23,6 +23,9 @@
 #include "scsi_controller.h"
 #include <sstream>
 #include <iomanip>
+#ifdef __linux
+#include <linux/if_tun.h>
+#endif
 
 using namespace scsi_defs;
 
