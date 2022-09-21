@@ -160,8 +160,8 @@ int main(int argc, char* argv[])
 	string token;
 	bool list = false;
 
-	string locale = setlocale(LC_MESSAGES, "");
-	if (locale == "C") {
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
 		locale = "en";
 	}
 

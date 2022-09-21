@@ -13,6 +13,7 @@
 
 #include "phase_handler.h"
 #include <unordered_map>
+#include <vector>
 #include <memory>
 
 using namespace std;
@@ -33,20 +34,16 @@ public:
 		RESTART_PI
 	};
 
-	// Internal data definition
-	// TODO Some of these data are probably device specific, and in this case they should be moved.
-	// These data are not internal, otherwise they could all be private
 	using ctrl_t = struct _ctrl_t {
 		// General
-		BUS::phase_t phase = BUS::busfree;	// Transition phase
+		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
-		DWORD cmd[16];					// Command data
-		DWORD status;					// Status data
+		vector<int> cmd;				// Command data, dynamically allocated per received command
+		uint32_t status;				// Status data
 		int message;					// Message data
 
 		// Transfer
-		// TODO Try to get rid of the static buffer
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		uint32_t blocks;				// Number of transfer blocks
@@ -58,7 +55,7 @@ public:
 		unordered_map<int, PrimaryDevice *> luns;
 	};
 
-	AbstractController(shared_ptr<BUS> bus, int target_id) : bus(bus), target_id(target_id) {}
+	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}
 	~AbstractController() override = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
@@ -89,14 +86,13 @@ public:
 	// TODO Do not expose internal data
 	ctrl_t* GetCtrl() { return &ctrl; }
 
+	int target_id;
 
 protected:
+
+	scsi_defs::scsi_command GetOpcode() const { return (scsi_defs::scsi_command)ctrl.cmd[0]; }
 
 	shared_ptr<BUS> bus;
 
 	ctrl_t ctrl = {};
-
-private:
-
-	int target_id;
 };

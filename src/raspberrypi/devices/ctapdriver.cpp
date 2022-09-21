@@ -25,8 +25,6 @@
 #include "rascsi_exceptions.h"
 #include <sstream>
 
-static const char *BRIDGE_NAME = "rascsi_bridge";
-
 using namespace std;
 using namespace ras_util;
 
@@ -39,7 +37,7 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
-		LOGERROR("Can't if_nametoindex: %s", strerror(errno))
+		LOGERROR("Can't if_nametoindex %s: %s", ifname, strerror(errno))
 		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
@@ -118,14 +116,14 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return false;
 	}
 
-	LOGTRACE("Opened tap device %d",m_hTAP)
+	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	char dev[IFNAMSIZ] = "ras0";
-	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+	string dev = "ras0";
+	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
 
 	LOGTRACE("Going to open %s", ifr.ifr_name)
 
@@ -325,7 +323,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Got the MAC")
 
 	// Save MAC address
-	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
+	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
 
 	close(ip_fd);
 	close(br_socket_fd);
@@ -403,7 +401,8 @@ void CTapDriver::Flush()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while(PendingPackets()){
-		(void)Rx(m_garbage_buffer);
+		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
+		(void)Rx(m_garbage_buffer.data());
 	}
 }
 
@@ -411,7 +410,7 @@ void CTapDriver::GetMacAddr(BYTE *mac) const
 {
 	ASSERT(mac);
 
-	memcpy(mac, m_MacAddr, sizeof(m_MacAddr));
+	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
 
 //---------------------------------------------------------------------------

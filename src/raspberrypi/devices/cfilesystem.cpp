@@ -108,8 +108,7 @@ void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 	ASSERT(szPath);
 
 	BYTE* p = szPath;
-	for (size_t i = 0; i < 65; i++) {
-		BYTE c = path[i];
+	for (BYTE c : path) {
 		if (c == '\0')
 			break;
 		if (c == 0x09) {
@@ -226,10 +225,10 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 {
 	ASSERT(szBase);
 	ASSERT(strlen(szBase) < FILEPATH_MAX);
-	ASSERT(m_bWriteProtect == FALSE);
-	ASSERT(m_bEnable == FALSE);
+	ASSERT(!m_bWriteProtect);
+	ASSERT(!m_bEnable);
 	ASSERT(m_capCache.sectors == 0);
-	ASSERT(m_bVolumeCache == FALSE);
+	ASSERT(!m_bVolumeCache);
 	ASSERT(m_szVolumeCache[0] == _T('\0'));
 
 	// Confirm that the entity does not exist (just in case)
@@ -241,7 +240,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 
 	// Receive parameters
 	if (nFlag & FSFLAG_WRITE_PROTECT)
-		m_bWriteProtect = TRUE;
+		m_bWriteProtect = true;
 	strcpy(m_szBase, szBase);
 
 	// Remove the last path delimiter in the base path
@@ -268,7 +267,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 		*pClear = _T('\0');
 
 	// Status update
-	m_bEnable = TRUE;
+	m_bEnable = true;
 }
 
 //---------------------------------------------------------------------------
@@ -276,10 +275,10 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 // Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::isMediaOffline() const
+bool CHostDrv::isMediaOffline() const
 {
 	// Offline status check
-	return m_bEnable == FALSE;
+	return !m_bEnable;
 }
 
 //---------------------------------------------------------------------------
@@ -307,14 +306,14 @@ DWORD CHostDrv::GetStatus() const
 // Media status settings
 //
 //---------------------------------------------------------------------------
-void CHostDrv::SetEnable(BOOL bEnable)
+void CHostDrv::SetEnable(bool bEnable)
 {
 	m_bEnable = bEnable;
 
-	if (bEnable == FALSE) {
+	if (!bEnable) {
 		// Clear cache
 		m_capCache.sectors = 0;
-		m_bVolumeCache = FALSE;
+		m_bVolumeCache = false;
 		m_szVolumeCache[0] = _T('\0');
 	}
 }
@@ -324,11 +323,11 @@ void CHostDrv::SetEnable(BOOL bEnable)
 // Media change check
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::CheckMedia()
+bool CHostDrv::CheckMedia()
 {
 	// Status update
 	Update();
-	if (m_bEnable == FALSE)
+	if (!m_bEnable)
 		CleanCache();
 
 	return m_bEnable;
@@ -342,10 +341,8 @@ BOOL CHostDrv::CheckMedia()
 void CHostDrv::Update()
 {
 	// Considered as media insertion
-	BOOL bEnable = TRUE;
-
 	// Media status reflected
-	SetEnable(bEnable);
+	SetEnable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -357,7 +354,7 @@ void CHostDrv::Eject()
 {
 	// Media discharge
 	CleanCache();
-	SetEnable(FALSE);
+	SetEnable(false);
 
 	// Status update
 	Update();
@@ -382,7 +379,7 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 	}
 
 	// Cache update
-	m_bVolumeCache = TRUE;
+	m_bVolumeCache = true;
 
 	// Transfer content
 	strcpy(szLabel, m_szVolumeCache);
@@ -393,10 +390,10 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// Get volume label from cache
 ///
 /// Transfer the cached volume label information.
-/// If the cache contents are valid return TRUE, if invalid return FALSE.
+/// Return true if the cache contents are valid.
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
+bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 {
 	ASSERT(szLabel);
 
@@ -406,11 +403,6 @@ BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 	return m_bVolumeCache;
 }
 
-//---------------------------------------------------------------------------
-//
-/// Get Capacity
-//
-//---------------------------------------------------------------------------
 DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 {
 	ASSERT(pCapacity);
@@ -447,12 +439,12 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 /// Get capacity from the cache
 ///
 /// Transfer the capacity data stored in cache.
-/// If the contents of the cache is valid return TRUE, is invalid return FALSE.
+/// Return true if the contents of the cache are valid.
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
+bool CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(pCapacity);
+	assert(pCapacity);
 
 	// Transfer contents
 	memcpy(pCapacity, &m_capCache, sizeof(m_capCache));
@@ -480,7 +472,7 @@ void CHostDrv::CleanCache() const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache(const BYTE* szHumanPath)
 {
-	ASSERT(szHumanPath);
+	assert(szHumanPath);
 
 	CHostPath* p = FindCache(szHumanPath);
 	if (p) {
@@ -513,8 +505,6 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath) const
 //---------------------------------------------------------------------------
 void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 {
-	ASSERT(szHumanPath);
-
 	auto p = FindCache(szHumanPath);
 	if (p) {
 		delete p;
@@ -712,7 +702,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 /// Set all Human68k parameters once more.
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::Find(CHostFiles* pFiles)
+bool CHostDrv::Find(CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 
@@ -722,7 +712,7 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 		pPath = MakeCache(pFiles);
 		if (pPath == nullptr) {
 			CleanCache();
-			return FALSE;	// Error: Failed to build cache
+			return false;	// Error: Failed to build cache
 		}
 	}
 
@@ -731,13 +721,13 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 
 	// Exit if only path name
 	if (pFiles->isPathOnly()) {
-		return TRUE;		// Normal exit: only path name
+		return true;		// Normal exit: only path name
 	}
 
 	// Find file name
 	const CHostFilename* pFilename = pFiles->Find(pPath);
 	if (pFilename == nullptr) {
-		return FALSE;		// Error: Could not get file name
+		return false;		// Error: Could not get file name
 	}
 
 	// Store the Human68k side search results
@@ -746,7 +736,7 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 	// Store the host side full path name
 	pFiles->AddResult(pFilename->GetHost());
 
-	return TRUE;
+	return true;
 }
 
 //===========================================================================
@@ -809,7 +799,7 @@ void CHostFilename::ConvertHuman(int nCount)
 		(m_szHost[1] == _T('\0') || (m_szHost[1] == _T('.') && m_szHost[2] == _T('\0')))) {
 		strcpy((char*)m_szHuman, m_szHost);
 
-		m_bCorrect = TRUE;
+		m_bCorrect = true;
 		m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
 		m_pszHumanExt = m_pszHumanLast;
 		return;
@@ -1002,22 +992,22 @@ void CHostFilename::ConvertHuman(int nCount)
 	*pWrite = '\0';
 
 	// Confirm the conversion results
-	m_bCorrect = TRUE;
+	m_bCorrect = true;
 
 	// Fail if the base file name does not exist
 	if (m_pszHumanExt <= m_szHuman)
-		m_bCorrect = FALSE;
+		m_bCorrect = false;
 
 	// Fail if the base file name is more than 1 char and ends with a space
 	// While it is theoretically valid to have a base file name exceed 8 chars,
 	// Human68k is unable to handle it, so failing this case too.
 	else if (m_pszHumanExt[-1] == ' ')
-		m_bCorrect = FALSE;
+		m_bCorrect = false;
 
 	// Fail if the conversion result is the same as a special directory name
 	if (m_szHuman[0] == '.' &&
 		(m_szHuman[1] == '\0' || (m_szHuman[1] == '.' && m_szHuman[2] == '\0')))
-		m_bCorrect = FALSE;
+		m_bCorrect = false;
 }
 
 //---------------------------------------------------------------------------
@@ -1033,7 +1023,7 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 	ASSERT(strlen((const char*)szHuman) < 23);
 
 	strcpy((char*)m_szHuman, (const char*)szHuman);
-	m_bCorrect = TRUE;
+	m_bCorrect = true;
 	m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
 	m_pszHumanExt = SeparateExt(m_szHuman);
 }
@@ -1079,7 +1069,7 @@ void CHostFilename::SetEntryName()
 /// Investigate if the Human68k side name has been processed
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::isReduce() const
+bool CHostFilename::isReduce() const
 {
 	return strcmp((const char *)m_szHost, (const char*)m_szHuman) != 0;
 }
@@ -1089,7 +1079,7 @@ BOOL CHostFilename::isReduce() const
 /// Evaluate Human68k directory entry attribute
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
+int CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
 {
 	BYTE nAttribute = m_dirHuman.attr;
 	if ((nAttribute & (Human68k::AT_ARCHIVE | Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0)
@@ -1228,8 +1218,8 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 	ASSERT(pBufLast);
 
 	// Compare chars
-	BOOL bSkip0 = FALSE;
-	BOOL bSkip1 = FALSE;
+	bool bSkip0 = false;
+	bool bSkip1 = false;
 	for (const BYTE* p = pFirst; p < pLast; p++) {
 		// Read 1 char
 		BYTE c = *p;
@@ -1238,13 +1228,13 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 			d = *pBufFirst++;
 
 		// Ajust char for comparison
-		if (bSkip0 == FALSE) {
-			if (bSkip1 == FALSE) {	// First byte for both c and d
+		if (!bSkip0) {
+			if (!bSkip1) {	// First byte for both c and d
 				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
-					bSkip0 = TRUE;
+					bSkip0 = true;
 				}
 				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// Specifically 0x81~0x9F 0xE0~0xEF
-					bSkip1 = TRUE;
+					bSkip1 = true;
 				}
 				if (c == d)
 					continue;	// Finishes the evaluation here with high probability
@@ -1263,19 +1253,19 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 				}
 			} else {		// Only c is first byte
 				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
-					bSkip0 = TRUE;
+					bSkip0 = true;
 				}
-				bSkip1 = FALSE;
+				bSkip1 = false;
 			}
 		} else {
-			if (bSkip1 == FALSE) {	// Only d is first byte
-				bSkip0 = FALSE;
+			if (!bSkip1) {	// Only d is first byte
+				bSkip0 = false;
 				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// Specifically 0x81~0x9F 0xE0~0xEF
-					bSkip1 = TRUE;
+					bSkip1 = true;
 				}
 			} else {		// Second byte for both c and d
-				bSkip0 = FALSE;
-				bSkip1 = FALSE;
+				bSkip0 = false;
+				bSkip1 = false;
 			}
 		}
 
@@ -1297,9 +1287,9 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 /// Compare Human68k side name
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
+bool CHostPath::isSameHuman(const BYTE* szHuman) const
 {
-	ASSERT(szHuman);
+	assert(szHuman);
 
 	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
@@ -1307,15 +1297,15 @@ BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 
 	// Check number of chars
 	if (nLength != n)
-		return FALSE;
+		return false;
 
 	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + nLength, szHuman, szHuman + n) == 0;
 }
 
-BOOL CHostPath::isSameChild(const BYTE* szHuman) const
+bool CHostPath::isSameChild(const BYTE* szHuman) const
 {
-	ASSERT(szHuman);
+	assert(szHuman);
 
 	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
@@ -1323,7 +1313,7 @@ BOOL CHostPath::isSameChild(const BYTE* szHuman) const
 
 	// Check number of chars
 	if (nLength < n)
-		return FALSE;
+		return false;
 
 	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + n, szHuman, szHuman + n) == 0;
@@ -1459,7 +1449,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 /// Confirm that the file update has been carried out
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isRefresh() const
+bool CHostPath::isRefresh() const
 {
 	return m_bRefresh;
 }
@@ -1493,14 +1483,14 @@ void CHostPath::Refresh()
 	strcpy(szPath, m_szHost);
 
 	// Update refresh flag
-	m_bRefresh = FALSE;
+	m_bRefresh = false;
 
 	// Store previous cache contents
 	CRing cRingBackup;
 	m_cRing.InsertRing(&cRingBackup);
 
 	// Register file name
-	BOOL bUpdate = FALSE;
+	bool bUpdate = false;
 	dirent **pd = nullptr;
 	int nument = 0;
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
@@ -1536,7 +1526,7 @@ void CHostPath::Refresh()
 		for (;;) {
 			if (pCache == (ring_t*)&cRingBackup) {
 				pCache = nullptr;			// No relevant entry
-				bUpdate = TRUE;			// Confirm new entry
+				bUpdate = true;			// Confirm new entry
 				pFilename->ConvertHuman();
 				break;
 			}
@@ -1612,7 +1602,7 @@ void CHostPath::Refresh()
 				pRing = pCache;			// Use previous cache
 			} else {
 				Free(pCache);			// Remove from the next search target
-				bUpdate = TRUE;			// Flag for update if no match
+				bUpdate = true;			// Flag for update if no match
 			}
 		}
 
@@ -1631,14 +1621,13 @@ void CHostPath::Refresh()
 	// Delete remaining cache
 	ring_t* p;
 	while ((p = (ring_t*)cRingBackup.Next()) != (ring_t*)&cRingBackup) {
-		bUpdate = TRUE;					// Confirms the decrease in entries due to deletion
+		bUpdate = true;					// Confirms the decrease in entries due to deletion
 		Free(p);
 	}
 
 	// Update the identifier if the update has been carried out
 	if (bUpdate)
 		m_nId = ++g_nId;
-	//	ASSERT(m_nId);
 }
 
 //---------------------------------------------------------------------------
@@ -1700,8 +1689,7 @@ void CHostPath::Restore() const
 //---------------------------------------------------------------------------
 void CHostPath::Release()
 {
-
-	m_bRefresh = TRUE;
+	m_bRefresh = true;
 }
 
 //===========================================================================
@@ -1714,12 +1702,12 @@ CHostEntry::~CHostEntry()
 {
 	Clean();
 
-#ifdef _DEBUG
+#ifdef DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		ASSERT(m_pDrv[n] == nullptr);
+	for (const auto& d : m_pDrv) {
+		assert(d == nullptr);
 	}
-#endif	// _DEBUG
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1729,11 +1717,10 @@ CHostEntry::~CHostEntry()
 //---------------------------------------------------------------------------
 void CHostEntry::Init() const
 {
-
-#ifdef _DEBUG
+#ifdef DEBUG
 	// Confirm object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		ASSERT(m_pDrv[n] == nullptr);
+	for (const auto& d : m_pDrv) {
+		assert(d == nullptr);
 	}
 #endif
 }
@@ -1745,11 +1732,10 @@ void CHostEntry::Init() const
 //---------------------------------------------------------------------------
 void CHostEntry::Clean()
 {
-
 	// Delete object
-	for (size_t n = 0; n < DRIVE_MAX; n++) {
-		delete m_pDrv[n];
-		m_pDrv[n] = nullptr;
+	for (auto& d: m_pDrv) {
+		delete d;
+		d = nullptr;
 	}
 }
 
@@ -1760,10 +1746,9 @@ void CHostEntry::Clean()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache() const
 {
-
-	for (size_t i = 0; i < DRIVE_MAX; i++) {
-		if (m_pDrv[i])
-			m_pDrv[i]->CleanCache();
+	for (const auto& d : m_pDrv) {
+		if (d)
+			d->CleanCache();
 	}
 
 	CHostPath::InitId();
@@ -1829,7 +1814,7 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath) const
 /// Find host side names (path name + file name (can be abbreviated) + attribute)
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles) const
+bool CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles) const
 {
 	ASSERT(pFiles);
 	ASSERT(nUnit < DRIVE_MAX);
@@ -1856,7 +1841,7 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 /// Is it write-protected?
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
+bool CHostEntry::isWriteProtect(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1869,7 +1854,7 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 /// Is it accessible?
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isEnable(DWORD nUnit) const
+bool CHostEntry::isEnable(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1882,7 +1867,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 /// Media check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isMediaOffline(DWORD nUnit) const
+bool CHostEntry::isMediaOffline(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1921,7 +1906,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 /// Media change check
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::CheckMedia(DWORD nUnit) const
+bool CHostEntry::CheckMedia(DWORD nUnit) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1960,7 +1945,7 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel) const
 /// Get volume label from cache
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -1986,7 +1971,7 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity) cons
 /// Get cluster size from cache
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
+bool CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(nUnit < DRIVE_MAX);
 	ASSERT(m_pDrv[nUnit]);
@@ -2070,7 +2055,7 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 /// Find file on the Human68k side and create data on the host side
 //
 //---------------------------------------------------------------------------
-BOOL CHostFiles::Find(DWORD nUnit, const CHostEntry* pEntry)
+bool CHostFiles::Find(DWORD nUnit, const CHostEntry* pEntry)
 {
 	ASSERT(pEntry);
 
@@ -2249,7 +2234,7 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 /// Set file open mode
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::SetMode(DWORD nHumanMode)
+bool CHostFcb::SetMode(DWORD nHumanMode)
 {
 	switch (nHumanMode & Human68k::OP_MASK) {
 		case Human68k::OP_READ:
@@ -2262,12 +2247,12 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 			m_pszMode = "r+b";
 			break;
 		default:
-			return FALSE;
+			return false;
 	}
 
 	m_bFlag = (nHumanMode & Human68k::OP_SPECIAL) != 0;
 
-	return TRUE;
+	return true;
 }
 
 void CHostFcb::SetFilename(const TCHAR* szFilename)
@@ -2290,20 +2275,20 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 //
 /// Create file
 ///
-/// Return FALSE if error is thrown.
+/// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(DWORD, BOOL bForce)
+bool CHostFcb::Create(DWORD, bool bForce)
 {
 	ASSERT((Human68k::AT_DIRECTORY | Human68k::AT_VOLUME) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
 	ASSERT(m_pFile == nullptr);
 
 	// Duplication check
-	if (bForce == FALSE) {
+	if (!bForce) {
 		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(m_szFilename), &sb) == 0)
-			return FALSE;
+			return false;
 	}
 
 	// Create file
@@ -2316,16 +2301,16 @@ BOOL CHostFcb::Create(DWORD, BOOL bForce)
 //
 /// File open
 ///
-/// Return FALSE if error is thrown.
+/// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Open()
+bool CHostFcb::Open()
 {
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// Fail if directory
 	if (struct stat st; stat(S2U(m_szFilename), &st) == 0 && ((st.st_mode & S_IFMT) == S_IFDIR)) {
-		return FALSE || m_bFlag;
+		return false || m_bFlag;
 	}
 
 	// File open
@@ -2333,23 +2318,6 @@ BOOL CHostFcb::Open()
 		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
 
 	return m_pFile != nullptr || m_bFlag;
-}
-
-//---------------------------------------------------------------------------
-//
-/// File seek
-///
-/// Return FALSE if error is thrown.
-//
-//---------------------------------------------------------------------------
-BOOL CHostFcb::Rewind(DWORD nOffset) const
-{
-	ASSERT(m_pFile);
-
-	if (fseek(m_pFile, nOffset, SEEK_SET))
-		return FALSE;
-
-	return ftell(m_pFile) != -1L;
 }
 
 //---------------------------------------------------------------------------
@@ -2396,10 +2364,10 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 //
 /// Truncate file
 ///
-/// Return FALSE if error is thrown.
+/// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Truncate() const
+bool CHostFcb::Truncate() const
 {
 	ASSERT(m_pFile);
 
@@ -2442,10 +2410,10 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 //
 /// Set file time stamp
 ///
-/// Return FALSE if error is thrown.
+/// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
+bool CHostFcb::TimeStamp(DWORD nHumanTime) const
 {
 	ASSERT(m_pFile || m_bFlag);
 
@@ -2458,7 +2426,7 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
 	t.tm_sec = (nHumanTime & 31) << 1;
 	time_t ti = mktime(&t);
 	if (ti == (time_t)-1)
-		return FALSE;
+		return false;
 	utimbuf ut;
 	ut.actime = ti;
 	ut.modtime = ti;
@@ -2474,21 +2442,17 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime) const
 //
 /// File close
 ///
-/// Return FALSE if error is thrown.
+/// Return false if error is thrown.
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Close()
+void CHostFcb::Close()
 {
-	BOOL bResult = TRUE;
-
 	// File close
 	// Always initialize because of the Close→Free (internally one more Close) flow.
 	if (m_pFile) {
 		fclose(m_pFile);
 		m_pFile = nullptr;
 	}
-
-	return bResult;
 }
 
 //===========================================================================
@@ -2547,8 +2511,8 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 	auto p = (ring_t*)m_cRing.Prev();
 
 	// Error if in use (just in case)
-	if (p->f.isSameKey(0) == FALSE) {
-		ASSERT(FALSE);
+	if (!p->f.isSameKey(0)) {
+		ASSERT(false);
 		return nullptr;
 	}
 
@@ -2711,7 +2675,7 @@ int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 	if (f.isRootPath())
 		return 0;
 	f.SetPathOnly();
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_DIRNOTFND;
 
 	return 0;
@@ -2745,7 +2709,7 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetPathOnly();
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
 	f.AddFilename();
 
@@ -2787,7 +2751,7 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests) const
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_DIRECTORY);
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_DIRNOTFND;
 
 	// Delete cache
@@ -2837,13 +2801,13 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_FILENOTFND;
 
 	CHostFiles fNew;
 	fNew.SetPath(pNamestsNew);
 	fNew.SetPathOnly();
-	if (fNew.Find(nUnit, &m_cEntry) == FALSE)
+	if (!fNew.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
 	fNew.AddFilename();
 
@@ -2894,7 +2858,7 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests) const
 	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_FILENOTFND;
 
 	// Delete file
@@ -2930,7 +2894,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_FILENOTFND;
 
 	// Exit if attribute is acquired
@@ -2966,7 +2930,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
 	// Get attribute after changing
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_FILENOTFND;
 
 	return f.GetAttribute();
@@ -3006,11 +2970,11 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 		// Path check
 		CHostFiles f;
 		f.SetPath(pNamests);
-		if (f.isRootPath() == FALSE)
+		if (!f.isRootPath())
 			return FS_FILENOTFND;
 
 		// Immediately return the results without allocating buffer
-		if (FilesVolume(nUnit, pFiles) == FALSE)
+		if (!FilesVolume(nUnit, pFiles))
 			return FS_FILENOTFND;
 		return 0;
 	}
@@ -3026,9 +2990,9 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 
 	// Directory check
 	pHostFiles->SetPath(pNamests);
-	if (pHostFiles->isRootPath() == FALSE) {
+	if (!pHostFiles->isRootPath()) {
 		pHostFiles->SetPathOnly();
-		if (pHostFiles->Find(nUnit, &m_cEntry) == FALSE) {
+		if (!pHostFiles->Find(nUnit, &m_cEntry)) {
 			m_cFiles.Free(pHostFiles);
 			return FS_DIRNOTFND;
 		}
@@ -3039,7 +3003,7 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 	pHostFiles->SetAttribute(pFiles->fatr);
 
 	// Find file
-	if (pHostFiles->Find(nUnit, &m_cEntry) == FALSE) {
+	if (!pHostFiles->Find(nUnit, &m_cEntry)) {
 		m_cFiles.Free(pHostFiles);
 		return FS_FILENOTFND;
 	}
@@ -3054,12 +3018,6 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
 	pFiles->offset = 0;
-
-	// When the file name does not include wildcards, the buffer may be released
-	if (pNamests->wildcard == 0) {
-		// However, there is a chance the virtual selector may be used for emulation, so don't release immediately
-		// m_cFiles.Free(pHostFiles);
-	}
 
 	return 0;
 }
@@ -3090,7 +3048,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 		return FS_INVALIDPTR;
 
 	// Find file
-	if (pHostFiles->Find(nUnit, &m_cEntry) == FALSE) {
+	if (!pHostFiles->Find(nUnit, &m_cEntry)) {
 		m_cFiles.Free(pHostFiles);
 		return FS_FILENOTFND;
 	}
@@ -3113,7 +3071,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 /// $49 - Create new file
 //
 //---------------------------------------------------------------------------
-int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
+int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce)
 {
 	ASSERT(pNamests);
 	ASSERT(nKey);
@@ -3142,7 +3100,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetPathOnly();
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_INVALIDPATH;
 	f.AddFilename();
 
@@ -3159,13 +3117,13 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 
 	// Set open mode
 	pFcb->mode = (WORD)((pFcb->mode & ~Human68k::OP_MASK) | Human68k::OP_FULL);
-	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
+	if (!pHostFcb->SetMode(pFcb->mode)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
 
 	// Create file
-	if (pHostFcb->Create(nHumanAttribute, bForce) == FALSE) {
+	if (!pHostFcb->Create(nHumanAttribute, bForce)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_FILEEXIST;
 	}
@@ -3215,7 +3173,7 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
-	if (f.Find(nUnit, &m_cEntry) == FALSE)
+	if (!f.Find(nUnit, &m_cEntry))
 		return FS_FILENOTFND;
 
 	// Time stamp
@@ -3233,13 +3191,13 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	pHostFcb->SetHumanPath(f.GetHumanPath());
 
 	// Set open mode
-	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
+	if (!pHostFcb->SetMode(pFcb->mode)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
 
 	// File open
-	if (pHostFcb->Open() == FALSE) {
+	if (!pHostFcb->Open()) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPATH;
 	}
@@ -3345,7 +3303,7 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 	DWORD nResult;
 	if (nSize == 0) {
 		// Truncate
-		if (pHostFcb->Truncate() == FALSE) {
+		if (!pHostFcb->Truncate()) {
 			m_cFcb.Free(pHostFcb);
 			return FS_CANTSEEK;
 		}
@@ -3453,7 +3411,7 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 		return FS_NOTOPENED;
 
 	// Set time stamp
-	if (pHostFcb->TimeStamp(nHumanTime) == FALSE) {
+	if (!pHostFcb->TimeStamp(nHumanTime)) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPRM;
 	}
@@ -3552,9 +3510,9 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb) const
 		media = m_cEntry.GetMediaByte(nUnit);
 
 		// Acquire sector data
-		if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
+		if (!m_cEntry.GetCapacityCache(nUnit, &cap)) {
 			// Carry out an extra media check here because it may be skipped when doing a manual eject
-			if (m_cEntry.isEnable(nUnit) == FALSE)
+			if (!m_cEntry.isEnable(nUnit))
 				goto none;
 
 			// Media check
@@ -3638,7 +3596,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 
 	// Acquire sector data
 	Human68k::capacity_t cap;
-	if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
+	if (!m_cEntry.GetCapacityCache(nUnit, &cap)) {
 		// Get drive status
 		m_cEntry.GetCapacity(nUnit, &cap);
 	}
@@ -3680,7 +3638,7 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 			CHostFcb f;
 			f.SetFilename(pHostFiles->GetPath());
 			f.SetMode(Human68k::OP_READ);
-			if (f.Open() == FALSE)
+			if (!f.Open())
 				return FS_INVALIDPRM;
 			memset(pBuffer, 0, 0x200);
 			DWORD nResult = f.Read(pBuffer, 0x200);
@@ -3793,7 +3751,6 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 //---------------------------------------------------------------------------
 int CFileSys::Flush(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3811,7 +3768,6 @@ int CFileSys::Flush(DWORD nUnit) const
 //---------------------------------------------------------------------------
 int CFileSys::CheckMedia(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3820,7 +3776,7 @@ int CFileSys::CheckMedia(DWORD nUnit) const
 
 	// Media change check
 	// Throw error when media is not inserted
-	if (BOOL bResult = m_cEntry.CheckMedia(nUnit); bResult == FALSE) {
+	if (!m_cEntry.CheckMedia(nUnit)) {
 		return FS_INVALIDFUNC;
 	}
 
@@ -3834,7 +3790,6 @@ int CFileSys::CheckMedia(DWORD nUnit) const
 //---------------------------------------------------------------------------
 int CFileSys::Lock(DWORD nUnit) const
 {
-
 	// Unit check
 	if (nUnit >= CHostEntry::DRIVE_MAX)
 		return FS_FATAL_INVALIDUNIT;
@@ -3857,7 +3812,6 @@ int CFileSys::Lock(DWORD nUnit) const
 //---------------------------------------------------------------------------
 void CFileSys::SetOption(DWORD nOption)
 {
-
 	// Clear cache when option settings change
 	if (m_nOption ^ nOption)
 		m_cEntry.CleanCache();
@@ -3957,26 +3911,26 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 /// Get volume label
 //
 //---------------------------------------------------------------------------
-BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
+bool CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 {
 	ASSERT(pFiles);
 
 	// Get volume label
 	TCHAR szVolume[32];
-	if (BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); bResult == FALSE) {
+	if (bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume); !bResult) {
 		// Carry out an extra media check here because it may be skipped when doing a manual eject
-		if (m_cEntry.isEnable(nUnit) == FALSE)
-			return FALSE;
+		if (!m_cEntry.isEnable(nUnit))
+			return false;
 
 		// Media check
 		if (m_cEntry.isMediaOffline(nUnit))
-			return FALSE;
+			return false;
 
 		// Get volume label
 		m_cEntry.GetVolume(nUnit, szVolume);
 	}
 	if (szVolume[0] == _T('\0'))
-		return FALSE;
+		return false;
 
 	pFiles->attr = Human68k::AT_VOLUME;
 	pFiles->time = 0;
@@ -3988,5 +3942,5 @@ BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 	fname.ConvertHuman();
 	strcpy((char*)pFiles->full, (const char*)fname.GetHuman());
 
-	return TRUE;
+	return true;
 }

@@ -18,17 +18,17 @@ using namespace scsi_defs;
 PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	// Mandatory SCSI primary commands
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	dispatcher.AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	dispatcher.AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
+	dispatcher.Add(scsi_command::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
 	// Optional commands used by all RaSCSI devices
-	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
+	dispatcher.Add(scsi_command::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
-bool PrimaryDevice::Dispatch()
+bool PrimaryDevice::Dispatch(scsi_command cmd)
 {
-	return dispatcher.Dispatch(this, ctrl->cmd[0]);
+	return dispatcher.Dispatch(this, cmd);
 }
 
 void PrimaryDevice::SetController(AbstractController *c)
@@ -51,7 +51,7 @@ void PrimaryDevice::Inquiry()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	vector<BYTE> buf = InquiryInternal();
+	vector<byte> buf = InquiryInternal();
 
 	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
 	if (allocation_length > buf.size()) {
@@ -121,7 +121,7 @@ void PrimaryDevice::RequestSense()
 		ctrl->status = 0x00;
 	}
 
-    vector<BYTE> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
+    vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
 	size_t allocation_length = ctrl->cmd[4];
     if (allocation_length > buf.size()) {
@@ -160,9 +160,9 @@ void PrimaryDevice::CheckReady()
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__)
 }
 
-vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
+vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
-	vector<BYTE> buf(0x1F + 5);
+	vector<byte> buf(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... SCSI device type
@@ -170,11 +170,11 @@ vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	// buf[2] ... SCSI compliance level of command system
 	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
-	buf[0] = (BYTE)type;
-	buf[1] = is_removable ? 0x80 : 0x00;
-	buf[2] = (BYTE)level;
-	buf[3] = (BYTE)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
-	buf[4] = 0x1F;
+	buf[0] = (byte)type;
+	buf[1] = (byte)(is_removable ? 0x80 : 0x00);
+	buf[2] = (byte)level;
+	buf[3] = (byte)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
+	buf[4] = (byte)0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
@@ -182,7 +182,7 @@ vector<BYTE> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	return buf;
 }
 
-vector<BYTE> PrimaryDevice::HandleRequestSense() const
+vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
@@ -191,15 +191,15 @@ vector<BYTE> PrimaryDevice::HandleRequestSense() const
 
 	// Set 18 bytes including extended sense data
 
-	vector<BYTE> buf(18);
+	vector<byte> buf(18);
 
 	// Current error
-	buf[0] = 0x70;
+	buf[0] = (byte)0x70;
 
-	buf[2] = (BYTE)(GetStatusCode() >> 16);
-	buf[7] = 10;
-	buf[12] = (BYTE)(GetStatusCode() >> 8);
-	buf[13] = (BYTE)GetStatusCode();
+	buf[2] = (byte)(GetStatusCode() >> 16);
+	buf[7] = (byte)10;
+	buf[12] = (byte)(GetStatusCode() >> 8);
+	buf[13] = (byte)GetStatusCode();
 
 	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12])
 

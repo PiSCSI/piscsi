@@ -71,7 +71,7 @@ class Device
 	//			Sense Key
 	//			Additional Sense Code (ASC)
 	//	LSB		Additional Sense Code Qualifier(ASCQ)
-	int status_code = scsi_defs::status::GOOD;
+	int status_code = 0;
 
 protected:
 
@@ -97,7 +97,7 @@ public:
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
-	virtual bool Dispatch() = 0;
+	virtual bool Dispatch(scsi_defs::scsi_command) = 0;
 
 	const string& GetType() const { return type; }
 

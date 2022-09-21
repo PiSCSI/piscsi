@@ -29,7 +29,7 @@ public:
 	PrimaryDevice(PrimaryDevice&) = delete;
 	PrimaryDevice& operator=(const PrimaryDevice&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(BYTE *, uint32_t);
@@ -37,8 +37,8 @@ public:
 
 protected:
 
-	vector<BYTE> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
-	virtual vector<BYTE> InquiryInternal() const = 0;
+	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
+	virtual vector<byte> InquiryInternal() const = 0;
 	void CheckReady();
 
 	void EnterStatusPhase() { controller->Status(); }
@@ -55,7 +55,7 @@ private:
 	void ReportLuns() override;
 	void Inquiry() override;
 
-	vector<BYTE> HandleRequestSense() const;
+	vector<byte> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
 };

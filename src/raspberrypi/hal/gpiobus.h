@@ -308,7 +308,7 @@ public:
 	GPIOBUS()= default;
 	~GPIOBUS() final = default;
 										// Destructor
-	bool Init(mode_e mode = TARGET) override;
+	bool Init(mode_e mode = mode_e::TARGET) override;
 										// Initialization
 	void Reset() override;
 										// Reset
@@ -320,7 +320,7 @@ public:
 	//	Bus signal acquisition
 	//
 	//---------------------------------------------------------------------------
-	inline DWORD Acquire() override
+	inline uint32_t Acquire() override
 	{
 	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable
@@ -429,7 +429,7 @@ private:
 										// Get SCSI input signal value
 	void SetSignal(int pin, bool ast) override;
 										// Set SCSI output signal value
-	bool WaitSignal(int pin, BOOL ast);
+	bool WaitSignal(int pin, int ast);
 										// Wait for a signal to change
 	// Interrupt control
 	void DisableIRQ();
@@ -448,7 +448,7 @@ private:
 										// Set GPIO drive strength
 
 
-	mode_e actmode = TARGET;			// Operation mode
+	mode_e actmode = mode_e::TARGET;	// Operation mode
 
 	uint32_t baseaddr = 0;				// Base address
 

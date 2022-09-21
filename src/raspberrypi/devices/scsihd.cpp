@@ -20,8 +20,6 @@
 #include "scsi_command_util.h"
 #include <sstream>
 
-static const char *DEFAULT_PRODUCT = "SCSI HD";
-
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
 	: Disk(removable ? "SCRM" : "SCHD")
 {
@@ -79,7 +77,7 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open SCSI hard disk file");
 	}
 
@@ -97,27 +95,27 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD::InquiryInternal() const
+vector<byte> SCSIHD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIHD::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length)
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
-void SCSIHD::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	Disk::AddFormatPage(pages, changeable);
 
 	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
-void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, page, changeable);
+		scsi_command_util::AddAppleVendorModePage(pages, changeable);
 	}
 }

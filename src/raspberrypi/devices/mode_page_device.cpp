@@ -18,19 +18,19 @@ using namespace scsi_defs;
 
 ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
-	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
-	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
-	dispatcher.AddCommand(eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
-	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
+	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
+	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
+	dispatcher.Add(scsi_command::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
+	dispatcher.Add(scsi_command::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
-bool ModePageDevice::Dispatch()
+bool ModePageDevice::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const
+int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	if (max_length < 0) {
 		return 0;
@@ -44,7 +44,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
-	map<int, vector<BYTE>> pages;
+	map<int, vector<byte>> pages;
 	AddModePages(pages, page, changeable);
 
 	if (pages.empty()) {
@@ -53,9 +53,9 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 	}
 
 	// Holds all mode page data
-	vector<BYTE> result;
+	vector<byte> result;
 
-	vector<BYTE> page0;
+	vector<byte> page0;
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
@@ -64,9 +64,9 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
-			result[offset] |= index;
+			result[offset] |= (byte)index;
 			// Page payload size
-			result[offset + 1] = (BYTE)(data.size() - 2);
+			result[offset + 1] = (byte)(data.size() - 2);
 		}
 		else {
 			page0 = data;
@@ -80,7 +80,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length) co
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[offset + 1] = (BYTE)(page0.size() - 2);
+		result[offset + 1] = (byte)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes
@@ -104,7 +104,7 @@ void ModePageDevice::ModeSense10()
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
+void ModePageDevice::ModeSelect(const vector<int>&, const BYTE *, int)
 {
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }

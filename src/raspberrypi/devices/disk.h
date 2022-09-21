@@ -59,16 +59,16 @@ public:
 	Disk(Disk&) = delete;
 	Disk& operator=(const Disk&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	void MediumChanged();
 	bool Eject(bool) override;
 
 	// Command helpers
 	virtual int WriteCheck(uint64_t);
-	virtual void Write(const DWORD *, BYTE *, uint64_t);
+	virtual void Write(const vector<int>&, const BYTE *, uint64_t);
 
-	virtual int Read(const DWORD *, BYTE *, uint64_t);
+	virtual int Read(const vector<int>&, BYTE *, uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const;
@@ -111,27 +111,27 @@ private:
 	void ReadWriteLong10();
 	void ReadWriteLong16();
 	void ReadCapacity16_ReadLong16();
-	void Format(const DWORD *);
-	bool SendDiag(const DWORD *) const;
-	bool StartStop(const DWORD *);
+	void Format(const vector<int>&);
+	bool SendDiag(const vector<int>&) const;
+	bool StartStop(const vector<int>&);
 
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
 
-	int ModeSense6(const DWORD *, BYTE *, int) override;
-	int ModeSense10(const DWORD *, BYTE *, int) override;
+	int ModeSense6(const vector<int>&, BYTE *, int) const override;
+	int ModeSense10(const vector<int>&, BYTE *, int) const override;
 
 protected:
 
 	virtual void Open(const Filepath&);
 
 	virtual void SetDeviceParameters(BYTE *) const;
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
-	void AddCachePage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
+	void AddCachePage(map<int, vector<byte>>&, bool) const;
+	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
 	unordered_set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const unordered_set<uint32_t>&);
 	void SetSectorSizeInBytes(uint32_t);

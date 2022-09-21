@@ -22,23 +22,23 @@ class PrimaryDevice;
 
 class ControllerManager
 {
+
+public:
+
 	ControllerManager() = default;
 	~ControllerManager() = default;
 	ControllerManager(ControllerManager&) = delete;
 	ControllerManager& operator=(const ControllerManager&) = delete;
 
-public:
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	static ControllerManager& instance();
-
-	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *) const;
+	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
-	void DeleteAllControllers() const;
+	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 
-	inline static unordered_map<int, shared_ptr<AbstractController>> controllers;
+	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };

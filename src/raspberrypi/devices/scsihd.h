@@ -21,6 +21,7 @@
 
 class SCSIHD : public Disk, public FileSupport
 {
+	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
 
 public:
 
@@ -35,11 +36,11 @@ public:
 	void Open(const Filepath&) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
-	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	vector<byte> InquiryInternal() const override;
+	void ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) override;
 
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 

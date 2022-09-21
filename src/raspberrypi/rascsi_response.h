@@ -49,7 +49,7 @@ private:
 	DeviceFactory *device_factory;
 	const RascsiImage *rascsi_image;
 
-	static list<string> log_levels;
+	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
 	PbDeviceProperties *GetDeviceProperties(const Device *);
 	void GetDevice(const Device *, PbDevice *);
@@ -57,7 +57,7 @@ private:
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
 	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
-	void CreateOperation(PbOperationInfo *, PbOperationMetaData *, const PbOperation&, const string&) const;
-	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,
+	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
+	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false);
 };

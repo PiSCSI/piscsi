@@ -23,7 +23,7 @@ const unordered_set<uint32_t> sector_sizes;
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
-	DWORD cdb[6];
+	vector<int> cdb(6);
 	BYTE buf[512];
 
 	MockModePageDevice device;
@@ -38,7 +38,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSIHD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -53,7 +53,7 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSIHD_NEC device;
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -68,7 +68,7 @@ TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 
 TEST(ModePagesTest, SCSICD_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -85,7 +85,7 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 
 TEST(ModePagesTest, SCSIMO_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 	unordered_map<uint64_t, Geometry> geometries;
 
 	MockSCSIMO device(sector_sizes, geometries);
@@ -102,7 +102,7 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 
 TEST(ModePagesTest, HostServices_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockHostServices device;
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -115,7 +115,7 @@ TEST(ModePagesTest, ModeSelect)
 {
 	const int LENGTH = 12;
 
-	DWORD cdb[16] = {};
+	vector<int> cdb(16);
 	BYTE buf[255] = {};
 
 	// PF (vendor-specific parameter format)

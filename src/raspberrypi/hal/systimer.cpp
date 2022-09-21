@@ -25,14 +25,14 @@
 //	System timer address
 //
 //---------------------------------------------------------------------------
-volatile DWORD* SysTimer::systaddr;
+volatile uint32_t* SysTimer::systaddr;
 
 //---------------------------------------------------------------------------
 //
 //	ARM timer address
 //
 //---------------------------------------------------------------------------
-volatile DWORD* SysTimer::armtaddr;
+volatile uint32_t* SysTimer::armtaddr;
 
 //---------------------------------------------------------------------------
 //
@@ -46,7 +46,7 @@ volatile DWORD SysTimer::corefreq;
 //	Initialize the system timer
 //
 //---------------------------------------------------------------------------
-void SysTimer::Init(DWORD *syst, DWORD *armt)
+void SysTimer::Init(uint32_t *syst, uint32_t *armt)
 {
 	// RPI Mailbox property interface
 	// Get max clock rate
@@ -59,7 +59,7 @@ void SysTimer::Init(DWORD *syst, DWORD *armt)
 	//
 	// Clock id
 	//  0x000000004: CORE
-	DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
+	uint32_t maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 
 	// Save the base address
 	systaddr = syst;
@@ -83,7 +83,7 @@ void SysTimer::Init(DWORD *syst, DWORD *armt)
 //	Get system timer low byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer::GetTimerLow() {
+uint32_t SysTimer::GetTimerLow() {
 	return systaddr[SYST_CLO];
 }
 
@@ -92,7 +92,7 @@ DWORD SysTimer::GetTimerLow() {
 //	Get system timer high byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer::GetTimerHigh() {
+uint32_t SysTimer::GetTimerHigh() {
 	return systaddr[SYST_CHI];
 }
 
@@ -109,7 +109,7 @@ void SysTimer::SleepNsec(DWORD nsec)
 	}
 
 	// Calculate the timer difference
-	DWORD diff = corefreq * nsec / 1000;
+	uint32_t diff = corefreq * nsec / 1000;
 
 	// Return if the difference in time is too small
 	if (diff == 0) {
@@ -117,7 +117,7 @@ void SysTimer::SleepNsec(DWORD nsec)
 	}
 
 	// Start
-	DWORD start = armtaddr[ARMT_FREERUN];
+	uint32_t start = armtaddr[ARMT_FREERUN];
 
 	// Loop until timer has elapsed
 	while ((armtaddr[ARMT_FREERUN] - start) < diff);
@@ -135,6 +135,6 @@ void SysTimer::SleepUsec(DWORD usec)
 		return;
 	}
 
-	DWORD now = GetTimerLow();
+	uint32_t now = GetTimerLow();
 	while ((GetTimerLow() - now) < usec);
 }

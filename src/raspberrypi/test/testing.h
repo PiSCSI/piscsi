@@ -23,7 +23,6 @@
 // Note that these global variables are convenient,
 // but might cause issues because they are reused by all tests
 extern DeviceFactory& device_factory;
-extern ControllerManager& controller_manager;
 
 class MockAbstractController : public AbstractController
 {
@@ -104,7 +103,7 @@ class MockPrimaryDevice : public PrimaryDevice
 {
 public:
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
 	~MockPrimaryDevice() final = default;
@@ -114,7 +113,7 @@ public:
 	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
 	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
 	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
-	vector<BYTE> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
+	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
 		return PrimaryDevice::HandleInquiry(type, level, is_removable);
 	}
 };
@@ -126,22 +125,20 @@ public:
 	MockModePageDevice() : ModePageDevice("test") {}
 	~MockModePageDevice() final = default;
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
-	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), ());
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
+	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
-			vector<BYTE> buf(255);
+			vector<byte> buf(255);
 			pages[page] = buf;
 		}
 	}
 
-	// Make protected methods visible for testing
-	// TODO Why does FRIEND_TEST not work for this method?
-
-	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) const {
+	// Make protected method visible for testing
+	int AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const {
 		return ModePageDevice::AddModePages(cdb, buf, max_length);
 	}
 };
@@ -154,7 +151,7 @@ class MockSCSIHD : public SCSIHD
 	~MockSCSIHD() final = default;
 };
 
-class MockSCSIHD_NEC : public SCSIHD_NEC
+class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
@@ -183,6 +180,8 @@ class MockHostServices : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
-	MockHostServices() = default;
+public:
+
+	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
 	~MockHostServices() final = default;
 };

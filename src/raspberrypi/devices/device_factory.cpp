@@ -74,9 +74,8 @@ DeviceFactory& DeviceFactory::instance()
 
 void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
 {
-	auto iterpair = devices.equal_range(device->GetId());
-
-	for (auto it = iterpair.first; it != iterpair.second; ++it) {
+	auto [begin, end] = devices.equal_range(device->GetId());
+	for (auto it = begin; it != end; ++it) {
 		if (it->second->GetLun() == device->GetLun()) {
 			devices.erase(it);
 
@@ -219,7 +218,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>();
+		device = make_unique<HostServices>(this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
@@ -264,9 +263,9 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
-	struct ifaddrs *addrs;
+	ifaddrs *addrs;
 	getifaddrs(&addrs);
-	struct ifaddrs *tmp = addrs;
+	ifaddrs *tmp = addrs;
 
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
@@ -276,7 +275,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
 	        	network_interfaces.emplace_back(tmp->ifa_name);
 	        }
 

@@ -12,20 +12,7 @@
 //
 // Features of the host services device:
 //
-// 1. Vendor-specific mode page 0x20 returns the current date and time (realtime clock)
-//
-//  typedef struct {
-//    // Major and minor version of this data structure
-//    uint8_t major_version;
-//    uint8_t minor_version;
-//    // Current date and time, with daylight savings time adjustment applied
-//    uint8_t year; // year - 1900
-//    uint8_t month; // 0-11
-//    uint8_t day; // 1-31
-//    uint8_t hour; // 0-23
-//    uint8_t minute; // 0-59
-//    uint8_t second; // 0-59
-//  } mode_page_datetime;
+// 1. Vendor-specific mode page 0x20 returns the current date and time, see mode_page_datetime
 //
 // 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
 //   a) !start && !load (STOP): Shut down RaSCSI
@@ -40,16 +27,16 @@
 
 using namespace scsi_defs;
 
-HostServices::HostServices() : ModePageDevice("SCHS")
+HostServices::HostServices(const DeviceFactory *factory) : ModePageDevice("SCHS"), device_factory(factory)
 {
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
-	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-bool HostServices::Dispatch()
+bool HostServices::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void HostServices::TestUnitReady()
@@ -58,7 +45,7 @@ void HostServices::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<BYTE> HostServices::InquiryInternal() const
+vector<byte> HostServices::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
@@ -70,7 +57,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : DeviceFactory::instance().GetAllDevices()) {
+		for (Device *device : device_factory->GetAllDevices()) {
 			device->FlushCache();
 		}
 
@@ -96,14 +83,14 @@ void HostServices::StartStopUnit()
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
+int HostServices::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)cdb[4];
+	int length = cdb[4];
 	if (length > max_length) {
 		length = max_length;
 	}
@@ -127,7 +114,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
+int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
@@ -159,33 +146,31 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void HostServices::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages, changeable);
 	}
 }
 
-void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	if (!changeable) {
-		vector<BYTE> buf(10);
-
-		// Data structure version 1.0
-		buf[2] = 0x01;
-		buf[3] = 0x00;
-
 		std::time_t t = std::time(nullptr);
 		tm localtime;
 		localtime_r(&t, &localtime);
-		buf[4] = (BYTE)localtime.tm_year;
-		buf[5] = (BYTE)localtime.tm_mon;
-		buf[6] = (BYTE)localtime.tm_mday;
-		buf[7] = (BYTE)localtime.tm_hour;
-		buf[8] = (BYTE)localtime.tm_min;
-		// Ignore leap second for simplicity
-		buf[9] = (BYTE)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
+		mode_page_datetime datetime;
+		datetime.year = (uint8_t)localtime.tm_year;
+		datetime.month = (uint8_t)localtime.tm_mon;
+		datetime.day = (uint8_t)localtime.tm_mday;
+		datetime.hour = (uint8_t)localtime.tm_hour;
+		datetime.minute = (uint8_t)localtime.tm_min;
+		// Ignore leap second for simplicity
+		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
+
+		vector<byte> buf(10);
+		memcpy(&buf[2], &datetime, sizeof(datetime));
 		pages[32] = buf;
 	}
 }

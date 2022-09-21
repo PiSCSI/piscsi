@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <list>
 #include <string>
+#include <array>
 
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
@@ -32,10 +33,10 @@ using namespace std;
 //===========================================================================
 class CTapDriver
 {
-private:
-
 	friend class SCSIDaynaPort;
 	friend class SCSIBR;
+
+	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
 
 	CTapDriver() = default;
 	~CTapDriver() = default;
@@ -58,10 +59,8 @@ public:
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	BYTE m_MacAddr[6] = {};						// MAC Address
-	int m_hTAP = -1;							// File handle
-
-	BYTE m_garbage_buffer[ETH_FRAME_LEN];
+	array<byte, 6> m_MacAddr;			// MAC Address
+	int m_hTAP = -1;					// File handle
 
 	pcap_t *m_pcap = nullptr;
 	pcap_dumper_t *m_pcap_dumper = nullptr;

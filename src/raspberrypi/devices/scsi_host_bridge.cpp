@@ -29,18 +29,15 @@ SCSIBR::SCSIBR() : Disk("SCBR"), fs(new CFileSys())
 	// Create host file system
 	fs->Reset();
 
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	dispatcher.AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	dispatcher.AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
-	if (tap) {
-		tap->Cleanup();
-		delete tap;
-	}
+	tap.Cleanup();
 
 	// Release host file system
 	fs->Reset();
@@ -53,8 +50,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver();
-	m_bTapEnable = tap->Init(GetParams());
+	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface")
 		return false;
@@ -63,7 +59,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
 	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
+		tap.GetMacAddr(mac_addr);
 		mac_addr[5]++;
 	}
 
@@ -73,7 +69,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 	SetReady(m_bTapEnable);
 
-	// Not terminating on regular Linux PCs is helpful for testing
+// Not terminating on regular Linux PCs is helpful for testing
 #if defined(__x86_64__) || defined(__X86__)
 	return true;
 #else
@@ -81,32 +77,32 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch()
+bool SCSIBR::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-vector<BYTE> SCSIBR::InquiryInternal() const
+vector<byte> SCSIBR::InquiryInternal() const
 {
-	vector<BYTE> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<byte> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
-	auto buf = vector<BYTE>(0x1F + 8 + 5);
+	auto buf = vector<byte>(0x1F + 8 + 5);
 	memcpy(buf.data(), b.data(), b.size());
 
-	buf[4] = 0x1F + 8;
+	buf[4] = byte{0x1F + 8};
 
 	// Optional function valid flag
-	buf[36] = '0';
+	buf[36] = byte{'0'};
 
 	// TAP Enable
 	if (m_bTapEnable) {
-		buf[37] = '1';
+		buf[37] = byte{'1'};
 	}
 
 	// CFileSys Enable
-	buf[38] = '1';
+	buf[38] = byte{'1'};
 
 	return buf;
 }
@@ -117,7 +113,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
+int SCSIBR::GetMessage10(const vector<int>& cdb, BYTE *buf)
 {
 	// Type
 	int type = cdb[2];
@@ -209,7 +205,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
+bool SCSIBR::WriteBytes(const vector<int>& cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
@@ -341,15 +337,13 @@ void SCSIBR::ReceivePacket()
 {
 	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-	assert(tap);
-
 	// previous packet has not been received
 	if (packet_enable) {
 		return;
 	}
 
 	// Receive packet
-	packet_len = tap->Rx(packet_buf);
+	packet_len = tap.Rx(packet_buf);
 
 	// Check if received packet
 	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
@@ -371,8 +365,6 @@ void SCSIBR::ReceivePacket()
 
 void SCSIBR::GetPacketBuf(BYTE *buf)
 {
-	assert(tap);
-
 	// Size limit
 	int len = packet_len;
 	if (len > 2048) {
@@ -388,9 +380,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 
 void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
-	assert(tap);
-
-	tap->Tx(buf, len);
+	tap.Tx(buf, len);
 }
 
 //---------------------------------------------------------------------------
@@ -611,7 +601,7 @@ void SCSIBR::FS_Create(BYTE *buf)
 	DWORD nAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	auto bp = (BOOL*)&buf[i];
+	auto bp = (int*)&buf[i];
 	DWORD bForce = ntohl(*bp);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);

@@ -31,11 +31,11 @@ public:
 	SCSIPrinter(SCSIPrinter&) = delete;
 	SCSIPrinter& operator=(const SCSIPrinter&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	bool Init(const unordered_map<string, string>&) override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
 	void ReserveUnit() override;
 	void ReleaseUnit() override;
@@ -55,7 +55,7 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[TMP_FILENAME_LENGTH + 1];
+	char filename[TMP_FILENAME_LENGTH + 1]; //NOSONAR mkstemp() requires a modifiable string
 	int fd = -1;
 
 	int reserving_initiator = NOT_RESERVED;

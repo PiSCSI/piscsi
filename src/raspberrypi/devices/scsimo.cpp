@@ -33,7 +33,7 @@ void SCSIMO::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open MO file");
 	}
 
@@ -62,7 +62,7 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-vector<BYTE> SCSIMO::InquiryInternal() const
+vector<byte> SCSIMO::InquiryInternal() const
 {
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
@@ -75,7 +75,7 @@ void SCSIMO::SetDeviceParameters(BYTE *buf) const
 	buf[2] = 0x03;
 }
 
-void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSIMO::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	Disk::AddModePages(pages, page, changeable);
 
@@ -85,22 +85,22 @@ void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
-void SCSIMO::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void SCSIMO::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	Disk::AddFormatPage(pages, changeable);
 
 	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
-void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
+void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<BYTE> buf(4);
+	vector<byte> buf(4);
 	pages[6] = buf;
 
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIMO::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length)
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
@@ -110,14 +110,14 @@ void SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Vendor Unique Format Page 20h (MO)
 //
 //---------------------------------------------------------------------------
-void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 20h
 	if (page != 0x20 && page != 0x3f) {
 		return;
 	}
 
-	vector<BYTE> buf(12);
+	vector<byte> buf(12);
 
 	// No changeable area
 	if (changeable) {
@@ -198,16 +198,16 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 			}
 		}
 
-		buf[2] = 0; // format mode
-		buf[3] = 0; // type of format
-		buf[4] = (BYTE)(blocks >> 24);
-		buf[5] = (BYTE)(blocks >> 16);
-		buf[6] = (BYTE)(blocks >> 8);
-		buf[7] = (BYTE)blocks;
-		buf[8] = (BYTE)(spare >> 8);
-		buf[9] = (BYTE)spare;
-		buf[10] = (BYTE)(bands >> 8);
-		buf[11] = (BYTE)bands;
+		buf[2] = (byte)0; // format mode
+		buf[3] = (byte)0; // type of format
+		buf[4] = (byte)(blocks >> 24);
+		buf[5] = (byte)(blocks >> 16);
+		buf[6] = (byte)(blocks >> 8);
+		buf[7] = (byte)blocks;
+		buf[8] = (byte)(spare >> 8);
+		buf[9] = (byte)spare;
+		buf[10] = (byte)(bands >> 8);
+		buf[11] = (byte)bands;
 	}
 
 	pages[32] = buf;

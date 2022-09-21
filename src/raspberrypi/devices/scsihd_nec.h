@@ -35,11 +35,11 @@ public:
 
 	void Open(const Filepath& path) override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 
-	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
+	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
 

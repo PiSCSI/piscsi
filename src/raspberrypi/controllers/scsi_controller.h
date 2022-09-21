@@ -37,23 +37,6 @@ class ScsiController : public AbstractController
 
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
-	enum rw_command : int {
-		eRwCmdRead6 = 0x08,
-		eRwCmdWrite6 = 0x0A,
-		eRwCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-		eRwCmdModeSelect6 = 0x15,
-		eRwCmdRead10 = 0x28,
-		eRwCmdWrite10 = 0x2A,
-		eRwCmdVerify10 = 0x2E,
-		eRwCmdVerify = 0x2F,
-		eRwCmdModeSelect10 = 0x55,
-		eRwCmdRead16 = 0x88,
-		eRwCmdWrite16 = 0x8A,
-		eRwCmdVerify16 = 0x8F,
-		eRwCmdWriteLong10 = 0x3F,
-		eRwCmdWriteLong16 = 0x9F
-	};
-
 	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
@@ -95,7 +78,7 @@ public:
 private:
 
 	// Execution start time
-	DWORD execstart = 0;
+	uint32_t execstart = 0;
 
 	// The initiator ID may be unavailable, e.g. with Atari ACSI and old host adapters
 	int initiator_id = UNKNOWN_INITIATOR_ID;

@@ -112,7 +112,7 @@ int CDTrack::GetTrackNo() const
 //---------------------------------------------------------------------------
 bool CDTrack::IsValid(DWORD lba) const
 {
-	// FALSE if the track itself is invalid
+	// false if the track itself is invalid
 	if (!valid) {
 		return false;
 	}
@@ -131,11 +131,6 @@ bool CDTrack::IsValid(DWORD lba) const
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Is audio track
-//
-//---------------------------------------------------------------------------
 bool CDTrack::IsAudio() const
 {
 	assert(valid);
@@ -143,18 +138,12 @@ bool CDTrack::IsAudio() const
 	return audio;
 }
 
-//===========================================================================
-//
-//	SCSI CD-ROM
-//
-//===========================================================================
-
 SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	SetSectorSizes(sector_sizes);
 
-	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.Add(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 SCSICD::~SCSICD()
@@ -162,10 +151,10 @@ SCSICD::~SCSICD()
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch()
+bool SCSICD::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSICD::Open(const Filepath& path)
@@ -179,7 +168,7 @@ void SCSICD::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
@@ -195,14 +184,14 @@ void SCSICD::Open(const Filepath& path)
 		OpenPhysical(path);
 	} else {
 		// Get file size
-		if (off_t size = fio.GetFileSize(); size <= 4) {
+		if (fio.GetFileSize() < 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
 		TCHAR file[5];
-		fio.Read(file, 4);
+		fio.Read((BYTE *)file, 4);
 		file[4] = '\0';
 		fio.Close();
 
@@ -223,7 +212,6 @@ void SCSICD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
-	assert(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
 
 	// Attention if ready
@@ -241,7 +229,7 @@ void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open ISO CD-ROM file");
 	}
 
@@ -301,7 +289,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, GetBlockCount() - 1);
+	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -311,7 +299,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open CD-ROM file");
 	}
 
@@ -334,7 +322,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Create only one data track
 	ASSERT(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, GetBlockCount() - 1);
+	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -347,35 +335,12 @@ void SCSICD::ReadToc()
 	EnterDataInPhase();
 }
 
-vector<BYTE> SCSICD::InquiryInternal() const
+vector<byte> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
-
-//
-// The following code worked with the modified Apple CD-ROM drivers. Need to
-// test with the original code to see if it works as well....
-//	buf[4] = 42;	// Required
-//
-//	// Fill with blanks
-//	memset(&buf[8], 0x20, buf[4] - 3);
-//
-//	// Vendor name
-//	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-//
-//	// Product name
-//	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
-//
-//	// Revision (XM6 version number)
-////	sprintf(rev, "1.9a",
-//	////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-//	memcpy(&buf[32], "1.9a", 4);
-//
-//	//strcpy(&buf[35],"A1.9a");
-//	buf[36]=0x20;
-//	memcpy(&buf[37],"1999/01/01",10);
 }
 
-void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	super::AddModePages(pages, page, changeable);
 
@@ -390,26 +355,26 @@ void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
-void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void SCSICD::AddCDROMPage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(8);
+	vector<byte> buf(8);
 
 	// No changeable area
 	if (!changeable) {
 		// 2 seconds for inactive timer
-		buf[3] = 0x05;
+		buf[3] = (byte)0x05;
 
 		// MSF multiples are 60 and 75 respectively
-		buf[5] = 60;
-		buf[7] = 75;
+		buf[5] = (byte)60;
+		buf[7] = (byte)75;
 	}
 
 	pages[13] = buf;
 }
 
-void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
+void SCSICD::AddCDDAPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<BYTE> buf(16);
+	vector<byte> buf(16);
 
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks
@@ -417,23 +382,23 @@ void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
 	pages[14] = buf;
 }
 
-void SCSICD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, page, changeable);
+		scsi_command_util::AddAppleVendorModePage(pages, changeable);
 	}
 }
 
 
-int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 {
 	assert(buf);
 
 	CheckReady();
 
 	// Search for the track
-	int index = SearchTrack(block);
+	int index = SearchTrack((int)block);
 
 	// If invalid, out of range
 	if (index < 0) {
@@ -455,7 +420,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
+		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index
@@ -467,9 +432,8 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
+int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 {
-	assert(cdb);
 	assert(buf);
 
 	CheckReady();
@@ -489,7 +453,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	// Get and check the last track number
 	int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
-	if ((int)cdb[6] > last && cdb[6] != 0xaa) {
+	if (cdb[6] > last && cdb[6] != 0xaa) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -498,7 +462,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
 		while (tracks[index]) {
-			if ((int)cdb[6] == tracks[index]->GetTrackNo()) {
+			if (cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
 			index++;
@@ -633,7 +597,7 @@ int SCSICD::SearchTrack(DWORD lba) const
 		// Listen to the track
 		assert(tracks[i]);
 		if (tracks[i]->IsValid(lba)) {
-			return i;
+			return (int)i;
 		}
 	}
 
