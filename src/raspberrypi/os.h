@@ -20,7 +20,6 @@
 #include <cstring>
 #include <cassert>
 #include <cstdint>
-#include <unistd.h>
 
 using BYTE = unsigned char;
 using WORD = uint16_t;

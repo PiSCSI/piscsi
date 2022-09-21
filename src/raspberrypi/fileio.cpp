@@ -13,6 +13,7 @@
 #include "fileio.h"
 #include "config.h"
 #include <fcntl.h>
+#include <unistd.h>
 
 Fileio::~Fileio()
 {
