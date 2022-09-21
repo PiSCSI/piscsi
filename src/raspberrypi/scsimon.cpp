@@ -15,6 +15,7 @@
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
 #include <climits>
+#include <csignal>
 #include <sstream>
 #include <iostream>
 #include <getopt.h>

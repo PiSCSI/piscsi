@@ -15,16 +15,13 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cstddef>
 #include <cstdarg>
 #include <cstring>
-#include <csignal>
 #include <cassert>
 #include <unistd.h>
 #include <utime.h>
 #include <fcntl.h>
 #include <sched.h>
-#include <pthread.h>
 #include <iconv.h>
 #include <libgen.h>
 #include <sys/types.h>
