@@ -32,7 +32,7 @@ class CDTrack final
 public:
 
 	CDTrack() = default;
-	virtual ~CDTrack() final = default;
+	~CDTrack() = default;
 	CDTrack(CDTrack&) = delete;
 	CDTrack& operator=(const CDTrack&) = delete;
 

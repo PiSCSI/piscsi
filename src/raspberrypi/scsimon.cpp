@@ -234,7 +234,7 @@ void Reset()
 //	Pin the thread to a specific CPU (Only applies to Linux)
 //
 //---------------------------------------------------------------------------
-#ifdef __linux__
+#ifdef __linux
 void FixCpu(int cpu)
 {
     // Get the number of CPUs
@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
     // Reset
     Reset();
 
-#ifdef __linux__
+#ifdef __linux
     // Set the affinity to a specific processor core
     FixCpu(3);
 

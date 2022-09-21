@@ -19,13 +19,13 @@
 #include "config.h"
 #include "log.h"
 #include <array>
+#ifdef __linux
+#include <sys/epoll.h>
+#endif
 
 using namespace std;
 
-#ifdef __linux__
-
-#include <sys/epoll.h>
-
+#ifdef __linux
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -57,7 +57,7 @@ DWORD bcm_host_get_peripheral_address(void)
 #endif
 	return address;
 }
-#endif // __linux__
+#endif
 
 #ifdef __NetBSD__
 // Assume the Raspberry Pi series and estimate the address from CPU
@@ -1264,7 +1264,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 
 void GPIOBUS::DisableIRQ()
 {
-#ifdef __linux__
+#ifdef __linux
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];
