@@ -15,9 +15,11 @@
 #include "os.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-
 #include "config.h"
 #include "log.h"
+#include <array>
+
+using namespace std;
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
@@ -1063,27 +1065,19 @@ const int GPIOBUS::SignalTable[19] = {
 //---------------------------------------------------------------------------
 void GPIOBUS::MakeTable(void)
 {
-	const int pintbl[] = {
+	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
 		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
 	};
 
 	int i;
-	int j;
 	bool tblParity[256];
-#if SIGNAL_CONTROL_MODE == 0
-	int index;
-	int shift;
-#else
-	DWORD gpclr;
-	DWORD gpset;
-#endif
 
 	// Create parity table
 	for (i = 0; i < 0x100; i++) {
 		auto bits = (DWORD)i;
 		DWORD parity = 0;
-		for (j = 0; j < 8; j++) {
+		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
 		}
@@ -1105,10 +1099,10 @@ void GPIOBUS::MakeTable(void)
 		}
 
 		// Bit check
-		for (j = 0; j < 9; j++) {
+		for (int j = 0; j < 9; j++) {
 			// Index and shift amount calculation
-			index = pintbl[j] / 10;
-			shift = (pintbl[j] % 10) * 3;
+			int index = pintbl[j] / 10;
+			int shift = (pintbl[j] % 10) * 3;
 
 			// Mask data
 			tblDatMsk[index][i] &= ~(0x7 << shift);
@@ -1140,8 +1134,8 @@ void GPIOBUS::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		gpclr = 0;
-		gpset = 0;
+		DWORD gpclr = 0;
+		DWORD gpset = 0;
 		for (j = 0; j < 9; j++) {
 			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
