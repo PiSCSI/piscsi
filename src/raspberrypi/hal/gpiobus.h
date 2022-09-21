@@ -14,6 +14,10 @@
 #include "config.h"
 #include "scsi.h"
 
+#ifdef __linux
+#include <linux/gpio.h>
+#endif
+
 #if !defined(FALSE)
 #define FALSE 0
 #endif
