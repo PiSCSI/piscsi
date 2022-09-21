@@ -16,7 +16,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstddef>
-#include <cstdarg>
 #include <cstring>
 #include <cassert>
 #include <cstdint>
