@@ -33,10 +33,6 @@ using BYTE = unsigned char;
 using WORD = uint16_t;
 using DWORD = uint32_t;
 
-#if !defined(FALSE)
-#define FALSE 0
-#endif
-
 #if !defined(TRUE)
 #define TRUE 1
 #endif

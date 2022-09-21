@@ -14,6 +14,10 @@
 #include "config.h"
 #include "scsi.h"
 
+#if !defined(FALSE)
+#define FALSE 0
+#endif
+
 //---------------------------------------------------------------------------
 //
 //	Connection method definitions
