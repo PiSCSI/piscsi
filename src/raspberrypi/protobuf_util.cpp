@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
-#include "os.h"
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"

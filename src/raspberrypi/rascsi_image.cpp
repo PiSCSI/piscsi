@@ -9,7 +9,6 @@
 
 #include <unistd.h>
 #include <sys/sendfile.h>
-#include "os.h"
 #include "log.h"
 #include "filepath.h"
 #include "spdlog/spdlog.h"

@@ -11,7 +11,6 @@
 //---------------------------------------------------------------------------
 
 #include "config.h"
-#include "os.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"

@@ -10,12 +10,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
+#include <unistd.h>
 #include "rascsi_version.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include <unistd.h>
 #include <clocale>
 #include <iostream>
 #include <list>

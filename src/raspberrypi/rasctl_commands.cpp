@@ -3,12 +3,11 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include <netdb.h>
-#include "os.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
