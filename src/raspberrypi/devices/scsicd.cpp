@@ -177,7 +177,7 @@ void SCSICD::Open(const Filepath& path)
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
 	// Close and transfer for physical CD access
-	if (path.GetPath()[0] == _T('\\')) {
+	if (path.GetPath()[0] == '\\') {
 		// Close
 		fio.Close();
 
@@ -197,7 +197,7 @@ void SCSICD::Open(const Filepath& path)
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (!strncasecmp(file, _T("FILE"), 4)) {
+		if (!strncasecmp(file, "FILE", 4)) {
 			// Open as CUE
 			OpenCue(path);
 		} else {

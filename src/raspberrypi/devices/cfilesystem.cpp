@@ -231,7 +231,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	assert(!m_bEnable);
 	assert(m_capCache.sectors == 0);
 	assert(!m_bVolumeCache);
-	assert(m_szVolumeCache[0] == _T('\0'));
+	assert(m_szVolumeCache[0] == '\0');
 
 	// Confirm that the entity does not exist (just in case)
 	assert(m_cRing.Next() == &m_cRing);
@@ -251,22 +251,22 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	TCHAR* p = m_szBase;
 	for (;;) {
 		TCHAR c = *p;
-		if (c == _T('\0'))
+		if (c == '\0')
 			break;
-		if (c == _T('/') || c == _T('\\')) {
+		if (c == '/' || c == '\\') {
 			pClear = p;
 		} else {
 			pClear = nullptr;
 		}
 		if ((c <= (TCHAR)0x9F) || (TCHAR)0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
 			p++;
-			if (*p == _T('\0'))
+			if (*p == '\0')
 				break;
 		}
 		p++;
 	}
 	if (pClear)
-		*pClear = _T('\0');
+		*pClear = '\0';
 
 	// Status update
 	m_bEnable = true;
@@ -316,7 +316,7 @@ void CHostDrv::SetEnable(bool bEnable)
 		// Clear cache
 		m_capCache.sectors = 0;
 		m_bVolumeCache = false;
-		m_szVolumeCache[0] = _T('\0');
+		m_szVolumeCache[0] = '\0';
 	}
 }
 
@@ -618,8 +618,8 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 		szHumanPath[nHumanPath] = '\0';
 		if (nHostPath + 1 >= FILEPATH_MAX)
 			return nullptr;				// Error: The host side path is too long
-		szHostPath[nHostPath++] = _T('/');
-		szHostPath[nHostPath] = _T('\0');
+		szHostPath[nHostPath++] = '/';
+		szHostPath[nHostPath] = '\0';
 
 		// Insert one file
 		BYTE szHumanFilename[24];		// File name part
@@ -797,8 +797,8 @@ void CHostFilename::ConvertHuman(int nCount)
 
 
 	// Don't do conversion for special directory names
-	if (m_szHost[0] == _T('.') &&
-		(m_szHost[1] == _T('\0') || (m_szHost[1] == _T('.') && m_szHost[2] == _T('\0')))) {
+	if (m_szHost[0] == '.' &&
+		(m_szHost[1] == '\0' || (m_szHost[1] == '.' && m_szHost[2] == '\0'))) {
 		strcpy((char*)m_szHuman, m_szHost);
 
 		m_bCorrect = true;
@@ -1649,8 +1649,8 @@ void CHostPath::Backup()
 	m_tBackup = 0;
 	if (len > 1) {	// Don't do anything if it is the root directory
 		len--;
-		assert(szPath[len] == _T('/'));
-		szPath[len] = _T('\0');
+		assert(szPath[len] == '/');
+		szPath[len] = '\0';
 		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
 		if (stat(S2U(szPath), &sb) == 0)
 			m_tBackup = sb.st_mtime;
@@ -1674,8 +1674,8 @@ void CHostPath::Restore() const
 	if (m_tBackup) {
 		assert(len);
 		len--;
-		assert(szPath[len] == _T('/'));
-		szPath[len] = _T('\0');
+		assert(szPath[len] == '/');
+		szPath[len] = '\0';
 
 		utimbuf ut;
 		ut.actime = m_tBackup;
@@ -2614,7 +2614,7 @@ void CFileSys::Init()
 	DWORD nDrives = m_nDrives;
 	if (nDrives == 0) {
 		// Use root directory instead of per-path settings
-		strcpy(m_szBase[0], _T("/"));
+		strcpy(m_szBase[0], "/");
 		m_nFlag[0] = 0;
 		nDrives++;
 	}
@@ -2623,7 +2623,7 @@ void CFileSys::Init()
 	DWORD nUnit = 0;
 	for (DWORD n = 0; n < nDrives; n++) {
 		// Don't register is base path do not exist
-		if (m_szBase[n][0] == _T('\0'))
+		if (m_szBase[n][0] == '\0')
 			continue;
 
 		// Create 1 unit file system
@@ -3931,7 +3931,7 @@ bool CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles) const
 		// Get volume label
 		m_cEntry.GetVolume(nUnit, szVolume);
 	}
-	if (szVolume[0] == _T('\0'))
+	if (szVolume[0] == '\0')
 		return false;
 
 	pFiles->attr = Human68k::AT_VOLUME;

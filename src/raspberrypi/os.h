@@ -70,8 +70,4 @@ using TCHAR = char;
 #define TRUE                1
 #endif
 
-#if !defined(_T)
-#define _T(x)	x
-#endif
-
 static const int _MAX_FNAME = 256;
