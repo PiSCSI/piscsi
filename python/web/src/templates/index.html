@@ -544,9 +544,9 @@
     </summary>
     <ul>
         <li>{{ _("The Generic Hard Disk image type is recommended for most computer platforms.") }}</li>
-        <li>{{ _("APPLE GENUINE is appropriate for Apple Macintosh computers.") }}</li>
-        <li>{{ _("NEC GENUINE is appropriate for NEC PC-98 computers.") }}</li>
-        <li>{{ _("The Generic Removable Disk image type can be used with SCSI floppy drives, SyQuest drives, Zip drives etc.") }}</li>
+        <li>{{ _("The Apple image type improves compatibility with Apple Macintosh computers.") }}</li>
+        <li>{{ _("The NEC image type improves compatibility with NEC PC-98 computers.") }}</li>
+        <li>{{ _("The Removable Disk image type can be used with SCSI floppy drives, SyQuest drives, Zip drives, etc.") }}</li>
     </ul>
 </details>
 <table style="border: none">
@@ -557,18 +557,11 @@
                 <input name="file_name" placeholder="{{ _("File Name") }}" required="" type="text">
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
-                    <option value="hds">
-                    {{ _("SCSI Hard Disk image (Generic) [.hds]") }}
+                    {% for key, value in image_suffixes_to_create.items() %}
+                    <option value="{{ key }}">
+                    {{ value }} [.{{ key }}]
                     </option>
-                    <option value="hda">
-                    {{ _("SCSI Hard Disk image (APPLE GENUINE) [.hda]") }}
-                    </option>
-                    <option value="hdn">
-                    {{ _("SCSI Hard Disk image (NEC GENUINE) [.hdn]") }}
-                    </option>
-                    <option value="hdr">
-                    {{ _("SCSI Removable Disk image (Generic) [.hdr]") }}
-                    </option>
+                    {% endfor %}
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
                 <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" max="262144" required>

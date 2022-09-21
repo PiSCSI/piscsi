@@ -49,6 +49,7 @@ from web_utils import (
     get_valid_scsi_ids,
     map_device_types_and_names,
     get_device_name,
+    map_image_file_descriptions,
     auth_active,
     is_bridge_configured,
     upload_with_dropzonejs,
@@ -133,6 +134,15 @@ def index():
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
+    server_info["schd"].reverse()
+    image_suffixes_to_create = map_image_file_descriptions(
+        # Here we strip out hdi and nhd, since they are proprietary PC-98 emulator formats
+        # that require a particular header to work. We can't generate them on the fly.
+        [suffix for suffix in server_info["schd"] if suffix not in {"hdi", "nhd"}] +
+        server_info["scrm"] +
+        server_info["scmo"]
+        )
+
     valid_image_suffixes = "." + ", .".join(
         server_info["schd"] +
         server_info["scrm"] +
@@ -174,6 +184,7 @@ def index():
         netinfo=ractl_cmd.get_network_info(),
         device_types=device_types,
         free_disk=int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
