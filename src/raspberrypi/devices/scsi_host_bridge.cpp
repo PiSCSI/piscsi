@@ -21,6 +21,7 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include "scsi_command_util.h"
+#include <array>
 
 using namespace std;
 using namespace scsi_defs;
@@ -58,9 +59,9 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	}
 
 	// Generate MAC Address
-	memset(mac_addr, 0x00, 6);
+	memset(mac_addr.data(), 0x00, mac_addr.size());
 	if (m_bTapEnable) {
-		tap.GetMacAddr(mac_addr);
+		tap.GetMacAddr(mac_addr.data());
 		mac_addr[5]++;
 	}
 
@@ -324,18 +325,18 @@ void SCSIBR::SendMessage10()
 
 int SCSIBR::GetMacAddr(BYTE *mac) const
 {
-	memcpy(mac, mac_addr, 6);
+	memcpy(mac, mac_addr.data(), mac_addr.size());
 	return 6;
 }
 
 void SCSIBR::SetMacAddr(const BYTE *mac)
 {
-	memcpy(mac_addr, mac, 6);
+	memcpy(mac_addr.data(), mac, mac_addr.size());
 }
 
 void SCSIBR::ReceivePacket()
 {
-	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	// previous packet has not been received
 	if (packet_enable) {
@@ -343,10 +344,11 @@ void SCSIBR::ReceivePacket()
 	}
 
 	// Receive packet
-	packet_len = tap.Rx(packet_buf);
+	packet_len = tap.Rx(packet_buf.data());
 
 	// Check if received packet
-	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
+	if (memcmp(packet_buf.data(), mac_addr.data(), mac_addr.size()) != 0 &&
+			memcmp(packet_buf.data(), bcast_addr.data(), bcast_addr.size()) != 0) {
 		packet_len = 0;
 		return;
 	}
@@ -372,7 +374,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	}
 
 	// Copy
-	memcpy(buf, packet_buf, len);
+	memcpy(buf, packet_buf.data(), len);
 
 	// Received
 	packet_enable = false;

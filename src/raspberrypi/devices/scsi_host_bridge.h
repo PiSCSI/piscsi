@@ -57,9 +57,9 @@ private:
 
 	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
-	BYTE mac_addr[6];							// MAC Addres
+	array<BYTE, 6> mac_addr;					// MAC Addres
 	int packet_len = 0;							// Receive packet size
-	BYTE packet_buf[0x1000];					// Receive packet buffer
+	array<BYTE, 0x1000> packet_buf;				// Receive packet buffer
 	bool packet_enable = false;					// Received packet valid
 
 	int ReadFsResult(BYTE *buf) const;			// Read filesystem (result code)
