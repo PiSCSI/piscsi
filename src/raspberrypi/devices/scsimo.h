@@ -26,24 +26,26 @@ public:
 
 	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
 	~SCSIMO() override = default;
+	SCSIMO(SCSIMO&) = delete;
+	SCSIMO& operator=(const SCSIMO&) = delete;
 
 	void Open(const Filepath& path) override;
 
-	vector<BYTE> InquiryInternal() const override;
-	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	vector<byte> InquiryInternal() const override;
+	void ModeSelect(const vector<int>&, const BYTE *, int) override;
 
 protected:
 
 	void SetDeviceParameters(BYTE *) const override;
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
-	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
+	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 
-	void SetGeometries(const unordered_map<uint64_t, Geometry>& geometries) { this->geometries = geometries; }
+	void SetGeometries(const unordered_map<uint64_t, Geometry>& g) { geometries = g; }
 	bool SetGeometryForCapacity(uint64_t);
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction

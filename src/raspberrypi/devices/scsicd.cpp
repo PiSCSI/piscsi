@@ -17,6 +17,8 @@
 #include "scsicd.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+
 
 using namespace scsi_defs;
 
@@ -92,7 +94,7 @@ DWORD CDTrack::GetBlocks() const
 	ASSERT(first_lba < last_lba);
 
 	// Calculate from start LBA and end LBA
-	return (DWORD)(last_lba - first_lba + 1);
+	return last_lba - first_lba + 1;
 }
 
 int CDTrack::GetTrackNo() const
@@ -110,7 +112,7 @@ int CDTrack::GetTrackNo() const
 //---------------------------------------------------------------------------
 bool CDTrack::IsValid(DWORD lba) const
 {
-	// FALSE if the track itself is invalid
+	// false if the track itself is invalid
 	if (!valid) {
 		return false;
 	}
@@ -129,11 +131,6 @@ bool CDTrack::IsValid(DWORD lba) const
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Is audio track
-//
-//---------------------------------------------------------------------------
 bool CDTrack::IsAudio() const
 {
 	assert(valid);
@@ -141,18 +138,12 @@ bool CDTrack::IsAudio() const
 	return audio;
 }
 
-//===========================================================================
-//
-//	SCSI CD-ROM
-//
-//===========================================================================
-
 SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	SetSectorSizes(sector_sizes);
 
-	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.Add(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 SCSICD::~SCSICD()
@@ -160,10 +151,10 @@ SCSICD::~SCSICD()
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch()
+bool SCSICD::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSICD::Open(const Filepath& path)
@@ -177,7 +168,7 @@ void SCSICD::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
@@ -193,14 +184,14 @@ void SCSICD::Open(const Filepath& path)
 		OpenPhysical(path);
 	} else {
 		// Get file size
-		if (off_t size = fio.GetFileSize(); size <= 4) {
+		if (fio.GetFileSize() < 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
 		TCHAR file[5];
-		fio.Read(file, 4);
+		fio.Read((BYTE *)file, 4);
 		file[4] = '\0';
 		fio.Close();
 
@@ -221,7 +212,6 @@ void SCSICD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
-	assert(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
 
 	// Attention if ready
@@ -239,7 +229,7 @@ void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open ISO CD-ROM file");
 	}
 
@@ -297,11 +287,11 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Create only one data track
-	assert(!track[0]);
-	track[0] = new CDTrack();
-	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(false, path);
-	tracks = 1;
+	assert(!tracks.size());
+	auto track = make_unique<CDTrack>();
+	track->Init(1, 0, (int)GetBlockCount() - 1);
+	track->SetPath(false, path);
+	tracks.push_back(move(track));
 	dataindex = 0;
 }
 
@@ -309,7 +299,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open CD-ROM file");
 	}
 
@@ -330,11 +320,11 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
-	ASSERT(!track[0]);
-	track[0] = new CDTrack();
-	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(false, path);
-	tracks = 1;
+	ASSERT(!tracks.size());
+	auto track = make_unique<CDTrack>();
+	track->Init(1, 0, (int)GetBlockCount() - 1);
+	track->SetPath(false, path);
+	tracks.push_back(move(track));
 	dataindex = 0;
 }
 
@@ -345,35 +335,12 @@ void SCSICD::ReadToc()
 	EnterDataInPhase();
 }
 
-vector<BYTE> SCSICD::InquiryInternal() const
+vector<byte> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
-
-//
-// The following code worked with the modified Apple CD-ROM drivers. Need to
-// test with the original code to see if it works as well....
-//	buf[4] = 42;	// Required
-//
-//	// Fill with blanks
-//	memset(&buf[8], 0x20, buf[4] - 3);
-//
-//	// Vendor name
-//	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-//
-//	// Product name
-//	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
-//
-//	// Revision (XM6 version number)
-////	sprintf(rev, "1.9a",
-//	////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-//	memcpy(&buf[32], "1.9a", 4);
-//
-//	//strcpy(&buf[35],"A1.9a");
-//	buf[36]=0x20;
-//	memcpy(&buf[37],"1999/01/01",10);
 }
 
-void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	super::AddModePages(pages, page, changeable);
 
@@ -388,26 +355,26 @@ void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
-void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void SCSICD::AddCDROMPage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(8);
+	vector<byte> buf(8);
 
 	// No changeable area
 	if (!changeable) {
 		// 2 seconds for inactive timer
-		buf[3] = 0x05;
+		buf[3] = (byte)0x05;
 
 		// MSF multiples are 60 and 75 respectively
-		buf[5] = 60;
-		buf[7] = 75;
+		buf[5] = (byte)60;
+		buf[7] = (byte)75;
 	}
 
 	pages[13] = buf;
 }
 
-void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
+void SCSICD::AddCDDAPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<BYTE> buf(16);
+	vector<byte> buf(16);
 
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks
@@ -415,21 +382,30 @@ void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
 	pages[14] = buf;
 }
 
-int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
+{
+	// Page code 48
+	if (page == 0x30 || page == 0x3f) {
+		scsi_command_util::AddAppleVendorModePage(pages, changeable);
+	}
+}
+
+
+int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 {
 	assert(buf);
 
 	CheckReady();
 
 	// Search for the track
-	int index = SearchTrack(block);
+	int index = SearchTrack((int)block);
 
 	// If invalid, out of range
 	if (index < 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
-	assert(track[index]);
+	assert(tracks[index]);
 
 	// If different from the current data track
 	if (dataindex != index) {
@@ -438,13 +414,13 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		disk.dcache = nullptr;
 
 		// Reset the number of blocks
-		SetBlockCount(track[index]->GetBlocks());
+		SetBlockCount(tracks[index]->GetBlocks());
 		ASSERT(GetBlockCount() > 0);
 
 		// Recreate the disk cache
 		Filepath path;
-		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
+		tracks[index]->GetPath(path);
+		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index
@@ -456,16 +432,15 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
+int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 {
-	assert(cdb);
 	assert(buf);
 
 	CheckReady();
 
 	// If ready, there is at least one track
-	assert(tracks > 0);
-	assert(track[0]);
+	assert(tracks.size() > 0);
+	assert(tracks[0]);
 
 	// Get allocation length, clear buffer
 	int length = cdb[7] << 8;
@@ -476,35 +451,33 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	bool msf = cdb[1] & 0x02;
 
 	// Get and check the last track number
-	int last = track[tracks - 1]->GetTrackNo();
-	if ((int)cdb[6] > last) {
-		// Except for AA
-		if (cdb[6] != 0xaa) {
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		}
+	int last = tracks[tracks.size() - 1]->GetTrackNo();
+	// Except for AA
+	if (cdb[6] > last && cdb[6] != 0xaa) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Check start index
 	int index = 0;
 	if (cdb[6] != 0x00) {
 		// Advance the track until the track numbers match
-		while (track[index]) {
-			if ((int)cdb[6] == track[index]->GetTrackNo()) {
+		while (tracks[index]) {
+			if (cdb[6] == tracks[index]->GetTrackNo()) {
 				break;
 			}
 			index++;
 		}
 
 		// AA if not found or internal error
-		if (!track[index]) {
+		if (!tracks[index]) {
 			if (cdb[6] == 0xaa) {
 				// Returns the final LBA+1 because it is AA
 				buf[0] = 0x00;
 				buf[1] = 0x0a;
-				buf[2] = (BYTE)track[0]->GetTrackNo();
+				buf[2] = (BYTE)tracks[0]->GetTrackNo();
 				buf[3] = (BYTE)last;
 				buf[6] = 0xaa;
-				DWORD lba = track[tracks - 1]->GetLast() + 1;
+				DWORD lba = tracks[tracks.size() - 1]->GetLast() + 1;
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
@@ -520,20 +493,20 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Number of track descriptors returned this time (number of loops)
-	int loop = last - track[index]->GetTrackNo() + 1;
+	int loop = last - tracks[index]->GetTrackNo() + 1;
 	assert(loop >= 1);
 
 	// Create header
 	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
 	buf[1] = (BYTE)((loop << 3) + 2);
-	buf[2] = (BYTE)track[0]->GetTrackNo();
+	buf[2] = (BYTE)tracks[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
 	buf += 4;
 
 	// Loop....
 	for (int i = 0; i < loop; i++) {
 		// ADR and Control
-		if (track[index]->IsAudio()) {
+		if (tracks[index]->IsAudio()) {
 			// audio track
 			buf[1] = 0x10;
 		} else {
@@ -542,14 +515,14 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 		}
 
 		// track number
-		buf[2] = (BYTE)track[index]->GetTrackNo();
+		buf[2] = (BYTE)tracks[index]->GetTrackNo();
 
 		// track address
 		if (msf) {
-			LBAtoMSF(track[index]->GetFirst(), &buf[4]);
+			LBAtoMSF(tracks[index]->GetFirst(), &buf[4]);
 		} else {
-			buf[6] = (BYTE)(track[index]->GetFirst() >> 8);
-			buf[7] = (BYTE)(track[index]->GetFirst());
+			buf[6] = (BYTE)(tracks[index]->GetFirst() >> 8);
+			buf[7] = (BYTE)(tracks[index]->GetFirst());
 		}
 
 		// Advance buffer pointer and index
@@ -604,14 +577,7 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 
 void SCSICD::ClearTrack()
 {
-	// delete the track object
-	for (auto t: track) {
-		delete t;
-		t = nullptr;
-	}
-
-	// Number of tracks is 0
-	tracks = 0;
+	tracks.clear();
 
 	// No settings for data and audio
 	dataindex = -1;
@@ -627,11 +593,11 @@ void SCSICD::ClearTrack()
 int SCSICD::SearchTrack(DWORD lba) const
 {
 	// Track loop
-	for (int i = 0; i < tracks; i++) {
+	for (size_t i = 0; i < tracks.size(); i++) {
 		// Listen to the track
-		assert(track[i]);
-		if (track[i]->IsValid(lba)) {
-			return i;
+		assert(tracks[i]);
+		if (tracks[i]->IsValid(lba)) {
+			return (int)i;
 		}
 	}
 

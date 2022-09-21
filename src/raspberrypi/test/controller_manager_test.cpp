@@ -14,8 +14,9 @@ TEST(ControllerManagerTest, ControllerManager)
 {
 	const int ID = 4;
 	const int LUN = 6;
+	ControllerManager controller_manager;
 
-	PrimaryDevice *device = static_cast<PrimaryDevice *>(device_factory.CreateDevice(UNDEFINED, "services", ID));
+	auto device = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device->SetId(ID);
 	device->SetLun(LUN);
 
@@ -27,7 +28,8 @@ TEST(ControllerManagerTest, ControllerManager)
 	EXPECT_EQ(device, controller_manager.GetDeviceByIdAndLun(ID, LUN));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
-	controller_manager.DeleteAllControllersAndDevices();
+	controller_manager.DeleteAllControllers();
+	device_factory.DeleteAllDevices();
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN));
 }

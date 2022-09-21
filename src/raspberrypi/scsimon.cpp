@@ -10,7 +10,7 @@
 
 #include "os.h"
 #include "log.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 #include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
@@ -30,7 +30,7 @@ using namespace std;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-GPIOBUS *bus;                 // GPIO Bus
+unique_ptr<GPIOBUS> bus;      // GPIO Bus
 
 DWORD buff_size = 1000000;
 data_capture *data_buffer;
@@ -113,12 +113,12 @@ void print_copyright_text(int, char *[])
 {
     LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ")
     LOGINFO("version %s (%s, %s)",
-            rascsi_get_version_string(),
+            rascsi_get_version_string().c_str(),
             __DATE__,
             __TIME__)
     LOGINFO("Powered by XM6 TypeG Technology ")
     LOGINFO("Copyright (C) 2016-2020 GIMONS")
-    LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project")
+    LOGINFO("Copyright (C) 2020-2022 Contributors to the RaSCSI project")
     LOGINFO(" ")
 }
 
@@ -171,19 +171,19 @@ bool Init()
     // Interrupt handler settings
     if (signal(SIGINT, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
     if (signal(SIGHUP, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
     if (signal(SIGTERM, KillHandler) == SIG_ERR)
     {
-        return FALSE;
+        return false;
     }
 
     // GPIO Initialization
-    bus = new GPIOBUS();
+    bus = make_unique<GPIOBUS>();
     if (!bus->Init())
     {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
@@ -217,7 +217,6 @@ void Cleanup()
     {
         // Cleanup the Bus
         bus->Cleanup();
-        delete bus;
     }
 }
 
@@ -336,7 +335,7 @@ int main(int argc, char *argv[])
 
     // Start execution
     running = true;
-    bus->SetACT(FALSE);
+    bus->SetACT(false);
 
     (void)gettimeofday(&start_time, nullptr);
 

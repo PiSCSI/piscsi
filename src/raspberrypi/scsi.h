@@ -10,7 +10,11 @@
 //---------------------------------------------------------------------------
 
 #pragma once
+
 #include "os.h"
+#include <array>
+
+using namespace std;
 
 //===========================================================================
 //
@@ -21,14 +25,14 @@ class BUS
 {
 public:
 	// Operation modes definition
-	enum mode_e {
+	enum class mode_e {
 		TARGET = 0,
 		INITIATOR = 1,
 		MONITOR = 2,
 	};
 
 	//	Phase definitions
-	enum phase_t : BYTE {
+	enum class phase_t : BYTE {
 		busfree,
 		arbitration,
 		selection,
@@ -97,7 +101,7 @@ public:
 	virtual void SetDAT(BYTE dat) = 0;
 	virtual bool GetDP() const = 0;			// Get parity signal
 
-	virtual DWORD Acquire() = 0;
+	virtual uint32_t Acquire() = 0;
 	virtual int CommandHandShake(BYTE *buf) = 0;
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
@@ -109,13 +113,13 @@ public:
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay
 private:
-	static const phase_t phase_table[8];
+	static const array<phase_t, 8> phase_table;
 
-	static const char* phase_str_table[];
+	static const array<const char *, 12> phase_str_table;
 };
 
 namespace scsi_defs {
-	enum scsi_level : int {
+	enum class scsi_level : int {
 		SCSI_1_CCS = 1,
 		SCSI_2 = 2,
 		SPC = 3,
@@ -126,7 +130,7 @@ namespace scsi_defs {
 		SPC_6 = 8
 	};
 
-	enum device_type : int {
+	enum class device_type : int {
 		DIRECT_ACCESS = 0,
 		PRINTER = 2,
 		PROCESSOR = 3,
@@ -135,7 +139,7 @@ namespace scsi_defs {
 		COMMUNICATIONS = 9
 	};
 
-	enum scsi_command : int {
+	enum class scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
@@ -187,7 +191,7 @@ namespace scsi_defs {
 		eCmdReportLuns = 0xA0
 	};
 
-	enum status : int {
+	enum class status : int {
 		GOOD = 0x00,
 		CHECK_CONDITION = 0x02,
 		CONDITION_MET = 0x04,
@@ -199,7 +203,7 @@ namespace scsi_defs {
 		QUEUE_FULL = 0x28
 	};
 
-	enum sense_key : int {
+	enum class sense_key : int {
 		NO_SENSE = 0x00,
 		RECOVERED_ERROR = 0x01,
 		NOT_READY = 0x02,
@@ -217,7 +221,7 @@ namespace scsi_defs {
 		COMPLETED = 0x0f
 	};
 
-	enum asc : int {
+	enum class asc : int {
 		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
 		WRITE_FAULT = 0x03,
 		READ_FAULT = 0x11,

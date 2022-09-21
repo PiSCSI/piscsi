@@ -63,6 +63,7 @@ LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
+SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
 
 set -e
 
@@ -82,10 +83,40 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev \
-    genisoimage python3 python3-venv python3-dev python3-pip nginx \
-    libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 unar \
-    disktype libgmock-dev -y </dev/null
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+        build-essential \
+        git \
+        libspdlog-dev \
+        libpcap-dev \
+        libprotobuf-dev \
+        genisoimage \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        python3-setuptools \
+        python3-wheel \
+        nginx-light \
+        protobuf-compiler \
+        bridge-utils \
+        libev-dev \
+        libevdev2 \
+        unzip \
+        unar \
+        disktype \
+        libgmock-dev
+}
+
+# install Debian packges for RaSCSI standalone
+function installPackagesStandalone() {
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+        build-essential \
+        libspdlog-dev \
+        libpcap-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
+        disktype \
+        libgmock-dev
 }
 
 # cache the pip packages
@@ -249,32 +280,42 @@ function backupRaScsiService() {
 
 # Offers the choice of enabling token-based authentication for RaSCSI
 function configureTokenAuth() {
-    echo ""
-    echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
-    read REPLY
+    if [[ -f "$HOME/.rascsi_secret" ]]; then
+        sudo rm "$HOME/.rascsi_secret"
+        echo "Removed (legacy) RaSCSI token file"
+    fi
 
-    SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+    if [[ -f $SECRET_FILE ]]; then
+        sudo rm "$SECRET_FILE"
+        echo "Removed RaSCSI token file"
+    fi
 
-    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+    if [[ $SKIP_TOKEN ]]; then
+        echo "Skipping RaSCSI token setup"
+        return 0
+    fi
+
+    if [[ -z $TOKEN ]]; then
+        echo ""
+        echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
+        read REPLY
+
+        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+            return 0
+        fi
+
         echo -n "Enter the password that you want to use: "
         read -r TOKEN
-        if [ -f "$HOME/.rascsi_secret" ]; then
-            sudo rm "$HOME/.rascsi_secret"
-            echo "Removed old RaSCSI token file"
-        fi
-        if [ -f "$SECRET_FILE" ]; then
-            sudo rm "$SECRET_FILE"
-            echo "Removed old RaSCSI token file"
-        fi
-        echo "$TOKEN" > "$SECRET_FILE"
+    fi
+
+    echo "$TOKEN" > "$SECRET_FILE"
 
 	# Make the secret file owned and only readable by root
-        sudo chown root:root "$SECRET_FILE"
-        sudo chmod 600 "$SECRET_FILE"
-        echo ""
-        echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
-        echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
-    fi
+    sudo chown root:root "$SECRET_FILE"
+    sudo chmod 600 "$SECRET_FILE"
+    echo ""
+    echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
+    echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
 }
 
 # Modifies and installs the rascsi service
@@ -1202,8 +1243,9 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
+              configureTokenAuth
               updateRaScsiGit
-              installPackages
+              installPackagesStandalone
               stopRaScsi
               compileRaScsi
               installRaScsi
@@ -1221,6 +1263,7 @@ function runChoice() {
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
+              configureTokenAuth
               updateRaScsiGit
               installPackages
               preparePythonCommon
@@ -1294,24 +1337,38 @@ while [ "$1" != "" ]; do
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
         -c | --connect_type)
+            if ! [[ $VALUE =~ ^(FULLSPEC|STANDARD|AIBOM|GAMERNIUM)$ ]]; then
+                echo "ERROR: The connect type parameter must have a value of: FULLSPEC, STANDARD, AIBOM or GAMERNIUM"
+                exit 1
+            fi
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 12 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 12"
+                exit 1
+            fi
             RUN_CHOICE=$VALUE
             ;;
         -j | --cores)
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ ]]; then
+                echo "ERROR: The cores parameter must have a numeric value of at least 1"
+                exit 1
+            fi
             CORES=$VALUE
             ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
+        -t | --token)
+            if [[ -z $VALUE ]]; then
+                echo "ERROR: The token parameter cannot be empty"
+                exit 1
+            fi
+            TOKEN=$VALUE
             ;;
-    esac
-    case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+        -s | --skip-token)
+            SKIP_TOKEN=1
             ;;
         *)
-            echo "ERROR: unknown option \"$VALUE\""
+            echo "ERROR: Unknown parameter \"$PARAM\""
             exit 1
             ;;
     esac

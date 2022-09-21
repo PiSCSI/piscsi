@@ -12,7 +12,7 @@
 #pragma once
 
 #include "scsi.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 
 using data_capture_t = struct data_capture
 {

@@ -16,9 +16,9 @@ class TestDevice : public Device
 public:
 
 	TestDevice() : Device("test") {}
-	~TestDevice() = default;
+	~TestDevice() final = default;
 
-	bool Dispatch() { return false; }
+	bool Dispatch(scsi_defs::scsi_command) final { return false; }
 };
 
 TEST(DeviceTest, ProductData)

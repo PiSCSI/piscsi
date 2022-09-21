@@ -23,12 +23,13 @@ const unordered_set<uint32_t> sector_sizes;
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
-	DWORD cdb[6];
+	vector<int> cdb(6);
 	BYTE buf[512];
 
 	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
+	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0))  << "Allocation length was not limited";
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 1))  << "Allocation length was not limited";
 
 	cdb[2] = 0x00;
@@ -37,7 +38,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSIHD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -52,7 +53,7 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSIHD_NEC device;
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -67,23 +68,24 @@ TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 
 TEST(ModePagesTest, SCSICD_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
-	EXPECT_EQ(6, mode_pages.size()) << "Unexpected number of code pages";
+	EXPECT_EQ(7, mode_pages.size()) << "Unexpected number of code pages";
 	EXPECT_EQ(12, mode_pages[1].size());
 	EXPECT_EQ(24, mode_pages[3].size());
 	EXPECT_EQ(24, mode_pages[4].size());
 	EXPECT_EQ(12, mode_pages[8].size());
 	EXPECT_EQ(8, mode_pages[13].size());
 	EXPECT_EQ(16, mode_pages[14].size());
+	EXPECT_EQ(30, mode_pages[48].size());
 }
 
 TEST(ModePagesTest, SCSIMO_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 	unordered_map<uint64_t, Geometry> geometries;
 
 	MockSCSIMO device(sector_sizes, geometries);
@@ -100,7 +102,7 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 
 TEST(ModePagesTest, HostServices_AddModePages)
 {
-	map<int, vector<BYTE>> mode_pages;
+	map<int, vector<byte>> mode_pages;
 
 	MockHostServices device;
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -113,7 +115,7 @@ TEST(ModePagesTest, ModeSelect)
 {
 	const int LENGTH = 12;
 
-	DWORD cdb[16] = {};
+	vector<int> cdb(16);
 	BYTE buf[255] = {};
 
 	// PF (vendor-specific parameter format)

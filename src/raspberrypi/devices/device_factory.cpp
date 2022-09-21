@@ -22,9 +22,9 @@
 using namespace std;
 using namespace rascsi_interface;
 
-multimap<int, Device *> DeviceFactory::devices;
+multimap<int, unique_ptr<PrimaryDevice>> DeviceFactory::devices;
 
-DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_params({}), extension_mapping({})
+DeviceFactory::DeviceFactory()
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
@@ -55,6 +55,7 @@ DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_param
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 	default_params[SCLP]["timeout"] = "30";
 
+	extension_mapping["hd1"] = SCHD;
 	extension_mapping["hds"] = SCHD;
 	extension_mapping["hda"] = SCHD;
 	extension_mapping["hdn"] = SCHD;
@@ -65,25 +66,18 @@ DeviceFactory::DeviceFactory() : sector_sizes({}), geometries({}), default_param
 	extension_mapping["iso"] = SCCD;
 }
 
-DeviceFactory::~DeviceFactory()
-{
-	DeleteAllDevices();
-}
-
 DeviceFactory& DeviceFactory::instance()
 {
 	static DeviceFactory instance;
 	return instance;
 }
 
-void DeviceFactory::DeleteDevice(const Device *device) const
+void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
 {
-	auto iterpair = devices.equal_range(device->GetId());
-
-	for (auto it = iterpair.first; it != iterpair.second; ++it) {
+	auto [begin, end] = devices.equal_range(device->GetId());
+	for (auto it = begin; it != end; ++it) {
 		if (it->second->GetLun() == device->GetLun()) {
 			devices.erase(it);
-			delete device;
 
 			break;
 		}
@@ -92,30 +86,26 @@ void DeviceFactory::DeleteDevice(const Device *device) const
 
 void DeviceFactory::DeleteAllDevices() const
 {
-	for (const auto& [id, device] : devices) {
-		delete device;
-	}
-
 	devices.clear();
 }
 
-const Device * DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
+const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
 {
 	for (const auto& [id, device] : devices) {
 		if (device->GetId() == i && device->GetLun() == lun) {
-			return device;
+			return device.get();
 		}
 	}
 
 	return nullptr;
 }
 
-list<Device *> DeviceFactory::GetAllDevices() const
+list<PrimaryDevice *> DeviceFactory::GetAllDevices() const
 {
-	list<Device *> result;
+	list<PrimaryDevice *> result;
 
 	for (const auto& [id, device] : devices) {
-		result.push_back(device);
+		result.push_back(device.get());
 	}
 
 	return result;
@@ -124,8 +114,7 @@ list<Device *> DeviceFactory::GetAllDevices() const
 string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
-	size_t separator = filename.rfind('.');
-	if (separator != string::npos) {
+	if (size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -135,8 +124,7 @@ string DeviceFactory::GetExtension(const string& filename) const
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	const auto& it = extension_mapping.find(GetExtension(filename));
-	if (it != extension_mapping.end()) {
+	if (const auto& it = extension_mapping.find(GetExtension(filename)); it != extension_mapping.end()) {
 		return it->second;
 	}
 	else if (filename == "bridge") {
@@ -156,7 +144,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
+PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -166,13 +154,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		}
 	}
 
-	unique_ptr<Device> device;
+	unique_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_unique<SCSIHD_NEC>();
 		} else {
-			device = make_unique<SCSIHD>(sector_sizes[SCHD], false);
+			device = make_unique<SCSIHD>(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -230,7 +218,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>();
+		device = make_unique<HostServices>(this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
@@ -249,7 +237,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, i
 
 	assert(device != nullptr);
 
-	Device *d = device.release();
+	PrimaryDevice *d = device.release();
 
 	if (d != nullptr) {
 		d->SetId(id);
@@ -275,9 +263,9 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
-	struct ifaddrs *addrs;
+	ifaddrs *addrs;
 	getifaddrs(&addrs);
-	struct ifaddrs *tmp = addrs;
+	ifaddrs *tmp = addrs;
 
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
@@ -287,8 +275,8 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
 	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && ifr.ifr_flags & IFF_UP) {
-	        	network_interfaces.push_back(tmp->ifa_name);
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
+	        	network_interfaces.emplace_back(tmp->ifa_name);
 	        }
 
 	        close(fd);

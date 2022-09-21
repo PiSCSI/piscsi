@@ -23,46 +23,6 @@
 // Note that these global variables are convenient,
 // but might cause issues because they are reused by all tests
 extern DeviceFactory& device_factory;
-extern ControllerManager& controller_manager;
-
-class MockBus : public BUS
-{
-public:
-
-	MOCK_METHOD(bool, Init, (mode_e), (override));
-	MOCK_METHOD(void, Reset, (), (override));
-	MOCK_METHOD(void, Cleanup, (), (override));
-	MOCK_METHOD(bool, GetBSY, (), (const override));
-	MOCK_METHOD(void, SetBSY, (bool), (override));
-	MOCK_METHOD(bool, GetSEL, (), (const override));
-	MOCK_METHOD(void, SetSEL, (bool), (override));
-	MOCK_METHOD(bool, GetATN, (), (const override));
-	MOCK_METHOD(void, SetATN, (bool), (override));
-	MOCK_METHOD(bool, GetACK, (), (const override));
-	MOCK_METHOD(void, SetACK, (bool), (override));
-	MOCK_METHOD(bool, GetRST, (), (const override));
-	MOCK_METHOD(void, SetRST, (bool), (override));
-	MOCK_METHOD(bool, GetMSG, (), (const override));
-	MOCK_METHOD(void, SetMSG, (bool), (override));
-	MOCK_METHOD(bool, GetCD, (), (const override));
-	MOCK_METHOD(void, SetCD, (bool), (override));
-	MOCK_METHOD(bool, GetIO, (), (override));
-	MOCK_METHOD(void, SetIO, (bool), (override));
-	MOCK_METHOD(bool, GetREQ, (), (const override));
-	MOCK_METHOD(void, SetREQ, (bool), (override));
-	MOCK_METHOD(BYTE, GetDAT, (), (override));
-	MOCK_METHOD(void, SetDAT, (BYTE), (override));
-	MOCK_METHOD(bool, GetDP, (), (const, override));
-	MOCK_METHOD(DWORD, Acquire,(), (override));
-	MOCK_METHOD(int, CommandHandShake, (BYTE *), (override));
-	MOCK_METHOD(int, ReceiveHandShake, (BYTE *, int), (override));
-	MOCK_METHOD(int, SendHandShake, (BYTE *, int, int), (override));
-	MOCK_METHOD(bool, GetSignal, (int), (const, override));
-	MOCK_METHOD(void, SetSignal, (int, bool), (override));
-
-	MockBus() = default;
-	~MockBus() = default;
-};
 
 class MockAbstractController : public AbstractController
 {
@@ -98,7 +58,7 @@ public:
 	MOCK_METHOD(void, Reset, (), (override));
 
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
-	~MockAbstractController() = default;
+	~MockAbstractController() final = default;
 };
 
 class MockScsiController : public ScsiController
@@ -136,25 +96,24 @@ public:
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 
-	MockScsiController(BUS *bus, int target_id) : ScsiController(bus, target_id) {}
-	~MockScsiController() = default;
+	using ScsiController::ScsiController;
 };
 
 class MockPrimaryDevice : public PrimaryDevice
 {
 public:
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() = default;
+	~MockPrimaryDevice() final = default;
 
 	// Make protected methods visible for testing
 
 	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
 	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
 	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
-	vector<BYTE> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
+	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
 		return PrimaryDevice::HandleInquiry(type, level, is_removable);
 	}
 };
@@ -164,24 +123,22 @@ class MockModePageDevice : public ModePageDevice
 public:
 
 	MockModePageDevice() : ModePageDevice("test") {}
-	~MockModePageDevice() = default;
+	~MockModePageDevice() final = default;
 
-	MOCK_METHOD(vector<BYTE>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *, int), ());
-	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), ());
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
+	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
-			vector<BYTE> buf(255);
+			vector<byte> buf(255);
 			pages[page] = buf;
 		}
 	}
 
-	// Make protected methods visible for testing
-	// TODO Why does FRIEND_TEST not work for this method?
-
-	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) {
+	// Make protected method visible for testing
+	int AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const {
 		return ModePageDevice::AddModePages(cdb, buf, max_length);
 	}
 };
@@ -191,15 +148,15 @@ class MockSCSIHD : public SCSIHD
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
 	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
-	~MockSCSIHD() = default;
+	~MockSCSIHD() final = default;
 };
 
-class MockSCSIHD_NEC : public SCSIHD_NEC
+class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 
 	MockSCSIHD_NEC() = default;
-	~MockSCSIHD_NEC() = default;
+	~MockSCSIHD_NEC() final = default;
 };
 
 class MockSCSICD : public SCSICD
@@ -207,7 +164,7 @@ class MockSCSICD : public SCSICD
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
 	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
-	~MockSCSICD() = default;
+	~MockSCSICD() final = default;
 };
 
 class MockSCSIMO : public SCSIMO
@@ -216,13 +173,15 @@ class MockSCSIMO : public SCSIMO
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) {}
-	~MockSCSIMO() = default;
+	~MockSCSIMO() final = default;
 };
 
 class MockHostServices : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
-	MockHostServices() = default;
-	~MockHostServices() = default;
+public:
+
+	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
+	~MockHostServices() final = default;
 };

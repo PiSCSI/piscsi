@@ -124,7 +124,7 @@ bool RascsiImage::IsValidDstFilename(const string& filename) const
 	return stat(filename.c_str(), &st);
 }
 
-bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command)
+bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
@@ -189,7 +189,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	return ReturnStatus(context);
 }
 
-bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command)
+bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
@@ -237,7 +237,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	return ReturnStatus(context);
 }
 
-bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& command)
+bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
@@ -280,7 +280,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 	return ReturnStatus(context);
 }
 
-bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& command)
+bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
@@ -364,7 +364,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	return ReturnStatus(context);
 }
 
-bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command)
+bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {

@@ -18,15 +18,14 @@ void FileSupport::ReserveFile(const Filepath& path, int id, int lun) const
 	reserved_files[path.GetPath()] = make_pair(id, lun);
 }
 
-void FileSupport::UnreserveFile()
+void FileSupport::UnreserveFile() const
 {
 	reserved_files.erase(diskpath.GetPath());
 }
 
 bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& lun)
 {
-	const auto& it = reserved_files.find(path.GetPath());
-	if (it != reserved_files.end()) {
+	if (const auto& it = reserved_files.find(path.GetPath()); it != reserved_files.end()) {
 		id = it->second.first;
 		lun = it->second.second;
 

@@ -1048,6 +1048,11 @@ if __name__ == "__main__":
         help="Log level for Web UI. Default: warning",
         choices=["debug", "info", "warning", "error", "critical"],
         )
+    parser.add_argument(
+        "--dev-mode",
+        action="store_true",
+        help="Run in development mode"
+        )
 
     arguments = parser.parse_args()
     APP.config["TOKEN"] = arguments.password
@@ -1064,5 +1069,14 @@ if __name__ == "__main__":
                         format="%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(message)s",
                         level=arguments.log_level.upper())
 
-    print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", arguments.port)
+    if arguments.dev_mode:
+        print("Running rascsi-web in development mode ...")
+        APP.debug = True
+        from werkzeug.debug import DebuggedApplication
+        try:
+            bjoern.run(DebuggedApplication(APP, evalex=False), "0.0.0.0", arguments.port)
+        except KeyboardInterrupt:
+            pass
+    else:
+        print("Serving rascsi-web...")
+        bjoern.run(APP, "0.0.0.0", arguments.port)

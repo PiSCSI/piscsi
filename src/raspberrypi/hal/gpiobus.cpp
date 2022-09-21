@@ -13,7 +13,8 @@
 #include <sys/mman.h>
 
 #include "os.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
+#include "hal/systimer.h"
 
 #include "config.h"
 #include "log.h"
@@ -76,36 +77,29 @@ DWORD bcm_host_get_peripheral_address(void)
 
 bool GPIOBUS::Init(mode_e mode)
 {
-#if defined(__x86_64__) || defined(__X86__)
-	actmode = mode;
-
-	// When we're running on x86, there is no hardware to talk to, so just return.
-	return true;
-#else
-	void *map;
-	int i;
-	int j;
-	int pullmode;
-	int fd;
-#ifdef USE_SEL_EVENT_ENABLE
-	struct epoll_event ev;
-#endif	// USE_SEL_EVENT_ENABLE
-
 	// Save operation mode
 	actmode = mode;
+
+#if defined(__x86_64__) || defined(__X86__)
+	return true;
+#else
+	int i;
+#ifdef USE_SEL_EVENT_ENABLE
+	struct epoll_event ev;
+#endif
 
 	// Get the base address
 	baseaddr = (DWORD)bcm_host_get_peripheral_address();
 
 	// Open /dev/mem
-	fd = open("/dev/mem", O_RDWR | O_SYNC);
+	int fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
         LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
 		return false;
 	}
 
 	// Map peripheral region memory
-	map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
+	void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
 	if (map == MAP_FAILED) {
         LOGERROR("Error: Unable to map memory")
 		close(fd);
@@ -165,16 +159,16 @@ bool GPIOBUS::Init(mode_e mode)
 
 	// Set pull up/pull down
 #if SIGNAL_CONTROL_MODE == 0
-	pullmode = GPIO_PULLNONE;
+	int pullmode = GPIO_PULLNONE;
 #elif SIGNAL_CONTROL_MODE == 1
-	pullmode = GPIO_PULLUP;
+	int pullmode = GPIO_PULLUP;
 #else
-	pullmode = GPIO_PULLDOWN;
+	int pullmode = GPIO_PULLDOWN;
 #endif
 
 	// Initialize all signals
 	for (i = 0; SignalTable[i] >= 0; i++) {
-		j = SignalTable[i];
+		int j = SignalTable[i];
 		PinSetSignal(j, FALSE);
 		PinConfig(j, GPIO_INPUT);
 		PullConfig(j, pullmode);
@@ -304,9 +298,6 @@ void GPIOBUS::Cleanup()
 #if defined(__x86_64__) || defined(__X86__)
 	return;
 #else
-	int i;
-	int pin;
-
 	// Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
 	close(selevreq.fd);
@@ -324,8 +315,8 @@ void GPIOBUS::Cleanup()
 	PinConfig(PIN_DTD, GPIO_INPUT);
 
 	// Initialize all signals
-	for (i = 0; SignalTable[i] >= 0; i++) {
-		pin = SignalTable[i];
+	for (int i = 0; SignalTable[i] >= 0; i++) {
+		int pin = SignalTable[i];
 		PinSetSignal(pin, FALSE);
 		PinConfig(pin, GPIO_INPUT);
 		PullConfig(pin, GPIO_PULLNONE);
@@ -357,7 +348,7 @@ void GPIOBUS::Reset()
 		SetSignal(j, OFF);
 	}
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		// Target mode
 
 		// Set target signal to input
@@ -437,7 +428,7 @@ void GPIOBUS::SetBSY(bool ast)
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		if (ast) {
 			// Turn on ACTIVE signal
 			SetControl(PIN_ACT, ACT_ON);
@@ -473,7 +464,7 @@ bool GPIOBUS::GetSEL() const
 
 void GPIOBUS::SetSEL(bool ast)
 {
-	if (actmode == INITIATOR && ast) {
+	if (actmode == mode_e::INITIATOR && ast) {
 		// Turn on ACTIVE signal
 		SetControl(PIN_ACT, ACT_ON);
 	}
@@ -546,7 +537,7 @@ bool GPIOBUS::GetIO()
 {
 	bool ast = GetSignal(PIN_IO);
 
-	if (actmode == INITIATOR) {
+	if (actmode == mode_e::INITIATOR) {
 		// Change the data input/output direction by IO signal
 		if (ast) {
 			SetControl(PIN_DTD, DTD_IN);
@@ -580,7 +571,7 @@ void GPIOBUS::SetIO(bool ast)
 {
 	SetSignal(PIN_IO, ast);
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		// Change the data input/output direction by IO signal
 		if (ast) {
 			SetControl(PIN_DTD, DTD_OUT);
@@ -626,7 +617,7 @@ void GPIOBUS::SetREQ(bool ast)
 //---------------------------------------------------------------------------
 BYTE GPIOBUS::GetDAT()
 {
-	DWORD data = Acquire();
+	uint32_t data = Acquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
@@ -691,7 +682,7 @@ bool GPIOBUS::GetDP() const
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
 	// Only works in TARGET mode
-	if (actmode != TARGET) {
+	if (actmode != mode_e::TARGET) {
 		return 0;
 	}
 
@@ -817,7 +808,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 	// Disable IRQs
 	DisableIRQ();
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		for (i = 0; i < count; i++) {
 			// Assert the REQ signal
 			SetSignal(PIN_REQ, ON);
@@ -917,7 +908,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 	// Disable IRQs
 	DisableIRQ();
 
-	if (actmode == TARGET) {
+	if (actmode == mode_e::TARGET) {
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
@@ -1079,7 +1070,7 @@ void GPIOBUS::MakeTable(void)
 
 	int i;
 	int j;
-	BOOL tblParity[256];
+	bool tblParity[256];
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
 	int shift;
@@ -1248,13 +1239,13 @@ void GPIOBUS::SetSignal(int pin, bool ast)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::WaitSignal(int pin, BOOL ast)
+bool GPIOBUS::WaitSignal(int pin, int ast)
 {
 	// Get current time
-	DWORD now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 
 	// Calculate timeout (3000ms)
-	DWORD timeout = 3000 * 1000;
+	uint32_t timeout = 3000 * 1000;
 
 	// end immediately if the signal has changed
 	do {
@@ -1415,15 +1406,15 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	if (GetPinRaw(raw_data, PIN_SEL)) 
 	{
 		if(GetPinRaw(raw_data, PIN_IO)){
-			return BUS::reselection;
+			return BUS::phase_t::reselection;
 		}else{
-			return BUS::selection;
+			return BUS::phase_t::selection;
 		}
 	}
 
 	// Bus busy phase
 	if (!GetPinRaw(raw_data, PIN_BSY)) {
-		return BUS::busfree;
+		return BUS::phase_t::busfree;
 	}
 
 	// Get target phase from bus signal line
@@ -1452,121 +1443,3 @@ int GPIOBUS::GetCommandByteCount(BYTE opcode) {
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	System timer address
-//
-//---------------------------------------------------------------------------
-volatile DWORD* SysTimer::systaddr;
-
-//---------------------------------------------------------------------------
-//
-//	ARM timer address
-//
-//---------------------------------------------------------------------------
-volatile DWORD* SysTimer::armtaddr;
-
-//---------------------------------------------------------------------------
-//
-//	Core frequency
-//
-//---------------------------------------------------------------------------
-volatile DWORD SysTimer::corefreq;
-
-//---------------------------------------------------------------------------
-//
-//	Initialize the system timer
-//
-//---------------------------------------------------------------------------
-void SysTimer::Init(DWORD *syst, DWORD *armt)
-{
-	// RPI Mailbox property interface
-	// Get max clock rate
-	//  Tag: 0x00030004
-	//
-	//  Request: Length: 4
-	//   Value: u32: clock id
-	//  Response: Length: 8
-	//   Value: u32: clock id, u32: rate (in Hz)
-	//
-	// Clock id
-	//  0x000000004: CORE
-	DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
-
-	// Save the base address
-	systaddr = syst;
-	armtaddr = armt;
-
-	// Change the ARM timer to free run mode
-	armtaddr[ARMT_CTRL] = 0x00000282;
-
-	// Get the core frequency
-	corefreq = 0;
-	int fd = open("/dev/vcio", O_RDONLY);
-	if (fd >= 0) {
-		ioctl(fd, _IOWR(100, 0, char *), maxclock);
-		corefreq = maxclock[6] / 1000000;
-	}
-	close(fd);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get system timer low byte
-//
-//---------------------------------------------------------------------------
-DWORD SysTimer::GetTimerLow() {
-	return systaddr[SYST_CLO];
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get system timer high byte
-//
-//---------------------------------------------------------------------------
-DWORD SysTimer::GetTimerHigh() {
-	return systaddr[SYST_CHI];
-}
-
-//---------------------------------------------------------------------------
-//
-//	Sleep in nanoseconds
-//
-//---------------------------------------------------------------------------
-void SysTimer::SleepNsec(DWORD nsec)
-{
-	// If time is 0, don't do anything
-	if (nsec == 0) {
-		return;
-	}
-
-	// Calculate the timer difference
-	DWORD diff = corefreq * nsec / 1000;
-
-	// Return if the difference in time is too small
-	if (diff == 0) {
-		return;
-	}
-
-	// Start
-	DWORD start = armtaddr[ARMT_FREERUN];
-
-	// Loop until timer has elapsed
-	while ((armtaddr[ARMT_FREERUN] - start) < diff);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Sleep in microseconds
-//
-//---------------------------------------------------------------------------
-void SysTimer::SleepUsec(DWORD usec)
-{
-	// If time is 0, don't do anything
-	if (usec == 0) {
-		return;
-	}
-
-	DWORD now = GetTimerLow();
-	while ((GetTimerLow() - now) < usec);
-}

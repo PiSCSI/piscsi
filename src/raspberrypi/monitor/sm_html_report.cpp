@@ -104,7 +104,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
     bool prev_data_valid = false;
     bool curr_data_valid;
     DWORD selected_id = 0;
-    BUS::phase_t prev_phase = BUS::busfree;
+    BUS::phase_t prev_phase = BUS::phase_t::busfree;
     bool close_row = false;
     int data_space_count = 0;
     bool collapsible_div_active = false;
@@ -117,7 +117,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
         data = &data_capture_array[idx];
         curr_data_valid = GetAck(data) && GetReq(data);
         BUS::phase_t phase = GetPhase(data);
-        if (phase == BUS::selection && !GetBsy(data))
+        if (phase == BUS::phase_t::selection && !GetBsy(data))
         {
             selected_id = GetData(data);
         }

@@ -15,6 +15,7 @@
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
+	EXPECT_EQ(device_factory.GetTypeForFile("test.hd1"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hda"), SCHD);
@@ -35,10 +36,11 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 
 TEST(DeviceFactoryTest, LifeCycle)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
+	EXPECT_EQ("SCHS", device->GetType());
 
-	list<Device *> devices = device_factory.GetAllDevices();
+	list<PrimaryDevice *> devices = device_factory.GetAllDevices();
 	EXPECT_EQ(1, devices.size());
 	EXPECT_EQ(device, devices.front());
 
@@ -96,13 +98,13 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
 	EXPECT_EQ(nullptr, device);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -142,7 +144,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -167,7 +169,7 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -192,7 +194,7 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -217,7 +219,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -242,7 +244,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -266,7 +268,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -291,7 +293,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	Device *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());

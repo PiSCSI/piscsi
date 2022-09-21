@@ -21,9 +21,14 @@
 
 class SCSIHD : public Disk, public FileSupport
 {
+	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
+
 public:
-	SCSIHD(const unordered_set<uint32_t>&, bool);
+
+	SCSIHD(const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSIHD() override = default;
+	SCSIHD(SCSIHD&) = delete;
+	SCSIHD& operator=(const SCSIHD&) = delete;
 
 	void FinalizeSetup(const Filepath&, off_t);
 
@@ -31,9 +36,13 @@ public:
 	void Open(const Filepath&) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
-	void ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	vector<byte> InquiryInternal() const override;
+	void ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) override;
 
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
+
+private:
+
+	scsi_defs::scsi_level scsi_level;
 };

@@ -30,14 +30,16 @@ public:
 
 	explicit SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
 	~SCSIHD_NEC() override = default;
+	SCSIHD_NEC(SCSIHD_NEC&) = delete;
+	SCSIHD_NEC& operator=(const SCSIHD_NEC&) = delete;
 
 	void Open(const Filepath& path) override;
 
-	vector<BYTE> InquiryInternal() const override;
+	vector<byte> InquiryInternal() const override;
 
-	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
+	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
 

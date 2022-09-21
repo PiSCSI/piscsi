@@ -12,6 +12,9 @@
 #pragma once
 
 #include <unordered_map>
+#include <memory>
+
+using namespace std;
 
 class BUS;
 class AbstractController;
@@ -19,21 +22,23 @@ class PrimaryDevice;
 
 class ControllerManager
 {
-	ControllerManager() = default;
-	~ControllerManager();
 
 public:
+
+	ControllerManager() = default;
+	~ControllerManager() = default;
+	ControllerManager(ControllerManager&) = delete;
+	ControllerManager& operator=(const ControllerManager&) = delete;
+
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	static ControllerManager& instance();
-
-	bool CreateScsiController(BUS *, PrimaryDevice *);
-	AbstractController *IdentifyController(int) const;
-	AbstractController *FindController(int) const;
-	void DeleteAllControllersAndDevices();
-	void ResetAllControllers();
+	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *);
+	shared_ptr<AbstractController> IdentifyController(int) const;
+	shared_ptr<AbstractController> FindController(int) const;
+	void DeleteAllControllers();
+	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 
-	static std::unordered_map<int, AbstractController *> controllers;
+	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };

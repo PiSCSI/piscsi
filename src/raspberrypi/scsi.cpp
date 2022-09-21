@@ -11,6 +11,8 @@
 
 #include "scsi.h"
 
+using namespace std;
+
 //---------------------------------------------------------------------------
 //
 //	Phase Acquisition
@@ -20,12 +22,12 @@ BUS::phase_t BUS::GetPhase()
 {
 	// Selection Phase
 	if (GetSEL()) {
-		return selection;
+		return phase_t::selection;
 	}
 
 	// Bus busy phase
 	if (!GetBSY()) {
-		return busfree;
+		return phase_t::busfree;
 	}
 
 	// Get target phase from bus signal line
@@ -41,11 +43,10 @@ BUS::phase_t BUS::GetPhase()
 //
 //---------------------------------------------------------------------------
 const char* BUS::GetPhaseStrRaw(phase_t current_phase){
-	if(current_phase <= phase_t::reserved){
-		return phase_str_table[current_phase];
+	if(current_phase <= phase_t::reserved) {
+		return phase_str_table[(int)current_phase];
 	}
-	else
-	{
+	else {
 		return "INVALID";
 	}
 }
@@ -57,16 +58,16 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase){
 //  This determines the phase based upon the Msg, C/D and I/O signals.
 //
 //---------------------------------------------------------------------------
-const BUS::phase_t BUS::phase_table[8] = {
-	//        	   | MSG|C/D|I/O | 
-	dataout,	// |  0 | 0 | 0  | 
-	datain,		// |  0 | 0 | 1  | 
-	command,	// |  0 | 1 | 0  | 
-	status,		// |  0 | 1 | 1  | 
-	reserved,	// |  1 | 0 | 0  | 
-	reserved,	// |  1 | 0 | 1  | 
-	msgout,		// |  1 | 1 | 0  | 
-	msgin		// |  1 | 1 | 1  | 
+const array<BUS::phase_t, 8> BUS::phase_table = {
+						// | MSG|C/D|I/O |
+	phase_t::dataout,	// |  0 | 0 | 0  |
+	phase_t::datain,	// |  0 | 0 | 1  |
+	phase_t::command,	// |  0 | 1 | 0  |
+	phase_t::status,	// |  0 | 1 | 1  |
+	phase_t::reserved,	// |  1 | 0 | 0  |
+	phase_t::reserved,	// |  1 | 0 | 1  |
+	phase_t::msgout,	// |  1 | 1 | 0  |
+	phase_t::msgin		// |  1 | 1 | 1  |
 };
 
 
@@ -76,7 +77,7 @@ const BUS::phase_t BUS::phase_table[8] = {
 //      This MUST be kept in sync with the phase_t enum type!
 //
 //---------------------------------------------------------------------------
-const char* BUS::phase_str_table[] = {
+const array<const char*, 12> BUS::phase_str_table = {
 	"busfree",		
 	"arbitration",	
 	"selection",		

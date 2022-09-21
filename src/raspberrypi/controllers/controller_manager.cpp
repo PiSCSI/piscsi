@@ -15,31 +15,18 @@
 
 using namespace std;
 
-unordered_map<int, AbstractController *> ControllerManager::controllers;
-
-ControllerManager::~ControllerManager()
+bool ControllerManager::CreateScsiController(shared_ptr<BUS> bus, PrimaryDevice *device)
 {
-	DeleteAllControllersAndDevices();
-}
-
-ControllerManager& ControllerManager::instance()
-{
-	static ControllerManager instance;
-	return instance;
-}
-
-bool ControllerManager::CreateScsiController(BUS *bus, PrimaryDevice *device)
-{
-	AbstractController *controller = FindController(device->GetId());
+	shared_ptr<AbstractController> controller = FindController(device->GetId());
 	if (controller == nullptr) {
-		controller = new ScsiController(bus, device->GetId());
+		controller = make_shared<ScsiController>(bus, device->GetId());
 		controllers[device->GetId()] = controller;
 	}
 
 	return controller->AddDevice(device);
 }
 
-AbstractController *ControllerManager::IdentifyController(int data) const
+shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
 {
 	for (const auto& [id, controller] : controllers) {
 		if (data & (1 << controller->GetTargetId())) {
@@ -50,26 +37,18 @@ AbstractController *ControllerManager::IdentifyController(int data) const
 	return nullptr;
 }
 
-AbstractController *ControllerManager::FindController(int target_id) const
+shared_ptr<AbstractController> ControllerManager::FindController(int target_id) const
 {
 	const auto& it = controllers.find(target_id);
 	return it == controllers.end() ? nullptr : it->second;
 }
 
-void ControllerManager::DeleteAllControllersAndDevices()
+void ControllerManager::DeleteAllControllers()
 {
-	for (const auto& [id, controller] : controllers) {
-		delete controller;
-	}
-
 	controllers.clear();
-
-	DeviceFactory::instance().DeleteAllDevices();
-
-	FileSupport::UnreserveAll();
 }
 
-void ControllerManager::ResetAllControllers()
+void ControllerManager::ResetAllControllers() const
 {
 	for (const auto& [id, controller] : controllers) {
 		controller->Reset();

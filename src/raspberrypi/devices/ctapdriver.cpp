@@ -25,8 +25,6 @@
 #include "rascsi_exceptions.h"
 #include <sstream>
 
-#define BRIDGE_NAME "rascsi_bridge"
-
 using namespace std;
 using namespace ras_util;
 
@@ -39,10 +37,10 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
-		LOGERROR("Can't if_nametoindex: %s", strerror(errno))
+		LOGERROR("Can't if_nametoindex %s: %s", ifname, strerror(errno))
 		return false;
 	}
-	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
+	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		LOGERROR("Can't ioctl %s: %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", strerror(errno))
 		return false;
@@ -70,7 +68,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	return true;
 }
 
-static bool is_interface_up(const string& interface) {
+static bool is_interface_up(string_view interface) {
 	string file = "/sys/class/net/";
 	file += interface;
 	file += "/carrier";
@@ -96,20 +94,20 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters")
 
 		// TODO Remove the deprecated syntax in a future version
-		const string& interfaces = params["interfaces"];
-		size_t separatorPos = interfaces.find(':');
+		const string& ifaces = params["interfaces"];
+		size_t separatorPos = ifaces.find(':');
 		if (separatorPos != string::npos) {
-			params["interface"] = interfaces.substr(0, separatorPos);
-			params["inet"] = interfaces.substr(separatorPos + 1);
+			params["interface"] = ifaces.substr(0, separatorPos);
+			params["inet"] = ifaces.substr(separatorPos + 1);
 		}
 	}
 
 	stringstream s(params["interface"]);
 	string interface;
 	while (getline(s, interface, ',')) {
-		this->interfaces.push_back(interface);
+		interfaces.push_back(interface);
 	}
-	this->inet = params["inet"];
+	inet = params["inet"];
 
 	LOGTRACE("Opening Tap device")
 	// TAP device initilization
@@ -118,14 +116,14 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return false;
 	}
 
-	LOGTRACE("Opened tap device %d",m_hTAP)
+	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	char dev[IFNAMSIZ] = "ras0";
-	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+	string dev = "ras0";
+	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
 
 	LOGTRACE("Going to open %s", ifr.ifr_name)
 
@@ -165,15 +163,15 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		LOGTRACE("Checking which interface is available for creating the bridge")
 
 		string bridge_interface;
-		for (const string& interface : interfaces) {
-			if (is_interface_up(interface)) {
-				LOGTRACE("%s", string("Interface " + interface + " is up").c_str())
+		for (const string& iface : interfaces) {
+			if (is_interface_up(iface)) {
+				LOGTRACE("%s", string("Interface " + iface + " is up").c_str())
 
-				bridge_interface = interface;
+				bridge_interface = iface;
 				break;
 			}
 			else {
-				LOGTRACE("%s", string("Interface " + interface + " is not available or is not up").c_str())
+				LOGTRACE("%s", string("Interface " + iface + " is not available or is not up").c_str())
 			}
 		}
 
@@ -208,8 +206,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		else {
 			string address = inet;
 			string netmask = "255.255.255.0";
-			size_t separatorPos = inet.find('/');
-			if (separatorPos != string::npos) {
+			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
 				int m;
@@ -223,7 +220,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				}
 
 				// long long is required for compatibility with 32 bit platforms
-				long long mask = pow(2, 32) - (1 << (32 - m));
+				auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
 				char buf[16];
 				sprintf(buf, "%lld.%lld.%lld.%lld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff,
 						mask & 0xff);
@@ -326,7 +323,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Got the MAC")
 
 	// Save MAC address
-	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
+	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
 
 	close(ip_fd);
 	close(br_socket_fd);
@@ -382,7 +379,8 @@ void CTapDriver::Cleanup()
 	}
 }
 
-bool CTapDriver::Enable(){
+bool CTapDriver::Enable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", true);
@@ -390,7 +388,8 @@ bool CTapDriver::Enable(){
 	return result;
 }
 
-bool CTapDriver::Disable(){
+bool CTapDriver::Disable() const
+{
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__)
 	bool result = ip_link(fd, "ras0", false);
@@ -398,18 +397,20 @@ bool CTapDriver::Disable(){
 	return result;
 }
 
-void CTapDriver::Flush(){
+void CTapDriver::Flush()
+{
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while(PendingPackets()){
-		(void)Rx(m_garbage_buffer);
+		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
+		(void)Rx(m_garbage_buffer.data());
 	}
 }
 
-void CTapDriver::GetMacAddr(BYTE *mac)
+void CTapDriver::GetMacAddr(BYTE *mac) const
 {
 	ASSERT(mac);
 
-	memcpy(mac, m_MacAddr, sizeof(m_MacAddr));
+	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
 
 //---------------------------------------------------------------------------
@@ -417,7 +418,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-bool CTapDriver::PendingPackets()
+bool CTapDriver::PendingPackets() const
 {
 	pollfd fds;
 
@@ -437,7 +438,7 @@ bool CTapDriver::PendingPackets()
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t crc32(BYTE *buf, int length) {
+uint32_t crc32(const BYTE *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];
@@ -464,9 +465,9 @@ int CTapDriver::Rx(BYTE *buf)
 	}
 
 	// Receive
-	DWORD dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
+	auto dwReceived = (DWORD)read(m_hTAP, buf, ETH_FRAME_LEN);
 	if (dwReceived == (DWORD)-1) {
-		LOGWARN("%s Error occured while receiving an packet", __PRETTY_FUNCTION__)
+		LOGWARN("%s Error occured while receiving a packet", __PRETTY_FUNCTION__)
 		return 0;
 	}
 
@@ -524,5 +525,5 @@ int CTapDriver::Tx(const BYTE *buf, int len)
 	}
 
 	// Start sending
-	return write(m_hTAP, buf, len);
+	return (int)write(m_hTAP, buf, len);
 }

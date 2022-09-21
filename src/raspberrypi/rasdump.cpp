@@ -13,7 +13,8 @@
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
+#include "hal/systimer.h"
 #include "rascsi_version.h"
 
 //---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
 	printf("version %s (%s, %s)\n",
-		rascsi_get_version_string(),
+		rascsi_get_version_string().c_str(),
 		__DATE__,
 		__TIME__);
 
@@ -99,7 +100,7 @@ bool Init()
 	}
 
 	// GPIO Initialization
-	if (!bus.Init(BUS::INITIATOR)) {
+	if (!bus.Init(BUS::mode_e::INITIATOR)) {
 		return false;
 	}
 
@@ -208,10 +209,8 @@ bool ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 bool WaitPhase(BUS::phase_t phase)
 {
-	DWORD now;
-
 	// Timeout (3000ms)
-	now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
@@ -277,7 +276,7 @@ bool Command(BYTE *buf, int length)
 	int count;
 
 	// Waiting for Phase
-	if (!WaitPhase(BUS::command)) {
+	if (!WaitPhase(BUS::phase_t::command)) {
 		return false;
 	}
 
@@ -302,7 +301,7 @@ bool Command(BYTE *buf, int length)
 int DataIn(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::datain)) {
+	if (!WaitPhase(BUS::phase_t::datain)) {
 		return -1;
 	}
 
@@ -318,7 +317,7 @@ int DataIn(BYTE *buf, int length)
 int DataOut(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::dataout)) {
+	if (!WaitPhase(BUS::phase_t::dataout)) {
 		return -1;
 	}
 
@@ -336,7 +335,7 @@ int Status()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::status)) {
+	if (!WaitPhase(BUS::phase_t::status)) {
 		return -2;
 	}
 
@@ -359,7 +358,7 @@ int MessageIn()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::msgin)) {
+	if (!WaitPhase(BUS::phase_t::msgin)) {
 		return -2;
 	}
 
@@ -837,9 +836,9 @@ int main(int argc, char* argv[])
 
 	// File Open
 	if (restore) {
-		omode = Fileio::ReadOnly;
+		omode = Fileio::OpenMode::ReadOnly;
 	} else {
-		omode = Fileio::WriteOnly;
+		omode = Fileio::OpenMode::WriteOnly;
 	}
 	if (!fio.Open(hdsfile.GetPath(), omode)) {
 		fprintf(stderr, "Error : Can't open hds file\n");
@@ -853,9 +852,9 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// Assert reset signal
-	bus.SetRST(TRUE);
+	bus.SetRST(true);
 	usleep(1000);
-	bus.SetRST(FALSE);
+	bus.SetRST(false);
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);
@@ -952,16 +951,12 @@ int main(int argc, char* argv[])
 		fflush(stdout);
 
 		if (restore) {
-			if (fio.Read(buffer, dsiz)) {
-				if (Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-					continue;
-				}
+			if (fio.Read(buffer, dsiz) && Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
+				continue;
 			}
 		} else {
-			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-				if (fio.Write(buffer, dsiz)) {
-					continue;
-				}
+			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0 && fio.Write(buffer, dsiz)) {
+				continue;
 			}
 		}
 

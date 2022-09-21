@@ -8,35 +8,15 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(fileio_h)
-#define fileio_h
+#pragma once
 
 #include "filepath.h"
 
-//===========================================================================
-//
-//	Macros (for Load, Save)
-//
-//===========================================================================
-#define PROP_IMPORT(f, p) \
-	if (!f->Read(&(p), sizeof(p))) {\
-		return FALSE;\
-	}\
-
-#define PROP_EXPORT(f, p) \
-	if (!f->Write(&(p), sizeof(p))) {\
-		return FALSE;\
-	}\
-
-//===========================================================================
-//
-//	File I/O
-//
-//===========================================================================
 class Fileio
 {
 public:
-	enum OpenMode {
+
+	enum class OpenMode {
 		ReadOnly,
 		WriteOnly,
 		ReadWrite
@@ -44,25 +24,23 @@ public:
 
 	Fileio() = default;
 	virtual ~Fileio();
-	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
-	BOOL Save(const Filepath& path, const void *buffer, int size);	// Save RAM
+	Fileio(Fileio&) = delete;
+	Fileio& operator=(const Fileio&) = delete;
 
-	BOOL Open(const char *fname, OpenMode mode);
-	BOOL Open(const Filepath& path, OpenMode mode);
-	BOOL OpenDIO(const char *fname, OpenMode mode);
-	BOOL OpenDIO(const Filepath& path, OpenMode mode);
-	BOOL Seek(off_t offset, BOOL relative = FALSE) const;
-	BOOL Read(void *buffer, int size) const;
-	BOOL Write(const void *buffer, int size) const;
+	bool Open(const char *fname, OpenMode mode);
+	bool Open(const Filepath& path, OpenMode mode);
+	bool OpenDIO(const Filepath& path, OpenMode mode);
+	bool Seek(off_t offset) const;
+	bool Read(BYTE *buffer, int size) const;
+	bool Write(const BYTE *buffer, int size) const;
 	off_t GetFileSize() const;
 	off_t GetFilePos() const;
 	void Close();
-	BOOL IsValid() const		{ return (BOOL)(handle != -1); }
 
 private:
-	BOOL Open(const char *fname, OpenMode mode, BOOL directIO);
 
-	int handle = -1;						// File handle
+	bool Open(const char *fname, OpenMode mode, bool directIO);
+	bool OpenDIO(const char *fname, OpenMode mode);
+
+	int handle = -1;
 };
-
-#endif	// fileio_h

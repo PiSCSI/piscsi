@@ -23,6 +23,7 @@ DESCRIPTION
 
        RaSCSI  will determine the type of device based upon the file extension
        of the FILE argument.
+           hd1: SCSI Hard Disk image (generic, non-removable, SCSI-1)
            hds: SCSI Hard Disk image (generic, non-removable)
            hdr: SCSI Hard Disk image (generic, removable)
            hdn: SCSI Hard Disk image (NEC GENUINE)

@@ -23,33 +23,29 @@ class Dispatcher
 {
 public:
 
-	Dispatcher() : commands({}) {}
-	~Dispatcher()
-	{
-		for (auto const& [name, command] : commands) {
-			delete command;
-		}
-	}
+	Dispatcher() = default;
+	~Dispatcher() = default;
+	Dispatcher(Dispatcher&) = delete;
+	Dispatcher& operator=(const Dispatcher&) = delete;
 
 	using operation = void (T::*)();
 	using command_t = struct _command_t {
-		const char* name;
+		const char *name;
 		operation execute;
 
-		_command_t(const char* _name, operation _execute) : name(_name), execute(_execute) { };
+		_command_t(const char *_name, operation _execute) : name(_name), execute(_execute) { };
 	};
-	unordered_map<scsi_command, command_t*> commands;
+	unordered_map<scsi_command, unique_ptr<command_t>> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, operation execute)
+	void Add(scsi_command opcode, const char *name, operation execute)
 	{
-		commands[opcode] = new command_t(name, execute);
+		commands[opcode] = make_unique<command_t>(name, execute);
 	}
 
-	bool Dispatch(T *instance, DWORD cmd)
+	bool Dispatch(T *instance, scsi_command cmd)
 	{
-		const auto& it = commands.find(static_cast<scsi_command>(cmd));
-		if (it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (uint32_t)cmd)
+		if (const auto& it = commands.find(cmd); it != commands.end()) {
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (int)cmd)
 
 			(instance->*it->second->execute)();
 

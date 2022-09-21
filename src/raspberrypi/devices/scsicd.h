@@ -28,14 +28,13 @@
 //===========================================================================
 class CDTrack
 {
-private:
 
-	friend class SCSICD;
+public:
 
 	CDTrack() = default;
 	virtual ~CDTrack() final = default;
-
-public:
+	CDTrack(CDTrack&) = delete;
+	CDTrack& operator=(const CDTrack&) = delete;
 
 	void Init(int track, DWORD first, DWORD last);
 
@@ -67,33 +66,34 @@ class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
 
 public:
-	enum {
-		TrackMax = 96							// Maximum number of tracks
-	};
 
 	explicit SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD() override;
+	SCSICD(SCSICD&) = delete;
+	SCSICD& operator=(const SCSICD&) = delete;
 
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	int ReadToc(const DWORD *cdb, BYTE *buf);
+	vector<byte> InquiryInternal() const override;
+	int Read(const vector<int>&, BYTE *, uint64_t) override;
+	int ReadToc(const vector<int>&, BYTE *);
 
 protected:
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
 	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
 
-	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
-	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
+	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
+	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
 
 	// Open
 	void OpenCue(const Filepath& path) const;
@@ -110,8 +110,7 @@ private:
 	// Track management
 	void ClearTrack();						// Clear the track
 	int SearchTrack(DWORD lba) const;		// Track search
-	CDTrack* track[TrackMax] = {};			// Track opbject references
-	int tracks = 0;							// Effective number of track objects
+	vector<unique_ptr<CDTrack>> tracks;		// Track opbject references
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track
 };

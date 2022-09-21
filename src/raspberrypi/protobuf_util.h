@@ -31,7 +31,7 @@ namespace protobuf_util
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
 	void SerializeMessage(int, const google::protobuf::Message&);
 	void DeserializeMessage(int, google::protobuf::Message&);
-	size_t ReadNBytes(int, uint8_t *, size_t);
+	size_t ReadBytes(int, vector<byte>&);
 	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const string& = "", const string& = "",
 			const string& = "");
 	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const PbErrorCode, const string& = "",

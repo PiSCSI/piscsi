@@ -19,9 +19,6 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-list<string> RascsiResponse::log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
-
-
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
@@ -32,7 +29,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 	properties->set_stoppable(device->IsStoppable());
 	properties->set_removable(device->IsRemovable());
 	properties->set_lockable(device->IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(device) != nullptr);
 	properties->set_supports_params(device->SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
@@ -56,9 +53,9 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	const Device *device = device_factory->CreateDevice(type, "", -1);
+	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	device_factory->DeleteDevice(device);
+	device_factory->DeleteDevice(device); //NOSONAR The alloced memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
@@ -94,7 +91,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
-	if (device->SupportsParams()) {
+	if (device->SupportsParams()) { //NOSONAR The alloced memory is managed by protobuf
 		for (const auto& [key, value] : device->GetParams()) {
 			AddParam(*pb_device, key, value);
 		}
@@ -113,9 +110,9 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
-}
+} //NOSONAR The alloced memory is managed by protobuf
 
-bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename)
+bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename) const
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
@@ -156,8 +153,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 					string filename = folder + "/" + dir->d_name;
 
-					struct stat st;
-					if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+					if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
 							LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
 							continue;
@@ -174,8 +170,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 					}
 
 					if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-						auto image_file = make_unique<PbImageFile>();
-						if (GetImageFile(image_file.get(), filename)) {
+						if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
 							GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
 						}
 					}
@@ -211,7 +206,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
-	result.set_status(true);
+	result.set_status(true); //NOSONAR The alloced memory is managed by protobuf
 }
 
 PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
@@ -258,8 +253,8 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 	auto devices_info = make_unique<PbDevicesInfo>().release();
 	result.set_allocated_devices_info(devices_info);
 
-	for (const auto& id_set : id_sets) {
-		GetDevice(device_factory->GetDeviceByIdAndLun(id_set.first, id_set.second), devices_info->add_devices());
+	for (const auto& [id, lun] : id_sets) {
+		GetDevice(device_factory->GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
 	}
 
 	result.set_status(true);
@@ -282,14 +277,14 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 	auto server_info = make_unique<PbServerInfo>().release();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level)); //NOSONAR The alloced memory is managed by protobuf
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The alloced memory is managed by protobuf
 	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
-	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info);
+	server_info->set_allocated_mapping_info(GetMappingInfo(result)); //NOSONAR The alloced memory is managed by protobuf
+	GetDevices(*server_info); //NOSONAR The alloced memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
-	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth)); //NOSONAR The alloced memory is managed by protobuf
 
 	result.set_status(true);
 
@@ -341,8 +336,8 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	auto mapping_info = make_unique<PbMappingInfo>().release();
 
-	for (const auto& mapping : device_factory->GetExtensionMapping()) {
-		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
+	for (const auto& [name, type] : device_factory->GetExtensionMapping()) {
+		(*mapping_info->mutable_mapping())[name] = type;
 	}
 
 	result.set_status(true);
@@ -352,164 +347,135 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 
 PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 {
-	auto operation_info = make_unique<PbOperationInfo>().release();
+	auto operation_info = make_unique<PbOperationInfo>();
 
-	auto meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "name", "Image file name in case of a mass storage device");
-	AddOperationParameter(meta_data.get(), "interface", "Comma-separated prioritized network interface list");
-	AddOperationParameter(meta_data.get(), "inet", "IP address and netmask of the network bridge");
-	AddOperationParameter(meta_data.get(), "cmd", "Print command for the printer device");
-	AddOperationParameter(meta_data.get(), "timeout", "Reservation timeout for the printer device in seconds");
-	CreateOperation(operation_info, meta_data.get(), ATTACH, "Attach device, device-specific parameters are required");
+	auto operation = CreateOperation(*operation_info, ATTACH, "Attach device, device-specific parameters are required");
+	AddOperationParameter(*operation, "name", "Image file name in case of a mass storage device");
+	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list");
+	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge");
+	AddOperationParameter(*operation, "cmd", "Print command for the printer device");
+	AddOperationParameter(*operation, "timeout", "Reservation timeout for the printer device in seconds");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), DETACH, "Detach device, device-specific parameters are required");
+	CreateOperation(*operation_info, DETACH, "Detach device, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), DETACH_ALL, "Detach all devices");
+	CreateOperation(*operation_info, DETACH_ALL, "Detach all devices");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), START, "Start device, device-specific parameters are required");
+	CreateOperation(*operation_info, START, "Start device, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), STOP, "Stop device, device-specific parameters are required");
+	CreateOperation(*operation_info, STOP, "Stop device, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), INSERT, "Insert medium, device-specific parameters are required");
+	operation = CreateOperation(*operation_info, INSERT, "Insert medium, device-specific parameters are required");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), EJECT, "Eject medium, device-specific parameters are required");
+	CreateOperation(*operation_info, EJECT, "Eject medium, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), PROTECT, "Protect medium, device-specific parameters are required");
+	CreateOperation(*operation_info, PROTECT, "Protect medium, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), UNPROTECT, "Unprotect medium, device-specific parameters are required");
+	CreateOperation(*operation_info, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
-	meta_data = make_unique<PbOperationMetaData>();
+	operation = CreateOperation(*operation_info, SERVER_INFO, "Get rascsi server information");
 	if (depth) {
-		AddOperationParameter(meta_data.get(), "folder_pattern", "Pattern for filtering image folder names");
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(meta_data.get(), "file_pattern", "Pattern for filtering image file names");
-	CreateOperation(operation_info, meta_data.get(), SERVER_INFO, "Get rascsi server information");
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), VERSION_INFO, "Get rascsi server version");
+	CreateOperation(*operation_info, VERSION_INFO, "Get rascsi server version");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), DEVICES_INFO, "Get information on attached devices");
+	CreateOperation(*operation_info, DEVICES_INFO, "Get information on attached devices");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), DEVICE_TYPES_INFO, "Get device properties by device type");
+	CreateOperation(*operation_info, DEVICE_TYPES_INFO, "Get device properties by device type");
 
-	meta_data = make_unique<PbOperationMetaData>();
+	operation = CreateOperation(*operation_info, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 	if (depth) {
-		AddOperationParameter(meta_data.get(), "folder_pattern", "Pattern for filtering image folder names");
+		AddOperationParameter(*operation, "folder_pattern", "Pattern for filtering image folder names");
 	}
-	AddOperationParameter(meta_data.get(), "file_pattern", "Pattern for filtering image file names");
-	CreateOperation(operation_info, meta_data.get(), DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
+	AddOperationParameter(*operation, "file_pattern", "Pattern for filtering image file names");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), IMAGE_FILE_INFO, "Get information on image file");
+	operation = CreateOperation(*operation_info, IMAGE_FILE_INFO, "Get information on image file");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), LOG_LEVEL_INFO, "Get log level information");
+	CreateOperation(*operation_info, LOG_LEVEL_INFO, "Get log level information");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), NETWORK_INTERFACES_INFO, "Get the available network interfaces");
+	CreateOperation(*operation_info, NETWORK_INTERFACES_INFO, "Get the available network interfaces");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), MAPPING_INFO, "Get mapping of extensions to device types");
+	CreateOperation(*operation_info, MAPPING_INFO, "Get mapping of extensions to device types");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), RESERVED_IDS_INFO, "Get list of reserved device IDs");
+	CreateOperation(*operation_info, RESERVED_IDS_INFO, "Get list of reserved device IDs");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "folder", "Default image file folder name", "", true);
-	CreateOperation(operation_info, meta_data.get(), DEFAULT_FOLDER, "Set default image file folder");
+	operation = CreateOperation(*operation_info, DEFAULT_FOLDER, "Set default image file folder");
+	AddOperationParameter(*operation, "folder", "Default image file folder name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "level", "New log level", "", true);
-	CreateOperation(operation_info, meta_data.get(), LOG_LEVEL, "Set log level");
+	operation = CreateOperation(*operation_info, LOG_LEVEL, "Set log level");
+	AddOperationParameter(*operation, "level", "New log level", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "ids", "Comma-separated device ID list", "", true);
-	CreateOperation(operation_info, meta_data.get(), RESERVE_IDS, "Reserve device IDs");
+	operation = CreateOperation(*operation_info, RESERVE_IDS, "Reserve device IDs");
+	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	PbOperationParameter *parameter = AddOperationParameter(meta_data.get(), "mode", "Shutdown mode", "", true);
+	operation = CreateOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
+	PbOperationParameter *parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
 	parameter->add_permitted_values("rascsi");
 	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
 		parameter->add_permitted_values("system");
 		parameter->add_permitted_values("reboot");
 	}
-	CreateOperation(operation_info, meta_data.get(), SHUT_DOWN, "Shut down or reboot");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	AddOperationParameter(meta_data.get(), "size", "Image file size in bytes", "", true);
-	parameter = AddOperationParameter(meta_data.get(), "read_only",  "Read-only flag", "false");
+	operation = CreateOperation(*operation_info, CREATE_IMAGE, "Create an image file");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
+	AddOperationParameter(*operation, "size", "Image file size in bytes", "", true);
+	parameter = AddOperationParameter(*operation, "read_only",  "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
-	CreateOperation(operation_info, meta_data.get(), CREATE_IMAGE, "Create an image file");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), DELETE_IMAGE, "Delete image file");
+	operation = CreateOperation(*operation_info, DELETE_IMAGE, "Delete image file");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "from", "Source image file name", "", true);
-	AddOperationParameter(meta_data.get(), "to", "Destination image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), RENAME_IMAGE, "Rename image file");
+	operation = CreateOperation(*operation_info, RENAME_IMAGE, "Rename image file");
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "from", "Source image file name", "", true);
-	AddOperationParameter(meta_data.get(), "to", "Destination image file name", "", true);
-	parameter = AddOperationParameter(meta_data.get(), "read_only", "Read-only flag", "false");
+	operation = CreateOperation(*operation_info, COPY_IMAGE, "Copy image file");
+	AddOperationParameter(*operation, "from", "Source image file name", "", true);
+	AddOperationParameter(*operation, "to", "Destination image file name", "", true);
+	parameter = AddOperationParameter(*operation, "read_only", "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
-	CreateOperation(operation_info, meta_data.get(), COPY_IMAGE, "Copy image file");
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), PROTECT_IMAGE, "Write-protect image file");
+	operation = CreateOperation(*operation_info, PROTECT_IMAGE, "Write-protect image file");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "file", "Image file name", "", true);
-	CreateOperation(operation_info, meta_data.get(), UNPROTECT_IMAGE, "Make image file writable");
+	operation = CreateOperation(*operation_info, UNPROTECT_IMAGE, "Make image file writable");
+	AddOperationParameter(*operation, "file", "Image file name", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	AddOperationParameter(meta_data.get(), "token", "Authentication token to be checked", "", true);
-	CreateOperation(operation_info, meta_data.get(), CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
+	operation = CreateOperation(*operation_info, CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
+	AddOperationParameter(*operation, "token", "Authentication token to be checked", "", true);
 
-	meta_data = make_unique<PbOperationMetaData>();
-	CreateOperation(operation_info, meta_data.get(), OPERATION_INFO, "Get operation meta data");
+	CreateOperation(*operation_info, OPERATION_INFO, "Get operation meta data");
 
 	result.set_status(true);
 
-	return operation_info;
+	return operation_info.release();
 }
 
-void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperationMetaData *meta_data,
-		const PbOperation& operation, const string& description)
+PbOperationMetaData *RascsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
+		const string& description) const
 {
+	auto meta_data = make_unique<PbOperationMetaData>();
 	meta_data->set_server_side_name(PbOperation_Name(operation));
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
-	(*operation_info->mutable_operations())[ordinal] = *meta_data;
+	(*operation_info.mutable_operations())[ordinal] = *meta_data.release();
+	return &(*operation_info.mutable_operations())[ordinal];
 }
 
-PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,
+PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
 		const string& description, const string& default_value, bool is_mandatory)
 {
-	PbOperationParameter *parameter = meta_data->add_parameters();
+	auto parameter = unique_ptr<PbOperationParameter>(meta_data.add_parameters());
 	parameter->set_name(name);
 	parameter->set_description(description);
 	parameter->set_default_value(default_value);
 	parameter->set_is_mandatory(is_mandatory);
 
-	return parameter;
+	return parameter.release();
 }

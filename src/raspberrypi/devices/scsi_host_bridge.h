@@ -19,6 +19,7 @@
 
 #include "os.h"
 #include "disk.h"
+#include "ctapdriver.h"
 #include <string>
 
 //===========================================================================
@@ -26,7 +27,6 @@
 //	SCSI Host Bridge
 //
 //===========================================================================
-class CTapDriver;
 class CFileSys;
 
 class SCSIBR : public Disk
@@ -36,14 +36,16 @@ public:
 
 	SCSIBR();
 	~SCSIBR() final;
+	SCSIBR(SCSIBR&) = delete;
+	SCSIBR& operator=(const SCSIBR&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
-	bool Dispatch() override;
+	bool Dispatch(scsi_command) override;
 
 	// Commands
-	vector<BYTE> InquiryInternal() const override;
-	int GetMessage10(const DWORD *, BYTE *);
-	bool WriteBytes(const DWORD *, BYTE *, uint64_t);
+	vector<byte> InquiryInternal() const override;
+	int GetMessage10(const vector<int>&, BYTE *);
+	bool WriteBytes(const vector<int>&, BYTE *, uint64_t);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10();
@@ -58,9 +60,9 @@ private:
 	void SetMacAddr(const BYTE *buf);			// Set MAC address
 	void ReceivePacket();						// Receive a packet
 	void GetPacketBuf(BYTE *buf);				// Get a packet
-	void SendPacket(BYTE *buf, int len);		// Send a packet
+	void SendPacket(const BYTE *buf, int len);	// Send a packet
 
-	CTapDriver *tap = nullptr;					// TAP driver
+	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len = 0;							// Receive packet size
@@ -71,7 +73,7 @@ private:
 	int ReadFsOut(BYTE *buf) const;				// Read filesystem (return data)
 	int ReadFsOpt(BYTE *buf) const;				// Read file system (optional data)
 	void WriteFs(int func, BYTE *buf);			// File system write (execute)
-	void WriteFsOpt(BYTE *buf, int len);		// File system write (optional data)
+	void WriteFsOpt(const BYTE *buf, int len);	// File system write (optional data)
 
 	// Command handlers
 	void FS_InitDevice(BYTE *buf);				// $40 - boot

@@ -87,7 +87,6 @@ SRC_PROTOBUF = \
 
 SRC_RASCSI_CORE = \
 	scsi.cpp \
-	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp \
 	rascsi_version.cpp \
@@ -98,6 +97,7 @@ SRC_RASCSI_CORE = \
 	localizer.cpp
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
 SRC_RASCSI = rascsi.cpp
@@ -105,9 +105,9 @@ SRC_RASCSI = rascsi.cpp
 SRC_SCSIMON = \
 	scsimon.cpp \
 	scsi.cpp \
-	gpiobus.cpp \
 	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
+SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -122,17 +122,16 @@ SRC_RASCTL += $(SRC_PROTOBUF)
 SRC_RASDUMP = \
 	rasdump.cpp \
 	scsi.cpp \
-	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp \
 	rascsi_version.cpp
-
+SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
 
-vpath %.h ./ ./controllers ./devices ./monitor
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test
+vpath %.h ./ ./controllers ./devices ./monitor ./hal
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -169,11 +168,12 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##              the text versions of the manpages
 ##   docs     : Re-generate the text versions of the man pages
 ##   test     : Build and run unit tests
-##   coverage : Build and run unit tests and create coverage HTML files.
+##   coverage : Build and run unit tests and create coverage SonarQube files.
+##   lcov     : Build and run unit tests and create coverage HTML files.
 ##              Note that you have to run 'make clean' before switching
-##              between coverage and no-coverage builds.
+##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs test coverage
+.PHONY: all ALL docs test coverage lcov
 all: $(BIN_ALL) docs
 
 test: $(BINDIR)/$(RASCSI_TEST)
@@ -181,6 +181,9 @@ test: $(BINDIR)/$(RASCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
+
+lcov: CXXFLAGS += --coverage
+lcov: test
 	lcov -q -c -d . --include '*/raspberrypi/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 

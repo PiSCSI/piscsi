@@ -23,7 +23,7 @@ using namespace rascsi_interface;
 static const char COMPONENT_SEPARATOR = ':';
 static const char KEY_VALUE_SEPARATOR = '=';
 
-Localizer localizer;
+const Localizer localizer;
 
 void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
@@ -114,33 +114,32 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& message)
 {
 	// Read the header with the size of the protobuf data
-	uint8_t header_buf[4];
-	size_t bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
-	if (bytes_read < sizeof(header_buf)) {
+	vector<byte> header_buf(4);
+	if (ReadBytes(fd, header_buf) < header_buf.size()) {
 		return;
 	}
-	size_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
+
+	size_t size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16) + ((int)header_buf[1] << 8) + (int)header_buf[0];
 	if (size <= 0) {
-		throw io_exception("Broken protobuf message header");
+		throw io_exception("Invalid protobuf message header");
 	}
 
 	// Read the binary protobuf data
-	auto data_buf = make_unique<uint8_t[]>(size);
-	bytes_read = ReadNBytes(fd, data_buf.get(), size);
-	if (bytes_read < size) {
+	vector<byte> data_buf(size);
+	if (ReadBytes(fd, data_buf) < data_buf.size()) {
 		throw io_exception("Missing protobuf message data");
 	}
 
 	// Create protobuf message
-	string data((const char *)data_buf.get(), size);
+	string data((const char *)data_buf.data(), size);
 	message.ParseFromString(data);
 }
 
-size_t protobuf_util::ReadNBytes(int fd, uint8_t *buf, size_t n)
+size_t protobuf_util::ReadBytes(int fd, vector<byte>& buf)
 {
 	size_t offset = 0;
-	while (offset < n) {
-		ssize_t len = read(fd, buf + offset, n - offset);
+	while (offset < buf.size()) {
+		ssize_t len = read(fd, &buf[offset], buf.size() - offset);
 		if (len <= 0) {
 			return len;
 		}
@@ -161,7 +160,6 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const Lo
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English
-	// TODO This line forces rasctl to depend on the localizer. This should be fixed.
 	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
 
 	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);

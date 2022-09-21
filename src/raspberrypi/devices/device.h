@@ -10,7 +10,6 @@
 #pragma once
 
 #include "scsi.h"
-#include <unordered_set>
 #include <unordered_map>
 #include <string>
 
@@ -72,33 +71,33 @@ class Device
 	//			Sense Key
 	//			Additional Sense Code (ASC)
 	//	LSB		Additional Sense Code Qualifier(ASCQ)
-	int status_code = scsi_defs::status::GOOD;
+	int status_code = 0;
 
 protected:
 
-	void SetReady(bool ready) { this->ready = ready; }
+	void SetReady(bool b) { ready = b; }
 	bool IsReset() const { return reset; }
-	void SetReset(bool reset) { this->reset = reset; }
+	void SetReset(bool b) { reset = b; }
 	bool IsAttn() const { return attn; }
-	void SetAttn(bool attn) { this->attn = attn; }
+	void SetAttn(bool b) { attn = b; }
 
 	int GetStatusCode() const { return status_code; }
 
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	static unordered_set<Device *> devices;
-
 	explicit Device(const string&);
 
 public:
 
-	virtual ~Device();
+	virtual ~Device() = default;
+	Device(Device&) = delete;
+	Device& operator=(const Device&) = delete;
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
-	virtual bool Dispatch() = 0;
+	virtual bool Dispatch(scsi_defs::scsi_command) = 0;
 
 	const string& GetType() const { return type; }
 
@@ -106,30 +105,30 @@ public:
 	void Reset();
 
 	bool IsProtectable() const { return protectable; }
-	void SetProtectable(bool protectable) { this->protectable = protectable; }
+	void SetProtectable(bool b) { protectable = b; }
 	bool IsProtected() const { return write_protected; }
 	void SetProtected(bool);
 	bool IsReadOnly() const { return read_only; }
-	void SetReadOnly(bool read_only) { this->read_only = read_only; }
+	void SetReadOnly(bool b) { read_only = b; }
 
 	bool IsStoppable() const { return stoppable; }
-	void SetStoppable(bool stoppable) { this->stoppable = stoppable; }
+	void SetStoppable(bool b) { stoppable = b; }
 	bool IsStopped() const { return stopped; }
-	void SetStopped(bool stopped) { this->stopped = stopped; }
+	void SetStopped(bool b) { stopped = b; }
 	bool IsRemovable() const { return removable; }
-	void SetRemovable(bool removable) { this->removable = removable; }
+	void SetRemovable(bool b) { removable = b; }
 	bool IsRemoved() const { return removed; }
-	void SetRemoved(bool removed) { this->removed = removed; }
+	void SetRemoved(bool b) { removed = b; }
 
 	bool IsLockable() const { return lockable; }
-	void SetLockable(bool lockable) { this->lockable = lockable; }
+	void SetLockable(bool b) { lockable = b; }
 	bool IsLocked() const { return locked; }
-	void SetLocked(bool locked) { this->locked = locked; }
+	void SetLocked(bool b) { locked = b; }
 
 	int32_t GetId() const { return id; }
-	void SetId(int32_t id) { this->id = id; }
+	void SetId(int32_t i) { id = i; }
 	int32_t GetLun() const { return lun; }
-	void SetLun(int32_t lun) { this->lun = lun; }
+	void SetLun(int32_t l) { lun = l; }
 
 	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
@@ -141,9 +140,9 @@ public:
 
 	bool SupportsParams() const { return supports_params; }
 	virtual bool SupportsFile() const { return !supports_params; }
-	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
+	void SupportsParams(bool b) { supports_params = b; }
 	unordered_map<string, string> GetParams() const { return params; }
-	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
+	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 
 	void SetStatusCode(int);
 

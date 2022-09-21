@@ -48,15 +48,15 @@ using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands(), dispatcher({})
+SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
-	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
-	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
-	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.AddCommand(eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
-	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
-	dispatcher.AddCommand(eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
+	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
+	dispatcher.Add(scsi_command::eCmdWrite6, "Print", &SCSIPrinter::Print);
+	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
 
 SCSIPrinter::~SCSIPrinter()
@@ -81,10 +81,10 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-bool SCSIPrinter::Dispatch()
+bool SCSIPrinter::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSIPrinter::TestUnitReady()
@@ -94,7 +94,7 @@ void SCSIPrinter::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<BYTE> SCSIPrinter::InquiryInternal() const
+vector<byte> SCSIPrinter::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
@@ -148,12 +148,12 @@ void SCSIPrinter::Print()
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	LOGTRACE("Receiving %d bytes to be printed", length);
+	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
 	if (length > (uint32_t)ctrl->bufsize) {
-		LOGERROR("Transfer buffer overflow");
+		LOGERROR("Transfer buffer overflow")
 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -187,12 +187,12 @@ void SCSIPrinter::SynchronizeBuffer()
 	cmd.replace(file_position, 2, filename);
 	cmd = "sudo -u lp " + cmd;
 
-	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
+	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
 
-	LOGDEBUG("Executing '%s'", cmd.c_str());
+	LOGDEBUG("Executing '%s'", cmd.c_str())
 
 	if (system(cmd.c_str())) {
-		LOGERROR("Printing failed, the printing system might not be configured");
+		LOGERROR("Printing failed, the printing system might not be configured")
 
 		unlink(filename);
 
@@ -206,18 +206,14 @@ void SCSIPrinter::SynchronizeBuffer()
 
 void SCSIPrinter::SendDiagnostic()
 {
-	CheckReservation();
-
-	EnterStatusPhase();
+	// Both command implemntations are identical
+	TestUnitReady();
 }
 
 void SCSIPrinter::StopPrint()
 {
-	CheckReservation();
-
-	// Nothing to do, printing has not yet been started
-
-	EnterStatusPhase();
+	// Both command implemntations are identical
+	TestUnitReady();
 }
 
 bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
@@ -226,16 +222,16 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
 		if (fd == -1) {
-			LOGERROR("Can't create printer output file: %s", strerror(errno));
+			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
 			return false;
 		}
 
-		LOGTRACE("Created printer output file '%s'", filename);
+		LOGTRACE("Created printer output file '%s'", filename)
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer output file", length);
+	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
-	uint32_t num_written = write(fd, buf, length);
+	auto num_written = (uint32_t)write(fd, buf, length);
 
 	return num_written == length;
 }

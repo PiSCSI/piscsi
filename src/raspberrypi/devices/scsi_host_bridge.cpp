@@ -24,23 +24,20 @@
 using namespace std;
 using namespace scsi_defs;
 
-SCSIBR::SCSIBR() : Disk("SCBR"), dispatcher({}), fs(new CFileSys())
+SCSIBR::SCSIBR() : Disk("SCBR"), fs(new CFileSys())
 {
 	// Create host file system
 	fs->Reset();
 
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	dispatcher.AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	dispatcher.AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
-	if (tap) {
-		tap->Cleanup();
-		delete tap;
-	}
+	tap.Cleanup();
 
 	// Release host file system
 	fs->Reset();
@@ -53,17 +50,16 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver();
-	m_bTapEnable = tap->Init(GetParams());
+	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
-		LOGERROR("Unable to open the TAP interface");
+		LOGERROR("Unable to open the TAP interface")
 		return false;
 	}
 
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
 	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
+		tap.GetMacAddr(mac_addr);
 		mac_addr[5]++;
 	}
 
@@ -73,7 +69,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 	SetReady(m_bTapEnable);
 
-	// Not terminating on regular Linux PCs is helpful for testing
+// Not terminating on regular Linux PCs is helpful for testing
 #if defined(__x86_64__) || defined(__X86__)
 	return true;
 #else
@@ -81,32 +77,32 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch()
+bool SCSIBR::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, ctrl->cmd[0]) ? true : super::Dispatch();
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-vector<BYTE> SCSIBR::InquiryInternal() const
+vector<byte> SCSIBR::InquiryInternal() const
 {
-	vector<BYTE> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<byte> b = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
-	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);
+	auto buf = vector<byte>(0x1F + 8 + 5);
 	memcpy(buf.data(), b.data(), b.size());
 
-	buf[4] = 0x1F + 8;
+	buf[4] = byte{0x1F + 8};
 
 	// Optional function valid flag
-	buf[36] = '0';
+	buf[36] = byte{'0'};
 
 	// TAP Enable
 	if (m_bTapEnable) {
-		buf[37] = '1';
+		buf[37] = byte{'1'};
 	}
 
 	// CFileSys Enable
-	buf[38] = '1';
+	buf[38] = byte{'1'};
 
 	return buf;
 }
@@ -117,7 +113,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
+int SCSIBR::GetMessage10(const vector<int>& cdb, BYTE *buf)
 {
 	// Type
 	int type = cdb[2];
@@ -209,7 +205,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const DWORD *cdb, BYTE *buf, uint64_t)
+bool SCSIBR::WriteBytes(const vector<int>& cdb, BYTE *buf, uint64_t)
 {
 	// Type
 	int type = cdb[2];
@@ -304,8 +300,8 @@ void SCSIBR::SendMessage10()
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
 		delete[] ctrl->buffer;
-		ctrl->buffer = new BYTE[ctrl->bufsize];
 		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = new BYTE[ctrl->bufsize];
 	}
 
 	// Set transfer amount
@@ -341,22 +337,18 @@ void SCSIBR::ReceivePacket()
 {
 	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-	assert(tap);
-
 	// previous packet has not been received
 	if (packet_enable) {
 		return;
 	}
 
 	// Receive packet
-	packet_len = tap->Rx(packet_buf);
+	packet_len = tap.Rx(packet_buf);
 
 	// Check if received packet
-	if (memcmp(packet_buf, mac_addr, 6) != 0) {
-		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
-			packet_len = 0;
-			return;
-		}
+	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr, 6) != 0) {
+		packet_len = 0;
+		return;
 	}
 
 	// Discard if it exceeds the buffer size
@@ -373,8 +365,6 @@ void SCSIBR::ReceivePacket()
 
 void SCSIBR::GetPacketBuf(BYTE *buf)
 {
-	assert(tap);
-
 	// Size limit
 	int len = packet_len;
 	if (len > 2048) {
@@ -388,11 +378,9 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(BYTE *buf, int len)
+void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
-	assert(tap);
-
-	tap->Tx(buf, len);
+	tap.Tx(buf, len);
 }
 
 //---------------------------------------------------------------------------
@@ -413,12 +401,11 @@ void SCSIBR::FS_InitDevice(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_CheckDir(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
-	i += sizeof(Human68k::namests_t);
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 
 	fsresult = fs->CheckDir(nUnit, pNamests);
 }
@@ -430,12 +417,11 @@ void SCSIBR::FS_CheckDir(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_MakeDir(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
-	i += sizeof(Human68k::namests_t);
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 
 	fsresult = fs->MakeDir(nUnit, pNamests);
 }
@@ -447,12 +433,11 @@ void SCSIBR::FS_MakeDir(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_RemoveDir(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
-	i += sizeof(Human68k::namests_t);
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 
 	fsresult = fs->RemoveDir(nUnit, pNamests);
 }
@@ -464,15 +449,14 @@ void SCSIBR::FS_RemoveDir(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Rename(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	const Human68k::namests_t *pNamestsNew = (Human68k::namests_t*)&buf[i];
-	i += sizeof(Human68k::namests_t);
 
 	fsresult = fs->Rename(nUnit, pNamests, pNamestsNew);
 }
@@ -484,12 +468,11 @@ void SCSIBR::FS_Rename(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Delete(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
-	i += sizeof(Human68k::namests_t);
+	const auto *pNamests = (Human68k::namests_t*)&buf[i];
 
 	fsresult = fs->Delete(nUnit, pNamests);
 }
@@ -501,16 +484,15 @@ void SCSIBR::FS_Delete(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Attribute(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	dp = (DWORD*)&buf[i];
 	DWORD nHumanAttribute = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->Attribute(nUnit, pNamests, nHumanAttribute);
 }
@@ -522,7 +504,7 @@ void SCSIBR::FS_Attribute(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Files(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -530,11 +512,10 @@ void SCSIBR::FS_Files(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
-	Human68k::files_t *files = (Human68k::files_t*)&buf[i];
-	i += sizeof(Human68k::files_t);
+	auto files = (Human68k::files_t*)&buf[i];
 
 	files->sector = ntohl(files->sector);
 	files->offset = ntohs(files->offset);
@@ -564,7 +545,7 @@ void SCSIBR::FS_Files(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_NFiles(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -572,8 +553,7 @@ void SCSIBR::FS_NFiles(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::files_t *files = (Human68k::files_t*)&buf[i];
-	i += sizeof(Human68k::files_t);
+	auto files = (Human68k::files_t*)&buf[i];
 
 	files->sector = ntohl(files->sector);
 	files->offset = ntohs(files->offset);
@@ -603,7 +583,7 @@ void SCSIBR::FS_NFiles(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Create(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -611,19 +591,18 @@ void SCSIBR::FS_Create(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (DWORD*)&buf[i];
 	DWORD nAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	BOOL *bp = (BOOL*)&buf[i];
+	auto bp = (int*)&buf[i];
 	DWORD bForce = ntohl(*bp);
-	i += sizeof(BOOL);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -653,7 +632,7 @@ void SCSIBR::FS_Create(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Open(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -661,11 +640,10 @@ void SCSIBR::FS_Open(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	const Human68k::namests_t *pNamests = (Human68k::namests_t*)&buf[i];
+	const auto pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
-	i += sizeof(Human68k::fcb_t);
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -695,7 +673,7 @@ void SCSIBR::FS_Open(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Close(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -703,8 +681,7 @@ void SCSIBR::FS_Close(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
-	i += sizeof(Human68k::fcb_t);
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -734,16 +711,15 @@ void SCSIBR::FS_Close(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Read(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nKey = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (DWORD*)&buf[i];
 	DWORD nSize = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -775,16 +751,15 @@ void SCSIBR::FS_Read(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Write(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nKey = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (DWORD*)&buf[i];
 	DWORD nSize = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -814,11 +789,11 @@ void SCSIBR::FS_Write(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Seek(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nKey = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (DWORD*)&buf[i];
@@ -827,7 +802,6 @@ void SCSIBR::FS_Seek(BYTE *buf)
 
 	auto ip = (const int*)&buf[i];
 	int nOffset = ntohl(*ip);
-	i += sizeof(int);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -857,7 +831,7 @@ void SCSIBR::FS_Seek(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_TimeStamp(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -865,12 +839,11 @@ void SCSIBR::FS_TimeStamp(BYTE *buf)
 	DWORD nKey = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::fcb_t *pFcb = (Human68k::fcb_t*)&buf[i];
+	auto pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (DWORD*)&buf[i];
 	DWORD nHumanTime = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -900,7 +873,7 @@ void SCSIBR::FS_TimeStamp(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_GetCapacity(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	Human68k::capacity_t cap;
@@ -922,11 +895,11 @@ void SCSIBR::FS_GetCapacity(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_CtrlDrive(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
-	Human68k::ctrldrive_t *pCtrlDrive = (Human68k::ctrldrive_t*)&buf[i];
+	auto pCtrlDrive = (Human68k::ctrldrive_t*)&buf[i];
 
 	fsresult = fs->CtrlDrive(nUnit, pCtrlDrive);
 
@@ -941,7 +914,7 @@ void SCSIBR::FS_CtrlDrive(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_GetDPB(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	Human68k::dpb_t dpb;
@@ -965,7 +938,7 @@ void SCSIBR::FS_GetDPB(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_DiskRead(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -975,7 +948,6 @@ void SCSIBR::FS_DiskRead(BYTE *buf)
 
 	dp = (DWORD*)&buf[i];
 	DWORD nSize = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->DiskRead(nUnit, fsout, nSector, nSize);
 	fsoutlen = 0x200;
@@ -988,7 +960,7 @@ void SCSIBR::FS_DiskRead(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_DiskWrite(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	fsresult = fs->DiskWrite(nUnit);
@@ -1001,7 +973,7 @@ void SCSIBR::FS_DiskWrite(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Ioctrl(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 	int i = sizeof(DWORD);
 
@@ -1009,8 +981,7 @@ void SCSIBR::FS_Ioctrl(BYTE *buf)
 	DWORD nFunction = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	Human68k::ioctrl_t *pIoctrl = (Human68k::ioctrl_t*)&buf[i];
-	i += sizeof(Human68k::ioctrl_t);
+	auto pIoctrl = (Human68k::ioctrl_t*)&buf[i];
 
 	switch (nFunction) {
 		case 2:
@@ -1048,7 +1019,7 @@ void SCSIBR::FS_Ioctrl(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Flush(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	fsresult = fs->Flush(nUnit);
@@ -1061,7 +1032,7 @@ void SCSIBR::FS_Flush(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_CheckMedia(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	fsresult = fs->CheckMedia(nUnit);
@@ -1074,7 +1045,7 @@ void SCSIBR::FS_CheckMedia(BYTE *buf)
 //---------------------------------------------------------------------------
 void SCSIBR::FS_Lock(BYTE *buf)
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
 
 	fsresult = fs->Lock(nUnit);
@@ -1087,7 +1058,7 @@ void SCSIBR::FS_Lock(BYTE *buf)
 //---------------------------------------------------------------------------
 int SCSIBR::ReadFsResult(BYTE *buf) const
 {
-	DWORD *dp = (DWORD*)buf;
+	auto dp = (DWORD*)buf;
 	*dp = htonl(fsresult);
 	return sizeof(DWORD);
 }
@@ -1161,7 +1132,7 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 //	File system write (input option data)
 //
 //---------------------------------------------------------------------------
-void SCSIBR::WriteFsOpt(BYTE *buf, int num)
+void SCSIBR::WriteFsOpt(const BYTE *buf, int num)
 {
 	memcpy(fsopt, buf, num);
 }

@@ -17,7 +17,7 @@
 #include <fstream>
 #include "data_sample.h"
 #include "sm_reports.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ static BYTE prev_value[32] = {0xFF};
 
 extern double ns_per_loop;
 
-static BOOL get_pin_value(DWORD data, int pin)
+static BYTE get_pin_value(DWORD data, int pin)
 {
     return (data >> pin) & 1;
 }
@@ -77,16 +77,16 @@ static BYTE get_data_field(DWORD data)
 static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char symbol)
 {
     BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if (prev_value[pin] != new_value)
+    if (prev_value[pin] != (int)new_value)
     {
-        prev_value[pin] = new_value;
+        prev_value[pin] = (int)new_value;
         fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }
 
 static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char symbol)
 {
-    BOOL new_value = get_pin_value(data, pin);
+    BYTE new_value = get_pin_value(data, pin);
     if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
