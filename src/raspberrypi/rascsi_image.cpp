@@ -13,7 +13,7 @@
 #include "filepath.h"
 #include "spdlog/spdlog.h"
 #include "devices/file_support.h"
-#include "protobuf_util.h"
+#include "command_util.h"
 #include "rascsi_image.h"
 #include <string>
 #include <filesystem>
@@ -24,7 +24,7 @@
 using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
-using namespace protobuf_util;
+using namespace command_util;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
