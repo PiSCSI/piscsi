@@ -12,6 +12,7 @@
 #include "filepath.h"
 #include "config.h"
 #include "fileio.h"
+#include <libgen.h>
 
 Filepath::Filepath()
 {
