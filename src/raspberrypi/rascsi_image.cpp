@@ -175,6 +175,13 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
+#ifndef __linux
+	close(image_fd);
+
+	unlink(full_filename.c_str());
+
+	return false;
+#else
 	if (fallocate(image_fd, 0, 0, len)) {
 		close(image_fd);
 
@@ -189,6 +196,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 			"' with a size of " + to_string(len) + " bytes").c_str())
 
 	return ReturnStatus(context);
+#endif
 }
 
 bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
