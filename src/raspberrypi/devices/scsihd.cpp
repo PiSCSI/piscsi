@@ -20,6 +20,8 @@
 #include "scsi_command_util.h"
 #include <sstream>
 
+using namespace scsi_command_util;
+
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
 	: Disk(removable ? "SCRM" : "SCHD")
 {
@@ -109,13 +111,13 @@ void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	Disk::AddFormatPage(pages, changeable);
 
-	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
 void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, changeable);
+		AddAppleVendorModePage(pages, changeable);
 	}
 }

@@ -28,9 +28,11 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
 // const array<byte, 6> SCSIDaynaPort::m_bcast_addr = { byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff} };
 // const array<byte, 6> SCSIDaynaPort::m_apple_talk_addr = { byte{0x09}, byte{0x00}, byte{0x07}, byte{0xff}, byte{0xff}, byte{0xff} };
@@ -252,17 +254,8 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
 				// breaks because of this, the work-around has to be re-evaluated.
 				size = 64;
 			}
-			buf[0] = (BYTE)(size >> 8);
-			buf[1] = (BYTE)size;
-
-			buf[2] = 0;
-			buf[3] = 0;
-			buf[4] = 0;
-			if(m_tap.PendingPackets()){
-				buf[5] = 0x10;
-			} else {
-				buf[5] = 0;
-			}
+			SetInt16(&buf[0], size);
+			SetInt32(&buf[2], m_tap.PendingPackets() ? 0x10 : 0x00);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver

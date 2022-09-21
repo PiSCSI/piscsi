@@ -1059,8 +1059,6 @@ void ScsiController::FlushUnit()
 //
 //	Data transfer IN
 //	*Reset offset and length
-// TODO XferIn probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
-// just like the actual SCSI commands XferIn should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool ScsiController::XferIn(BYTE *buf)
@@ -1107,8 +1105,6 @@ bool ScsiController::XferIn(BYTE *buf)
 //
 //	Data transfer OUT
 //	*If cont=true, reset the offset and length
-// TODO XferOut probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
-// just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
@@ -1203,7 +1199,8 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 int ScsiController::GetEffectiveLun() const
 {
-	return identified_lun != -1 ? identified_lun : (ctrl.cmd[1] >> 5) & 0x07;
+	// Return LUN from IDENTIFY message, or return the LUN from the CDB as fallback
+	return identified_lun != -1 ? identified_lun : GetLun();
 }
 
 void ScsiController::Sleep()

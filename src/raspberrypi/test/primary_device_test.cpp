@@ -12,15 +12,12 @@
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
-TEST(PrimaryDeviceTest, UnitReady)
+TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
-
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdTestUnitReady;
 
 	device.SetReset(true);
 	device.SetAttn(true);
@@ -59,8 +56,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	device.SetController(&controller);
 
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdInquiry;
+	controller.ctrl.cmd.resize(6);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
 
@@ -121,8 +117,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdRequestSense;
+	controller.ctrl.cmd.resize(6);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
 
@@ -151,8 +146,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	controller.AddDevice(&device2);
 	ASSERT_TRUE(controller.HasDeviceForLun(LUN2));
 
-	controller.ctrl.cmd = vector<int>(10);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdReportLuns;
+	controller.ctrl.cmd.resize(10);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[9] = 255;
 
@@ -191,7 +185,6 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd = vector<int>(1);
-	controller.ctrl.cmd[0] = 0xFF;
+	controller.ctrl.cmd.resize(1);
 	EXPECT_FALSE(device.Dispatch((scsi_command)0xFF));
 }

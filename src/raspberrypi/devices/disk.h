@@ -84,8 +84,7 @@ private:
 	void StartStopUnit();
 	void SendDiagnostic();
 	void PreventAllowMediumRemoval();
-	void SynchronizeCache10();
-	void SynchronizeCache16();
+	void SynchronizeCache();
 	void ReadDefectData10();
 	virtual void Read6();
 	void Read10() override;
@@ -111,12 +110,9 @@ private:
 	void ReadWriteLong10();
 	void ReadWriteLong16();
 	void ReadCapacity16_ReadLong16();
-	void Format(const vector<int>&);
-	bool SendDiag(const vector<int>&) const;
-	bool StartStop(const vector<int>&);
 
 	void ValidateBlockAddress(access_mode) const;
-	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
+	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
 	int ModeSense6(const vector<int>&, BYTE *, int) const override;
 	int ModeSense10(const vector<int>&, BYTE *, int) const override;
@@ -125,7 +121,6 @@ protected:
 
 	virtual void Open(const Filepath&);
 
-	virtual void SetDeviceParameters(BYTE *) const;
 	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;

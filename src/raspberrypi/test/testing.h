@@ -20,8 +20,7 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
-// Note that these global variables are convenient,
-// but might cause issues because they are reused by all tests
+// This global variable is convenient but might cause issues because it is reused by several tests
 extern DeviceFactory& device_factory;
 
 class MockAbstractController : public AbstractController
@@ -57,6 +56,10 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Reset, (), (override));
 
+	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
+	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
+	FRIEND_TEST(AbstractControllerTest, GetLun);
+
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
 	~MockAbstractController() final = default;
 };
@@ -90,11 +93,18 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Sleep, (), ());
 
-	FRIEND_TEST(PrimaryDeviceTest, UnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
+	FRIEND_TEST(DiskTest, Rezero);
+	FRIEND_TEST(DiskTest, FormatUnit);
+	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Seek);
+	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadWriteLong);
+	FRIEND_TEST(DiskTest, ReserveRelease);
 
 	using ScsiController::ScsiController;
 };
@@ -154,6 +164,16 @@ class MockSCSIHD : public SCSIHD
 class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
+	FRIEND_TEST(DiskTest, Rezero);
+	FRIEND_TEST(DiskTest, FormatUnit);
+	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Seek);
+	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadWriteLong);
+	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SectorSize);
+	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
+	FRIEND_TEST(DiskTest, BlockCount);
 
 	MockSCSIHD_NEC() = default;
 	~MockSCSIHD_NEC() final = default;

@@ -19,8 +19,8 @@
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 
-
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
 //===========================================================================
 //
@@ -386,7 +386,7 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, changeable);
+		AddAppleVendorModePage(pages, changeable);
 	}
 }
 
@@ -481,8 +481,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
-					buf[10] = (BYTE)(lba >> 8);
-					buf[11] = (BYTE)lba;
+					SetInt16(&buf[10], lba);
 				}
 				return length;
 			}
@@ -497,8 +496,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 	assert(loop >= 1);
 
 	// Create header
-	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
-	buf[1] = (BYTE)((loop << 3) + 2);
+	SetInt16(&buf[0], (loop << 3) + 2);
 	buf[2] = (BYTE)tracks[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
 	buf += 4;
@@ -521,8 +519,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 		if (msf) {
 			LBAtoMSF(tracks[index]->GetFirst(), &buf[4]);
 		} else {
-			buf[6] = (BYTE)(tracks[index]->GetFirst() >> 8);
-			buf[7] = (BYTE)(tracks[index]->GetFirst());
+			SetInt16(&buf[6], tracks[index]->GetFirst());
 		}
 
 		// Advance buffer pointer and index

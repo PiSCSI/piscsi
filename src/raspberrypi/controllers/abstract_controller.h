@@ -91,6 +91,7 @@ public:
 protected:
 
 	scsi_defs::scsi_command GetOpcode() const { return (scsi_defs::scsi_command)ctrl.cmd[0]; }
+	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
 
 	shared_ptr<BUS> bus;
 

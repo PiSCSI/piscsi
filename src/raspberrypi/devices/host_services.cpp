@@ -24,8 +24,10 @@
 #include "device.h"
 #include "device_factory.h"
 #include "host_services.h"
+#include "scsi_command_util.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
 HostServices::HostServices(const DeviceFactory *factory) : ModePageDevice("SCHS"), device_factory(factory)
 {
@@ -140,8 +142,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length)
 		size = length;
 	}
 
-	buf[0] = (BYTE)(size >> 8);
-	buf[1] = (BYTE)size;
+	SetInt16(buf, size);
 
 	return size;
 }
