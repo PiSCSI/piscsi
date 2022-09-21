@@ -12,6 +12,7 @@
 
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include "os.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
