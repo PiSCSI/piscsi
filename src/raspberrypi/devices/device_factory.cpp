@@ -266,6 +266,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
+#ifdef __linux
 	ifaddrs *addrs;
 	getifaddrs(&addrs);
 	ifaddrs *tmp = addrs;
@@ -289,6 +290,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	}
 
 	freeifaddrs(addrs);
+#endif
 
 	return network_interfaces;
 }
