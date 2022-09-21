@@ -162,6 +162,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 		localtime_r(&t, &localtime);
 
 		mode_page_datetime datetime;
+		datetime.major_version = 0x01;
+		datetime.minor_version = 0x00;
 		datetime.year = (uint8_t)localtime.tm_year;
 		datetime.month = (uint8_t)localtime.tm_mon;
 		datetime.day = (uint8_t)localtime.tm_mday;

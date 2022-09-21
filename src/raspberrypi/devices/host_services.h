@@ -43,9 +43,9 @@ protected:
 private:
 
 	using mode_page_datetime = struct __attribute__((packed)) {
-		// Major and minor version of this data structure (1.0)
-	    uint8_t major_version = 0x01;
-	    uint8_t minor_version = 0x00;
+		// Major and minor version of this data structure (e.g. 1.0)
+	    uint8_t major_version;
+	    uint8_t minor_version;
 	    // Current date and time, with daylight savings time adjustment applied
 	    uint8_t year; // year - 1900
 	    uint8_t month; // 0-11

@@ -26,7 +26,7 @@
 //	CD-ROM Track
 //
 //===========================================================================
-class CDTrack
+class CDTrack final
 {
 
 public:

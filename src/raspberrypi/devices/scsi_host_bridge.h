@@ -23,7 +23,7 @@
 #include "cfilesystem.h"
 #include <string>
 
-class SCSIBR : public Disk
+class SCSIBR final : public Disk
 {
 public:
 

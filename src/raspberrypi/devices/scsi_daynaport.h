@@ -41,7 +41,7 @@ using namespace std;
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort: public Disk
+class SCSIDaynaPort final : public Disk
 {
 
 public:

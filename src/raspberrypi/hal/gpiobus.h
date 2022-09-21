@@ -313,7 +313,7 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 //	Class definition
 //
 //---------------------------------------------------------------------------
-class GPIOBUS : public BUS
+class GPIOBUS final : public BUS
 {
 public:
 	// Basic Functions

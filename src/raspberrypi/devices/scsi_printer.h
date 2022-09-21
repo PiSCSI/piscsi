@@ -18,7 +18,7 @@
 
 using namespace std;
 
-class SCSIPrinter: public PrimaryDevice, public ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
+class SCSIPrinter final : public PrimaryDevice, public ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
 {
 	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";
 	static constexpr const int TMP_FILENAME_LENGTH = strlen(TMP_FILE_PATTERN);
