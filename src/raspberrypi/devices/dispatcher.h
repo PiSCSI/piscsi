@@ -12,7 +12,6 @@
 #pragma once
 
 #include "log.h"
-#include "scsi.h"
 #include <unordered_map>
 
 using namespace std;
