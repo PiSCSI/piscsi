@@ -30,8 +30,9 @@ static DWORD get_dt_ranges(const char *filename, DWORD offset)
 	DWORD address = ~0;
 	if (FILE *fp = fopen(filename, "rb"); fp) {
 		fseek(fp, offset, SEEK_SET);
-		if (array<BYTE, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
-			address = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
+		if (BYTE buf[4]; fread(buf, 1, sizeof buf, fp) == sizeof buf) {
+			address =
+				buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
 		}
 		fclose(fp);
 	}
