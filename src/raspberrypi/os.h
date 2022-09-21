@@ -14,24 +14,13 @@
 #if !defined(os_h)
 #define os_h
 
-//---------------------------------------------------------------------------
-//
-//	#define
-//
-//---------------------------------------------------------------------------
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
 #endif
 
-#ifndef  _FILE_OFFSET_BITS
+#ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #endif
-
-//---------------------------------------------------------------------------
-//
-//	#include
-//
-//---------------------------------------------------------------------------
 
 #include <cstdio>
 #include <cstdlib>
@@ -86,9 +75,6 @@ using TCHAR = char;
 #define _T(x)	x
 #endif
 
-static const int _MAX_PATH = 260;
-static const int _MAX_DIR = 256;
 static const int _MAX_FNAME = 256;
-static const int _MAX_EXT = 256;
 
-#endif	// os_h
+#endif

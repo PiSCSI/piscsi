@@ -14,12 +14,10 @@
 
 class Fileio;
 
-//---------------------------------------------------------------------------
-//
-//	Constant definition
-//
-//---------------------------------------------------------------------------
-#define FILEPATH_MAX		_MAX_PATH
+static const int _MAX_EXT = 256;
+static const int _MAX_DIR = 256;
+static const int _MAX_PATH = 260;
+static const int FILEPATH_MAX = _MAX_PATH;
 
 //===========================================================================
 //
@@ -35,10 +33,10 @@ public:
 	Filepath();
 	virtual ~Filepath() = default;
 	Filepath(Filepath&) = delete;
-	Filepath& operator=(const Filepath& path);
+	Filepath& operator=(const Filepath&);
 
 	void Clear();
-	void SetPath(const char *path);		// File settings (user) for MBCS
+	void SetPath(const char *);		// File settings (user) for MBCS
 	const char *GetPath() const	{ return m_szPath; }	// Get path name
 	const char *GetFileExt() const;		// Get short name (LPCTSTR)
 
