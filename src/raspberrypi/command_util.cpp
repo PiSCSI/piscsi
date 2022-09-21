@@ -52,14 +52,14 @@ void command_util::ParseParameters(PbDeviceDefinition& device, const string& par
 
 string command_util::GetParam(const PbCommand& command, const string& key)
 {
-	auto map = command.params();
-	return map[key];
+	const auto& it = command.params().find(key);
+	return it != command.params().end() ? it->second : "";
 }
 
 string command_util::GetParam(const PbDeviceDefinition& device, const string& key)
 {
-	auto map = device.params();
-	return map[key];
+	const auto& it = device.params().find(key);
+	return it != device.params().end() ? it->second : "";
 }
 
 void command_util::AddParam(PbCommand& command, const string& key, string_view value)
