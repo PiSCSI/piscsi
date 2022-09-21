@@ -46,7 +46,7 @@ class SCSIDaynaPort final : public Disk
 
 public:
 	SCSIDaynaPort();
-	~SCSIDaynaPort() final;
+	~SCSIDaynaPort() override;
 	SCSIDaynaPort(SCSIDaynaPort&) = delete;
 	SCSIDaynaPort& operator=(const SCSIDaynaPort&) = delete;
 

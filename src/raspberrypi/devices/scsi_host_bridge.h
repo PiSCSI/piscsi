@@ -28,7 +28,7 @@ class SCSIBR final : public Disk
 public:
 
 	SCSIBR();
-	~SCSIBR() final;
+	~SCSIBR() override;
 	SCSIBR(SCSIBR&) = delete;
 	SCSIBR& operator=(const SCSIBR&) = delete;
 

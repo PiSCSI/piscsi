@@ -61,7 +61,7 @@ public:
 	FRIEND_TEST(AbstractControllerTest, GetLun);
 
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
-	~MockAbstractController() final = default;
+	~MockAbstractController() override = default;
 };
 
 class MockScsiController final : public ScsiController
