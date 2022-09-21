@@ -41,7 +41,7 @@ class file_not_found_exception : public io_exception {
 	using io_exception::io_exception;
 };
 
-class scsi_error_exception : public exception {
+class scsi_error_exception final : public exception {
 private:
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;
