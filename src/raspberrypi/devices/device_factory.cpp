@@ -19,6 +19,7 @@
 #include "device_factory.h"
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
 
 using namespace std;
 using namespace rascsi_interface;
