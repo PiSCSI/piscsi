@@ -25,10 +25,6 @@ using namespace rascsi_interface;
 static const char COMPONENT_SEPARATOR = ':';
 static const char KEY_VALUE_SEPARATOR = '=';
 
-const Localizer localizer;
-
-extern ProtobufConnector protobuf_connector;
-
 void command_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
 	if (!params.empty()) {
@@ -101,9 +97,10 @@ bool command_util::ReturnLocalizedError(const CommandContext& context, const Loc
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English
-	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
+	LOGERROR("%s", context.localizer->Localize(key, "en", arg1, arg2, arg3).c_str())
 
-	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
+	return ReturnStatus(context, false, context.localizer->Localize(key, context.locale, arg1, arg2, arg3), error_code,
+			false);
 }
 
 bool command_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
@@ -132,7 +129,7 @@ bool command_util::ReturnStatus(const CommandContext& context, bool status, cons
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		protobuf_connector.SerializeMessage(context.fd, result);
+		context.connector->SerializeMessage(context.fd, result);
 	}
 
 	return status;

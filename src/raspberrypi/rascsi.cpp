@@ -1135,9 +1135,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	CommandContext context;
-	context.fd = -1;
-	context.locale = locale;
+	Localizer localizer;
+	CommandContext context(&protobuf_connector, &localizer, -1, locale);
 	if (!ProcessCmd(context, command)) {
 		return false;
 	}
@@ -1346,8 +1345,8 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 	listen(monsocket, 1);
 
 	while (true) {
-		CommandContext context;
-		context.fd = -1;
+		Localizer localizer;
+		CommandContext context(&protobuf_connector, &localizer, -1, "");
 
 		try {
 			PbCommand command;
