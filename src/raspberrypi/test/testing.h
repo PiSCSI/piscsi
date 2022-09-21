@@ -23,7 +23,7 @@
 // This global variable is convenient but might cause issues because it is reused by several tests
 extern DeviceFactory& device_factory;
 
-class MockAbstractController : public AbstractController
+class MockAbstractController final : public AbstractController
 {
 public:
 
@@ -64,7 +64,7 @@ public:
 	~MockAbstractController() final = default;
 };
 
-class MockScsiController : public ScsiController
+class MockScsiController final : public ScsiController
 {
 public:
 
@@ -109,7 +109,7 @@ public:
 	using ScsiController::ScsiController;
 };
 
-class MockPrimaryDevice : public PrimaryDevice
+class MockPrimaryDevice final : public PrimaryDevice
 {
 public:
 
@@ -128,7 +128,7 @@ public:
 	}
 };
 
-class MockModePageDevice : public ModePageDevice
+class MockModePageDevice final : public ModePageDevice
 {
 public:
 
@@ -153,7 +153,7 @@ public:
 	}
 };
 
-class MockSCSIHD : public SCSIHD
+class MockSCSIHD final : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
@@ -161,7 +161,7 @@ class MockSCSIHD : public SCSIHD
 	~MockSCSIHD() final = default;
 };
 
-class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
+class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
 	FRIEND_TEST(DiskTest, Rezero);
@@ -179,7 +179,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 	~MockSCSIHD_NEC() final = default;
 };
 
-class MockSCSICD : public SCSICD
+class MockSCSICD final : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
@@ -187,7 +187,7 @@ class MockSCSICD : public SCSICD
 	~MockSCSICD() final = default;
 };
 
-class MockSCSIMO : public SCSIMO
+class MockSCSIMO final : public SCSIMO
 {
 	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
 
@@ -196,7 +196,7 @@ class MockSCSIMO : public SCSIMO
 	~MockSCSIMO() final = default;
 };
 
-class MockHostServices : public HostServices
+class MockHostServices final : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 

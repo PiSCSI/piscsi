@@ -11,7 +11,7 @@
 #include "rascsi_exceptions.h"
 #include "devices/device.h"
 
-class TestDevice : public Device
+class TestDevice final : public Device
 {
 public:
 
