@@ -21,7 +21,6 @@
 #include <cassert>
 #include <cstdint>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 using BYTE = unsigned char;
