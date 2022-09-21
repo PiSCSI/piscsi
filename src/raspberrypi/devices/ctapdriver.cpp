@@ -39,6 +39,9 @@ using namespace ras_util;
 //
 //---------------------------------------------------------------------------
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
+#ifndef __linux
+	return false;
+#else
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
@@ -51,9 +54,13 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 		return false;
 	}
 	return true;
+#endif
 }
 
 static bool ip_link(int fd, const char* ifname, bool up) {
+#ifndef __linux
+	return false;
+#else
 	struct ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
@@ -71,6 +78,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 		return false;
 	}
 	return true;
+#endif
 }
 
 static bool is_interface_up(string_view interface) {
@@ -93,6 +101,9 @@ static bool is_interface_up(string_view interface) {
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 {
+#ifndef __linux
+	return false;
+#else
 	unordered_map<string, string> params = const_params;
 	if (params.count("interfaces")) {
 		LOGWARN("You are using the deprecated 'interfaces' parameter. "
@@ -336,6 +347,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGINFO("Tap device %s created", ifr.ifr_name)
 
 	return true;
+#endif
 }
 
 void CTapDriver::OpenDump(const Filepath& path) {
