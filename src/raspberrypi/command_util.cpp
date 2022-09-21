@@ -70,7 +70,7 @@ void command_util::AddParam(PbCommand& command, const string& key, string_view v
 	}
 }
 
-void command_util::AddParam(PbDevice& device, const string& key,string_view value)
+void command_util::AddParam(PbDevice& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
