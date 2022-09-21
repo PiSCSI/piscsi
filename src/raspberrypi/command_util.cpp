@@ -27,26 +27,28 @@ static const char KEY_VALUE_SEPARATOR = '=';
 
 void command_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
-	if (!params.empty()) {
-		if (params.find(KEY_VALUE_SEPARATOR) != string::npos) {
-			stringstream ss(params);
-			string p;
-			while (getline(ss, p, COMPONENT_SEPARATOR)) {
-				if (!p.empty()) {
-					size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
-					if (separator_pos != string::npos) {
-						AddParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
-					}
+	if (params.empty()) {
+		return;
+	}
+
+	if (params.find(KEY_VALUE_SEPARATOR) != string::npos) {
+		stringstream ss(params);
+		string p;
+		while (getline(ss, p, COMPONENT_SEPARATOR)) {
+			if (!p.empty()) {
+				size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
+				if (separator_pos != string::npos) {
+					AddParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
 				}
 			}
 		}
-		// Old style parameters, for backwards compatibility only.
-		// Only one of these parameters will be used by rascsi, depending on the device type.
-		else {
-			AddParam(device, "file", params);
-			if (params != "bridge" && params != "daynaport" && params != "printer" && params != "services") {
-				AddParam(device, "interfaces", params);
-			}
+	}
+	// Old style parameters, for backwards compatibility only.
+	// Only one of these parameters will be used by rascsi, depending on the device type.
+	else {
+		AddParam(device, "file", params);
+		if (params != "bridge" && params != "daynaport" && params != "printer" && params != "services") {
+			AddParam(device, "interfaces", params);
 		}
     }
 }
