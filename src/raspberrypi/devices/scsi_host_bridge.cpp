@@ -202,7 +202,7 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, BYTE *buf)
 	}
 
 	// Error
-	ASSERT(false);
+	assert(false);
 	return 0;
 }
 

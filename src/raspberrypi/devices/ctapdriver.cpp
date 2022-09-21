@@ -400,7 +400,7 @@ bool CTapDriver::Disable() const
 void CTapDriver::Flush()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
-	while(PendingPackets()){
+	while (PendingPackets()) {
 		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
 		(void)Rx(m_garbage_buffer.data());
 	}
@@ -408,7 +408,7 @@ void CTapDriver::Flush()
 
 void CTapDriver::GetMacAddr(BYTE *mac) const
 {
-	ASSERT(mac);
+	assert(mac);
 
 	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
@@ -420,11 +420,10 @@ void CTapDriver::GetMacAddr(BYTE *mac) const
 //---------------------------------------------------------------------------
 bool CTapDriver::PendingPackets() const
 {
-	pollfd fds;
-
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	// Check if there is data that can be received
+	pollfd fds;
 	fds.fd = m_hTAP;
 	fds.events = POLLIN | POLLERR;
 	fds.revents = 0;
@@ -432,7 +431,7 @@ bool CTapDriver::PendingPackets() const
 	LOGTRACE("%s %u revents", __PRETTY_FUNCTION__, fds.revents)
 	if (!(fds.revents & POLLIN)) {
 		return false;
-	}else {
+	} else {
 		return true;
 	}
 }
@@ -457,7 +456,7 @@ uint32_t crc32(const BYTE *buf, int length) {
 //---------------------------------------------------------------------------
 int CTapDriver::Rx(BYTE *buf)
 {
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	// Check if there is data that can be received
 	if (!PendingPackets()) {
@@ -511,7 +510,7 @@ int CTapDriver::Rx(BYTE *buf)
 //---------------------------------------------------------------------------
 int CTapDriver::Tx(const BYTE *buf, int len)
 {
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	if (m_pcap_dumper != nullptr) {
 		struct pcap_pkthdr h = {

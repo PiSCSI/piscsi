@@ -31,9 +31,9 @@ using namespace scsi_command_util;
 
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
-	ASSERT(!valid);
-	ASSERT(track >= 1);
-	ASSERT(first < last);
+	assert(!valid);
+	assert(track >= 1);
+	assert(first < last);
 
 	// Set and enable track number
 	track_no = track;
@@ -46,7 +46,7 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 
 void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
-	ASSERT(valid);
+	assert(valid);
 
 	// CD-DA or data
 	audio = cdda;
@@ -57,7 +57,7 @@ void CDTrack::SetPath(bool cdda, const Filepath& path)
 
 void CDTrack::GetPath(Filepath& path) const
 {
-	ASSERT(valid);
+	assert(valid);
 
 	// Return the path (by reference)
 	path = imgpath;
@@ -70,8 +70,8 @@ void CDTrack::GetPath(Filepath& path) const
 //---------------------------------------------------------------------------
 DWORD CDTrack::GetFirst() const
 {
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
+	assert(valid);
+	assert(first_lba < last_lba);
 
 	return first_lba;
 }
@@ -83,16 +83,16 @@ DWORD CDTrack::GetFirst() const
 //---------------------------------------------------------------------------
 DWORD CDTrack::GetLast() const
 {
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
+	assert(valid);
+	assert(first_lba < last_lba);
 
 	return last_lba;
 }
 
 DWORD CDTrack::GetBlocks() const
 {
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
+	assert(valid);
+	assert(first_lba < last_lba);
 
 	// Calculate from start LBA and end LBA
 	return last_lba - first_lba + 1;
@@ -100,8 +100,8 @@ DWORD CDTrack::GetBlocks() const
 
 int CDTrack::GetTrackNo() const
 {
-	ASSERT(valid);
-	ASSERT(track_no >= 1);
+	assert(valid);
+	assert(track_no >= 1);
 
 	return track_no;
 }
@@ -207,7 +207,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 
 	// Successful opening
-	ASSERT(GetBlockCount() > 0);
+	assert(GetBlockCount() > 0);
 
 	super::Open(path);
 	FileSupport::SetPath(path);
@@ -321,7 +321,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
-	ASSERT(!tracks.size());
+	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
 	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
@@ -416,7 +416,7 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 
 		// Reset the number of blocks
 		SetBlockCount(tracks[index]->GetBlocks());
-		ASSERT(GetBlockCount() > 0);
+		assert(GetBlockCount() > 0);
 
 		// Recreate the disk cache
 		Filepath path;

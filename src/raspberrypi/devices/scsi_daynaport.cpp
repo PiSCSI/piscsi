@@ -34,9 +34,6 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-// const array<byte, 6> SCSIDaynaPort::m_bcast_addr = { byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff} };
-// const array<byte, 6> SCSIDaynaPort::m_apple_talk_addr = { byte{0x09}, byte{0x00}, byte{0x07}, byte{0xff}, byte{0xff}, byte{0xff} };
-
 // TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {

@@ -42,8 +42,8 @@ void Filepath::Clear()
 //---------------------------------------------------------------------------
 void Filepath::SetPath(const char *path)
 {
-	ASSERT(path);
-	ASSERT(strlen(path) < _MAX_PATH);
+	assert(path);
+	assert(strlen(path) < _MAX_PATH);
 
 	// Copy pathname
 	strcpy(m_szPath, path);

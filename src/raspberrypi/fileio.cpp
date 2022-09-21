@@ -16,8 +16,6 @@
 
 Fileio::~Fileio()
 {
-	ASSERT(handle == -1);
-
 	// Safety measure for Release
 	Close();
 }

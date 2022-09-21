@@ -45,7 +45,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 
 void SCSIHD_NEC::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
