@@ -138,7 +138,10 @@ def index():
     image_suffixes_to_create = map_image_file_descriptions(
         # Here we strip out hdi and nhd, since they are proprietary PC-98 emulator formats
         # that require a particular header to work. We can't generate them on the fly.
-        [suffix for suffix in server_info["schd"] if suffix not in {"hdi", "nhd"}] +
+        sorted(
+            [suffix for suffix in server_info["schd"] if suffix not in {"hdi", "nhd"}],
+            reverse=True
+            ) +
         server_info["scrm"] +
         server_info["scmo"]
         )

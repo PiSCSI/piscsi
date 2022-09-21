@@ -336,7 +336,7 @@
         <td>
             <form action="/scsi/attach_device" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
-                {% for key, value in device_types[type]["params"].items() %}
+                {% for key, value in device_types[type]["params"] | dictsort %}
                 <label for="{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
                 <input name="{{ key }}" type="number" value="{{ value }}">
