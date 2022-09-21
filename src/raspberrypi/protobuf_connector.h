@@ -27,8 +27,8 @@ public:
 	ProtobufConnector() = default;
 	~ProtobufConnector() = default;
 
-	int ReadCommand(PbCommand&, int);
-	void SerializeMessage(int, const google::protobuf::Message&);
-	void DeserializeMessage(int, google::protobuf::Message&);
-	size_t ReadBytes(int, vector<byte>&);
+	int ReadCommand(PbCommand&, int) const;
+	void SerializeMessage(int, const google::protobuf::Message&) const;
+	void DeserializeMessage(int, google::protobuf::Message&) const;
+	size_t ReadBytes(int, vector<byte>&) const;
 };

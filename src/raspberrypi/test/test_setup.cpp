@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include "spdlog/spdlog.h"
+#include "protobuf_connector.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 
@@ -26,6 +27,7 @@ public:
 };
 
 const DeviceFactory& device_factory = DeviceFactory::instance();
+ProtobufConnector protobuf_connector;
 
 int main(int argc, char *[])
 {

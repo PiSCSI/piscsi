@@ -17,7 +17,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-int ProtobufConnector::ReadCommand(PbCommand& command, int socket)
+int ProtobufConnector::ReadCommand(PbCommand& command, int socket) const
 {
 	// Wait for connection
 	sockaddr_in client;
@@ -51,7 +51,7 @@ int ProtobufConnector::ReadCommand(PbCommand& command, int socket)
 //
 //---------------------------------------------------------------------------
 
-void ProtobufConnector::SerializeMessage(int fd, const google::protobuf::Message& message)
+void ProtobufConnector::SerializeMessage(int fd, const google::protobuf::Message& message) const
 {
 	string data;
 	message.SerializeToString(&data);
@@ -68,7 +68,7 @@ void ProtobufConnector::SerializeMessage(int fd, const google::protobuf::Message
     }
 }
 
-void ProtobufConnector::DeserializeMessage(int fd, google::protobuf::Message& message)
+void ProtobufConnector::DeserializeMessage(int fd, google::protobuf::Message& message) const
 {
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
@@ -92,7 +92,7 @@ void ProtobufConnector::DeserializeMessage(int fd, google::protobuf::Message& me
 	message.ParseFromString(data);
 }
 
-size_t ProtobufConnector::ReadBytes(int fd, vector<byte>& buf)
+size_t ProtobufConnector::ReadBytes(int fd, vector<byte>& buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {
