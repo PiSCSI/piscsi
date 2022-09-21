@@ -12,6 +12,7 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "device.h"
+#include <sstream>
 #include <iomanip>
 
 using namespace std;

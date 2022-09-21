@@ -12,6 +12,7 @@
 
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
+#include <cstring>
 #include <string>
 #include <unordered_map>
 

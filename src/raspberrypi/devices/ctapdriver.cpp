@@ -21,10 +21,10 @@
 #include "rascsi_exceptions.h"
 #include <net/if.h>
 #include <sys/ioctl.h>
-#include <sys/epoll.h>
 #include <sstream>
 
 #ifdef __linux__
+#include <sys/epoll.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <linux/sockios.h>
