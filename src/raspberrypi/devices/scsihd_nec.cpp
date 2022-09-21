@@ -57,8 +57,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 
 	// NEC root sector
-	BYTE root_sector[512];
-	if (size >= (off_t)sizeof(root_sector) && !fio.Read(root_sector, sizeof(root_sector))) {
+	array<BYTE, 512> root_sector;
+	if (size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
 		fio.Close();
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
@@ -95,7 +95,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
-		if (!memcmp(root_sector, "T98HDDIMAGE.R0\0", 15)) {
+		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
 			disk.image_offset = getDwordLE(&root_sector[0x110]);
 			cylinders = getDwordLE(&root_sector[0x114]);
 			heads = getWordLE(&root_sector[0x118]);
