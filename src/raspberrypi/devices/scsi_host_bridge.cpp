@@ -21,6 +21,7 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include "scsi_command_util.h"
+#include <arpa/inet.h>
 #include <array>
 
 using namespace std;
