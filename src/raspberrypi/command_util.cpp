@@ -10,11 +10,8 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "rascsi_exceptions.h"
 #include "socket_connector.h"
 #include "command_util.h"
-#include <unistd.h>
-#include <netinet/in.h>
 #include <sstream>
 
 using namespace std;
