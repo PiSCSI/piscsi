@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Helper for serializing/deserializing protobuf messages
+// Helper for serializing/deserializing protobuf messages to/fromn sockets
 //
 //---------------------------------------------------------------------------
 
@@ -20,12 +20,12 @@
 using namespace std;
 using namespace rascsi_interface;
 
-class ProtobufConnector
+class SocketConnector
 {
 public:
 
-	ProtobufConnector() = default;
-	~ProtobufConnector() = default;
+	SocketConnector() = default;
+	~SocketConnector() = default;
 
 	int ReadCommand(PbCommand&, int) const;
 	void SerializeMessage(int, const google::protobuf::Message&) const;

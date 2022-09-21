@@ -27,7 +27,7 @@ public:
 };
 
 const DeviceFactory& device_factory = DeviceFactory::instance();
-ProtobufConnector protobuf_connector;
+SocketConnector protobuf_connector;
 
 int main(int argc, char *[])
 {

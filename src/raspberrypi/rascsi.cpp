@@ -19,7 +19,7 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
-#include "protobuf_connector.h"
+#include "socket_connector.h"
 #include "command_util.h"
 #include "rascsi_version.h"
 #include "rascsi_response.h"
@@ -72,7 +72,7 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
-ProtobufConnector protobuf_connector;
+SocketConnector protobuf_connector;
 void DetachAll();
 
 //---------------------------------------------------------------------------

@@ -11,16 +11,16 @@
 
 #include <string>
 
-class ProtobufConnector;
+class SocketConnector;
 class Localizer;
 
 struct CommandContext
 {
-	CommandContext(ProtobufConnector *c, Localizer *l, int f, std::string s)
+	CommandContext(SocketConnector *c, Localizer *l, int f, std::string s)
 		: connector(c), localizer(l), fd(f), locale(s) {}
 	~CommandContext() = default;
 
-	ProtobufConnector *connector;
+	SocketConnector *connector;
 	Localizer *localizer;
 	int fd;
 	std::string locale;

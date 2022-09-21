@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
-#include "protobuf_connector.h"
+#include "socket_connector.h"
 #include "command_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
@@ -25,7 +25,7 @@ using namespace command_util;
 // Separator for the INQUIRY name components
 static const char COMPONENT_SEPARATOR = ':';
 
-ProtobufConnector protobuf_connector;
+SocketConnector protobuf_connector;
 
 RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
