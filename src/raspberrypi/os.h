@@ -11,8 +11,7 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(os_h)
-#define os_h
+#pragma once
 
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
@@ -76,5 +75,3 @@ using TCHAR = char;
 #endif
 
 static const int _MAX_FNAME = 256;
-
-#endif
