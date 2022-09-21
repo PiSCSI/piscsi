@@ -10,8 +10,6 @@
 #include <gtest/gtest.h>
 
 #include "spdlog/spdlog.h"
-#include "protobuf_connector.h"
-#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 
 class Environment : public ::testing::Environment
@@ -27,7 +25,6 @@ public:
 };
 
 const DeviceFactory& device_factory = DeviceFactory::instance();
-SocketConnector protobuf_connector;
 
 int main(int argc, char *[])
 {
