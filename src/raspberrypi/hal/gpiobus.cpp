@@ -23,6 +23,9 @@
 using namespace std;
 
 #ifdef __linux__
+
+#include <sys/epoll.h>
+
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c

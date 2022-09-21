@@ -11,6 +11,7 @@
 
 #include <cerrno>
 #include <csignal>
+#include <unistd.h>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
