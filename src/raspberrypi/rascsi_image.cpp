@@ -9,7 +9,6 @@
 
 #include <unistd.h>
 #include <pwd.h>
-#include <sys/sendfile.h>
 #include "log.h"
 #include "filepath.h"
 #include "spdlog/spdlog.h"
@@ -18,6 +17,9 @@
 #include "rascsi_image.h"
 #include <string>
 #include <filesystem>
+#ifdef __linux
+#include <sys/sendfile.h>
+#endif
 
 using namespace std;
 using namespace spdlog;
@@ -347,6 +349,14 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
+#ifndef __linux
+    close(fd_dst);
+    close(fd_src);
+
+	unlink(to.c_str());
+
+	return false;
+#else
     if (sendfile(fd_dst, fd_src, nullptr, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
@@ -362,6 +372,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
+#endif
 }
 
 bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
