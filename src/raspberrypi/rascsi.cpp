@@ -1158,6 +1158,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
 {
+#ifdef __linux
 	// Get the number of CPUs
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
@@ -1170,6 +1171,7 @@ void FixCpu(int cpu)
 		CPU_SET(cpu, &cpuset);
 		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
 	}
+#endif
 }
 
 //---------------------------------------------------------------------------
