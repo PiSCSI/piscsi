@@ -368,13 +368,13 @@ public:
 	void  Insert(CRing* pRoot)
 	{
 			// Separate the relevant objects
-		ASSERT(next);
-		ASSERT(prev);
+		assert(next);
+		assert(prev);
 		next->prev = prev;
 		prev->next = next;
 		// Insert into the beginning of the ring
-		ASSERT(pRoot);
-		ASSERT(pRoot->next);
+		assert(pRoot);
+		assert(pRoot->next);
 		next = pRoot->next;
 		prev = pRoot;
 		pRoot->next->prev = this;
@@ -385,13 +385,13 @@ public:
 	void  InsertTail(CRing* pRoot)
 	{
 			// Separate the relevant objects
-		ASSERT(next);
-		ASSERT(prev);
+		assert(next);
+		assert(prev);
 		next->prev = prev;
 		prev->next = next;
 		// Insert into the end of the ring
-		ASSERT(pRoot);
-		ASSERT(pRoot->prev);
+		assert(pRoot);
+		assert(pRoot->prev);
 		next = pRoot;
 		prev = pRoot->prev;
 		pRoot->prev->next = this;
@@ -404,8 +404,8 @@ public:
 			if (next == prev) return;
 
 		// Insert into the beginning of the ring
-		ASSERT(pRoot);
-		ASSERT(pRoot->next);
+		assert(pRoot);
+		assert(pRoot->next);
 		pRoot->next->prev = prev;
 		prev->next = pRoot->next;
 		pRoot->next = next;
@@ -419,8 +419,8 @@ public:
 	void  Remove()
 	{
 			// Separate the relevant objects
-		ASSERT(next);
-		ASSERT(prev);
+		assert(next);
+		assert(prev);
 		next->prev = prev;
 		prev->next = next;
 		// To be safe, assign self (nothing stops you from separating any number of times)
