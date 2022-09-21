@@ -17,10 +17,6 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
-#ifndef _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS 64
-#endif
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstddef>
