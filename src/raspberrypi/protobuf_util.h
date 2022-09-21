@@ -28,7 +28,7 @@ namespace protobuf_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
-	bool ReadCommand(PbCommand&, CommandContext&, int);
+	int ReadCommand(PbCommand&, int);
 	void SerializeMessage(int, const google::protobuf::Message&);
 	void DeserializeMessage(int, google::protobuf::Message&);
 	size_t ReadBytes(int, vector<byte>&);

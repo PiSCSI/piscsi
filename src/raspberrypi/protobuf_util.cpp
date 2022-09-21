@@ -88,31 +88,31 @@ void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, stri
 	}
 }
 
-bool protobuf_util::ReadCommand(PbCommand& command, CommandContext& context, int socket)
+int protobuf_util::ReadCommand(PbCommand& command, int socket)
 {
 	// Wait for connection
 	sockaddr_in client;
 	socklen_t socklen = sizeof(client);
 	memset(&client, 0, socklen);
-	context.fd = accept(socket, (sockaddr*)&client, &socklen);
-	if (context.fd < 0) {
+	int fd = accept(socket, (sockaddr*)&client, &socklen);
+	if (fd < 0) {
 		throw io_exception("accept() failed");
 	}
 
 	// Read magic string
 	vector<byte> magic(6);
-	size_t bytes_read = ReadBytes(context.fd, magic);
+	size_t bytes_read = ReadBytes(fd, magic);
 	if (!bytes_read) {
-		return false;
+		return -1;
 	}
 	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 		throw io_exception("Invalid magic");
 	}
 
 	// Fetch the command
-	DeserializeMessage(context.fd, command);
+	DeserializeMessage(fd, command);
 
-	return true;
+	return fd;
 }
 
 //---------------------------------------------------------------------------

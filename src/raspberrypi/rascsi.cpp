@@ -1351,7 +1351,8 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 
 		try {
 			PbCommand command;
-			if (!ReadCommand(command, context, monsocket)) {
+			context.fd = ReadCommand(command, monsocket);
+			if (context.fd == -1) {
 				continue;
 			}
 
