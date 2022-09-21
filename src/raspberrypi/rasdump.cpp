@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include <cerrno>
+#include <csignal>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"

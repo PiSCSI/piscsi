@@ -27,6 +27,7 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <pthread.h>
 #include <csignal>
 #include <string>
 #include <sstream>
