@@ -23,6 +23,7 @@
 #include "cfilesystem.h"
 #include <dirent.h>
 #include <iconv.h>
+#include <utime.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
 
