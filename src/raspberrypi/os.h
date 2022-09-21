@@ -55,11 +55,9 @@ using DWORD = uint32_t;
 using TCHAR = char;
 
 #if !defined(FALSE)
-#define FALSE               0
+#define FALSE 0
 #endif
 
 #if !defined(TRUE)
-#define TRUE                1
+#define TRUE 1
 #endif
-
-static const int _MAX_FNAME = 256;

@@ -24,6 +24,8 @@
 
 using namespace std;
 
+static const int _MAX_FNAME = 256;
+
 //---------------------------------------------------------------------------
 //
 //	Variable declarations
