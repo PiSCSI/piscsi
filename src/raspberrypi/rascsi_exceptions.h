@@ -52,7 +52,7 @@ public:
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION)
 	: sense_key(sense_key), asc(asc), status(status) {}
-	~scsi_error_exception() final = default;
+	~scsi_error_exception() override = default;
 
 	scsi_defs::sense_key get_sense_key() const { return sense_key; }
 	scsi_defs::asc get_asc() const { return asc; }

@@ -27,7 +27,7 @@ class SCSIPrinter final : public PrimaryDevice, public ScsiPrinterCommands //NOS
 public:
 
 	SCSIPrinter();
-	~SCSIPrinter() final;
+	~SCSIPrinter() override;
 	SCSIPrinter(SCSIPrinter&) = delete;
 	SCSIPrinter& operator=(const SCSIPrinter&) = delete;
 

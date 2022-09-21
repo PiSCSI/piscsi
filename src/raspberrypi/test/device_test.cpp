@@ -16,9 +16,9 @@ class TestDevice final : public Device
 public:
 
 	TestDevice() : Device("test") {}
-	~TestDevice() final = default;
+	~TestDevice() override = default;
 
-	bool Dispatch(scsi_defs::scsi_command) final { return false; }
+	bool Dispatch(scsi_defs::scsi_command) override { return false; }
 };
 
 TEST(DeviceTest, Properties)

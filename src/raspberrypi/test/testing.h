@@ -116,7 +116,7 @@ public:
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() final = default;
+	~MockPrimaryDevice() override = default;
 
 	// Make protected methods visible for testing
 
@@ -133,7 +133,7 @@ class MockModePageDevice final : public ModePageDevice
 public:
 
 	MockModePageDevice() : ModePageDevice("test") {}
-	~MockModePageDevice() final = default;
+	~MockModePageDevice() override = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
@@ -158,7 +158,7 @@ class MockSCSIHD final : public SCSIHD
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
 	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
-	~MockSCSIHD() final = default;
+	~MockSCSIHD() override = default;
 };
 
 class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
@@ -176,7 +176,7 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 	FRIEND_TEST(DiskTest, BlockCount);
 
 	MockSCSIHD_NEC() = default;
-	~MockSCSIHD_NEC() final = default;
+	~MockSCSIHD_NEC() override = default;
 };
 
 class MockSCSICD final : public SCSICD
@@ -184,7 +184,7 @@ class MockSCSICD final : public SCSICD
 	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
 	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
-	~MockSCSICD() final = default;
+	~MockSCSICD() override = default;
 };
 
 class MockSCSIMO final : public SCSIMO
@@ -193,7 +193,7 @@ class MockSCSIMO final : public SCSIMO
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) {}
-	~MockSCSIMO() final = default;
+	~MockSCSIMO() override = default;
 };
 
 class MockHostServices final : public HostServices
@@ -203,5 +203,5 @@ class MockHostServices final : public HostServices
 public:
 
 	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
-	~MockHostServices() final = default;
+	~MockHostServices() override = default;
 };

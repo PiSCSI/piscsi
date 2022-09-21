@@ -318,7 +318,7 @@ class GPIOBUS final : public BUS
 public:
 	// Basic Functions
 	GPIOBUS()= default;
-	~GPIOBUS() final = default;
+	~GPIOBUS() override = default;
 										// Destructor
 	bool Init(mode_e mode = mode_e::TARGET) override;
 										// Initialization
