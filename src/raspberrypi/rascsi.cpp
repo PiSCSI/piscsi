@@ -28,6 +28,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <pthread.h>
+#include <netinet/in.h>
 #include <csignal>
 #include <string>
 #include <sstream>

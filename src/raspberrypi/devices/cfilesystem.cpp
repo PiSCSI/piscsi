@@ -21,6 +21,8 @@
 #include "log.h"
 #include "filepath.h"
 #include "cfilesystem.h"
+#include <dirent.h>
+#include <iconv.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
 

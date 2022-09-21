@@ -23,17 +23,12 @@
 #include <utime.h>
 #include <fcntl.h>
 #include <sched.h>
-#include <iconv.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <poll.h>
-#include <dirent.h>
-#include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 
 #ifdef __linux
 #include <sys/epoll.h>

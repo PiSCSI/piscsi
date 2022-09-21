@@ -12,6 +12,7 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include <poll.h>
 #include <arpa/inet.h>
 #ifdef __linux__
 #include <net/if.h>

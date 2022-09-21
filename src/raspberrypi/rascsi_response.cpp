@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <dirent.h>
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"

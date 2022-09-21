@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include <pwd.h>
 #include <sys/sendfile.h>
 #include "log.h"
 #include "filepath.h"
