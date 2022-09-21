@@ -13,9 +13,9 @@
 //	[ SCSI CD-ROM  ]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include "os.h"
 #include "disk.h"
 #include "filepath.h"
 #include "interfaces/scsi_mmc_commands.h"
