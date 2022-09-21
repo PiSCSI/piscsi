@@ -12,6 +12,8 @@
 
 #include "os.h"
 
+using TCHAR = char;
+
 class Fileio;
 
 static const int _MAX_EXT = 256;
