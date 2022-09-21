@@ -45,6 +45,7 @@ Localizer::Localizer()
 	Add(ERROR_MISSING_FILENAME, "es", "Falta el nombre del archivo");
 	Add(ERROR_DEVICE_MISSING_FILENAME, "en", "Device type %1 requires a filename");
 	Add(ERROR_DEVICE_MISSING_FILENAME, "de", "Gerätetyp %1 erfordert einen Dateinamen");
+	Add(ERROR_DEVICE_MISSING_FILENAME, "es", "El tipo de dispositivo %1 requiere un nombre de archivo");
 	Add(ERROR_IMAGE_IN_USE, "en", "Image file '%1' is already being used by ID %2, unit %3");
 	Add(ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von ID %2, Einheit %3 benutzt");
 	Add(ERROR_IMAGE_IN_USE, "sv", "Skivbildfilen '%1' används redan av ID %2, LUN %3");
@@ -52,6 +53,7 @@ Localizer::Localizer()
 	Add(ERROR_IMAGE_IN_USE, "es", "El archivo de imagen '%1' ya está siendo utilizado por el ID %2, unidad %3");
 	Add(ERROR_IMAGE_FILE_INFO, "en", "Can't create image file info for '%1'");
 	Add(ERROR_IMAGE_FILE_INFO, "de", "Image-Datei-Information für '%1' kann nicht erzeugt werden");
+	Add(ERROR_IMAGE_FILE_INFO, "es", "No se puede crear información de archivo de imagen para '%1'");
 	Add(ERROR_RESERVED_ID, "en", "Device ID %1 is reserved");
 	Add(ERROR_RESERVED_ID, "de", "Geräte-ID %1 ist reserviert");
 	Add(ERROR_RESERVED_ID, "sv", "Enhets-ID %1 är reserverat");
@@ -84,6 +86,7 @@ Localizer::Localizer()
 	Add(ERROR_DUPLICATE_ID, "es", "ID duplicado %1, unidad %2");
 	Add(ERROR_DETACH, "en", "Couldn't detach device");
 	Add(ERROR_DETACH, "de", "Geräte konnte nicht entfernt werden");
+	Add(ERROR_DETACH, "es", "No se ha podido desconectar el dispositivo");
 	Add(ERROR_EJECT_REQUIRED, "en", "Existing medium must first be ejected");
 	Add(ERROR_EJECT_REQUIRED, "de", "Das vorhandene Medium muss erst ausgeworfen werden");
 	Add(ERROR_EJECT_REQUIRED, "sv", "Nuvarande skiva måste utmatas först");
@@ -126,22 +129,31 @@ Localizer::Localizer()
 	Add(ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "es", "El tamaño del bloque para el tipo de dispositivo %1 no es configurable");
 	Add(ERROR_SCSI_CONTROLLER, "en", "Couldn't create SCSI controller");
 	Add(ERROR_SCSI_CONTROLLER, "de", "SCSI-Controller konnte nicht erzeugt werden");
+	Add(ERROR_SCSI_CONTROLLER, "es", "No se ha podido crear el controlador SCSI");
 	Add(ERROR_INVALID_ID, "en", "Invalid device ID %1 (0-%2)");
 	Add(ERROR_INVALID_ID, "de", "Ungültige Geräte-ID %1 (0-%2)");
+	Add(ERROR_INVALID_ID, "es", "ID de dispositivo inválido %1 (0-%2)");
 	Add(ERROR_INVALID_LUN, "en", "Invalid LUN %1 (0-%2)");
 	Add(ERROR_INVALID_LUN, "de", "Ungültige LUN %1 (0-%2)");
+	Add(ERROR_INVALID_LUN, "es", "LUN invalido %1 (0-%2)");
 	Add(ERROR_LUN0, "en", "LUN 0 cannot be detached as long as there is still another LUN");
 	Add(ERROR_LUN0, "de", "LUN 0 kann nicht entfernt werden, solange noch eine andere LUN existiert");
+	Add(ERROR_LUN0, "es", "El LUN 0 no se puede desconectar mientras haya otro LUN");
 	Add(ERROR_INITIALIZATION, "en", "Initialization of %1 device, ID %2, LUN %3 failed");
 	Add(ERROR_INITIALIZATION, "de", "Initialisierung von %1-Gerät, ID %2, LUN %3 fehlgeschlagen");
+	Add(ERROR_INITIALIZATION, "es", "La inicialización del dispositivo %1, ID %2, LUN %3 falló");
 	Add(ERROR_OPERATION_DENIED_STOPPABLE, "en", "%1 operation denied, %2 isn't stoppable'");
 	Add(ERROR_OPERATION_DENIED_STOPPABLE, "de", "%1-Operation verweigert, %2 ist nicht stopbar'");
+	Add(ERROR_OPERATION_DENIED_STOPPABLE, "es", "%1 operación denegada, %2 no se puede parar'");
 	Add(ERROR_OPERATION_DENIED_REMOVABLE, "en", "%1 operation denied, %2 isn't removable'");
 	Add(ERROR_OPERATION_DENIED_REMOVABLE, "de", "%1-Operation verweigert, %2 ist nicht wechselbar'");
+	Add(ERROR_OPERATION_DENIED_REMOVABLE, "es", "%1 operación denegada, %2 no es removible'");
 	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "en", "%1 operation denied, %2 isn't protectable'");
 	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "de", "%1-Operation verweigert, %2 ist nicht schützbar'");
+	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "es", "%1 operación denegada, %2 no es protegible'");
 	Add(ERROR_OPERATION_DENIED_READY, "en", "%1 operation denied, %2 isn't ready'");
 	Add(ERROR_OPERATION_DENIED_READY, "de", "%1-Operation verweigert, %2 ist nicht bereit'");
+	Add(ERROR_OPERATION_DENIED_READY, "es", "%1 operación denegada, %2 no está listo'");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, string_view value)
