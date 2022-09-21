@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include "rascsi_version.h"
-#include "os.h"
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "device.h"
