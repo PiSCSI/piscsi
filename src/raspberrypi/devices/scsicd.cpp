@@ -476,7 +476,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 				buf[2] = (BYTE)tracks[0]->GetTrackNo();
 				buf[3] = (BYTE)last;
 				buf[6] = 0xaa;
-				DWORD lba = tracks[tracks.size() - 1]->GetLast() + 1;
+				uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
@@ -546,12 +546,12 @@ void SCSICD::GetEventStatusNotification()
 //	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
-void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
+void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
 {
 	// 75 and 75*60 get the remainder
-	DWORD m = lba / (75 * 60);
-	DWORD s = lba % (75 * 60);
-	DWORD f = s % 75;
+	uint32_t m = lba / (75 * 60);
+	uint32_t s = lba % (75 * 60);
+	uint32_t f = s % 75;
 	s /= 75;
 
 	// The base point is M=0, S=2, F=0

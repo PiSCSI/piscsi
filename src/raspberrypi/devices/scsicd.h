@@ -104,7 +104,7 @@ private:
 	void ReadToc() override;
 	void GetEventStatusNotification() override;
 
-	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion
 
 	bool rawfile = false;					// RAW flag
 
