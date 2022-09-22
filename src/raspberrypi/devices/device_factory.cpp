@@ -69,12 +69,6 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["iso"] = SCCD;
 }
 
-DeviceFactory& DeviceFactory::instance()
-{
-	static DeviceFactory instance;
-	return instance;
-}
-
 void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
 {
 	auto [begin, end] = devices.equal_range(device.GetId());

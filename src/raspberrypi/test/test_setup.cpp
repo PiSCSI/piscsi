@@ -10,7 +10,6 @@
 #include <gtest/gtest.h>
 
 #include "spdlog/spdlog.h"
-#include "devices/device_factory.h"
 
 class Environment : public ::testing::Environment
 {
@@ -23,8 +22,6 @@ public:
 
 	void SetUp() override { spdlog::set_level(log_level); }
 };
-
-const DeviceFactory& device_factory = DeviceFactory::instance();
 
 int main(int argc, char *[])
 {

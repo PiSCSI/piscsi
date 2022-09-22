@@ -67,7 +67,7 @@ pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 unordered_set<int> reserved_ids;
-DeviceFactory& device_factory = DeviceFactory::instance();
+DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);

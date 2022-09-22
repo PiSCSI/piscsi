@@ -20,9 +20,6 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
-// This global variable is convenient but might cause issues because it is reused by several tests
-extern DeviceFactory& device_factory;
-
 class MockAbstractController final : public AbstractController
 {
 public:
@@ -202,6 +199,6 @@ class MockHostServices final : public HostServices
 
 public:
 
-	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
+	MockHostServices(DeviceFactory& device_factory) : HostServices(&device_factory) {}
 	~MockHostServices() override = default;
 };

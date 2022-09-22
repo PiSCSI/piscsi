@@ -100,7 +100,8 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 TEST(ModePagesTest, HostServices_AddModePages)
 {
 	map<int, vector<byte>> mode_pages;
-	MockHostServices device;
+	DeviceFactory device_factory;
+	MockHostServices device(device_factory);
 	device.AddModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";

@@ -272,6 +272,7 @@ TEST(DiskTest, SectorSize)
 
 TEST(DiskTest, ConfiguredSectorSize)
 {
+	DeviceFactory device_factory;
 	MockSCSIHD_NEC disk;
 
 	EXPECT_TRUE(disk.SetConfiguredSectorSize(device_factory, 512));

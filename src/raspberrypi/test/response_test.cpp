@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
 #include "rascsi_image.h"
@@ -16,6 +17,7 @@ using namespace rascsi_interface;
 
 TEST(ResponseTest, Operation_Count)
 {
+	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 	PbResult pb_operation_info_result;

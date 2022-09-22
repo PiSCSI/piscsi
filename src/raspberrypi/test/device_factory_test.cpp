@@ -15,6 +15,8 @@
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
+	DeviceFactory device_factory;
+
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hd1"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
@@ -36,6 +38,8 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 
 TEST(DeviceFactoryTest, LifeCycle)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
@@ -55,6 +59,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
+	DeviceFactory device_factory;
 	unordered_set<uint32_t> sector_sizes;
 
 	sector_sizes = device_factory.GetSectorSizes("SCHD");
@@ -98,12 +103,16 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
 	EXPECT_EQ(nullptr, device);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
@@ -144,6 +153,8 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
@@ -169,6 +180,8 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
@@ -194,6 +207,8 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
@@ -219,6 +234,8 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
@@ -244,6 +261,8 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
@@ -268,6 +287,8 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
@@ -293,6 +314,8 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());

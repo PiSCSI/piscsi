@@ -27,14 +27,12 @@ class PrimaryDevice;
 
 class DeviceFactory
 {
+public:
+
 	DeviceFactory();
 	~DeviceFactory() = default;
 	DeviceFactory(DeviceFactory&) = delete;
 	DeviceFactory& operator=(const DeviceFactory&) = delete;
-
-public:
-
-	static DeviceFactory& instance();
 
 	PrimaryDevice *CreateDevice(PbDeviceType, const string&, int);
 	void DeleteDevice(const PrimaryDevice&) const;
