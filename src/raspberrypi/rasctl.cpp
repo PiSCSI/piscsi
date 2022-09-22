@@ -371,8 +371,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// TODO For macos only 'if (optind != argc)' appears to work, but then non-argument options do not reject arguments
-
+	// For macos only 'if (optind != argc)' appears to work, but then non-argument options do not reject arguments
 	if (optopt) {
 		exit(EXIT_FAILURE);
 	}
