@@ -147,7 +147,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages, changeable);

@@ -138,7 +138,7 @@ public:
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
 
-	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
+	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
 			vector<byte> buf(255);
@@ -154,7 +154,7 @@ public:
 
 class MockSCSIHD final : public SCSIHD
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
 
 	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
 	~MockSCSIHD() override = default;
@@ -162,7 +162,7 @@ class MockSCSIHD final : public SCSIHD
 
 class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
 	FRIEND_TEST(DiskTest, ReassignBlocks);
@@ -180,7 +180,7 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 
 class MockSCSICD final : public SCSICD
 {
-	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
 
 	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
 	~MockSCSICD() override = default;
@@ -188,7 +188,7 @@ class MockSCSICD final : public SCSICD
 
 class MockSCSIMO final : public SCSIMO
 {
-	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) {}
@@ -197,7 +197,7 @@ class MockSCSIMO final : public SCSIMO
 
 class MockHostServices final : public HostServices
 {
-	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
+	FRIEND_TEST(ModePagesTest, HostServices_SetUpModePages);
 
 	using HostServices::HostServices;
 };

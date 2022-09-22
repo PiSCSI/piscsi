@@ -30,7 +30,7 @@ public:
 protected:
 
 	int AddModePages(const vector<int>&, BYTE *, int) const;
-	virtual void AddModePages(map<int, vector<byte>>&, int, bool) const = 0;
+	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
 private:
 

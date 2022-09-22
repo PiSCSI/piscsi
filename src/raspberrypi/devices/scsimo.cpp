@@ -69,9 +69,9 @@ vector<byte> SCSIMO::InquiryInternal() const
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
 
-void SCSIMO::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void SCSIMO::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	Disk::AddModePages(pages, page, changeable);
+	Disk::SetUpModePages(pages, page, changeable);
 
 	// Page code 6
 	if (page == 0x06 || page == 0x3f) {

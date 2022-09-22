@@ -82,7 +82,7 @@ public:
 
 protected:
 
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:

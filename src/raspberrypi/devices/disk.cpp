@@ -482,7 +482,7 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 	return size;
 }
 
-void Disk::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {

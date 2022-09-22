@@ -45,7 +45,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_leng
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
-	AddModePages(pages, page, changeable);
+	SetUpModePages(pages, page, changeable);
 
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page)

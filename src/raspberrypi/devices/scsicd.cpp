@@ -341,9 +341,9 @@ vector<byte> SCSICD::InquiryInternal() const
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 }
 
-void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	super::AddModePages(pages, page, changeable);
+	super::SetUpModePages(pages, page, changeable);
 
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
