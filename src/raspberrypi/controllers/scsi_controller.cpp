@@ -745,7 +745,7 @@ void ScsiController::Receive()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						identified_lun = data & 0x1F;
+						identified_lun = (int)data & 0x1F;
 						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
 					}
 
