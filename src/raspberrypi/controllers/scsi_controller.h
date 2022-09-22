@@ -54,7 +54,7 @@ class ScsiController : public AbstractController
 public:
 
 	ScsiController(shared_ptr<BUS>, int);
-	virtual ~ScsiController();
+	~ScsiController() final;
 	ScsiController(ScsiController&) = delete;
 	ScsiController& operator=(const ScsiController&) = delete;
 
