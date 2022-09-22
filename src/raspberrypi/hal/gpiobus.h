@@ -250,8 +250,8 @@ const static int GICC_EOIR =		0x004;
 //	Constant declarations (GIC IRQ)
 //
 //---------------------------------------------------------------------------
-#define GIC_IRQLOCAL0		(16 + 14)
-#define GIC_GPIO_IRQ		(32 + 116)	// GPIO3
+const static int GIC_IRQLOCAL0 =	(16 + 14);
+const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
 
 //---------------------------------------------------------------------------
 //
