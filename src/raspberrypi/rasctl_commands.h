@@ -25,6 +25,7 @@ public:
 	RasctlCommands(RasctlCommands&) = delete;
 	RasctlCommands& operator=(const RasctlCommands&) = delete;
 
+	void Execute(const string&, const string&, const string&, const string&, const string&);
 	void SendCommand();
 	void CommandDevicesInfo();
 	void CommandLogLevel(const string&);

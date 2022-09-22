@@ -31,6 +31,88 @@ RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname,
 {
 }
 
+void RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
+		const string& image_params, const string& filename)
+{
+	switch(command.operation()) {
+		case LOG_LEVEL:
+			CommandLogLevel(log_level);
+			break;
+
+		case DEFAULT_FOLDER:
+			CommandDefaultImageFolder(default_folder);
+			break;
+
+		case RESERVE_IDS:
+			CommandReserveIds(reserved_ids);
+			break;
+
+		case CREATE_IMAGE:
+			CommandCreateImage(image_params);
+			break;
+
+		case DELETE_IMAGE:
+			CommandDeleteImage(image_params);
+			break;
+
+		case RENAME_IMAGE:
+			CommandRenameImage(image_params);
+			break;
+
+		case COPY_IMAGE:
+			CommandCopyImage(image_params);
+			break;
+
+		case DEVICES_INFO:
+			CommandDeviceInfo();
+			break;
+
+		case DEVICE_TYPES_INFO:
+			CommandDeviceTypesInfo();
+			break;
+
+		case VERSION_INFO:
+			CommandVersionInfo();
+			break;
+
+		case SERVER_INFO:
+			CommandServerInfo();
+			break;
+
+		case DEFAULT_IMAGE_FILES_INFO:
+			CommandDefaultImageFilesInfo();
+			break;
+
+		case IMAGE_FILE_INFO:
+			CommandImageFileInfo(filename);
+			break;
+
+		case NETWORK_INTERFACES_INFO:
+			CommandNetworkInterfacesInfo();
+			break;
+
+		case LOG_LEVEL_INFO:
+			CommandLogLevelInfo();
+			break;
+
+		case RESERVED_IDS_INFO:
+			CommandReservedIdsInfo();
+			break;
+
+		case MAPPING_INFO:
+			CommandMappingInfo();
+			break;
+
+		case OPERATION_INFO:
+			CommandOperationInfo();
+			break;
+
+		default:
+			SendCommand();
+			break;
+	}
+}
+
 void RasctlCommands::SendCommand()
 {
 	if (!token.empty()) {
