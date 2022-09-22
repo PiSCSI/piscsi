@@ -18,41 +18,41 @@ void TestSpecialDevice(const string& name)
 {
 	PbDeviceDefinition device;
 	ParseParameters(device, name);
-	ASSERT_EQ(name, GetParam(device, "file"));
-	ASSERT_EQ("", GetParam(device, "interfaces"));
+	EXPECT_EQ(name, GetParam(device, "file"));
+	EXPECT_EQ("", GetParam(device, "interfaces"));
 }
 
 TEST(CommandUtil, AddGetParam)
 {
 	PbCommand command;
 	AddParam(command, "key", "value");
-	ASSERT_EQ("value", GetParam(command, "key"));
-	ASSERT_EQ("", GetParam(command, "xyz"));
+	EXPECT_EQ("value", GetParam(command, "key"));
+	EXPECT_EQ("", GetParam(command, "xyz"));
 
 	PbDeviceDefinition definition;
 	AddParam(definition, "key", "value");
-	ASSERT_EQ("value", GetParam(definition, "key"));
-	ASSERT_EQ("", GetParam(definition, "xyz"));
+	EXPECT_EQ("value", GetParam(definition, "key"));
+	EXPECT_EQ("", GetParam(definition, "xyz"));
 
 	PbDevice device;
 	AddParam(device, "key", "value");
 	const auto& it = device.params().find("key");
-	ASSERT_EQ("value", it->second);
+	EXPECT_EQ("value", it->second);
 }
 
 TEST(CommandUtil, ParseParameters)
 {
 	PbDeviceDefinition device1;
 	ParseParameters(device1, "a=b:c=d:e");
-	ASSERT_EQ("b", GetParam(device1, "a"));
-	ASSERT_EQ("d", GetParam(device1, "c"));
-	ASSERT_EQ("", GetParam(device1, "e"));
+	EXPECT_EQ("b", GetParam(device1, "a"));
+	EXPECT_EQ("d", GetParam(device1, "c"));
+	EXPECT_EQ("", GetParam(device1, "e"));
 
 	// Old style parameters
 	PbDeviceDefinition device2;
 	ParseParameters(device2, "a");
-	ASSERT_EQ("a", GetParam(device2, "file"));
-	ASSERT_EQ("a", GetParam(device2, "interfaces"));
+	EXPECT_EQ("a", GetParam(device2, "file"));
+	EXPECT_EQ("a", GetParam(device2, "interfaces"));
 
 	TestSpecialDevice("bridge");
 	TestSpecialDevice("daynaport");

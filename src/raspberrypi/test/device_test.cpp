@@ -117,15 +117,15 @@ TEST(DeviceTest, GetSetParams)
 {
 	TestDevice device;
 
-	ASSERT_EQ("", device.GetParam("key"));
+	EXPECT_EQ("", device.GetParam("key"));
 
 	unordered_map<string, string> default_params;
 	default_params["key"] = "value";
 	device.SetDefaultParams(default_params);
-	ASSERT_EQ("", device.GetParam("key"));
+	EXPECT_EQ("", device.GetParam("key"));
 
 	unordered_map<string, string> params;
 	params["key"] = "value";
 	device.SetParams(params);
-	ASSERT_EQ("value", device.GetParam("key"));
+	EXPECT_EQ("value", device.GetParam("key"));
 }

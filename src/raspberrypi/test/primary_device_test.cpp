@@ -141,10 +141,10 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 	device1.SetLun(LUN1);
 	controller.AddDevice(&device1);
-	ASSERT_TRUE(controller.HasDeviceForLun(LUN1));
+	EXPECT_TRUE(controller.HasDeviceForLun(LUN1));
 	device2.SetLun(LUN2);
 	controller.AddDevice(&device2);
-	ASSERT_TRUE(controller.HasDeviceForLun(LUN2));
+	EXPECT_TRUE(controller.HasDeviceForLun(LUN2));
 
 	controller.ctrl.cmd.resize(10);
 	// ALLOCATION LENGTH
