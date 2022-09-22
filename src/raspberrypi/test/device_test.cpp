@@ -14,6 +14,7 @@
 class TestDevice final : public Device
 {
 	FRIEND_TEST(DeviceTest, Reset);
+	FRIEND_TEST(DeviceTest, GetSetParams);
 
 public:
 
@@ -22,19 +23,6 @@ public:
 
 	bool Dispatch(scsi_defs::scsi_command) override { return false; }
 };
-
-TEST(DeviceTest, Reset)
-{
-	TestDevice device;
-
-	device.SetLocked(true);
-	device.SetAttn(true);
-	device.SetReset(true);
-	device.Reset();
-	EXPECT_FALSE(device.IsLocked());
-	EXPECT_FALSE(device.IsAttn());
-	EXPECT_FALSE(device.IsReset());
-}
 
 TEST(DeviceTest, Properties)
 {
@@ -110,4 +98,34 @@ TEST(DeviceTest, ProductData)
 	device.SetRevision("R");
 
 	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
+}
+
+TEST(DeviceTest, Reset)
+{
+	TestDevice device;
+
+	device.SetLocked(true);
+	device.SetAttn(true);
+	device.SetReset(true);
+	device.Reset();
+	EXPECT_FALSE(device.IsLocked());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_FALSE(device.IsReset());
+}
+
+TEST(DeviceTest, GetSetParams)
+{
+	TestDevice device;
+
+	ASSERT_EQ("", device.GetParam("key"));
+
+	unordered_map<string, string> default_params;
+	default_params["key"] = "value";
+	device.SetDefaultParams(default_params);
+	ASSERT_EQ("", device.GetParam("key"));
+
+	unordered_map<string, string> params;
+	params["key"] = "value";
+	device.SetParams(params);
+	ASSERT_EQ("value", device.GetParam("key"));
 }
