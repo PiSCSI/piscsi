@@ -112,6 +112,7 @@ class MockPrimaryDevice final : public PrimaryDevice
 {
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
+	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 
 public:
 
@@ -119,16 +120,12 @@ public:
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
 	~MockPrimaryDevice() override = default;
-
-	// Make protected methods visible for testing
-
-	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
-		return PrimaryDevice::HandleInquiry(type, level, is_removable);
-	}
 };
 
 class MockModePageDevice final : public ModePageDevice
 {
+	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
+
 public:
 
 	MockModePageDevice() : ModePageDevice("test") {}
@@ -144,11 +141,6 @@ public:
 			vector<byte> buf(255);
 			pages[page] = buf;
 		}
-	}
-
-	// Make protected method visible for testing
-	int AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const {
-		return ModePageDevice::AddModePages(cdb, buf, max_length);
 	}
 };
 
