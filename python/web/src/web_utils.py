@@ -99,6 +99,39 @@ def get_device_name(device_type):
     return device_type
 
 
+def map_image_file_descriptions(file_suffixes):
+    """
+    Takes a (list) of (str) file suffixes for images file types.
+    Returns a (dict) with file suffix and description pairs, both (str)
+    """
+    supported_image_types = {}
+    for suffix in file_suffixes:
+        supported_image_types[suffix] = get_image_description(suffix)
+
+    return supported_image_types
+
+
+# pylint: disable=too-many-return-statements
+def get_image_description(file_suffix):
+    """
+    Takes a three char file suffix (str) file_suffix.
+    Returns the help text description for said file suffix.
+    """
+    if file_suffix == "hds":
+        return _("Hard Disk Image (Generic)")
+    if file_suffix == "hda":
+        return _("Hard Disk Image (Apple)")
+    if file_suffix == "hdn":
+        return _("Hard Disk Image (NEC)")
+    if file_suffix == "hd1":
+        return _("Hard Disk Image (SCSI-1)")
+    if file_suffix == "hdr":
+        return _("Removable Disk Image")
+    if file_suffix == "mos":
+        return _("Magneto-Optical Disk Image")
+    return file_suffix
+
+
 def auth_active(group):
     """
     Inspects if the group defined in (str) group exists on the system.
