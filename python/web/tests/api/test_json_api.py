@@ -443,14 +443,19 @@ def test_delete_file(http_client, create_test_image, list_files):
 
 
 # route("/files/extract_image", methods=["POST"])
-# TODO: Add test files for all supported formats
-def test_extract_file(httpserver, http_client, list_files, delete_file):
-    image_file_name = "test_image.hds"
-    zip_file_name = "test_image.hds.zip"
-    http_path = f"/images/{zip_file_name}"
+@pytest.mark.parametrize(
+    "archive_file_name,image_file_name",
+    [
+        ("test_image.zip", "test_image_from_zip.hds"),
+        ("test_image.sit", "test_image_from_sit.hds"),
+        ("test_image.7z", "test_image_from_7z.hds"),
+    ],
+)
+def test_extract_file(httpserver, http_client, list_files, delete_file, archive_file_name, image_file_name):
+    http_path = f"/images/{archive_file_name}"
     url = httpserver.url_for(http_path)
 
-    with open(f"tests/assets/{zip_file_name}", mode="rb") as file:
+    with open(f"tests/assets/{archive_file_name}", mode="rb") as file:
         zip_file_data = file.read()
 
     httpserver.expect_request(http_path).respond_with_data(
@@ -468,7 +473,7 @@ def test_extract_file(httpserver, http_client, list_files, delete_file):
     response = http_client.post(
         "/files/extract_image",
         data={
-            "archive_file": zip_file_name,
+            "archive_file": archive_file_name,
             "archive_members": image_file_name,
         },
     )
@@ -481,7 +486,7 @@ def test_extract_file(httpserver, http_client, list_files, delete_file):
     assert image_file_name in list_files()
 
     # Cleanup
-    delete_file(zip_file_name)
+    delete_file(archive_file_name)
     delete_file(image_file_name)
 
 
