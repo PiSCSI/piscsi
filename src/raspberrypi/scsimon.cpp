@@ -154,7 +154,7 @@ void Banner(int, char *[])
     else
     {
         LOGINFO("Reading live data from the GPIO pins")
-        LOGINFO("    Connection type : %s", CONNECT_DESC)
+        LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
     LOGINFO("    Data buffer size: %u", buff_size)
     LOGINFO(" ")

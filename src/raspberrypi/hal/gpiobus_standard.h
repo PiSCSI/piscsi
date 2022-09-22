@@ -11,10 +11,13 @@
 
 #pragma once
 
+#include <string>
+
 //
 // RaSCSI standard (SCSI logic, standard pin assignment)
 //
-#define CONNECT_DESC "STANDARD"				// Startup message
+
+const std::string CONNECT_DESC = "STANDARD";	// Startup message
 
 // Select signal control mode
 const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification

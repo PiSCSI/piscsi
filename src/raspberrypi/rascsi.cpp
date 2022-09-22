@@ -102,7 +102,7 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
 	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC);
+	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC.c_str());
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
