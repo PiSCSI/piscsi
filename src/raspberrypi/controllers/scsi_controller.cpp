@@ -624,9 +624,6 @@ void ScsiController::Receive()
 		return;
 	}
 
-	int len;
-	BYTE data;
-
 	LOGTRACE("%s",__PRETTY_FUNCTION__)
 
 	// REQ is low
@@ -637,7 +634,7 @@ void ScsiController::Receive()
 	if (ctrl.length != 0) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 		// Receive
-		len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		int len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -692,7 +689,7 @@ void ScsiController::Receive()
 	}
 
 	// Continue to receive if block !=0
-	if (ctrl.blocks != 0){
+	if (ctrl.blocks != 0) {
 		assert(ctrl.length > 0);
 		assert(ctrl.offset == 0);
 		return;
@@ -700,8 +697,8 @@ void ScsiController::Receive()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		case BUS::phase_t::command:
-			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+		case BUS::phase_t::command: {
+			int len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = ctrl.buffer[i];
@@ -710,6 +707,7 @@ void ScsiController::Receive()
 
 			Execute();
 			break;
+		}
 
 		case BUS::phase_t::msgout:
 			// Continue message out phase as long as ATN keeps asserting
@@ -726,7 +724,7 @@ void ScsiController::Receive()
 				int i = 0;
 				while (i < scsi.msc) {
 					// Message type
-					data = scsi.msb[i];
+					BYTE data = scsi.msb[i];
 
 					// ABORT
 					if (data == 0x06) {
