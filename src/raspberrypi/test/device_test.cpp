@@ -14,6 +14,7 @@
 class TestDevice final : public Device
 {
 	FRIEND_TEST(DeviceTest, GetSetParams);
+	FRIEND_TEST(DeviceTest, StatusCode);
 	FRIEND_TEST(DeviceTest, Reset);
 	FRIEND_TEST(DeviceTest, Start);
 	FRIEND_TEST(DeviceTest, Stop);
@@ -106,7 +107,12 @@ TEST(DeviceTest, ProductData)
 TEST(DeviceTest, GetSetParams)
 {
 	TestDevice device;
+	unordered_map<string, string> params;
+	params["key"] = "value";
 
+	EXPECT_EQ("", device.GetParam("key"));
+
+	device.SetParams(params);
 	EXPECT_EQ("", device.GetParam("key"));
 
 	unordered_map<string, string> default_params;
@@ -114,10 +120,16 @@ TEST(DeviceTest, GetSetParams)
 	device.SetDefaultParams(default_params);
 	EXPECT_EQ("", device.GetParam("key"));
 
-	unordered_map<string, string> params;
-	params["key"] = "value";
 	device.SetParams(params);
 	EXPECT_EQ("value", device.GetParam("key"));
+}
+
+TEST(DeviceTest, StatusCode)
+{
+	TestDevice device;
+
+	device.SetStatusCode(123);
+	EXPECT_EQ(123, device.GetStatusCode());
 }
 
 TEST(DeviceTest, Reset)
