@@ -56,7 +56,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_type(type);
 	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	device_factory->DeleteDevice(device); //NOSONAR The alloced memory is managed by protobuf
+	device_factory->DeleteDevice(*device); //NOSONAR The alloced memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)

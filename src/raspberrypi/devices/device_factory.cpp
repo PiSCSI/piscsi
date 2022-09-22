@@ -75,11 +75,11 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
+void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
 {
-	auto [begin, end] = devices.equal_range(device->GetId());
+	auto [begin, end] = devices.equal_range(device.GetId());
 	for (auto& it = begin; it != end; ++it) {
-		if (it->second->GetLun() == device->GetLun()) {
+		if (it->second->GetLun() == device.GetLun()) {
 			devices.erase(it);
 
 			break;

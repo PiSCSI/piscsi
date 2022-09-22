@@ -37,7 +37,7 @@ public:
 	static DeviceFactory& instance();
 
 	PrimaryDevice *CreateDevice(PbDeviceType, const string&, int);
-	void DeleteDevice(const PrimaryDevice *) const;
+	void DeleteDevice(const PrimaryDevice&) const;
 	void DeleteAllDevices() const;
 	const PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 	list<PrimaryDevice *> GetAllDevices() const;

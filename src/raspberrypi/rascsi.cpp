@@ -437,13 +437,13 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				device_factory.DeleteDevice(device);
+				device_factory.DeleteDevice(*device);
 
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
@@ -451,7 +451,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
@@ -464,7 +464,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		int id;
 		int unit;
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
@@ -478,7 +478,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-					device_factory.DeleteDevice(device);
+					device_factory.DeleteDevice(*device);
 
 					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
@@ -487,7 +487,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			}
 		}
 		catch(const io_exception& e) {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
@@ -503,7 +503,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return true;
 	}
@@ -513,7 +513,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		params.erase("file");
 	}
 	if (!device->Init(params)) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return ReturnLocalizedError(context, ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
 	}
@@ -568,7 +568,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 
 			return ReturnLocalizedError(context, ERROR_DETACH);
 		}
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
