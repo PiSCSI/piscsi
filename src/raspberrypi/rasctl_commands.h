@@ -26,8 +26,11 @@ public:
 	RasctlCommands& operator=(const RasctlCommands&) = delete;
 
 	void Execute(const string&, const string&, const string&, const string&, const string&);
-	void SendCommand();
+
 	void CommandDevicesInfo();
+
+private:
+
 	void CommandLogLevel(const string&);
 	void CommandReserveIds(const string&);
 	void CommandCreateImage(const string&);
@@ -46,8 +49,7 @@ public:
 	void CommandReservedIdsInfo();
 	void CommandMappingInfo();
 	void CommandOperationInfo();
-
-private:
+	void SendCommand();
 
 	SocketConnector socket_connector;
 	PbCommand command;
