@@ -908,15 +908,15 @@ int main(int argc, char* argv[])
 		(buffer[2] << 8) | buffer[3];
 	bnum++;
 	printf("Number of blocks        : %d Blocks\n", (int)bnum);
-	printf("Block length            : %d Bytes\n", (int)bsiz);
-	printf("Unit Capacity           : %d MBytes %d Bytes\n",
+	printf("Block length            : %d B\n", (int)bsiz);
+	printf("Unit Capacity           : %d MiB %d B\n",
 		(int)(bsiz * bnum / 1024 / 1024),
 		(int)(bsiz * bnum));
 
 	// Get the restore file size
 	if (restore) {
 		size = fio.GetFileSize();
-		printf("Restore file size       : %d bytes", (int)size);
+		printf("Restore file size       : %d B", (int)size);
 		if (size > (off_t)(bsiz * bnum)) {
 			printf("(WARNING : File size is larger than disk size)");
 		} else if (size < (off_t)(bsiz * bnum)) {

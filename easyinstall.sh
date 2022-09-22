@@ -567,7 +567,7 @@ function showMacproxyStatus() {
 }
 
 # Creates a drive image file with specific parameters
-function createDrive600MB() {
+function createDrive600M() {
     createDrive 600 "HD600"
 }
 
@@ -575,7 +575,7 @@ function createDrive600MB() {
 function createDriveCustom() {
     driveSize=-1
     until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
-        echo "What drive size would you like (in MB) (10-4000)"
+        echo "What drive size would you like (in MiB) (10-4000)"
         read driveSize
 
         echo "How would you like to name that drive?"
@@ -666,10 +666,10 @@ function createDrive() {
     driveSize=$1
     driveName=$2
     mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
+    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}M.hda"
 
     if [ ! -f "$drivePath" ]; then
-        echo "Creating a ${driveSize}MB Drive"
+        echo "Creating a ${driveSize}MiB Drive"
         truncate --size "${driveSize}m" "$drivePath"
 
         echo "Formatting drive with HFS"
@@ -1190,9 +1190,9 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating an HFS formatted 600MB drive image with LIDO driver"
-              createDrive600MB
-              echo "Creating an HFS formatted 600MB drive image with LIDO driver - Complete!"
+              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver"
+              createDrive600M
+              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver - Complete!"
           ;;
           5)
               echo "Creating an HFS formatted drive image with LIDO driver"
@@ -1316,8 +1316,8 @@ function showMenu() {
     echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
     echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
     echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  4) 600MB drive (suggested size)"
-    echo "  5) custom drive size (up to 4000MB)"
+    echo "  4) 600 MiB drive (suggested size)"
+    echo "  5) custom drive size (up to 4000 MiB)"
     echo "NETWORK BRIDGE ASSISTANT"
     echo "  6) configure network bridge for Ethernet (DHCP)"
     echo "  7) configure network bridge for WiFi (static IP + NAT)" 

@@ -10,7 +10,7 @@
 <tbody>
 <tr>
     <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MB)") }}</b></td>
+    <td><b>{{ _("Size (MiB)") }}</b></td>
     <td><b>{{ _("Description") }}</b></td>
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
@@ -54,7 +54,7 @@
 <tbody>
 <tr>
     <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MB)") }}</b></td>
+    <td><b>{{ _("Size (MiB)") }}</b></td>
     <td><b>{{ _("Description") }}</b></td>
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
@@ -100,7 +100,7 @@
 <tbody>
 <tr>
     <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MB)") }}</b></td>
+    <td><b>{{ _("Size (MiB)") }}</b></td>
     <td><b>{{ _("Description") }}</b></td>
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
@@ -135,7 +135,7 @@
 {% endfor %}
 </tbody>
 </table>
-    <p><small>{{ _("%(disk_space)s MB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
+    <p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
 <p><a href="/">{{ _("Cancel") }}</a></p>
 
 {% endblock content %}
