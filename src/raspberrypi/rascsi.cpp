@@ -409,12 +409,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// If no filename was provided the medium is considered removed
 	auto file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support != nullptr) {
-		device->SetRemoved(filename.empty());
-	}
-	else {
-		device->SetRemoved(false);
-	}
+	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
 
 	device->SetLun(unit);
 
