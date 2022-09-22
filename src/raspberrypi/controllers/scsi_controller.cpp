@@ -213,7 +213,7 @@ void ScsiController::Selection()
 {
 	if (ctrl.phase != BUS::phase_t::selection) {
 		// A different device controller was selected
-		if (int id = 1 << GetTargetId(); (bus->GetDAT() & id) == 0) {
+		if (int id = 1 << GetTargetId(); ((int)bus->GetDAT() & id) == 0) {
 			return;
 		}
 
