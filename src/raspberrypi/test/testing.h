@@ -110,6 +110,9 @@ public:
 
 class MockPrimaryDevice final : public PrimaryDevice
 {
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
+
 public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
@@ -119,9 +122,6 @@ public:
 
 	// Make protected methods visible for testing
 
-	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
-	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
-	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
 	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
 		return PrimaryDevice::HandleInquiry(type, level, is_removable);
 	}
