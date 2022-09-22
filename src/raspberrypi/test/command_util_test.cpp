@@ -29,10 +29,15 @@ TEST(CommandUtil, AddGetParam)
 	ASSERT_EQ("value", GetParam(command, "key"));
 	ASSERT_EQ("", GetParam(command, "xyz"));
 
-	PbDeviceDefinition device;
+	PbDeviceDefinition definition;
+	AddParam(definition, "key", "value");
+	ASSERT_EQ("value", GetParam(definition, "key"));
+	ASSERT_EQ("", GetParam(definition, "xyz"));
+
+	PbDevice device;
 	AddParam(device, "key", "value");
-	ASSERT_EQ("value", GetParam(device, "key"));
-	ASSERT_EQ("", GetParam(device, "xyz"));
+	const auto& it = device.params().find("key");
+	ASSERT_EQ("value", it->second);
 }
 
 TEST(CommandUtil, ParseParameters)
