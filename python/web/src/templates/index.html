@@ -100,13 +100,12 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Eject") }}">
                 </form>
-                {% else %}
+                {% endif %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('{{ _("Detach Device?") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Detach") }}">
                 </form>
-                {% endif %}
                 <form action="/scsi/info" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
