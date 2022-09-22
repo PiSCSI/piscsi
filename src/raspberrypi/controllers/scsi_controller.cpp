@@ -698,9 +698,9 @@ void ScsiController::Receive()
 	// Move to next phase
 	switch (ctrl.phase) {
 		case BUS::phase_t::command: {
-			int len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+			uint32_t len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
-			for (int i = 0; i < len; i++) {
+			for (uint32_t i = 0; i < len; i++) {
 				ctrl.cmd[i] = ctrl.buffer[i];
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
 			}
@@ -710,15 +710,6 @@ void ScsiController::Receive()
 		}
 
 		case BUS::phase_t::msgout:
-			// Continue message out phase as long as ATN keeps asserting
-			if (bus->GetATN()) {
-				// Data transfer is 1 byte x 1 block
-				ctrl.offset = 0;
-				ctrl.length = 1;
-				ctrl.blocks = 1;
-				return;
-			}
-
 			ProcessMessage();
 			break;
 
@@ -825,15 +816,6 @@ void ScsiController::ReceiveBytes()
 		}
 
 		case BUS::phase_t::msgout:
-			// Continue message out phase as long as ATN keeps asserting
-			if (bus->GetATN()) {
-				// Data transfer is 1 byte x 1 block
-				ctrl.offset = 0;
-				ctrl.length = 1;
-				ctrl.blocks = 1;
-				return;
-			}
-
 			ProcessMessage();
 			break;
 
@@ -1056,6 +1038,15 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 void ScsiController::ProcessMessage()
 {
+	// Continue message out phase as long as ATN keeps asserting
+	if (bus->GetATN()) {
+		// Data transfer is 1 byte x 1 block
+		ctrl.offset = 0;
+		ctrl.length = 1;
+		ctrl.blocks = 1;
+		return;
+	}
+
 	// Parsing messages sent by ATN
 	if (scsi.atnmsg) {
 		int i = 0;
