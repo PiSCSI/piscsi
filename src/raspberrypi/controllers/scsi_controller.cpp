@@ -697,17 +697,9 @@ void ScsiController::Receive()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		case BUS::phase_t::command: {
-			uint32_t len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
-
-			for (uint32_t i = 0; i < len; i++) {
-				ctrl.cmd[i] = ctrl.buffer[i];
-				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
-			}
-
-			Execute();
+		case BUS::phase_t::command:
+			ProcessCommand();
 			break;
-		}
 
 		case BUS::phase_t::msgout:
 			ProcessMessage();
@@ -803,17 +795,9 @@ void ScsiController::ReceiveBytes()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		case BUS::phase_t::command: {
-			uint32_t len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
-
-			for (uint32_t i = 0; i < len; i++) {
-				ctrl.cmd[i] = ctrl.buffer[i];
-				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
-			}
-
-			Execute();
+		case BUS::phase_t::command:
+			ProcessCommand();
 			break;
-		}
 
 		case BUS::phase_t::msgout:
 			ProcessMessage();
@@ -1034,6 +1018,18 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 	}
 
 	return true;
+}
+
+void ScsiController::ProcessCommand()
+{
+	uint32_t len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+	for (uint32_t i = 0; i < len; i++) {
+		ctrl.cmd[i] = ctrl.buffer[i];
+		LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
+	}
+
+	Execute();
 }
 
 void ScsiController::ProcessMessage()
