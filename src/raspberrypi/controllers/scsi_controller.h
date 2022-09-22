@@ -110,6 +110,8 @@ private:
 	void FlushUnit();
 	void Receive();
 
+	bool ProcessMessage();
+
 	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 	void Sleep();

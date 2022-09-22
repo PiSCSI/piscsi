@@ -719,78 +719,10 @@ void ScsiController::Receive()
 				return;
 			}
 
-			// Parsing messages sent by ATN
-			if (scsi.atnmsg) {
-				int i = 0;
-				while (i < scsi.msc) {
-					// Message type
-					BYTE data = scsi.msb[i];
-
-					// ABORT
-					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", data)
-						BusFree();
-						return;
-					}
-
-					// BUS DEVICE RESET
-					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
-						scsi.syncoffset = 0;
-						BusFree();
-						return;
-					}
-
-					// IDENTIFY
-					if (data >= 0x80) {
-						identified_lun = (int)data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
-					}
-
-					// Extended Message
-					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
-
-						// Check only when synchronous transfer is possible
-						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
-							ctrl.length = 1;
-							ctrl.blocks = 1;
-							ctrl.buffer[0] = 0x07;
-							MsgIn();
-							return;
-						}
-
-						scsi.syncperiod = scsi.msb[i + 3];
-						if (scsi.syncperiod > MAX_SYNC_PERIOD) {
-							scsi.syncperiod = MAX_SYNC_PERIOD;
-						}
-
-						scsi.syncoffset = scsi.msb[i + 4];
-						if (scsi.syncoffset > MAX_SYNC_OFFSET) {
-							scsi.syncoffset = MAX_SYNC_OFFSET;
-						}
-
-						// STDR response message generation
-						ctrl.length = 5;
-						ctrl.blocks = 1;
-						ctrl.buffer[0] = 0x01;
-						ctrl.buffer[1] = 0x03;
-						ctrl.buffer[2] = 0x01;
-						ctrl.buffer[3] = scsi.syncperiod;
-						ctrl.buffer[4] = scsi.syncoffset;
-						MsgIn();
-						return;
-					}
-
-					// next
-					i++;
-				}
+			if (ProcessMessage()) {
+				return;
 			}
 
-			// Initialize ATN message reception status
-			scsi.atnmsg = false;
-
-			Command();
 			break;
 
 		case BUS::phase_t::dataout:
@@ -905,78 +837,10 @@ void ScsiController::ReceiveBytes()
 				return;
 			}
 
-			// Parsing messages sent by ATN
-			if (scsi.atnmsg) {
-				int i = 0;
-				while (i < scsi.msc) {
-					// Message type
-					BYTE data = scsi.msb[i];
-
-					// ABORT
-					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", data)
-						BusFree();
-						return;
-					}
-
-					// BUS DEVICE RESET
-					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
-						scsi.syncoffset = 0;
-						BusFree();
-						return;
-					}
-
-					// IDENTIFY
-					if (data >= 0x80) {
-						identified_lun = data & 0x1F;
-						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
-					}
-
-					// Extended Message
-					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
-
-						// Check only when synchronous transfer is possible
-						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
-							ctrl.length = 1;
-							ctrl.blocks = 1;
-							ctrl.buffer[0] = 0x07;
-							MsgIn();
-							return;
-						}
-
-						scsi.syncperiod = scsi.msb[i + 3];
-						if (scsi.syncperiod > MAX_SYNC_PERIOD) {
-							scsi.syncperiod = MAX_SYNC_PERIOD;
-						}
-
-						scsi.syncoffset = scsi.msb[i + 4];
-						if (scsi.syncoffset > MAX_SYNC_OFFSET) {
-							scsi.syncoffset = MAX_SYNC_OFFSET;
-						}
-
-						// STDR response message generation
-						ctrl.length = 5;
-						ctrl.blocks = 1;
-						ctrl.buffer[0] = 0x01;
-						ctrl.buffer[1] = 0x03;
-						ctrl.buffer[2] = 0x01;
-						ctrl.buffer[3] = scsi.syncperiod;
-						ctrl.buffer[4] = scsi.syncoffset;
-						MsgIn();
-						return;
-					}
-
-					// next
-					i++;
-				}
+			if (ProcessMessage()) {
+				return;
 			}
 
-			// Initialize ATN message reception status
-			scsi.atnmsg = false;
-
-			Command();
 			break;
 
 		case BUS::phase_t::dataout:
@@ -1194,6 +1058,84 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 	}
 
 	return true;
+}
+
+bool ScsiController::ProcessMessage()
+{
+	// Parsing messages sent by ATN
+	if (scsi.atnmsg) {
+		int i = 0;
+		while (i < scsi.msc) {
+			// Message type
+			BYTE data = scsi.msb[i];
+
+			// ABORT
+			if (data == 0x06) {
+				LOGTRACE("Message code ABORT $%02X", data)
+				BusFree();
+				return true;
+			}
+
+			// BUS DEVICE RESET
+			if (data == 0x0C) {
+				LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
+				scsi.syncoffset = 0;
+				BusFree();
+				return true;
+			}
+
+			// IDENTIFY
+			if (data >= 0x80) {
+				identified_lun = data & 0x1F;
+				LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
+			}
+
+			// Extended Message
+			if (data == 0x01) {
+				LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
+
+				// Check only when synchronous transfer is possible
+				if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
+					ctrl.length = 1;
+					ctrl.blocks = 1;
+					ctrl.buffer[0] = 0x07;
+					MsgIn();
+					return true;
+				}
+
+				scsi.syncperiod = scsi.msb[i + 3];
+				if (scsi.syncperiod > MAX_SYNC_PERIOD) {
+					scsi.syncperiod = MAX_SYNC_PERIOD;
+				}
+
+				scsi.syncoffset = scsi.msb[i + 4];
+				if (scsi.syncoffset > MAX_SYNC_OFFSET) {
+					scsi.syncoffset = MAX_SYNC_OFFSET;
+				}
+
+				// STDR response message generation
+				ctrl.length = 5;
+				ctrl.blocks = 1;
+				ctrl.buffer[0] = 0x01;
+				ctrl.buffer[1] = 0x03;
+				ctrl.buffer[2] = 0x01;
+				ctrl.buffer[3] = scsi.syncperiod;
+				ctrl.buffer[4] = scsi.syncoffset;
+				MsgIn();
+				return true;
+			}
+
+			// next
+			i++;
+		}
+	}
+
+	// Initialize ATN message reception status
+	scsi.atnmsg = false;
+
+	Command();
+
+	return false;
 }
 
 int ScsiController::GetEffectiveLun() const
