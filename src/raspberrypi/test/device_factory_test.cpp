@@ -235,7 +235,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
-	EXPECT_EQ("SCSI HOST BRIDGE", device->GetProduct());
+	EXPECT_EQ("RASCSI BRIDGE", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
