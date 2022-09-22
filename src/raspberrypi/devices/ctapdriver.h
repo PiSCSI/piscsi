@@ -14,15 +14,12 @@
 #pragma once
 
 #include <pcap/pcap.h>
+#include <net/ethernet.h>
 #include "filepath.h"
 #include <unordered_map>
 #include <list>
 #include <string>
 #include <array>
-
-#ifndef ETH_FRAME_LEN
-#define ETH_FRAME_LEN 1514
-#endif
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
