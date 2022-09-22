@@ -73,6 +73,7 @@ ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 SocketConnector socket_connector;
+
 void DetachAll();
 
 //---------------------------------------------------------------------------
