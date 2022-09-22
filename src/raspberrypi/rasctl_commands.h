@@ -14,7 +14,6 @@
 #include "rasctl_display.h"
 #include <string>
 
-using namespace std;
 using namespace rascsi_interface;
 
 class RasctlCommands

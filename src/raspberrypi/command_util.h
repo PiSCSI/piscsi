@@ -17,7 +17,6 @@
 #include "localizer.h"
 #include <string>
 
-using namespace std;
 using namespace rascsi_interface;
 
 namespace command_util

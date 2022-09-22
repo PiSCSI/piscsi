@@ -16,8 +16,6 @@
 #include <vector>
 #include <memory>
 
-using namespace std;
-
 class PrimaryDevice;
 
 class AbstractController : public PhaseHandler
@@ -39,7 +37,7 @@ public:
 		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
-		vector<int> cmd;				// Command data, dynamically allocated per received command
+		std::vector<int> cmd;			// Command data, dynamically allocated per received command
 		uint32_t status;				// Status data
 		int message;					// Message data
 
@@ -52,7 +50,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 
 		// Logical units of this device controller mapped to their LUN numbers
-		unordered_map<int, PrimaryDevice *> luns;
+		std::unordered_map<int, PrimaryDevice *> luns;
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}

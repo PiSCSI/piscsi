@@ -32,9 +32,8 @@
 #include "disk.h"
 #include "ctapdriver.h"
 #include <string>
+#include <unordered_map>
 #include <array>
-
-using namespace std;
 
 //===========================================================================
 //

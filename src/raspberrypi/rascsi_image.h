@@ -13,7 +13,6 @@
 #include "command_context.h"
 #include <string>
 
-using namespace std;
 using namespace rascsi_interface;
 
 class RascsiImage

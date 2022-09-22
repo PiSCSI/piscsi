@@ -14,8 +14,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 class DeviceFactory;
 
 class HostServices: public ModePageDevice

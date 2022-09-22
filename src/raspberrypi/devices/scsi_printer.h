@@ -15,8 +15,6 @@
 #include <string>
 #include <unordered_map>
 
-using namespace std;
-
 class SCSIPrinter final : public PrimaryDevice, public ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
 {
 	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX";

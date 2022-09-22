@@ -19,6 +19,7 @@
 #include "abstract_controller.h"
 #include "os.h"
 #include "scsi.h"
+#include <array>
 
 class PrimaryDevice;
 
@@ -47,7 +48,7 @@ class ScsiController : public AbstractController
 		// ATN message
 		bool atnmsg;
 		int msc;
-		BYTE msb[256];
+		std::array<BYTE, 256> msb;
 	};
 
 public:

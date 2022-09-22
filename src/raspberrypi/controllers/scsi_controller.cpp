@@ -56,7 +56,7 @@ void ScsiController::Reset()
 
 	scsi.atnmsg = false;
 	scsi.msc = 0;
-	memset(scsi.msb, 0x00, sizeof(scsi.msb));
+	memset(scsi.msb.data(), 0x00, scsi.msb.size());
 
 	is_byte_transfer = false;
 	bytes_to_transfer = 0;
@@ -407,7 +407,7 @@ void ScsiController::MsgOut()
 		if (ctrl.phase == BUS::phase_t::selection) {
 			scsi.atnmsg = true;
 			scsi.msc = 0;
-			memset(scsi.msb, 0x00, sizeof(scsi.msb));
+			memset(scsi.msb.data(), 0x00, scsi.msb.size());
 		}
 
 		SetPhase(BUS::phase_t::msgout);

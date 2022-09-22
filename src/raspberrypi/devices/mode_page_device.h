@@ -14,8 +14,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 class ModePageDevice: public PrimaryDevice
 {
 public:

@@ -17,8 +17,6 @@
 #include "dispatcher.h"
 #include <string>
 
-using namespace std;
-
 class PrimaryDevice: public ScsiPrimaryCommands, public Device
 {
 
