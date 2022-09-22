@@ -79,7 +79,6 @@ public:
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int Read(const vector<int>&, BYTE *, uint64_t) override;
-	int ReadToc(const vector<int>&, BYTE *);
 
 protected:
 
@@ -91,6 +90,8 @@ private:
 	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
+
+	int ReadTocInternal(const vector<int>&, BYTE *);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;

@@ -331,7 +331,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 void SCSICD::ReadToc()
 {
-	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ReadTocInternal(ctrl->cmd, ctrl->buffer);
 
 	EnterDataInPhase();
 }
@@ -433,10 +433,8 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
+int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 {
-	assert(buf);
-
 	CheckReady();
 
 	// If ready, there is at least one track
