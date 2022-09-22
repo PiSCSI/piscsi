@@ -25,7 +25,7 @@ public:
 
 	bool Dispatch(scsi_command) override;
 
-	virtual void ModeSelect(const vector<int>&, const BYTE *, int);
+	virtual void ModeSelect(const vector<int>&, const BYTE *, int) const;
 
 protected:
 
