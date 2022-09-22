@@ -134,10 +134,11 @@ def index():
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
-    server_info["schd"].reverse()
     image_suffixes_to_create = map_image_file_descriptions(
         # Here we strip out hdi and nhd, since they are proprietary PC-98 emulator formats
         # that require a particular header to work. We can't generate them on the fly.
+        # We also reverse the resulting list, in order for hds to be the default in the UI.
+        # This might break if something like 'hdt' etc. gets added in the future.
         sorted(
             [suffix for suffix in server_info["schd"] if suffix not in {"hdi", "nhd"}],
             reverse=True
