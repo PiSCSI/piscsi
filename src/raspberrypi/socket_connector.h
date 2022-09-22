@@ -17,8 +17,7 @@
 #include "localizer.h"
 #include <string>
 
-using namespace std;
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class SocketConnector
 {

@@ -24,7 +24,7 @@
 #define ETH_FRAME_LEN 1514
 #endif
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 //===========================================================================
 //

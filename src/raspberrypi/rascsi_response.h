@@ -14,7 +14,7 @@
 #include <list>
 #include <string>
 
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class DeviceFactory;
 class RascsiImage;

@@ -14,7 +14,7 @@
 #include <vector>
 #include <map>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 namespace scsi_command_util
 {

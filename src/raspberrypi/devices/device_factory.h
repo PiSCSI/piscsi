@@ -18,8 +18,8 @@
 #include <string>
 #include "rascsi_interface.pb.h"
 
-using namespace std;
-using namespace rascsi_interface;
+using namespace std; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 using Geometry = pair<uint32_t, uint32_t>;
 

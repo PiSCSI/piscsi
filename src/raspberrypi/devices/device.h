@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <string>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 class Device
 {
