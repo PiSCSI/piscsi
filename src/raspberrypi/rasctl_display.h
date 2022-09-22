@@ -17,14 +17,10 @@ class RasctlDisplay
 {
 	friend class RasctlCommands;
 
-public:
-
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
 	RasctlDisplay(RasctlDisplay&) = delete;
 	RasctlDisplay& operator=(const RasctlDisplay&) = delete;
-
-private:
 
 	void DisplayDevices(const PbDevicesInfo&) const;
 	void DisplayDeviceInfo(const PbDevice&) const;
