@@ -149,7 +149,7 @@ def index():
         server_info["scmo"]
         )
 
-    valid_image_suffixes = "." + ", .".join(
+    valid_image_suffixes = (
         server_info["schd"] +
         server_info["scrm"] +
         server_info["scmo"] +
@@ -198,7 +198,7 @@ def index():
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
-        ARCHIVE_FILE_SUFFIXES="." + ", .".join(ARCHIVE_FILE_SUFFIXES),
+        ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
         PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),
