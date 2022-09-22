@@ -54,7 +54,7 @@ public:
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}
-	~AbstractController() = default;
+	virtual ~AbstractController() = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
 
