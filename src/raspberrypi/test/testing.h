@@ -198,8 +198,5 @@ class MockHostServices final : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
 
-public:
-
-	explicit MockHostServices(const DeviceFactory& device_factory) : HostServices(device_factory) {}
-	~MockHostServices() override = default;
+	using HostServices::HostServices;
 };

@@ -191,13 +191,13 @@ void SCSICD::Open(const Filepath& path)
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
-		TCHAR file[5];
-		fio.Read((BYTE *)file, 4);
+		array<TCHAR, 5> file;
+		fio.Read((BYTE *)file.data(), 4);
 		file[4] = '\0';
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (!strncasecmp(file, "FILE", 4)) {
+		if (!strcasecmp(file.data(), "FILE")) {
 			// Open as CUE
 			OpenCue(path);
 		} else {

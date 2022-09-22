@@ -54,7 +54,7 @@ TEST(FileSupportTest, UnreserveAll)
 	TestFileSupport file_support;
 
 	file_support.ReserveFile(path, ID, LUN);
-	file_support.UnreserveAll();
+	FileSupport::UnreserveAll();
 	int id;
 	int lun;
 	EXPECT_FALSE(FileSupport::GetIdsForReservedFile(path, id, lun));
