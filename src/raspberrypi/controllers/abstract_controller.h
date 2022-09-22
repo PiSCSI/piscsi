@@ -11,14 +11,14 @@
 
 #pragma once
 
-#include "phase_handler.h"
+#include "scsi.h"
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
 class PrimaryDevice;
 
-class AbstractController : public PhaseHandler
+class AbstractController
 {
 public:
 
@@ -54,9 +54,19 @@ public:
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}
-	~AbstractController() override = default;
+	~AbstractController() = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
+
+	virtual void SetPhase(BUS::phase_t) = 0;
+	virtual void BusFree() = 0;
+	virtual void Selection() = 0;
+	virtual void Command() = 0;
+	virtual void Status() = 0;
+	virtual void DataIn() = 0;
+	virtual void DataOut() = 0;
+	virtual void MsgIn() = 0;
+	virtual void MsgOut() = 0;
 
 	virtual BUS::phase_t Process(int) = 0;
 
