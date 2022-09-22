@@ -13,8 +13,11 @@
 
 class TestDevice final : public Device
 {
-	FRIEND_TEST(DeviceTest, Reset);
 	FRIEND_TEST(DeviceTest, GetSetParams);
+	FRIEND_TEST(DeviceTest, Reset);
+	FRIEND_TEST(DeviceTest, Start);
+	FRIEND_TEST(DeviceTest, Stop);
+	FRIEND_TEST(DeviceTest, Eject);
 
 public:
 
@@ -100,19 +103,6 @@ TEST(DeviceTest, ProductData)
 	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
 }
 
-TEST(DeviceTest, Reset)
-{
-	TestDevice device;
-
-	device.SetLocked(true);
-	device.SetAttn(true);
-	device.SetReset(true);
-	device.Reset();
-	EXPECT_FALSE(device.IsLocked());
-	EXPECT_FALSE(device.IsAttn());
-	EXPECT_FALSE(device.IsReset());
-}
-
 TEST(DeviceTest, GetSetParams)
 {
 	TestDevice device;
@@ -128,4 +118,64 @@ TEST(DeviceTest, GetSetParams)
 	params["key"] = "value";
 	device.SetParams(params);
 	EXPECT_EQ("value", device.GetParam("key"));
+}
+
+TEST(DeviceTest, Reset)
+{
+	TestDevice device;
+
+	device.SetLocked(true);
+	device.SetAttn(true);
+	device.SetReset(true);
+	device.Reset();
+	EXPECT_FALSE(device.IsLocked());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_FALSE(device.IsReset());
+}
+
+TEST(DeviceTest, Start)
+{
+	TestDevice device;
+
+	device.SetStopped(true);
+	device.SetReady(false);
+	EXPECT_FALSE(device.Start());
+	EXPECT_TRUE(device.IsStopped());
+	device.SetReady(true);
+	EXPECT_TRUE(device.Start());
+	EXPECT_FALSE(device.IsStopped());
+}
+
+TEST(DeviceTest, Stop)
+{
+	TestDevice device;
+
+	device.SetReady(true);
+	device.SetAttn(true);
+	device.SetStopped(false);
+	device.Stop();
+	EXPECT_FALSE(device.IsReady());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_TRUE(device.IsStopped());
+}
+
+TEST(DeviceTest, Eject)
+{
+	TestDevice device;
+
+	device.SetReady(false);
+	device.SetRemovable(false);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetReady(true);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetRemovable(true);
+	device.SetLocked(true);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetLocked(false);
+	EXPECT_TRUE(device.Eject(false));
+	EXPECT_FALSE(device.IsReady());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_TRUE(device.IsRemoved());
+	EXPECT_FALSE(device.IsLocked());
+	EXPECT_TRUE(device.IsStopped());
 }
