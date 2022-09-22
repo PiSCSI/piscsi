@@ -42,9 +42,9 @@ public:
 	const PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
 	list<PrimaryDevice *> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
-	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
+	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
-	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
+	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
 	list<string> GetNetworkInterfaces() const;
 	unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
@@ -62,4 +62,7 @@ private:
 	string GetExtension(const string&) const;
 
 	static std::multimap<int, unique_ptr<PrimaryDevice>> devices;
+
+	unordered_set<uint32_t> empty_set;
+	unordered_map<string, string> empty_map;
 };

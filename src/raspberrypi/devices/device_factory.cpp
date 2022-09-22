@@ -251,12 +251,24 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 	return d;
 }
 
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
+{
+	const auto& it = sector_sizes.find(type);
+	return it != sector_sizes.end() ? it->second : empty_set;
+}
+
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type) const
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 
-	return sector_sizes.find(t)->second;
+	return GetSectorSizes(t);
+}
+
+const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceType type) const
+{
+	const auto& it = default_params.find(type);
+	return it != default_params.end() ? it->second : empty_map;
 }
 
 list<string> DeviceFactory::GetNetworkInterfaces() const
