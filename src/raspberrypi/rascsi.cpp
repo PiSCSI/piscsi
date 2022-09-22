@@ -63,7 +63,7 @@ static volatile bool active;		// Processing flag
 shared_ptr<GPIOBUS> bus;			// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
-pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
+pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
