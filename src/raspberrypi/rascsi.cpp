@@ -74,7 +74,7 @@ RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 SocketConnector socket_connector;
 
 void DetachAll();
-static void *MonThread(void *param);
+static void *MonThread(void *);
 
 //---------------------------------------------------------------------------
 //
