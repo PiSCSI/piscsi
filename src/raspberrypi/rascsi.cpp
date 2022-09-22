@@ -259,7 +259,7 @@ bool ReadAccessToken(const char *filename)
 string ValidateLunSetup(const PbCommand& command)
 {
 	// Mapping of available LUNs (bit vector) to devices
-	map<uint32_t, uint32_t> luns;
+	unordered_map<uint32_t, uint32_t> luns;
 
 	// Collect LUN bit vectors of new devices
 	for (const auto& device : command.devices()) {
@@ -267,7 +267,7 @@ string ValidateLunSetup(const PbCommand& command)
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto device : device_factory.GetAllDevices()) {
+	for (const auto& device : device_factory.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
@@ -874,7 +874,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	}
 
 	// Remember the list of reserved files, than run the dry run
-	const auto reserved_files = FileSupport::GetReservedFiles();
+	const auto& reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(context, device, command, true)) {
 			// Dry run failed, restore the file list
