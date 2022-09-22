@@ -97,8 +97,6 @@ public:
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
-	virtual bool Dispatch(scsi_defs::scsi_command) = 0;
-
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }

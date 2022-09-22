@@ -24,8 +24,6 @@ public:
 
 	TestDevice() : Device("test") {}
 	~TestDevice() override = default;
-
-	bool Dispatch(scsi_defs::scsi_command) override { return false; }
 };
 
 TEST(DeviceTest, Properties)

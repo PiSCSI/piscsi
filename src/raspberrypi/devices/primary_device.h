@@ -27,7 +27,7 @@ public:
 	PrimaryDevice(PrimaryDevice&) = delete;
 	PrimaryDevice& operator=(const PrimaryDevice&) = delete;
 
-	bool Dispatch(scsi_command) override;
+	virtual bool Dispatch(scsi_command);
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(BYTE *, uint32_t);
