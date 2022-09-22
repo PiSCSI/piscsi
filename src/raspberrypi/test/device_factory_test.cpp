@@ -47,7 +47,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(-1, 0));
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 1));
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 	devices = device_factory.GetAllDevices();
 	EXPECT_EQ(0, devices.size());
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 0));
@@ -124,22 +124,22 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.hds", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.hdi", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.nhd", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
@@ -164,7 +164,7 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
@@ -189,7 +189,7 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
@@ -214,7 +214,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
@@ -239,7 +239,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
@@ -263,7 +263,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
 	EXPECT_EQ("1.4a", device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
@@ -288,7 +288,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
@@ -313,5 +313,5 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }

@@ -256,10 +256,7 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 
-	const auto it = sector_sizes.find(t);
-	assert (it != sector_sizes.end());
-
-	return it->second;
+	return sector_sizes.find(t)->second;
 }
 
 list<string> DeviceFactory::GetNetworkInterfaces() const
