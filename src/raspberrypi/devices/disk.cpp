@@ -922,10 +922,8 @@ uint32_t Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(uint32_t size)
+bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t size)
 {
-	const DeviceFactory& device_factory = DeviceFactory::instance();
-
 	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
 		sizes.find(size) == sizes.end()) {
 		return false;

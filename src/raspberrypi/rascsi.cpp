@@ -436,7 +436,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (pb_device.block_size()) {
 		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				device_factory.DeleteDevice(*device);
 
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
@@ -603,7 +603,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}

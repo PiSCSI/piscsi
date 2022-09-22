@@ -71,7 +71,7 @@ public:
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const;
-	bool SetConfiguredSectorSize(uint32_t);
+	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
 	uint64_t GetBlockCount() const;
 	void FlushCache() override;
 

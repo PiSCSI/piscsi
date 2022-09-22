@@ -274,10 +274,10 @@ TEST(DiskTest, ConfiguredSectorSize)
 {
 	MockSCSIHD_NEC disk;
 
-	EXPECT_TRUE(disk.SetConfiguredSectorSize(512));
+	EXPECT_TRUE(disk.SetConfiguredSectorSize(device_factory, 512));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
 
-	EXPECT_FALSE(disk.SetConfiguredSectorSize(1234));
+	EXPECT_FALSE(disk.SetConfiguredSectorSize(device_factory, 1234));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
 }
 
