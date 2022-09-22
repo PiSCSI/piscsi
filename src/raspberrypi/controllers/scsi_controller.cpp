@@ -719,10 +719,7 @@ void ScsiController::Receive()
 				return;
 			}
 
-			if (ProcessMessage()) {
-				return;
-			}
-
+			ProcessMessage();
 			break;
 
 		case BUS::phase_t::dataout:
@@ -837,10 +834,7 @@ void ScsiController::ReceiveBytes()
 				return;
 			}
 
-			if (ProcessMessage()) {
-				return;
-			}
-
+			ProcessMessage();
 			break;
 
 		case BUS::phase_t::dataout:
@@ -1060,7 +1054,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 	return true;
 }
 
-bool ScsiController::ProcessMessage()
+void ScsiController::ProcessMessage()
 {
 	// Parsing messages sent by ATN
 	if (scsi.atnmsg) {
@@ -1073,7 +1067,7 @@ bool ScsiController::ProcessMessage()
 			if (data == 0x06) {
 				LOGTRACE("Message code ABORT $%02X", data)
 				BusFree();
-				return true;
+				return;
 			}
 
 			// BUS DEVICE RESET
@@ -1081,7 +1075,7 @@ bool ScsiController::ProcessMessage()
 				LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
 				scsi.syncoffset = 0;
 				BusFree();
-				return true;
+				return;
 			}
 
 			// IDENTIFY
@@ -1100,7 +1094,7 @@ bool ScsiController::ProcessMessage()
 					ctrl.blocks = 1;
 					ctrl.buffer[0] = 0x07;
 					MsgIn();
-					return true;
+					return;
 				}
 
 				scsi.syncperiod = scsi.msb[i + 3];
@@ -1122,7 +1116,7 @@ bool ScsiController::ProcessMessage()
 				ctrl.buffer[3] = scsi.syncperiod;
 				ctrl.buffer[4] = scsi.syncoffset;
 				MsgIn();
-				return true;
+				return;
 			}
 
 			// next
@@ -1134,8 +1128,6 @@ bool ScsiController::ProcessMessage()
 	scsi.atnmsg = false;
 
 	Command();
-
-	return false;
 }
 
 int ScsiController::GetEffectiveLun() const
