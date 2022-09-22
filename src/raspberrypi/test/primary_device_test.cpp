@@ -188,3 +188,10 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 	controller.ctrl.cmd.resize(1);
 	EXPECT_FALSE(device.Dispatch((scsi_command)0xFF));
 }
+
+TEST(PrimaryDeviceTest, GetSendDelay)
+{
+	MockPrimaryDevice device;
+
+	EXPECT_EQ(-1, device.GetSendDelay());
+}
