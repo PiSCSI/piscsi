@@ -17,6 +17,10 @@ PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 
 bool AbstractController::AddDevice(PrimaryDevice *device)
 {
+	if (device->GetLun() >= GetMaxLuns()) {
+		return false;
+	}
+
 	if (HasDeviceForLun(device->GetLun())) {
 		return false;
 	}

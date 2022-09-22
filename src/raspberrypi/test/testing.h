@@ -47,7 +47,6 @@ public:
 	MOCK_METHOD(void, FlushUnit, (), ());
 	MOCK_METHOD(void, Receive, (), ());
 	MOCK_METHOD(bool, HasUnit, (), (const override));
-	MOCK_METHOD(int, GetMaxLuns, (), (const override));
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
@@ -60,6 +59,8 @@ public:
 
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
 	~MockAbstractController() final = default;
+
+	int GetMaxLuns() const override { return 32; }
 };
 
 class MockScsiController final : public ScsiController
