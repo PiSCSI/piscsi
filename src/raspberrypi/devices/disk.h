@@ -118,7 +118,7 @@ protected:
 
 	virtual void Open(const Filepath&);
 
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	virtual void AddModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;

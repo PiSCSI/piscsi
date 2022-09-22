@@ -33,7 +33,6 @@ public:
 
 	void FinalizeSetup(const Filepath&, off_t);
 
-	void Reset();
 	void Open(const Filepath&) override;
 
 	// Commands

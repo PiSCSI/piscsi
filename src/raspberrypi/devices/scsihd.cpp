@@ -62,17 +62,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	FileSupport::SetPath(path);
 }
 
-void SCSIHD::Reset()
-{
-	// Unlock and release attention
-	SetLocked(false);
-	SetAttn(false);
-
-	// No reset, clear code
-	SetReset(false);
-	SetStatusCode(0);
-}
-
 void SCSIHD::Open(const Filepath& path)
 {
 	assert(!IsReady());
