@@ -153,61 +153,62 @@
 #define PADS_OFFSET		0x00100000
 #define GPIO_OFFSET		0x00200000
 #define QA7_OFFSET		0x01000000
-#define GPIO_INPUT		0
-#define GPIO_OUTPUT		1
-#define GPIO_PULLNONE	0
-#define GPIO_PULLDOWN	1
-#define GPIO_PULLUP		2
-#define GPIO_FSEL_0		0
-#define GPIO_FSEL_1		1
-#define GPIO_FSEL_2		2
-#define GPIO_FSEL_3		3
-#define GPIO_SET_0		7
-#define GPIO_CLR_0		10
-#define GPIO_LEV_0		13
-#define GPIO_EDS_0		16
-#define GPIO_REN_0		19
-#define GPIO_FEN_0		22
-#define GPIO_HEN_0		25
-#define GPIO_LEN_0		28
-#define GPIO_AREN_0		31
-#define GPIO_AFEN_0		34
-#define GPIO_PUD		37
-#define GPIO_CLK_0		38
-#define GPIO_GPPINMUXSD	52
-#define GPIO_PUPPDN0	57
-#define GPIO_PUPPDN1	58
-#define GPIO_PUPPDN3	59
-#define GPIO_PUPPDN4	60
-#define PAD_0_27		11
-#define SYST_CS			0
-#define SYST_CLO		1
-#define SYST_CHI		2
-#define SYST_C0			3
-#define SYST_C1			4
-#define SYST_C2			5
-#define SYST_C3			6
-#define ARMT_LOAD		0
-#define ARMT_VALUE		1
-#define ARMT_CTRL		2
-#define ARMT_CLRIRQ		3
-#define ARMT_RAWIRQ		4
-#define ARMT_MSKIRQ		5
-#define ARMT_RELOAD		6
-#define ARMT_PREDIV		7
-#define ARMT_FREERUN	8
-#define IRPT_PND_IRQ_B	0
-#define IRPT_PND_IRQ_1	1
-#define IRPT_PND_IRQ_2	2
-#define IRPT_FIQ_CNTL	3
-#define IRPT_ENB_IRQ_1	4
-#define IRPT_ENB_IRQ_2	5
-#define IRPT_ENB_IRQ_B	6
-#define IRPT_DIS_IRQ_1	7
-#define IRPT_DIS_IRQ_2	8
-#define IRPT_DIS_IRQ_B	9
-#define QA7_CORE0_TINTC	16
-#define GPIO_IRQ		(32 + 20)	// GPIO3
+
+const static int GPIO_INPUT	=		0;
+const static int  GPIO_OUTPUT =		1;
+const static int GPIO_PULLNONE =	0;
+const static int GPIO_PULLDOWN =	1;
+const static int GPIO_PULLUP =		2;
+const static int GPIO_FSEL_0 =		0;
+const static int GPIO_FSEL_1 =		1;
+const static int GPIO_FSEL_2 =		2;
+const static int GPIO_FSEL_3 =		3;
+const static int GPIO_SET_0 =		7;
+const static int GPIO_CLR_0 =		10;
+const static int GPIO_LEV_0 =		13;
+const static int GPIO_EDS_0 =		16;
+const static int GPIO_REN_0 =		19;
+const static int GPIO_FEN_0 =		22;
+const static int GPIO_HEN_0 =		25;
+const static int GPIO_LEN_0 =		28;
+const static int GPIO_AREN_0 =		31;
+const static int GPIO_AFEN_0 =		34;
+const static int GPIO_PUD =			37;
+const static int GPIO_CLK_0 =		38;
+const static int GPIO_GPPINMUXSD =	52;
+const static int GPIO_PUPPDN0 =		57;
+const static int GPIO_PUPPDN1 =		58;
+const static int GPIO_PUPPDN3 =		59;
+const static int GPIO_PUPPDN4 =		60;
+const static int PAD_0_27 =			11;
+const static int SYST_CS =			0;
+const static int SYST_CLO =			1;
+const static int SYST_CHI =			2;
+const static int SYST_C0 =			3;
+const static int SYST_C1 =			4;
+const static int SYST_C2 =			5;
+const static int SYST_C3 =			6;
+const static int ARMT_LOAD =		0;
+const static int ARMT_VALUE =		1;
+const static int ARMT_CTRL =		2;
+const static int ARMT_CLRIRQ =		3;
+const static int ARMT_RAWIRQ =		4;
+const static int ARMT_MSKIRQ =		5;
+const static int ARMT_RELOAD =		6;
+const static int ARMT_PREDIV =		7;
+const static int ARMT_FREERUN =		8;
+const static int IRPT_PND_IRQ_B =	0;
+const static int IRPT_PND_IRQ_1 =	1;
+const static int IRPT_PND_IRQ_2 =	2;
+const static int IRPT_FIQ_CNTL =	3;
+const static int IRPT_ENB_IRQ_1 =	4;
+const static int IRPT_ENB_IRQ_2 =	5;
+const static int IRPT_ENB_IRQ_B =	6;
+const static int IRPT_DIS_IRQ_1 =	7;
+const static int IRPT_DIS_IRQ_2 =	8;
+const static int IRPT_DIS_IRQ_B =	9;
+const static int QA7_CORE0_TINTC = 	16;
+const static int GPIO_IRQ =			(32 + 20);	// GPIO3
 
 #define GPIO_INEDGE ((1 << PIN_BSY) | \
 					 (1 << PIN_SEL) | \
