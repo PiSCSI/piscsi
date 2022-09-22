@@ -23,7 +23,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	explicit HostServices(const DeviceFactory *);
+	explicit HostServices(const DeviceFactory&);
 	~HostServices() override = default;
 	HostServices(HostServices&) = delete;
 	HostServices& operator=(const HostServices&) = delete;
@@ -64,5 +64,5 @@ private:
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 
-	const DeviceFactory *device_factory;
+	const DeviceFactory& device_factory;
 };

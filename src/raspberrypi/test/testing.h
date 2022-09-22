@@ -199,6 +199,6 @@ class MockHostServices final : public HostServices
 
 public:
 
-	MockHostServices(DeviceFactory& device_factory) : HostServices(&device_factory) {}
+	MockHostServices(DeviceFactory& device_factory) : HostServices(device_factory) {}
 	~MockHostServices() override = default;
 };

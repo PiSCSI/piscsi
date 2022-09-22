@@ -29,7 +29,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(const DeviceFactory *factory) : ModePageDevice("SCHS"), device_factory(factory)
+HostServices::HostServices(const DeviceFactory& factory) : ModePageDevice("SCHS"), device_factory(factory)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
@@ -59,7 +59,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : device_factory->GetAllDevices()) {
+		for (Device *device : device_factory.GetAllDevices()) {
 			device->FlushCache();
 		}
 

@@ -215,7 +215,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(this);
+		device = make_unique<HostServices>(*this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
