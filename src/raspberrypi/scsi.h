@@ -14,7 +14,7 @@
 #include "os.h"
 #include <array>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 //===========================================================================
 //

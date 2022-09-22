@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <array>
 
 //---------------------------------------------------------------------------
 //
@@ -58,7 +59,7 @@ void SysTimer::Init(uint32_t *syst, uint32_t *armt)
 	//
 	// Clock id
 	//  0x000000004: CORE
-	uint32_t maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
+	array<uint32_t, 32> maxclock = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 
 	// Save the base address
 	systaddr = syst;

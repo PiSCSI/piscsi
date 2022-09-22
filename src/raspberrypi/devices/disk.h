@@ -29,8 +29,6 @@
 #include <string>
 #include <unordered_set>
 
-using namespace std;
-
 class Disk : public ModePageDevice, public ScsiBlockCommands
 {
 private:
