@@ -41,6 +41,16 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 	EXPECT_EQ(UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
 }
 
+TEST(AbstractControllerTest, GetOpcode)
+{
+	MockAbstractController controller(0);
+
+	controller.ctrl.cmd.resize(1);
+
+	controller.ctrl.cmd[0] = 0x12;
+	EXPECT_EQ(0x12, (int)controller.GetOpcode());
+}
+
 TEST(AbstractControllerTest, GetLun)
 {
 	const int LUN = 3;

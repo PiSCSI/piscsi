@@ -55,6 +55,7 @@ public:
 
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
+	FRIEND_TEST(AbstractControllerTest, GetOpcode);
 	FRIEND_TEST(AbstractControllerTest, GetLun);
 
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
