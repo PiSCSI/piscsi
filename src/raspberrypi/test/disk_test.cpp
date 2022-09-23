@@ -315,6 +315,20 @@ TEST(DiskTest, SynchronizeCache)
 	EXPECT_EQ(0, controller.ctrl.status);
 }
 
+TEST(DiskTest, ReadDefectData)
+{
+	MockScsiController controller(nullptr, 0);
+	MockSCSIHD_NEC disk;
+
+	controller.AddDevice(&disk);
+
+	controller.ctrl.cmd.resize(10);
+
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadDefectData10));
+	EXPECT_EQ(0, controller.ctrl.status);
+}
+
 TEST(DiskTest, SectorSize)
 {
 	MockSCSIHD_NEC disk;

@@ -107,6 +107,7 @@ public:
 	FRIEND_TEST(DiskTest, SendDiagnostic);
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
+	FRIEND_TEST(DiskTest, ReadDefectData);
 
 	using ScsiController::ScsiController;
 };
@@ -169,6 +170,7 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 	FRIEND_TEST(DiskTest, SendDiagnostic);
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
+	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(DiskTest, BlockCount);
