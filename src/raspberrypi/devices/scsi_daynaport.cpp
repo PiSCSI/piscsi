@@ -29,6 +29,7 @@
 
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;

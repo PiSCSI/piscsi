@@ -18,6 +18,7 @@
 
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
 #include <array>

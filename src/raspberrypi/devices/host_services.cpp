@@ -23,6 +23,7 @@
 #include "rascsi_exceptions.h"
 #include "device_factory.h"
 #include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "host_services.h"
 
 using namespace scsi_defs;

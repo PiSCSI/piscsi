@@ -8,6 +8,7 @@
 // Host Services with realtime clock and shutdown support
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "mode_page_device.h"

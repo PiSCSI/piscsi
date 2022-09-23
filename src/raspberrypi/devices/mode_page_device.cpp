@@ -11,6 +11,7 @@
 
 #include "log.h"
 #include "rascsi_exceptions.h"
+#include "dispatcher.h"
 #include "mode_page_device.h"
 
 using namespace std;

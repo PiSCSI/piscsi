@@ -18,8 +18,9 @@
 #include "fileio.h"
 #include "file_support.h"
 #include "rascsi_exceptions.h"
-#include "disk.h"
+#include "dispatcher.h"
 #include "scsi_command_util.h"
+#include "disk.h"
 
 using namespace scsi_defs;
 using namespace scsi_command_util;

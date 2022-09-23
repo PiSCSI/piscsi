@@ -14,10 +14,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsicd.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
+#include "dispatcher.h"
+#include "scsicd.h"
 #include <array>
 
 using namespace scsi_defs;

@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include "rascsi_exceptions.h"
 #include "../rasutil.h"
+#include "dispatcher.h"
 #include "scsi_printer.h"
 
 using namespace std;
