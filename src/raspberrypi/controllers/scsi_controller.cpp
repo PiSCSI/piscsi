@@ -633,11 +633,10 @@ void ScsiController::Receive()
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
-		// Receive
-		int len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
-		if (len != (int)ctrl.length) {
+		if (int len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+				len != (int)ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
@@ -742,10 +741,9 @@ void ScsiController::ReceiveBytes()
 	if (ctrl.length) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
-		uint32_t len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
-
 		// If not able to receive all, move to status phase
-		if (len != ctrl.length) {
+		if (uint32_t len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+				len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
