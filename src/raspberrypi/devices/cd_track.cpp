@@ -13,7 +13,6 @@
 //---------------------------------------------------------------------------
 
 #include "cd_track.h"
-#include "fileio.h"
 
 void CDTrack::Init(int track, uint32_t first, uint32_t last)
 {
