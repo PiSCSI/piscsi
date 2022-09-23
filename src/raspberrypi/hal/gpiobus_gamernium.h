@@ -23,11 +23,11 @@ const std::string CONNECT_DESC = "GAMERnium.com version";	// Startup message
 const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+#define ACT_ON ON							// ACTIVE SIGNAL ON
+#define ENB_ON ON							// ENABLE SIGNAL ON
+#define IND_IN OFF							// INITIATOR SIGNAL INPUT
+#define TAD_IN OFF							// TARGET SIGNAL INPUT
+#define DTD_IN ON							// DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
 const static int PIN_ACT =		14;			// ACTIVE
