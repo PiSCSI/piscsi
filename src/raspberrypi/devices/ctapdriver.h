@@ -36,7 +36,7 @@ class CTapDriver
 	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
 
 	CTapDriver() = default;
-	~CTapDriver() = default;
+	~CTapDriver();
 	CTapDriver(CTapDriver&) = delete;
 	CTapDriver& operator=(const CTapDriver&) = delete;
 
@@ -44,9 +44,7 @@ class CTapDriver
 
 public:
 
-	void OpenDump(const Filepath& path);
-										// Capture packets
-	void Cleanup();						// Cleanup
+	void OpenDump(const Filepath& path);	// Capture packets
 	void GetMacAddr(BYTE *mac) const;	// Get Mac Address
 	int Rx(BYTE *buf);					// Receive
 	int Tx(const BYTE *buf, int len);	// Send
@@ -56,8 +54,8 @@ public:
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	array<byte, 6> m_MacAddr;			// MAC Address
-	int m_hTAP = -1;					// File handle
+	array<byte, 6> m_MacAddr;	// MAC Address
+	int m_hTAP = -1;			// File handle
 
 	pcap_t *m_pcap = nullptr;
 	pcap_dumper_t *m_pcap_dumper = nullptr;

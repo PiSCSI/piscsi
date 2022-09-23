@@ -57,6 +57,33 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 #endif
 }
 
+CTapDriver::~CTapDriver()
+{
+	if (m_hTAP != -1) {
+		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+			LOGERROR("Can't open bridge socket: %s", strerror(errno))
+		} else {
+			LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
+			if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) {
+				LOGWARN("Warning: Removing ras0 from the bridge failed.")
+				LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
+			}
+			close(br_socket_fd);
+		}
+
+		// Release TAP defice
+		close(m_hTAP);
+	}
+
+	if (m_pcap_dumper != nullptr) {
+		pcap_dump_close(m_pcap_dumper);
+	}
+
+	if (m_pcap != nullptr) {
+		pcap_close(m_pcap);
+	}
+}
+
 static bool ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux
 	return false;
@@ -364,36 +391,6 @@ void CTapDriver::OpenDump(const Filepath& path) {
 	}
 
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath())
-}
-
-void CTapDriver::Cleanup()
-{
-	if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
-		LOGERROR("Can't open bridge socket: %s", strerror(errno))
-	} else {
-		LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
-		if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) {
-			LOGWARN("Warning: Removing ras0 from the bridge failed.")
-			LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
-		}
-		close(br_socket_fd);
-	}
-
-	// Release TAP defice
-	if (m_hTAP != -1) {
-		close(m_hTAP);
-		m_hTAP = -1;
-	}
-
-	if (m_pcap_dumper != nullptr) {
-		pcap_dump_close(m_pcap_dumper);
-		m_pcap_dumper = nullptr;
-	}
-
-	if (m_pcap != nullptr) {
-		pcap_close(m_pcap);
-		m_pcap = nullptr;
-	}
 }
 
 bool CTapDriver::Enable() const

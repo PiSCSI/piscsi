@@ -47,12 +47,6 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
-SCSIDaynaPort::~SCSIDaynaPort()
-{
-	// TAP driver release
-	m_tap.Cleanup();
-}
-
 bool SCSIDaynaPort::Dispatch(scsi_command cmd)
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT

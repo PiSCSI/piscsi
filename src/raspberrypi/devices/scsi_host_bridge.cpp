@@ -39,9 +39,6 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 
 SCSIBR::~SCSIBR()
 {
-	// TAP driver release
-	tap.Cleanup();
-
 	// Release host file system
 	fs.Reset();
 }
