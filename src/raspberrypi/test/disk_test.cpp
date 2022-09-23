@@ -184,15 +184,15 @@ TEST(DiskTest, ReadWriteLong)
 
 	controller.ctrl.cmd[2] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
-		<< "READ LONG(10) must fail because the block address is invalid";
+		<< "READ LONG(10) must fail because the capacity is exceeded";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong10), scsi_error_exception)
-		<< "WRITE LONG(10) must fail because the block address is invalid";
+		<< "WRITE LONG(10) must fail because the capacity is exceeded";
 	// READ LONG(16), not READ CAPACITY(16)
 	controller.ctrl.cmd[1] = 0x11;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
-		<< "READ LONG(16) must fail because the block address is invalid";
+		<< "READ LONG(16) must fail because the capacity is exceeded";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong16), scsi_error_exception)
-		<< "WRITE LONG(16) must fail because the block address is invalid";
+		<< "WRITE LONG(16) must fail because the capacity is exceeded";
 	controller.ctrl.cmd[2] = 0;
 
 	controller.ctrl.cmd[7] = 1;
