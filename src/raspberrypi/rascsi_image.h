@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -40,6 +40,9 @@ public:
 
 private:
 
+	string GetHomeDir() const;
+
 	string default_image_folder;
+
 	int depth = 1;
 };

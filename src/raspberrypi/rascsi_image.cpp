@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@
 #include "command_util.h"
 #include "rascsi_image.h"
 #include <string>
+#include <array>
 #include <filesystem>
 #ifdef __linux
 #include <sys/sendfile.h>
@@ -26,24 +27,10 @@ using namespace spdlog;
 using namespace rascsi_interface;
 using namespace command_util;
 
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-
 RascsiImage::RascsiImage()
 {
 	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
-	int uid = getuid();
-	if (auto sudo_user = getenv("SUDO_UID"); sudo_user) {
-		uid = stoi(sudo_user);
-	}
-
-	const passwd *passwd = getpwuid(uid);
-	if (uid && passwd) {
-		default_image_folder = passwd->pw_dir;
-		default_image_folder += "/images";
-	}
-	else {
-		default_image_folder = "/home/pi/images";
-	}
+	default_image_folder = GetHomeDir() + "/images";
 }
 
 bool RascsiImage::CheckDepth(string_view filename) const
@@ -81,17 +68,7 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
-		int uid = getuid();
-		if (const char *sudo_user = getenv("SUDO_UID"); sudo_user) {
-			uid = stoi(sudo_user);
-		}
-
-		const passwd *passwd = getpwuid(uid);
-		if (passwd) {
-			folder = passwd->pw_dir;
-			folder += "/";
-			folder += f;
-		}
+		folder = GetHomeDir() + "/" + f;
 	}
 	else {
 		if (folder.find("/home/") != 0) {
@@ -415,4 +392,23 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	}
 
 	return ReturnStatus(context);
+}
+
+string RascsiImage::GetHomeDir() const
+{
+	int uid = getuid();
+	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {
+		uid = stoi(sudo_user);
+	}
+
+	passwd pwd = {};
+	passwd *p_pwd;
+	array<char, 256> pwbuf;
+
+	if (uid && !getpwuid_r(uid, &pwd, pwbuf.data(), pwbuf.size(), &p_pwd)) {
+		return pwd.pw_dir;
+	}
+	else {
+		return "/home/pi";
+	}
 }
