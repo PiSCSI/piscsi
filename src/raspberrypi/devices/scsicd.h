@@ -19,6 +19,7 @@
 #include "disk.h"
 #include "filepath.h"
 #include "cd_track.h"
+#include "file_support.h"
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 

@@ -15,13 +15,11 @@
 
 #pragma once
 
-#include "log.h"
 #include "scsi.h"
-#include "device.h"
 #include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"
-#include "file_support.h"
+#include "disk.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
@@ -30,8 +28,6 @@
 
 class Disk : public ModePageDevice, public ScsiBlockCommands
 {
-private:
-
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
 	// The supported configurable block sizes, empty if not configurable
