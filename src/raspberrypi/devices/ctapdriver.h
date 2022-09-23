@@ -38,9 +38,9 @@ class CTapDriver
 public:
 
 	void OpenDump(const Filepath& path);	// Capture packets
-	void GetMacAddr(BYTE *mac) const;	// Get Mac Address
-	int Rx(BYTE *buf);					// Receive
-	int Tx(const BYTE *buf, int len);	// Send
+	void GetMacAddr(BYTE *mac) const;
+	int Receive(BYTE *buf);
+	int Send(const BYTE *buf, int len);
 	bool PendingPackets() const;		// Check if there are IP packets available
 	bool Enable() const;		// Enable the ras0 interface
 	bool Disable() const;		// Disable the ras0 interface

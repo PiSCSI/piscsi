@@ -341,7 +341,7 @@ void SCSIBR::ReceivePacket()
 	}
 
 	// Receive packet
-	packet_len = tap.Rx(packet_buf);
+	packet_len = tap.Receive(packet_buf);
 
 	// Check if received packet
 	if (memcmp(packet_buf, mac_addr, 6) != 0 && memcmp(packet_buf, bcast_addr.data(), bcast_addr.size()) != 0) {
@@ -378,7 +378,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 
 void SCSIBR::SendPacket(const BYTE *buf, int len)
 {
-	tap.Tx(buf, len);
+	tap.Send(buf, len);
 }
 
 //---------------------------------------------------------------------------

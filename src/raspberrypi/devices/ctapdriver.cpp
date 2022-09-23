@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	[ TAP Driver ]
-//
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
@@ -416,7 +414,7 @@ void CTapDriver::Flush()
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while (PendingPackets()) {
 		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
-		(void)Rx(m_garbage_buffer.data());
+		(void)Receive(m_garbage_buffer.data());
 	}
 }
 
@@ -463,12 +461,7 @@ uint32_t crc32(const BYTE *buf, int length) {
    return ~crc;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Receive
-//
-//---------------------------------------------------------------------------
-int CTapDriver::Rx(BYTE *buf)
+int CTapDriver::Receive(BYTE *buf)
 {
 	assert(m_hTAP != -1);
 
@@ -517,12 +510,7 @@ int CTapDriver::Rx(BYTE *buf)
 	return dwReceived;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Send
-//
-//---------------------------------------------------------------------------
-int CTapDriver::Tx(const BYTE *buf, int len)
+int CTapDriver::Send(const BYTE *buf, int len)
 {
 	assert(m_hTAP != -1);
 
