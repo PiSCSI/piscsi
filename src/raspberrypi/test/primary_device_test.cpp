@@ -12,6 +12,23 @@
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
+TEST(PrimaryDeviceTest, PhaseChange)
+{
+	MockScsiController controller(nullptr, 0);
+	MockPrimaryDevice device;
+
+	controller.AddDevice(&device);
+
+	EXPECT_CALL(controller, Status()).Times(1);
+	device.EnterStatusPhase();
+
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	device.EnterDataInPhase();
+
+	EXPECT_CALL(controller, DataOut()).Times(1);
+	device.EnterDataOutPhase();
+}
+
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockScsiController controller(nullptr, 0);

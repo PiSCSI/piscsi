@@ -113,6 +113,7 @@ public:
 
 class MockPrimaryDevice final : public PrimaryDevice
 {
+	FRIEND_TEST(PrimaryDeviceTest, PhaseChange);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
