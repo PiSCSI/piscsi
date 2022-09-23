@@ -182,6 +182,19 @@ TEST(DiskTest, ReadWriteLong)
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdWriteLong10));
 	EXPECT_EQ(0, controller.ctrl.status);
 
+	controller.ctrl.cmd[2] = 1;
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
+		<< "READ LONG(10) must fail because the block address is invalid";
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong10), scsi_error_exception)
+		<< "WRITE LONG(10) must fail because the block address is invalid";
+	// READ LONG(16), not READ CAPACITY(16)
+	controller.ctrl.cmd[1] = 0x11;
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
+		<< "READ LONG(16) must fail because the block address is invalid";
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong16), scsi_error_exception)
+		<< "WRITE LONG(16) must fail because the block address is invalid";
+	controller.ctrl.cmd[2] = 0;
+
 	controller.ctrl.cmd[7] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
 		<< "READ LONG(10) must fail because it only supports 0 bytes transfer length";
