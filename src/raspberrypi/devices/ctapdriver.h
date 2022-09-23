@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) akuker
 //
-//	[ TAP Driver ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -23,11 +21,6 @@
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
-//===========================================================================
-//
-//	Linux Tap Driver
-//
-//===========================================================================
 class CTapDriver
 {
 	friend class SCSIDaynaPort;
@@ -55,6 +48,7 @@ public:
 
 private:
 	array<byte, 6> m_MacAddr;	// MAC Address
+
 	int m_hTAP = -1;			// File handle
 
 	pcap_t *m_pcap = nullptr;
