@@ -247,6 +247,54 @@ TEST(DiskTest, SendDiagnostic)
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception);
 }
 
+TEST(DiskTest, PreventAllowMediumRemoval)
+{
+	MockScsiController controller(nullptr, 0);
+	MockSCSIHD_NEC disk;
+
+	controller.AddDevice(&disk);
+
+	controller.ctrl.cmd.resize(6);
+
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdRemoval), scsi_error_exception)
+		<< "REMOVAL must fail because drive is not ready";
+
+	disk.SetReady(true);
+
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
+	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_FALSE(disk.IsLocked());
+
+	controller.ctrl.cmd[4] = 1;
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
+	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_TRUE(disk.IsLocked());
+}
+
+TEST(DiskTest, SynchronizeCache)
+{
+	MockScsiController controller(nullptr, 0);
+	MockSCSIHD_NEC disk;
+
+	controller.AddDevice(&disk);
+
+	controller.ctrl.cmd.resize(10);
+
+	EXPECT_CALL(disk, FlushCache()).Times(1);
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache10));
+	EXPECT_EQ(0, controller.ctrl.status);
+
+	controller.ctrl.cmd.resize(16);
+
+	EXPECT_CALL(disk, FlushCache()).Times(1);
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache16));
+	EXPECT_EQ(0, controller.ctrl.status);
+}
+
 TEST(DiskTest, SectorSize)
 {
 	MockSCSIHD_NEC disk;
