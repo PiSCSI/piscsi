@@ -11,8 +11,6 @@
 //  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
-//	[ Disk ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -21,7 +19,8 @@
 #include "scsi.h"
 #include "device.h"
 #include "device_factory.h"
-#include "disk_track_cache.h"
+#include "disk_track.h"
+#include "disk_cache.h"
 #include "file_support.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"

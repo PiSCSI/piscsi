@@ -11,8 +11,6 @@
 //  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
-//	[ DiskTrack and DiskCache ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -22,47 +20,10 @@
 // Number of tracks to cache
 static const int CACHE_MAX = 16;
 
-class DiskTrack
-{
-private:
-
-	 struct {
-		int track;							// Track Number
-		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-		int sectors;						// Number of sectors(<0x100)
-		DWORD length;						// Data buffer length
-		BYTE *buffer;						// Data buffer
-		bool init;							// Is it initilized?
-		bool changed;						// Changed flag
-		DWORD maplen;						// Changed map length
-		bool *changemap;					// Changed map
-		bool raw;							// RAW mode flag
-		off_t imgoffset;					// Offset to actual data
-	} dt = {};
-
-public:
-	DiskTrack() = default;
-	~DiskTrack();
-	DiskTrack(DiskTrack&) = delete;
-	DiskTrack& operator=(const DiskTrack&) = delete;
-
-private:
-	friend class DiskCache;
-
-	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0);
-	bool Load(const Filepath& path);
-	bool Save(const Filepath& path);
-
-	// Read / Write
-	bool ReadSector(BYTE *buf, int sec) const;				// Sector Read
-	bool WriteSector(const BYTE *buf, int sec);				// Sector Write
-
-	int GetTrack() const		{ return dt.track; }		// Get track
-};
-
 class DiskCache
 {
 public:
+
 	// Internal data definition
 	using cache_t = struct {
 		DiskTrack *disktrk;						// Disk Track
@@ -83,6 +44,7 @@ public:
 	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:
+
 	// Internal Management
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
