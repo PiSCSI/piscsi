@@ -225,9 +225,9 @@ const static int GPIO_IRQ =			(32 + 20);	// GPIO3
 //	Constant declarations (GIC)
 //
 //---------------------------------------------------------------------------
-#define ARM_GICD_BASE		0xFF841000
-#define ARM_GICC_BASE		0xFF842000
-#define ARM_GIC_END			0xFF847FFF
+const static uint32_t ARM_GICD_BASE =	0xFF841000;
+const static uint32_t ARM_GICC_BASE =	0xFF842000;
+const static uint32_t ARM_GIC_END =		0xFF847FFF;
 const static int GICD_CTLR =		0x000;
 const static int GICD_IGROUPR0 =	0x020;
 const static int GICD_ISENABLER0 =	0x040;
