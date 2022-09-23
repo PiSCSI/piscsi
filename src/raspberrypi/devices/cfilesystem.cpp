@@ -1591,7 +1591,7 @@ void CHostPath::Refresh()
 
 		WORD nHumanDate = 0;
 		WORD nHumanTime = 0;
-		if (tm pt = {}; (localtime_r(&sb.st_mtime, &pt) != nullptr)) {
+		if (tm pt = {}; localtime_r(&sb.st_mtime, &pt) != nullptr) {
 			nHumanDate = (WORD)(((pt.tm_year - 80) << 9) | ((pt.tm_mon + 1) << 5) | pt.tm_mday);
 			nHumanTime = (WORD)((pt.tm_hour << 11) | (pt.tm_min << 5) | (pt.tm_sec >> 1));
 		}
