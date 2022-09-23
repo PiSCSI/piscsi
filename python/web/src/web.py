@@ -148,7 +148,7 @@ def get_locale():
 
 def get_supported_locales():
     """
-    Returns a list of Locale objects that the Web Interfaces supports
+    Returns a list of languages supported by the web UI
     """
     locales = [
         {"language": x.language, "display_name": x.display_name}
@@ -487,7 +487,7 @@ def show_logs():
     lines = request.form.get("lines")
     scope = request.form.get("scope")
 
-    # TODO: Render logs in template
+    # TODO: Render logs in a template (issue #836) and structured JSON
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
         headers = {"content-type": "text/plain"}
@@ -537,9 +537,8 @@ def attach_device():
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)
 
     if "interface" in params.keys():
-        # TODO: Can the behaviour of this function be made more intuitive?
+        # Note: is_bridge_configured returns False if the bridge is configured
         bridge_status = is_bridge_configured(params["interface"])
-        # Error condition is truthy
         if bridge_status:
             return response(error=True, message=[
                 (bridge_status, "error"),
@@ -699,6 +698,7 @@ def device_info():
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
+        # TODO: Move the device info to the template instead of a flash message
         message = "\n".join([
             _("DEVICE INFO"),
             "===========",
