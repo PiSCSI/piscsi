@@ -21,10 +21,9 @@
 //
 
 #include "rascsi_exceptions.h"
-#include "device.h"
 #include "device_factory.h"
-#include "host_services.h"
 #include "scsi_command_util.h"
+#include "host_services.h"
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -59,7 +58,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : device_factory.GetAllDevices()) {
+		for (PrimaryDevice *device : device_factory.GetAllDevices()) {
 			device->FlushCache();
 		}
 

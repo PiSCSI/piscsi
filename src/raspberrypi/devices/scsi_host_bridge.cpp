@@ -17,10 +17,8 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
-#include "scsi_host_bridge.h"
-#include "ctapdriver.h"
-#include "cfilesystem.h"
 #include "scsi_command_util.h"
+#include "scsi_host_bridge.h"
 #include <arpa/inet.h>
 #include <array>
 

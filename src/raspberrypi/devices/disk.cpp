@@ -16,11 +16,9 @@
 
 #include "os.h"
 #include "fileio.h"
-#include "device_factory.h"
 #include "file_support.h"
 #include "rascsi_exceptions.h"
 #include "disk.h"
-#include "mode_page_device.h"
 #include "scsi_command_util.h"
 
 using namespace scsi_defs;

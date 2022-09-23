@@ -19,7 +19,6 @@
 #include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"
-#include "disk.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
