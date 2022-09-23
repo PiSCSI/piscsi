@@ -18,14 +18,6 @@
 #include <linux/gpio.h>
 #endif
 
-#if !defined(FALSE)
-#define FALSE 0
-#endif
-
-#if !defined(TRUE)
-#define TRUE 1
-#endif
-
 //---------------------------------------------------------------------------
 //
 //	Connection method definitions
@@ -271,8 +263,8 @@ const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
 #define OUT		GPIO_OUTPUT
-#define ON		TRUE
-#define OFF		FALSE
+const static int ON =	1;
+const static int OFF =	0;
 
 //---------------------------------------------------------------------------
 //
