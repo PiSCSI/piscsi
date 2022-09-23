@@ -48,7 +48,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
+SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);

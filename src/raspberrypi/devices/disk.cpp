@@ -25,7 +25,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
+Disk::Disk(const string& id) : ModePageDevice(id)
 {
 	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
