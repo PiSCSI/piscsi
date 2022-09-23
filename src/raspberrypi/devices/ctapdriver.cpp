@@ -86,7 +86,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux
 	return false;
 #else
-	struct ifreq ifr;
+	ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
@@ -160,7 +160,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
-	struct ifreq ifr;
+	ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	string dev = "ras0";
@@ -279,10 +279,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				return false;
 			}
 
-			struct ifreq ifr_a;
+			ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_a.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			if (auto addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
+			if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
 				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a network address: %s", address.c_str(), strerror(errno))
 
@@ -292,10 +292,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				return false;
 			}
 
-			struct ifreq ifr_n;
+			ifreq ifr_n;
 			ifr_n.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_n.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			if (auto mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
+			if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
 				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a netmask: %s", netmask.c_str(), strerror(errno))
 
@@ -496,7 +496,7 @@ int CTapDriver::Receive(BYTE *buf)
 	}
 
 	if (m_pcap_dumper != nullptr) {
-		struct pcap_pkthdr h = {
+		pcap_pkthdr h = {
 			.ts = {},
 			.caplen = dwReceived,
 			.len = dwReceived
@@ -515,7 +515,7 @@ int CTapDriver::Send(const BYTE *buf, int len)
 	assert(m_hTAP != -1);
 
 	if (m_pcap_dumper != nullptr) {
-		struct pcap_pkthdr h = {
+		pcap_pkthdr h = {
 			.ts = {},
 			.caplen = (bpf_u_int32)len,
 			.len = (bpf_u_int32)len,
