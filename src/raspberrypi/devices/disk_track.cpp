@@ -14,7 +14,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "log.h"
 #include "fileio.h"
 #include "disk_track.h"
