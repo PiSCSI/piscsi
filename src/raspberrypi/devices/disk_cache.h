@@ -26,8 +26,8 @@ public:
 
 	// Internal data definition
 	using cache_t = struct {
-		DiskTrack *disktrk;						// Disk Track
-		DWORD serial;							// Serial
+		DiskTrack *disktrk;					// Disk Track
+		uint32_t serial;					// Serial
 	};
 
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
@@ -41,7 +41,7 @@ public:
 	bool Save() const;							// Save and release all
 	bool ReadSector(BYTE *buf, uint32_t block);				// Sector Read
 	bool WriteSector(const BYTE *buf, uint32_t block);			// Sector Write
-	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
+	bool GetCache(int index, int& track, uint32_t& serial) const;	// Get cache information
 
 private:
 
@@ -53,7 +53,7 @@ private:
 
 	// Internal data
 	cache_t cache[CACHE_MAX] = {};				// Cache management
-	DWORD serial = 0;							// Last serial number
+	uint32_t serial = 0;						// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector

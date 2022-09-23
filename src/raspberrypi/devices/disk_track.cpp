@@ -251,6 +251,7 @@ bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 	assert((sec >= 0) && (sec < 0x100));
 
 	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
+
 	// Error if not initialized
 	if (!dt.init) {
 		return false;

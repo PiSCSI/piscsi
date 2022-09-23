@@ -57,7 +57,7 @@ bool DiskCache::Save() const
 //	Get disk cache information
 //
 //---------------------------------------------------------------------------
-bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
+bool DiskCache::GetCache(int index, int& track, uint32_t& aserial) const
 {
 	assert((index >= 0) && (index < CACHE_MAX));
 
@@ -161,7 +161,7 @@ DiskTrack* DiskCache::Assign(int track)
 	// Finally, find the youngest serial number and delete it
 
 	// Set index 0 as candidate c
-	DWORD s = cache[0].serial;
+	uint32_t s = cache[0].serial;
 	int c = 0;
 
 	// Compare candidate with serial and update to smaller one
