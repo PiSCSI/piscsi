@@ -197,9 +197,9 @@ TEST(DiskTest, ReadWriteLong)
 
 	controller.ctrl.cmd[7] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
-		<< "READ LONG(10) must fail because it only supports 0 bytes transfer length";
+		<< "READ LONG(10) must fail because it currently only supports 0 bytes transfer length";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong10), scsi_error_exception)
-		<< "WRITE LONG(10) must fail because it only supports 0 bytes transfer length";
+		<< "WRITE LONG(10) must fail because it currently only supports 0 bytes transfer length";
 	controller.ctrl.cmd[7] = 0;
 
 	// READ LONG(16), not READ CAPACITY(16)
@@ -216,10 +216,10 @@ TEST(DiskTest, ReadWriteLong)
 	// READ LONG(16), not READ CAPACITY(16)
 	controller.ctrl.cmd[1] = 0x11;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
-		<< "READ LONG(16) must fail because it only supports 0 bytes transfer length";
+		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
 	controller.ctrl.cmd[1] = 0x00;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong16), scsi_error_exception)
-		<< "WRITE LONG(16) must fail because it only supports 0 bytes transfer length";
+		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
 }
 
 TEST(DiskTest, ReserveRelease)
