@@ -104,6 +104,7 @@ public:
 	FRIEND_TEST(DiskTest, ReadCapacity);
 	FRIEND_TEST(DiskTest, ReadWriteLong);
 	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SendDiagnostic);
 
 	using ScsiController::ScsiController;
 };
@@ -162,6 +163,7 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 	FRIEND_TEST(DiskTest, ReadCapacity);
 	FRIEND_TEST(DiskTest, ReadWriteLong);
 	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SendDiagnostic);
 	FRIEND_TEST(DiskTest, SectorSize);
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(DiskTest, BlockCount);

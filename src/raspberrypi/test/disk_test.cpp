@@ -227,6 +227,26 @@ TEST(DiskTest, ReserveRelease)
 	EXPECT_EQ(0, controller.ctrl.status);
 }
 
+TEST(DiskTest, SendDiagnostic)
+{
+	MockScsiController controller(nullptr, 0);
+	MockSCSIHD_NEC disk;
+
+	controller.AddDevice(&disk);
+
+	controller.ctrl.cmd.resize(6);
+
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSendDiag));
+	EXPECT_EQ(0, controller.ctrl.status);
+
+	controller.ctrl.cmd[3] = 1;
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception);
+	controller.ctrl.cmd[3] = 0;
+	controller.ctrl.cmd[4] = 1;
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception);
+}
+
 TEST(DiskTest, SectorSize)
 {
 	MockSCSIHD_NEC disk;
