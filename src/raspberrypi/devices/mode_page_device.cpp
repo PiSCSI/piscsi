@@ -13,6 +13,7 @@
 #include "rascsi_exceptions.h"
 #include "dispatcher.h"
 #include "mode_page_device.h"
+#include <cstddef>
 
 using namespace std;
 using namespace scsi_defs;
