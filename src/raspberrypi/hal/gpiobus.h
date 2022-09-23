@@ -147,15 +147,15 @@
 //	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
-#define SYST_OFFSET		0x00003000
-#define IRPT_OFFSET		0x0000B200
-#define ARMT_OFFSET		0x0000B400
-#define PADS_OFFSET		0x00100000
-#define GPIO_OFFSET		0x00200000
-#define QA7_OFFSET		0x01000000
+const static uint32_t SYST_OFFSET =		0x00003000;
+const static uint32_t IRPT_OFFSET =		0x0000B200;
+const static uint32_t ARMT_OFFSET =		0x0000B400;
+const static uint32_t PADS_OFFSET =		0x00100000;
+const static uint32_t GPIO_OFFSET =		0x00200000;
+const static uint32_t QA7_OFFSET =		0x01000000;
 
 const static int GPIO_INPUT	=		0;
-const static int  GPIO_OUTPUT =		1;
+const static int GPIO_OUTPUT =		1;
 const static int GPIO_PULLNONE =	0;
 const static int GPIO_PULLDOWN =	1;
 const static int GPIO_PULLUP =		2;
@@ -228,22 +228,22 @@ const static int GPIO_IRQ =			(32 + 20);	// GPIO3
 #define ARM_GICD_BASE		0xFF841000
 #define ARM_GICC_BASE		0xFF842000
 #define ARM_GIC_END			0xFF847FFF
-#define GICD_CTLR			0x000
-#define GICD_IGROUPR0		0x020
-#define GICD_ISENABLER0		0x040
-#define GICD_ICENABLER0		0x060
-#define GICD_ISPENDR0		0x080
-#define GICD_ICPENDR0		0x0A0
-#define GICD_ISACTIVER0		0x0C0
-#define GICD_ICACTIVER0		0x0E0
-#define GICD_IPRIORITYR0	0x100
-#define GICD_ITARGETSR0		0x200
-#define GICD_ICFGR0			0x300
-#define GICD_SGIR			0x3C0
-#define GICC_CTLR			0x000
-#define GICC_PMR			0x001
-#define GICC_IAR			0x003
-#define GICC_EOIR			0x004
+const static int GICD_CTLR =		0x000;
+const static int GICD_IGROUPR0 =	0x020;
+const static int GICD_ISENABLER0 =	0x040;
+const static int GICD_ICENABLER0 =	0x060;
+const static int GICD_ISPENDR0 =	0x080;
+const static int GICD_ICPENDR0 =	0x0A0;
+const static int GICD_ISACTIVER0 =	0x0C0;
+const static int GICD_ICACTIVER0 =	0x0E0;
+const static int GICD_IPRIORITYR0 =	0x100;
+const static int GICD_ITARGETSR0 =	0x200;
+const static int GICD_ICFGR0 =		0x300;
+const static int GICD_SGIR =		0x3C0;
+const static int GICC_CTLR =		0x000;
+const static int GICC_PMR =			0x001;
+const static int GICC_IAR =			0x003;
+const static int GICC_EOIR =		0x004;
 
 //---------------------------------------------------------------------------
 //
