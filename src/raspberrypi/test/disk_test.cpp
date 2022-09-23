@@ -253,11 +253,18 @@ TEST(DiskTest, SendDiagnostic)
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSendDiag));
 	EXPECT_EQ(0, controller.ctrl.status);
 
+	controller.ctrl.cmd[1] = 0x10;
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
+		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
+	controller.ctrl.cmd[1] = 0;
+
 	controller.ctrl.cmd[3] = 1;
-	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception);
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
+		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 	controller.ctrl.cmd[3] = 0;
 	controller.ctrl.cmd[4] = 1;
-	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception);
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
+		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 }
 
 TEST(DiskTest, PreventAllowMediumRemoval)
