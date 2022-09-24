@@ -1,0 +1,99 @@
+import uuid
+
+from conftest import (
+    CFG_DIR,
+    FILE_SIZE_1_MIB,
+    STATUS_SUCCESS,
+)
+
+
+# route("/")
+def test_index(http_client):
+    response = http_client.get("/")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert "devices" in response_data["data"]
+
+
+# route("/env")
+def test_get_env_info(http_client):
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert "running_env" in response_data["data"]
+
+
+# route("/pwa/<path:pwa_path>")
+def test_pwa_route(http_client):
+    response = http_client.get("/pwa/favicon.ico")
+
+    assert response.status_code == 200
+    assert response.headers["content-disposition"] == "inline; filename=favicon.ico"
+
+
+# route("/drive/list", methods=["GET"])
+def test_show_named_drive_presets(http_client):
+    response = http_client.get("/drive/list")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert "cd_conf" in response_data["data"]
+    assert "hd_conf" in response_data["data"]
+    assert "rm_conf" in response_data["data"]
+
+
+# route("/drive/cdrom", methods=["POST"])
+def test_create_cdrom_properties_file(http_client):
+    file_name = f"{uuid.uuid4()}.iso"
+
+    response = http_client.post(
+        "/drive/cdrom",
+        data={
+            "vendor": "TEST_AAA",
+            "product": "TEST_BBB",
+            "revision": "1.0A",
+            "block_size": 2048,
+            "file_name": file_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == (
+        f"File created: {CFG_DIR}/{file_name}.properties"
+    )
+
+
+# route("/drive/create", methods=["POST"])
+def test_create_image_with_properties_file(http_client, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hds"
+
+    response = http_client.post(
+        "/drive/create",
+        data={
+            "vendor": "TEST_AAA",
+            "product": "TEST_BBB",
+            "revision": "1.0A",
+            "block_size": 512,
+            "size": FILE_SIZE_1_MIB,
+            "file_type": "hds",
+            "file_name": file_prefix,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+
+    # Cleanup
+    delete_file(file_name)
