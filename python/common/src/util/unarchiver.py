@@ -69,7 +69,7 @@ def extract_archive(file_path, **kwargs):
         unar_result_success = r'^Successfully extracted to "(?P<destination>.+)".$'
         unar_result_no_files = "No files extracted."
         unar_file_extracted = \
-            r"^  (?P<path>.+). \(((?P<size>[0-9]+) B)?(?P<types>(dir)?(, )?(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
+            r"^ {2}(?P<path>.+). \(((?P<size>\d+) B)?(?P<types>(dir)?(, )?(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
 
         lines = process["stdout"].rstrip("\n").split("\n")
 
@@ -152,7 +152,7 @@ def extract_archive(file_path, **kwargs):
         raise UnarUnexpectedOutputError(lines[-1])
 
 
-def inspect_archive(file_path, **kwargs):
+def inspect_archive(file_path):
     """
     Calls `lsar` to inspect the contents of an archive
     Takes (str) file_path

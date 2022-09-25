@@ -217,11 +217,6 @@ def index():
         server_info["sccd"]
         )
 
-    if "username" in session:
-        username = session["username"]
-    else:
-        username = None
-
     return response(
         template="index.html",
         locales=get_supported_locales(),
@@ -330,10 +325,9 @@ def login():
     password = request.form["password"]
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
 
-    if AUTH_GROUP in groups:
-        if authenticate(str(username), str(password)):
-            session["username"] = request.form["username"]
-            return response(env=get_env_info())
+    if AUTH_GROUP in groups and authenticate(str(username), str(password)):
+        session["username"] = request.form["username"]
+        return response(env=get_env_info())
 
     return response(error=True, status_code=401, message=_(
         "You must log in with valid credentials for a user in the '%(group)s' group",

@@ -42,10 +42,6 @@ class SocketCmds:
                                 str(counter), str(tries))
                 error_msg = str(error)
                 sleep(0.2)
-            except EmptySocketChunkException as ex:
-                raise ex
-            except InvalidProtobufResponse as ex:
-                raise ex
 
         logging.error(error_msg)
         raise FailedSocketConnectionException(error_msg)

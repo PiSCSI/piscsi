@@ -496,7 +496,7 @@ class FileCmds:
             logging.error(str(error))
             self.delete_file(file_name)
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error("Could not write to file: %s", file_name)
             self.delete_file(file_name)
             parameters = {
@@ -521,13 +521,16 @@ class FileCmds:
                 # introduce more sophisticated format detection logic here.
                 if isinstance(config, dict):
                     self.ractl.detach_all()
+
                     for scsi_id in range(0, 8):
                         RESERVATIONS[scsi_id] = ""
+
                     ids_to_reserve = []
                     for item in config["reserved_ids"]:
                         ids_to_reserve.append(item["id"])
                         RESERVATIONS[int(item["id"])] = item["memo"]
                     self.ractl.reserve_scsi_ids(ids_to_reserve)
+
                     for row in config["devices"]:
                         kwargs = {
                             "device_type": row["device_type"],
@@ -541,6 +544,7 @@ class FileCmds:
                         if row["image"]:
                             kwargs["params"]["file"] = row["image"]
                         self.ractl.attach_device(row["id"], **kwargs)
+
                 # The config file format in RaSCSI 21.10 is using a list data type at the top level.
                 # If future config file formats return to the list data type,
                 # introduce more sophisticated format detection logic here.
@@ -576,7 +580,7 @@ class FileCmds:
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error("Could not read file: %s", file_name)
             parameters = {
                 "file_name": file_name
@@ -609,7 +613,7 @@ class FileCmds:
             logging.error(str(error))
             self.delete_file(file_path)
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error("Could not write to file: %s", file_path)
             self.delete_file(file_path)
             parameters = {
@@ -643,7 +647,7 @@ class FileCmds:
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error("Could not read file: %s", file_path)
             parameters = {
                 "file_path": file_path
@@ -685,7 +689,4 @@ class FileCmds:
         """
         Cached wrapper method to improve performance, e.g. on index screen
         """
-        try:
-            return unarchiver.inspect_archive(file_path)
-        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
-            raise
+        return unarchiver.inspect_archive(file_path)
