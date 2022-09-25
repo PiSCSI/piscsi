@@ -30,7 +30,7 @@ public:
 	virtual bool Dispatch(scsi_command);
 
 	void SetController(AbstractController *);
-	virtual bool WriteByteSequence(BYTE *, uint32_t);
+	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
 protected:

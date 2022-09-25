@@ -27,11 +27,11 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
-	EXPECT_EQ(0, device.AddModePages(cdb, buf.data(), 0))  << "Allocation length was not limited";
-	EXPECT_EQ(1, device.AddModePages(cdb, buf.data(), 1))  << "Allocation length was not limited";
+	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0)) << "Allocation length was not limited";
+	EXPECT_EQ(1, device.AddModePages(cdb, buf, 0, 1)) << "Allocation length was not limited";
 
 	cdb[2] = 0x00;
-	EXPECT_THROW(device.AddModePages(cdb, buf.data(), 12), scsi_error_exception) << "Data for non-existing mode page 0 were returned";
+	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12), scsi_error_exception) << "Data for non-existing mode page 0 were returned";
 }
 
 TEST(ModePagesTest, SCSIHD_SetUpModePages)
@@ -83,9 +83,8 @@ TEST(ModePagesTest, SCSICD_SetUpModePages)
 TEST(ModePagesTest, SCSIMO_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
-	unordered_map<uint64_t, Geometry> geometries;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO device(sector_sizes, geometries);
+	MockSCSIMO device(sector_sizes);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(6, mode_pages.size()) << "Unexpected number of mode pages";
@@ -117,7 +116,7 @@ TEST(ModePagesTest, ModeSelect)
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf.data(), LENGTH, 0), scsi_error_exception)
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH, 0), scsi_error_exception)
 		<< "Vendor-specific parameters are not supported";
 
 	// PF (standard parameter format)
@@ -126,20 +125,20 @@ TEST(ModePagesTest, ModeSelect)
 	buf[9] = 0x00;
 	buf[10] = 0x02;
 	buf[11] = 0x00;
-	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf.data(), LENGTH, 256), scsi_error_exception)
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH, 256), scsi_error_exception)
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[LENGTH] = 0x00;
-	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf.data(), LENGTH + 2, 512), scsi_error_exception)
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[LENGTH] = 0x03;
-	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf.data(), LENGTH + 2, 512), scsi_error_exception)
+	EXPECT_THROW(scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
 	buf[LENGTH + 12] = 0x02;
-	scsi_command_util::ModeSelect(cdb, buf.data(), LENGTH + 2, 512);
+	scsi_command_util::ModeSelect(cdb, buf, LENGTH + 2, 512);
 }

@@ -17,7 +17,7 @@
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
-enum LocalizationKey {
+enum class LocalizationKey {
 	ERROR_AUTHENTICATION,
 	ERROR_OPERATION,
 	ERROR_LOG_LEVEL,

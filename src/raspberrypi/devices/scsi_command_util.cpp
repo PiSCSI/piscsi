@@ -13,63 +13,61 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length, int sector_size)
+void scsi_command_util::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length, int sector_size)
 {
 	assert(length >= 0);
 
-	int offset = 0;
-
 	// PF
-	if (cdb[1] & 0x10) {
-		bool has_valid_page_code = false;
+	if (!(cdb[1] & 0x10)) {
+		// Vendor-specific parameters (SCSI-1) are not supported
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+	}
 
-		// Mode Parameter header
-		if (length >= 12) {
-			// Check the block length
-			if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
-					buf[11] != (BYTE)sector_size) {
-				// See below for details
+	bool has_valid_page_code = false;
+
+	// Mode Parameter header
+	int offset = 0;
+	if (length >= 12) {
+		// Check the block length
+		if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
+				buf[11] != (BYTE)sector_size) {
+			// See below for details
+			LOGWARN("In order to change the sector size use the -b option when launching rascsi")
+			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+		}
+
+		offset += 12;
+		length -= 12;
+	}
+
+	// Parsing the page
+	// TODO The length handling is wrong in case of length < size
+	while (length > 0) {
+		// Format device page
+		if (int page = buf[offset]; page == 0x03) {
+			// With this page the sector size for a subsequent FORMAT can be selected, but only very few
+			// drives support this, e.g FUJITSU M2624S
+			// We are fine as long as the current sector size remains unchanged
+			if (buf[offset + 0xc] != (BYTE)(sector_size >> 8) || buf[offset + 0xd] != (BYTE)sector_size) {
+				// With rascsi it is not possible to permanently (by formatting) change the sector size,
+				// because the size is an externally configurable setting only
 				LOGWARN("In order to change the sector size use the -b option when launching rascsi")
 				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 
-			offset += 12;
-			length -= 12;
+			has_valid_page_code = true;
+		}
+		else {
+			LOGWARN("Unknown MODE SELECT page code: $%02X", page)
 		}
 
-		// Parsing the page
-		// TODO The length handling is wrong in case of length < size
-		while (length > 0) {
-			// Format device page
-			if (int page = buf[offset]; page == 0x03) {
-				// With this page the sector size for a subsequent FORMAT can be selected, but only very few
-				// drives support this, e.g FUJITSU M2624S
-				// We are fine as long as the current sector size remains unchanged
-				if (buf[offset + 0xc] != (BYTE)(sector_size >> 8) || buf[offset + 0xd] != (BYTE)sector_size) {
-					// With rascsi it is not possible to permanently (by formatting) change the sector size,
-					// because the size is an externally configurable setting only
-					LOGWARN("In order to change the sector size use the -b option when launching rascsi")
-					throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
-				}
-
-				has_valid_page_code = true;
-			}
-			else {
-				LOGWARN("Unknown MODE SELECT page code: $%02X", page)
-			}
-
-			// Advance to the next page
-			int size = buf[offset + 1] + 2;
-			length -= size;
-			offset += size;
-		}
-
-		if (!has_valid_page_code) {
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
-		}
+		// Advance to the next page
+		int size = buf[offset + 1] + 2;
+		length -= size;
+		offset += size;
 	}
-	else {
-		// Vendor-specific parameters (SCSI-1) are not supported
+
+	if (!has_valid_page_code) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 	}
 }
@@ -105,6 +103,11 @@ int scsi_command_util::GetInt16(const vector<int>& buf, int offset)
 	return (buf[offset] << 8) | buf[offset + 1];
 }
 
+int scsi_command_util::GetInt24(const vector<int>& buf, int offset)
+{
+	return (buf[offset] << 16) | (buf[offset + 1] << 8) | buf[offset + 2];
+}
+
 uint32_t scsi_command_util::GetInt32(const vector<int>& buf, int offset)
 {
 	return ((uint32_t)buf[offset] << 24) | ((uint32_t)buf[offset + 1] << 16) |
@@ -119,42 +122,42 @@ uint64_t scsi_command_util::GetInt64(const vector<int>& buf, int offset)
 			((uint64_t)buf[offset + 6] << 8) | (uint64_t)buf[offset + 7];
 }
 
-void scsi_command_util::SetInt16(BYTE *buf, int value)
-{
-	buf[0] = (BYTE)(value >> 8);
-	buf[1] = (BYTE)value;
-}
-
-void scsi_command_util::SetInt32(BYTE *buf, uint32_t value)
-{
-	buf[0] = (BYTE)(value >> 24);
-	buf[1] = (BYTE)(value >> 16);
-	buf[2] = (BYTE)(value >> 8);
-	buf[3] = (BYTE)value;
-}
-
-void scsi_command_util::SetInt64(BYTE *buf, uint64_t value)
-{
-	buf[0] = (BYTE)(value >> 56);
-	buf[1] = (BYTE)(value >> 48);
-	buf[2] = (BYTE)(value >> 40);
-	buf[3] = (BYTE)(value >> 32);
-	buf[4] = (BYTE)(value >> 24);
-	buf[5] = (BYTE)(value >> 16);
-	buf[6] = (BYTE)(value >> 8);
-	buf[7] = (BYTE)value;
-}
-
 void scsi_command_util::SetInt16(vector<byte>& buf, int offset, int value)
 {
 	buf[offset] = (byte)(value >> 8);
 	buf[offset + 1] = (byte)value;
 }
 
-void scsi_command_util::SetInt32(vector<byte>& buf, int offset, int value)
+void scsi_command_util::SetInt32(vector<byte>& buf, int offset, uint32_t value)
 {
 	buf[offset] = (byte)(value >> 24);
 	buf[offset + 1] = (byte)(value >> 16);
 	buf[offset + 2] = (byte)(value >> 8);
 	buf[offset + 3] = (byte)value;
+}
+
+void scsi_command_util::SetInt16(vector<BYTE>& buf, int offset, int value)
+{
+	buf[offset] = (BYTE)(value >> 8);
+	buf[offset + 1] = (BYTE)value;
+}
+
+void scsi_command_util::SetInt32(vector<BYTE>& buf, int offset, uint32_t value)
+{
+	buf[offset] = (BYTE)(value >> 24);
+	buf[offset + 1] = (BYTE)(value >> 16);
+	buf[offset + 2] = (BYTE)(value >> 8);
+	buf[offset + 3] = (BYTE)value;
+}
+
+void scsi_command_util::SetInt64(vector<BYTE>& buf, int offset, uint64_t value)
+{
+	buf[offset] = (BYTE)(value >> 56);
+	buf[offset + 1] = (BYTE)(value >> 48);
+	buf[offset + 2] = (BYTE)(value >> 40);
+	buf[offset + 3] = (BYTE)(value >> 32);
+	buf[offset + 4] = (BYTE)(value >> 24);
+	buf[offset + 5] = (BYTE)(value >> 16);
+	buf[offset + 6] = (BYTE)(value >> 8);
+	buf[offset + 7] = (BYTE)value;
 }

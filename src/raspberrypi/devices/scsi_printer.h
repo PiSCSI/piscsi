@@ -42,7 +42,7 @@ public:
 	void SendDiagnostic() override;
 	void StopPrint();
 
-	bool WriteByteSequence(BYTE *, uint32_t) override;
+	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
 	void CheckReservation();
 	void DiscardReservation();
 	void Cleanup();

@@ -35,7 +35,6 @@ public:
 	bool Read(BYTE *buffer, int size) const;
 	bool Write(const BYTE *buffer, int size) const;
 	off_t GetFileSize() const;
-	off_t GetFilePos() const;
 	void Close();
 
 private:

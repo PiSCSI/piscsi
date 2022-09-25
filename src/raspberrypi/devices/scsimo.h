@@ -5,12 +5,10 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  	Copyright (C) akuker
+//  Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
-//  	See LICENSE file in the project root folder.
-//
-//  	[ SCSI Magneto-Optical Disk]
+//  Licensed under the BSD 3-Clause License.
+//  See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
 
@@ -20,11 +18,13 @@
 #include "file_support.h"
 #include "filepath.h"
 
+using Geometry = pair<uint32_t, uint32_t>;
+
 class SCSIMO : public Disk, public FileSupport
 {
 public:
 
-	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
+	explicit SCSIMO(const unordered_set<uint32_t>&);
 	~SCSIMO() override = default;
 	SCSIMO(SCSIMO&) = delete;
 	SCSIMO& operator=(const SCSIMO&) = delete;
@@ -32,7 +32,7 @@ public:
 	void Open(const Filepath&) override;
 
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const BYTE *, int) const override;
+	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
 
 protected:
 
@@ -44,7 +44,6 @@ private:
 
 	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 
-	void SetGeometries(const unordered_map<uint64_t, Geometry>& g) { geometries = g; }
 	bool SetGeometryForCapacity(uint64_t);
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction

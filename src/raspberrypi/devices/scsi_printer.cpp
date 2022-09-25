@@ -41,6 +41,7 @@
 
 #include <sys/stat.h>
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include "../rasutil.h"
 #include "dispatcher.h"
 #include "scsi_printer.h"
@@ -48,6 +49,7 @@
 using namespace std;
 using namespace scsi_defs;
 using namespace ras_util;
+using namespace scsi_command_util;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 {
@@ -143,18 +145,13 @@ void SCSIPrinter::Print()
 {
 	CheckReservation();
 
-	uint32_t length = ctrl->cmd[2];
-	length <<= 8;
-	length |= ctrl->cmd[3];
-	length <<= 8;
-	length |= ctrl->cmd[4];
+	uint32_t length = GetInt24(ctrl->cmd, 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
-	// TODO This device suffers from the statically allocated buffer size,
-	// see https://github.com/akuker/RASCSI/issues/669
-	if (length > (uint32_t)ctrl->bufsize) {
-		LOGERROR("Transfer buffer overflow")
+	if (length > controller->GetBufferSize()) {
+		LOGERROR("%s", string("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBufferSize()) +
+				" bytes, " + to_string(length) + " bytes expected").c_str())
 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -217,7 +214,7 @@ void SCSIPrinter::StopPrint()
 	TestUnitReady();
 }
 
-bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);
@@ -232,7 +229,7 @@ bool SCSIPrinter::WriteByteSequence(BYTE *buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
-	auto num_written = (uint32_t)write(fd, buf, length);
+	auto num_written = (uint32_t)write(fd, buf.data(), length);
 
 	return num_written == length;
 }

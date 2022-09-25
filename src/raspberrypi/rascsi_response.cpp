@@ -24,7 +24,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
 
-	properties->set_luns(AbstractController::LUN_MAX);
+	properties->set_luns(ScsiController::LUN_MAX);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
@@ -56,7 +56,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_type(type);
 	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	device_factory->DeleteDevice(*device); //NOSONAR The alloced memory is managed by protobuf
+	device_factory->DeleteDevice(*device); //NOSONAR The allocated memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
@@ -92,7 +92,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
-	if (device->SupportsParams()) { //NOSONAR The alloced memory is managed by protobuf
+	if (device->SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
 		for (const auto& [key, value] : device->GetParams()) {
 			AddParam(*pb_device, key, value);
 		}
@@ -111,7 +111,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
-} //NOSONAR The alloced memory is managed by protobuf
+} //NOSONAR The allocated memory is managed by protobuf
 
 bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename) const
 {
@@ -123,8 +123,7 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
-		struct stat st; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
-		if (!stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
+		if (struct stat st; !stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file->set_size(st.st_size);
 			return true;
 		}
@@ -135,52 +134,57 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 
 void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, string_view default_image_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
+	if (scan_depth-- < 0) {
+		return;
+	}
+
 	string folder_pattern_lower = folder_pattern;
 	transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);
 
 	string file_pattern_lower = file_pattern;
 	transform(file_pattern_lower.begin(), file_pattern_lower.end(), file_pattern_lower.begin(), ::tolower);
 
-	if (scan_depth-- >= 0) {
-		if (DIR *d = opendir(folder.c_str()); d) {
-			const dirent *dir;
-			while ((dir = readdir(d))) {
-				bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
-				if (is_supported_type && dir->d_name[0] != '.') {
-					string name_lower = dir->d_name;
-					if (!file_pattern.empty()) {
-						transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
-					}
+	DIR *d = opendir(folder.c_str());
+	if (d == nullptr) {
+		return;
+	}
 
-					string filename = folder + "/" + dir->d_name;
-
-					if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
-						if (!st.st_size) {
-							LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
-							continue;
-						}
-					} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-						LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
-						continue;
-					} else if (dir->d_type == DT_DIR) {
-						if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
-							GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
-									file_pattern, scan_depth);
-						}
-						continue;
-					}
-
-					if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-						if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
-							GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
-						}
-					}
-				}
+	const dirent *dir;
+	while ((dir = readdir(d))) {
+		bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
+		if (is_supported_type && dir->d_name[0] != '.') {
+			string name_lower = dir->d_name;
+			if (!file_pattern.empty()) {
+				transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
 			}
 
-			closedir(d);
+			string filename = folder + "/" + dir->d_name;
+
+			if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+				if (!st.st_size) {
+					LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
+					continue;
+				}
+			} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+				LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
+				continue;
+			} else if (dir->d_type == DT_DIR) {
+				if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
+					GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
+							file_pattern, scan_depth);
+				}
+				continue;
+			}
+
+			if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
+				if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
+					GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
+				}
+			}
 		}
 	}
+
+	closedir(d);
 }
 
 PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& folder_pattern,
@@ -207,7 +211,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
-	result.set_status(true); //NOSONAR The alloced memory is managed by protobuf
+	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
 }
 
 PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
@@ -278,14 +282,14 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 	auto server_info = make_unique<PbServerInfo>().release();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level)); //NOSONAR The alloced memory is managed by protobuf
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The alloced memory is managed by protobuf
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level)); //NOSONAR The allocated memory is managed by protobuf
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The allocated memory is managed by protobuf
 	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
-	server_info->set_allocated_mapping_info(GetMappingInfo(result)); //NOSONAR The alloced memory is managed by protobuf
-	GetDevices(*server_info); //NOSONAR The alloced memory is managed by protobuf
+	server_info->set_allocated_mapping_info(GetMappingInfo(result)); //NOSONAR The allocated memory is managed by protobuf
+	GetDevices(*server_info); //NOSONAR The allocated memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
-	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth)); //NOSONAR The alloced memory is managed by protobuf
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth)); //NOSONAR The allocated memory is managed by protobuf
 
 	result.set_status(true);
 
@@ -461,11 +465,11 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 PbOperationMetaData *RascsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
-	auto meta_data = make_unique<PbOperationMetaData>();
+	auto meta_data = make_shared<PbOperationMetaData>();
 	meta_data->set_server_side_name(PbOperation_Name(operation));
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
-	(*operation_info.mutable_operations())[ordinal] = *meta_data.release();
+	(*operation_info.mutable_operations())[ordinal] = *meta_data.get();
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 

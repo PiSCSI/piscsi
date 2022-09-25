@@ -11,12 +11,14 @@
 
 #include "log.h"
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "mode_page_device.h"
 #include <cstddef>
 
 using namespace std;
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
 ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
@@ -32,7 +34,7 @@ bool ModePageDevice::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const
+int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int offset, int max_length) const
 {
 	if (max_length < 0) {
 		return 0;
@@ -61,14 +63,12 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_leng
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
-			size_t offset = result.size();
-
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
-			result[offset] |= (byte)index;
+			result[result.size()] |= (byte)index;
 			// Page payload size
-			result[offset + 1] = (byte)(data.size() - 2);
+			result[result.size() + 1] = (byte)(data.size() - 2);
 		}
 		else {
 			page0 = data;
@@ -77,36 +77,34 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_leng
 
 	// Page 0 must be last
 	if (!page0.empty()) {
-		size_t offset = result.size();
-
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[offset + 1] = (byte)(page0.size() - 2);
+		result[result.size() + 1] = (byte)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes
-	size_t size = (size_t)max_length < result.size() ? max_length : result.size();
-	memcpy(buf, result.data(), size);
+	size_t size = min((size_t)max_length, result.size());
+	memcpy(&buf.data()[offset], result.data(), size);
 
 	return (int)size;
 }
 
 void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
+	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
+	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
 
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(const vector<int>&, const BYTE *, int) const
+void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) const
 {
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
@@ -127,7 +125,7 @@ void ModePageDevice::ModeSelect10()
 
 int ModePageDevice::ModeSelectCheck(int length) const
 {
-	// Error if save parameters are set for other types than of SCHD, SCRM or SCMO
+	// Error if save parameters are set for other types than SCHD, SCRM or SCMO
 	// TODO The assumption above is not correct, and this code should be located elsewhere
 	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -145,12 +143,7 @@ int ModePageDevice::ModeSelectCheck6() const
 int ModePageDevice::ModeSelectCheck10() const
 {
 	// Receive the data specified by the parameter length
-	int length = ctrl->cmd[7];
-	length <<= 8;
-	length |= ctrl->cmd[8];
-	if (length > ctrl->bufsize) {
-		length = ctrl->bufsize;
-	}
+	size_t length = min(controller->GetBufferSize(), (size_t)GetInt16(ctrl->cmd, 7));
 
-	return ModeSelectCheck(length);
+	return ModeSelectCheck((int)length);
 }

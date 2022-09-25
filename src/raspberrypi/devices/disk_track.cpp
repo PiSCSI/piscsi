@@ -24,9 +24,6 @@ DiskTrack::~DiskTrack()
 	if (dt.buffer) {
 		free(dt.buffer);
 	}
-	if (dt.changemap) {
-		free(dt.changemap);
-	}
 }
 
 void DiskTrack::Init(int track, int size, int sectors, bool raw, off_t imgoff)
@@ -56,7 +53,6 @@ bool DiskTrack::Load(const Filepath& path)
 	// Not needed if already loaded
 	if (dt.init) {
 		assert(dt.buffer);
-		assert(dt.changemap);
 		return true;
 	}
 
@@ -86,7 +82,7 @@ bool DiskTrack::Load(const Filepath& path)
 		dt.length = length;
 	}
 
-	if (!dt.buffer) {
+	if (dt.buffer == nullptr) {
 		return false;
 	}
 
@@ -99,31 +95,16 @@ bool DiskTrack::Load(const Filepath& path)
 		dt.length = length;
 	}
 
-	// Reserve change map memory
-	if (dt.changemap == nullptr) {
-		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
-		dt.maplen = dt.sectors;
-	}
-
-	if (!dt.changemap) {
-		return false;
-	}
-
-	// Reallocate if the buffer length is different
-	if (dt.maplen != (DWORD)dt.sectors) {
-		free(dt.changemap);
-		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
-		dt.maplen = dt.sectors;
-	}
-
-	// Clear changemap
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
+	// Resize and clear changemap
+	dt.changemap.resize(dt.sectors);
+	fill(dt.changemap.begin(), dt.changemap.end(), false);
 
 	// Read from File
 	Fileio fio;
 	if (!fio.OpenDIO(path, Fileio::OpenMode::ReadOnly)) {
 		return false;
 	}
+
 	if (dt.raw) {
 		// Split Reading
 		for (int i = 0; i < dt.sectors; i++) {
@@ -175,7 +156,6 @@ bool DiskTrack::Save(const Filepath& path)
 
 	// Need to write
 	assert(dt.buffer);
-	assert(dt.changemap);
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	// Writing in RAW mode is not allowed
@@ -237,18 +217,18 @@ bool DiskTrack::Save(const Filepath& path)
 		}
 	}
 
-	// Close
 	fio.Close();
 
 	// Drop the change flag and exit
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
+	fill(dt.changemap.begin(), dt.changemap.end(), false);
 	dt.changed = false;
+
 	return true;
 }
 
-bool DiskTrack::ReadSector(BYTE *buf, int sec) const
+bool DiskTrack::ReadSector(vector<BYTE>& buf, int sec) const
 {
-	assert((sec >= 0) && (sec < 0x100));
+	assert(sec >= 0 && sec < 0x100);
 
 	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
 
@@ -265,13 +245,13 @@ bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 	// Copy
 	assert(dt.buffer);
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
-	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
+	memcpy(buf.data(), &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 
 	// Success
 	return true;
 }
 
-bool DiskTrack::WriteSector(const BYTE *buf, int sec)
+bool DiskTrack::WriteSector(const vector<BYTE>& buf, int sec)
 {
 	assert((sec >= 0) && (sec < 0x100));
 	assert(!dt.raw);
@@ -293,13 +273,13 @@ bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 	// Compare
 	assert(dt.buffer);
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
-	if (memcmp(buf, &dt.buffer[offset], length) == 0) {
+	if (memcmp(buf.data(), &dt.buffer[offset], length) == 0) {
 		// Exit normally since it's attempting to write the same thing
 		return true;
 	}
 
 	// Copy, change
-	memcpy(&dt.buffer[offset], buf, length);
+	memcpy(&dt.buffer[offset], buf.data(), length);
 	dt.changemap[sec] = true;
 	dt.changed = true;
 

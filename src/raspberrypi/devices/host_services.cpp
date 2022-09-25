@@ -25,6 +25,7 @@
 #include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "host_services.h"
+#include <algorithm>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -85,23 +86,20 @@ void HostServices::StartStopUnit()
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
+int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	int length = cdb[4];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
+	auto length = (int)min((size_t)max_length, (size_t)cdb[4]);
+	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
 	int size = 4;
 
-	size += super::AddModePages(cdb, &buf[size], length - size);
+	size += super::AddModePages(cdb, buf, size, length - size);
 	if (size > 255) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -116,23 +114,20 @@ int HostServices::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) 
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
+int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	int length = (cdb[7] << 8) | cdb[8];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
+	auto length = (int)min((size_t)max_length, (size_t)GetInt16(cdb, 7));
+	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
 	int size = 8;
 
-	size += super::AddModePages(cdb, &buf[size], length - size);
+	size += super::AddModePages(cdb, buf, size, length - size);
 	if (size > 65535) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -142,7 +137,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length)
 		size = length;
 	}
 
-	SetInt16(buf, size);
+	SetInt16(buf, 0, size);
 
 	return size;
 }
@@ -157,7 +152,7 @@ void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool 
 void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	if (!changeable) {
-		std::time_t t = std::time(nullptr);
+		time_t t = time(nullptr);
 		tm localtime;
 		localtime_r(&t, &localtime);
 

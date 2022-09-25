@@ -60,20 +60,18 @@ Disk::Disk(const string& id) : ModePageDevice(id)
 Disk::~Disk()
 {
 	// Save disk cache, only if ready
-	if (IsReady() && disk.dcache) {
-		disk.dcache->Save();
+	if (IsReady() && cache != nullptr) {
+		cache->Save();
 	}
-
-	delete disk.dcache;
 }
 
 bool Disk::Dispatch(scsi_command cmd)
 {
 	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
-	if (disk.is_medium_changed) {
+	if (is_medium_changed) {
 		assert(IsRemovable());
 
-		disk.is_medium_changed = false;
+		is_medium_changed = false;
 
 		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
@@ -90,13 +88,9 @@ bool Disk::Dispatch(scsi_command cmd)
 //---------------------------------------------------------------------------
 void Disk::Open(const Filepath& path)
 {
-	assert(disk.blocks > 0);
+	assert(blocks > 0);
 
 	SetReady(true);
-
-	// Cache initialization
-	assert (!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, (uint32_t)disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	if (Fileio fio; fio.Open(path, Fileio::OpenMode::ReadWrite)) {
@@ -114,10 +108,16 @@ void Disk::Open(const Filepath& path)
 	SetLocked(false);
 }
 
+void Disk::SetUpCache(const Filepath& path, off_t image_offset)
+{
+	assert(cache == nullptr);
+	cache = make_unique<DiskCache>(path, size_shift_count, (uint32_t)blocks, image_offset);
+}
+
 void Disk::FlushCache()
 {
-	if (disk.dcache) {
-		disk.dcache->Save();
+	if (cache != nullptr) {
+		cache->Save();
 	}
 }
 
@@ -146,8 +146,8 @@ void Disk::ReassignBlocks()
 void Disk::Read(access_mode mode)
 {
 	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
-		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
-		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
+		ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), start);
+		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
 
 		// Set next block
 		ctrl->next = start + 1;
@@ -177,7 +177,7 @@ void Disk::Read16()
 void Disk::ReadWriteLong10()
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
-	if (ctrl->cmd[7] || ctrl->cmd[8]) {
+	if (GetInt16(ctrl->cmd, 7) != 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -189,7 +189,7 @@ void Disk::ReadWriteLong10()
 void Disk::ReadWriteLong16()
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
-	if (ctrl->cmd[12] || ctrl->cmd[13]) {
+	if (GetInt16(ctrl->cmd, 12) != 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -238,7 +238,7 @@ void Disk::Verify(access_mode mode)
 		}
 
 		// Test reading
-		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
+		ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), start);
 
 		// Set next block
 		ctrl->next = start + 1;
@@ -331,24 +331,22 @@ void Disk::SynchronizeCache()
 
 void Disk::ReadDefectData10()
 {
-	int allocation_length = GetInt16(ctrl->cmd, 7);
-	if (allocation_length > 4) {
-		allocation_length = 4;
-	}
+	size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
 
 	// The defect list is empty
-	memset(ctrl->buffer, 0, allocation_length);
-	ctrl->length = allocation_length;
+	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
+	ctrl->length = (int)allocation_length;
 
 	EnterDataInPhase();
 }
 
 void Disk::MediumChanged()
 {
-	assert(IsRemovable());
-
 	if (IsRemovable()) {
-		disk.is_medium_changed = true;
+		is_medium_changed = true;
+	}
+	else {
+		LOGWARN("%s Medium change requested for non-reomvable medium", __PRETTY_FUNCTION__)
 	}
 }
 
@@ -357,11 +355,9 @@ bool Disk::Eject(bool force)
 	bool status = super::Eject(force);
 	if (status) {
 		FlushCache();
-		delete disk.dcache;
-		disk.dcache = nullptr;
+		cache.reset();
 
 		// The image file for this drive is not in use anymore
-		// TODO This cast and the FileSupport class can be removed as soon as only disk-like devices inherit from Disk
 		if (auto file_support = dynamic_cast<FileSupport *>(this); file_support) {
 			file_support->UnreserveFile();
 		}
@@ -370,14 +366,11 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
+int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
 {
 	// Get length, clear buffer
-	auto length = cdb[4];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
+	auto length = (int)min((size_t)max_length, (size_t)cdb[4]);
+	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
@@ -385,7 +378,7 @@ int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 	}
 
 	// Basic information
-	int size = 4;
+	int info_size = 4;
 
 	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
@@ -395,37 +388,34 @@ int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 		// Only if ready
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(&buf[4], (uint32_t)GetBlockCount());
-			SetInt32(&buf[8], GetSectorSizeInBytes());
+			SetInt32(buf, 4, (uint32_t)GetBlockCount());
+			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
 
-		size = 12;
+		info_size = 12;
 	}
 
-	size += super::AddModePages(cdb, &buf[size], length - size);
-	if (size > 255) {
+	info_size += super::AddModePages(cdb, buf, info_size, length - info_size);
+	if (info_size > 255) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
+	if (info_size > length) {
+		info_size = length;
 	}
 
 	// Final setting of mode data length
-	buf[0] = (BYTE)size;
+	buf[0] = (BYTE)info_size;
 
-	return size;
+	return info_size;
 }
 
-int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
+int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
 {
 	// Get length, clear buffer
-	int length = GetInt16(cdb, 7);
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
+	auto length = (int)min((size_t)max_length, (size_t)GetInt16(cdb, 7));
+	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
@@ -433,7 +423,7 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 	}
 
 	// Basic Information
-	int size = 8;
+	int info_size = 8;
 
 	// Add block descriptor if DBD is 0, only if ready
 	if ((cdb[1] & 0x08) == 0 && IsReady()) {
@@ -446,10 +436,10 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 			buf[7] = 0x08;
 
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(&buf[8], (uint32_t)disk_blocks);
-			SetInt32(&buf[12], disk_size);
+			SetInt32(buf, 8, (uint32_t)disk_blocks);
+			SetInt32(buf, 12, disk_size);
 
-			size = 16;
+			info_size = 16;
 		}
 		else {
 			// Mode parameter header, LONGLBA
@@ -459,27 +449,27 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 			buf[7] = 0x10;
 
 			// Long LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt64(&buf[8], disk_blocks);
-			SetInt32(&buf[20], disk_size);
+			SetInt64(buf, 8, disk_blocks);
+			SetInt32(buf, 20, disk_size);
 
-			size = 24;
+			info_size = 24;
 		}
 	}
 
-	size += super::AddModePages(cdb, &buf[size], length - size);
-	if (size > 65535) {
+	info_size += super::AddModePages(cdb, buf, info_size, length - info_size);
+	if (info_size > 65535) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
+	if (info_size > length) {
+		info_size = length;
 	}
 
 	// Final setting of mode data length
-	SetInt16(buf, size);
+	SetInt16(buf, 0, info_size);
 
-	return size;
+	return info_size;
 }
 
 void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
@@ -536,7 +526,7 @@ void Disk::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 		SetInt16(buf, 0x0a, 25);
 
 		// Set the number of bytes in the physical sector
-		SetInt16(buf, 0x0c, 1 << disk.size);
+		SetInt16(buf, 0x0c, 1 << size_shift_count);
 
 		// Interleave 1
 		SetInt16(buf, 0x0e, 1);
@@ -570,7 +560,7 @@ void Disk::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) const
 	if (IsReady()) {
 		// Set the number of cylinders (total number of blocks
         // divided by 25 sectors/track and 8 heads)
-		uint64_t cylinders = disk.blocks;
+		uint64_t cylinders = blocks;
 		cylinders >>= 3;
 		cylinders /= 25;
 		SetInt32(buf, 0x01, (uint32_t)cylinders);
@@ -616,24 +606,24 @@ void Disk::AddVendorPage(map<int, vector<byte>>&, int, bool) const
 }
 
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
-int Disk::Read(const vector<int>&, BYTE *buf, uint64_t block)
+int Disk::Read(const vector<int>&, vector<BYTE>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
 	CheckReady();
 
 	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
+	if (block >= blocks) {
 		 throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// leave it to the cache
-	if (!disk.dcache->ReadSector(buf, (uint32_t)block)) {
+	if (!cache->ReadSector(buf, (uint32_t)block)) {
 		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
 	//  Success
-	return 1 << disk.size;
+	return 1 << size_shift_count;
 }
 
 int Disk::WriteCheck(uint64_t block)
@@ -641,7 +631,7 @@ int Disk::WriteCheck(uint64_t block)
 	CheckReady();
 
 	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
+	if (block >= blocks) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -651,11 +641,11 @@ int Disk::WriteCheck(uint64_t block)
 	}
 
 	//  Success
-	return 1 << disk.size;
+	return 1 << size_shift_count;
 }
 
 // TODO Write more than one block in a single call. Currently blocked by the track-oriented cache
-void Disk::Write(const vector<int>&, const BYTE *buf, uint64_t block)
+void Disk::Write(const vector<int>&, const vector<BYTE>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -665,7 +655,7 @@ void Disk::Write(const vector<int>&, const BYTE *buf, uint64_t block)
 	}
 
 	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
+	if (block >= blocks) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
@@ -675,7 +665,7 @@ void Disk::Write(const vector<int>&, const BYTE *buf, uint64_t block)
 	}
 
 	// Leave it to the cache
-	if (!disk.dcache->WriteSector(buf, (uint32_t)block)) {
+	if (!cache->WriteSector(buf, (uint32_t)block)) {
 		throw scsi_error_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 	}
 }
@@ -709,23 +699,23 @@ void Disk::ReadCapacity10()
 {
 	CheckReady();
 
-	if (disk.blocks == 0) {
+	if (blocks == 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	BYTE *buf = ctrl->buffer;
+	vector<BYTE>& buf = controller->GetBuffer();
 
-	// Create end of logical block address (disk.blocks-1)
-	uint64_t blocks = disk.blocks - 1;
+	// Create end of logical block address (blocks-1)
+	uint64_t capacity = blocks - 1;
 
 	// If the capacity exceeds 32 bit, -1 must be returned and the client has to use READ CAPACITY(16)
-	if (blocks > 4294967295) {
-		blocks = -1;
+	if (capacity > 4294967295) {
+		capacity = -1;
 	}
-	SetInt32(&buf[0], (uint32_t)blocks);
+	SetInt32(buf, 0, (uint32_t)capacity);
 
-	// Create block length (1 << disk.size)
-	SetInt32(&buf[4], 1 << disk.size);
+	// Create block length (1 << size)
+	SetInt32(buf, 4, 1 << size_shift_count);
 
 	// the size
 	ctrl->length = 8;
@@ -737,17 +727,17 @@ void Disk::ReadCapacity16()
 {
 	CheckReady();
 
-	if (disk.blocks == 0) {
+	if (blocks == 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	BYTE *buf = ctrl->buffer;
+	vector<BYTE>& buf = controller->GetBuffer();
 
-	// Create end of logical block address (disk.blocks-1)
-	SetInt64(&buf[0], disk.blocks - 1);
+	// Create end of logical block address (blocks-1)
+	SetInt64(buf, 0, blocks - 1);
 
-	// Create block length (1 << disk.size)
-	SetInt32(&buf[8], 1 << disk.size);
+	// Create block length (1 << size)
+	SetInt32(buf, 8, 1 << size_shift_count);
 
 	buf[12] = 0;
 
@@ -820,11 +810,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mode mode) const
 {
 	if (mode == RW6 || mode == SEEK6) {
-		start = ctrl->cmd[1] & 0x1f;
-		start <<= 8;
-		start |= ctrl->cmd[2];
-		start <<= 8;
-		start |= ctrl->cmd[3];
+		start = GetInt24(ctrl->cmd, 1);
 
 		count = ctrl->cmd[4];
 		if (!count) {
@@ -864,7 +850,7 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 
 uint32_t Disk::GetSectorSizeInBytes() const
 {
-	return disk.size ? 1 << disk.size : 0;
+	return size_shift_count ? 1 << size_shift_count : 0;
 }
 
 void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
@@ -877,19 +863,19 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 
 	switch (size_in_bytes) {
 		case 512:
-			disk.size = 9;
+			size_shift_count = 9;
 			break;
 
 		case 1024:
-			disk.size = 10;
+			size_shift_count = 10;
 			break;
 
 		case 2048:
-			disk.size = 11;
+			size_shift_count = 11;
 			break;
 
 		case 4096:
-			disk.size = 12;
+			size_shift_count = 12;
 			break;
 
 		default:
@@ -898,49 +884,19 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 	}
 }
 
-uint32_t Disk::GetSectorSizeShiftCount() const
-{
-	return disk.size;
-}
-
-void Disk::SetSectorSizeShiftCount(uint32_t shift_count)
-{
-	disk.size = shift_count;
-}
-
-bool Disk::IsSectorSizeConfigurable() const
-{
-	return !sector_sizes.empty();
-}
-
-void Disk::SetSectorSizes(const unordered_set<uint32_t>& sizes)
-{
-	sector_sizes = sizes;
-}
-
 uint32_t Disk::GetConfiguredSectorSize() const
 {
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t size)
+bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t configured_size)
 {
 	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
-		sizes.find(size) == sizes.end()) {
+		sizes.find(configured_size) == sizes.end()) {
 		return false;
 	}
 
-	configured_sector_size = size;
+	configured_sector_size = configured_size;
 
 	return true;
-}
-
-uint64_t Disk::GetBlockCount() const
-{
-	return disk.blocks;
-}
-
-void Disk::SetBlockCount(uint64_t blocks)
-{
-	disk.blocks = blocks;
 }

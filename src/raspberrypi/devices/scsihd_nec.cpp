@@ -30,7 +30,7 @@ const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
 //---------------------------------------------------------------------------
 static inline int getWordLE(const BYTE *b)
 {
-	return (b[1] << 8) | b[0];
+	return ((int)b[1] << 8) | (int)b[0];
 }
 
 //---------------------------------------------------------------------------
@@ -38,9 +38,9 @@ static inline int getWordLE(const BYTE *b)
 //	Extract longwords assumed to be little endian
 //
 //---------------------------------------------------------------------------
-static inline DWORD getDwordLE(const BYTE *b)
+static inline uint32_t getDwordLE(const BYTE *b)
 {
-	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) | ((DWORD)(b[1]) << 8) | b[0];
+	return ((uint32_t)(b[3]) << 24) | ((uint32_t)(b[2]) << 16) | ((uint32_t)(b[1]) << 8) | b[0];
 }
 
 void SCSIHD_NEC::Open(const Filepath& path)
@@ -54,18 +54,18 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t size = fio.GetFileSize();
+	off_t file_size = fio.GetFileSize();
 
 	// NEC root sector
 	array<BYTE, 512> root_sector;
-	if (size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
+	if (file_size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
 		fio.Close();
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
 	fio.Close();
 
 	// Effective size must be a multiple of 512
-	size = (size / 512) * 512;
+	file_size = (file_size / 512) * 512;
 
 	int image_size = 0;
 	int sector_size = 0;
@@ -75,18 +75,18 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// PC-9801-55 NEC genuine?
 	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
-		disk.image_offset = 0;
-		image_size = (int)size;
+		image_offset = 0;
+		image_size = (int)file_size;
 		sector_size = 512;
 		sectors = 25;
 		heads = 8;
-		cylinders = (int)(size >> 9);
+		cylinders = (int)(file_size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
 	}
 	// Anex86 HD image?
 	else if (!strcasecmp(ext, ".hdi")) {
-		disk.image_offset = getDwordLE(&root_sector[8]);
+		image_offset = getDwordLE(&root_sector[8]);
 		image_size = getDwordLE(&root_sector[12]);
 		sector_size = getDwordLE(&root_sector[16]);
 		sectors = getDwordLE(&root_sector[20]);
@@ -96,7 +96,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
 		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
-			disk.image_offset = getDwordLE(&root_sector[0x110]);
+			image_offset = getDwordLE(&root_sector[0x110]);
 			cylinders = getDwordLE(&root_sector[0x114]);
 			heads = getWordLE(&root_sector[0x118]);
 			sectors = getWordLE(&root_sector[0x11a]);
@@ -113,24 +113,23 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Image size consistency check
-	if (disk.image_offset + image_size > size || image_size % sector_size != 0) {
+	if (image_offset + image_size > file_size || image_size % sector_size != 0) {
 		throw io_exception("Image size consistency check failed");
 	}
 
 	// Calculate sector size
-	for (size = 16; size > 0; --size) {
-		if ((1 << size) == sector_size)
+	for (file_size = 16; file_size > 0; --file_size) {
+		if ((1 << file_size) == sector_size)
 			break;
 	}
-	if (size <= 0 || size > 16) {
+	if (file_size <= 0 || file_size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
-	SetSectorSizeShiftCount((uint32_t)size);
+	SetSectorSizeShiftCount((uint32_t)file_size);
 
-	// Number of blocks
-	SetBlockCount(image_size >> disk.size);
+	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
-	FinalizeSetup(path, size);
+	FinalizeSetup(path, file_size, image_offset);
 }
 
 vector<byte> SCSIHD_NEC::InquiryInternal() const
@@ -171,7 +170,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) c
 		SetInt16(buf, 0x0a, sectors);
 
 		// Set the number of bytes in the physical sector
-		SetInt16(buf, 0x0c, 1 << disk.size);
+		SetInt16(buf, 0x0c, GetSectorSizeInBytes());
 	}
 
 	// Set removable attributes (remains of the old days)

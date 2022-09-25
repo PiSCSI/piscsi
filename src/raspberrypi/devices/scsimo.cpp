@@ -10,8 +10,6 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI Magneto-Optical Disk]
-//
 //---------------------------------------------------------------------------
 
 #include "fileio.h"
@@ -21,11 +19,18 @@
 
 using namespace scsi_command_util;
 
-SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-	: Disk("SCMO")
+SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO")
 {
 	SetSectorSizes(sector_sizes);
-	SetGeometries(geometries);
+
+	// 128 MB, 512 bytes per sector, 248826 sectors
+	geometries[0x797f400] = make_pair(512, 248826);
+	// 230 MB, 512 bytes per block, 446325 sectors
+	geometries[0xd9eea00] = make_pair(512, 446325);
+	// 540 MB, 512 bytes per sector, 1041500 sectors
+	geometries[0x1fc8b800] = make_pair(512, 1041500);
+	// 640 MB, 20248 bytes per sector, 310352 sectors
+	geometries[0x25e28000] = make_pair(2048, 310352);
 }
 
 void SCSIMO::Open(const Filepath& path)
@@ -40,15 +45,14 @@ void SCSIMO::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t size = fio.GetFileSize();
+	off_t file_size = fio.GetFileSize();
 	fio.Close();
 
-	// For some priorities there are hard-coded, well-defined sector sizes and block counts
-	// TODO Find a more flexible solution
-	if (!SetGeometryForCapacity(size)) {
+	// For some capacities there are hard-coded, well-defined sector sizes and block counts
+	if (!SetGeometryForCapacity(file_size)) {
 		// Sector size (default 512 bytes) and number of blocks
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-		SetBlockCount(size >> GetSectorSizeShiftCount());
+		SetBlockCount(file_size >> GetSectorSizeShiftCount());
 	}
 
 	SetReadOnly(false);
@@ -57,6 +61,8 @@ void SCSIMO::Open(const Filepath& path)
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
+
+	SetUpCache(path);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -94,7 +100,7 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) const
+void SCSIMO::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }

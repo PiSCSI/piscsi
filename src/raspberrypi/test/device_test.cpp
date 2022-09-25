@@ -13,7 +13,7 @@
 
 class TestDevice final : public Device
 {
-	FRIEND_TEST(DeviceTest, GetSetParams);
+	FRIEND_TEST(DeviceTest, Params);
 	FRIEND_TEST(DeviceTest, StatusCode);
 	FRIEND_TEST(DeviceTest, Reset);
 	FRIEND_TEST(DeviceTest, Start);
@@ -102,7 +102,7 @@ TEST(DeviceTest, ProductData)
 	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
 }
 
-TEST(DeviceTest, GetSetParams)
+TEST(DeviceTest, Params)
 {
 	TestDevice device;
 	unordered_map<string, string> params;

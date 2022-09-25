@@ -29,19 +29,19 @@ class Disk : public ModePageDevice, public ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
-	// The supported configurable block sizes, empty if not configurable
+	Dispatcher<Disk> dispatcher;
+
+	// The supported configurable sector sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size = 0;
 
-	using disk_t = struct {
-		uint32_t size;							// Sector Size (9=512, 10=1024, 11=2048, 12=4096)
-		uint64_t blocks;						// Total number of sectors
-		DiskCache *dcache;						// Disk cache
-		off_t image_offset;						// Offset to actual data
-		bool is_medium_changed;
-	};
+	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
+	uint32_t size_shift_count = 0;
 
-	Dispatcher<Disk> dispatcher;
+	// Total number of sectors
+	uint64_t blocks = 0;
+
+	bool is_medium_changed = false;
 
 public:
 
@@ -57,14 +57,14 @@ public:
 
 	// Command helpers
 	virtual int WriteCheck(uint64_t);
-	virtual void Write(const vector<int>&, const BYTE *, uint64_t);
+	virtual void Write(const vector<int>&, const vector<BYTE>&, uint64_t);
 
-	virtual int Read(const vector<int>&, BYTE *, uint64_t);
+	virtual int Read(const vector<int>&, vector<BYTE>& , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
-	bool IsSectorSizeConfigurable() const;
+	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
 	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
-	uint64_t GetBlockCount() const;
+	uint64_t GetBlockCount() const { return blocks; }
 	void FlushCache() override;
 
 private:
@@ -105,12 +105,13 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
-	int ModeSense6(const vector<int>&, BYTE *, int) const override;
-	int ModeSense10(const vector<int>&, BYTE *, int) const override;
+	int ModeSense6(const vector<int>&, vector<BYTE>&, int) const override;
+	int ModeSense10(const vector<int>&, vector<BYTE>&, int) const override;
 
 protected:
 
 	virtual void Open(const Filepath&);
+	void SetUpCache(const Filepath&, off_t = 0);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
@@ -119,13 +120,12 @@ protected:
 	void AddCachePage(map<int, vector<byte>>&, bool) const;
 	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
 	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const unordered_set<uint32_t>&);
+	void SetSectorSizes(const unordered_set<uint32_t>& sizes) { sector_sizes = sizes; }
 	void SetSectorSizeInBytes(uint32_t);
-	uint32_t GetSectorSizeShiftCount() const;
-	void SetSectorSizeShiftCount(uint32_t);
+	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
+	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
-	void SetBlockCount(uint64_t);
+	void SetBlockCount(uint64_t b) { blocks = b; }
 
-	// Internal disk data
-	disk_t disk = {};
+	unique_ptr<DiskCache> cache;
 };

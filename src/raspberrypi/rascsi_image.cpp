@@ -44,8 +44,7 @@ bool RascsiImage::CreateImageFolder(const CommandContext& context, const string&
 		string folder = filename.substr(0, filename_start);
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
-		struct stat st;
-		if (stat(folder.c_str(), &st)) {
+		if (struct stat st; stat(folder.c_str(), &st)) {
 			std::error_code error;
 			filesystem::create_directories(folder, error);
 			if (error) {

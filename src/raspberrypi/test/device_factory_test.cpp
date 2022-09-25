@@ -12,6 +12,7 @@
 #include "rascsi_version.h"
 #include "devices/device.h"
 #include "devices/device_factory.h"
+#include <unordered_map>
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
@@ -101,12 +102,64 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
 }
 
+TEST(DeviceFactoryTest, GetExtensionMapping)
+{
+	DeviceFactory device_factory;
+
+	unordered_map<string, PbDeviceType> mapping = device_factory.GetExtensionMapping();
+	EXPECT_EQ(9, mapping.size());
+	EXPECT_EQ(SCHD, mapping["hd1"]);
+	EXPECT_EQ(SCHD, mapping["hds"]);
+	EXPECT_EQ(SCHD, mapping["hda"]);
+	EXPECT_EQ(SCHD, mapping["hdn"]);
+	EXPECT_EQ(SCHD, mapping["hdi"]);
+	EXPECT_EQ(SCHD, mapping["nhd"]);
+	EXPECT_EQ(SCRM, mapping["hdr"]);
+	EXPECT_EQ(SCMO, mapping["mos"]);
+	EXPECT_EQ(SCCD, mapping["iso"]);
+}
+
+TEST(DeviceFactoryTest, GetDefaultParams)
+{
+	DeviceFactory device_factory;
+
+	unordered_map<string, string> params = device_factory.GetDefaultParams(SCHD);
+	EXPECT_TRUE(params.empty());
+
+	params = device_factory.GetDefaultParams(SCRM);
+	EXPECT_TRUE(params.empty());
+
+	params = device_factory.GetDefaultParams(SCMO);
+	EXPECT_TRUE(params.empty());
+
+	params = device_factory.GetDefaultParams(SCCD);
+	EXPECT_TRUE(params.empty());
+
+	params = device_factory.GetDefaultParams(SCHS);
+	EXPECT_TRUE(params.empty());
+
+	params = device_factory.GetDefaultParams(SCBR);
+	EXPECT_EQ(2, params.size());
+
+	params = device_factory.GetDefaultParams(SCDP);
+	EXPECT_EQ(2, params.size());
+
+	params = device_factory.GetDefaultParams(SCLP);
+	EXPECT_EQ(2, params.size());
+}
+
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
 	DeviceFactory device_factory;
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
-	EXPECT_EQ(nullptr, device);
+	PrimaryDevice *device1 = device_factory.CreateDevice(UNDEFINED, "test", -1);
+	EXPECT_EQ(nullptr, device1);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	PrimaryDevice *device2 = device_factory.CreateDevice(SAHD, "test", -1);
+#pragma GCC diagnostic pop
+	EXPECT_EQ(nullptr, device2);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)

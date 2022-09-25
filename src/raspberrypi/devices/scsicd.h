@@ -28,7 +28,7 @@ class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 public:
 
 	explicit SCSICD(const unordered_set<uint32_t>&);
-	~SCSICD() override;
+	~SCSICD() override = default;
 	SCSICD(SCSICD&) = delete;
 	SCSICD& operator=(const SCSICD&) = delete;
 
@@ -38,7 +38,7 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const vector<int>&, BYTE *, uint64_t) override;
+	int Read(const vector<int>&, vector<BYTE>&, uint64_t) override;
 
 protected:
 
@@ -51,7 +51,7 @@ private:
 
 	Dispatcher<SCSICD> dispatcher;
 
-	int ReadTocInternal(const vector<int>&, BYTE *);
+	int ReadTocInternal(const vector<int>&, vector<BYTE>&);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
