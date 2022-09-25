@@ -62,8 +62,7 @@ if ! test -e venv; then
     pip3 install wheel
     pip3 install -r requirements.txt
 
-    git rev-parse --is-inside-work-tree &> /dev/null
-    if [[ $? -eq 0 ]]; then
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
       git rev-parse HEAD > current
     fi
 fi
