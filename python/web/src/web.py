@@ -714,20 +714,31 @@ def device_info():
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
-        flash(_("DEVICE INFO"))
-        flash("===========")
-        flash(_("SCSI ID: %(id_number)s", id_number=device["id"]))
-        flash(_("LUN: %(unit_number)s", unit_number=device["unit"]))
-        flash(_("Type: %(device_type)s", device_type=device["device_type"]))
-        flash(_("Status: %(device_status)s", device_status=device["status"]))
-        flash(_("File: %(image_file)s", image_file=device["image"]))
-        flash(_("Parameters: %(value)s", value=device["params"]))
-        flash(_("Vendor: %(value)s", value=device["vendor"]))
-        flash(_("Product: %(value)s", value=device["product"]))
-        flash(_("Revision: %(revision_number)s", revision_number=device["revision"]))
-        flash(_("Block Size: %(value)s bytes", value=device["block_size"]))
-        flash(_("Image Size: %(value)s bytes", value=device["size"]))
-        return redirect(url_for("index"))
+        server_info = ractl_cmd.get_server_info()
+        ip_addr, host = sys_cmd.get_ip_and_host()
+        title = _("Device Info")
+        contents = {
+            _("SCSI ID"): device["id"],
+            _("LUN"): device["unit"],
+            _("Type"): device["device_type"],
+            _("Status"): device["status"],
+            _("File"): device["image"],
+            _("Parameters"): device["params"],
+            _("Vendor"): device["vendor"],
+            _("Product"): device["product"],
+            _("Revision"): device["revision"],
+            _("Block Size"): device["block_size"],
+            _("Image Size"): device["size"],
+            }
+        return render_template(
+            "info.html",
+            title=title,
+            contents=contents,
+            running_env=sys_cmd.running_env(),
+            version=server_info["version"],
+            ip_addr=ip_addr,
+            host=host,
+            )
 
     flash(devices["msg"], "error")
     return redirect(url_for("index"))
