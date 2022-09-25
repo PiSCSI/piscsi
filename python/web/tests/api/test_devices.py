@@ -91,9 +91,9 @@ def test_detach_device(http_client, create_test_image):
 
     response_data = response.json()
 
-    response.status_code == 200
-    response_data["status"] == STATUS_SUCCESS
-    response_data["messages"][0]["message"] == f"Detached SCSI ID {SCSI_ID} LUN 0"
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Detached SCSI ID {SCSI_ID} LUN 0"
 
 
 # route("/scsi/detach_all", methods=["POST"])

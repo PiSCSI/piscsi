@@ -40,4 +40,4 @@ def test_login_with_invalid_credentials(http_client_unauthenticated):
 # route("/logout")
 def test_logout(http_client):
     response = http_client.get("/logout")
-    response.status_code == 200
+    assert response.status_code == 200
