@@ -17,6 +17,9 @@
 #include "scsihd_nec.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+
+using namespace scsi_command_util;
 
 const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
 
@@ -42,7 +45,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 
 void SCSIHD_NEC::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -54,8 +57,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 
 	// NEC root sector
-	BYTE root_sector[512];
-	if (size >= (off_t)sizeof(root_sector) && !fio.Read(root_sector, sizeof(root_sector))) {
+	array<BYTE, 512> root_sector;
+	if (size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
 		fio.Close();
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
@@ -92,7 +95,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
-		if (!memcmp(root_sector, "T98HDDIMAGE.R0\0", 15)) {
+		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
 			disk.image_offset = getDwordLE(&root_sector[0x110]);
 			cylinders = getDwordLE(&root_sector[0x114]);
 			heads = getWordLE(&root_sector[0x118]);
@@ -153,8 +156,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) c
 
 	// Make the number of bytes in the physical sector appear mutable (although it cannot actually be)
 	if (changeable) {
-		buf[0xc] = (byte)0xff;
-		buf[0xd] = (byte)0xff;
+		SetInt16(buf, 0x0c, -1);
 
 		pages[3] = buf;
 
@@ -163,17 +165,13 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) c
 
 	if (IsReady()) {
 		// Set the number of tracks in one zone (PC-9801-55 seems to see this value)
-		buf[0x2] = (byte)(heads >> 8);
-		buf[0x3] = (byte)heads;
+		SetInt16(buf, 0x02, heads);
 
 		// Set the number of sectors per track
-		buf[0xa] = (byte)(sectors >> 8);
-		buf[0xb] = (byte)sectors;
+		SetInt16(buf, 0x0a, sectors);
 
 		// Set the number of bytes in the physical sector
-		int size = 1 << disk.size;
-		buf[0xc] = (byte)(size >> 8);
-		buf[0xd] = (byte)size;
+		SetInt16(buf, 0x0c, 1 << disk.size);
 	}
 
 	// Set removable attributes (remains of the old days)
@@ -191,9 +189,7 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) co
 	// No changeable area
 	if (!changeable && IsReady()) {
 		// Set the number of cylinders
-		buf[0x2] = (byte)(cylinders >> 16);
-		buf[0x3] = (byte)(cylinders >> 8);
-		buf[0x4] = (byte)cylinders;
+		SetInt32(buf, 0x01, cylinders);
 
 		// Set the number of heads
 		buf[0x5] = (byte)heads;

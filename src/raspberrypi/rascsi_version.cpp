@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
+#include <sstream>
 #include <iomanip>
 
 // The following should be updated for each release

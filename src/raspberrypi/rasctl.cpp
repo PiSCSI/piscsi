@@ -10,12 +10,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
+#include <unistd.h>
 #include "rascsi_version.h"
-#include "protobuf_util.h"
+#include "command_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include <unistd.h>
 #include <clocale>
 #include <iostream>
 #include <list>
@@ -26,7 +27,7 @@ static const char COMPONENT_SEPARATOR = ':';
 using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace protobuf_util;
+using namespace command_util;
 
 PbOperation ParseOperation(const string& operation)
 {
@@ -370,8 +371,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// TODO For macos only 'if (optind != argc)' appears to work, but then non-argument options do not reject arguments
-
+	// For macos only 'if (optind != argc)' appears to work, but then non-argument options do not reject arguments
 	if (optopt) {
 		exit(EXIT_FAILURE);
 	}
@@ -388,84 +388,7 @@ int main(int argc, char* argv[])
 	ParseParameters(*device, param);
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
-
-	switch(command.operation()) {
-		case LOG_LEVEL:
-			rasctl_commands.CommandLogLevel(log_level);
-			break;
-
-		case DEFAULT_FOLDER:
-			rasctl_commands.CommandDefaultImageFolder(default_folder);
-			break;
-
-		case RESERVE_IDS:
-			rasctl_commands.CommandReserveIds(reserved_ids);
-			break;
-
-		case CREATE_IMAGE:
-			rasctl_commands.CommandCreateImage(image_params);
-			break;
-
-		case DELETE_IMAGE:
-			rasctl_commands.CommandDeleteImage(image_params);
-			break;
-
-		case RENAME_IMAGE:
-			rasctl_commands.CommandRenameImage(image_params);
-			break;
-
-		case COPY_IMAGE:
-			rasctl_commands.CommandCopyImage(image_params);
-			break;
-
-		case DEVICES_INFO:
-			rasctl_commands.CommandDeviceInfo();
-			break;
-
-		case DEVICE_TYPES_INFO:
-			rasctl_commands.CommandDeviceTypesInfo();
-			break;
-
-		case VERSION_INFO:
-			rasctl_commands.CommandVersionInfo();
-			break;
-
-		case SERVER_INFO:
-			rasctl_commands.CommandServerInfo();
-			break;
-
-		case DEFAULT_IMAGE_FILES_INFO:
-			rasctl_commands.CommandDefaultImageFilesInfo();
-			break;
-
-		case IMAGE_FILE_INFO:
-			rasctl_commands.CommandImageFileInfo(filename);
-			break;
-
-		case NETWORK_INTERFACES_INFO:
-			rasctl_commands.CommandNetworkInterfacesInfo();
-			break;
-
-		case LOG_LEVEL_INFO:
-			rasctl_commands.CommandLogLevelInfo();
-			break;
-
-		case RESERVED_IDS_INFO:
-			rasctl_commands.CommandReservedIdsInfo();
-			break;
-
-		case MAPPING_INFO:
-			rasctl_commands.CommandMappingInfo();
-			break;
-
-		case OPERATION_INFO:
-			rasctl_commands.CommandOperationInfo();
-			break;
-
-		default:
-			rasctl_commands.SendCommand();
-			break;
-	}
+	rasctl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
 
 	exit(EXIT_SUCCESS);
 }

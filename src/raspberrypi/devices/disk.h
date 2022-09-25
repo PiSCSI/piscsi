@@ -11,31 +11,22 @@
 //  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
-//	[ Disk ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "log.h"
 #include "scsi.h"
-#include "device.h"
 #include "device_factory.h"
-#include "disk_track_cache.h"
-#include "file_support.h"
+#include "disk_track.h"
+#include "disk_cache.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
 #include <string>
 #include <unordered_set>
-#include <unordered_map>
-
-using namespace std;
 
 class Disk : public ModePageDevice, public ScsiBlockCommands
 {
-private:
-
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
 	// The supported configurable block sizes, empty if not configurable
@@ -72,7 +63,7 @@ public:
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const;
-	bool SetConfiguredSectorSize(uint32_t);
+	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
 	uint64_t GetBlockCount() const;
 	void FlushCache() override;
 
@@ -84,8 +75,7 @@ private:
 	void StartStopUnit();
 	void SendDiagnostic();
 	void PreventAllowMediumRemoval();
-	void SynchronizeCache10();
-	void SynchronizeCache16();
+	void SynchronizeCache();
 	void ReadDefectData10();
 	virtual void Read6();
 	void Read10() override;
@@ -111,12 +101,9 @@ private:
 	void ReadWriteLong10();
 	void ReadWriteLong16();
 	void ReadCapacity16_ReadLong16();
-	void Format(const vector<int>&);
-	bool SendDiag(const vector<int>&) const;
-	bool StartStop(const vector<int>&);
 
 	void ValidateBlockAddress(access_mode) const;
-	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode);
+	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
 	int ModeSense6(const vector<int>&, BYTE *, int) const override;
 	int ModeSense10(const vector<int>&, BYTE *, int) const override;
@@ -125,8 +112,7 @@ protected:
 
 	virtual void Open(const Filepath&);
 
-	virtual void SetDeviceParameters(BYTE *) const;
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;

@@ -28,12 +28,12 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;
-
-// const array<byte, 6> SCSIDaynaPort::m_bcast_addr = { byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff}, byte{0xff} };
-// const array<byte, 6> SCSIDaynaPort::m_apple_talk_addr = { byte{0x09}, byte{0x00}, byte{0x07}, byte{0xff}, byte{0xff}, byte{0xff} };
+using namespace scsi_command_util;
 
 // TODO Disk must not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
@@ -45,12 +45,6 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
 	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
 	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
-}
-
-SCSIDaynaPort::~SCSIDaynaPort()
-{
-	// TAP driver release
-	m_tap.Cleanup();
 }
 
 bool SCSIDaynaPort::Dispatch(scsi_command cmd)
@@ -176,7 +170,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
 		// The first 2 bytes are reserved for the length of the packet
 		// The next 4 bytes are reserved for a flag field
 		//rx_packet_size = m_tap.Rx(response->data);
-		rx_packet_size = m_tap.Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
+		rx_packet_size = m_tap.Receive(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
 		if (rx_packet_size <= 0) {
@@ -252,17 +246,8 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
 				// breaks because of this, the work-around has to be re-evaluated.
 				size = 64;
 			}
-			buf[0] = (BYTE)(size >> 8);
-			buf[1] = (BYTE)size;
-
-			buf[2] = 0;
-			buf[3] = 0;
-			buf[4] = 0;
-			if(m_tap.PendingPackets()){
-				buf[5] = 0x10;
-			} else {
-				buf[5] = 0;
-			}
+			SetInt16(&buf[0], size);
+			SetInt32(&buf[2], m_tap.PendingPackets() ? 0x10 : 0x00);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
@@ -312,13 +297,13 @@ bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const BYTE *buf, uint64_t
 	int data_length = cdb[4] + (cdb[3] << 8);
 
 	if (data_format == 0x00){
-		m_tap.Tx(buf, data_length);
+		m_tap.Send(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
 		data_length=buf[1] + (buf[0] << 8);
-		m_tap.Tx(&buf[4], data_length);
+		m_tap.Send(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else

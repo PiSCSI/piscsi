@@ -16,14 +16,16 @@
 
 #include "os.h"
 #include "fileio.h"
-#include "device_factory.h"
+#include "file_support.h"
 #include "rascsi_exceptions.h"
+#include "dispatcher.h"
+#include "scsi_command_util.h"
 #include "disk.h"
-#include "mode_page_device.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
-Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
+Disk::Disk(const string& id) : ModePageDevice(id)
 {
 	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
@@ -44,8 +46,8 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	dispatcher.Add(scsi_command::eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
 	dispatcher.Add(scsi_command::eCmdSeek10, "Seek10", &Disk::Seek10);
 	dispatcher.Add(scsi_command::eCmdVerify10, "Verify10", &Disk::Verify10);
-	dispatcher.Add(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	dispatcher.Add(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	dispatcher.Add(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache);
+	dispatcher.Add(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache);
 	dispatcher.Add(scsi_command::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
 	dispatcher.Add(scsi_command::eCmdReserve10, "Reserve10", &Disk::Reserve);
 	dispatcher.Add(scsi_command::eCmdRelease10, "Release10", &Disk::Release);
@@ -126,7 +128,12 @@ void Disk::Rezero()
 
 void Disk::FormatUnit()
 {
-	Format(ctrl->cmd);
+	CheckReady();
+
+	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
+	if ((ctrl->cmd[1] & 0x10) != 0 && ctrl->cmd[4] != 0) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	}
 
 	EnterStatusPhase();
 }
@@ -138,8 +145,7 @@ void Disk::ReassignBlocks()
 
 void Disk::Read(access_mode mode)
 {
-	uint64_t start;
-	if (CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
 		ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
 		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
 
@@ -147,6 +153,9 @@ void Disk::Read(access_mode mode)
 		ctrl->next = start + 1;
 
 		EnterDataInPhase();
+	}
+	else {
+		EnterStatusPhase();
 	}
 }
 
@@ -191,14 +200,16 @@ void Disk::ReadWriteLong16()
 
 void Disk::Write(access_mode mode)
 {
-	uint64_t start;
-	if (CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
 		ctrl->length = WriteCheck(start);
 
 		// Set next block
 		ctrl->next = start + 1;
 
 		EnterDataOutPhase();
+	}
+	else {
+		EnterStatusPhase();
 	}
 }
 
@@ -219,8 +230,7 @@ void Disk::Write16()
 
 void Disk::Verify(access_mode mode)
 {
-	uint64_t start;
-	if (CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
 		// if BytChk=0
 		if ((ctrl->cmd[1] & 0x02) == 0) {
 			Seek();
@@ -234,6 +244,9 @@ void Disk::Verify(access_mode mode)
 		ctrl->next = start + 1;
 
 		EnterDataOutPhase();
+	}
+	else {
+		EnterStatusPhase();
 	}
 }
 
@@ -249,8 +262,33 @@ void Disk::Verify16()
 
 void Disk::StartStopUnit()
 {
-	if (!StartStop(ctrl->cmd)) {
-		throw scsi_error_exception();
+	bool start = ctrl->cmd[4] & 0x01;
+	bool load = ctrl->cmd[4] & 0x02;
+
+	if (load) {
+		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium")
+	}
+	else {
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit")
+
+		SetStopped(!start);
+	}
+
+	if (!start) {
+		FlushCache();
+
+		// Look at the eject bit and eject if necessary
+		if (load) {
+			if (IsLocked()) {
+				// Cannot be ejected because it is locked
+				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
+			}
+
+			// Eject
+			if (!Eject(false)) {
+				throw scsi_error_exception();
+			}
+		}
 	}
 
 	EnterStatusPhase();
@@ -258,7 +296,13 @@ void Disk::StartStopUnit()
 
 void Disk::SendDiagnostic()
 {
-	if (!SendDiag(ctrl->cmd)) {
+	// Do not support PF bit
+	if (ctrl->cmd[1] & 0x10) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	}
+
+	// Do not support parameter list
+	if ((ctrl->cmd[3] != 0) || (ctrl->cmd[4] != 0)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -278,21 +322,16 @@ void Disk::PreventAllowMediumRemoval()
 	EnterStatusPhase();
 }
 
-void Disk::SynchronizeCache10()
+void Disk::SynchronizeCache()
 {
 	FlushCache();
 
 	EnterStatusPhase();
 }
 
-void Disk::SynchronizeCache16()
-{
-	return SynchronizeCache10();
-}
-
 void Disk::ReadDefectData10()
 {
-	int allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
+	int allocation_length = GetInt16(ctrl->cmd, 7);
 	if (allocation_length > 4) {
 		allocation_length = 4;
 	}
@@ -315,7 +354,7 @@ void Disk::MediumChanged()
 
 bool Disk::Eject(bool force)
 {
-	bool status = Device::Eject(force);
+	bool status = super::Eject(force);
 	if (status) {
 		FlushCache();
 		delete disk.dcache;
@@ -323,8 +362,7 @@ bool Disk::Eject(bool force)
 
 		// The image file for this drive is not in use anymore
 		// TODO This cast and the FileSupport class can be removed as soon as only disk-like devices inherit from Disk
-		auto file_support = dynamic_cast<FileSupport *>(this);
-		if (file_support) {
+		if (auto file_support = dynamic_cast<FileSupport *>(this); file_support) {
 			file_support->UnreserveFile();
 		}
 	}
@@ -341,6 +379,11 @@ int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 	}
 	memset(buf, 0, length);
 
+	// DEVICE SPECIFIC PARAMETER
+	if (IsProtected()) {
+		buf[2] = 0x80;
+	}
+
 	// Basic information
 	int size = 4;
 
@@ -352,18 +395,8 @@ int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 		// Only if ready
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-
-			uint64_t disk_blocks = GetBlockCount();
-			buf[4] = (BYTE)(disk_blocks >> 24);
-			buf[5] = (BYTE)(disk_blocks >> 16);
-			buf[6] = (BYTE)(disk_blocks >> 8);
-			buf[7] = (BYTE)disk_blocks;
-
-			// Block descriptor (block length)
-			uint32_t disk_size = GetSectorSizeInBytes();
-			buf[9] = (BYTE)(disk_size >> 16);
-			buf[10] = (BYTE)(disk_size >> 8);
-			buf[11] = (BYTE)disk_size;
+			SetInt32(&buf[4], (uint32_t)GetBlockCount());
+			SetInt32(&buf[8], GetSectorSizeInBytes());
 		}
 
 		size = 12;
@@ -388,11 +421,16 @@ int Disk::ModeSense6(const vector<int>& cdb, BYTE *buf, int max_length) const
 int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 {
 	// Get length, clear buffer
-	int length = (cdb[7] << 8) | cdb[8];
+	int length = GetInt16(cdb, 7);
 	if (length > max_length) {
 		length = max_length;
 	}
 	memset(buf, 0, length);
+
+	// DEVICE SPECIFIC PARAMETER
+	if (IsProtected()) {
+		buf[3] = 0x80;
+	}
 
 	// Basic Information
 	int size = 8;
@@ -408,15 +446,8 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 			buf[7] = 0x08;
 
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-
-			buf[8] = (BYTE)(disk_blocks >> 24);
-			buf[9] = (BYTE)(disk_blocks >> 16);
-			buf[10] = (BYTE)(disk_blocks >> 8);
-			buf[11] = (BYTE)disk_blocks;
-
-			buf[13] = (BYTE)(disk_size >> 16);
-			buf[14] = (BYTE)(disk_size >> 8);
-			buf[15] = (BYTE)disk_size;
+			SetInt32(&buf[8], (uint32_t)disk_blocks);
+			SetInt32(&buf[12], disk_size);
 
 			size = 16;
 		}
@@ -428,20 +459,8 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 			buf[7] = 0x10;
 
 			// Long LBA mode parameter block descriptor (number of blocks and block length)
-
-			buf[8] = (BYTE)(disk_blocks >> 56);
-			buf[9] = (BYTE)(disk_blocks >> 48);
-			buf[10] = (BYTE)(disk_blocks >> 40);
-			buf[11] = (BYTE)(disk_blocks >> 32);
-			buf[12] = (BYTE)(disk_blocks >> 24);
-			buf[13] = (BYTE)(disk_blocks >> 16);
-			buf[14] = (BYTE)(disk_blocks >> 8);
-			buf[15] = (BYTE)disk_blocks;
-
-			buf[20] = (BYTE)(disk_size >> 24);
-			buf[21] = (BYTE)(disk_size >> 16);
-			buf[22] = (BYTE)(disk_size >> 8);
-			buf[23] = (BYTE)disk_size;
+			SetInt64(&buf[8], disk_blocks);
+			SetInt32(&buf[20], disk_size);
 
 			size = 24;
 		}
@@ -458,21 +477,12 @@ int Disk::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length) const
 	}
 
 	// Final setting of mode data length
-	buf[0] = (BYTE)(size >> 8);
-	buf[1] = (BYTE)size;
+	SetInt16(buf, size);
 
 	return size;
 }
 
-void Disk::SetDeviceParameters(BYTE *buf) const
-{
-	// DEVICE SPECIFIC PARAMETER
-	if (IsProtected()) {
-		buf[3] = 0x80;
-	}
-}
-
-void Disk::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -523,25 +533,19 @@ void Disk::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 		buf[0x03] = (byte)0x08;
 
 		// Set sector/track to 25
-		buf[0x0a] = (byte)0x00;
-		buf[0x0b] = (byte)0x19;
+		SetInt16(buf, 0x0a, 25);
 
 		// Set the number of bytes in the physical sector
-		int size = 1 << disk.size;
-		buf[0x0c] = (byte)(size >> 8);
-		buf[0x0d] = (byte)size;
+		SetInt16(buf, 0x0c, 1 << disk.size);
 
 		// Interleave 1
-		buf[0x0e] = (byte)0x00;
-		buf[0x0f] = (byte)0x01;
+		SetInt16(buf, 0x0e, 1);
 
 		// Track skew factor 11
-		buf[0x10] = (byte)0x00;
-		buf[0x11] = (byte)0x0b;
+		SetInt16(buf, 0x10, 11);
 
 		// Cylinder skew factor 20
-		buf[0x12] = (byte)0x00;
-		buf[0x13] = (byte)0x14;
+		SetInt16(buf, 0x12, 20);
 	}
 
 	buf[20] = IsRemovable() ? (byte)0x20 : (byte)0x00;
@@ -569,16 +573,13 @@ void Disk::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) const
 		uint64_t cylinders = disk.blocks;
 		cylinders >>= 3;
 		cylinders /= 25;
-		buf[0x02] = (byte)(cylinders >> 16);
-		buf[0x03] = (byte)(cylinders >> 8);
-		buf[0x04] = (byte)cylinders;
+		SetInt32(buf, 0x01, (uint32_t)cylinders);
 
 		// Fix the head at 8
 		buf[0x05] = (byte)0x8;
 
 		// Medium rotation rate 7200
-		buf[0x14] = (byte)0x1c;
-		buf[0x15] = (byte)0x20;
+		SetInt16(buf, 0x14, 7200);
 	}
 
 	pages[4] = buf;
@@ -598,16 +599,13 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 	// Only read cache is valid
 
 	// Disable pre-fetch transfer length
-	buf[0x04] = (byte)0xff;
-	buf[0x05] = (byte)0xff;
+	SetInt16(buf, 0x04, -1);
 
 	// Maximum pre-fetch
-	buf[0x08] = (byte)0xff;
-	buf[0x09] = (byte)0xff;
+	SetInt16(buf, 0x08, -1);
 
 	// Maximum pre-fetch ceiling
-	buf[0x0a] = (byte)0xff;
-	buf[0x0b] = (byte)0xff;
+	SetInt16(buf, 0x0a, -1);
 
 	pages[8] = buf;
 }
@@ -615,16 +613,6 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 void Disk::AddVendorPage(map<int, vector<byte>>&, int, bool) const
 {
 	// Nothing to add by default
-}
-
-void Disk::Format(const vector<int>& cdb)
-{
-	CheckReady();
-
-	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
-	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
 }
 
 // TODO Read more than one block in a single call. Currently blocked by the the track-oriented cache
@@ -701,72 +689,27 @@ void Disk::Seek()
 
 void Disk::Seek6()
 {
-	uint64_t start;
-	if (CheckAndGetStartAndCount(start, ctrl->blocks, SEEK6)) {
-		Seek();
+	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, SEEK6)) {
+		CheckReady();
 	}
+
+	EnterStatusPhase();
 }
 
 void Disk::Seek10()
 {
-	uint64_t start;
-	if (CheckAndGetStartAndCount(start, ctrl->blocks, SEEK10)) {
-		Seek();
-	}
-}
-
-bool Disk::StartStop(const vector<int>& cdb)
-{
-	bool start = cdb[4] & 0x01;
-	bool load = cdb[4] & 0x02;
-
-	if (load) {
-		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium")
-	}
-	else {
-		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit")
-
-		SetStopped(!start);
+	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, SEEK10)) {
+		CheckReady();
 	}
 
-	if (!start) {
-		FlushCache();
-
-		// Look at the eject bit and eject if necessary
-		if (load) {
-			if (IsLocked()) {
-				// Cannot be ejected because it is locked
-				throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
-			}
-
-			// Eject
-			return Eject(false);
-		}
-	}
-
-	return true;
-}
-
-bool Disk::SendDiag(const vector<int>& cdb) const
-{
-	// Do not support PF bit
-	if (cdb[1] & 0x10) {
-		return false;
-	}
-
-	// Do not support parameter list
-	if ((cdb[3] != 0) || (cdb[4] != 0)) {
-		return false;
-	}
-
-	return true;
+	EnterStatusPhase();
 }
 
 void Disk::ReadCapacity10()
 {
 	CheckReady();
 
-	if (disk.blocks <= 0) {
+	if (disk.blocks == 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
@@ -779,17 +722,10 @@ void Disk::ReadCapacity10()
 	if (blocks > 4294967295) {
 		blocks = -1;
 	}
-	buf[0] = (BYTE)(blocks >> 24);
-	buf[1] = (BYTE)(blocks >> 16);
-	buf[2] = (BYTE)(blocks >> 8);
-	buf[3] = (BYTE)blocks;
+	SetInt32(&buf[0], (uint32_t)blocks);
 
 	// Create block length (1 << disk.size)
-	uint32_t length = 1 << disk.size;
-	buf[4] = (BYTE)(length >> 24);
-	buf[5] = (BYTE)(length >> 16);
-	buf[6] = (BYTE)(length >> 8);
-	buf[7] = (BYTE)length;
+	SetInt32(&buf[4], 1 << disk.size);
 
 	// the size
 	ctrl->length = 8;
@@ -801,29 +737,17 @@ void Disk::ReadCapacity16()
 {
 	CheckReady();
 
-	if (disk.blocks <= 0) {
+	if (disk.blocks == 0) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	BYTE *buf = ctrl->buffer;
 
 	// Create end of logical block address (disk.blocks-1)
-	uint64_t blocks = disk.blocks - 1;
-	buf[0] = (BYTE)(blocks >> 56);
-	buf[1] = (BYTE)(blocks >> 48);
-	buf[2] = (BYTE)(blocks >> 40);
-	buf[3] = (BYTE)(blocks >> 32);
-	buf[4] = (BYTE)(blocks >> 24);
-	buf[5] = (BYTE)(blocks >> 16);
-	buf[6] = (BYTE)(blocks >> 8);
-	buf[7] = (BYTE)blocks;
+	SetInt64(&buf[0], disk.blocks - 1);
 
 	// Create block length (1 << disk.size)
-	uint32_t length = 1 << disk.size;
-	buf[8] = (BYTE)(length >> 24);
-	buf[9] = (BYTE)(length >> 16);
-	buf[10] = (BYTE)(length >> 8);
-	buf[11] = (BYTE)length;
+	SetInt32(&buf[8], 1 << disk.size);
 
 	buf[12] = 0;
 
@@ -882,34 +806,18 @@ void Disk::Release()
 
 void Disk::ValidateBlockAddress(access_mode mode) const
 {
-	uint64_t block = ctrl->cmd[2];
-	block <<= 8;
-	block |= ctrl->cmd[3];
-	block <<= 8;
-	block |= ctrl->cmd[4];
-	block <<= 8;
-	block |= ctrl->cmd[5];
-
-	if (mode == RW16) {
-		block <<= 8;
-		block |= ctrl->cmd[6];
-		block <<= 8;
-		block |= ctrl->cmd[7];
-		block <<= 8;
-		block |= ctrl->cmd[8];
-		block <<= 8;
-		block |= ctrl->cmd[9];
-	}
+	uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
 
 	uint64_t capacity = GetBlockCount();
+
 	if (block > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 }
 
-bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mode mode)
+bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mode mode) const
 {
 	if (mode == RW6 || mode == SEEK6) {
 		start = ctrl->cmd[1] & 0x1f;
@@ -924,38 +832,13 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 		}
 	}
 	else {
-		start = ctrl->cmd[2];
-		start <<= 8;
-		start |= ctrl->cmd[3];
-		start <<= 8;
-		start |= ctrl->cmd[4];
-		start <<= 8;
-		start |= ctrl->cmd[5];
+		start = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
 
 		if (mode == RW16) {
-			start <<= 8;
-			start |= ctrl->cmd[6];
-			start <<= 8;
-			start |= ctrl->cmd[7];
-			start <<= 8;
-			start |= ctrl->cmd[8];
-			start <<= 8;
-			start |= ctrl->cmd[9];
-		}
-
-		if (mode == RW16) {
-			count = ctrl->cmd[10];
-			count <<= 8;
-			count |= ctrl->cmd[11];
-			count <<= 8;
-			count |= ctrl->cmd[12];
-			count <<= 8;
-			count |= ctrl->cmd[13];
+			count = GetInt32(ctrl->cmd, 10);
 		}
 		else if (mode != SEEK6 && mode != SEEK10) {
-			count = ctrl->cmd[7];
-			count <<= 8;
-			count |= ctrl->cmd[8];
+			count = GetInt16(ctrl->cmd, 7);
 		}
 		else {
 			count = 0;
@@ -966,14 +849,13 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); start > capacity || start + count > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	// Do not process 0 blocks
 	if (!count && (mode != SEEK6 && mode != SEEK10)) {
-		EnterStatusPhase();
 		return false;
 	}
 
@@ -987,7 +869,8 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 {
-	if (unordered_set<uint32_t> sizes = DeviceFactory::instance().GetSectorSizes(GetType());
+	DeviceFactory device_factory;
+	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
 		!sizes.empty() && sizes.find(size_in_bytes) == sizes.end()) {
 		throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
 	}
@@ -1040,10 +923,8 @@ uint32_t Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(uint32_t size)
+bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t size)
 {
-	const DeviceFactory& device_factory = DeviceFactory::instance();
-
 	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
 		sizes.find(size) == sizes.end()) {
 		return false;

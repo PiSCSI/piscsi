@@ -9,12 +9,12 @@
 
 #pragma once
 
+#include "socket_connector.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <string>
 
-using namespace std;
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class RasctlCommands
 {
@@ -25,8 +25,12 @@ public:
 	RasctlCommands(RasctlCommands&) = delete;
 	RasctlCommands& operator=(const RasctlCommands&) = delete;
 
-	void SendCommand();
+	void Execute(const string&, const string&, const string&, const string&, const string&);
+
 	void CommandDevicesInfo();
+
+private:
+
 	void CommandLogLevel(const string&);
 	void CommandReserveIds(const string&);
 	void CommandCreateImage(const string&);
@@ -45,9 +49,9 @@ public:
 	void CommandReservedIdsInfo();
 	void CommandMappingInfo();
 	void CommandOperationInfo();
+	void SendCommand();
 
-private:
-
+	SocketConnector socket_connector;
 	PbCommand command;
 	string hostname;
 	int port;

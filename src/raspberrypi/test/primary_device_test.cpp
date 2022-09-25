@@ -12,15 +12,29 @@
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 
-TEST(PrimaryDeviceTest, UnitReady)
+TEST(PrimaryDeviceTest, PhaseChange)
 {
 	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdTestUnitReady;
+	EXPECT_CALL(controller, Status()).Times(1);
+	device.EnterStatusPhase();
+
+	EXPECT_CALL(controller, DataIn()).Times(1);
+	device.EnterDataInPhase();
+
+	EXPECT_CALL(controller, DataOut()).Times(1);
+	device.EnterDataOutPhase();
+}
+
+TEST(PrimaryDeviceTest, TestUnitReady)
+{
+	MockScsiController controller(nullptr, 0);
+	MockPrimaryDevice device;
+
+	controller.AddDevice(&device);
 
 	device.SetReset(true);
 	device.SetAttn(true);
@@ -59,8 +73,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	device.SetController(&controller);
 
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdInquiry;
+	controller.ctrl.cmd.resize(6);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
 
@@ -121,8 +134,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd = vector<int>(6);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdRequestSense;
+	controller.ctrl.cmd.resize(6);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[4] = 255;
 
@@ -146,13 +158,12 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 	device1.SetLun(LUN1);
 	controller.AddDevice(&device1);
-	ASSERT_TRUE(controller.HasDeviceForLun(LUN1));
+	EXPECT_TRUE(controller.HasDeviceForLun(LUN1));
 	device2.SetLun(LUN2);
 	controller.AddDevice(&device2);
-	ASSERT_TRUE(controller.HasDeviceForLun(LUN2));
+	EXPECT_TRUE(controller.HasDeviceForLun(LUN2));
 
-	controller.ctrl.cmd = vector<int>(10);
-	controller.ctrl.cmd[0] = (int)scsi_command::eCmdReportLuns;
+	controller.ctrl.cmd.resize(10);
 	// ALLOCATION LENGTH
 	controller.ctrl.cmd[9] = 255;
 
@@ -191,7 +202,13 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd = vector<int>(1);
-	controller.ctrl.cmd[0] = 0xFF;
+	controller.ctrl.cmd.resize(1);
 	EXPECT_FALSE(device.Dispatch((scsi_command)0xFF));
+}
+
+TEST(PrimaryDeviceTest, GetSendDelay)
+{
+	MockPrimaryDevice device;
+
+	EXPECT_EQ(-1, device.GetSendDelay());
 }

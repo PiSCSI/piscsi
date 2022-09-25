@@ -11,16 +11,14 @@
 
 #pragma once
 
-#include "phase_handler.h"
+#include "scsi.h"
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
-using namespace std;
-
 class PrimaryDevice;
 
-class AbstractController : public PhaseHandler
+class AbstractController
 {
 public:
 
@@ -39,7 +37,7 @@ public:
 		BUS::phase_t phase = BUS::phase_t::busfree;	// Transition phase
 
 		// commands
-		vector<int> cmd;				// Command data, dynamically allocated per received command
+		std::vector<int> cmd;			// Command data, dynamically allocated per received command
 		uint32_t status;				// Status data
 		int message;					// Message data
 
@@ -52,13 +50,23 @@ public:
 		uint32_t length;				// Transfer remaining length
 
 		// Logical units of this device controller mapped to their LUN numbers
-		unordered_map<int, PrimaryDevice *> luns;
+		std::unordered_map<int, PrimaryDevice *> luns;
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id) : target_id(target_id), bus(bus) {}
-	~AbstractController() override = default;
+	virtual ~AbstractController() = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
+
+	virtual void SetPhase(BUS::phase_t) = 0;
+	virtual void BusFree() = 0;
+	virtual void Selection() = 0;
+	virtual void Command() = 0;
+	virtual void Status() = 0;
+	virtual void DataIn() = 0;
+	virtual void DataOut() = 0;
+	virtual void MsgIn() = 0;
+	virtual void MsgOut() = 0;
 
 	virtual BUS::phase_t Process(int) = 0;
 
@@ -91,6 +99,7 @@ public:
 protected:
 
 	scsi_defs::scsi_command GetOpcode() const { return (scsi_defs::scsi_command)ctrl.cmd[0]; }
+	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
 
 	shared_ptr<BUS> bus;
 

@@ -3,45 +3,34 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
-#include <sys/sendfile.h>
-#include "os.h"
+#include <pwd.h>
 #include "log.h"
 #include "filepath.h"
 #include "spdlog/spdlog.h"
 #include "devices/file_support.h"
-#include "protobuf_util.h"
+#include "command_util.h"
 #include "rascsi_image.h"
 #include <string>
+#include <array>
 #include <filesystem>
+#ifdef __linux
+#include <sys/sendfile.h>
+#endif
 
 using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
-using namespace protobuf_util;
-
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
+using namespace command_util;
 
 RascsiImage::RascsiImage()
 {
 	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
-	int uid = getuid();
-	if (auto sudo_user = getenv("SUDO_UID"); sudo_user) {
-		uid = stoi(sudo_user);
-	}
-
-	const passwd *passwd = getpwuid(uid);
-	if (uid && passwd) {
-		default_image_folder = passwd->pw_dir;
-		default_image_folder += "/images";
-	}
-	else {
-		default_image_folder = "/home/pi/images";
-	}
+	default_image_folder = GetHomeDir() + "/images";
 }
 
 bool RascsiImage::CheckDepth(string_view filename) const
@@ -79,17 +68,7 @@ string RascsiImage::SetDefaultImageFolder(const string& f)
 
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
-		int uid = getuid();
-		if (const char *sudo_user = getenv("SUDO_UID"); sudo_user) {
-			uid = stoi(sudo_user);
-		}
-
-		const passwd *passwd = getpwuid(uid);
-		if (passwd) {
-			folder = passwd->pw_dir;
-			folder += "/";
-			folder += f;
-		}
+		folder = GetHomeDir() + "/" + f;
 	}
 	else {
 		if (folder.find("/home/") != 0) {
@@ -173,6 +152,13 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
+#ifndef __linux
+	close(image_fd);
+
+	unlink(full_filename.c_str());
+
+	return false;
+#else
 	if (fallocate(image_fd, 0, 0, len)) {
 		close(image_fd);
 
@@ -187,6 +173,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 			"' with a size of " + to_string(len) + " bytes").c_str())
 
 	return ReturnStatus(context);
+#endif
 }
 
 bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
@@ -347,6 +334,14 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
+#ifndef __linux
+    close(fd_dst);
+    close(fd_src);
+
+	unlink(to.c_str());
+
+	return false;
+#else
     if (sendfile(fd_dst, fd_src, nullptr, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
@@ -362,6 +357,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return ReturnStatus(context);
+#endif
 }
 
 bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
@@ -396,4 +392,23 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	}
 
 	return ReturnStatus(context);
+}
+
+string RascsiImage::GetHomeDir() const
+{
+	int uid = getuid();
+	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {
+		uid = stoi(sudo_user);
+	}
+
+	passwd pwd = {};
+	passwd *p_pwd;
+	array<char, 256> pwbuf;
+
+	if (uid && !getpwuid_r(uid, &pwd, pwbuf.data(), pwbuf.size(), &p_pwd)) {
+		return pwd.pw_dir;
+	}
+	else {
+		return "/home/pi";
+	}
 }

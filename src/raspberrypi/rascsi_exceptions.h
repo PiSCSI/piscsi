@@ -13,7 +13,7 @@
 #include <exception>
 #include <string>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 class illegal_argument_exception final : public exception {
 private:
@@ -41,7 +41,7 @@ class file_not_found_exception : public io_exception {
 	using io_exception::io_exception;
 };
 
-class scsi_error_exception : public exception {
+class scsi_error_exception final : public exception {
 private:
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;
@@ -52,7 +52,7 @@ public:
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION)
 	: sense_key(sense_key), asc(asc), status(status) {}
-	~scsi_error_exception() final = default;
+	~scsi_error_exception() override = default;
 
 	scsi_defs::sense_key get_sense_key() const { return sense_key; }
 	scsi_defs::asc get_asc() const { return asc; }

@@ -31,7 +31,7 @@ ifeq ("$(shell uname -s)","Linux")
 endif
 
 
-CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
@@ -93,7 +93,8 @@ SRC_RASCSI_CORE = \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp \
+	command_util.cpp \
+	socket_connector.cpp \
 	localizer.cpp
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
@@ -115,7 +116,8 @@ SRC_RASCTL = \
 	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp \
+	command_util.cpp \
+	socket_connector.cpp \
 	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 

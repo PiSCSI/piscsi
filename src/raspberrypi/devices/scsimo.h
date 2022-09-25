@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "os.h"
 #include "disk.h"
+#include "file_support.h"
 #include "filepath.h"
 
 class SCSIMO : public Disk, public FileSupport
@@ -29,15 +29,14 @@ public:
 	SCSIMO(SCSIMO&) = delete;
 	SCSIMO& operator=(const SCSIMO&) = delete;
 
-	void Open(const Filepath& path) override;
+	void Open(const Filepath&) override;
 
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const BYTE *, int) override;
+	void ModeSelect(const vector<int>&, const BYTE *, int) const override;
 
 protected:
 
-	void SetDeviceParameters(BYTE *) const override;
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 

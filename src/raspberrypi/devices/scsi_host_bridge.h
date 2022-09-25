@@ -20,22 +20,15 @@
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
+#include "cfilesystem.h"
 #include <string>
 
-//===========================================================================
-//
-//	SCSI Host Bridge
-//
-//===========================================================================
-class CFileSys;
-
-class SCSIBR : public Disk
+class SCSIBR final : public Disk
 {
-
 public:
 
 	SCSIBR();
-	~SCSIBR() final;
+	~SCSIBR() override;
 	SCSIBR(SCSIBR&) = delete;
 	SCSIBR& operator=(const SCSIBR&) = delete;
 
@@ -102,7 +95,7 @@ private:
 	void FS_CheckMedia(BYTE *buf);				// $57 - check media
 	void FS_Lock(BYTE *buf);					// $58 - get exclusive control
 
-	CFileSys *fs;								// File system accessor
+	CFileSys fs;								// File system accessor
 	DWORD fsresult = 0;							// File system access result code
 	BYTE fsout[0x800];							// File system access result buffer
 	DWORD fsoutlen = 0;							// File system access result buffer size

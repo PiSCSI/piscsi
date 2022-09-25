@@ -13,58 +13,18 @@
 //	[ SCSI CD-ROM  ]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include "os.h"
 #include "disk.h"
 #include "filepath.h"
+#include "cd_track.h"
+#include "file_support.h"
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-//===========================================================================
-//
-//	CD-ROM Track
-//
-//===========================================================================
-class CDTrack
-{
-
-public:
-
-	CDTrack() = default;
-	virtual ~CDTrack() final = default;
-	CDTrack(CDTrack&) = delete;
-	CDTrack& operator=(const CDTrack&) = delete;
-
-	void Init(int track, DWORD first, DWORD last);
-
-	// Properties
-	void SetPath(bool cdda, const Filepath& path);			// Set the path
-	void GetPath(Filepath& path) const;				// Get the path
-	DWORD GetFirst() const;					// Get the start LBA
-	DWORD GetLast() const;						// Get the last LBA
-	DWORD GetBlocks() const;					// Get the number of blocks
-	int GetTrackNo() const;					// Get the track number
-	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
-	bool IsAudio() const;						// Is this an audio track?
-
-private:
-	bool valid = false;								// Valid track
-	int track_no = -1;								// Track number
-	DWORD first_lba = 0;							// First LBA
-	DWORD last_lba = 0;								// Last LBA
-	bool audio = false;								// Audio track flag
-	Filepath imgpath;							// Image file path
-};
-
-//===========================================================================
-//
-//	SCSI CD-ROM
-//
-//===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
-
 public:
 
 	explicit SCSICD(const unordered_set<uint32_t>&);
@@ -79,11 +39,10 @@ public:
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int Read(const vector<int>&, BYTE *, uint64_t) override;
-	int ReadToc(const vector<int>&, BYTE *);
 
 protected:
 
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
@@ -91,6 +50,8 @@ private:
 	using super = Disk;
 
 	Dispatcher<SCSICD> dispatcher;
+
+	int ReadTocInternal(const vector<int>&, BYTE *);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
@@ -103,7 +64,7 @@ private:
 	void ReadToc() override;
 	void GetEventStatusNotification() override;
 
-	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion
 
 	bool rawfile = false;					// RAW flag
 

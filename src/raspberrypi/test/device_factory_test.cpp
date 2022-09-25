@@ -15,6 +15,8 @@
 
 TEST(DeviceFactoryTest, GetTypeForFile)
 {
+	DeviceFactory device_factory;
+
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hd1"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hds"), SCHD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.HDS"), SCHD);
@@ -36,6 +38,8 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 
 TEST(DeviceFactoryTest, LifeCycle)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
@@ -47,7 +51,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(-1, 0));
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 1));
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 	devices = device_factory.GetAllDevices();
 	EXPECT_EQ(0, devices.size());
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(-1, 0));
@@ -55,6 +59,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
+	DeviceFactory device_factory;
 	unordered_set<uint32_t> sector_sizes;
 
 	sector_sizes = device_factory.GetSectorSizes("SCHD");
@@ -98,12 +103,16 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test", -1);
 	EXPECT_EQ(nullptr, device);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hda", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
@@ -124,26 +133,28 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.hds", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.hdi", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(UNDEFINED, "test.nhd", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.hdr", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
@@ -164,11 +175,13 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.mos", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
@@ -189,11 +202,13 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "test.iso", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
@@ -214,11 +229,13 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "bridge", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
@@ -239,11 +256,13 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "daynaport", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
@@ -263,11 +282,13 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
 	EXPECT_EQ("1.4a", device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
@@ -288,11 +309,13 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
+	DeviceFactory device_factory;
+
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "printer", -1);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());
@@ -313,5 +336,5 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(device);
+	device_factory.DeleteDevice(*device);
 }

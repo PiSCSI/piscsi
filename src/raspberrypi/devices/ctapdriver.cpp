@@ -7,23 +7,26 @@
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	[ TAP Driver ]
-//
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include <poll.h>
 #include <arpa/inet.h>
-#ifdef __linux__
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <linux/sockios.h>
-#endif
 #include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
 #include "rasutil.h"
 #include "rascsi_exceptions.h"
+#include <net/if.h>
+#include <sys/ioctl.h>
 #include <sstream>
+
+#ifdef __linux__
+#include <sys/epoll.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <linux/sockios.h>
+#endif
 
 using namespace std;
 using namespace ras_util;
@@ -34,7 +37,10 @@ using namespace ras_util;
 //
 //---------------------------------------------------------------------------
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
-	struct ifreq ifr;
+#ifndef __linux
+	return false;
+#else
+	ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
 		LOGERROR("Can't if_nametoindex %s: %s", ifname, strerror(errno))
@@ -46,10 +52,41 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 		return false;
 	}
 	return true;
+#endif
+}
+
+CTapDriver::~CTapDriver()
+{
+	if (m_hTAP != -1) {
+		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+			LOGERROR("Can't open bridge socket: %s", strerror(errno))
+		} else {
+			LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
+			if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) {
+				LOGWARN("Warning: Removing ras0 from the bridge failed.")
+				LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
+			}
+			close(br_socket_fd);
+		}
+
+		// Release TAP defice
+		close(m_hTAP);
+	}
+
+	if (m_pcap_dumper != nullptr) {
+		pcap_dump_close(m_pcap_dumper);
+	}
+
+	if (m_pcap != nullptr) {
+		pcap_close(m_pcap);
+	}
 }
 
 static bool ip_link(int fd, const char* ifname, bool up) {
-	struct ifreq ifr;
+#ifndef __linux
+	return false;
+#else
+	ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
@@ -66,6 +103,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 		return false;
 	}
 	return true;
+#endif
 }
 
 static bool is_interface_up(string_view interface) {
@@ -88,6 +126,9 @@ static bool is_interface_up(string_view interface) {
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 {
+#ifndef __linux
+	return false;
+#else
 	unordered_map<string, string> params = const_params;
 	if (params.count("interfaces")) {
 		LOGWARN("You are using the deprecated 'interfaces' parameter. "
@@ -119,7 +160,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
-	struct ifreq ifr;
+	ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	string dev = "ras0";
@@ -238,10 +279,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				return false;
 			}
 
-			struct ifreq ifr_a;
+			ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_a.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			if (auto addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
+			if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
 				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a network address: %s", address.c_str(), strerror(errno))
 
@@ -251,10 +292,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				return false;
 			}
 
-			struct ifreq ifr_n;
+			ifreq ifr_n;
 			ifr_n.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_n.ifr_name, BRIDGE_NAME, IFNAMSIZ);
-			if (auto mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
+			if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
 				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 				LOGERROR("Can't convert '%s' into a netmask: %s", netmask.c_str(), strerror(errno))
 
@@ -331,6 +372,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGINFO("Tap device %s created", ifr.ifr_name)
 
 	return true;
+#endif
 }
 
 void CTapDriver::OpenDump(const Filepath& path) {
@@ -347,36 +389,6 @@ void CTapDriver::OpenDump(const Filepath& path) {
 	}
 
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath())
-}
-
-void CTapDriver::Cleanup()
-{
-	if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
-		LOGERROR("Can't open bridge socket: %s", strerror(errno))
-	} else {
-		LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
-		if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) {
-			LOGWARN("Warning: Removing ras0 from the bridge failed.")
-			LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
-		}
-		close(br_socket_fd);
-	}
-
-	// Release TAP defice
-	if (m_hTAP != -1) {
-		close(m_hTAP);
-		m_hTAP = -1;
-	}
-
-	if (m_pcap_dumper != nullptr) {
-		pcap_dump_close(m_pcap_dumper);
-		m_pcap_dumper = nullptr;
-	}
-
-	if (m_pcap != nullptr) {
-		pcap_close(m_pcap);
-		m_pcap = nullptr;
-	}
 }
 
 bool CTapDriver::Enable() const
@@ -400,15 +412,15 @@ bool CTapDriver::Disable() const
 void CTapDriver::Flush()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
-	while(PendingPackets()){
+	while (PendingPackets()) {
 		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
-		(void)Rx(m_garbage_buffer.data());
+		(void)Receive(m_garbage_buffer.data());
 	}
 }
 
 void CTapDriver::GetMacAddr(BYTE *mac) const
 {
-	ASSERT(mac);
+	assert(mac);
 
 	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
@@ -420,11 +432,10 @@ void CTapDriver::GetMacAddr(BYTE *mac) const
 //---------------------------------------------------------------------------
 bool CTapDriver::PendingPackets() const
 {
-	pollfd fds;
-
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	// Check if there is data that can be received
+	pollfd fds;
 	fds.fd = m_hTAP;
 	fds.events = POLLIN | POLLERR;
 	fds.revents = 0;
@@ -432,7 +443,7 @@ bool CTapDriver::PendingPackets() const
 	LOGTRACE("%s %u revents", __PRETTY_FUNCTION__, fds.revents)
 	if (!(fds.revents & POLLIN)) {
 		return false;
-	}else {
+	} else {
 		return true;
 	}
 }
@@ -450,14 +461,9 @@ uint32_t crc32(const BYTE *buf, int length) {
    return ~crc;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Receive
-//
-//---------------------------------------------------------------------------
-int CTapDriver::Rx(BYTE *buf)
+int CTapDriver::Receive(BYTE *buf)
 {
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	// Check if there is data that can be received
 	if (!PendingPackets()) {
@@ -490,7 +496,7 @@ int CTapDriver::Rx(BYTE *buf)
 	}
 
 	if (m_pcap_dumper != nullptr) {
-		struct pcap_pkthdr h = {
+		pcap_pkthdr h = {
 			.ts = {},
 			.caplen = dwReceived,
 			.len = dwReceived
@@ -504,17 +510,12 @@ int CTapDriver::Rx(BYTE *buf)
 	return dwReceived;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Send
-//
-//---------------------------------------------------------------------------
-int CTapDriver::Tx(const BYTE *buf, int len)
+int CTapDriver::Send(const BYTE *buf, int len)
 {
-	ASSERT(m_hTAP != -1);
+	assert(m_hTAP != -1);
 
 	if (m_pcap_dumper != nullptr) {
-		struct pcap_pkthdr h = {
+		pcap_pkthdr h = {
 			.ts = {},
 			.caplen = (bpf_u_int32)len,
 			.len = (bpf_u_int32)len,

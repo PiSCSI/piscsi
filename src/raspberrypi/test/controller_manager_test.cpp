@@ -8,12 +8,14 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "devices/device_factory.h"
 #include "controllers/controller_manager.h"
 
 TEST(ControllerManagerTest, ControllerManager)
 {
 	const int ID = 4;
 	const int LUN = 6;
+	DeviceFactory device_factory;
 	ControllerManager controller_manager;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, "services", ID);

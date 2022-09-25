@@ -15,9 +15,12 @@
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "rascsi_exceptions.h"
+#include "host_services.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
-#include "host_services.h"
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -66,17 +69,11 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["iso"] = SCCD;
 }
 
-DeviceFactory& DeviceFactory::instance()
+void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
 {
-	static DeviceFactory instance;
-	return instance;
-}
-
-void DeviceFactory::DeleteDevice(const PrimaryDevice *device) const
-{
-	auto [begin, end] = devices.equal_range(device->GetId());
-	for (auto it = begin; it != end; ++it) {
-		if (it->second->GetLun() == device->GetLun()) {
+	auto [begin, end] = devices.equal_range(device.GetId());
+	for (auto& it = begin; it != end; ++it) {
+		if (it->second->GetLun() == device.GetLun()) {
 			devices.erase(it);
 
 			break;
@@ -218,7 +215,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(this);
+		device = make_unique<HostServices>(*this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
@@ -248,21 +245,31 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 	return d;
 }
 
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
+{
+	const auto& it = sector_sizes.find(type);
+	return it != sector_sizes.end() ? it->second : empty_set;
+}
+
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type) const
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 
-	const auto it = sector_sizes.find(t);
-	assert (it != sector_sizes.end());
+	return GetSectorSizes(t);
+}
 
-	return it->second;
+const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceType type) const
+{
+	const auto& it = default_params.find(type);
+	return it != default_params.end() ? it->second : empty_map;
 }
 
 list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
+#ifdef __linux
 	ifaddrs *addrs;
 	getifaddrs(&addrs);
 	ifaddrs *tmp = addrs;
@@ -286,6 +293,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	}
 
 	freeifaddrs(addrs);
+#endif
 
 	return network_interfaces;
 }

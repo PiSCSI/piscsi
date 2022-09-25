@@ -11,7 +11,17 @@
 
 #include <string>
 
-struct CommandContext {
-	int fd = -1;
-	std::string locale = "";
+class SocketConnector;
+class Localizer;
+
+struct CommandContext
+{
+	CommandContext(SocketConnector *c, const Localizer *l, int f, const std::string& s)
+		: connector(c), localizer(l), fd(f), locale(s) {}
+	~CommandContext() = default;
+
+	SocketConnector *connector;
+	const Localizer *localizer;
+	int fd;
+	std::string locale;
 };

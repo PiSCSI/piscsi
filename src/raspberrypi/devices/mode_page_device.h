@@ -14,8 +14,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 class ModePageDevice: public PrimaryDevice
 {
 public:
@@ -27,12 +25,12 @@ public:
 
 	bool Dispatch(scsi_command) override;
 
-	virtual void ModeSelect(const vector<int>&, const BYTE *, int);
+	virtual void ModeSelect(const vector<int>&, const BYTE *, int) const;
 
 protected:
 
 	int AddModePages(const vector<int>&, BYTE *, int) const;
-	virtual void AddModePages(map<int, vector<byte>>&, int, bool) const = 0;
+	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
 private:
 

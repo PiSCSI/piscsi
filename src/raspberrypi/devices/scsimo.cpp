@@ -19,6 +19,8 @@
 #include "scsi_command_util.h"
 #include "scsimo.h"
 
+using namespace scsi_command_util;
+
 SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 	: Disk("SCMO")
 {
@@ -67,17 +69,9 @@ vector<byte> SCSIMO::InquiryInternal() const
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
 
-void SCSIMO::SetDeviceParameters(BYTE *buf) const
+void SCSIMO::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	Disk::SetDeviceParameters(buf);
-
-	// MEDIUM TYPE: Optical reversible or erasable
-	buf[2] = 0x03;
-}
-
-void SCSIMO::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
-{
-	Disk::AddModePages(pages, page, changeable);
+	Disk::SetUpModePages(pages, page, changeable);
 
 	// Page code 6
 	if (page == 0x06 || page == 0x3f) {
@@ -89,7 +83,7 @@ void SCSIMO::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	Disk::AddFormatPage(pages, changeable);
 
-	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
 void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
@@ -100,7 +94,7 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length)
+void SCSIMO::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) const
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
@@ -200,14 +194,9 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 
 		buf[2] = (byte)0; // format mode
 		buf[3] = (byte)0; // type of format
-		buf[4] = (byte)(blocks >> 24);
-		buf[5] = (byte)(blocks >> 16);
-		buf[6] = (byte)(blocks >> 8);
-		buf[7] = (byte)blocks;
-		buf[8] = (byte)(spare >> 8);
-		buf[9] = (byte)spare;
-		buf[10] = (byte)(bands >> 8);
-		buf[11] = (byte)bands;
+		SetInt32(buf, 4, (uint32_t)blocks);
+		SetInt16(buf, 8, spare);
+		SetInt16(buf, 10, bands);
 	}
 
 	pages[32] = buf;

@@ -32,21 +32,20 @@
 #include "disk.h"
 #include "ctapdriver.h"
 #include <string>
+#include <unordered_map>
 #include <array>
-
-using namespace std;
 
 //===========================================================================
 //
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort: public Disk
+class SCSIDaynaPort final : public Disk
 {
 
 public:
 	SCSIDaynaPort();
-	~SCSIDaynaPort() final;
+	~SCSIDaynaPort() override = default;
 	SCSIDaynaPort(SCSIDaynaPort&) = delete;
 	SCSIDaynaPort& operator=(const SCSIDaynaPort&) = delete;
 

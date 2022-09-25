@@ -12,11 +12,10 @@
 #pragma once
 
 #include "log.h"
-#include "scsi.h"
 #include <unordered_map>
 
-using namespace std;
-using namespace scsi_defs;
+using namespace std; //NOSONAR Not relevant for rascsi
+using namespace scsi_defs; //NOSONAR Not relevant for rascsi
 
 template<class T>
 class Dispatcher

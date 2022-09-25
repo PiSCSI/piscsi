@@ -17,7 +17,7 @@ class TestFileSupport : public FileSupport
 	}
 };
 
-TEST(FileSupportTest, FileSupport)
+TEST(FileSupportTest, Reserve)
 {
 	const int ID = 1;
 	const int LUN = 2;
@@ -41,5 +41,21 @@ TEST(FileSupportTest, FileSupport)
 	EXPECT_EQ(LUN, lun);
 
 	file_support.UnreserveFile();
+	EXPECT_FALSE(FileSupport::GetIdsForReservedFile(path, id, lun));
+}
+
+TEST(FileSupportTest, UnreserveAll)
+{
+	const int ID = 2;
+	const int LUN = 31;
+
+	Filepath path;
+	path.SetPath("path");
+	TestFileSupport file_support;
+
+	file_support.ReserveFile(path, ID, LUN);
+	FileSupport::UnreserveAll();
+	int id;
+	int lun;
 	EXPECT_FALSE(FileSupport::GetIdsForReservedFile(path, id, lun));
 }

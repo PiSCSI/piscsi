@@ -99,3 +99,62 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 
 	pages[48] = buf;
 }
+
+int scsi_command_util::GetInt16(const vector<int>& buf, int offset)
+{
+	return (buf[offset] << 8) | buf[offset + 1];
+}
+
+uint32_t scsi_command_util::GetInt32(const vector<int>& buf, int offset)
+{
+	return ((uint32_t)buf[offset] << 24) | ((uint32_t)buf[offset + 1] << 16) |
+			((uint32_t)buf[offset + 2] << 8) | (uint32_t)buf[offset + 3];
+}
+
+uint64_t scsi_command_util::GetInt64(const vector<int>& buf, int offset)
+{
+	return ((uint64_t)buf[offset] << 56) | ((uint64_t)buf[offset + 1] << 48) |
+			((uint64_t)buf[offset + 2] << 40) | ((uint64_t)buf[offset + 3] << 32) |
+			((uint64_t)buf[offset + 4] << 24) | ((uint64_t)buf[offset + 5] << 16) |
+			((uint64_t)buf[offset + 6] << 8) | (uint64_t)buf[offset + 7];
+}
+
+void scsi_command_util::SetInt16(BYTE *buf, int value)
+{
+	buf[0] = (BYTE)(value >> 8);
+	buf[1] = (BYTE)value;
+}
+
+void scsi_command_util::SetInt32(BYTE *buf, uint32_t value)
+{
+	buf[0] = (BYTE)(value >> 24);
+	buf[1] = (BYTE)(value >> 16);
+	buf[2] = (BYTE)(value >> 8);
+	buf[3] = (BYTE)value;
+}
+
+void scsi_command_util::SetInt64(BYTE *buf, uint64_t value)
+{
+	buf[0] = (BYTE)(value >> 56);
+	buf[1] = (BYTE)(value >> 48);
+	buf[2] = (BYTE)(value >> 40);
+	buf[3] = (BYTE)(value >> 32);
+	buf[4] = (BYTE)(value >> 24);
+	buf[5] = (BYTE)(value >> 16);
+	buf[6] = (BYTE)(value >> 8);
+	buf[7] = (BYTE)value;
+}
+
+void scsi_command_util::SetInt16(vector<byte>& buf, int offset, int value)
+{
+	buf[offset] = (byte)(value >> 8);
+	buf[offset + 1] = (byte)value;
+}
+
+void scsi_command_util::SetInt32(vector<byte>& buf, int offset, int value)
+{
+	buf[offset] = (byte)(value >> 24);
+	buf[offset + 1] = (byte)(value >> 16);
+	buf[offset + 2] = (byte)(value >> 8);
+	buf[offset + 3] = (byte)value;
+}

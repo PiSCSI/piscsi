@@ -13,10 +13,11 @@
 //  [ SCSI hard disk ]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include "os.h"
 #include "disk.h"
+#include "file_support.h"
 #include "filepath.h"
 
 class SCSIHD : public Disk, public FileSupport
@@ -32,12 +33,11 @@ public:
 
 	void FinalizeSetup(const Filepath&, off_t);
 
-	void Reset();
 	void Open(const Filepath&) override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) override;
+	void ModeSelect(const vector<int>&, const BYTE *, int) const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
