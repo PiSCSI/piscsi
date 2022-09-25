@@ -461,6 +461,10 @@ def show_diskinfo():
             file_name
         )
     if returncode == 0:
+        if "username" in session:
+            username = session["username"]
+        else:
+            username = None
         ip_addr, host = sys_cmd.get_ip_and_host()
         title = _("Image Info")
         contents = {file_name: diskinfo}
@@ -472,6 +476,8 @@ def show_diskinfo():
             version=server_info["version"],
             ip_addr=ip_addr,
             host=host,
+            username=username,
+            auth_active=auth_active(AUTH_GROUP)["status"],
             )
 
     flash(_("An error occurred when getting disk info."))
@@ -489,6 +495,10 @@ def show_logs():
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
+        if "username" in session:
+            username = session["username"]
+        else:
+            username = None
         server_info = ractl_cmd.get_server_info()
         ip_addr, host = sys_cmd.get_ip_and_host()
         title = _("System Logs")
@@ -506,6 +516,8 @@ def show_logs():
             version=server_info["version"],
             ip_addr=ip_addr,
             host=host,
+            username=username,
+            auth_active=auth_active(AUTH_GROUP)["status"],
             )
 
     flash(_("An error occurred when fetching logs."))
@@ -714,6 +726,10 @@ def device_info():
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
+        if "username" in session:
+            username = session["username"]
+        else:
+            username = None
         server_info = ractl_cmd.get_server_info()
         ip_addr, host = sys_cmd.get_ip_and_host()
         title = _("Device Info")
@@ -738,6 +754,8 @@ def device_info():
             version=server_info["version"],
             ip_addr=ip_addr,
             host=host,
+            username=username,
+            auth_active=auth_active(AUTH_GROUP)["status"],
             )
 
     flash(devices["msg"], "error")
