@@ -236,9 +236,7 @@
             </td>
             <td>
                 {% if file["name"] in attached_images %}
-                <center>
                     {{ _("Attached!") }}
-                </center>
                 {% else %}
                 {% if file["archive_contents"] %}
                 <form action="/files/extract_image" method="post">
