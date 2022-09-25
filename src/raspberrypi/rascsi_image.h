@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -13,8 +13,7 @@
 #include "command_context.h"
 #include <string>
 
-using namespace std;
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class RascsiImage
 {
@@ -41,6 +40,9 @@ public:
 
 private:
 
+	string GetHomeDir() const;
+
 	string default_image_folder;
+
 	int depth = 1;
 };

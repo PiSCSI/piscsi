@@ -8,13 +8,12 @@
 // Host Services with realtime clock and shutdown support
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "mode_page_device.h"
 #include <vector>
 #include <map>
-
-using namespace std;
 
 class DeviceFactory;
 
@@ -23,7 +22,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	explicit HostServices(const DeviceFactory *);
+	explicit HostServices(const DeviceFactory&);
 	~HostServices() override = default;
 	HostServices(HostServices&) = delete;
 	HostServices& operator=(const HostServices&) = delete;
@@ -38,14 +37,14 @@ public:
 
 protected:
 
-	void AddModePages(map<int, vector<byte>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
 	using mode_page_datetime = struct __attribute__((packed)) {
-		// Major and minor version of this data structure (1.0)
-	    uint8_t major_version = 0x01;
-	    uint8_t minor_version = 0x00;
+		// Major and minor version of this data structure (e.g. 1.0)
+	    uint8_t major_version;
+	    uint8_t minor_version;
 	    // Current date and time, with daylight savings time adjustment applied
 	    uint8_t year; // year - 1900
 	    uint8_t month; // 0-11
@@ -64,5 +63,5 @@ private:
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 
-	const DeviceFactory *device_factory;
+	const DeviceFactory& device_factory;
 };

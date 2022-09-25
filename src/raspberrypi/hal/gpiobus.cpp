@@ -11,15 +11,21 @@
 //---------------------------------------------------------------------------
 
 #include <sys/mman.h>
-
+#include <sys/ioctl.h>
+#include <sys/time.h>
 #include "os.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-
 #include "config.h"
 #include "log.h"
+#include <array>
+#ifdef __linux
+#include <sys/epoll.h>
+#endif
 
-#ifdef __linux__
+using namespace std;
+
+#ifdef __linux
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -51,7 +57,7 @@ DWORD bcm_host_get_peripheral_address(void)
 #endif
 	return address;
 }
-#endif // __linux__
+#endif
 
 #ifdef __NetBSD__
 // Assume the Raspberry Pi series and estimate the address from CPU
@@ -169,16 +175,16 @@ bool GPIOBUS::Init(mode_e mode)
 	// Initialize all signals
 	for (i = 0; SignalTable[i] >= 0; i++) {
 		int j = SignalTable[i];
-		PinSetSignal(j, FALSE);
+		PinSetSignal(j, OFF);
 		PinConfig(j, GPIO_INPUT);
 		PullConfig(j, pullmode);
 	}
 
 	// Set control signals
-	PinSetSignal(PIN_ACT, FALSE);
-	PinSetSignal(PIN_TAD, FALSE);
-	PinSetSignal(PIN_IND, FALSE);
-	PinSetSignal(PIN_DTD, FALSE);
+	PinSetSignal(PIN_ACT, OFF);
+	PinSetSignal(PIN_TAD, OFF);
+	PinSetSignal(PIN_IND, OFF);
+	PinSetSignal(PIN_DTD, OFF);
 	PinConfig(PIN_ACT, GPIO_OUTPUT);
 	PinConfig(PIN_TAD, GPIO_OUTPUT);
 	PinConfig(PIN_IND, GPIO_OUTPUT);
@@ -304,11 +310,11 @@ void GPIOBUS::Cleanup()
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Set control signals
-	PinSetSignal(PIN_ENB, FALSE);
-	PinSetSignal(PIN_ACT, FALSE);
-	PinSetSignal(PIN_TAD, FALSE);
-	PinSetSignal(PIN_IND, FALSE);
-	PinSetSignal(PIN_DTD, FALSE);
+	PinSetSignal(PIN_ENB, OFF);
+	PinSetSignal(PIN_ACT, OFF);
+	PinSetSignal(PIN_TAD, OFF);
+	PinSetSignal(PIN_IND, OFF);
+	PinSetSignal(PIN_DTD, OFF);
 	PinConfig(PIN_ACT, GPIO_INPUT);
 	PinConfig(PIN_TAD, GPIO_INPUT);
 	PinConfig(PIN_IND, GPIO_INPUT);
@@ -317,7 +323,7 @@ void GPIOBUS::Cleanup()
 	// Initialize all signals
 	for (int i = 0; SignalTable[i] >= 0; i++) {
 		int pin = SignalTable[i];
-		PinSetSignal(pin, FALSE);
+		PinSetSignal(pin, OFF);
 		PinConfig(pin, GPIO_INPUT);
 		PullConfig(pin, GPIO_PULLNONE);
 	}
@@ -692,7 +698,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	SetSignal(PIN_REQ, ON);
 
 	// Wait for ACK signal
-	bool ret = WaitSignal(PIN_ACK, TRUE);
+	bool ret = WaitSignal(PIN_ACK, ON);
 
 	// Wait until the signal line stabilizes
 	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -710,7 +716,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	}
 
 	// Wait for ACK to clear
-	ret = WaitSignal(PIN_ACK, FALSE);
+	ret = WaitSignal(PIN_ACK, OFF);
 
 	// Timeout waiting for ACK to clear
 	if (!ret) {
@@ -730,7 +736,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	if (*buf == 0x1F) {
 		SetSignal(PIN_REQ, ON);
 
-		ret = WaitSignal(PIN_ACK, TRUE);
+		ret = WaitSignal(PIN_ACK, ON);
 
 		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
@@ -744,7 +750,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 			return 0;
 		}
 
-		WaitSignal(PIN_ACK, FALSE);
+		WaitSignal(PIN_ACK, OFF);
 
 		if (!ret) {
 			EnableIRQ();
@@ -763,7 +769,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		SetSignal(PIN_REQ, ON);
 
 		// Wait for ACK signal
-		ret = WaitSignal(PIN_ACK, TRUE);
+		ret = WaitSignal(PIN_ACK, ON);
 
 		// Wait until the signal line stabilizes
 		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -780,7 +786,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		}
 
 		// Wait for ACK to clear
-		ret = WaitSignal(PIN_ACK, FALSE);
+		ret = WaitSignal(PIN_ACK, OFF);
 
 		// Check for timeout waiting for ACK to clear
 		if (!ret) {
@@ -814,7 +820,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			bool ret = WaitSignal(PIN_ACK, TRUE);
+			bool ret = WaitSignal(PIN_ACK, ON);
 
 			// Wait until the signal line stabilizes
 			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -831,7 +837,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait for ACK to clear
-			ret = WaitSignal(PIN_ACK, FALSE);
+			ret = WaitSignal(PIN_ACK, OFF);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -847,7 +853,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
-			bool ret = WaitSignal(PIN_REQ, TRUE);
+			bool ret = WaitSignal(PIN_REQ, ON);
 
 			// Check for timeout waiting for REQ signal
 			if (!ret) {
@@ -869,7 +875,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			SetSignal(PIN_ACK, ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, FALSE);
+			ret = WaitSignal(PIN_REQ, OFF);
 
 			// Clear the ACK signal
 			SetSignal(PIN_ACK, OFF);
@@ -919,7 +925,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for ACK to clear
-			bool ret = WaitSignal(PIN_ACK, FALSE);
+			bool ret = WaitSignal(PIN_ACK, OFF);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -932,7 +938,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			ret = WaitSignal(PIN_ACK, TRUE);
+			ret = WaitSignal(PIN_ACK, ON);
 
 			// Clear REQ signal
 			SetSignal(PIN_REQ, OFF);
@@ -947,7 +953,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		}
 
 		// Wait for ACK to clear
-		WaitSignal(PIN_ACK, FALSE);
+		WaitSignal(PIN_ACK, OFF);
 	} else {
 		// Get Phase
 		DWORD phase = Acquire() & GPIO_MCI;
@@ -962,7 +968,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for REQ to be asserted
-			bool ret = WaitSignal(PIN_REQ, TRUE);
+			bool ret = WaitSignal(PIN_REQ, ON);
 
 			// Check for timeout waiting for REQ to be asserted
 			if (!ret) {
@@ -980,7 +986,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetSignal(PIN_ACK, ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, FALSE);
+			ret = WaitSignal(PIN_REQ, OFF);
 
 			// Clear the ACK signal
 			SetSignal(PIN_ACK, OFF);
@@ -1063,27 +1069,18 @@ const int GPIOBUS::SignalTable[19] = {
 //---------------------------------------------------------------------------
 void GPIOBUS::MakeTable(void)
 {
-	const int pintbl[] = {
+	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
 		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
 	};
 
-	int i;
-	int j;
-	bool tblParity[256];
-#if SIGNAL_CONTROL_MODE == 0
-	int index;
-	int shift;
-#else
-	DWORD gpclr;
-	DWORD gpset;
-#endif
+	array<bool, 256> tblParity;
 
 	// Create parity table
-	for (i = 0; i < 0x100; i++) {
+	for (int i = 0; i < 0x100; i++) {
 		auto bits = (DWORD)i;
 		DWORD parity = 0;
-		for (j = 0; j < 8; j++) {
+		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
 		}
@@ -1095,7 +1092,7 @@ void GPIOBUS::MakeTable(void)
 	// Mask and setting data generation
 	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (i = 0; i < 0x100; i++) {
+	for (int i = 0; i < 0x100; i++) {
 		// Bit string for inspection
 		auto bits = (DWORD)i;
 
@@ -1105,10 +1102,10 @@ void GPIOBUS::MakeTable(void)
 		}
 
 		// Bit check
-		for (j = 0; j < 9; j++) {
+		for (int j = 0; j < 9; j++) {
 			// Index and shift amount calculation
-			index = pintbl[j] / 10;
-			shift = (pintbl[j] % 10) * 3;
+			int index = pintbl[j] / 10;
+			int shift = (pintbl[j] % 10) * 3;
 
 			// Mask data
 			tblDatMsk[index][i] &= ~(0x7 << shift);
@@ -1125,7 +1122,7 @@ void GPIOBUS::MakeTable(void)
 	// Mask and setting data generation
 	memset(tblDatMsk, 0x00, sizeof(tblDatMsk));
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (i = 0; i < 0x100; i++) {
+	for (int i = 0; i < 0x100; i++) {
 		// bit string for inspection
 		DWORD bits = (DWORD)i;
 
@@ -1140,9 +1137,9 @@ void GPIOBUS::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		gpclr = 0;
-		gpset = 0;
-		for (j = 0; j < 9; j++) {
+		DWORD gpclr = 0;
+		DWORD gpset = 0;
+		for (int j = 0; j < 9; j++) {
 			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
 			} else {
@@ -1267,7 +1264,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 
 void GPIOBUS::DisableIRQ()
 {
-#ifdef __linux__
+#ifdef __linux
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];

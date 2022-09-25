@@ -20,11 +20,7 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
-// Note that these global variables are convenient,
-// but might cause issues because they are reused by all tests
-extern DeviceFactory& device_factory;
-
-class MockAbstractController : public AbstractController
+class MockAbstractController final : public AbstractController
 {
 public:
 
@@ -51,17 +47,23 @@ public:
 	MOCK_METHOD(void, FlushUnit, (), ());
 	MOCK_METHOD(void, Receive, (), ());
 	MOCK_METHOD(bool, HasUnit, (), (const override));
-	MOCK_METHOD(int, GetMaxLuns, (), (const override));
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Reset, (), (override));
 
+	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
+	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
+	FRIEND_TEST(AbstractControllerTest, GetOpcode);
+	FRIEND_TEST(AbstractControllerTest, GetLun);
+
 	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
-	~MockAbstractController() final = default;
+	~MockAbstractController() override = default;
+
+	int GetMaxLuns() const override { return 32; }
 };
 
-class MockScsiController : public ScsiController
+class MockScsiController final : public ScsiController
 {
 public:
 
@@ -90,98 +92,115 @@ public:
 	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
 	MOCK_METHOD(void, Sleep, (), ());
 
-	FRIEND_TEST(PrimaryDeviceTest, UnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
+	FRIEND_TEST(DiskTest, Rezero);
+	FRIEND_TEST(DiskTest, FormatUnit);
+	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Seek);
+	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadWriteLong);
+	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SendDiagnostic);
+	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
+	FRIEND_TEST(DiskTest, SynchronizeCache);
+	FRIEND_TEST(DiskTest, ReadDefectData);
 
 	using ScsiController::ScsiController;
 };
 
-class MockPrimaryDevice : public PrimaryDevice
+class MockPrimaryDevice final : public PrimaryDevice
 {
+	FRIEND_TEST(PrimaryDeviceTest, PhaseChange);
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
+	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
+
 public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}
-	~MockPrimaryDevice() final = default;
-
-	// Make protected methods visible for testing
-
-	void SetReady(bool ready) { PrimaryDevice::SetReady(ready); }
-	void SetReset(bool reset) { PrimaryDevice::SetReset(reset); }
-	void SetAttn(bool attn) { PrimaryDevice::SetAttn(attn); }
-	vector<byte> HandleInquiry(device_type type, scsi_level level, bool is_removable) const {
-		return PrimaryDevice::HandleInquiry(type, level, is_removable);
-	}
+	~MockPrimaryDevice() override = default;
 };
 
-class MockModePageDevice : public ModePageDevice
+class MockModePageDevice final : public ModePageDevice
 {
+	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
+
 public:
 
 	MockModePageDevice() : ModePageDevice("test") {}
-	~MockModePageDevice() final = default;
+	~MockModePageDevice() override = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
 
-	void AddModePages(map<int, vector<byte>>& pages, int page, bool) const override {
+	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
 			vector<byte> buf(255);
 			pages[page] = buf;
 		}
 	}
-
-	// Make protected method visible for testing
-	int AddModePages(const vector<int>& cdb, BYTE *buf, int max_length) const {
-		return ModePageDevice::AddModePages(cdb, buf, max_length);
-	}
 };
 
-class MockSCSIHD : public SCSIHD
+class MockSCSIHD final : public SCSIHD
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
 
 	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
-	~MockSCSIHD() final = default;
+	~MockSCSIHD() override = default;
 };
 
-class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
+class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
+	FRIEND_TEST(DiskTest, Rezero);
+	FRIEND_TEST(DiskTest, FormatUnit);
+	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Seek);
+	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadWriteLong);
+	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SendDiagnostic);
+	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
+	FRIEND_TEST(DiskTest, SynchronizeCache);
+	FRIEND_TEST(DiskTest, ReadDefectData);
+	FRIEND_TEST(DiskTest, SectorSize);
+	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
+	FRIEND_TEST(DiskTest, BlockCount);
+
+	MOCK_METHOD(void, FlushCache, (), (override));
 
 	MockSCSIHD_NEC() = default;
-	~MockSCSIHD_NEC() final = default;
+	~MockSCSIHD_NEC() override = default;
 };
 
-class MockSCSICD : public SCSICD
+class MockSCSICD final : public SCSICD
 {
-	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
 
 	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
-	~MockSCSICD() final = default;
+	~MockSCSICD() override = default;
 };
 
-class MockSCSIMO : public SCSIMO
+class MockSCSIMO final : public SCSIMO
 {
-	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
+	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) {}
-	~MockSCSIMO() final = default;
+	~MockSCSIMO() override = default;
 };
 
-class MockHostServices : public HostServices
+class MockHostServices final : public HostServices
 {
-	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
+	FRIEND_TEST(ModePagesTest, HostServices_SetUpModePages);
 
-public:
-
-	MockHostServices() : HostServices(&DeviceFactory::instance()) {}
-	~MockHostServices() final = default;
+	using HostServices::HostServices;
 };

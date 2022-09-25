@@ -5,15 +5,18 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
 
 #pragma once
+
+#include <string>
+
 //
 // RaSCSI standard (SCSI logic, standard pin assignment)
 //
-#define CONNECT_DESC "FULLSPEC"				// Startup message
+
+const std::string CONNECT_DESC = "FULLSPEC";	// Startup message
 
 // Select signal control mode
 const static int SIGNAL_CONTROL_MODE = 0;	// SCSI logical specification
@@ -26,11 +29,11 @@ const static int PIN_TAD = 7;				// TARGET CTRL DIRECTION
 const static int PIN_DTD = 8;				// DATA DIRECTION
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+#define ACT_ON ON							// ACTIVE SIGNAL ON
+#define ENB_ON ON							// ENABLE SIGNAL ON
+#define IND_IN OFF							// INITIATOR SIGNAL INPUT
+#define TAD_IN OFF							// TARGET SIGNAL INPUT
+#define DTD_IN ON							// DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
 const static int PIN_DT0 = 10;				// Data 0

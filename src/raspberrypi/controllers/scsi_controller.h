@@ -19,6 +19,7 @@
 #include "abstract_controller.h"
 #include "os.h"
 #include "scsi.h"
+#include <array>
 
 class PrimaryDevice;
 
@@ -47,13 +48,13 @@ class ScsiController : public AbstractController
 		// ATN message
 		bool atnmsg;
 		int msc;
-		BYTE msb[256];
+		std::array<BYTE, 256> msb;
 	};
 
 public:
 
 	ScsiController(shared_ptr<BUS>, int);
-	~ScsiController() override;
+	~ScsiController () override;
 	ScsiController(ScsiController&) = delete;
 	ScsiController& operator=(const ScsiController&) = delete;
 
@@ -108,6 +109,9 @@ private:
 	void Execute();
 	void FlushUnit();
 	void Receive();
+
+	void ProcessCommand();
+	void ProcessMessage();
 
 	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 

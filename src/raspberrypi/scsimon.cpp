@@ -15,6 +15,7 @@
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
 #include <climits>
+#include <csignal>
 #include <sstream>
 #include <iostream>
 #include <getopt.h>
@@ -23,6 +24,8 @@
 #include "monitor/data_sample.h"
 
 using namespace std;
+
+static const int _MAX_FNAME = 256;
 
 //---------------------------------------------------------------------------
 //
@@ -151,7 +154,7 @@ void Banner(int, char *[])
     else
     {
         LOGINFO("Reading live data from the GPIO pins")
-        LOGINFO("    Connection type : %s", CONNECT_DESC)
+        LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
     LOGINFO("    Data buffer size: %u", buff_size)
     LOGINFO(" ")
@@ -231,7 +234,7 @@ void Reset()
 //	Pin the thread to a specific CPU (Only applies to Linux)
 //
 //---------------------------------------------------------------------------
-#ifdef __linux__
+#ifdef __linux
 void FixCpu(int cpu)
 {
     // Get the number of CPUs
@@ -323,7 +326,7 @@ int main(int argc, char *argv[])
     // Reset
     Reset();
 
-#ifdef __linux__
+#ifdef __linux
     // Set the affinity to a specific processor core
     FixCpu(3);
 

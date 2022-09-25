@@ -11,11 +11,11 @@
 
 #include "rascsi_interface.pb.h"
 
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class RasctlDisplay
 {
-public:
+	friend class RasctlCommands;
 
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;

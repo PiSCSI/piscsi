@@ -14,131 +14,17 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsicd.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-
+#include "dispatcher.h"
+#include "scsicd.h"
+#include <array>
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
-//===========================================================================
-//
-//     CD Track
-//
-//===========================================================================
-
-void CDTrack::Init(int track, DWORD first, DWORD last)
-{
-	ASSERT(!valid);
-	ASSERT(track >= 1);
-	ASSERT(first < last);
-
-	// Set and enable track number
-	track_no = track;
-	valid = TRUE;
-
-	// Remember LBA
-	first_lba = first;
-	last_lba = last;
-}
-
-void CDTrack::SetPath(bool cdda, const Filepath& path)
-{
-	ASSERT(valid);
-
-	// CD-DA or data
-	audio = cdda;
-
-	// Remember the path
-	imgpath = path;
-}
-
-void CDTrack::GetPath(Filepath& path) const
-{
-	ASSERT(valid);
-
-	// Return the path (by reference)
-	path = imgpath;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Gets the start of LBA
-//
-//---------------------------------------------------------------------------
-DWORD CDTrack::GetFirst() const
-{
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
-
-	return first_lba;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get the end of LBA
-//
-//---------------------------------------------------------------------------
-DWORD CDTrack::GetLast() const
-{
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
-
-	return last_lba;
-}
-
-DWORD CDTrack::GetBlocks() const
-{
-	ASSERT(valid);
-	ASSERT(first_lba < last_lba);
-
-	// Calculate from start LBA and end LBA
-	return last_lba - first_lba + 1;
-}
-
-int CDTrack::GetTrackNo() const
-{
-	ASSERT(valid);
-	ASSERT(track_no >= 1);
-
-	return track_no;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Is valid block
-//
-//---------------------------------------------------------------------------
-bool CDTrack::IsValid(DWORD lba) const
-{
-	// false if the track itself is invalid
-	if (!valid) {
-		return false;
-	}
-
-	// If the block is BEFORE the first block
-	if (lba < first_lba) {
-		return false;
-	}
-
-	// If the block is AFTER the last block
-	if (last_lba < lba) {
-		return false;
-	}
-
-	// This track is valid
-	return true;
-}
-
-bool CDTrack::IsAudio() const
-{
-	assert(valid);
-
-	return audio;
-}
-
-SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
+SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD")
 {
 	SetSectorSizes(sector_sizes);
 
@@ -176,7 +62,7 @@ void SCSICD::Open(const Filepath& path)
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
 	// Close and transfer for physical CD access
-	if (path.GetPath()[0] == _T('\\')) {
+	if (path.GetPath()[0] == '\\') {
 		// Close
 		fio.Close();
 
@@ -190,13 +76,13 @@ void SCSICD::Open(const Filepath& path)
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
-		TCHAR file[5];
-		fio.Read((BYTE *)file, 4);
+		array<TCHAR, 5> file;
+		fio.Read((BYTE *)file.data(), 4);
 		file[4] = '\0';
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (!strncasecmp(file, _T("FILE"), 4)) {
+		if (!strcasecmp(file.data(), "FILE")) {
 			// Open as CUE
 			OpenCue(path);
 		} else {
@@ -206,7 +92,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 
 	// Successful opening
-	ASSERT(GetBlockCount() > 0);
+	assert(GetBlockCount() > 0);
 
 	super::Open(path);
 	FileSupport::SetPath(path);
@@ -241,21 +127,21 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Read the first 12 bytes and close
-	BYTE header[12];
-	if (!fio.Read(header, sizeof(header))) {
+	array<BYTE, 12> header;
+	if (!fio.Read(header.data(), header.size())) {
 		fio.Close();
 		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
 
 	// Check if it is RAW format
-	BYTE sync[12];
-	memset(sync, 0xff, sizeof(sync));
+	array<BYTE, 12> sync;
+	memset(sync.data(), 0xff, sync.size());
 	sync[0] = 0x00;
 	sync[11] = 0x00;
 	rawfile = false;
-	if (memcmp(header, sync, sizeof(sync)) == 0) {
+	if (memcmp(header.data(), sync.data(), sync.size()) == 0) {
 		// 00,FFx10,00, so it is presumed to be RAW format
-		if (!fio.Read(header, 4)) {
+		if (!fio.Read(header.data(), 4)) {
 			fio.Close();
 			throw io_exception("Can't read header of raw ISO CD-ROM file");
 		}
@@ -320,7 +206,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
-	ASSERT(!tracks.size());
+	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
 	track->Init(1, 0, (int)GetBlockCount() - 1);
 	track->SetPath(false, path);
@@ -330,7 +216,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 void SCSICD::ReadToc()
 {
-	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ReadTocInternal(ctrl->cmd, ctrl->buffer);
 
 	EnterDataInPhase();
 }
@@ -340,9 +226,9 @@ vector<byte> SCSICD::InquiryInternal() const
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 }
 
-void SCSICD::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	super::AddModePages(pages, page, changeable);
+	super::SetUpModePages(pages, page, changeable);
 
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
@@ -386,7 +272,7 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, changeable);
+		AddAppleVendorModePage(pages, changeable);
 	}
 }
 
@@ -415,7 +301,7 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 
 		// Reset the number of blocks
 		SetBlockCount(tracks[index]->GetBlocks());
-		ASSERT(GetBlockCount() > 0);
+		assert(GetBlockCount() > 0);
 
 		// Recreate the disk cache
 		Filepath path;
@@ -432,10 +318,8 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
+int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 {
-	assert(buf);
-
 	CheckReady();
 
 	// If ready, there is at least one track
@@ -477,12 +361,11 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 				buf[2] = (BYTE)tracks[0]->GetTrackNo();
 				buf[3] = (BYTE)last;
 				buf[6] = 0xaa;
-				DWORD lba = tracks[tracks.size() - 1]->GetLast() + 1;
+				uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
-					buf[10] = (BYTE)(lba >> 8);
-					buf[11] = (BYTE)lba;
+					SetInt16(&buf[10], lba);
 				}
 				return length;
 			}
@@ -497,8 +380,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 	assert(loop >= 1);
 
 	// Create header
-	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
-	buf[1] = (BYTE)((loop << 3) + 2);
+	SetInt16(&buf[0], (loop << 3) + 2);
 	buf[2] = (BYTE)tracks[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
 	buf += 4;
@@ -521,8 +403,7 @@ int SCSICD::ReadToc(const vector<int>& cdb, BYTE *buf)
 		if (msf) {
 			LBAtoMSF(tracks[index]->GetFirst(), &buf[4]);
 		} else {
-			buf[6] = (BYTE)(tracks[index]->GetFirst() >> 8);
-			buf[7] = (BYTE)(tracks[index]->GetFirst());
+			SetInt16(&buf[6], tracks[index]->GetFirst());
 		}
 
 		// Advance buffer pointer and index
@@ -550,12 +431,12 @@ void SCSICD::GetEventStatusNotification()
 //	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
-void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
+void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
 {
 	// 75 and 75*60 get the remainder
-	DWORD m = lba / (75 * 60);
-	DWORD s = lba % (75 * 60);
-	DWORD f = s % 75;
+	uint32_t m = lba / (75 * 60);
+	uint32_t s = lba % (75 * 60);
+	uint32_t f = s % 75;
 	s /= 75;
 
 	// The base point is M=0, S=2, F=0

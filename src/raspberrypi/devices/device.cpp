@@ -9,10 +9,10 @@
 
 #include <cassert>
 #include "rascsi_version.h"
-#include "os.h"
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "device.h"
+#include <sstream>
 #include <iomanip>
 
 using namespace std;
@@ -132,6 +132,8 @@ void Device::Stop()
 	ready = false;
 	attn = false;
 	stopped = true;
+
+	status_code = 0;
 }
 
 bool Device::Eject(bool force)

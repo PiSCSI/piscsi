@@ -3,31 +3,114 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include <netdb.h>
-#include "os.h"
 #include "rascsi_exceptions.h"
-#include "protobuf_util.h"
+#include "socket_connector.h"
+#include "command_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include <unistd.h>
+#include <netdb.h>
 #include <iostream>
 #include <list>
 
-// Separator for the INQUIRY name components
-static const char COMPONENT_SEPARATOR = ':';
-
 using namespace std;
 using namespace rascsi_interface;
-using namespace protobuf_util;
+using namespace command_util;
+
+// Separator for the INQUIRY name components
+static const char COMPONENT_SEPARATOR = ':';
 
 RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
 		const string& locale)
 	: command(command), hostname(hostname), port(port), token(token), locale(locale)
 {
+}
+
+void RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
+		const string& image_params, const string& filename)
+{
+	switch(command.operation()) {
+		case LOG_LEVEL:
+			CommandLogLevel(log_level);
+			break;
+
+		case DEFAULT_FOLDER:
+			CommandDefaultImageFolder(default_folder);
+			break;
+
+		case RESERVE_IDS:
+			CommandReserveIds(reserved_ids);
+			break;
+
+		case CREATE_IMAGE:
+			CommandCreateImage(image_params);
+			break;
+
+		case DELETE_IMAGE:
+			CommandDeleteImage(image_params);
+			break;
+
+		case RENAME_IMAGE:
+			CommandRenameImage(image_params);
+			break;
+
+		case COPY_IMAGE:
+			CommandCopyImage(image_params);
+			break;
+
+		case DEVICES_INFO:
+			CommandDeviceInfo();
+			break;
+
+		case DEVICE_TYPES_INFO:
+			CommandDeviceTypesInfo();
+			break;
+
+		case VERSION_INFO:
+			CommandVersionInfo();
+			break;
+
+		case SERVER_INFO:
+			CommandServerInfo();
+			break;
+
+		case DEFAULT_IMAGE_FILES_INFO:
+			CommandDefaultImageFilesInfo();
+			break;
+
+		case IMAGE_FILE_INFO:
+			CommandImageFileInfo(filename);
+			break;
+
+		case NETWORK_INTERFACES_INFO:
+			CommandNetworkInterfacesInfo();
+			break;
+
+		case LOG_LEVEL_INFO:
+			CommandLogLevelInfo();
+			break;
+
+		case RESERVED_IDS_INFO:
+			CommandReservedIdsInfo();
+			break;
+
+		case MAPPING_INFO:
+			CommandMappingInfo();
+			break;
+
+		case OPERATION_INFO:
+			CommandOperationInfo();
+			break;
+
+		default:
+			SendCommand();
+			break;
+	}
 }
 
 void RasctlCommands::SendCommand()
@@ -68,7 +151,7 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't write magic");
     	}
 
-    	SerializeMessage(fd, command);
+    	socket_connector.SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
     	cerr << "Error: " << e.get_msg() << endl;
@@ -82,7 +165,7 @@ void RasctlCommands::SendCommand()
 
     // Receive result
     try {
-        DeserializeMessage(fd, result);
+    	socket_connector.DeserializeMessage(fd, result);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());

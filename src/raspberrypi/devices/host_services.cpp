@@ -21,13 +21,15 @@
 //
 
 #include "rascsi_exceptions.h"
-#include "device.h"
 #include "device_factory.h"
+#include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "host_services.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
-HostServices::HostServices(const DeviceFactory *factory) : ModePageDevice("SCHS"), device_factory(factory)
+HostServices::HostServices(const DeviceFactory& factory) : ModePageDevice("SCHS"), device_factory(factory)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
@@ -57,7 +59,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : device_factory->GetAllDevices()) {
+		for (PrimaryDevice *device : device_factory.GetAllDevices()) {
 			device->FlushCache();
 		}
 
@@ -140,13 +142,12 @@ int HostServices::ModeSense10(const vector<int>& cdb, BYTE *buf, int max_length)
 		size = length;
 	}
 
-	buf[0] = (BYTE)(size >> 8);
-	buf[1] = (BYTE)size;
+	SetInt16(buf, size);
 
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
+void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages, changeable);
@@ -161,6 +162,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 		localtime_r(&t, &localtime);
 
 		mode_page_datetime datetime;
+		datetime.major_version = 0x01;
+		datetime.minor_version = 0x00;
 		datetime.year = (uint8_t)localtime.tm_year;
 		datetime.month = (uint8_t)localtime.tm_mon;
 		datetime.day = (uint8_t)localtime.tm_mday;

@@ -20,6 +20,8 @@
 #include "scsi_command_util.h"
 #include <sstream>
 
+using namespace scsi_command_util;
+
 SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
 	: Disk(removable ? "SCRM" : "SCHD")
 {
@@ -60,17 +62,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	FileSupport::SetPath(path);
 }
 
-void SCSIHD::Reset()
-{
-	// Unlock and release attention
-	SetLocked(false);
-	SetAttn(false);
-
-	// No reset, clear code
-	SetReset(false);
-	SetStatusCode(0);
-}
-
 void SCSIHD::Open(const Filepath& path)
 {
 	assert(!IsReady());
@@ -100,7 +91,7 @@ vector<byte> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length)
+void SCSIHD::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) const
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
@@ -109,13 +100,13 @@ void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	Disk::AddFormatPage(pages, changeable);
 
-	scsi_command_util::EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
 }
 
 void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
 	if (page == 0x30 || page == 0x3f) {
-		scsi_command_util::AddAppleVendorModePage(pages, changeable);
+		AddAppleVendorModePage(pages, changeable);
 	}
 }

@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <memory>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 class BUS;
 class AbstractController;

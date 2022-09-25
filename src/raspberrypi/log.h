@@ -10,15 +10,16 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(log_h)
-#define log_h
+#pragma once
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/sink.h"
 
+static const int LOGBUF_SIZE = 512;
+
 #define SPDLOGWRAPPER(loglevel, ...)			\
 {							\
-	char logbuf[_MAX_FNAME*2];				\
+	char logbuf[LOGBUF_SIZE];				\
 	snprintf(logbuf, sizeof(logbuf), __VA_ARGS__);	\
 	spdlog::log(loglevel, logbuf);			\
 };
@@ -29,5 +30,3 @@
 #define LOGWARN(...) SPDLOGWRAPPER(spdlog::level::warn, __VA_ARGS__)
 #define LOGERROR(...) SPDLOGWRAPPER(spdlog::level::err, __VA_ARGS__)
 #define LOGCRITICAL(...) SPDLOGWRAPPER(spdlog::level::critical, __VA_ARGS__)
-
-#endif

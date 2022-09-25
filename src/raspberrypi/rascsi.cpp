@@ -11,7 +11,6 @@
 //---------------------------------------------------------------------------
 
 #include "config.h"
-#include "os.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
@@ -20,7 +19,8 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
-#include "protobuf_util.h"
+#include "socket_connector.h"
+#include "command_util.h"
 #include "rascsi_version.h"
 #include "rascsi_response.h"
 #include "rasutil.h"
@@ -28,6 +28,9 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <pthread.h>
+#include <netinet/in.h>
+#include <csignal>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -39,7 +42,7 @@ using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace protobuf_util;
+using namespace command_util;
 
 //---------------------------------------------------------------------------
 //
@@ -60,16 +63,18 @@ static volatile bool active;		// Processing flag
 shared_ptr<GPIOBUS> bus;			// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
-pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
-static void *MonThread(void *param);
+pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 unordered_set<int> reserved_ids;
-DeviceFactory& device_factory = DeviceFactory::instance();
+DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+SocketConnector socket_connector;
+
 void DetachAll();
+static void *MonThread(void *);
 
 //---------------------------------------------------------------------------
 //
@@ -97,7 +102,7 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
 	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC);
+	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC.c_str());
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
@@ -254,7 +259,7 @@ bool ReadAccessToken(const char *filename)
 string ValidateLunSetup(const PbCommand& command)
 {
 	// Mapping of available LUNs (bit vector) to devices
-	map<uint32_t, uint32_t> luns;
+	unordered_map<uint32_t, uint32_t> luns;
 
 	// Collect LUN bit vectors of new devices
 	for (const auto& device : command.devices()) {
@@ -262,7 +267,7 @@ string ValidateLunSetup(const PbCommand& command)
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto device : device_factory.GetAllDevices()) {
+	for (const auto& device : device_factory.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
@@ -404,12 +409,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// If no filename was provided the medium is considered removed
 	auto file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support != nullptr) {
-		device->SetRemoved(filename.empty());
-	}
-	else {
-		device->SetRemoved(false);
-	}
+	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
 
 	device->SetLun(unit);
 
@@ -431,14 +431,14 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (pb_device.block_size()) {
 		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				device_factory.DeleteDevice(device);
+			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
+				device_factory.DeleteDevice(*device);
 
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
@@ -446,7 +446,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
@@ -459,7 +459,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		int id;
 		int unit;
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
@@ -473,7 +473,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-					device_factory.DeleteDevice(device);
+					device_factory.DeleteDevice(*device);
 
 					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
@@ -482,7 +482,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			}
 		}
 		catch(const io_exception& e) {
-			device_factory.DeleteDevice(device);
+			device_factory.DeleteDevice(*device);
 
 			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
@@ -498,7 +498,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return true;
 	}
@@ -508,7 +508,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		params.erase("file");
 	}
 	if (!device->Init(params)) {
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 
 		return ReturnLocalizedError(context, ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
 	}
@@ -563,7 +563,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 
 			return ReturnLocalizedError(context, ERROR_DETACH);
 		}
-		device_factory.DeleteDevice(device);
+		device_factory.DeleteDevice(*device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
@@ -598,7 +598,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
@@ -869,7 +869,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	}
 
 	// Remember the list of reserved files, than run the dry run
-	const auto reserved_files = FileSupport::GetReservedFiles();
+	const auto& reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(context, device, command, true)) {
 			// Dry run failed, restore the file list
@@ -897,7 +897,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 		PbCommand command;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, command);
-		SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 		return true;
 	}
 
@@ -935,7 +935,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode == "rascsi") {
 		LOGINFO("RaSCSI shutdown requested");
 
-		SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		TerminationHandler(0);
 	}
@@ -949,7 +949,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode == "system") {
 		LOGINFO("System shutdown requested")
 
-		SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		DetachAll();
 
@@ -960,7 +960,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 	else if (mode == "reboot") {
 		LOGINFO("System reboot requested")
 
-		SerializeMessage(context.fd, result);
+		socket_connector.SerializeMessage(context.fd, result);
 
 		DetachAll();
 
@@ -1131,9 +1131,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	CommandContext context;
-	context.fd = -1;
-	context.locale = locale;
+	Localizer localizer;
+	CommandContext context(&socket_connector, &localizer, -1, locale);
 	if (!ProcessCmd(context, command)) {
 		return false;
 	}
@@ -1156,6 +1155,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
 {
+#ifdef __linux
 	// Get the number of CPUs
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
@@ -1168,6 +1168,153 @@ void FixCpu(int cpu)
 		CPU_SET(cpu, &cpuset);
 		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
 	}
+#endif
+}
+
+static bool ExecuteCommand(PbCommand& command, CommandContext& context)
+{
+	context.locale = GetParam(command, "locale");
+	if (context.locale.empty()) {
+		context.locale = "en";
+	}
+
+	if (!access_token.empty() && access_token != GetParam(command, "token")) {
+		return ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
+	}
+
+	if (!PbOperation_IsValid(command.operation())) {
+		LOGERROR("Received unknown command with operation opcode %d", command.operation())
+
+		return ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
+	}
+
+	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
+
+	PbResult result;
+
+	switch(command.operation()) {
+		case LOG_LEVEL: {
+			string log_level = GetParam(command, "level");
+			if (bool status = SetLogLevel(log_level); !status) {
+				ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
+			}
+			else {
+				ReturnStatus(context);
+			}
+			break;
+		}
+
+		case DEFAULT_FOLDER: {
+			if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
+				ReturnStatus(context, false, status);
+			}
+			else {
+				ReturnStatus(context);
+			}
+			break;
+		}
+
+		case DEVICES_INFO: {
+			rascsi_response.GetDevicesInfo(result, command);
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case DEVICE_TYPES_INFO: {
+			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case SERVER_INFO: {
+			result.set_allocated_server_info(rascsi_response.GetServerInfo(
+					result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+					GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case VERSION_INFO: {
+			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case LOG_LEVEL_INFO: {
+			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case DEFAULT_IMAGE_FILES_INFO: {
+			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
+					rascsi_image.GetDepth()));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case IMAGE_FILE_INFO: {
+			if (string filename = GetParam(command, "file"); filename.empty()) {
+				ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
+			}
+			else {
+				auto image_file = make_unique<PbImageFile>();
+				bool status = rascsi_response.GetImageFile(image_file.get(), filename);
+				if (status) {
+					result.set_status(true);
+					result.set_allocated_image_file_info(image_file.get());
+					socket_connector.SerializeMessage(context.fd, result);
+				}
+				else {
+					ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
+				}
+			}
+			break;
+		}
+
+		case NETWORK_INTERFACES_INFO: {
+			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case MAPPING_INFO: {
+			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case OPERATION_INFO: {
+			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
+					rascsi_image.GetDepth()));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case RESERVED_IDS_INFO: {
+			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
+			socket_connector.SerializeMessage(context.fd, result);
+			break;
+		}
+
+		case SHUT_DOWN: {
+			ShutDown(context, GetParam(command, "mode"));
+			break;
+		}
+
+		default: {
+			// Wait until we become idle
+			while (active) {
+				usleep(500 * 1000);
+			}
+
+			ProcessCmd(context, command);
+			break;
+		}
+	}
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1194,174 +1341,18 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 	listen(monsocket, 1);
 
 	while (true) {
-		CommandContext context;
-		context.fd = -1;
+		Localizer localizer;
+		CommandContext context(&socket_connector, &localizer, -1, "");
 
 		try {
-			// Wait for connection
-			sockaddr_in client;
-			socklen_t socklen = sizeof(client);
-			memset(&client, 0, socklen);
-			context.fd = accept(monsocket, (sockaddr*)&client, &socklen);
-			if (context.fd < 0) {
-				throw io_exception("accept() failed");
-			}
-
-			// Read magic string
-			vector<byte> magic(6);
-			size_t bytes_read = ReadBytes(context.fd, magic);
-			if (!bytes_read) {
-				continue;
-			}
-			if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
-				throw io_exception("Invalid magic");
-			}
-
-			// Fetch the command
 			PbCommand command;
-			DeserializeMessage(context.fd, command);
-
-			context.locale = GetParam(command, "locale");
-			if (context.locale.empty()) {
-				context.locale = "en";
-			}
-
-			if (!access_token.empty() && access_token != GetParam(command, "token")) {
-				ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
+			context.fd = socket_connector.ReadCommand(command, monsocket);
+			if (context.fd == -1) {
 				continue;
 			}
 
-			if (!PbOperation_IsValid(command.operation())) {
-				LOGERROR("Received unknown command with operation opcode %d", command.operation())
-
-				ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
+			if (!ExecuteCommand(command, context)) {
 				continue;
-			}
-
-			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
-
-			PbResult result;
-
-			switch(command.operation()) {
-				case LOG_LEVEL: {
-					string log_level = GetParam(command, "level");
-					if (bool status = SetLogLevel(log_level); !status) {
-						ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
-					}
-					else {
-						ReturnStatus(context);
-					}
-					break;
-				}
-
-				case DEFAULT_FOLDER: {
-					if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
-						ReturnStatus(context, false, status);
-					}
-					else {
-						ReturnStatus(context);
-					}
-					break;
-				}
-
-				case DEVICES_INFO: {
-					rascsi_response.GetDevicesInfo(result, command);
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case DEVICE_TYPES_INFO: {
-					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case SERVER_INFO: {
-					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
-							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case VERSION_INFO: {
-					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case LOG_LEVEL_INFO: {
-					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case DEFAULT_IMAGE_FILES_INFO: {
-					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-							rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case IMAGE_FILE_INFO: {
-					if (string filename = GetParam(command, "file"); filename.empty()) {
-						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
-					}
-					else {
-						auto image_file = make_unique<PbImageFile>();
-						bool status = rascsi_response.GetImageFile(image_file.get(), filename);
-						if (status) {
-							result.set_status(true);
-							result.set_allocated_image_file_info(image_file.get());
-							SerializeMessage(context.fd, result);
-						}
-						else {
-							ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
-						}
-					}
-					break;
-				}
-
-				case NETWORK_INTERFACES_INFO: {
-					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case MAPPING_INFO: {
-					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case OPERATION_INFO: {
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
-							rascsi_image.GetDepth()));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case RESERVED_IDS_INFO: {
-					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
-					SerializeMessage(context.fd, result);
-					break;
-				}
-
-				case SHUT_DOWN: {
-					ShutDown(context, GetParam(command, "mode"));
-					break;
-				}
-
-				default: {
-					// Wait until we become idle
-					while (active) {
-						usleep(500 * 1000);
-					}
-
-					ProcessCmd(context, command);
-					break;
-				}
 			}
 		}
 		catch(const io_exception& e) {

@@ -14,7 +14,7 @@
 #include "os.h"
 #include <array>
 
-using namespace std;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 //===========================================================================
 //
@@ -32,7 +32,7 @@ public:
 	};
 
 	//	Phase definitions
-	enum class phase_t : BYTE {
+	enum class phase_t : int {
 		busfree,
 		arbitration,
 		selection,

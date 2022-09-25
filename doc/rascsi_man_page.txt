@@ -128,7 +128,7 @@ EXAMPLES
        as ID 6:
           rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
 
-       To create an empty, 100MB HD image, use the following command:
+       To create an empty, 100MiB HD image, use the following command:
           dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
 
        In case the fallocate command is available a much faster alternative to

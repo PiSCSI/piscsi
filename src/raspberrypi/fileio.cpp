@@ -8,16 +8,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
-#include "filepath.h"
 #include "fileio.h"
-
-#include "config.h"
+#include <fcntl.h>
+#include <unistd.h>
 
 Fileio::~Fileio()
 {
-	ASSERT(handle == -1);
-
 	// Safety measure for Release
 	Close();
 }
@@ -28,7 +24,7 @@ bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 	assert(handle < 0);
 
 	// Always fail a read from a null array
-	if (fname[0] == _T('\0')) {
+	if (fname[0] == '\0') {
 		handle = -1;
 		return false;
 	}

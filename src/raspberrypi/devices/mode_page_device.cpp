@@ -11,7 +11,9 @@
 
 #include "log.h"
 #include "rascsi_exceptions.h"
+#include "dispatcher.h"
 #include "mode_page_device.h"
+#include <cstddef>
 
 using namespace std;
 using namespace scsi_defs;
@@ -45,7 +47,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, BYTE *buf, int max_leng
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
-	AddModePages(pages, page, changeable);
+	SetUpModePages(pages, page, changeable);
 
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page)
@@ -104,7 +106,7 @@ void ModePageDevice::ModeSense10()
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(const vector<int>&, const BYTE *, int)
+void ModePageDevice::ModeSelect(const vector<int>&, const BYTE *, int) const
 {
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }

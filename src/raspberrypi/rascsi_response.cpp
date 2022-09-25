@@ -7,17 +7,18 @@
 //
 //---------------------------------------------------------------------------
 
+#include <dirent.h>
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "protobuf_util.h"
+#include "command_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_image.h"
 #include "rascsi_response.h"
 
 using namespace rascsi_interface;
-using namespace protobuf_util;
+using namespace command_util;
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
@@ -55,7 +56,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_type(type);
 	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	device_factory->DeleteDevice(device); //NOSONAR The alloced memory is managed by protobuf
+	device_factory->DeleteDevice(*device); //NOSONAR The alloced memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)

@@ -12,6 +12,7 @@
 #include "filepath.h"
 #include "config.h"
 #include "fileio.h"
+#include <libgen.h>
 
 Filepath::Filepath()
 {
@@ -29,10 +30,10 @@ Filepath& Filepath::operator=(const Filepath& path)
 void Filepath::Clear()
 {
 	// Clear the path and each part
-	m_szPath[0] = _T('\0');
-	m_szDir[0] = _T('\0');
-	m_szFile[0] = _T('\0');
-	m_szExt[0] = _T('\0');
+	m_szPath[0] = '\0';
+	m_szDir[0] = '\0';
+	m_szFile[0] = '\0';
+	m_szExt[0] = '\0';
 }
 
 //---------------------------------------------------------------------------
@@ -42,8 +43,8 @@ void Filepath::Clear()
 //---------------------------------------------------------------------------
 void Filepath::SetPath(const char *path)
 {
-	ASSERT(path);
-	ASSERT(strlen(path) < _MAX_PATH);
+	assert(path);
+	assert(strlen(path) < _MAX_PATH);
 
 	// Copy pathname
 	strcpy(m_szPath, path);
@@ -60,9 +61,9 @@ void Filepath::SetPath(const char *path)
 void Filepath::Split()
 {
 	// Initialize the parts
-	m_szDir[0] = _T('\0');
-	m_szFile[0] = _T('\0');
-	m_szExt[0] = _T('\0');
+	m_szDir[0] = '\0';
+	m_szFile[0] = '\0';
+	m_szExt[0] = '\0';
 
 	// Split
 	char *pDir = strdup(m_szPath);

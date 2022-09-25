@@ -99,7 +99,7 @@ Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
 Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
    rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
 
-To create an empty, 100MB HD image, use the following command:
+To create an empty, 100MiB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
 
 In case the fallocate command is available a much faster alternative to the dd command is:

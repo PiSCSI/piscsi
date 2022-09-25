@@ -15,13 +15,11 @@
 #include "rascsi_interface.pb.h"
 #include "command_context.h"
 #include "localizer.h"
-#include <sstream>
 #include <string>
 
-using namespace std;
-using namespace rascsi_interface;
+using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
-namespace protobuf_util
+namespace command_util
 {
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	string GetParam(const PbCommand&, const string&);
@@ -29,9 +27,6 @@ namespace protobuf_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
-	void SerializeMessage(int, const google::protobuf::Message&);
-	void DeserializeMessage(int, google::protobuf::Message&);
-	size_t ReadBytes(int, vector<byte>&);
 	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const string& = "", const string& = "",
 			const string& = "");
 	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const PbErrorCode, const string& = "",

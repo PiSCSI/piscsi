@@ -11,6 +11,7 @@
 #pragma once
 
 #include "filepath.h"
+#include <sys/types.h>
 
 class Fileio
 {
