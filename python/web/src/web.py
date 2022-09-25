@@ -489,8 +489,24 @@ def show_logs():
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
-        headers = {"content-type": "text/plain"}
-        return logs, int(lines), headers
+        server_info = ractl_cmd.get_server_info()
+        ip_addr, host = sys_cmd.get_ip_and_host()
+        title = _("System Logs")
+        heading = _(
+            "%(scope)s %(lines)s lines",
+            scope=scope,
+            lines=lines,
+            )
+        contents = {heading: logs}
+        return render_template(
+            "info.html",
+            title=title,
+            contents=contents,
+            running_env=sys_cmd.running_env(),
+            version=server_info["version"],
+            ip_addr=ip_addr,
+            host=host,
+            )
 
     flash(_("An error occurred when fetching logs."))
     flash(logs, "stderr")
