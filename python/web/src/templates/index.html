@@ -231,7 +231,7 @@
             <td style="text-align:center">
                 <form action="/files/download" method="post">
                     <input name="file" type="hidden" value="{{ base_dir }}/{{ file['name'] }}">
-                    <input type="submit" value="{{ file['size_mb'] }} {{ _("MB") }} &#8595;">
+                    <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
             </td>
             <td>
@@ -301,7 +301,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("%(disk_space)s MB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
 
 <hr/>
 <details>
@@ -381,7 +381,7 @@
     </summary>
     <ul>
         <li>{{ _("Files are uploaded to <tt>%(directory)s</tt>.", directory=base_dir) }}</li>
-        <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
+        <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
     </ul>
 </details>
@@ -399,12 +399,12 @@
         chunking: true,
         forceChunking: true,
         url: '/files/upload',
-        maxFilesize: {{ max_file_size }}, // MB
+        maxFilesize: {{ max_file_size }}, // MiB
         chunkSize: 1000000, // bytes
         dictDefaultMessage: "{{ _("Drop files here to upload") }}",
         dictFallbackMessage: "{{ _("Your browser does not support drag'n'drop file uploads.") }}",
         dictFallbackText: "{{ _("Please use the fallback form below to upload your files like in the olden days.") }}",
-        dictFileTooBig: "{{ _("File is too big: {{filesize}}MB. Max filesize: {{maxFilesize}}MB.") }}",
+        dictFileTooBig: "{{ _("File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB.") }}",
         dictInvalidFileType: "{{ _("You can't upload files of this type.") }}",
         dictResponseError: "{{ _("Server responded with code: {{statusCode}}") }}",
         dictCancelUpload:" {{ _("Cancel upload") }}",
@@ -413,10 +413,10 @@
         dictRemoveFile: "{{ _("Remove file") }}",
         dictMaxFilesExceeded: "{{ _("You can not upload any more files.") }}",
         dictFileSizeUnits: {
-            tb: "{{ _("TB") }}",
-            gb: "{{ _("GB") }}",
-            mb: "{{ _("MB") }}",
-            kb: "{{ _("KB") }}",
+            tb: "{{ _("TiB") }}",
+            gb: "{{ _("GiB") }}",
+            mb: "{{ _("MiB") }}",
+            kb: "{{ _("KiB") }}",
             b: "{{ _("B") }}"
         }
     }
@@ -565,7 +565,7 @@
                     {% endfor %}
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
-                <input name="size" type="number" placeholder="{{ _("MB") }}" min="1" max="262144" required>
+                <input name="size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
                 <input type="submit" value="{{ _("Create") }}">
             </form>
         </td>
