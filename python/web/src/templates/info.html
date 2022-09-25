@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p><a href="/">{{ _("Go to Home") }}</a></p>
+<h3>{{ title }}</h3>
+{% for key, value in contents.items() %}
+<h4>{{ key }}</h4>
+<p><pre>{{ value }}</pre></p>
+{% endfor %}
+<p><a href="/">{{ _("Go to Home") }}</a></p>
+
+{% endblock content %}

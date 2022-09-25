@@ -447,6 +447,38 @@ def config_load():
     return redirect(url_for("index"))
 
 
+@APP.route("/diskinfo", methods=["POST"])
+def show_diskinfo():
+    """
+    Displays disk image info
+    """
+    file_name = request.form.get("file_name")
+
+    server_info = ractl_cmd.get_server_info()
+    returncode, diskinfo = sys_cmd.get_diskinfo(
+            server_info["image_dir"] +
+            "/" +
+            file_name
+        )
+    if returncode == 0:
+        ip_addr, host = sys_cmd.get_ip_and_host()
+        title = _("Image Info")
+        contents = {file_name: diskinfo}
+        return render_template(
+            "info.html",
+            title=title,
+            contents=contents,
+            running_env=sys_cmd.running_env(),
+            version=server_info["version"],
+            ip_addr=ip_addr,
+            host=host,
+            )
+
+    flash(_("An error occurred when getting disk info."))
+    flash(diskinfo, "stderr")
+    return redirect(url_for("index"))
+
+
 @APP.route("/logs/show", methods=["POST"])
 def show_logs():
     """
