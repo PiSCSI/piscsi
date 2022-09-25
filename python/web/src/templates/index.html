@@ -110,7 +110,7 @@
                 <form action="/scsi/info" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
-                    <input type="submit" value="{{ _("Info") }}">
+                    <input type="submit" value="{{ _("?") }}">
                 </form>
             {% else %}
             <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
