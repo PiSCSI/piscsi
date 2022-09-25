@@ -309,7 +309,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
 
 <hr/>
 <details>

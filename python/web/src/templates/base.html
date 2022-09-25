@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>{{ _("RaSCSI Reloaded Control Page") }} [{{ host }}]</title>
+    <title>{{ _("RaSCSI Reloaded Control Page") }} [{{ env["host"] }}]</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
@@ -26,12 +26,12 @@
 
 <script type="application/javascript">
     var processNotify = function(Notification) {
-            document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div>";
+            document.getElementById("flash").innerHTML = "<div class=\"info\">" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div>";
         window.scrollTo(0,0);
     }
 
     var shutdownNotify = function(Notification) {
-            document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div>";
+            document.getElementById("flash").innerHTML = "<div class=\"info\">" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div>";
         window.scrollTo(0,0);
     }
 </script>
@@ -43,9 +43,9 @@
 <body>
 <div class="content">
     <div class="header">
-        {% if auth_active %}
-        {% if username %}
-        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">{{ _("Logged in as <em>%(username)s</em>", username=username) }} &#8211; <a href="/logout">{{ _("Log Out") }}</a></span>
+        {% if env["auth_active"] %}
+        {% if env["username"] %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }} &#8211; <a href="/logout">{{ _("Log Out") }}</a></span>
         {% else %}
         <span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
             <form method="POST" action="/login">
@@ -70,7 +70,7 @@
         </tr>
         <tr>
             <td style="color: white;">
-                hostname: {{ host }} ip: {{ ip_addr }}
+                hostname: {{ env["host"] }} ip: {{ env["ip_addr"] }}
             </td>
         </tr>
         </tbody>
@@ -89,8 +89,8 @@
         {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
-        <center><tt>{{ _("Pi environment: ") }}{{ running_env["env"] }}</tt></center>
+        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></strong></tt></center>
+        <center><tt>{{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}</tt></center>
     </div>
 </div>
 </body>
