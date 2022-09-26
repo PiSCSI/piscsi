@@ -315,3 +315,15 @@ def test_download_url_to_iso(
     # Cleanup
     detach_devices()
     delete_file(iso_file_name)
+
+
+# route("/files/diskinfo", methods=["POST"])
+def test_show_diskinfo(http_client):
+    response = http_client.post(
+        "/files/diskinfo",
+        data={
+            "file_name": "tests/assets/test_image.hds",
+        },
+    )
+
+    assert response.status_code == 200
