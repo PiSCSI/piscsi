@@ -184,7 +184,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 		}
 	}
 
-	if (it != localized_messages.end()) {
+	if (it == localized_messages.end()) {
 		return "Missing default localization for enum value " + to_string((int)key);
 	}
 
