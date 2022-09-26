@@ -13,20 +13,7 @@
 #include <exception>
 #include <string>
 
-using namespace std; //NOSONAR Not relevant for rascsi
-
-class illegal_argument_exception final : public exception {
-private:
-	string msg;
-
-public:
-	explicit illegal_argument_exception(const string& msg) : msg(msg) {}
-	~illegal_argument_exception() override = default;
-
-	const string& get_msg() const { return msg; }
-};
-
-class io_exception : public exception {
+class io_exception : public std::exception {
 private:
 	string msg;
 
@@ -41,7 +28,7 @@ class file_not_found_exception : public io_exception {
 	using io_exception::io_exception;
 };
 
-class scsi_error_exception final : public exception {
+class scsi_error_exception final : public std::exception {
 private:
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;

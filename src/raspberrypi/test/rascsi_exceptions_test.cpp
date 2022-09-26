@@ -12,16 +12,6 @@
 
 using namespace scsi_defs;
 
-TEST(RascsiExceptionsTest, IllegalArgumentException)
-{
-	try {
-		throw illegal_argument_exception("msg");
-	}
-	catch(const illegal_argument_exception& e) {
-		EXPECT_EQ("msg", e.get_msg());
-	}
-}
-
 TEST(RascsiExceptionsTest, IoException)
 {
 	try {

@@ -43,7 +43,7 @@ void Device::SetProtected(bool b)
 void Device::SetVendor(const string& v)
 {
 	if (v.empty() || v.length() > 8) {
-		throw illegal_argument_exception("Vendor '" + v + "' must be between 1 and 8 characters");
+		throw invalid_argument("Vendor '" + v + "' must be between 1 and 8 characters");
 	}
 
 	vendor = v;
@@ -52,7 +52,7 @@ void Device::SetVendor(const string& v)
 void Device::SetProduct(const string& p, bool force)
 {
 	if (p.empty() || p.length() > 16) {
-		throw illegal_argument_exception("Product '" + p + "' must be between 1 and 16 characters");
+		throw invalid_argument("Product '" + p + "' must be between 1 and 16 characters");
 	}
 
 	// Changing vital product data is not SCSI compliant
@@ -66,7 +66,7 @@ void Device::SetProduct(const string& p, bool force)
 void Device::SetRevision(const string& r)
 {
 	if (r.empty() || r.length() > 4) {
-		throw illegal_argument_exception("Revision '" + r + "' must be between 1 and 4 characters");
+		throw invalid_argument("Revision '" + r + "' must be between 1 and 4 characters");
 	}
 
 	revision = r;
