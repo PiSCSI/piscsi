@@ -36,6 +36,7 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
+	FRIEND_TEST(DiskTest, Dispatch);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
 	FRIEND_TEST(DiskTest, ReassignBlocks);

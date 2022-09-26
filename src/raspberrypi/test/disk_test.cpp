@@ -10,6 +10,20 @@
 #include "testing.h"
 #include "rascsi_exceptions.h"
 
+TEST(DiskTest, Dispatch)
+{
+	MockAbstractController controller(0);
+	const unordered_set<uint32_t> sector_sizes;
+	MockSCSICD disk(sector_sizes);
+
+	controller.AddDevice(&disk);
+
+	controller.InitCmd(6);
+
+	disk.MediumChanged();
+	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+}
+
 TEST(DiskTest, Rezero)
 {
 	MockAbstractController controller(0);
