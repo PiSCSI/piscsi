@@ -721,8 +721,7 @@ def device_info():
     process = ractl_cmd.list_devices()
     if process["status"]:
         return response(
-            template="info.html",
-            description=_("Detailed Info for Attached Devices"),
+            template="deviceinfo.html",
             devices=process["device_list"],
             version=server_info["version"],
             )
