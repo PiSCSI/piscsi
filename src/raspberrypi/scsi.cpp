@@ -43,7 +43,7 @@ BUS::phase_t BUS::GetPhase()
 //
 //---------------------------------------------------------------------------
 const char* BUS::GetPhaseStrRaw(phase_t current_phase){
-	if(current_phase <= phase_t::reserved) {
+	if (current_phase <= phase_t::reserved) {
 		return phase_str_table[(int)current_phase];
 	}
 	else {
@@ -77,17 +77,16 @@ const array<BUS::phase_t, 8> BUS::phase_table = {
 //      This MUST be kept in sync with the phase_t enum type!
 //
 //---------------------------------------------------------------------------
-const array<const char*, 12> BUS::phase_str_table = {
-	"busfree",		
-	"arbitration",	
-	"selection",		
+const array<const char*, 11> BUS::phase_str_table = {
+	"busfree",
+	"arbitration",
+	"selection",
 	"reselection",	
-	"command",		
-	"execute",		
-	"datain",		
+	"command",
+	"datain",
 	"dataout",		
-	"status",		
-	"msgin",			
-	"msgout",		
-	"reserved"		
+	"status",
+	"msgin",
+	"msgout",
+	"reserved"
 };
