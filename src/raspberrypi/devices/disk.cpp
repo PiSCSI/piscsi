@@ -378,7 +378,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 	}
 
 	// Basic information
-	int info_size = 4;
+	int size = 4;
 
 	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
@@ -392,23 +392,23 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
 
-		info_size = 12;
+		size = 12;
 	}
 
-	info_size += super::AddModePages(cdb, buf, info_size, length - info_size);
-	if (info_size > 255) {
+	size += super::AddModePages(cdb, buf, size, length - size);
+	if (size > 255) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
-	if (info_size > length) {
-		info_size = length;
+	if (size > length) {
+		size = length;
 	}
 
 	// Final setting of mode data length
-	buf[0] = (BYTE)info_size;
+	buf[0] = (BYTE)size;
 
-	return info_size;
+	return size;
 }
 
 int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
@@ -423,7 +423,7 @@ int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 	}
 
 	// Basic Information
-	int info_size = 8;
+	int size = 8;
 
 	// Add block descriptor if DBD is 0, only if ready
 	if ((cdb[1] & 0x08) == 0 && IsReady()) {
@@ -439,7 +439,7 @@ int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 			SetInt32(buf, 8, (uint32_t)disk_blocks);
 			SetInt32(buf, 12, disk_size);
 
-			info_size = 16;
+			size = 16;
 		}
 		else {
 			// Mode parameter header, LONGLBA
@@ -452,24 +452,24 @@ int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 			SetInt64(buf, 8, disk_blocks);
 			SetInt32(buf, 20, disk_size);
 
-			info_size = 24;
+			size = 24;
 		}
 	}
 
-	info_size += super::AddModePages(cdb, buf, info_size, length - info_size);
-	if (info_size > 65535) {
+	size += super::AddModePages(cdb, buf, size, length - size);
+	if (size > 65535) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
-	if (info_size > length) {
-		info_size = length;
+	if (size > length) {
+		size = length;
 	}
 
 	// Final setting of mode data length
-	SetInt16(buf, 0, info_size);
+	SetInt16(buf, 0, size);
 
-	return info_size;
+	return size;
 }
 
 void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
