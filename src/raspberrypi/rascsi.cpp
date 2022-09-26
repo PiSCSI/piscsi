@@ -534,12 +534,12 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	return true;
 }
 
-bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
+bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 {
-	if (!device->GetLun()) {
+	if (!device.GetLun()) {
 		for (const Device *d : device_factory.GetAllDevices()) {
 			// LUN 0 can only be detached if there is no other LUN anymore
-			if (d->GetId() == device->GetId() && d->GetLun()) {
+			if (d->GetId() == device.GetId() && d->GetLun()) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
 			}
 		}
@@ -547,22 +547,22 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 
 	if (!dryRun) {
 		// Remember data that going to be deleted but are used for logging
-		int id = device->GetId();
-		int lun = device->GetLun();
-		string type = device->GetType();
+		int id = device.GetId();
+		int lun = device.GetLun();
+		string type = device.GetType();
 
-		if (auto file_support = dynamic_cast<FileSupport *>(device); file_support != nullptr) {
+		if (auto file_support = dynamic_cast<FileSupport *>(&device); file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		if (!controller_manager.FindController(id)->DeleteDevice(*device)) {
+		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
 			pthread_mutex_unlock(&ctrl_mutex);
 
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
-		device_factory.DeleteDevice(*device);
+		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
 		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
@@ -740,7 +740,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	if (operation == DETACH) {
-		return Detach(context, device, dryRun);
+		return Detach(context, *device, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
