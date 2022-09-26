@@ -406,16 +406,16 @@ int main(int argc, char *argv[])
     elapsed_us = ((time_diff.tv_sec * 1000000) + time_diff.tv_usec);
     s.str("");
     s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
-    LOGINFO(s.str().c_str())
+    LOGINFO("%s", s.str().c_str())
     s.str("");
     s << "Collected " << data_idx << " changes";
-    LOGINFO(s.str().c_str())
+    LOGINFO("%s", s.str().c_str())
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.
     ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
     s.str("");
     s << "Read the SCSI bus " << loop_count << " times with an average of " << ns_per_loop << " ns for each read";
-    LOGINFO(s.str().c_str())
+    LOGINFO("%s", s.str().c_str())
 
     Cleanup();
 
