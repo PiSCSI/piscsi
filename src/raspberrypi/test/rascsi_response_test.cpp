@@ -15,7 +15,7 @@
 
 using namespace rascsi_interface;
 
-TEST(ResponseTest, Operation_Count)
+TEST(RascsiResponseTest, Operation_Count)
 {
 	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
