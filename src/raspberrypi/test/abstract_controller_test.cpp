@@ -160,11 +160,14 @@ TEST(AbstractControllerTest, GetLun)
 	EXPECT_EQ(LUN, controller.GetLun());
 }
 
-TEST(AbstractControllerTest, HasValidLength)
+TEST(AbstractControllerTest, Length)
 {
 	MockAbstractController controller(0);
 
 	EXPECT_FALSE(controller.HasValidLength());
+
+	controller.UpdateOffsetAndLength();
+	EXPECT_EQ(0, controller.GetLength());
 }
 
 TEST(AbstractControllerTest, Offset)
