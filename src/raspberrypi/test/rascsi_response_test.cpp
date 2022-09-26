@@ -26,6 +26,33 @@ TEST(RascsiResponseTest, Operation_Count)
 	EXPECT_EQ(PbOperation_ARRAYSIZE - 1, operation_info->operations_size());
 }
 
+TEST(RascsiResponseTest, GetDevice_Printer)
+{
+	DeviceFactory device_factory;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	device_factory.CreateDevice(UNDEFINED, "printer", -1);
+
+	PbServerInfo server_info;
+	rascsi_response.GetDevices(server_info);
+	device_factory.DeleteAllDevices();
+
+	EXPECT_EQ(1, server_info.devices_info().devices().size());
+	const auto& device = server_info.devices_info().devices()[0];
+	EXPECT_EQ(0, device.block_size());
+	EXPECT_EQ(0, device.block_count());
+	EXPECT_FALSE(device.properties().supports_file());
+	EXPECT_TRUE(device.properties().supports_params());
+	EXPECT_EQ(2, device.properties().default_params().size());
+	EXPECT_FALSE(device.properties().read_only());
+	EXPECT_FALSE(device.properties().protectable());
+	EXPECT_FALSE(device.properties().stoppable());
+	EXPECT_FALSE(device.properties().removable());
+	EXPECT_FALSE(device.properties().lockable());
+	EXPECT_EQ(0, device.params().size());
+
+}
+
 TEST(RascsiResponseTest, GetDevice_HostServices)
 {
 	DeviceFactory device_factory;
@@ -38,16 +65,18 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 	device_factory.DeleteAllDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
-	const auto& host_services = server_info.devices_info().devices()[0];
-	EXPECT_EQ(0, host_services.block_size());
-	EXPECT_EQ(0, host_services.block_count());
-	EXPECT_FALSE(host_services.properties().supports_file());
-	EXPECT_FALSE(host_services.properties().read_only());
-	EXPECT_FALSE(host_services.properties().protectable());
-	EXPECT_FALSE(host_services.properties().stoppable());
-	EXPECT_FALSE(host_services.properties().removable());
-	EXPECT_FALSE(host_services.properties().lockable());
-	EXPECT_EQ(0, host_services.params().size());
+	const auto& device = server_info.devices_info().devices()[0];
+	EXPECT_EQ(0, device.block_size());
+	EXPECT_EQ(0, device.block_count());
+	EXPECT_FALSE(device.properties().supports_file());
+	EXPECT_FALSE(device.properties().supports_params());
+	EXPECT_EQ(0, device.properties().default_params().size());
+	EXPECT_FALSE(device.properties().read_only());
+	EXPECT_FALSE(device.properties().protectable());
+	EXPECT_FALSE(device.properties().stoppable());
+	EXPECT_FALSE(device.properties().removable());
+	EXPECT_FALSE(device.properties().lockable());
+	EXPECT_EQ(0, device.params().size());
 }
 
 TEST(RascsiResponseTest, GetReservedIds)
