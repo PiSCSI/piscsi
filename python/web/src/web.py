@@ -491,7 +491,7 @@ def show_diskinfo():
         title = _("Image Info")
         contents = {file_name: diskinfo}
         return response(
-            template="info.html",
+            template="logs.html",
             title=title,
             contents=contents,
             version=server_info["version"],
@@ -522,7 +522,7 @@ def show_logs():
             )
         contents = {heading: logs}
         return response(
-            template="info.html",
+            template="logs.html",
             title=title,
             contents=contents,
             version=server_info["version"],
