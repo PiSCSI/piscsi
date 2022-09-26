@@ -154,7 +154,7 @@ TEST(AbstractControllerTest, GetLun)
 	EXPECT_EQ(LUN, controller.GetLun());
 }
 
-TEST(AbstractControllerTest, Ctrl)
+TEST(AbstractControllerTest, HasValidLength)
 {
 	MockAbstractController controller(0);
 

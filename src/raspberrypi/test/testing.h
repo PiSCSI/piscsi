@@ -29,7 +29,7 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
 	FRIEND_TEST(AbstractControllerTest, GetLun);
-	FRIEND_TEST(AbstractControllerTest, Ctrl);
+	FRIEND_TEST(AbstractControllerTest, HasValidLength);
 
 public:
 
