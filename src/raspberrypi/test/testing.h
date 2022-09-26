@@ -33,6 +33,7 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(AbstractControllerTest, Offset);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 
@@ -61,6 +62,7 @@ public:
 
 class MockScsiController final : public ScsiController
 {
+	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
@@ -91,6 +93,7 @@ class MockPrimaryDevice final : public PrimaryDevice
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
+	FRIEND_TEST(ScsiControllerTest, RequestSense);
 
 public:
 

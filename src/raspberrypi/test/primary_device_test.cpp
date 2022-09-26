@@ -129,7 +129,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
@@ -145,13 +145,6 @@ TEST(PrimaryDeviceTest, RequestSense)
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
 	EXPECT_EQ(0, controller.GetStatus());
-
-	// Non-existing LUN
-	cmd[1] = 0x20;
-	EXPECT_CALL(controller, Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN, status::CHECK_CONDITION)).Times(1);
-	EXPECT_CALL(controller, DataIn()).Times(1);
-	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(0, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)
