@@ -73,6 +73,7 @@ class MockScsiController final : public ScsiController
 
 public:
 
+	MOCK_METHOD(void, Reset, (), ());
 	MOCK_METHOD(void, Status, (), ());
 	MOCK_METHOD(void, DataIn, (), ());
 	MOCK_METHOD(void, DataOut, (), ());

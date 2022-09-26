@@ -11,7 +11,7 @@
 #include "devices/device_factory.h"
 #include "controllers/controller_manager.h"
 
-TEST(ControllerManagerTest, ControllerManager)
+TEST(ControllerManagerTest, LifeCycle)
 {
 	const int ID = 4;
 	const int LUN = 6;
@@ -34,4 +34,16 @@ TEST(ControllerManagerTest, ControllerManager)
 	device_factory.DeleteAllDevices();
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN));
+}
+
+TEST(ControllerManagerTest, ResetAllControllers)
+{
+	ControllerManager controller_manager;
+
+	auto controller = new MockScsiController(nullptr, 0);
+	controller_manager.controllers[0] = shared_ptr<MockScsiController>(controller);
+	EXPECT_CALL(*controller, Reset()).Times(1);
+	controller_manager.ResetAllControllers();
+
+	controller_manager.DeleteAllControllers();
 }
