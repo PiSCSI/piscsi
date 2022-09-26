@@ -48,7 +48,7 @@ public:
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id, 32) {}
+	explicit MockAbstractController(int t) : AbstractController(nullptr, t, 32) {}
 	~MockAbstractController() override = default;
 };
 
