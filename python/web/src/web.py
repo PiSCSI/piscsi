@@ -512,14 +512,10 @@ def show_logs():
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
         server_info = ractl_cmd.get_server_info()
-        description = _(
-            "System Logs: %(scope)s %(lines)s lines",
-            scope=scope,
-            lines=lines,
-            )
         return response(
             template="logs.html",
-            description=description,
+            scope=scope,
+            lines=lines,
             logs=logs,
             version=server_info["version"],
             )
