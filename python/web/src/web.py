@@ -474,7 +474,7 @@ def config_load():
     return response(error=True, message="Action field (load, delete) missing")
 
 
-@APP.route("/diskinfo", methods=["POST"])
+@APP.route("/files/diskinfo", methods=["POST"])
 def show_diskinfo():
     """
     Displays disk image info
@@ -488,18 +488,17 @@ def show_diskinfo():
             file_name
         )
     if returncode == 0:
-        description = _("Image Info: %(file_name)s", file_name=file_name)
         return response(
-            template="logs.html",
-            description=description,
-            logs=diskinfo,
+            template="diskinfo.html",
+            file_name=file_name,
+            diskinfo=diskinfo,
             version=server_info["version"],
             )
 
-    return response(error=True, message=[
-        (_("An error occurred when getting disk info."), "error"),
-        (diskinfo, "stderr"),
-    ])
+    return response(
+        error=True,
+        message=_("An error occurred when getting disk info: %(error)s", error=diskinfo)
+    )
 
 
 @APP.route("/logs/show", methods=["POST"])
@@ -525,10 +524,10 @@ def show_logs():
             version=server_info["version"],
             )
 
-    return response(error=True, message=[
-        (_("An error occurred when fetching logs."), "error"),
-        (logs, "stderr"),
-    ])
+    return response(
+        error=True,
+        message=_("An error occurred when fetching logs: %(error)s", error=logs)
+    )
 
 
 @APP.route("/logs/level", methods=["POST"])

@@ -308,7 +308,7 @@
                 </form>
                 {% endif %}
                 {% if not file["archive_contents"] %}
-                <form action="/diskinfo" method="post">
+                <form action="/files/diskinfo" method="post">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ _("?") }}">
                 </form>
