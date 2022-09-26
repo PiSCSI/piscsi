@@ -12,7 +12,7 @@
 
 TEST(DiskTest, Rezero)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -29,7 +29,7 @@ TEST(DiskTest, Rezero)
 
 TEST(DiskTest, FormatUnit)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -51,7 +51,7 @@ TEST(DiskTest, FormatUnit)
 
 TEST(DiskTest, ReassignBlocks)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -68,7 +68,7 @@ TEST(DiskTest, ReassignBlocks)
 
 TEST(DiskTest, Seek)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -104,7 +104,7 @@ TEST(DiskTest, Seek)
 
 TEST(DiskTest, ReadCapacity)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -168,7 +168,7 @@ TEST(DiskTest, ReadCapacity)
 
 TEST(DiskTest, ReadWriteLong)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -224,7 +224,7 @@ TEST(DiskTest, ReadWriteLong)
 
 TEST(DiskTest, ReserveRelease)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -242,7 +242,7 @@ TEST(DiskTest, ReserveRelease)
 
 TEST(DiskTest, SendDiagnostic)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -269,7 +269,7 @@ TEST(DiskTest, SendDiagnostic)
 
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -295,7 +295,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 TEST(DiskTest, SynchronizeCache)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);
@@ -317,7 +317,7 @@ TEST(DiskTest, SynchronizeCache)
 
 TEST(DiskTest, ReadDefectData)
 {
-	MockScsiController controller(0);
+	MockAbstractController controller(0);
 	MockSCSIHD_NEC disk;
 
 	controller.AddDevice(&disk);

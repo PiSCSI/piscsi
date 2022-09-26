@@ -36,6 +36,17 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
+	FRIEND_TEST(DiskTest, Rezero);
+	FRIEND_TEST(DiskTest, FormatUnit);
+	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Seek);
+	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadWriteLong);
+	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, SendDiagnostic);
+	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
+	FRIEND_TEST(DiskTest, SynchronizeCache);
+	FRIEND_TEST(DiskTest, ReadDefectData);
 
 public:
 
@@ -64,17 +75,6 @@ class MockScsiController final : public ScsiController
 {
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
-	FRIEND_TEST(DiskTest, Rezero);
-	FRIEND_TEST(DiskTest, FormatUnit);
-	FRIEND_TEST(DiskTest, ReassignBlocks);
-	FRIEND_TEST(DiskTest, Seek);
-	FRIEND_TEST(DiskTest, ReadCapacity);
-	FRIEND_TEST(DiskTest, ReadWriteLong);
-	FRIEND_TEST(DiskTest, ReserveRelease);
-	FRIEND_TEST(DiskTest, SendDiagnostic);
-	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
-	FRIEND_TEST(DiskTest, SynchronizeCache);
-	FRIEND_TEST(DiskTest, ReadDefectData);
 
 public:
 
