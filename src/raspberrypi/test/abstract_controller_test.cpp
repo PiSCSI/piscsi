@@ -136,7 +136,7 @@ TEST(AbstractControllerTest, GetOpcode)
 {
 	MockAbstractController controller(0);
 
-	vector<int>& cmd = controller.InitCmd(2);
+	vector<int>& cmd = controller.InitCmd(1);
 
 	cmd[0] = 0x12;
 	EXPECT_EQ(0x12, (int)controller.GetOpcode());
