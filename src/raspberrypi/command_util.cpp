@@ -108,7 +108,7 @@ bool command_util::ReturnStatus(const CommandContext& context, bool status, cons
 {
 	// Do not log twice if logging has already been done in the localized error handling above
 	if (log && !status && !msg.empty()) {
-		LOGERROR(msg.c_str())
+		LOGERROR("%s", msg.c_str())
 	}
 
 	if (context.fd == -1) {
