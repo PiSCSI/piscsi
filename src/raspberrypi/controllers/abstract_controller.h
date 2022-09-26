@@ -88,7 +88,7 @@ public:
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice *);
 	bool HasDeviceForLun(int) const;
-	int ExtractInitiatorId(int id_data) const;
+	int ExtractInitiatorId(int) const;
 
 	void AllocateBuffer(size_t);
 	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
