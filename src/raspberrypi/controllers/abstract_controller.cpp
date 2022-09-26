@@ -84,11 +84,7 @@ void AbstractController::ProcessPhase()
 
 bool AbstractController::AddDevice(PrimaryDevice *device)
 {
-	if (device->GetLun() >= GetMaxLuns()) {
-		return false;
-	}
-
-	if (HasDeviceForLun(device->GetLun())) {
+	if (device->GetLun() >= GetMaxLuns() || HasDeviceForLun(device->GetLun())) {
 		return false;
 	}
 
