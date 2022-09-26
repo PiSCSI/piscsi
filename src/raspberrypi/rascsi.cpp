@@ -673,8 +673,8 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	const map<string, string> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;
-	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "operation=" << PbOperation_Name(operation);
+	s << (dryRun ? "Validating" : "Executing");
+	s << ": operation=" << PbOperation_Name(operation);
 
 	if (!params.empty()) {
 		s << ", command params=";
@@ -704,8 +704,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
-			<< "', revision='" << pb_device.revision()
-			<< "', block size=" << pb_device.block_size();
+		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
 	LOGINFO("%s", s.str().c_str())
 
 	// Check the Controller Number
