@@ -213,6 +213,14 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 	EXPECT_FALSE(device.Dispatch((scsi_command)0xFF));
 }
 
+TEST(PrimaryDeviceTest, WriteByteSequence)
+{
+	vector<BYTE> data;
+	MockPrimaryDevice device;
+
+	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device must not support writing byte sequences";
+}
+
 TEST(PrimaryDeviceTest, GetSendDelay)
 {
 	MockPrimaryDevice device;
