@@ -84,7 +84,8 @@ public:
 	MOCK_METHOD(void, DataOut, (), ());
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 
-	using ScsiController::ScsiController;
+	explicit MockScsiController(int target_id) : ScsiController(nullptr, target_id) {}
+	~MockScsiController() override = default;
 };
 
 class MockPrimaryDevice final : public PrimaryDevice

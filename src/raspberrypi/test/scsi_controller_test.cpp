@@ -12,14 +12,14 @@
 
 TEST(ScsiControllerTest, GetMaxLuns)
 {
-	MockScsiController controller(nullptr, 0);
+	MockScsiController controller(0);
 
 	EXPECT_EQ(32, controller.GetMaxLuns());
 }
 
 TEST(ScsiControllerTest, RequestSense)
 {
-	MockScsiController controller(nullptr, 0);
+	MockScsiController controller(0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
