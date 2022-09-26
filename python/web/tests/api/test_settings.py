@@ -65,7 +65,12 @@ def test_show_logs(http_client):
         },
     )
 
+    response_data = response.json()
+
     assert response.status_code == 200
+    assert response_data["data"]["lines"] == "100"
+    assert response_data["data"]["scope"] == "rascsi"
+    assert "Journal begins at" in response_data["data"]["logs"]
 
 
 # route("/config/save", methods=["POST"])

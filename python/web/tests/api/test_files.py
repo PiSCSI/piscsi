@@ -318,12 +318,17 @@ def test_download_url_to_iso(
 
 
 # route("/files/diskinfo", methods=["POST"])
-def test_show_diskinfo(http_client):
+def test_show_diskinfo(http_client, create_test_image):
+    test_image = create_test_image()
+
     response = http_client.post(
         "/files/diskinfo",
         data={
-            "file_name": "tests/assets/test_image.hds",
+            "file_name": test_image,
         },
     )
 
+    response_data = response.json()
+
     assert response.status_code == 200
+    assert "Regular file" in response_data["data"]["diskinfo"]
