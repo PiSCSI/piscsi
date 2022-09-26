@@ -150,7 +150,7 @@ void SCSIPrinter::Print()
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
 	if (length > controller->GetBuffer().size()) {
-		LOGERROR(string("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
+		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected").c_str())
 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -185,7 +185,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	cmd.replace(file_position, 2, filename);
 	cmd = "sudo -u lp " + cmd;
 
-	LOGTRACE(string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
+	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
 
 	LOGDEBUG("Executing '%s'", cmd.c_str())
 

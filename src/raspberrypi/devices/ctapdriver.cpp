@@ -205,13 +205,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		string bridge_interface;
 		for (const string& iface : interfaces) {
 			if (is_interface_up(iface)) {
-				LOGTRACE(string("Interface " + iface + " is up").c_str())
+				LOGTRACE("&s", string("Interface " + iface + " is up").c_str())
 
 				bridge_interface = iface;
 				break;
 			}
 			else {
-				LOGTRACE(string("Interface " + iface + " is not available or is not up").c_str())
+				LOGTRACE("%s", string("Interface " + iface + " is not available or is not up").c_str())
 			}
 		}
 

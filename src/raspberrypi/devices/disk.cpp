@@ -801,7 +801,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	uint64_t capacity = GetBlockCount();
 
 	if (block > capacity) {
-		LOGTRACE(("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
