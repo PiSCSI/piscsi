@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "rascsi_exceptions.h"
 #include "controllers/abstract_controller.h"
 
 TEST(AbstractControllerTest, Reset)
@@ -98,6 +99,12 @@ TEST(AbstractControllerTest, ProcessPhase)
 	controller.SetPhase(BUS::phase_t::msgout);
 	EXPECT_CALL(controller, MsgOut()).Times(1);
 	controller.ProcessPhase();
+
+	controller.SetPhase(BUS::phase_t::reselection);
+	EXPECT_THROW(controller.ProcessPhase(), scsi_error_exception);
+
+	controller.SetPhase(BUS::phase_t::reserved);
+	EXPECT_THROW(controller.ProcessPhase(), scsi_error_exception);
 }
 
 TEST(AbstractControllerTest, DeviceLunLifeCycle)

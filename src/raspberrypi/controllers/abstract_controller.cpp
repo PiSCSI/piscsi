@@ -7,8 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "abstract_controller.h"
+#include "rascsi_exceptions.h"
 #include "devices/primary_device.h"
+#include "abstract_controller.h"
 
 void AbstractController::AllocateBuffer(size_t size)
 {
@@ -75,7 +76,8 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			assert(false);
+			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()));
+			throw scsi_error_exception();
 			break;
 	}
 }
