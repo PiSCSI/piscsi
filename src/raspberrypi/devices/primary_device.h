@@ -33,6 +33,10 @@ public:
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
+	virtual void FlushCache() {
+		// Devices with a cache have to implement this method
+	}
+
 protected:
 
 	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
