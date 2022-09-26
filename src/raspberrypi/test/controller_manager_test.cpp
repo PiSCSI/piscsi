@@ -40,8 +40,8 @@ TEST(ControllerManagerTest, ResetAllControllers)
 {
 	ControllerManager controller_manager;
 
-	auto controller = new MockScsiController(nullptr, 0);
-	controller_manager.controllers[0] = shared_ptr<MockScsiController>(controller);
+	auto controller = make_shared<MockScsiController>(nullptr, 0);
+	controller_manager.controllers[0] = controller;
 	EXPECT_CALL(*controller, Reset()).Times(1);
 	controller_manager.ResetAllControllers();
 
