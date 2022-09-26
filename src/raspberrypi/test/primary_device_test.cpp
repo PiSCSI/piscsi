@@ -227,3 +227,11 @@ TEST(PrimaryDeviceTest, GetSendDelay)
 
 	EXPECT_EQ(-1, device.GetSendDelay());
 }
+
+TEST(PrimaryDeviceTest, FlushCache)
+{
+	MockPrimaryDevice device;
+
+	// Method must be present
+	device.FlushCache();
+}
