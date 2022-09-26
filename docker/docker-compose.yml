@@ -55,3 +55,20 @@ services:
       "--log-level=${WEB_LOG_LEVEL:-info}",
       "--dev-mode"
     ]
+
+  pytest:
+    container_name: pytest
+    image: rascsi:pytest
+    pull_policy: never
+    profiles:
+      - webui-tests
+    build:
+      context: ..
+      dockerfile: docker/pytest/Dockerfile
+    volumes:
+      - ../python/web:/src:delegated
+    working_dir: /src
+    command: [
+      "pytest",
+      "-v"
+    ]
