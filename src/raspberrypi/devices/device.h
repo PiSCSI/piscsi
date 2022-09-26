@@ -100,7 +100,7 @@ public:
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
-	void Reset();
+	virtual void Reset();
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool b) { protectable = b; }
