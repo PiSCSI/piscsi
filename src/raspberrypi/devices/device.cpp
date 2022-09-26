@@ -80,7 +80,7 @@ string Device::GetPaddedName() const
 	os << left << setw(16) << setfill(' ') << product;
 	os << left << setw(4) << setfill(' ') << revision;
 
-	string name = os.str();;
+	string name = os.str();
 	assert(name.length() == 28);
 
 	return name;
