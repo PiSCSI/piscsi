@@ -167,3 +167,10 @@ TEST(AbstractControllerTest, HasValidLength)
 	EXPECT_FALSE(controller.HasValidLength());
 }
 
+TEST(AbstractControllerTest, Offset)
+{
+	MockAbstractController controller(0);
+
+	controller.ResetOffset();
+	EXPECT_EQ(0, controller.GetOffset());
+}

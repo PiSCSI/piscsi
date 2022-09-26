@@ -30,6 +30,7 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
 	FRIEND_TEST(AbstractControllerTest, GetLun);
 	FRIEND_TEST(AbstractControllerTest, HasValidLength);
+	FRIEND_TEST(AbstractControllerTest, Offset);
 
 public:
 

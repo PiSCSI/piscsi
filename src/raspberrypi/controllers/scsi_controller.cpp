@@ -477,7 +477,7 @@ void ScsiController::Send()
 	assert(bus->GetIO());
 
 	if (HasValidLength()) {
-		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(GetOffset()) + ", length "
 				+ to_string(ctrl.length)).c_str())
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
@@ -577,7 +577,7 @@ void ScsiController::Receive()
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (int len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
+		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != (int)ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
@@ -680,7 +680,7 @@ void ScsiController::ReceiveBytes()
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
+		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len)
@@ -793,7 +793,7 @@ void ScsiController::FlushUnit()
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_error_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
@@ -876,7 +876,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
