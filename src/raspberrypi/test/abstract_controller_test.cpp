@@ -116,8 +116,7 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	MockPrimaryDevice device1;
 	MockPrimaryDevice device2;
 	MockPrimaryDevice device3;
-
-	EXPECT_FALSE(controller.HasLuns());
+	EXPECT_EQ(0, controller.GetLunCount());
 
 	device1.SetLun(LUN);
 	device2.SetLun(32);
@@ -127,13 +126,13 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	EXPECT_TRUE(controller.AddDevice(&device1));
 	EXPECT_FALSE(controller.AddDevice(&device2));
 	EXPECT_FALSE(controller.AddDevice(&device3));
-	EXPECT_TRUE(controller.HasLuns());
+	EXPECT_TRUE(controller.GetLunCount() > 0);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN));
 	EXPECT_FALSE(controller.HasDeviceForLun(0));
 	EXPECT_EQ(&device1, controller.GetDeviceForLun(LUN));
 	EXPECT_EQ(nullptr, controller.GetDeviceForLun(0));
-	EXPECT_TRUE(controller.DeleteDevice(&device1));
-	EXPECT_FALSE(controller.HasLuns());
+	EXPECT_TRUE(controller.DeleteDevice(device1));
+	EXPECT_EQ(0, controller.GetLunCount());
 }
 
 TEST(AbstractControllerTest, ExtractInitiatorId)
