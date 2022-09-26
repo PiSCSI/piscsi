@@ -667,7 +667,7 @@ void TerminationHandler(int signum)
 bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, const PbCommand& command, bool dryRun)
 {
 	const int id = pb_device.id();
-	const int unit = pb_device.unit();
+	const int lun = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 	const PbOperation operation = command.operation();
 	const map<string, string> params = { command.params().begin(), command.params().end() };
@@ -689,7 +689,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		}
 	}
 
-	s << ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type);
+	s << ", device id=" << id << ", lun=" << lun << ", type=" << PbDeviceType_Name(type);
 
 	if (pb_device.params_size()) {
 		s << ", device params=";
@@ -721,8 +721,8 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Check the Unit Number
-	if (unit < 0 || unit >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(unit), to_string(ScsiController::LUN_MAX - 1));
+	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
 	}
 
 	if (operation == ATTACH) {
@@ -735,9 +735,9 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	// Does the unit exist?
-	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, unit);
+	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, lun);
 	if (device == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
 	}
 
 	if (operation == DETACH) {
@@ -762,17 +762,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	switch (operation) {
 		case START:
 			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
+				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
 
 				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
+					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
 				}
 			}
 			break;
 
 		case STOP:
 			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
+				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
 
 				// STOP is idempotent
 				device->Stop();
@@ -784,17 +784,17 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case EJECT:
 			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
+				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
 
 				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit)
+					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
 				}
 			}
 			break;
 
 		case PROTECT:
 			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
+				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
 
 				// PROTECT is idempotent
 				device->SetProtected(true);
@@ -803,7 +803,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 		case UNPROTECT:
 			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit)
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
 
 				// UNPROTECT is idempotent
 				device->SetProtected(false);
