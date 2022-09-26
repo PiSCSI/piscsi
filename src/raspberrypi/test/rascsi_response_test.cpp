@@ -39,6 +39,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
+	EXPECT_EQ(32, device.properties().luns());
 	EXPECT_EQ(0, device.block_size());
 	EXPECT_EQ(0, device.block_count());
 	EXPECT_FALSE(device.properties().supports_file());
@@ -66,6 +67,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
+	EXPECT_EQ(32, device.properties().luns());
 	EXPECT_EQ(0, device.block_size());
 	EXPECT_EQ(0, device.block_count());
 	EXPECT_FALSE(device.properties().supports_file());
