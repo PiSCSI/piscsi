@@ -15,7 +15,7 @@
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
-class Device
+class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
 	friend class DeviceFactory;
 
