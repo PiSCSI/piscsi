@@ -176,4 +176,7 @@ TEST(AbstractControllerTest, Offset)
 
 	controller.ResetOffset();
 	EXPECT_EQ(0, controller.GetOffset());
+
+	controller.UpdateOffsetAndLength();
+	EXPECT_EQ(0, controller.GetOffset());
 }
