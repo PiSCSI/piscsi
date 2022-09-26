@@ -92,14 +92,14 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
+	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer());
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
+	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer());
 
 	EnterDataInPhase();
 }

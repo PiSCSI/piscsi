@@ -86,14 +86,14 @@ void HostServices::StartStopUnit()
 	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min((size_t)max_length, (size_t)cdb[4]);
+	auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
@@ -114,14 +114,14 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min((size_t)max_length, (size_t)GetInt16(cdb, 7));
+	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information

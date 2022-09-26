@@ -38,8 +38,8 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	virtual int ModeSense6(const vector<int>&, vector<BYTE>&, int) const = 0;
-	virtual int ModeSense10(const vector<int>&, vector<BYTE>&, int) const = 0;
+	virtual int ModeSense6(const vector<int>&, vector<BYTE>&) const = 0;
+	virtual int ModeSense10(const vector<int>&, vector<BYTE>&) const = 0;
 
 	void ModeSense6();
 	void ModeSense10();

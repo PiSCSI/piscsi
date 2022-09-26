@@ -366,10 +366,10 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min((size_t)max_length, (size_t)cdb[4]);
+	auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -411,10 +411,10 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) 
 	return info_size;
 }
 
-int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min((size_t)max_length, (size_t)GetInt16(cdb, 7));
+	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
