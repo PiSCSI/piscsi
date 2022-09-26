@@ -161,7 +161,6 @@ class SysCmds:
         process = run(
                 ["journalctl"] + line_param + scope_param,
                 capture_output=True,
-                check=True,
                 )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
@@ -177,7 +176,6 @@ class SysCmds:
         process = run(
                 ["disktype", file_path],
                 capture_output=True,
-                check=True,
                 )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
