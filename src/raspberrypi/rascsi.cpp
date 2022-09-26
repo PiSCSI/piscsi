@@ -320,7 +320,7 @@ void LogDevices(string_view devices)
 	string line;
 
 	while (getline(ss, line, '\n')) {
-		LOGINFO(line.c_str())
+		LOGINFO("%s", line.c_str())
 	}
 }
 
@@ -529,7 +529,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		msg += "protected ";
 	}
 	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
-	LOGINFO(msg.c_str())
+	LOGINFO("%s", msg.c_str())
 
 	return true;
 }
@@ -560,7 +560,7 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		LOGINFO(s.c_str())
+		LOGINFO("%s", s.c_str())
 	}
 
 	return true;
@@ -700,7 +700,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
-	LOGINFO(s.str().c_str())
+	LOGINFO("%s", s.str().c_str())
 
 	// Check the Controller Number
 	if (id < 0) {
@@ -1350,7 +1350,7 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN(e.get_msg().c_str())
+			LOGWARN("%s", e.get_msg().c_str())
 
 			// Fall through
 		}
