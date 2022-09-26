@@ -66,7 +66,6 @@ const array<BUS::phase_t, 8> BUS::phase_table = {
 	phase_t::msgin		// |  1 | 1 | 1  |
 };
 
-
 //---------------------------------------------------------------------------
 //
 // Phase string to phase mapping
