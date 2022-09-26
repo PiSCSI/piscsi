@@ -546,10 +546,9 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 	}
 
 	if (!dryRun) {
-		// Remember data that going to be deleted but are used for logging
-		int id = device.GetId();
-		int lun = device.GetLun();
-		string type = device.GetType();
+		// Prepare log string before the device data are lost due to deletion
+		string s = "Detached " + device.GetType() + " device with ID " + to_string(device.GetId())
+				+ ", unit " + to_string(device.GetLun());
 
 		if (auto file_support = dynamic_cast<FileSupport *>(&device); file_support != nullptr) {
 			file_support->UnreserveFile();
@@ -557,7 +556,7 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 
 		// Delete the existing unit
 		pthread_mutex_lock(&ctrl_mutex);
-		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
+		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
 			pthread_mutex_unlock(&ctrl_mutex);
 
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
@@ -565,7 +564,7 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 		device_factory.DeleteDevice(device);
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		LOGINFO("Detached %s device with ID %d, unit %d", type.c_str(), id, lun)
+		LOGINFO("%s", s.c_str())
 	}
 
 	return true;
