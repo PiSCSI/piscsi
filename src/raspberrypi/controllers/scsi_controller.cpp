@@ -229,8 +229,6 @@ void ScsiController::Execute()
 {
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
-	SetPhase(BUS::phase_t::execute);
-
 	// Initialization for data transfer
 	ResetOffset();
 	ctrl.blocks = 1;

@@ -38,7 +38,6 @@ public:
 		selection,
 		reselection,
 		command,
-		execute,						// Execute phase is an extension of the command phase
 		datain,
 		dataout,
 		status,
