@@ -74,13 +74,13 @@ void Device::SetRevision(const string& r)
 
 string Device::GetPaddedName() const
 {
-	string name = vendor;
-	name.append(8 - vendor.length(), ' ');
-	name += product;
-	name.append(16 - product.length(), ' ');
-	name += revision;
-	name.append(4 - revision.length(), ' ');
+	ostringstream os;
 
+	os << left << setw(8) << setfill(' ') << vendor;
+	os << left << setw(16) << setfill(' ') << product;
+	os << left << setw(4) << setfill(' ') << revision;
+
+	string name = os.str();;
 	assert(name.length() == 28);
 
 	return name;
