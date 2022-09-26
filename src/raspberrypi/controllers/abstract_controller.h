@@ -86,7 +86,7 @@ public:
 
 	PrimaryDevice *GetDeviceForLun(int) const;
 	bool AddDevice(PrimaryDevice *);
-	bool DeleteDevice(const PrimaryDevice *);
+	bool DeleteDevice(const PrimaryDevice&);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
 

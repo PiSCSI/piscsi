@@ -94,9 +94,9 @@ bool AbstractController::AddDevice(PrimaryDevice *device)
 	return true;
 }
 
-bool AbstractController::DeleteDevice(const PrimaryDevice *device)
+bool AbstractController::DeleteDevice(const PrimaryDevice& device)
 {
-	return luns.erase(device->GetLun()) == 1;
+	return luns.erase(device.GetLun()) == 1;
 }
 
 bool AbstractController::HasDeviceForLun(int lun) const
