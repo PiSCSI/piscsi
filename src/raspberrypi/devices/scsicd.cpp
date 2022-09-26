@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI CD-ROM ]
@@ -92,7 +92,7 @@ void SCSICD::Open(const Filepath& path)
 	super::Open(path);
 	FileSupport::SetPath(path);
 
-	SetUpCache(path);
+	SetUpCache(path, 0);
 
 	// Set RAW flag
 	cache->SetRawMode(rawfile);

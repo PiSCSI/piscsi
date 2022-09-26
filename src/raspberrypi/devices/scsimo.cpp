@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void SCSIMO::Open(const Filepath& path)
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 
-	SetUpCache(path);
+	SetUpCache(path, 0);
 
 	// Attention if ready
 	if (IsReady()) {
