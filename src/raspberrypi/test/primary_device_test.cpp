@@ -146,7 +146,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
 	EXPECT_EQ(0, controller.GetStatus());
 
-	// LUN != 0
+	// Non-existing LUN
 	cmd[1] = 0x20;
 	EXPECT_CALL(controller, Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN, status::CHECK_CONDITION)).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
