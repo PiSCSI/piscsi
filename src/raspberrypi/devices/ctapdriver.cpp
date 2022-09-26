@@ -158,7 +158,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 
 	LOGTRACE("Opened tap device %d", m_hTAP)
-	
+
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -205,13 +205,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		string bridge_interface;
 		for (const string& iface : interfaces) {
 			if (is_interface_up(iface)) {
-				LOGTRACE("%s", string("Interface " + iface + " is up").c_str())
+				LOGTRACE(string("Interface " + iface + " is up").c_str())
 
 				bridge_interface = iface;
 				break;
 			}
 			else {
-				LOGTRACE("%s", string("Interface " + iface + " is not available or is not up").c_str())
+				LOGTRACE(string("Interface " + iface + " is not available or is not up").c_str())
 			}
 		}
 

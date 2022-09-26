@@ -266,10 +266,10 @@ void Disk::StartStopUnit()
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (load) {
-		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium")
+		LOGTRACE(start ? "Loading medium" : "Ejecting medium")
 	}
 	else {
-		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit")
+		LOGTRACE(start ? "Starting unit" : "Stopping unit")
 
 		SetStopped(!start);
 	}
@@ -315,7 +315,7 @@ void Disk::PreventAllowMediumRemoval()
 
 	bool lock = ctrl->cmd[4] & 0x01;
 
-	LOGTRACE("%s", lock ? "Locking medium" : "Unlocking medium")
+	LOGTRACE(lock ? "Locking medium" : "Unlocking medium")
 
 	SetLocked(lock);
 
@@ -801,7 +801,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	uint64_t capacity = GetBlockCount();
 
 	if (block > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+		LOGTRACE(("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
@@ -835,7 +835,7 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); start > capacity || start + count > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+		LOGTRACE(("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
