@@ -15,6 +15,14 @@
 using namespace rascsi_interface;
 using namespace command_util;
 
+
+class MockSocketConnector : public SocketConnector
+{
+public:
+
+	using SocketConnector::SocketConnector;
+};
+
 void TestSpecialDevice(const string& name)
 {
 	PbDeviceDefinition device;
@@ -63,9 +71,9 @@ TEST(CommandUtil, ParseParameters)
 
 TEST(CommandUtil, ReturnLocalizedError)
 {
-	SocketConnector connector;
+	MockSocketConnector connector;
 	Localizer localizer;
-	CommandContext context(connector, localizer, -1, "en");
+	CommandContext context(connector, localizer, 1, "dummy_locale");
 
 	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }
