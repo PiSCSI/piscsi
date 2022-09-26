@@ -94,6 +94,8 @@ TEST(DeviceTest, Product)
 	EXPECT_THROW(device.SetProduct("12345678901234567"), illegal_argument_exception);
 	device.SetProduct("1234567890123456");
 	EXPECT_EQ("1234567890123456", device.GetProduct());
+	device.SetProduct("xyz", false);
+	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI complient";
 }
 
 TEST(DeviceTest, Revision)

@@ -55,7 +55,7 @@ void Device::SetProduct(const string& p, bool force)
 		throw illegal_argument_exception("Product '" + p + "' must be between 1 and 16 characters");
 	}
 
-	// Changing the device name is not SCSI compliant
+	// Changing vital product data is not SCSI compliant
 	if (!product.empty() && !force) {
 		return;
 	}
