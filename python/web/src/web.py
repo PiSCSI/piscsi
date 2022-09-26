@@ -488,12 +488,11 @@ def show_diskinfo():
             file_name
         )
     if returncode == 0:
-        title = _("Image Info")
-        contents = {file_name: diskinfo}
+        description = _("Image Info: %(file_name)s", file_name=file_name)
         return response(
             template="logs.html",
-            title=title,
-            contents=contents,
+            description=description,
+            logs=diskinfo,
             version=server_info["version"],
             )
 
@@ -514,17 +513,15 @@ def show_logs():
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
         server_info = ractl_cmd.get_server_info()
-        title = _("System Logs")
-        heading = _(
-            "%(scope)s %(lines)s lines",
+        description = _(
+            "System Logs: %(scope)s %(lines)s lines",
             scope=scope,
             lines=lines,
             )
-        contents = {heading: logs}
         return response(
             template="logs.html",
-            title=title,
-            contents=contents,
+            description=description,
+            logs=logs,
             version=server_info["version"],
             )
 
@@ -722,32 +719,12 @@ def device_info():
     Displays detailed info for all attached devices
     """
     server_info = ractl_cmd.get_server_info()
-    title = _("Detailed Device Info")
-    contents = []
-
     process = ractl_cmd.list_devices()
     if process["status"]:
-        for device in process["device_list"]:
-            contents.append(
-                {
-                    _("SCSI ID"): device["id"],
-                    _("LUN"): device["unit"],
-                    _("Type"): device["device_type"],
-                    _("Status"): device["status"],
-                    _("File"): device["image"],
-                    _("Parameters"): device["params"],
-                    _("Vendor"): device["vendor"],
-                    _("Product"): device["product"],
-                    _("Revision"): device["revision"],
-                    _("Block Size"): device["block_size"],
-                    _("Image Size"): device["size"],
-                }
-                )
-
         return response(
             template="info.html",
-            title=title,
-            contents=contents,
+            description=_("Detailed Info for Attached Devices"),
+            devices=process["device_list"],
             version=server_info["version"],
             )
 
