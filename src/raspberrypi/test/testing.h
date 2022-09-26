@@ -90,6 +90,7 @@ class MockPrimaryDevice final : public PrimaryDevice
 
 public:
 
+	MOCK_METHOD(void, Reset, (), ());
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	MockPrimaryDevice() : PrimaryDevice("test") {}

@@ -13,11 +13,17 @@
 TEST(AbstractControllerTest, Reset)
 {
 	MockAbstractController controller(0);
+	MockPrimaryDevice device;
+
+	controller.AddDevice(&device);
 
 	controller.SetPhase(BUS::phase_t::status);
 	EXPECT_EQ(BUS::phase_t::status, controller.GetPhase());
+	EXPECT_CALL(device, Reset()).Times(1);
 	controller.Reset();
 	EXPECT_TRUE(controller.IsBusFree());
+	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(0, controller.GetLength());
 }
 
 TEST(AbstractControllerTest, SetGetStatus)

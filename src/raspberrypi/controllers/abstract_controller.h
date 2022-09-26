@@ -52,7 +52,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 	};
 
-	AbstractController(shared_ptr<BUS> bus, int target_id, int luns) : target_id(target_id), bus(bus), max_luns(luns) {}
+	AbstractController(shared_ptr<BUS> b, int t, int m) : target_id(t), bus(b), max_luns(m) {}
 	virtual ~AbstractController() = default;
 	AbstractController(AbstractController&) = delete;
 	AbstractController& operator=(const AbstractController&) = delete;
