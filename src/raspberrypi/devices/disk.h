@@ -31,6 +31,8 @@ class Disk : public ModePageDevice, public ScsiBlockCommands
 
 	Dispatcher<Disk> dispatcher;
 
+	unique_ptr<DiskCache> cache;
+
 	// The supported configurable sector sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size = 0;
@@ -112,6 +114,7 @@ protected:
 
 	virtual void Open(const Filepath&);
 	void SetUpCache(const Filepath&, off_t, bool = false);
+	void ResizeCache(const Filepath&, bool);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
@@ -126,6 +129,4 @@ protected:
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
 	void SetBlockCount(uint64_t b) { blocks = b; }
-
-	unique_ptr<DiskCache> cache;
 };

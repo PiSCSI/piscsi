@@ -115,6 +115,12 @@ void Disk::SetUpCache(const Filepath& path, off_t image_offset, bool raw)
 	cache->SetRawMode(raw);
 }
 
+void Disk::ResizeCache(const Filepath& path, bool raw)
+{
+	cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
+	cache->SetRawMode(raw);
+}
+
 void Disk::FlushCache()
 {
 	if (cache != nullptr) {

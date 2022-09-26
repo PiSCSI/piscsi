@@ -293,9 +293,9 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
+
 		// Re-assign disk cache (no need to save)
-		cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
-		cache->SetRawMode(rawfile);
+		ResizeCache(path, rawfile);
 
 		// Reset data index
 		dataindex = index;
