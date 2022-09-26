@@ -536,13 +536,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 {
-	if (!device.GetLun()) {
-		for (const Device *d : device_factory.GetAllDevices()) {
-			// LUN 0 can only be detached if there is no other LUN anymore
-			if (d->GetId() == device.GetId() && d->GetLun()) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
-			}
-		}
+	// LUN 0 can only be detached if there is no other LUN anymore
+	if (!device.GetLun() && controller_manager.FindController(device.GetId())->GetLunCount() > 1) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
 	}
 
 	if (!dryRun) {

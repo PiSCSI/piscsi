@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -163,7 +163,7 @@ void ScsiController::Selection()
 		}
 
 		// Abort if there is no LUN for this controller
-		if (!HasLuns()) {
+		if (!GetLunCount()) {
 			return;
 		}
 
@@ -262,7 +262,7 @@ void ScsiController::Execute()
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
 		device->SetStatusCode(0);
 	}
-	
+
 	try {
 		if (!device->Dispatch(GetOpcode())) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())

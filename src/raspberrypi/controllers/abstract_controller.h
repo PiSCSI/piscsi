@@ -82,7 +82,7 @@ public:
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }
-	bool HasLuns() const { return !luns.empty(); }
+	int GetLunCount() const { return (int)luns.size(); }
 
 	PrimaryDevice *GetDeviceForLun(int) const;
 	bool AddDevice(PrimaryDevice *);
