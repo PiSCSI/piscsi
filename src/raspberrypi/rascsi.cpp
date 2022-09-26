@@ -383,15 +383,15 @@ void DetachAll()
 bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
 	const int id = pb_device.id();
-	const int unit = pb_device.unit();
+	const int lun = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (controller_manager.GetDeviceByIdAndLun(id, unit) != nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
+	if (controller_manager.GetDeviceByIdAndLun(id, lun) != nullptr) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
-	if (unit >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(unit), to_string(ScsiController::LUN_MAX));
+	if (lun >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX));
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -410,7 +410,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	auto file_support = dynamic_cast<FileSupport *>(device);
 	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
 
-	device->SetLun(unit);
+	device->SetLun(lun);
 
 	try {
 		if (!pb_device.vendor().empty()) {
@@ -509,7 +509,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!device->Init(params)) {
 		device_factory.DeleteDevice(*device);
 
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(lun));
 	}
 
 	pthread_mutex_lock(&ctrl_mutex);
@@ -528,7 +528,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	else if (device->IsProtectable() && device->IsProtected()) {
 		msg += "protected ";
 	}
-	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
+	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(lun);
 	LOGINFO("%s", msg.c_str())
 
 	return true;
@@ -602,13 +602,13 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	int id;
-	int unit;
+	int lun;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 	string initial_filename = filepath.GetPath();
 
-	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
 	}
 
 	auto file_support = dynamic_cast<FileSupport *>(device);
@@ -620,8 +620,8 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
 			}
 
 			file_support->Open(filepath);
