@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "socket_connector.h"
 #include "rascsi_interface.pb.h"
 #include "command_util.h"
 
@@ -58,4 +59,13 @@ TEST(CommandUtil, ParseParameters)
 	TestSpecialDevice("daynaport");
 	TestSpecialDevice("printer");
 	TestSpecialDevice("services");
+}
+
+TEST(CommandUtil, ReturnLocalizedError)
+{
+	SocketConnector connector;
+	Localizer localizer;
+	CommandContext context(connector, localizer, -1, "en");
+
+	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }
