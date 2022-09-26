@@ -107,7 +107,7 @@ protected:
 	vector<int>& InitCmd(int size) { ctrl.cmd.resize(size); return ctrl.cmd; }
 
 	bool HasValidLength() const  { return ctrl.length != 0; }
-	int GetOffset() { return ctrl.offset; }
+	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
