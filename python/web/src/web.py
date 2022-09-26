@@ -719,35 +719,31 @@ def eject():
 @APP.route("/scsi/info", methods=["POST"])
 def device_info():
     """
-    Displays detailed info for a specific device
+    Displays detailed info for all attached devices
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    server_info = ractl_cmd.get_server_info()
+    title = _("Detailed Device Info")
+    contents = []
 
-    devices = ractl_cmd.list_devices(scsi_id, unit)
+    process = ractl_cmd.list_devices()
+    if process["status"]:
+        for device in process["device_list"]:
+            contents.append(
+                {
+                    _("SCSI ID"): device["id"],
+                    _("LUN"): device["unit"],
+                    _("Type"): device["device_type"],
+                    _("Status"): device["status"],
+                    _("File"): device["image"],
+                    _("Parameters"): device["params"],
+                    _("Vendor"): device["vendor"],
+                    _("Product"): device["product"],
+                    _("Revision"): device["revision"],
+                    _("Block Size"): device["block_size"],
+                    _("Image Size"): device["size"],
+                }
+                )
 
-    # First check if any device at all was returned
-    if not devices["status"]:
-        return response(error=True, message=devices["msg"])
-    # Looking at the first dict in list to get
-    # the one and only device that should have been returned
-    device = devices["device_list"][0]
-    if str(device["id"]) == scsi_id:
-        server_info = ractl_cmd.get_server_info()
-        title = _("Device Info")
-        contents = {
-            _("SCSI ID"): device["id"],
-            _("LUN"): device["unit"],
-            _("Type"): device["device_type"],
-            _("Status"): device["status"],
-            _("File"): device["image"],
-            _("Parameters"): device["params"],
-            _("Vendor"): device["vendor"],
-            _("Product"): device["product"],
-            _("Revision"): device["revision"],
-            _("Block Size"): device["block_size"],
-            _("Image Size"): device["size"],
-            }
         return response(
             template="info.html",
             title=title,
@@ -755,7 +751,7 @@ def device_info():
             version=server_info["version"],
             )
 
-    return response(error=True, message=devices["msg"])
+    return response(error=True, message=_("No devices attached"))
 
 
 @APP.route("/scsi/reserve", methods=["POST"])

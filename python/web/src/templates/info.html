@@ -2,14 +2,18 @@
 
 {% block content %}
 <h3>{{ title }}</h3>
-<table>
-{% for key, value in contents.items() %}
+{% for content in contents %}
+<p>
+<table border="black" cellpadding="3">
+{% for key, value in content.items() %}
 <tr>
-<td>{{ key }}</td>
-<td>{{ value }}</td>
+    <td><i>{{ key }}</i></td>
+    <td>{{ value }}</td>
 </tr>
 {% endfor %}
 </table>
+</p>
+{% endfor %}
 <p><a href="/">{{ _("Go to Home") }}</a></p>
 
 {% endblock content %}
