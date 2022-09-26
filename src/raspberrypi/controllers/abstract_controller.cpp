@@ -76,7 +76,7 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()));
+			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()))
 			throw scsi_error_exception();
 			break;
 	}
