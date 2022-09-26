@@ -52,8 +52,8 @@ class Device
 	bool supports_params = false;
 
 	// Device ID and LUN
-	int32_t id = 0;
-	int32_t lun = 0;
+	int id = 0;
+	int lun = 0;
 
 	// Device identifier (for INQUIRY)
 	string vendor = DEFAULT_VENDOR;
@@ -120,10 +120,10 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool b) { locked = b; }
 
-	int32_t GetId() const { return id; }
-	void SetId(int32_t i) { id = i; }
-	int32_t GetLun() const { return lun; }
-	void SetLun(int32_t l) { lun = l; }
+	int GetId() const { return id; }
+	void SetId(int i) { id = i; }
+	int GetLun() const { return lun; }
+	void SetLun(int l) { lun = l; }
 
 	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
