@@ -21,9 +21,7 @@
 DiskTrack::~DiskTrack()
 {
 	// Release memory, but do not save automatically
-	if (dt.buffer) {
-		free(dt.buffer);
-	}
+	free(dt.buffer);
 }
 
 void DiskTrack::Init(int track, int size, int sectors, bool raw, off_t imgoff)
