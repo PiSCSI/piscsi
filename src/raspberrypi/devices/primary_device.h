@@ -33,6 +33,9 @@ public:
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
+	// Override for device specific initializations, to be called after all device properties have been set
+	virtual bool Init(const unordered_map<string, string>&) { return true; };
+
 	virtual void FlushCache() {
 		// Devices with a cache have to implement this method
 	}

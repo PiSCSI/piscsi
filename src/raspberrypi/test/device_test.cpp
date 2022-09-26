@@ -147,14 +147,6 @@ TEST(DeviceTest, StatusCode)
 	EXPECT_EQ(123, device.GetStatusCode());
 }
 
-TEST(DeviceTest, Init)
-{
-	TestDevice device;
-	unordered_map<string, string> params;
-
-	EXPECT_TRUE(device.Init(params));
-}
-
 TEST(DeviceTest, Reset)
 {
 	TestDevice device;

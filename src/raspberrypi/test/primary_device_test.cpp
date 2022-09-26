@@ -204,8 +204,8 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, UnknownCommand)
 {
-	MockScsiController controller(nullptr, 0);
 	MockPrimaryDevice device;
+	MockScsiController controller(nullptr, 0);
 
 	controller.AddDevice(&device);
 
@@ -226,6 +226,14 @@ TEST(PrimaryDeviceTest, GetSendDelay)
 	MockPrimaryDevice device;
 
 	EXPECT_EQ(-1, device.GetSendDelay());
+}
+
+TEST(PrimaryDeviceTest, Init)
+{
+	MockPrimaryDevice device;
+	unordered_map<string, string> params;
+
+	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";
 }
 
 TEST(PrimaryDeviceTest, FlushCache)

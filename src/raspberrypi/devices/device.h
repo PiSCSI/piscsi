@@ -94,9 +94,6 @@ public:
 	Device(Device&) = delete;
 	Device& operator=(const Device&) = delete;
 
-	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const unordered_map<string, string>&) { return true; };
-
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
