@@ -1392,11 +1392,10 @@ void GPIOBUS::DrvConfig(DWORD drive)
 BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
 	// Selection Phase
-	if (GetPinRaw(raw_data, PIN_SEL)) 
-	{
-		if(GetPinRaw(raw_data, PIN_IO)){
+	if (GetPinRaw(raw_data, PIN_SEL)) {
+		if(GetPinRaw(raw_data, PIN_IO)) {
 			return BUS::phase_t::reselection;
-		}else{
+		} else{
 			return BUS::phase_t::selection;
 		}
 	}
@@ -1407,7 +1406,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	}
 
 	// Get target phase from bus signal line
-	DWORD mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
+	int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
 	return GetPhase(mci);

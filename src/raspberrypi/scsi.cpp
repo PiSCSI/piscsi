@@ -31,7 +31,7 @@ BUS::phase_t BUS::GetPhase()
 	}
 
 	// Get target phase from bus signal line
-	DWORD mci = GetMSG() ? 0x04 : 0x00;
+	int mci = GetMSG() ? 0x04 : 0x00;
 	mci |= GetCD() ? 0x02 : 0x00;
 	mci |= GetIO() ? 0x01 : 0x00;
 	return GetPhase(mci);

@@ -56,7 +56,7 @@ public:
 	virtual void Cleanup() = 0;
 	phase_t GetPhase();
 
-	static phase_t GetPhase(DWORD mci)
+	static phase_t GetPhase(int mci)
 	{
 		return phase_table[mci];
 	}
