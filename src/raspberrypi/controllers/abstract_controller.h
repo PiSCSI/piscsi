@@ -92,7 +92,6 @@ public:
 
 	void AllocateBuffer(size_t);
 	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
-	size_t GetBufferSize() const { return ctrl.buffer.size(); }
 	uint32_t GetStatus() const { return ctrl.status; }
 	void SetStatus(uint32_t s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }

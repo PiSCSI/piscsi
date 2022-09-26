@@ -143,7 +143,7 @@ int ModePageDevice::ModeSelectCheck6() const
 int ModePageDevice::ModeSelectCheck10() const
 {
 	// Receive the data specified by the parameter length
-	size_t length = min(controller->GetBufferSize(), (size_t)GetInt16(ctrl->cmd, 7));
+	size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
 
 	return ModeSelectCheck((int)length);
 }

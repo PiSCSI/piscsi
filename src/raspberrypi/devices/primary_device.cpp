@@ -81,7 +81,7 @@ void PrimaryDevice::ReportLuns()
 	uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
-	fill_n(buf.begin(), min(controller->GetBufferSize(), (size_t)allocation_length), 0);
+	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
