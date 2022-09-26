@@ -31,18 +31,33 @@ table, tr, td {
   margin: none;
 }
 
-.error {
-  color: white;
-  font-size:20px;
-  background-color:red;
-  white-space: pre-line;
+div.flash {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
-.message {
+div.flash div {
   color: white;
-  font-size:20px;
-  background-color:green;
+  font-size: 18px;
   white-space: pre-line;
+  padding: 2px 5px;
+}
+
+div.flash div.success {
+  background-color: green;
+}
+
+div.flash div.warning {
+  background-color: orange;
+  color: black;
+}
+
+div.flash div.error {
+  background-color: red;
+}
+
+div.flash div.info {
+  background-color: #0d6efd;
 }
 
 td.inactive {

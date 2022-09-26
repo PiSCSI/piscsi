@@ -1,0 +1,4 @@
+pytest==7.1.3
+pytest-httpserver==1.0.6
+black==22.8.0
+flake8==5.0.4

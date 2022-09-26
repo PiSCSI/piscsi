@@ -156,8 +156,16 @@
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
-        <li>{{ _("Recognized image file types: %(valid_image_suffixes)s", valid_image_suffixes=valid_image_suffixes) }}</li>
-        <li>{{ _("Recognized archive file types: %(ARCHIVE_FILE_SUFFIXES)s", ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES) }}</li>
+        <li>
+            {{ _("Recognized image file types:") }}
+            {% set comma = joiner(", ") %}
+            {% for extension in valid_image_suffixes %}{{ comma() }}.{{ extension}}{% endfor %}
+        </li>
+        <li>
+            {{ _("Recognized archive file types:") }}
+            {% set comma = joiner(", ") %}
+            {% for extension in ARCHIVE_FILE_SUFFIXES %}{{ comma() }}.{{ extension}}{% endfor %}
+        </li>
     </ul>
 </details>
 
@@ -305,7 +313,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
 
 <hr/>
 <details>
