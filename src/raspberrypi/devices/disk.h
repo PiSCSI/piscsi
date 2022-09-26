@@ -111,7 +111,7 @@ private:
 protected:
 
 	virtual void Open(const Filepath&);
-	void SetUpCache(const Filepath&, off_t);
+	void SetUpCache(const Filepath&, off_t, bool = false);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;

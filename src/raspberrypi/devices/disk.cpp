@@ -108,10 +108,11 @@ void Disk::Open(const Filepath& path)
 	SetLocked(false);
 }
 
-void Disk::SetUpCache(const Filepath& path, off_t image_offset)
+void Disk::SetUpCache(const Filepath& path, off_t image_offset, bool raw)
 {
 	assert(cache == nullptr);
 	cache = make_unique<DiskCache>(path, size_shift_count, (uint32_t)blocks, image_offset);
+	cache->SetRawMode(raw);
 }
 
 void Disk::FlushCache()

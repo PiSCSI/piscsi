@@ -92,10 +92,7 @@ void SCSICD::Open(const Filepath& path)
 	super::Open(path);
 	FileSupport::SetPath(path);
 
-	SetUpCache(path, 0);
-
-	// Set RAW flag
-	cache->SetRawMode(rawfile);
+	SetUpCache(path, 0, rawfile);
 
 	// Attention if ready
 	if (IsReady()) {
