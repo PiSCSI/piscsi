@@ -14,7 +14,7 @@
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
@@ -31,7 +31,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 	MockPrimaryDevice device;
 
 	controller.AddDevice(&device);
@@ -68,7 +68,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 	MockPrimaryDevice device;
 
 	device.SetController(&controller);
@@ -159,7 +159,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN1 = 1;
 	const int LUN2 = 4;
 
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 	MockPrimaryDevice device1;
 	MockPrimaryDevice device2;
 
@@ -205,7 +205,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 TEST(PrimaryDeviceTest, UnknownCommand)
 {
 	MockPrimaryDevice device;
-	MockScsiController controller(nullptr, 0);
+	MockAbstractController controller(0);
 
 	controller.AddDevice(&device);
 

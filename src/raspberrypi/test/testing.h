@@ -31,6 +31,10 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(AbstractControllerTest, GetLun);
 	FRIEND_TEST(AbstractControllerTest, Length);
 	FRIEND_TEST(AbstractControllerTest, Offset);
+	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
+	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
+	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
+	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 
 public:
 
@@ -49,17 +53,15 @@ public:
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id, 32) {}
+	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id, 32) {
+		AllocateBuffer(512);
+	}
 	~MockAbstractController() override = default;
 };
 
 class MockScsiController final : public ScsiController
 {
-	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
-	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
-	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
-	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
 	FRIEND_TEST(DiskTest, ReassignBlocks);
