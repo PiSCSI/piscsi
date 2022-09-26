@@ -37,10 +37,8 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 	rascsi_response.GetDevices(server_info);
 	device_factory.DeleteAllDevices();
 
-	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(),
-			server_info.devices_info().devices().end() };
-	EXPECT_EQ(1, devices.size());
-	const auto& host_services = devices.front();
+	EXPECT_EQ(1, server_info.devices_info().devices().size());
+	const auto& host_services = server_info.devices_info().devices()[0];
 	EXPECT_EQ(0, host_services.block_size());
 	EXPECT_EQ(0, host_services.block_count());
 	EXPECT_FALSE(host_services.properties().supports_file());
@@ -50,4 +48,23 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 	EXPECT_FALSE(host_services.properties().removable());
 	EXPECT_FALSE(host_services.properties().lockable());
 	EXPECT_EQ(0, host_services.params().size());
+}
+
+TEST(RascsiResponseTest, GetReservedIds)
+{
+	DeviceFactory device_factory;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	unordered_set<int> ids;
+	PbResult result;
+
+	const auto& reserved_ids_info1 = rascsi_response.GetReservedIds(result, ids);
+	EXPECT_TRUE(result.status());
+	EXPECT_TRUE(reserved_ids_info1->ids().empty());
+
+	ids.insert(3);
+	const auto& reserved_ids_info2 = rascsi_response.GetReservedIds(result, ids);
+	EXPECT_TRUE(result.status());
+	EXPECT_EQ(1, reserved_ids_info2->ids().size());
+	EXPECT_EQ(3, reserved_ids_info2->ids()[0]);
 }
