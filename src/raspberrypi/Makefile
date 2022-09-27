@@ -101,7 +101,8 @@ SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
-SRC_RASCSI = rascsi.cpp
+SRC_RASCSI = rascsi.cpp \
+	rascsi_service.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \

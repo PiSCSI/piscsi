@@ -27,6 +27,7 @@
 #include "rasutil.h"
 #include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
+#include "rascsi_service.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <pthread.h>
@@ -59,12 +60,9 @@ static const char COMPONENT_SEPARATOR = ':';
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
+RascsiService service;
 GPIOBUS bus;						// GPIO Bus
-int monsocket;						// Monitor Socket
-pthread_t monthread;				// Monitor Thread
-pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 unordered_set<int> reserved_ids;
@@ -75,18 +73,6 @@ RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN
 const SocketConnector socket_connector;
 
 void DetachAll();
-static void *MonThread(const void *);
-
-//---------------------------------------------------------------------------
-//
-//	Signal Processing
-//
-//---------------------------------------------------------------------------
-void KillHandler(int)
-{
-	// Stop instruction
-	running = false;
-}
 
 //---------------------------------------------------------------------------
 //
@@ -126,59 +112,6 @@ void Banner(int argc, char* argv[])
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Initialization
-//
-//---------------------------------------------------------------------------
-
-bool InitService(int port)
-{
-	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Error code: %d", result)
-		return false;
-	}
-
-	// Create socket for monitor
-	sockaddr_in server = {};
-	monsocket = socket(PF_INET, SOCK_STREAM, 0);
-	server.sin_family = PF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	// allow address reuse
-	if (int yes = 1; setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		return false;
-	}
-
-	signal(SIGPIPE, SIG_IGN);
-
-	// Bind
-	if (bind(monsocket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
-		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
-		return false;
-	}
-
-	// Create Monitor Thread
-	pthread_create(&monthread, nullptr, (void* (*)(void*))MonThread, nullptr);
-
-	// Interrupt handler settings
-	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return false;
-	}
-	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return false;
-	}
-	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return false;
-	}
-
-	running = false;
-	active = false;
-
-	return true;
-}
-
 bool InitBus()
 {
 	// GPIO Initialization
@@ -198,13 +131,6 @@ void Cleanup()
 
 	// Clean up and discard the bus
 	bus.Cleanup();
-
-	// Close the monitor socket
-	if (monsocket >= 0) {
-		close(monsocket);
-	}
-
-	pthread_mutex_destroy(&ctrl_mutex);
 }
 
 void Reset()
@@ -508,14 +434,14 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(lun));
 	}
 
-	pthread_mutex_lock(&ctrl_mutex);
+	RascsiService::Unlock();
 
 	if (!controller_manager.CreateScsiController(bus, device)) {
-		pthread_mutex_unlock(&ctrl_mutex);
+		RascsiService::Unlock();
 
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
-	pthread_mutex_unlock(&ctrl_mutex);
+	RascsiService::Unlock();
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -547,14 +473,14 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 		}
 
 		// Delete the existing unit
-		pthread_mutex_lock(&ctrl_mutex);
+		RascsiService::Lock();
 		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
-			pthread_mutex_unlock(&ctrl_mutex);
+			RascsiService::Unlock();
 
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
 		device_factory.DeleteDevice(device);
-		pthread_mutex_unlock(&ctrl_mutex);
+		RascsiService::Unlock();
 
 		LOGINFO("%s", s.c_str())
 	}
@@ -1308,59 +1234,6 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 //---------------------------------------------------------------------------
 //
-//	Monitor Thread
-//
-//---------------------------------------------------------------------------
-static void *MonThread(const void *)
-{
-    // Scheduler Settings
-	sched_param schedparam;
-	schedparam.sched_priority = 0;
-	sched_setscheduler(0, SCHED_IDLE, &schedparam);
-
-	// Set the affinity to a specific processor core
-	FixCpu(2);
-
-	// Wait for the execution to start
-	while (!running) {
-		usleep(1);
-	}
-
-	// Set up the monitor socket to receive commands
-	listen(monsocket, 1);
-
-	Localizer localizer;
-
-	while (true) {
-		CommandContext context(socket_connector, localizer, -1, "");
-
-		try {
-			PbCommand command;
-			context.fd = socket_connector.ReadCommand(command, monsocket);
-			if (context.fd == -1) {
-				continue;
-			}
-
-			if (!ExecuteCommand(command, context)) {
-				continue;
-			}
-		}
-		catch(const io_exception& e) {
-			LOGWARN("%s", e.get_msg().c_str())
-
-			// Fall through
-		}
-
-		if (context.fd >= 0) {
-			close(context.fd);
-		}
-	}
-
-	return nullptr;
-}
-
-//---------------------------------------------------------------------------
-//
 //	Main processing
 //
 //---------------------------------------------------------------------------
@@ -1393,7 +1266,7 @@ int main(int argc, char* argv[])
 	}
 
 	int port = DEFAULT_PORT;
-	if (!InitService(port)) {
+	if (!service.Init(&ExecuteCommand, port)) {
 		return EPERM;
 	}
 
@@ -1426,10 +1299,10 @@ int main(int argc, char* argv[])
 #endif
 
 	// Start execution
-	running = true;
+	RascsiService::SetRunning(true);
 
 	// Main Loop
-	while (running) {
+	while (RascsiService::IsRunning()) {
 		// Work initialization
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
@@ -1475,7 +1348,7 @@ int main(int argc, char* argv[])
 		// The initiator and target ID
 		BYTE id_data = bus.GetDAT();
 
-		pthread_mutex_lock(&ctrl_mutex);
+		RascsiService::Lock();
 
 		// Identify the responsible controller
 		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
@@ -1489,7 +1362,7 @@ int main(int argc, char* argv[])
 
 		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::phase_t::selection) {
-			pthread_mutex_unlock(&ctrl_mutex);
+			RascsiService::Unlock();
 			continue;
 		}
 
@@ -1503,7 +1376,7 @@ int main(int argc, char* argv[])
 #endif
 
 		// Loop until the bus is free
-		while (running) {
+		while (RascsiService::IsRunning()) {
 			// Target drive
 			phase = controller->Process(initiator_id);
 
@@ -1512,8 +1385,8 @@ int main(int argc, char* argv[])
 				break;
 			}
 		}
-		pthread_mutex_unlock(&ctrl_mutex);
 
+		RascsiService::Unlock();
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Set the scheduling priority back to normal
