@@ -113,9 +113,11 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 		try {
 			PbCommand command;
 			context.fd = ReadCommand(serializer, command);
-			if (context.fd == -1 || !execute(command, context)) {
+			if (context.fd == -1) {
 				continue;
 			}
+
+			execute(command, context);
 		}
 		catch(const io_exception& e) {
 			LOGWARN("%s", e.get_msg().c_str())
