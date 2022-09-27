@@ -74,7 +74,7 @@ def test_show_logs(http_client):
 
 # route("/config/save", methods=["POST"])
 # route("/config/load", methods=["POST"])
-def test_save_load_and_delete_configs(http_client, delete_file):
+def test_save_load_and_delete_configs(http_client):
     config_name = str(uuid.uuid4())
     config_json_file = f"{config_name}.json"
     reserved_scsi_id = 0
@@ -150,6 +150,3 @@ def test_save_load_and_delete_configs(http_client, delete_file):
     )
 
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
-
-    # Cleanup
-    delete_file(config_json_file)
