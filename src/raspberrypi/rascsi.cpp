@@ -201,40 +201,6 @@ string ValidateLunSetup(const PbCommand& command)
 	return "";
 }
 
-bool SetLogLevel(const string& log_level)
-{
-	if (log_level == "trace") {
-		set_level(level::trace);
-	}
-	else if (log_level == "debug") {
-		set_level(level::debug);
-	}
-	else if (log_level == "info") {
-		set_level(level::info);
-	}
-	else if (log_level == "warn") {
-		set_level(level::warn);
-	}
-	else if (log_level == "err") {
-		set_level(level::err);
-	}
-	else if (log_level == "critical") {
-		set_level(level::critical);
-	}
-	else if (log_level == "off") {
-		set_level(level::off);
-	}
-	else {
-		return false;
-	}
-
-	current_log_level = log_level;
-
-	LOGINFO("Set log level to '%s'", current_log_level.c_str())
-
-	return true;
-}
-
 void LogDevices(string_view devices)
 {
 	stringstream ss(devices.data());
@@ -1029,8 +995,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		name = "";
 	}
 
-	if (!log_level.empty() && !SetLogLevel(log_level)) {
+	if (!log_level.empty() && !executor.SetLogLevel(log_level)) {
 		LOGWARN("Invalid log level '%s'", log_level.c_str())
+	}
+	else {
+		current_log_level = log_level;
 	}
 
 	// Attach all specified devices
@@ -1077,10 +1046,12 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 	switch(command.operation()) {
 		case LOG_LEVEL: {
 			string log_level = GetParam(command, "level");
-			if (bool status = SetLogLevel(log_level); !status) {
+			if (bool status = executor.SetLogLevel(log_level); !status) {
 				ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
+				current_log_level = log_level;
+
 				ReturnStatus(context);
 			}
 			break;
@@ -1223,7 +1194,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	SetLogLevel("info");
+	executor.SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");

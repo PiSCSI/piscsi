@@ -21,5 +21,7 @@ public:
 		: device_factory(device_factory), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
+	bool SetLogLevel(const string&);
+
 	void DetachAll();
 };
