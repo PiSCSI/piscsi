@@ -60,7 +60,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-shared_ptr<GPIOBUS> bus = make_shared<GPIOBUS>();
+GPIOBUS bus;
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
@@ -181,12 +181,12 @@ bool InitService(int port)
 bool InitBus()
 {
 	// GPIO Initialization
-	if (!bus->Init()) {
+	if (!bus.Init()) {
 		return false;
 	}
 
 	// Bus Reset
-	bus->Reset();
+	bus.Reset();
 
 	return true;
 }
@@ -196,9 +196,7 @@ void Cleanup()
 	DetachAll();
 
 	// Clean up and discard the bus
-	if (bus != nullptr) {
-		bus->Cleanup();
-	}
+	bus.Cleanup();
 
 	// Close the monitor socket
 	if (monsocket >= 0) {
@@ -212,7 +210,7 @@ void Reset()
 {
 	controller_manager.ResetAllControllers();
 
-	bus->Reset();
+	bus.Reset();
 }
 
 bool ReadAccessToken(const char *filename)
@@ -1436,7 +1434,7 @@ int main(int argc, char* argv[])
 
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
-		if (!bus->PollSelectEvent()) {
+		if (!bus.PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
@@ -1445,10 +1443,10 @@ int main(int argc, char* argv[])
 		}
 
 		// Get the bus
-		bus->Acquire();
+		bus.Acquire();
 #else
-		bus->Acquire();
-		if (!bus->GetSEL()) {
+		bus.Acquire();
+		if (!bus.GetSEL()) {
 			usleep(0);
 			continue;
 		}
@@ -1456,25 +1454,25 @@ int main(int argc, char* argv[])
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus->GetBSY()) {
+		if (bus.GetBSY()) {
 			uint32_t now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-				bus->Acquire();
-				if (!bus->GetBSY()) {
+				bus.Acquire();
+				if (!bus.GetBSY()) {
 					break;
 				}
 			}
 		}
 
 		// Stop because the bus is busy or another device responded
-		if (bus->GetBSY() || !bus->GetSEL()) {
+		if (bus.GetBSY() || !bus.GetSEL()) {
 			continue;
 		}
 
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		BYTE id_data = bus->GetDAT();
+		BYTE id_data = bus.GetDAT();
 
 		pthread_mutex_lock(&ctrl_mutex);
 

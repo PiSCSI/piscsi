@@ -20,6 +20,45 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
+class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
+{
+public:
+
+	MOCK_METHOD(bool, Init, (mode_e), (override));
+	MOCK_METHOD(void, Reset, (), (override));
+	MOCK_METHOD(void, Cleanup, (), (override));
+	MOCK_METHOD(bool, GetBSY, (), (const override));
+	MOCK_METHOD(void, SetBSY, (bool), (override));
+	MOCK_METHOD(bool, GetSEL, (), (const override));
+	MOCK_METHOD(void, SetSEL, (bool), (override));
+	MOCK_METHOD(bool, GetATN, (), (const override));
+	MOCK_METHOD(void, SetATN, (bool), (override));
+	MOCK_METHOD(bool, GetACK, (), (const override));
+	MOCK_METHOD(void, SetACK, (bool), (override));
+	MOCK_METHOD(bool, GetRST, (), (const override));
+	MOCK_METHOD(void, SetRST, (bool), (override));
+	MOCK_METHOD(bool, GetMSG, (), (const override));
+	MOCK_METHOD(void, SetMSG, (bool), (override));
+	MOCK_METHOD(bool, GetCD, (), (const override));
+	MOCK_METHOD(void, SetCD, (bool), (override));
+	MOCK_METHOD(bool, GetIO, (), (override));
+	MOCK_METHOD(void, SetIO, (bool), (override));
+	MOCK_METHOD(bool, GetREQ, (), (const override));
+	MOCK_METHOD(void, SetREQ, (bool), (override));
+	MOCK_METHOD(BYTE, GetDAT, (), (override));
+	MOCK_METHOD(void, SetDAT, (BYTE), (override));
+	MOCK_METHOD(bool, GetDP, (), (const override));
+	MOCK_METHOD(uint32_t, Acquire, (), (override));
+	MOCK_METHOD(int, CommandHandShake, (BYTE *), (override));
+	MOCK_METHOD(int, ReceiveHandShake, (BYTE *, int), (override));
+	MOCK_METHOD(int, SendHandShake, (BYTE *, int, int), (override));
+	MOCK_METHOD(bool, GetSignal, (int), (const override));
+	MOCK_METHOD(void, SetSignal, (int, bool), (override));
+
+	MockBus() = default;
+	~MockBus() = default;
+};
+
 class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
 	FRIEND_TEST(AbstractControllerTest, Reset);
@@ -66,10 +105,12 @@ public:
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id, 32) {
+	explicit MockAbstractController(int target_id) : AbstractController(bus, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
+
+	MockBus bus;
 };
 
 class MockScsiController final : public ScsiController
@@ -85,8 +126,10 @@ public:
 	MOCK_METHOD(void, DataOut, (), ());
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 
-	explicit MockScsiController(int target_id) : ScsiController(nullptr, target_id) {}
+	explicit MockScsiController(int target_id) : ScsiController(bus, target_id) {}
 	~MockScsiController() override = default;
+
+	MockBus bus;
 };
 
 class MockPrimaryDevice final : public PrimaryDevice

@@ -17,12 +17,13 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN = 6;
 	DeviceFactory device_factory;
 	ControllerManager controller_manager;
+	MockBus bus;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device->SetId(ID);
 	device->SetLun(LUN);
 
-	controller_manager.CreateScsiController(nullptr, device);
+	controller_manager.CreateScsiController(bus, device);
 	EXPECT_NE(nullptr, controller_manager.IdentifyController(1 << ID));
 	EXPECT_EQ(nullptr, controller_manager.IdentifyController(0));
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
