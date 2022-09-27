@@ -150,9 +150,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		string filename = folder + "/" + dir->d_name;
-
-		if (!ValidateImageFile(dir, folder, filename)) {
+		if (!ValidateImageFile(dir, folder)) {
 			continue;
 		}
 
@@ -160,6 +158,8 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 		if (!file_pattern.empty()) {
 			transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
 		}
+
+		string filename = folder + "/" + dir->d_name;
 
 		if (dir->d_type == DT_DIR) {
 			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
@@ -478,13 +478,15 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData&
 	return parameter.release();
 }
 
-bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder, const string& filename)
+bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder)
 {
 	// Ignore unknown folder types and folder names starting with '.'
 	if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
 			|| dir->d_name[0] == '.') {
 		return false;
 	}
+
+	string filename = folder + "/" + dir->d_name;
 
 	struct stat st;
 

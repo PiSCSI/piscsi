@@ -61,5 +61,5 @@ private:
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false);
 
-	static bool ValidateImageFile(const dirent *, const string&, const string&);
+	static bool ValidateImageFile(const dirent *, const string&);
 };
