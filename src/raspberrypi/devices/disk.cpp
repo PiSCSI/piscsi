@@ -353,7 +353,7 @@ void Disk::MediumChanged()
 		is_medium_changed = true;
 	}
 	else {
-		LOGWARN("%s Medium change requested for non-reomvable medium", __PRETTY_FUNCTION__)
+		LOGERROR("Medium change requested for non-removable medium")
 	}
 }
 
