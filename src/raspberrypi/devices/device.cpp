@@ -7,10 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include <cassert>
 #include "rascsi_version.h"
 #include "log.h"
 #include "device.h"
+#include <cassert>
 #include <sstream>
 #include <iomanip>
 
