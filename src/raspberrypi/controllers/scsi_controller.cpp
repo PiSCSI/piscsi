@@ -459,7 +459,8 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X", (int)sense_key << 16, (int)asc << 8)
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X",
+				(int)sense_key << 16, (int)asc << 8, (int)asc & 0xff)
 
 				// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
