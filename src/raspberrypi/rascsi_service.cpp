@@ -25,8 +25,6 @@ bool RascsiService::is_instantiated = false;
 
 volatile bool RascsiService::is_running = false;
 
-int RascsiService::monsocket = -1;
-
 RascsiService::RascsiService()
 {
 	// There may only be exactly one instance because MonThread must be static
@@ -45,7 +43,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
+bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
@@ -71,7 +69,9 @@ bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 		return false;
 	}
 
-	monthread = thread(CommandThread, execute);
+	execute = e;
+
+	monthread = thread(&RascsiService::Execute, this);
 	monthread.detach();
 
 	// Interrupt handler settings
@@ -79,7 +79,7 @@ bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 			&& signal(SIGTERM, KillHandler) != SIG_ERR;
 }
 
-void RascsiService::CommandThread(bool (execute)(PbCommand&, CommandContext&))
+void RascsiService::Execute()
 {
     // Scheduler Settings
 	sched_param schedparam;

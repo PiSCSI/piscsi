@@ -597,10 +597,10 @@ int main(int argc, char* argv[])
 #endif
 
 	// Start execution
-	RascsiService::SetRunning(true);
+	service.SetRunning(true);
 
 	// Main Loop
-	while (RascsiService::IsRunning()) {
+	while (service.IsRunning()) {
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
 		if (!bus.PollSelectEvent()) {
@@ -673,7 +673,7 @@ int main(int argc, char* argv[])
 #endif
 
 		// Loop until the bus is free
-		while (RascsiService::IsRunning()) {
+		while (service.IsRunning()) {
 			// Target drive
 			phase = controller->Process(initiator_id);
 

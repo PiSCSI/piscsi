@@ -18,14 +18,16 @@ class ProtobufSerializer;
 
 class RascsiService
 {
-	static bool is_instantiated;
+	bool (*execute)(rascsi_interface::PbCommand&, CommandContext&) = nullptr;
 
-	static volatile bool is_running;
-
-	static int monsocket;
+	int monsocket = -1;
 
 	thread monthread;
 	mutex ctrl_mutex;
+
+	static bool is_instantiated;
+
+	static volatile bool is_running;
 
 public:
 
@@ -37,12 +39,12 @@ public:
 	void Lock() { ctrl_mutex.lock(); }
 	void Unlock() { ctrl_mutex.unlock(); }
 
-	static bool IsRunning() { return is_running; }
-	static void SetRunning(bool b) { is_running = b; }
+	bool IsRunning() const { return is_running; }
+	void SetRunning(bool b) { is_running = b; }
 
-	static void CommandThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
+	void Execute();
 
-	static int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
+	int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
 
 	static void KillHandler(int) { is_running = false; }
 };
