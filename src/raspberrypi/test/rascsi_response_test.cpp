@@ -19,7 +19,7 @@ TEST(RascsiResponseTest, Operation_Count)
 {
 	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	RascsiResponse rascsi_response(device_factory, rascsi_image);
 	PbResult pb_operation_info_result;
 
 	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
@@ -30,7 +30,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 {
 	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	RascsiResponse rascsi_response(device_factory, rascsi_image);
 	device_factory.CreateDevice(UNDEFINED, "printer", -1);
 
 	PbServerInfo server_info;
@@ -58,7 +58,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 {
 	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	RascsiResponse rascsi_response(device_factory, rascsi_image);
 	device_factory.CreateDevice(UNDEFINED, "services", -1);
 
 	PbServerInfo server_info;
@@ -85,7 +85,7 @@ TEST(RascsiResponseTest, GetReservedIds)
 {
 	DeviceFactory device_factory;
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+	RascsiResponse rascsi_response(device_factory, rascsi_image);
 	unordered_set<int> ids;
 	PbResult result;
 
