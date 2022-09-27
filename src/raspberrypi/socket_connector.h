@@ -12,10 +12,6 @@
 #pragma once
 
 #include "google/protobuf/message.h"
-#include "rascsi_interface.pb.h"
-#include "command_context.h"
-#include "localizer.h"
-#include <string>
 #include <vector>
 
 class SocketConnector

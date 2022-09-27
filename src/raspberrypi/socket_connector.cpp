@@ -11,7 +11,6 @@
 #include "rascsi_exceptions.h"
 #include "socket_connector.h"
 #include <unistd.h>
-#include <netinet/in.h>
 #include <sstream>
 
 using namespace std;
