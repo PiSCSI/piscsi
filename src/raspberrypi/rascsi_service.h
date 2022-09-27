@@ -11,7 +11,7 @@
 
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include <pthread.h>
 
 class CommandContext;
@@ -24,7 +24,7 @@ class RascsiService
 
 	static const Localizer localizer;
 
-	static const SocketConnector connector;
+	static const ProtobufSerializer connector;
 
 	static int monsocket;
 

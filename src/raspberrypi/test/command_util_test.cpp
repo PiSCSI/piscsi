@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "command_util.h"
 
@@ -16,11 +16,11 @@ using namespace rascsi_interface;
 using namespace command_util;
 
 
-class MockSocketConnector : public SocketConnector
+class MockProtobufSerializer : public ProtobufSerializer
 {
 public:
 
-	using SocketConnector::SocketConnector;
+	using ProtobufSerializer::ProtobufSerializer;
 };
 
 void TestSpecialDevice(const string& name)
@@ -71,7 +71,7 @@ TEST(CommandUtil, ParseParameters)
 
 TEST(CommandUtil, ReturnLocalizedError)
 {
-	MockSocketConnector connector;
+	MockProtobufSerializer connector;
 	Localizer localizer;
 	CommandContext context(connector, localizer, 1, "dummy_locale");
 

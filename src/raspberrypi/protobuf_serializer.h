@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Helper for serializing/deserializing protobuf messages to/fromn sockets
+// Helper for serializing/deserializing protobuf messages
 //
 //---------------------------------------------------------------------------
 
@@ -14,12 +14,12 @@
 #include "google/protobuf/message.h"
 #include <vector>
 
-class SocketConnector
+class ProtobufSerializer
 {
 public:
 
-	SocketConnector() = default;
-	~SocketConnector() = default;
+	ProtobufSerializer() = default;
+	~ProtobufSerializer() = default;
 
 	void SerializeMessage(int, const google::protobuf::Message&) const;
 	void DeserializeMessage(int, google::protobuf::Message&) const;

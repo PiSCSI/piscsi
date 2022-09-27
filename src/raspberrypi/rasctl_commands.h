@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <string>
@@ -49,7 +49,7 @@ private:
 	void CommandOperationInfo();
 	void SendCommand();
 
-	SocketConnector socket_connector;
+	ProtobufSerializer serializer;
 	PbCommand command;
 	string hostname;
 	int port;

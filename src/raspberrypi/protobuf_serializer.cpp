@@ -9,7 +9,7 @@
 
 #include "rascsi_interface.pb.h"
 #include "rascsi_exceptions.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include <unistd.h>
 #include <sstream>
 
@@ -23,7 +23,7 @@ using namespace rascsi_interface;
 //
 //---------------------------------------------------------------------------
 
-void SocketConnector::SerializeMessage(int fd, const google::protobuf::Message& message) const
+void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Message& message) const
 {
 	string data;
 	message.SerializeToString(&data);
@@ -40,7 +40,7 @@ void SocketConnector::SerializeMessage(int fd, const google::protobuf::Message& 
     }
 }
 
-void SocketConnector::DeserializeMessage(int fd, google::protobuf::Message& message) const
+void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& message) const
 {
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
@@ -64,7 +64,7 @@ void SocketConnector::DeserializeMessage(int fd, google::protobuf::Message& mess
 	message.ParseFromString(data);
 }
 
-size_t SocketConnector::ReadBytes(int fd, vector<byte>& buf) const
+size_t ProtobufSerializer::ReadBytes(int fd, vector<byte>& buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {

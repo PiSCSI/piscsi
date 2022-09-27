@@ -17,7 +17,7 @@ class DeviceFactory;
 class ControllerManager;
 class PrimaryDevice;
 class CommandContext;
-class SocketConnector;
+class ProtobufSerializer;
 
 class RascsiExecutor
 {
@@ -33,7 +33,7 @@ class RascsiExecutor
 
 	ControllerManager& controller_manager;
 
-	SocketConnector socket_connector;
+	ProtobufSerializer serializer;
 
 	unordered_set<int> reserved_ids;
 

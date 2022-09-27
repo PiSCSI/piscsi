@@ -26,7 +26,7 @@ volatile bool RascsiService::is_running = false;
 
 const Localizer RascsiService::localizer;
 
-const SocketConnector RascsiService::connector;
+const ProtobufSerializer RascsiService::connector;
 
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;

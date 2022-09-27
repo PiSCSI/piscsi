@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "command_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
@@ -151,7 +151,7 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't write magic");
     	}
 
-    	socket_connector.SerializeMessage(fd, command);
+    	serializer.SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
     	cerr << "Error: " << e.get_msg() << endl;
@@ -165,7 +165,7 @@ void RasctlCommands::SendCommand()
 
     // Receive result
     try {
-    	socket_connector.DeserializeMessage(fd, result);
+    	serializer.DeserializeMessage(fd, result);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());

@@ -261,7 +261,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		PbCommand command;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, command);
-		socket_connector.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.fd, result);
 		return true;
 	}
 
@@ -586,7 +586,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "rascsi") {
 		LOGINFO("RaSCSI shutdown requested");
 
-		socket_connector.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.fd, result);
 
 		return true;
 	}
@@ -599,7 +599,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "system") {
 		LOGINFO("System shutdown requested")
 
-		socket_connector.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.fd, result);
 
 		DetachAll();
 
@@ -610,7 +610,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	else if (mode == "reboot") {
 		LOGINFO("System reboot requested")
 
-		socket_connector.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.fd, result);
 
 		DetachAll();
 

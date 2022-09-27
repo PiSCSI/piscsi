@@ -10,7 +10,7 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "command_util.h"
 #include <sstream>
 
