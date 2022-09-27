@@ -85,7 +85,7 @@ def test_copy_file(http_client, create_test_image, list_files, delete_file):
 
 
 # route("/files/delete", methods=["POST"])
-def test_delete_file(http_client, create_test_image, list_files):
+def test_delete_file(http_client, create_test_image, list_files, delete_file):
     file_name = create_test_image()
 
     response = http_client.post("/files/delete", data={"file_name": file_name})
@@ -96,6 +96,9 @@ def test_delete_file(http_client, create_test_image, list_files):
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"Image file deleted: {file_name}"
     assert file_name not in list_files()
+
+    # Cleanup
+    delete_file(file_name)
 
 
 # route("/files/extract_image", methods=["POST"])
@@ -198,7 +201,7 @@ def test_upload_file(http_client, delete_file):
 
 
 # route("/files/download", methods=["POST"])
-def test_download_file(http_client, create_test_image):
+def test_download_file(http_client, create_test_image, delete_file):
     file_name = create_test_image()
 
     response = http_client.post(
@@ -210,6 +213,9 @@ def test_download_file(http_client, create_test_image):
     assert response.headers["content-type"] == "application/octet-stream"
     assert response.headers["content-disposition"] == f"attachment; filename={file_name}"
     assert response.headers["content-length"] == str(FILE_SIZE_1_MIB)
+
+    # Cleanup
+    delete_file(file_name)
 
 
 # route("/files/download_url", methods=["POST"])
@@ -295,7 +301,7 @@ def test_download_url_to_iso(
 
 
 # route("/files/diskinfo", methods=["POST"])
-def test_show_diskinfo(http_client, create_test_image):
+def test_show_diskinfo(http_client, create_test_image, delete_file):
     test_image = create_test_image()
 
     response = http_client.post(
@@ -309,3 +315,6 @@ def test_show_diskinfo(http_client, create_test_image):
 
     assert response.status_code == 200
     assert "Regular file" in response_data["data"]["diskinfo"]
+
+    # Cleanup
+    delete_file(test_image)
