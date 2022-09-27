@@ -22,6 +22,16 @@ TEST(RascsiExceptionsTest, IoException)
 	}
 }
 
+TEST(RascsiExceptionsTest, FileNotFoundException)
+{
+	try {
+		throw file_not_found_exception("msg");
+	}
+	catch(const file_not_found_exception& e) {
+		EXPECT_EQ("msg", e.get_msg());
+	}
+}
+
 TEST(RascsiExceptionsTest, ScsiErrorException)
 {
 	try {
