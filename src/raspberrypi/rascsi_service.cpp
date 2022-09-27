@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "config.h"
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "command_context.h"
