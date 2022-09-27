@@ -23,11 +23,12 @@
 #include "socket_connector.h"
 #include "command_util.h"
 #include "rascsi_version.h"
+#include "rascsi_executor.h"
 #include "rascsi_response.h"
-#include "rasutil.h"
 #include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_service.h"
+#include "rasutil.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <netinet/in.h>
@@ -67,11 +68,10 @@ string access_token;
 unordered_set<int> reserved_ids;
 DeviceFactory device_factory;
 ControllerManager controller_manager;
+RascsiExecutor executor(device_factory, controller_manager);
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
 const SocketConnector socket_connector;
-
-void DetachAll();
 
 //---------------------------------------------------------------------------
 //
@@ -126,7 +126,7 @@ bool InitBus()
 
 void Cleanup()
 {
-	DetachAll();
+	executor.DetachAll();
 
 	// Clean up and discard the bus
 	bus.Cleanup();
@@ -290,15 +290,6 @@ string SetReservedIds(string_view ids)
     }
 
 	return "";
-}
-
-void DetachAll()
-{
-	controller_manager.DeleteAllControllers();
-	device_factory.DeleteAllDevices();
-	FileSupport::UnreserveAll();
-
-	LOGINFO("Detached all devices")
 }
 
 bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
@@ -748,7 +739,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 {
 	switch (command.operation()) {
 		case DETACH_ALL:
-			DetachAll();
+			executor.DetachAll();
 			return ReturnStatus(context);
 
 		case RESERVE_IDS: {
@@ -865,7 +856,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 
 		socket_connector.SerializeMessage(context.fd, result);
 
-		DetachAll();
+		executor.DetachAll();
 
 		if (system("init 0") == -1) {
 			LOGERROR("System shutdown failed: %s", strerror(errno))
@@ -876,7 +867,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 
 		socket_connector.SerializeMessage(context.fd, result);
 
-		DetachAll();
+		executor.DetachAll();
 
 		if (system("init 6") == -1) {
 			LOGERROR("System reboot failed: %s", strerror(errno))
