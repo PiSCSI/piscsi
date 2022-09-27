@@ -824,7 +824,7 @@ def download_to_iso():
     ])
 
 
-@APP.route("/files/download", methods=["POST"])
+@APP.route("/files/download_url", methods=["POST"])
 @login_required
 def download_file():
     """
