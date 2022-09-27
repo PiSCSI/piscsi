@@ -12,6 +12,7 @@
 
 #include "config.h"
 #include "controllers/controller_manager.h"
+#include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"

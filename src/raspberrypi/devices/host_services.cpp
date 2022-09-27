@@ -20,6 +20,7 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
+#include "controllers/scsi_controller.h"
 #include "rascsi_exceptions.h"
 #include "device_factory.h"
 #include "scsi_command_util.h"

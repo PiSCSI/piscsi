@@ -12,7 +12,7 @@
 #pragma once
 
 #include "interfaces/scsi_primary_commands.h"
-#include "controllers/scsi_controller.h"
+#include "controllers/abstract_controller.h"
 #include "device.h"
 #include "dispatcher.h"
 #include <string>
