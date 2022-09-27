@@ -27,8 +27,6 @@ public:
 	RascsiResponse(DeviceFactory& device_factory, const RascsiImage& rascsi_image, int max_luns)
 		: device_factory(device_factory), rascsi_image(rascsi_image), max_luns(max_luns) {}
 	~RascsiResponse() = default;
-	RascsiResponse(RascsiResponse&) = delete;
-	RascsiResponse& operator=(const RascsiResponse&) = delete;
 
 	bool GetImageFile(PbImageFile&, const string&) const;
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
@@ -46,6 +44,7 @@ public:
 private:
 
 	DeviceFactory& device_factory;
+
 	const RascsiImage& rascsi_image;
 
 	int max_luns;

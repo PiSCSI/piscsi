@@ -19,8 +19,6 @@ class RasctlDisplay
 
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
-	RasctlDisplay(RasctlDisplay&) = delete;
-	RasctlDisplay& operator=(const RasctlDisplay&) = delete;
 
 	void DisplayDevices(const PbDevicesInfo&) const;
 	void DisplayDeviceInfo(const PbDevice&) const;

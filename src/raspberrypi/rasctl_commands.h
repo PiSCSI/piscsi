@@ -22,8 +22,6 @@ public:
 
 	RasctlCommands(const PbCommand&, const string&, int, const string&, const string&);
 	~RasctlCommands() = default;
-	RasctlCommands(RasctlCommands&) = delete;
-	RasctlCommands& operator=(const RasctlCommands&) = delete;
 
 	void Execute(const string&, const string&, const string&, const string&, const string&);
 
