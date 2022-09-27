@@ -160,13 +160,12 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 			string filename = folder + "/" + dir->d_name;
 
-			struct stat st;
-			if (dir->d_type == DT_REG && !stat(filename.c_str(), &st) && !st.st_size) {
+			if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st) && !st.st_size) {
 				LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
 				continue;
 			}
 
-			if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+			if (struct stat st; dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
 				LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
 				continue;
 			}
