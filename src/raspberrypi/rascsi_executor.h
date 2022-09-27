@@ -20,6 +20,8 @@ class SocketConnector;
 
 class RascsiExecutor
 {
+	BUS& bus;
+
 	RascsiService& service;
 
 	RascsiImage& rascsi_image;
@@ -30,18 +32,19 @@ class RascsiExecutor
 
 	SocketConnector socket_connector;
 
+	const unordered_set<int>& reserved_ids;
+
 public:
 
-	RascsiExecutor(RascsiService& service, RascsiImage& rascsi_image, DeviceFactory& device_factory,
-			ControllerManager& controller_manager)
-		: service(service), rascsi_image(rascsi_image), device_factory(device_factory),
-		  controller_manager(controller_manager) {}
+	RascsiExecutor(BUS& bus, RascsiService& service, RascsiImage& rascsi_image, DeviceFactory& device_factory,
+			ControllerManager& controller_manager, const unordered_set<int>& reserved_ids)
+		: bus(bus), service(service), rascsi_image(rascsi_image), device_factory(device_factory),
+		  controller_manager(controller_manager), reserved_ids(reserved_ids) {}
 	~RascsiExecutor() = default;
 
-	bool ProcessCmd(BUS&, const CommandContext&, const PbDeviceDefinition&, const PbCommand&,
-			const std::unordered_set<int>&, bool);
+	bool ProcessCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
 	bool SetLogLevel(const string&);
-	bool Attach(BUS&, const CommandContext&, const PbDeviceDefinition&, bool);
+	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool);
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();

@@ -69,7 +69,7 @@ unordered_set<int> reserved_ids;
 DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
-RascsiExecutor executor(service, rascsi_image, device_factory, controller_manager);
+RascsiExecutor executor(bus, service, rascsi_image, device_factory, controller_manager, reserved_ids);
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
 const SocketConnector socket_connector;
 
@@ -306,7 +306,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Remember the list of reserved files, than run the dry run
 	const auto& reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
-		if (!executor.ProcessCmd(bus, context, device, command, reserved_ids, true)) {
+		if (!executor.ProcessCmd(context, device, command, true)) {
 			// Dry run failed, restore the file list
 			FileSupport::SetReservedFiles(reserved_files);
 			return false;
@@ -321,7 +321,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	}
 
 	for (const auto& device : command.devices()) {
-		if (!executor.ProcessCmd(bus, context, device, command, reserved_ids, false)) {
+		if (!executor.ProcessCmd(context, device, command, false)) {
 			return false;
 		}
 	}

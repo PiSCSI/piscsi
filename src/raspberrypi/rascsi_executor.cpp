@@ -26,8 +26,8 @@
 using namespace spdlog;
 using namespace command_util;
 
-bool RascsiExecutor::ProcessCmd(BUS& bus, const CommandContext& context, const PbDeviceDefinition& pb_device,
-		const PbCommand& command, const unordered_set<int>& reserved_ids, bool dryRun)
+bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
+		const PbCommand& command, bool dryRun)
 {
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
@@ -88,7 +88,7 @@ bool RascsiExecutor::ProcessCmd(BUS& bus, const CommandContext& context, const P
 	}
 
 	if (operation == ATTACH) {
-		return Attach(bus, context, pb_device, dryRun);
+		return Attach(context, pb_device, dryRun);
 	}
 
 	// Does the controller exist?
@@ -223,7 +223,7 @@ bool RascsiExecutor::SetLogLevel(const string& log_level)
 	return true;
 }
 
-bool RascsiExecutor::Attach(BUS& bus, const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
+bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
