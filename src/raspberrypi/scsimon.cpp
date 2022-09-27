@@ -33,7 +33,7 @@ static const int _MAX_FNAME = 256;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-unique_ptr<GPIOBUS> bus;      // GPIO Bus
+GPIOBUS bus;			      // GPIO Bus
 
 DWORD buff_size = 1000000;
 data_capture *data_buffer;
@@ -186,15 +186,14 @@ bool Init()
     }
 
     // GPIO Initialization
-    bus = make_unique<GPIOBUS>();
-    if (!bus->Init())
+    if (!bus.Init())
     {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;
     }
 
     // Bus Reset
-    bus->Reset();
+    bus.Reset();
 
     // Other
     running = false;
@@ -204,8 +203,7 @@ bool Init()
 
 void Cleanup()
 {
-    if (!import_data)
-    {
+    if (!import_data) {
         LOGINFO("Stopping data collection....")
     }
     LOGINFO(" ")
@@ -216,17 +214,14 @@ void Cleanup()
     LOGINFO("Generating %s...", html_file_name)
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
-    if (bus)
-    {
-        // Cleanup the Bus
-        bus->Cleanup();
-    }
+    // Cleanup the Bus
+    bus.Cleanup();
 }
 
 void Reset()
 {
     // Reset the bus
-    bus->Reset();
+    bus.Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -338,7 +333,7 @@ int main(int argc, char *argv[])
 
     // Start execution
     running = true;
-    bus->SetACT(false);
+    bus.SetACT(false);
 
     (void)gettimeofday(&start_time, nullptr);
 
@@ -348,7 +343,7 @@ int main(int argc, char *argv[])
     while (running)
     {
         // Work initialization
-        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
+        this_sample = (bus.Acquire() & ALL_SCSI_PINS);
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {
