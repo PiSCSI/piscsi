@@ -23,12 +23,11 @@ class RascsiService
 	static const SocketConnector socket_connector;
 
 	static int monsocket;
+
 	static pthread_t monthread;
 	static pthread_mutex_t ctrl_mutex;
 
 	static volatile bool is_running;
-
-	volatile bool is_active = false;
 
 public:
 
