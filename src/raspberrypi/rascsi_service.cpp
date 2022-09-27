@@ -11,6 +11,7 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "command_context.h"
+#include "localizer.h"
 #include "rasutil.h"
 #include "rascsi_service.h"
 #include <netinet/in.h>
@@ -23,8 +24,6 @@ using namespace rascsi_interface;
 bool RascsiService::is_instantiated = false;
 
 volatile bool RascsiService::is_running = false;
-
-const ProtobufSerializer RascsiService::connector;
 
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;
@@ -106,13 +105,14 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
+	ProtobufSerializer connector;
 	Localizer localizer;
 	while (true) {
 		CommandContext context(connector, localizer, -1, "");
 
 		try {
 			PbCommand command;
-			context.fd = ReadCommand(command);
+			context.fd = ReadCommand(connector, command);
 			if (context.fd == -1) {
 				continue;
 			}
@@ -135,7 +135,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	return nullptr;
 }
 
-int RascsiService::ReadCommand(PbCommand& command)
+int RascsiService::ReadCommand(ProtobufSerializer& connector, PbCommand& command)
 {
 	// Wait for connection
 	sockaddr client = {};

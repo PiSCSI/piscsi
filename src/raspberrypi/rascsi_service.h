@@ -10,7 +10,6 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
-#include "localizer.h"
 #include "protobuf_serializer.h"
 #include <pthread.h>
 
@@ -21,8 +20,6 @@ class RascsiService
 	static bool is_instantiated;
 
 	static volatile bool is_running;
-
-	static const ProtobufSerializer connector;
 
 	static int monsocket;
 
@@ -44,7 +41,7 @@ public:
 
 	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 
-	static int ReadCommand(rascsi_interface::PbCommand&);
+	static int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
 
 	static void KillHandler(int) {
 		is_running = false;
