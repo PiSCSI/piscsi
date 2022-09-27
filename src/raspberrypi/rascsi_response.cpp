@@ -150,9 +150,9 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		// Ignore unknown folder types and folder names starting with '.'
-		if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
-				|| dir->d_name[0] == '.') {
+		string filename = folder + "/" + dir->d_name;
+
+		if (!ValidateImageFile(dir, folder, filename)) {
 			continue;
 		}
 
@@ -161,17 +161,12 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 			transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
 		}
 
-		string filename = folder + "/" + dir->d_name;
-
-		if (!ValidateImageFile(dir, folder, filename)) {
-			continue;
-		}
-
 		if (dir->d_type == DT_DIR) {
 			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
 				GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
 						file_pattern, scan_depth);
 			}
+
 			continue;
 		}
 
@@ -485,6 +480,12 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData&
 
 bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder, const string& filename)
 {
+	// Ignore unknown folder types and folder names starting with '.'
+	if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
+			|| dir->d_name[0] == '.') {
+		return false;
+	}
+
 	struct stat st;
 
 	bool file_exists = !stat(filename.c_str(), &st);
