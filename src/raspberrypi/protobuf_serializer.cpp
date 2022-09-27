@@ -18,8 +18,8 @@ using namespace rascsi_interface;
 
 //---------------------------------------------------------------------------
 //
-//	Serialize/Deserialize protobuf message: Length followed by the actual data.
-//  Little endian is assumed.
+// Serialize/Deserialize protobuf message: Length followed by the actual data.
+// A little endian platform is assumed.
 //
 //---------------------------------------------------------------------------
 
