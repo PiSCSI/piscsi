@@ -70,7 +70,7 @@ unordered_set<int> reserved_ids;
 DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
-RascsiResponse rascsi_response(&device_factory, &rascsi_image);
+RascsiResponse rascsi_response(device_factory, rascsi_image);
 const SocketConnector socket_connector;
 
 void DetachAll();

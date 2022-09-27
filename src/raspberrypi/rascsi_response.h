@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
 #include <dirent.h>
 #include <list>
@@ -25,7 +24,7 @@ class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
+	RascsiResponse(DeviceFactory& device_factory, const RascsiImage& rascsi_image)
 		: device_factory(device_factory), rascsi_image(rascsi_image) {}
 	~RascsiResponse() = default;
 	RascsiResponse(RascsiResponse&) = delete;
@@ -46,8 +45,8 @@ public:
 
 private:
 
-	DeviceFactory *device_factory;
-	const RascsiImage *rascsi_image;
+	DeviceFactory& device_factory;
+	const RascsiImage& rascsi_image;
 
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 

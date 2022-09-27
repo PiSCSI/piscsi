@@ -36,13 +36,13 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device)
 	PbDeviceType_Parse(device.GetType(), &t);
 
 	if (device.SupportsParams()) {
-		for (const auto& [key, value] : device_factory->GetDefaultParams(t)) {
+		for (const auto& [key, value] : device_factory.GetDefaultParams(t)) {
 			auto& map = *properties->mutable_default_params();
 			map[key] = value;
 		}
 	}
 
-	for (const auto& block_size : device_factory->GetSectorSizes(t)) {
+	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
 		properties->add_block_sizes(block_size);
 	}
 
@@ -53,9 +53,9 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
+	const PrimaryDevice *device = device_factory.CreateDevice(type, "", -1);
 	type_properties->set_allocated_properties(GetDeviceProperties(*device));
-	device_factory->DeleteDevice(*device); //NOSONAR The allocated memory is managed by protobuf
+	device_factory.DeleteDevice(*device); //NOSONAR The allocated memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
@@ -116,9 +116,9 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
-		image_file->set_type(device_factory->GetTypeForFile(filename));
+		image_file->set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : rascsi_image->GetDefaultImageFolder() + "/" + filename;
+		string f = filename[0] == '/' ? filename : rascsi_image.GetDefaultImageFolder() + "/" + filename;
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
@@ -184,7 +184,7 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 {
 	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
-	string default_image_folder = rascsi_image->GetDefaultImageFolder();
+	string default_image_folder = rascsi_image.GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
 	image_files_info->set_depth(scan_depth);
 
@@ -200,7 +200,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 		const string& file_pattern, int scan_depth)
 {
 	PbImageFilesInfo *image_files_info = GetAvailableImages(result, folder_pattern, file_pattern, scan_depth);
-	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
+	image_files_info->set_default_image_folder(rascsi_image.GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
 	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
@@ -220,7 +220,7 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 
 void RascsiResponse::GetDevices(PbServerInfo& server_info)
 {
-	for (const Device *device : device_factory->GetAllDevices()) {
+	for (const Device *device : device_factory.GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 		GetDevice(*device, pb_device);
 	}
@@ -230,13 +230,13 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
-		for (const Device *device : device_factory->GetAllDevices()) {
+		for (const Device *device : device_factory.GetAllDevices()) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
 	else {
 		for (const auto& device : command.devices()) {
-			if (device_factory->GetDeviceByIdAndLun(device.id(), device.unit())) {
+			if (device_factory.GetDeviceByIdAndLun(device.id(), device.unit())) {
 				id_sets.insert(make_pair(device.id(), device.unit()));
 			}
 			else {
@@ -251,7 +251,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& [id, lun] : id_sets) {
-		GetDevice(*device_factory->GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
+		GetDevice(*device_factory.GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
 	}
 
 	result.set_status(true);
@@ -320,7 +320,7 @@ PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& resu
 {
 	auto network_interfaces_info = make_unique<PbNetworkInterfacesInfo>().release();
 
-	for (const auto& network_interface : device_factory->GetNetworkInterfaces()) {
+	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
 	}
 
@@ -333,7 +333,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	auto mapping_info = make_unique<PbMappingInfo>().release();
 
-	for (const auto& [name, type] : device_factory->GetExtensionMapping()) {
+	for (const auto& [name, type] : device_factory.GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[name] = type;
 	}
 
