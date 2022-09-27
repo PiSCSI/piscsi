@@ -29,7 +29,7 @@ class RascsiService
 	static int monsocket;
 
 	static pthread_t monthread;
-	static pthread_mutex_t ctrl_mutex;
+	pthread_mutex_t ctrl_mutex;
 
 public:
 
@@ -38,12 +38,13 @@ public:
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
 
-	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
-	static void Lock() { pthread_mutex_lock(&ctrl_mutex); }
-	static void Unlock() { pthread_mutex_unlock(&ctrl_mutex); }
+	void Lock() { pthread_mutex_lock(&ctrl_mutex); }
+	void Unlock() { pthread_mutex_unlock(&ctrl_mutex); }
 
 	static bool IsRunning() { return is_running; }
 	static void SetRunning(bool b) { is_running = b; }
+
+	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 
 	static void KillHandler(int) {
 		is_running = false;

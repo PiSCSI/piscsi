@@ -433,14 +433,14 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(lun));
 	}
 
-	RascsiService::Unlock();
+	service.Unlock();
 
 	if (!controller_manager.CreateScsiController(bus, device)) {
-		RascsiService::Unlock();
+		service.Unlock();
 
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
-	RascsiService::Unlock();
+	service.Unlock();
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -472,14 +472,14 @@ bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 		}
 
 		// Delete the existing unit
-		RascsiService::Lock();
+		service.Lock();
 		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
-			RascsiService::Unlock();
+			service.Unlock();
 
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
 		device_factory.DeleteDevice(device);
-		RascsiService::Unlock();
+		service.Unlock();
 
 		LOGINFO("%s", s.c_str())
 	}
@@ -1279,9 +1279,6 @@ int main(int argc, char* argv[])
 
 	// Main Loop
 	while (RascsiService::IsRunning()) {
-		// Work initialization
-		BUS::phase_t phase = BUS::phase_t::busfree;
-
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
 		if (!bus.PollSelectEvent()) {
@@ -1324,7 +1321,9 @@ int main(int argc, char* argv[])
 		// The initiator and target ID
 		BYTE id_data = bus.GetDAT();
 
-		RascsiService::Lock();
+		BUS::phase_t phase = BUS::phase_t::busfree;
+
+		service.Lock();
 
 		// Identify the responsible controller
 		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
@@ -1338,7 +1337,7 @@ int main(int argc, char* argv[])
 
 		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::phase_t::selection) {
-			RascsiService::Unlock();
+			service.Unlock();
 			continue;
 		}
 
@@ -1362,7 +1361,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		RascsiService::Unlock();
+		service.Unlock();
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Set the scheduling priority back to normal

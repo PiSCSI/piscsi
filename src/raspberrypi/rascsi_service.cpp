@@ -30,7 +30,6 @@ const SocketConnector RascsiService::socket_connector;
 
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;
-pthread_mutex_t RascsiService::ctrl_mutex;
 
 RascsiService::RascsiService()
 {
