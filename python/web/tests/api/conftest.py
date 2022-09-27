@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import warnings
 
 CFG_DIR = "/home/pi/.config/rascsi"
 IMAGES_DIR = "/home/pi/images"
@@ -37,7 +38,11 @@ def create_test_image(request, http_client):
 
     def delete():
         for image in images:
-            http_client.post("/files/delete", data={"file_name": image})
+            response = http_client.post("/files/delete", data={"file_name": image})
+            if response.status_code != 200 or response.json()["status"] != STATUS_SUCCESS:
+                warnings.warn(
+                    f"Failed to auto-delete file created with create_test_image fixture: {image}"
+                )
 
     request.addfinalizer(delete)
     return create
@@ -62,7 +67,9 @@ def list_attached_images(http_client):
 @pytest.fixture(scope="function")
 def delete_file(http_client):
     def delete(file_name):
-        http_client.post("/files/delete", data={"file_name": file_name})
+        response = http_client.post("/files/delete", data={"file_name": file_name})
+        if response.status_code != 200 or response.json()["status"] != STATUS_SUCCESS:
+            warnings.warn(f"Failed to delete file via delete_file fixture: {file_name}")
 
     return delete
 
