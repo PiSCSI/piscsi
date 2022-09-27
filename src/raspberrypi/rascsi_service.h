@@ -10,7 +10,8 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
-#include <pthread.h>
+#include <thread>
+#include <mutex>
 
 class CommandContext;
 class ProtobufSerializer;
@@ -23,8 +24,8 @@ class RascsiService
 
 	static int monsocket;
 
-	static pthread_t monthread;
-	pthread_mutex_t ctrl_mutex;
+	thread monthread;
+	mutex ctrl_mutex;
 
 public:
 
@@ -33,13 +34,13 @@ public:
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
 
-	void Lock() { pthread_mutex_lock(&ctrl_mutex); }
-	void Unlock() { pthread_mutex_unlock(&ctrl_mutex); }
+	void Lock() { ctrl_mutex.lock(); }
+	void Unlock() { ctrl_mutex.unlock(); }
 
 	static bool IsRunning() { return is_running; }
 	static void SetRunning(bool b) { is_running = b; }
 
-	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
+	static void CommandThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 
 	static int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
 
