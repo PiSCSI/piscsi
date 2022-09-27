@@ -26,7 +26,7 @@ volatile bool RascsiService::is_running = false;
 
 const Localizer RascsiService::localizer;
 
-const SocketConnector RascsiService::socket_connector;
+const SocketConnector RascsiService::connector;
 
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;
@@ -109,11 +109,11 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	listen(monsocket, 1);
 
 	while (true) {
-		CommandContext context(socket_connector, localizer, -1, "");
+		CommandContext context(connector, localizer, -1, "");
 
 		try {
 			PbCommand command;
-			context.fd = socket_connector.ReadCommand(command, monsocket);
+			context.fd = ReadCommand(command, monsocket);
 			if (context.fd == -1) {
 				continue;
 			}
@@ -135,3 +135,30 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 
 	return nullptr;
 }
+
+int RascsiService::ReadCommand(PbCommand& command, int socket)
+{
+	// Wait for connection
+	sockaddr client = {};
+	socklen_t socklen = sizeof(client);
+	int fd = accept(socket, &client, &socklen);
+	if (fd < 0) {
+		throw io_exception("accept() failed");
+	}
+
+	// Read magic string
+	vector<byte> magic(6);
+	size_t bytes_read = connector.ReadBytes(fd, magic);
+	if (!bytes_read) {
+		return -1;
+	}
+	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
+		throw io_exception("Invalid magic");
+	}
+
+	// Fetch the command
+	connector.DeserializeMessage(fd, command);
+
+	return fd;
+}
+

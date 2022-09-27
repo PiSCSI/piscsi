@@ -24,7 +24,7 @@ class RascsiService
 
 	static const Localizer localizer;
 
-	static const SocketConnector socket_connector;
+	static const SocketConnector connector;
 
 	static int monsocket;
 
@@ -45,6 +45,8 @@ public:
 	static void SetRunning(bool b) { is_running = b; }
 
 	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
+
+	static int ReadCommand(rascsi_interface::PbCommand&, int);
 
 	static void KillHandler(int) {
 		is_running = false;
