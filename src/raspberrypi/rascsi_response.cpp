@@ -107,23 +107,23 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice *pb_device)
 		Filepath filepath;
 		file_support->GetPath(filepath);
 		auto image_file = make_unique<PbImageFile>().release();
-		GetImageFile(image_file, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
+		GetImageFile(*image_file, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
 } //NOSONAR The allocated memory is managed by protobuf
 
-bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename) const
+bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& filename) const
 {
 	if (!filename.empty()) {
-		image_file->set_name(filename);
-		image_file->set_type(device_factory.GetTypeForFile(filename));
+		image_file.set_name(filename);
+		image_file.set_type(device_factory.GetTypeForFile(filename));
 
 		string f = filename[0] == '/' ? filename : rascsi_image.GetDefaultImageFolder() + "/" + filename;
 
-		image_file->set_read_only(access(f.c_str(), W_OK));
+		image_file.set_read_only(access(f.c_str(), W_OK));
 
 		if (struct stat st; !stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
-			image_file->set_size(st.st_size);
+			image_file.set_size(st.st_size);
 			return true;
 		}
 	}
@@ -170,8 +170,8 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 		}
 
 		if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
-				GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
+			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), filename)) {
+				GetImageFile(*image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
 			}
 		}
 	}
