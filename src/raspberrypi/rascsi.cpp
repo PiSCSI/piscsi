@@ -60,7 +60,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-GPIOBUS bus;
+GPIOBUS bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
