@@ -265,176 +265,6 @@ void TerminationHandler(int signum)
 	exit(signum);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Command Processing
-//
-//---------------------------------------------------------------------------
-
-bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, const PbCommand& command, bool dryRun)
-{
-	const int id = pb_device.id();
-	const int lun = pb_device.unit();
-	const PbDeviceType type = pb_device.type();
-	const PbOperation operation = command.operation();
-	const map<string, string> params = { command.params().begin(), command.params().end() };
-
-	ostringstream s;
-	s << (dryRun ? "Validating" : "Executing");
-	s << ": operation=" << PbOperation_Name(operation);
-
-	if (!params.empty()) {
-		s << ", command params=";
-		bool isFirst = true;
-		for (const auto& [key, value]: params) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			isFirst = false;
-			string v = key != "token" ? value : "???";
-			s << "'" << key << "=" << v << "'";
-		}
-	}
-
-	s << ", device id=" << id << ", lun=" << lun << ", type=" << PbDeviceType_Name(type);
-
-	if (pb_device.params_size()) {
-		s << ", device params=";
-		bool isFirst = true;
-		for (const auto& [key, value]: pb_device.params()) {
-			if (!isFirst) {
-				s << ":";
-			}
-			isFirst = false;
-			s << "'" << key << "=" << value << "'";
-		}
-	}
-
-	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
-		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
-	LOGINFO("%s", s.str().c_str())
-
-	// Check the Controller Number
-	if (id < 0) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
-	}
-	if (id >= ControllerManager::DEVICE_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
-	}
-
-	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
-	}
-
-	// Check the Unit Number
-	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
-	}
-
-	if (operation == ATTACH) {
-		return executor.Attach(bus, context, pb_device, dryRun);
-	}
-
-	// Does the controller exist?
-	if (!dryRun && controller_manager.FindController(id) == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
-	}
-
-	// Does the unit exist?
-	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, lun);
-	if (device == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
-	}
-
-	if (operation == DETACH) {
-		return executor.Detach(context, *device, dryRun);
-	}
-
-	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device->GetType());
-	}
-
-	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device->GetType());
-	}
-
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device->GetType());
-	}
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, device->GetType());
-	}
-
-	switch (operation) {
-		case START:
-			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
-
-				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
-				}
-			}
-			break;
-
-		case STOP:
-			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
-
-				// STOP is idempotent
-				device->Stop();
-			}
-			break;
-
-		case INSERT:
-			return executor.Insert(context, pb_device, device, dryRun);
-
-		case EJECT:
-			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
-
-				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
-				}
-			}
-			break;
-
-		case PROTECT:
-			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
-
-				// PROTECT is idempotent
-				device->SetProtected(true);
-			}
-			break;
-
-		case UNPROTECT:
-			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
-
-				// UNPROTECT is idempotent
-				device->SetProtected(false);
-			}
-			break;
-
-		case ATTACH:
-		case DETACH:
-			// The non dry-run case has been handled before the switch
-			assert(dryRun);
-			break;
-
-		case CHECK_AUTHENTICATION:
-		case NO_OPERATION:
-			// Do nothing, just log
-			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str())
-			break;
-
-		default:
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION);
-	}
-
-	return true;
-}
-
 bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 {
 	switch (command.operation()) {
@@ -476,7 +306,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	// Remember the list of reserved files, than run the dry run
 	const auto& reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(context, device, command, true)) {
+		if (!executor.ProcessCmd(bus, context, device, command, reserved_ids, true)) {
 			// Dry run failed, restore the file list
 			FileSupport::SetReservedFiles(reserved_files);
 			return false;
@@ -491,7 +321,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 	}
 
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(context, device, command, false)) {
+		if (!executor.ProcessCmd(bus, context, device, command, reserved_ids, false)) {
 			return false;
 		}
 	}

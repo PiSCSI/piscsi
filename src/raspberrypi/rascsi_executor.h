@@ -38,8 +38,9 @@ public:
 		  controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
+	bool ProcessCmd(BUS&, const CommandContext&, const PbDeviceDefinition&, const PbCommand&,
+			const std::unordered_set<int>&, bool);
 	bool SetLogLevel(const string&);
-
 	bool Attach(BUS&, const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool);
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
