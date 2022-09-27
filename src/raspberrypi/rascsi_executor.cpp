@@ -15,16 +15,19 @@
 #include "devices/disk.h"
 #include "devices/file_support.h"
 #include "rascsi_service.h"
+#include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_exceptions.h"
 #include "localizer.h"
 #include "command_util.h"
+#include "rasutil.h"
 #include "spdlog/spdlog.h"
 #include "rascsi_executor.h"
 #include <sstream>
 
 using namespace spdlog;
 using namespace command_util;
+using namespace ras_util;
 
 bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
@@ -189,6 +192,80 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	}
 
 	return true;
+}
+
+bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& command)
+{
+	switch (command.operation()) {
+		case DETACH_ALL:
+			DetachAll();
+			return ReturnStatus(context);
+
+		case RESERVE_IDS: {
+			const string ids = GetParam(command, "ids");
+			string error = SetReservedIds(ids);
+			if (!error.empty()) {
+				return ReturnStatus(context, false, error);
+			}
+
+			return ReturnStatus(context);
+		}
+
+		case CREATE_IMAGE:
+			return rascsi_image.CreateImage(context, command);
+
+		case DELETE_IMAGE:
+			return rascsi_image.DeleteImage(context, command);
+
+		case RENAME_IMAGE:
+			return rascsi_image.RenameImage(context, command);
+
+		case COPY_IMAGE:
+			return rascsi_image.CopyImage(context, command);
+
+		case PROTECT_IMAGE:
+		case UNPROTECT_IMAGE:
+			return rascsi_image.SetImagePermissions(context, command);
+
+		default:
+			// This is a device-specific command handled below
+			break;
+	}
+
+	// Remember the list of reserved files, than run the dry run
+	const auto& reserved_files = FileSupport::GetReservedFiles();
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(context, device, command, true)) {
+			// Dry run failed, restore the file list
+			FileSupport::SetReservedFiles(reserved_files);
+			return false;
+		}
+	}
+
+	// Restore the list of reserved files before proceeding
+	FileSupport::SetReservedFiles(reserved_files);
+
+	if (string result = ValidateLunSetup(command); !result.empty()) {
+		return ReturnStatus(context, false, result);
+	}
+
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(context, device, command, false)) {
+			return false;
+		}
+	}
+
+	// ATTACH and DETACH return the device list
+	if (context.fd != -1 && (command.operation() == ATTACH || command.operation() == DETACH)) {
+		// A new command with an empty device list is required here in order to return data for all devices
+		PbCommand command;
+		PbResult result;
+		rascsi_response.GetDevicesInfo(result, command);
+		socket_connector.SerializeMessage(context.fd, result);
+		return true;
+	}
+
+	return ReturnStatus(context);
 }
 
 bool RascsiExecutor::SetLogLevel(const string& log_level)
@@ -546,4 +623,76 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	}
 
 	return false;
+}
+
+string RascsiExecutor::SetReservedIds(string_view ids)
+{
+	list<string> ids_to_reserve;
+	stringstream ss(ids.data());
+    string id;
+    while (getline(ss, id, ',')) {
+    	if (!id.empty()) {
+    		ids_to_reserve.push_back(id);
+    	}
+    }
+
+    unordered_set<int> reserved;
+    for (string id_to_reserve : ids_to_reserve) {
+    	int id;
+ 		if (!GetAsInt(id_to_reserve, id) || id > 7) {
+ 			return "Invalid ID " + id_to_reserve;
+ 		}
+
+ 		if (controller_manager.FindController(id) != nullptr) {
+ 			return "ID " + id_to_reserve + " is currently in use";
+ 		}
+
+ 		reserved.insert(id);
+    }
+
+    reserved_ids = reserved;
+
+    if (!reserved_ids.empty()) {
+    	string s;
+    	bool isFirst = true;
+    	for (auto const& reserved_id : reserved_ids) {
+    		if (!isFirst) {
+    			s += ", ";
+    		}
+    		isFirst = false;
+    		s += to_string(reserved_id);
+    	}
+
+    	LOGINFO("Reserved ID(s) set to %s", s.c_str())
+    }
+    else {
+    	LOGINFO("Cleared reserved ID(s)")
+    }
+
+	return "";
+}
+
+string RascsiExecutor::ValidateLunSetup(const PbCommand& command)
+{
+	// Mapping of available LUNs (bit vector) to devices
+	unordered_map<uint32_t, uint32_t> luns;
+
+	// Collect LUN bit vectors of new devices
+	for (const auto& device : command.devices()) {
+		luns[device.id()] |= 1 << device.unit();
+	}
+
+	// Collect LUN bit vectors of existing devices
+	for (const auto& device : device_factory.GetAllDevices()) {
+		luns[device->GetId()] |= 1 << device->GetLun();
+	}
+
+	// LUN 0 must exist for all devices
+	for (auto const& [id, lun]: luns) {
+		if (!(lun & 0x01)) {
+			return "LUN 0 is missing for device ID " + to_string(id);
+		}
+	}
+
+	return "";
 }
