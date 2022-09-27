@@ -1369,8 +1369,6 @@ int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	BUS::phase_t phase;
-
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, nullptr, _IONBF, 0);
 
@@ -1434,7 +1432,7 @@ int main(int argc, char* argv[])
 	// Main Loop
 	while (running) {
 		// Work initialization
-		phase = BUS::phase_t::busfree;
+		BUS::phase_t phase = BUS::phase_t::busfree;
 
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
