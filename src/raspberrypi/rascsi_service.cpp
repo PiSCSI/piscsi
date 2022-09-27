@@ -113,11 +113,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 		try {
 			PbCommand command;
 			context.fd = ReadCommand(serializer, command);
-			if (context.fd == -1) {
-				continue;
-			}
-
-			if (!execute(command, context)) {
+			if (context.fd == -1 || !execute(command, context)) {
 				continue;
 			}
 		}
