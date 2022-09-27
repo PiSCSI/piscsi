@@ -91,8 +91,6 @@ protected:
 public:
 
 	virtual ~Device() = default;
-	Device(Device&) = delete;
-	Device& operator=(const Device&) = delete;
 
 	const string& GetType() const { return type; }
 
