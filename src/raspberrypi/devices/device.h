@@ -42,9 +42,6 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool lockable = false;
 	bool locked = false;
 
-	// The block size is configurable
-	bool block_size_configurable = false;
-
 	// Device can be created with parameters
 	bool supports_params = false;
 
