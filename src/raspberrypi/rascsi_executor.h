@@ -46,17 +46,17 @@ public:
 		  device_factory(device_factory), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
-	const unordered_set<int> GetReservedIds() const { return reserved_ids; }
+	unordered_set<int> GetReservedIds() const { return reserved_ids; }
 
 	bool ProcessCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
 	bool ProcessCmd(const CommandContext&, const PbCommand&);
-	bool SetLogLevel(const string&);
+	bool SetLogLevel(const string&) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
-	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool);
+	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool) const;
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();
-	bool ShutDown(const CommandContext&, const string&);
+	bool ShutDown(const CommandContext&, string_view);
 	string SetReservedIds(string_view);
 
-	string ValidateLunSetup(const PbCommand&);
+	string ValidateLunSetup(const PbCommand&) const;
 };

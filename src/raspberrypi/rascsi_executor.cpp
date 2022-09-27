@@ -203,8 +203,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
-			string error = SetReservedIds(ids);
-			if (!error.empty()) {
+			if (string error = SetReservedIds(ids); !error.empty()) {
 				return ReturnStatus(context, false, error);
 			}
 
@@ -268,7 +267,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	return ReturnStatus(context);
 }
 
-bool RascsiExecutor::SetLogLevel(const string& log_level)
+bool RascsiExecutor::SetLogLevel(const string& log_level) const
 {
 	if (log_level == "trace") {
 		set_level(level::trace);
@@ -375,12 +374,12 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		filepath.SetPath(filename.c_str());
 		string initial_filename = filepath.GetPath();
 
-		int id;
+		int device_id;
 		int unit;
-		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+		if (FileSupport::GetIdsForReservedFile(filepath, device_id, unit)) {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(device_id), to_string(unit));
 		}
 
 		try {
@@ -391,10 +390,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				// If the file does not exist search for it in the default image folder
 				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
-				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+				if (FileSupport::GetIdsForReservedFile(filepath, device_id, unit)) {
 					device_factory.DeleteDevice(*device);
 
-					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(device_id), to_string(unit));
 				}
 
 				file_support->Open(filepath);
@@ -429,7 +428,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	if (!device->Init(params)) {
 		device_factory.DeleteDevice(*device);
 
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(lun));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
+				to_string(id), to_string(lun));
 	}
 
 	service.Lock();
@@ -454,7 +454,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
+bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device,
+		bool dryRun) const
 {
 	if (!device->IsRemoved()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
@@ -575,7 +576,7 @@ void RascsiExecutor::DetachAll()
 	LOGINFO("Detached all devices")
 }
 
-bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
+bool RascsiExecutor::ShutDown(const CommandContext& context, string_view mode) {
 	if (mode.empty()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
@@ -584,7 +585,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	result.set_status(true);
 
 	if (mode == "rascsi") {
-		LOGINFO("RaSCSI shutdown requested");
+		LOGINFO("RaSCSI shutdown requested")
 
 		serializer.SerializeMessage(context.fd, result);
 
@@ -638,16 +639,16 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 
     unordered_set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
-    	int id;
- 		if (!GetAsInt(id_to_reserve, id) || id > 7) {
+    	int res_id;
+ 		if (!GetAsInt(id_to_reserve, res_id) || res_id > 7) {
  			return "Invalid ID " + id_to_reserve;
  		}
 
- 		if (controller_manager.FindController(id) != nullptr) {
+ 		if (controller_manager.FindController(res_id) != nullptr) {
  			return "ID " + id_to_reserve + " is currently in use";
  		}
 
- 		reserved.insert(id);
+ 		reserved.insert(res_id);
     }
 
     reserved_ids = reserved;
@@ -672,7 +673,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-string RascsiExecutor::ValidateLunSetup(const PbCommand& command)
+string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 {
 	// Mapping of available LUNs (bit vector) to devices
 	unordered_map<uint32_t, uint32_t> luns;
