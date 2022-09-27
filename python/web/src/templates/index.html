@@ -394,10 +394,9 @@
 <hr/>
 <details>
     <summary class="heading">
-        {{ _("Upload File") }}
+        {{ _("Upload File from Local Computer") }}
     </summary>
     <ul>
-        <li>{{ _("Files are uploaded to <tt>%(directory)s</tt>.", directory=base_dir) }}</li>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
     </ul>
@@ -406,7 +405,13 @@
 <table style="border: none;">
     <tr style="border: none;">
         <td style="border: none; vertical-align:top;">
-            <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper"></form>
+            <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
+                <label for="destination">{{ _("Target directory:") }}</label>
+                <select name="destination">
+                    <option>{{ base_dir }}</option>
+                    <option>{{ AFP_DIR }}</option>
+                </select>
+	    </form>
         </td>
     </tr>
 </table>
@@ -443,61 +448,40 @@
 
 <details>
     <summary class="heading">
-        {{ _("Download File to Images") }}
+        {{ _("Download File from the Web") }}
     </summary>
     <ul>
-        <li>{{ _("Given a URL, download that file to the <tt>%(directory)s</tt> directory.", directory=base_dir) }}</li>
+        <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
+	{% if netatalk_configured %}
+        {% if netatalk_configured == 1 %}
+        <li>{{ _("The AppleShare server is running. No active connections.") }}</li>
+        {% elif netatalk_configured == 2 %}
+        <li>{{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}</li>
+        {% elif netatalk_configured > 2 %}
+        <li>{{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}</li>
+        {% endif %}
+        {% else %}
+        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        {% endif %}
     </ul>
 </details>
 
 <table style="border: none">
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
-            <form action="/files/download_to_images" method="post">
+            <form action="/files/download" method="post">
+		<label for="destination">{{ _("Target directory:") }}</label>
+                <select name="destination">
+                    <option>{{ base_dir }}</option>
+                    <option>{{ AFP_DIR }}</option>
+                </select>
                 <label for="url">{{ _("URL:") }}</label>
                 <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File to Images...") }}')">
+                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
             </form>
         </td>
     </tr>
 </table>
-
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Download File to AppleShare") }}
-    </summary>
-    <ul>
-        <li>{{ _("Given a URL, download that file to the <tt>%(directory)s</tt> directory and share it over AFP.", directory=AFP_DIR) }}</li>
-        <li>{{ _("Manage the files you download here through AppleShare on your vintage Mac.") }}</li>
-        <li>{{ _("Requires <a href=\"%(url)s\">Netatalk</a> to be installed and configured correctly for your network.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
-    </ul>
-</details>
-
-{% if netatalk_configured %}
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/files/download_to_afp" method="post">
-                <label for="url">{{ _("URL:") }}</label>
-                <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File to AppleShare...") }}')">
-            </form>
-        </td>
-    </tr>
-</table>
-
-{% if netatalk_configured == 1 %}
-<p><small>{{ _("The AppleShare server is running. No active connections.") }}</small></p>
-{% elif netatalk_configured == 2 %}
-<p><small>{{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}</small></p>
-{% elif netatalk_configured > 2 %}
-<p><small>{{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}</small></p>
-{% endif %}
-{% else %}
-<p>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</p>
-{% endif %}
 
 <hr/>
 
