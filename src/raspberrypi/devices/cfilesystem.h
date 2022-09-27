@@ -92,7 +92,7 @@ namespace Human68k {
 	};
 
 	/// Seek types
-	enum seek_t {
+	enum class seek_t {
 		SK_BEGIN = 0,			///< From the beginning of a file
 		SK_CURRENT = 1,			///< From the current location
 		SK_END = 2,			///< From the end of the file
@@ -665,7 +665,7 @@ public:
 	DWORD Read(BYTE* pBuffer, DWORD nSize);					///< Read file
 	DWORD Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
 	bool Truncate() const;								///< Truncate file
-	DWORD Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
+	DWORD Seek(DWORD nOffset, Human68k::seek_t nHumanSeek);		///< Seek file
 	bool TimeStamp(DWORD nHumanTime) const;						///< Set file time stamp
 	void Close();									///< Close file
 
