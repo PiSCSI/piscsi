@@ -405,8 +405,8 @@
             <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
                 <label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
-                    <option>{{ base_dir }}</option>
-                    <option>{{ AFP_DIR }}</option>
+                    <option value="images">{{ base_dir }}</option>
+                    <option value="afp">{{ AFP_DIR }}</option>
                 </select>
 	    </form>
         </td>
@@ -459,8 +459,8 @@
             <form action="/files/download" method="post">
 		<label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
-                    <option>{{ base_dir }}</option>
-                    <option>{{ AFP_DIR }}</option>
+                    <option value="images">{{ base_dir }}</option>
+                    <option value="afp">{{ AFP_DIR }}</option>
                 </select>
                 <label for="url">{{ _("URL:") }}</label>
                 <input name="url" placeholder="{{ _("URL") }}" required="" type="url">

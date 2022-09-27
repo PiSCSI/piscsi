@@ -832,7 +832,12 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    process = file_cmd.download_to_dir(url, destination, Path(url).name)
+    if destination == "afp":
+        destination_dir = AFP_DIR
+    else:
+        server_info = ractl_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         return response(message=process["msg"])
@@ -855,7 +860,12 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    return upload_with_dropzonejs(destination)
+    if destination == "afp":
+        destination_dir = AFP_DIR
+    else:
+        server_info = ractl_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    return upload_with_dropzonejs(destination_dir)
 
 
 @APP.route("/files/create", methods=["POST"])
