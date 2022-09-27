@@ -74,10 +74,7 @@ void Device::SetRevision(const string& r)
 string Device::GetPaddedName() const
 {
 	ostringstream os;
-
-	os << left << setw(8) << setfill(' ') << vendor;
-	os << left << setw(16) << setfill(' ') << product;
-	os << left << setw(4) << setfill(' ') << revision;
+	os << left << setfill(' ') << setw(8) << vendor << setw(16) << product << setw(4) << revision;
 
 	string name = os.str();
 	assert(name.length() == 28);
@@ -104,15 +101,6 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
 		}
 	}
-}
-
-void Device::SetStatusCode(int s)
-{
-	if (s) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", s >> 16, (s >> 8 &0xff), s & 0xff)
-	}
-
-	status_code = s;
 }
 
 bool Device::Start()

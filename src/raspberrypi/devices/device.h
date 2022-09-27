@@ -134,7 +134,7 @@ public:
 	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 
-	void SetStatusCode(int);
+	void SetStatusCode(int s) { status_code = s; }
 
 	bool Start();
 	void Stop();
