@@ -40,7 +40,7 @@ public:
 	void Unlock() { ctrl_mutex.unlock(); }
 
 	bool IsRunning() const { return is_running; }
-	void SetRunning(bool b) { is_running = b; }
+	void SetRunning(bool b) const { is_running = b; }
 
 	void Execute();
 
