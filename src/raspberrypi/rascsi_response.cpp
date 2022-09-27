@@ -91,7 +91,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device)
 	status->set_removed(device.IsRemoved());
 	status->set_locked(device.IsLocked());
 
-	if (device.SupportsParams()) {
+	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
 		for (const auto& [key, value] : device.GetParams()) {
 			AddParam(pb_device, key, value);
 		}
