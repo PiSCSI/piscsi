@@ -29,8 +29,6 @@ public:
 
 	DeviceFactory();
 	~DeviceFactory() = default;
-	DeviceFactory(DeviceFactory&) = delete;
-	DeviceFactory& operator=(const DeviceFactory&) = delete;
 
 	PrimaryDevice *CreateDevice(PbDeviceType, const string&, int);
 	void DeleteDevice(const PrimaryDevice&) const;
