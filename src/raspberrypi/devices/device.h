@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "scsi.h"
 #include <unordered_map>
 #include <string>
 
@@ -17,8 +16,6 @@ using namespace std; //NOSONAR Not relevant for rascsi
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
-	friend class DeviceFactory;
-
 	const string DEFAULT_VENDOR = "RaSCSI";
 
 	string type;
