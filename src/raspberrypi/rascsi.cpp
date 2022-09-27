@@ -433,7 +433,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(lun));
 	}
 
-	service.Unlock();
+	service.Lock();
 
 	if (!controller_manager.CreateScsiController(bus, device)) {
 		service.Unlock();
