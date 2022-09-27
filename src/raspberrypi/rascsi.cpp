@@ -211,11 +211,6 @@ bool ProcessId(const string& id_spec, int& id, int& unit)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Argument Parsing
-//
-//---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[], int& port)
 {
 	PbCommand command;
@@ -540,11 +535,6 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Main processing
-//
-//---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
