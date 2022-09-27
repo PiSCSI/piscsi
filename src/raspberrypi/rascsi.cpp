@@ -528,56 +528,6 @@ bool ProcessId(const string& id_spec, int& id, int& unit)
 	return true;
 }
 
-void ShutDown(const CommandContext& context, const string& mode) {
-	if (mode.empty()) {
-		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
-		return;
-	}
-
-	PbResult result;
-	result.set_status(true);
-
-	if (mode == "rascsi") {
-		LOGINFO("RaSCSI shutdown requested");
-
-		socket_connector.SerializeMessage(context.fd, result);
-
-		TerminationHandler(0);
-	}
-
-	// The root user has UID 0
-	if (getuid()) {
-		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
-		return;
-	}
-
-	if (mode == "system") {
-		LOGINFO("System shutdown requested")
-
-		socket_connector.SerializeMessage(context.fd, result);
-
-		executor.DetachAll();
-
-		if (system("init 0") == -1) {
-			LOGERROR("System shutdown failed: %s", strerror(errno))
-		}
-	}
-	else if (mode == "reboot") {
-		LOGINFO("System reboot requested")
-
-		socket_connector.SerializeMessage(context.fd, result);
-
-		executor.DetachAll();
-
-		if (system("init 6") == -1) {
-			LOGERROR("System reboot failed: %s", strerror(errno))
-		}
-	}
-	else {
-		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID);
-	}
-}
-
 //---------------------------------------------------------------------------
 //
 //	Argument Parsing
@@ -886,7 +836,9 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		}
 
 		case SHUT_DOWN: {
-			ShutDown(context, GetParam(command, "mode"));
+			if (executor.ShutDown(context, GetParam(command, "mode"))) {
+				TerminationHandler(0);
+			}
 			break;
 		}
 

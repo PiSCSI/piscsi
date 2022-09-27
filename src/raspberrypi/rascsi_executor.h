@@ -16,6 +16,7 @@ class DeviceFactory;
 class ControllerManager;
 class PrimaryDevice;
 class CommandContext;
+class SocketConnector;
 
 class RascsiExecutor
 {
@@ -26,6 +27,8 @@ class RascsiExecutor
 	DeviceFactory& device_factory;
 
 	ControllerManager& controller_manager;
+
+	SocketConnector socket_connector;
 
 public:
 
@@ -41,4 +44,5 @@ public:
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool);
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();
+	bool ShutDown(const CommandContext&, const string&);
 };

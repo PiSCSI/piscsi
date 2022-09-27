@@ -331,3 +331,53 @@ void RascsiExecutor::DetachAll()
 
 	LOGINFO("Detached all devices")
 }
+
+bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
+	if (mode.empty()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
+	}
+
+	PbResult result;
+	result.set_status(true);
+
+	if (mode == "rascsi") {
+		LOGINFO("RaSCSI shutdown requested");
+
+		socket_connector.SerializeMessage(context.fd, result);
+
+		return true;
+	}
+
+	// The root user has UID 0
+	if (getuid()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
+	}
+
+	if (mode == "system") {
+		LOGINFO("System shutdown requested")
+
+		socket_connector.SerializeMessage(context.fd, result);
+
+		DetachAll();
+
+		if (system("init 0") == -1) {
+			LOGERROR("System shutdown failed: %s", strerror(errno))
+		}
+	}
+	else if (mode == "reboot") {
+		LOGINFO("System reboot requested")
+
+		socket_connector.SerializeMessage(context.fd, result);
+
+		DetachAll();
+
+		if (system("init 6") == -1) {
+			LOGERROR("System reboot failed: %s", strerror(errno))
+		}
+	}
+	else {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID);
+	}
+
+	return false;
+}
