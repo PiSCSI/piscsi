@@ -113,7 +113,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 
 		try {
 			PbCommand command;
-			context.fd = ReadCommand(command, monsocket);
+			context.fd = ReadCommand(command);
 			if (context.fd == -1) {
 				continue;
 			}
@@ -136,12 +136,12 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	return nullptr;
 }
 
-int RascsiService::ReadCommand(PbCommand& command, int socket)
+int RascsiService::ReadCommand(PbCommand& command)
 {
 	// Wait for connection
 	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
-	int fd = accept(socket, &client, &socklen);
+	int fd = accept(monsocket, &client, &socklen);
 	if (fd < 0) {
 		throw io_exception("accept() failed");
 	}

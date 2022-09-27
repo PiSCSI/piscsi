@@ -46,7 +46,7 @@ public:
 
 	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 
-	static int ReadCommand(rascsi_interface::PbCommand&, int);
+	static int ReadCommand(rascsi_interface::PbCommand&);
 
 	static void KillHandler(int) {
 		is_running = false;
