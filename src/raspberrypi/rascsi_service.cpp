@@ -53,19 +53,19 @@ RascsiService::~RascsiService()
 
 bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 {
-	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Error code: %d", result)
-		return false;
-	}
-
 	// Create socket for monitor
 	sockaddr_in server = {};
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
+	if (monsocket == -1) {
+		LOGERROR("Unable to create socket");
+		return false;
+	}
+
 	server.sin_family = PF_INET;
 	server.sin_port = htons(port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	// allow address reuse
+	// Allow address reuse
 	if (int yes = 1; setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return false;
 	}
@@ -77,16 +77,17 @@ bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 		return false;
 	}
 
+	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS) {
+		LOGERROR("Unable to create a mutex. Error code: %d", result)
+		return false;
+	}
+
 	// Create Monitor Thread
 	pthread_create(&monthread, nullptr, (void* (*)(void*))MonThread, (void *)execute);
 
 	// Interrupt handler settings
-	if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR
-			|| signal(SIGTERM, KillHandler) == SIG_ERR) {
-			return false;
-	}
-
-	return true;
+	return signal(SIGINT, KillHandler) != SIG_ERR && signal(SIGHUP, KillHandler) != SIG_ERR
+			&& signal(SIGTERM, KillHandler) != SIG_ERR;
 }
 
 // Pin the thread to a specific CPU

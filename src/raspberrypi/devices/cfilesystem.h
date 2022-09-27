@@ -328,6 +328,8 @@ class CRing {
 public:
 	CRing() { Init(); }
 	~CRing() { Remove(); }
+	CRing(CRing&) = default;
+	CRing& operator=(const CRing&) = default;
 
 	void  Init() { next = prev = this; }
 
@@ -499,6 +501,8 @@ public:
 
 	CHostPath() = default;
 	~CHostPath();
+	CHostPath(CHostPath&) = default;
+	CHostPath& operator=(const CHostPath&) = default;
 
 	void Clean();								///< Initialialize for reuse
 
@@ -638,6 +642,8 @@ class CHostFcb {
 public:
 	CHostFcb() = default;
 	~CHostFcb() { Close(); }
+	CHostFcb(CHostFcb&) = default;
+	CHostFcb& operator=(const CHostFcb&) = default;
 
 	void Init();
 
@@ -708,6 +714,8 @@ class CHostDrv
 public:
 	CHostDrv() = default;
 	~CHostDrv();
+	CHostDrv(CHostDrv&) = default;
+	CHostDrv& operator=(const CHostDrv&) = default;
 
 	void Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
@@ -770,6 +778,8 @@ public:
 
 	CHostEntry() = default;
 	~CHostEntry();
+	CHostEntry(CHostEntry&) = default;
+	CHostEntry& operator=(const CHostEntry&) = default;
 
 	void Init() const;							///< Initialization (when the driver is installed)
 	void Clean();								///< Release (when starting up or resetting)

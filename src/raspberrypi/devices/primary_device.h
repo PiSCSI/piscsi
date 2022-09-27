@@ -24,8 +24,6 @@ public:
 
 	explicit PrimaryDevice(const string&);
 	~PrimaryDevice() override = default;
-	PrimaryDevice(PrimaryDevice&) = delete;
-	PrimaryDevice& operator=(const PrimaryDevice&) = delete;
 
 	virtual bool Dispatch(scsi_command);
 

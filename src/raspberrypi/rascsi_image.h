@@ -21,8 +21,6 @@ public:
 
 	RascsiImage();
 	~RascsiImage() = default;
-	RascsiImage(RascsiImage&) = delete;
-	RascsiImage& operator=(const RascsiImage&) = delete;
 
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }

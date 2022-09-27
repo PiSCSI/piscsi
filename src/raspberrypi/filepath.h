@@ -35,7 +35,6 @@ public:
 
 	Filepath();
 	virtual ~Filepath() = default;
-	Filepath(Filepath&) = delete;
 	Filepath& operator=(const Filepath&);
 
 	void Clear();
