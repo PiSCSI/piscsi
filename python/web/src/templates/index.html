@@ -334,6 +334,7 @@
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% endif %}
+        <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
         <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
@@ -385,11 +386,6 @@
     </tr>
     {% endfor %}
 </table>
-{% if macproxy_configured %}
-<p><small>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=ip_addr) }}</small></p>
-{% else %}
-<p><small>{{ _("Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any vintage browser. It's not just for Macs!", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</small></p>
-{% endif %}
 
 <hr/>
 <details>
@@ -399,6 +395,7 @@
     <ul>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
@@ -452,17 +449,7 @@
     </summary>
     <ul>
         <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
-	{% if netatalk_configured %}
-        {% if netatalk_configured == 1 %}
-        <li>{{ _("The AppleShare server is running. No active connections.") }}</li>
-        {% elif netatalk_configured == 2 %}
-        <li>{{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}</li>
-        {% elif netatalk_configured > 2 %}
-        <li>{{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}</li>
-        {% endif %}
-        {% else %}
         <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
-        {% endif %}
     </ul>
 </details>
 
@@ -708,5 +695,21 @@
         </td>
     </tr>
 </table>
+
+<center><tt>
+        {% if netatalk_configured == 1 %}
+        {{ _("The AppleShare server is running. No active connections.") }}
+	{% endif %}
+        {% if netatalk_configured == 2 %}
+        {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
+        {% elif netatalk_configured > 2 %}
+        {{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}
+        {% endif %}
+</center></tt>
+<center><tt>
+{% if macproxy_configured %}
+<center><tt>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}</tt></center>
+{% endif %}
+</center></tt>
 
 {% endblock content %}
