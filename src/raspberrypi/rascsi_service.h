@@ -18,7 +18,6 @@ class CommandContext;
 
 class RascsiService
 {
-	// There may only be exactly one instance because MonThread must be static
 	static bool is_instantiated;
 
 	static volatile bool is_running;
