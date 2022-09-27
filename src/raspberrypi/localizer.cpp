@@ -150,22 +150,22 @@ Localizer::Localizer()
 	Add(ERROR_INITIALIZATION, "de", "Initialisierung von %1-Gerät, ID %2, LUN %3 fehlgeschlagen");
 	Add(ERROR_INITIALIZATION, "sv", "Kunde ej initialisera enheten %1 med id %2 och enhetsnummer %3");
 	Add(ERROR_INITIALIZATION, "es", "La inicialización del dispositivo %1, ID %2, LUN %3 falló");
-	Add(ERROR_OPERATION_DENIED_STOPPABLE, "en", "%1 operation denied, %2 isn't stoppable'");
-	Add(ERROR_OPERATION_DENIED_STOPPABLE, "de", "%1-Operation verweigert, %2 ist nicht stopbar'");
+	Add(ERROR_OPERATION_DENIED_STOPPABLE, "en", "%1 operation denied, %2 isn't stoppable");
+	Add(ERROR_OPERATION_DENIED_STOPPABLE, "de", "%1-Operation verweigert, %2 ist nicht stopbar");
 	Add(ERROR_OPERATION_DENIED_STOPPABLE, "sv", "Operationen %1 nekades för att %2 inte kan stoppas");
-	Add(ERROR_OPERATION_DENIED_STOPPABLE, "es", "%1 operación denegada, %2 no se puede parar'");
-	Add(ERROR_OPERATION_DENIED_REMOVABLE, "en", "%1 operation denied, %2 isn't removable'");
-	Add(ERROR_OPERATION_DENIED_REMOVABLE, "de", "%1-Operation verweigert, %2 ist nicht wechselbar'");
+	Add(ERROR_OPERATION_DENIED_STOPPABLE, "es", "%1 operación denegada, %2 no se puede parar");
+	Add(ERROR_OPERATION_DENIED_REMOVABLE, "en", "%1 operation denied, %2 isn't removable");
+	Add(ERROR_OPERATION_DENIED_REMOVABLE, "de", "%1-Operation verweigert, %2 ist nicht wechselbar");
 	Add(ERROR_OPERATION_DENIED_REMOVABLE, "sv", "Operationen %1 nekades för att %2 inte är uttagbar(t)");
-	Add(ERROR_OPERATION_DENIED_REMOVABLE, "es", "%1 operación denegada, %2 no es removible'");
-	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "en", "%1 operation denied, %2 isn't protectable'");
-	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "de", "%1-Operation verweigert, %2 ist nicht schützbar'");
+	Add(ERROR_OPERATION_DENIED_REMOVABLE, "es", "%1 operación denegada, %2 no es removible");
+	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "en", "%1 operation denied, %2 isn't protectable");
+	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "de", "%1-Operation verweigert, %2 ist nicht schützbar");
 	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "sv", "Operationen %1 nekades för att %2 inte är skyddbar(t)");
-	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "es", "%1 operación denegada, %2 no es protegible'");
-	Add(ERROR_OPERATION_DENIED_READY, "en", "%1 operation denied, %2 isn't ready'");
-	Add(ERROR_OPERATION_DENIED_READY, "de", "%1-Operation verweigert, %2 ist nicht bereit'");
+	Add(ERROR_OPERATION_DENIED_PROTECTABLE, "es", "%1 operación denegada, %2 no es protegible");
+	Add(ERROR_OPERATION_DENIED_READY, "en", "%1 operation denied, %2 isn't ready");
+	Add(ERROR_OPERATION_DENIED_READY, "de", "%1-Operation verweigert, %2 ist nicht bereit");
 	Add(ERROR_OPERATION_DENIED_READY, "sv", "Operationen %1 nekades för att %2 inte är redo");
-	Add(ERROR_OPERATION_DENIED_READY, "es", "%1 operación denegada, %2 no está listo'");
+	Add(ERROR_OPERATION_DENIED_READY, "es", "%1 operación denegada, %2 no está listo");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, string_view value)
