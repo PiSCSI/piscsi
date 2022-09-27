@@ -125,7 +125,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 			// Fall through
 		}
 
-		if (context.fd >= 0) {
+		if (context.fd != -1) {
 			close(context.fd);
 		}
 	}
