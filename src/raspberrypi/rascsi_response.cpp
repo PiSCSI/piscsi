@@ -150,7 +150,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		string filename = GetImageFile(dir, folder);
+		string filename = GetNextImageFile(dir, folder);
 		if (filename.empty()) {
 			continue;
 		}
@@ -477,7 +477,7 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData&
 	return parameter.release();
 }
 
-string RascsiResponse::GetImageFile(const dirent *dir, const string& folder)
+string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 {
 	// Ignore unknown folder types and folder names starting with '.'
 	if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
