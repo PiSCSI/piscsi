@@ -23,13 +23,11 @@ const Localizer RascsiService::localizer;
 
 const SocketConnector RascsiService::socket_connector;
 
-volatile bool RascsiService::is_running;
+volatile bool RascsiService::is_running = false;
 
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;
 pthread_mutex_t RascsiService::ctrl_mutex;
-
-bool (*RascsiService::execute)(rascsi_interface::PbCommand&, CommandContext&);
 
 RascsiService::~RascsiService()
 {
@@ -40,7 +38,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
+bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 {
 	if (int result = pthread_mutex_init(&ctrl_mutex, nullptr); result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Error code: %d", result)
@@ -67,15 +65,13 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 	}
 
 	// Create Monitor Thread
-	pthread_create(&monthread, nullptr, (void* (*)(void*))MonThread, nullptr);
+	pthread_create(&monthread, nullptr, (void* (*)(void*))MonThread, (void *)execute);
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR
 			|| signal(SIGTERM, KillHandler) == SIG_ERR) {
 			return false;
 	}
-
-	execute = e;
 
 	return true;
 }
@@ -99,7 +95,7 @@ void RascsiService::FixCpu(int cpu)
 #endif
 }
 
-void *RascsiService::MonThread(const void *)
+void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 {
     // Scheduler Settings
 	sched_param schedparam;

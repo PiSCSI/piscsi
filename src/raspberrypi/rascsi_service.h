@@ -30,8 +30,6 @@ class RascsiService
 
 	volatile bool is_active = false;
 
-	static bool (*execute)(rascsi_interface::PbCommand&, CommandContext&);
-
 public:
 
 	RascsiService() = default;
@@ -41,7 +39,7 @@ public:
 
 	static void FixCpu(int);
 
-	static void *MonThread(const void *);
+	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 	static void Lock() { pthread_mutex_lock(&ctrl_mutex); }
 	static void Unlock() { pthread_mutex_unlock(&ctrl_mutex); }
 
