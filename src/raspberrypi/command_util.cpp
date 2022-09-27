@@ -129,7 +129,7 @@ bool command_util::ReturnStatus(const CommandContext& context, bool status, cons
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		context.connector.SerializeMessage(context.fd, result);
+		context.serializer.SerializeMessage(context.fd, result);
 	}
 
 	return status;

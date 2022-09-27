@@ -17,10 +17,10 @@ class Localizer;
 struct CommandContext
 {
 	CommandContext(const ProtobufSerializer& c, const Localizer& l, int f, const std::string& s)
-		: connector(c), localizer(l), fd(f), locale(s) {}
+		: serializer(c), localizer(l), fd(f), locale(s) {}
 	~CommandContext() = default;
 
-	const ProtobufSerializer& connector;
+	const ProtobufSerializer& serializer;
 	const Localizer& localizer;
 	int fd;
 	std::string locale;

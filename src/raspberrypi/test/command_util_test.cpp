@@ -71,9 +71,9 @@ TEST(CommandUtil, ParseParameters)
 
 TEST(CommandUtil, ReturnLocalizedError)
 {
-	MockProtobufSerializer connector;
+	MockProtobufSerializer serializer;
 	Localizer localizer;
-	CommandContext context(connector, localizer, 1, "dummy_locale");
+	CommandContext context(serializer, localizer, 1, "dummy_locale");
 
 	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }

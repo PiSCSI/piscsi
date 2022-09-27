@@ -105,14 +105,14 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
-	ProtobufSerializer connector;
+	ProtobufSerializer serializer;
 	Localizer localizer;
 	while (true) {
-		CommandContext context(connector, localizer, -1, "");
+		CommandContext context(serializer, localizer, -1, "");
 
 		try {
 			PbCommand command;
-			context.fd = ReadCommand(connector, command);
+			context.fd = ReadCommand(serializer, command);
 			if (context.fd == -1) {
 				continue;
 			}
@@ -135,7 +135,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	return nullptr;
 }
 
-int RascsiService::ReadCommand(ProtobufSerializer& connector, PbCommand& command)
+int RascsiService::ReadCommand(ProtobufSerializer& serializer, PbCommand& command)
 {
 	// Wait for connection
 	sockaddr client = {};
@@ -147,7 +147,7 @@ int RascsiService::ReadCommand(ProtobufSerializer& connector, PbCommand& command
 
 	// Read magic string
 	vector<byte> magic(6);
-	size_t bytes_read = connector.ReadBytes(fd, magic);
+	size_t bytes_read = serializer.ReadBytes(fd, magic);
 	if (!bytes_read) {
 		return -1;
 	}
@@ -156,7 +156,7 @@ int RascsiService::ReadCommand(ProtobufSerializer& connector, PbCommand& command
 	}
 
 	// Fetch the command
-	connector.DeserializeMessage(fd, command);
+	serializer.DeserializeMessage(fd, command);
 
 	return fd;
 }
