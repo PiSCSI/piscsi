@@ -92,6 +92,7 @@ SRC_RASCSI_CORE = \
 	rascsi_version.cpp \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
+	rascsi_executor.cpp \
 	rasutil.cpp \
 	command_util.cpp \
 	protobuf_serializer.cpp \
@@ -102,8 +103,7 @@ SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
 SRC_RASCSI = rascsi.cpp \
-	rascsi_service.cpp \
-	rascsi_executor.cpp
+	rascsi_service.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
