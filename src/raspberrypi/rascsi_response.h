@@ -24,8 +24,8 @@ class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory& device_factory, const RascsiImage& rascsi_image)
-		: device_factory(device_factory), rascsi_image(rascsi_image) {}
+	RascsiResponse(DeviceFactory& device_factory, const RascsiImage& rascsi_image, int max_luns)
+		: device_factory(device_factory), rascsi_image(rascsi_image), max_luns(max_luns) {}
 	~RascsiResponse() = default;
 	RascsiResponse(RascsiResponse&) = delete;
 	RascsiResponse& operator=(const RascsiResponse&) = delete;
@@ -47,6 +47,8 @@ private:
 
 	DeviceFactory& device_factory;
 	const RascsiImage& rascsi_image;
+
+	int max_luns;
 
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 

@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "controllers/scsi_controller.h"
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
@@ -24,7 +23,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device)
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
 
-	properties->set_luns(ScsiController::LUN_MAX);
+	properties->set_luns(max_luns);
 	properties->set_read_only(device.IsReadOnly());
 	properties->set_protectable(device.IsProtectable());
 	properties->set_stoppable(device.IsStoppable());
