@@ -33,8 +33,9 @@ pthread_mutex_t RascsiService::ctrl_mutex;
 
 RascsiService::RascsiService()
 {
+	// There may only be exactly one instance because MonThread must be static
 	if (is_instantiated) {
-		LOGERROR("There can only be a single service instance");
+		LOGERROR("There can only be exactly one service instance");
 		exit(EXIT_FAILURE);
 	}
 
