@@ -18,6 +18,11 @@ class CommandContext;
 
 class RascsiService
 {
+	// There may only be exactly one instance because MonThread must be static
+	static bool is_instantiated;
+
+	static volatile bool is_running;
+
 	static const Localizer localizer;
 
 	static const SocketConnector socket_connector;
@@ -27,11 +32,9 @@ class RascsiService
 	static pthread_t monthread;
 	static pthread_mutex_t ctrl_mutex;
 
-	static volatile bool is_running;
-
 public:
 
-	RascsiService() = default;
+	RascsiService();
 	~RascsiService();
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);

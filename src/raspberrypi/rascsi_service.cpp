@@ -19,15 +19,27 @@
 
 using namespace rascsi_interface;
 
+bool RascsiService::is_instantiated = false;
+
+volatile bool RascsiService::is_running = false;
+
 const Localizer RascsiService::localizer;
 
 const SocketConnector RascsiService::socket_connector;
 
-volatile bool RascsiService::is_running = false;
-
 int RascsiService::monsocket = -1;
 pthread_t RascsiService::monthread;
 pthread_mutex_t RascsiService::ctrl_mutex;
+
+RascsiService::RascsiService()
+{
+	if (is_instantiated) {
+		LOGERROR("There can only be a single service instance");
+		exit(EXIT_FAILURE);
+	}
+
+	is_instantiated = true;
+}
 
 RascsiService::~RascsiService()
 {
