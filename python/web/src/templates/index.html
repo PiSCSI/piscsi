@@ -403,11 +403,13 @@
     <tr style="border: none;">
         <td style="border: none; vertical-align:top;">
             <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
+                <p>
                 <label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
                     <option value="images">{{ base_dir }}</option>
                     <option value="afp">{{ AFP_DIR }}</option>
                 </select>
+                </p>
 	    </form>
         </td>
     </tr>
