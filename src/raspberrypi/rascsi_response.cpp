@@ -150,7 +150,8 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		if (!ValidateImageFile(dir, folder)) {
+		string filename = GetImageFile(dir, folder);
+		if (filename.empty()) {
 			continue;
 		}
 
@@ -158,8 +159,6 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 		if (!file_pattern.empty()) {
 			transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
 		}
-
-		string filename = folder + "/" + dir->d_name;
 
 		if (dir->d_type == DT_DIR) {
 			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
@@ -478,12 +477,12 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData&
 	return parameter.release();
 }
 
-bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder)
+string RascsiResponse::GetImageFile(const dirent *dir, const string& folder)
 {
 	// Ignore unknown folder types and folder names starting with '.'
 	if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
 			|| dir->d_name[0] == '.') {
-		return false;
+		return "";
 	}
 
 	string filename = folder + "/" + dir->d_name;
@@ -494,13 +493,13 @@ bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder)
 
 	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
 		LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
-		return false;
+		return "";
 	}
 
 	if (dir->d_type == DT_LNK && !file_exists) {
 		LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
-		return false;
+		return "";
 	}
 
-	return true;
+	return filename;
 }
