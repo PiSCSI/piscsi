@@ -56,7 +56,7 @@ public:
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
 	MockBus() = default;
-	~MockBus() = default;
+	~MockBus() final = default;
 };
 
 class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
