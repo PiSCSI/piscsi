@@ -11,6 +11,7 @@
 
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
+#include <dirent.h>
 #include <list>
 #include <string>
 
@@ -59,4 +60,6 @@ private:
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false);
+
+	static bool ValidateImageFile(const dirent *, const string&, const string&);
 };

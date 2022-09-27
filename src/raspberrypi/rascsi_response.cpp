@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <dirent.h>
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
@@ -164,13 +163,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 		string filename = folder + "/" + dir->d_name;
 
-		if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st) && !st.st_size) {
-			LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
-			continue;
-		}
-
-		if (struct stat st; dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-			LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
+		if (!ValidateImageFile(dir, folder, filename)) {
 			continue;
 		}
 
@@ -488,4 +481,23 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData&
 	parameter->set_is_mandatory(is_mandatory);
 
 	return parameter.release();
+}
+
+bool RascsiResponse::ValidateImageFile(const dirent *dir, const string& folder, const string& filename)
+{
+	struct stat st;
+
+	bool file_exists = !stat(filename.c_str(), &st);
+
+	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
+		LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
+		return false;
+	}
+
+	if (dir->d_type == DT_LNK && !file_exists) {
+		LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
+		return false;
+	}
+
+	return true;
 }
