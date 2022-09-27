@@ -70,44 +70,44 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	}
 }
 
-void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
+void RascsiResponse::GetDevice(const Device& device, PbDevice *pb_device)
 {
-	pb_device->set_id(device->GetId());
-	pb_device->set_unit(device->GetLun());
-	pb_device->set_vendor(device->GetVendor());
-	pb_device->set_product(device->GetProduct());
-	pb_device->set_revision(device->GetRevision());
+	pb_device->set_id(device.GetId());
+	pb_device->set_unit(device.GetLun());
+	pb_device->set_vendor(device.GetVendor());
+	pb_device->set_product(device.GetProduct());
+	pb_device->set_revision(device.GetRevision());
 
 	PbDeviceType type = UNDEFINED;
-	PbDeviceType_Parse(device->GetType(), &type);
+	PbDeviceType_Parse(device.GetType(), &type);
 	pb_device->set_type(type);
 
-    pb_device->set_allocated_properties(GetDeviceProperties(*device));
+    pb_device->set_allocated_properties(GetDeviceProperties(device));
 
     auto status = make_unique<PbDeviceStatus>().release();
 	pb_device->set_allocated_status(status);
-	status->set_protected_(device->IsProtected());
-	status->set_stopped(device->IsStopped());
-	status->set_removed(device->IsRemoved());
-	status->set_locked(device->IsLocked());
+	status->set_protected_(device.IsProtected());
+	status->set_stopped(device.IsStopped());
+	status->set_removed(device.IsRemoved());
+	status->set_locked(device.IsLocked());
 
-	if (device->SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
-		for (const auto& [key, value] : device->GetParams()) {
+	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
+		for (const auto& [key, value] : device.GetParams()) {
 			AddParam(*pb_device, key, value);
 		}
 	}
 
-    if (const auto disk = dynamic_cast<const Disk*>(device); disk) {
-    	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
-    	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
+    if (const auto disk = dynamic_cast<const Disk*>(&device); disk) {
+    	pb_device->set_block_size(device.IsRemoved()? 0 : disk->GetSectorSizeInBytes());
+    	pb_device->set_block_count(device.IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const auto file_support = dynamic_cast<const FileSupport *>(device);
+    const auto file_support = dynamic_cast<const FileSupport *>(&device);
 	if (file_support) {
 		Filepath filepath;
 		file_support->GetPath(filepath);
 		auto image_file = make_unique<PbImageFile>().release();
-		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
+		GetImageFile(image_file, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
 } //NOSONAR The allocated memory is managed by protobuf
@@ -222,7 +222,7 @@ void RascsiResponse::GetDevices(PbServerInfo& server_info)
 {
 	for (const Device *device : device_factory->GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-		GetDevice(device, pb_device);
+		GetDevice(*device, pb_device);
 	}
 }
 
@@ -251,7 +251,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& [id, lun] : id_sets) {
-		GetDevice(device_factory->GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
+		GetDevice(*device_factory->GetDeviceByIdAndLun(id, lun), devices_info->add_devices());
 	}
 
 	result.set_status(true);

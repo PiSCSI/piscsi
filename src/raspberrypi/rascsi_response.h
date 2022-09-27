@@ -52,7 +52,7 @@ private:
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
 	PbDeviceProperties *GetDeviceProperties(const Device&);
-	void GetDevice(const Device *, PbDevice *);
+	void GetDevice(const Device&, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
 	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
