@@ -98,33 +98,8 @@ namespace Human68k {
 		SK_END = 2,			///< From the end of the file
 	};
 
-	/// Media byte
-	enum media_t {
-		MEDIA_2DD_10 = 0xE0,		///< 2DD/10 sector
-		MEDIA_1D_9 = 0xE5,		///< 1D/9 sector
-		MEDIA_2D_9 = 0xE6,		///< 2D/9 sector
-		MEDIA_1D_8 = 0xE7,		///< 1D/8 sector
-		MEDIA_2D_8 = 0xE8,		///< 2D/8 sector
-		MEDIA_2HT = 0xEA,		///< 2HT
-		MEDIA_2HS = 0xEB,		///< 2HS
-		MEDIA_2HDE = 0xEC,		///< 2DDE
-		MEDIA_1DD_9 = 0xEE,		///< 1DD/9 sector
-		MEDIA_1DD_8 = 0xEF,		///< 1DD/8 sector
-		MEDIA_MANUAL = 0xF1,		///< Remote drive (manual eject)
-		MEDIA_REMOVABLE = 0xF2,		///< Remote drive (removable)
-		MEDIA_REMOTE = 0xF3,		///< Remote drive
-		MEDIA_DAT = 0xF4,		///< SCSI-DAT
-		MEDIA_CDROM = 0xF5,		///< SCSI-CDROM
-		MEDIA_MO = 0xF6,		///< SCSI-MO
-		MEDIA_SCSI_HD = 0xF7,		///< SCSI-HD
-		MEDIA_SASI_HD = 0xF8,		///< SASI-HD
-		MEDIA_RAMDISK = 0xF9,		///< RAM disk
-		MEDIA_2HQ = 0xFA,		///< 2HQ
-		MEDIA_2DD_8 = 0xFB,		///< 2DD/8 sector
-		MEDIA_2DD_9 = 0xFC,		///< 2DD/9 sector
-		MEDIA_2HC = 0xFD,		///< 2HC
-		MEDIA_2HD = 0xFE,		///< 2HD
-	};
+	// Media byte
+	const static int MEDIA_REMOTE = 0xF3;		///< Remote drive
 
 	struct namests_t {
 		BYTE wildcard;			///< Wildcard character length
