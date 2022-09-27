@@ -961,9 +961,10 @@ void ScsiController::ProcessCommand()
 	uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 	stringstream s;
+	s << setfill('0') << setw(2) << hex;
 	for (uint32_t i = 0; i < len; i++) {
 		ctrl.cmd[i] = GetBuffer()[i];
-		s << setfill('0') << setw(2) << hex << ctrl.cmd[i];
+		s << ctrl.cmd[i];
 	}
 	LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
