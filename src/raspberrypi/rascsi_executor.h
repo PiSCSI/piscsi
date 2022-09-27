@@ -38,6 +38,7 @@ public:
 	bool SetLogLevel(const string&);
 
 	bool Attach(BUS&, const CommandContext&, const PbDeviceDefinition&, bool);
+	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool);
 	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();
 };

@@ -258,86 +258,6 @@ string SetReservedIds(string_view ids)
 	return "";
 }
 
-bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
-{
-	if (!device->IsRemoved()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
-	}
-
-	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_DEVICE_NAME_UPDATE);
-	}
-
-	string filename = GetParam(pb_device, "file");
-	if (filename.empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
-	}
-
-	if (dryRun) {
-		return true;
-	}
-
-	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
-
-	auto disk = dynamic_cast<Disk *>(device);
-
-	if (pb_device.block_size()) {
-		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
-			}
-		}
-		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
-		}
-	}
-
-	int id;
-	int lun;
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-	string initial_filename = filepath.GetPath();
-
-	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
-	}
-
-	auto file_support = dynamic_cast<FileSupport *>(device);
-	try {
-		try {
-			file_support->Open(filepath);
-		}
-		catch(const file_not_found_exception&) {
-			// If the file does not exist search for it in the default image folder
-			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
-
-			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
-			}
-
-			file_support->Open(filepath);
-		}
-	}
-	catch(const io_exception& e) { //NOSONAR This exception is handled properly
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
-	}
-
-	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
-
-	// Only non read-only devices support protect/unprotect.
-	// This operation must not be executed before Open() because Open() overrides some settings.
-	if (device->IsProtectable() && !device->IsReadOnly()) {
-		device->SetProtected(pb_device.protected_());
-	}
-
-	if (disk != nullptr) {
-		disk->MediumChanged();
-	}
-
-	return true;
-}
-
 void TerminationHandler(int signum)
 {
 	Cleanup();
@@ -466,7 +386,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 			break;
 
 		case INSERT:
-			return Insert(context, pb_device, device, dryRun);
+			return executor.Insert(context, pb_device, device, dryRun);
 
 		case EJECT:
 			if (!dryRun) {
