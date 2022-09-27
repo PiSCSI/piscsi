@@ -43,7 +43,5 @@ public:
 
 	static int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
 
-	static void KillHandler(int) {
-		is_running = false;
-	}
+	static void KillHandler(int) { is_running = false; }
 };
