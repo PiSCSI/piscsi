@@ -61,12 +61,15 @@ def test_show_logs(http_client):
         "/logs/show",
         data={
             "lines": 100,
-            "scope": "",
+            "scope": "rascsi",
         },
     )
 
+    response_data = response.json()
+
     assert response.status_code == 200
-    assert response.headers["content-type"] == "text/plain"
+    assert response_data["data"]["lines"] == "100"
+    assert response_data["data"]["scope"] == "rascsi"
 
 
 # route("/config/save", methods=["POST"])

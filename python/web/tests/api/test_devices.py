@@ -176,17 +176,14 @@ def test_show_device_info(http_client, create_test_image, detach_devices):
 
     response = http_client.post(
         "/scsi/info",
-        data={
-            "scsi_id": SCSI_ID,
-        },
     )
 
     response_data = response.json()
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert "device_info" in response_data["data"]
-    assert response_data["data"]["device_info"]["file"] == f"{IMAGES_DIR}/{test_image}"
+    assert "devices" in response_data["data"]
+    assert response_data["data"]["devices"][0]["file"] == test_image
 
     # Cleanup
     detach_devices()

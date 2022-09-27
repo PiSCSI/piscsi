@@ -217,11 +217,6 @@ def index():
         server_info["sccd"]
         )
 
-    if "username" in session:
-        username = session["username"]
-    else:
-        username = None
-
     return response(
         template="index.html",
         locales=get_supported_locales(),
@@ -310,7 +305,7 @@ def drive_list():
     server_info = ractl_cmd.get_server_info()
 
     return response(
-        "drives.html",
+        template="drives.html",
         files=file_cmd.list_images()["files"],
         base_dir=server_info["image_dir"],
         hd_conf=hd_conf,
@@ -479,6 +474,33 @@ def config_load():
     return response(error=True, message="Action field (load, delete) missing")
 
 
+@APP.route("/files/diskinfo", methods=["POST"])
+def show_diskinfo():
+    """
+    Displays disk image info
+    """
+    file_name = request.form.get("file_name")
+
+    server_info = ractl_cmd.get_server_info()
+    returncode, diskinfo = sys_cmd.get_diskinfo(
+            server_info["image_dir"] +
+            "/" +
+            file_name
+        )
+    if returncode == 0:
+        return response(
+            template="diskinfo.html",
+            file_name=file_name,
+            diskinfo=diskinfo,
+            version=server_info["version"],
+            )
+
+    return response(
+        error=True,
+        message=_("An error occurred when getting disk info: %(error)s", error=diskinfo)
+    )
+
+
 @APP.route("/logs/show", methods=["POST"])
 def show_logs():
     """
@@ -487,16 +509,21 @@ def show_logs():
     lines = request.form.get("lines")
     scope = request.form.get("scope")
 
-    # TODO: Render logs in a template (issue #836) and structured JSON
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
-        headers = {"content-type": "text/plain"}
-        return logs, headers
+        server_info = ractl_cmd.get_server_info()
+        return response(
+            template="logs.html",
+            scope=scope,
+            lines=lines,
+            logs=logs,
+            version=server_info["version"],
+            )
 
-    return response(error=True, message=[
-        (_("An error occurred when fetching logs."), "error"),
-        (logs, "stderr"),
-    ])
+    return response(
+        error=True,
+        message=_("An error occurred when fetching logs: %(error)s", error=logs)
+    )
 
 
 @APP.route("/logs/level", methods=["POST"])
@@ -684,56 +711,18 @@ def eject():
 @APP.route("/scsi/info", methods=["POST"])
 def device_info():
     """
-    Displays detailed info for a specific device
+    Displays detailed info for all attached devices
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    server_info = ractl_cmd.get_server_info()
+    process = ractl_cmd.list_devices()
+    if process["status"]:
+        return response(
+            template="deviceinfo.html",
+            devices=process["device_list"],
+            version=server_info["version"],
+            )
 
-    devices = ractl_cmd.list_devices(scsi_id, unit)
-
-    # First check if any device at all was returned
-    if not devices["status"]:
-        return response(error=True, message=devices["msg"])
-    # Looking at the first dict in list to get
-    # the one and only device that should have been returned
-    device = devices["device_list"][0]
-    if str(device["id"]) == scsi_id:
-        # TODO: Move the device info to the template instead of a flash message
-        message = "\n".join([
-            _("DEVICE INFO"),
-            "===========",
-            _("SCSI ID: %(id_number)s", id_number=device["id"]),
-            _("LUN: %(unit_number)s", unit_number=device["unit"]),
-            _("Type: %(device_type)s", device_type=device["device_type"]),
-            _("Status: %(device_status)s", device_status=device["status"]),
-            _("File: %(image_file)s", image_file=device["image"]),
-            _("Parameters: %(value)s", value=device["params"]),
-            _("Vendor: %(value)s", value=device["vendor"]),
-            _("Product: %(value)s", value=device["product"]),
-            _("Revision: %(revision_number)s", revision_number=device["revision"]),
-            _("Block Size: %(value)s bytes", value=device["block_size"]),
-            _("Image Size: %(value)s bytes", value=device["size"]),
-        ])
-
-        # Don't send redundant "info" message with the JSON response
-        if request.headers.get("accept") == "application/json":
-            return response(device_info={
-                "scsi_id": device["id"],
-                "lun": device["unit"],
-                "device_type": device["device_type"],
-                "status": device["status"],
-                "file": device["image"],
-                "parameters": device["params"],
-                "vendor": device["vendor"],
-                "product": device["product"],
-                "revision": device["revision"],
-                "block_size": device["block_size"],
-                "size": device["size"],
-            })
-
-        return response(message=[(message, "info")])
-
-    return response(error=True, message=devices["msg"])
+    return response(error=True, message=_("No devices attached"))
 
 
 @APP.route("/scsi/reserve", methods=["POST"])

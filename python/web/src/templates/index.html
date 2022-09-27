@@ -106,11 +106,6 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Detach") }}">
                 </form>
-                <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.unit }}">
-                    <input type="submit" value="{{ _("Info") }}">
-                </form>
             {% else %}
             <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -140,9 +135,20 @@
     </tbody>
 </table>
 
-<p><form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
-    <input type="submit" value="{{ _("Detach All Devices") }}">
-</form></p>
+<table style="border: none;" cellpadding="3">
+    <tr style="border: none;">
+        <td style="border: none;">
+	    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+            <input type="submit" value="{{ _("Detach All Devices") }}">
+	    </form>
+	</td>
+        <td style="border: none;">
+	    <form action="/scsi/info" method="post">
+            <input type="submit" value="{{ _("Show Device Info") }}">
+	    </form>
+	</td>
+    </tr>
+</table>
 
 <hr/>
 
@@ -243,9 +249,7 @@
             </td>
             <td>
                 {% if file["name"] in attached_images %}
-                <center>
-                    {{ _("Attached!") }}
-                </center>
+                    {{ _("In use") }}
                 {% else %}
                 {% if file["archive_contents"] %}
                 <form action="/files/extract_image" method="post">
@@ -301,6 +305,12 @@
                 <form action="/files/delete" method="post" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ _("Delete") }}">
+                </form>
+                {% endif %}
+                {% if not file["archive_contents"] %}
+                <form action="/files/diskinfo" method="post">
+                    <input name="file_name" type="hidden" value="{{ file['name'] }}">
+                    <input type="submit" value="{{ _("?") }}">
                 </form>
                 {% endif %}
             </td>
@@ -393,8 +403,8 @@
     </ul>
 </details>
 
-<table style="border: none">
-    <tr style="border: none">
+<table style="border: none;">
+    <tr style="border: none;">
         <td style="border: none; vertical-align:top;">
             <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper"></form>
         </td>

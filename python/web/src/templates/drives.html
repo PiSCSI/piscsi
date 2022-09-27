@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<p><a href="/">{{ _("Cancel") }}</a></p>
 <h2>{{ _("Disclaimer") }}</h2>
 <p>{{ _("These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>.", url="https://github.com/akuker/RASCSI/issues") }}</p>
 <h2>{{ _("Hard Drives") }}</h2>
@@ -135,7 +134,7 @@
 {% endfor %}
 </tbody>
 </table>
-    <p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
-<p><a href="/">{{ _("Cancel") }}</a></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
+<p><a href="/">{{ _("Go to Home") }}</a></p>
 
 {% endblock content %}
