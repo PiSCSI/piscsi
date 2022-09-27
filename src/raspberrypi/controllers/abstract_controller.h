@@ -53,8 +53,6 @@ public:
 
 	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
 	virtual ~AbstractController() = default;
-	AbstractController(AbstractController&) = delete;
-	AbstractController& operator=(const AbstractController&) = delete;
 
 	virtual void BusFree() = 0;
 	virtual void Selection() = 0;

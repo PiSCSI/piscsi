@@ -20,8 +20,6 @@ public:
 
 	explicit ModePageDevice(const string&);
 	~ModePageDevice()override = default;
-	ModePageDevice(ModePageDevice&) = delete;
-	ModePageDevice& operator=(const ModePageDevice&) = delete;
 
 	bool Dispatch(scsi_command) override;
 

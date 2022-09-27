@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //  	[ SCSI NEC "Genuine" Hard Disk]
@@ -33,8 +33,6 @@ public:
 
 	SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
 	~SCSIHD_NEC() override = default;
-	SCSIHD_NEC(SCSIHD_NEC&) = delete;
-	SCSIHD_NEC& operator=(const SCSIHD_NEC&) = delete;
 
 	void Open(const Filepath&) override;
 

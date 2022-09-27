@@ -39,6 +39,8 @@ public:
 
 	DiskTrack() = default;
 	~DiskTrack();
+	DiskTrack(DiskTrack&) = delete;
+	DiskTrack& operator=(const DiskTrack&) = delete;
 
 private:
 

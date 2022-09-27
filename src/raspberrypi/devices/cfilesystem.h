@@ -328,8 +328,6 @@ class CRing {
 public:
 	CRing() { Init(); }
 	~CRing() { Remove(); }
-	CRing(CRing&) = delete;
-	CRing& operator=(const CRing&) = delete;
 
 	void  Init() { next = prev = this; }
 
@@ -413,8 +411,6 @@ class CHostFilename {
 public:
 	CHostFilename() = default;
 	~CHostFilename() = default;
-	CHostFilename(CHostFilename&) = delete;
-	CHostFilename& operator=(const CHostFilename&) = delete;
 
 	static size_t Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
 
@@ -503,8 +499,6 @@ public:
 
 	CHostPath() = default;
 	~CHostPath();
-	CHostPath(CHostPath&) = delete;
-	CHostPath& operator=(const CHostPath&) = delete;
 
 	void Clean();								///< Initialialize for reuse
 
@@ -567,8 +561,6 @@ class CHostFiles {
 public:
 	CHostFiles() = default;
 	~CHostFiles() = default;
-	CHostFiles(CHostFiles&) = delete;
-	CHostFiles& operator=(const CHostFiles&) = delete;
 
 	void Init();
 
@@ -646,8 +638,6 @@ class CHostFcb {
 public:
 	CHostFcb() = default;
 	~CHostFcb() { Close(); }
-	CHostFcb(CHostFcb&) = delete;
-	CHostFcb& operator=(const CHostFcb&) = delete;
 
 	void Init();
 
@@ -718,8 +708,6 @@ class CHostDrv
 public:
 	CHostDrv() = default;
 	~CHostDrv();
-	CHostDrv(CHostDrv&) = delete;
-	CHostDrv& operator=(const CHostDrv&) = delete;
 
 	void Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
@@ -782,8 +770,6 @@ public:
 
 	CHostEntry() = default;
 	~CHostEntry();
-	CHostEntry(CHostEntry&) = delete;
-	CHostEntry& operator=(const CHostEntry&) = delete;
 
 	void Init() const;							///< Initialization (when the driver is installed)
 	void Clean();								///< Release (when starting up or resetting)

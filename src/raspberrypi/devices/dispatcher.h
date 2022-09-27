@@ -24,8 +24,6 @@ public:
 
 	Dispatcher() = default;
 	~Dispatcher() = default;
-	Dispatcher(Dispatcher&) = delete;
-	Dispatcher& operator=(const Dispatcher&) = delete;
 
 	using operation = void (T::*)();
 	using command_t = struct _command_t {

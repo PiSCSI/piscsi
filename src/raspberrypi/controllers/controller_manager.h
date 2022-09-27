@@ -27,8 +27,6 @@ public:
 
 	ControllerManager() = default;
 	~ControllerManager() = default;
-	ControllerManager(ControllerManager&) = delete;
-	ControllerManager& operator=(const ControllerManager&) = delete;
 
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;

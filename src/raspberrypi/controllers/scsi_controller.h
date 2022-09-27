@@ -56,8 +56,6 @@ public:
 
 	ScsiController(BUS&, int);
 	~ScsiController() override = default;
-	ScsiController(ScsiController&) = delete;
-	ScsiController& operator=(const ScsiController&) = delete;
 
 	void Reset() override;
 

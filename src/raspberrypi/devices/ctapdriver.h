@@ -30,8 +30,6 @@ class CTapDriver
 
 	CTapDriver() = default;
 	~CTapDriver();
-	CTapDriver(CTapDriver&) = delete;
-	CTapDriver& operator=(const CTapDriver&) = delete;
 
 	bool Init(const unordered_map<string, string>&);
 

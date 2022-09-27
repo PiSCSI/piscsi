@@ -24,8 +24,6 @@ public:
 
 	explicit HostServices(const DeviceFactory&);
 	~HostServices() override = default;
-	HostServices(HostServices&) = delete;
-	HostServices& operator=(const HostServices&) = delete;
 
 	bool Dispatch(scsi_command) override;
 

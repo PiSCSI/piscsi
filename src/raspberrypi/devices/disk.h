@@ -49,8 +49,6 @@ public:
 
 	explicit Disk(const string&);
 	~Disk() override;
-	Disk(Disk&) = delete;
-	Disk& operator=(const Disk&) = delete;
 
 	bool Dispatch(scsi_command) override;
 

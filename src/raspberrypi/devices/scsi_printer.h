@@ -26,8 +26,6 @@ public:
 
 	SCSIPrinter();
 	~SCSIPrinter() override;
-	SCSIPrinter(SCSIPrinter&) = delete;
-	SCSIPrinter& operator=(const SCSIPrinter&) = delete;
 
 	bool Dispatch(scsi_command) override;
 
