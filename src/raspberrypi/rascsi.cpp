@@ -60,7 +60,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-shared_ptr<GPIOBUS> bus;			// GPIO Bus
+shared_ptr<GPIOBUS> bus = make_shared<GPIOBUS>();
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;			// Semaphore for the ctrl array
@@ -74,7 +74,7 @@ RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 const SocketConnector socket_connector;
 
 void DetachAll();
-static void *MonThread(void *);
+static void *MonThread(const void *);
 
 //---------------------------------------------------------------------------
 //
@@ -159,7 +159,7 @@ bool InitService(int port)
 	}
 
 	// Create Monitor Thread
-	pthread_create(&monthread, nullptr, MonThread, nullptr);
+	pthread_create(&monthread, nullptr, (void* (*)(void*))MonThread, nullptr);
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -180,9 +180,6 @@ bool InitService(int port)
 
 bool InitBus()
 {
-	// GPIOBUS creation
-	bus = make_shared<GPIOBUS>();
-
 	// GPIO Initialization
 	if (!bus->Init()) {
 		return false;
@@ -1315,7 +1312,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 //	Monitor Thread
 //
 //---------------------------------------------------------------------------
-static void *MonThread(void *) //NOSONAR The pointer cannot be const void * because of the thread API
+static void *MonThread(const void *)
 {
     // Scheduler Settings
 	sched_param schedparam;
