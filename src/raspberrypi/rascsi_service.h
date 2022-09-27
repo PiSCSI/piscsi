@@ -22,8 +22,6 @@ class RascsiService
 
 	static volatile bool is_running;
 
-	static const Localizer localizer;
-
 	static const ProtobufSerializer connector;
 
 	static int monsocket;

@@ -24,8 +24,6 @@ bool RascsiService::is_instantiated = false;
 
 volatile bool RascsiService::is_running = false;
 
-const Localizer RascsiService::localizer;
-
 const ProtobufSerializer RascsiService::connector;
 
 int RascsiService::monsocket = -1;
@@ -108,6 +106,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
+	Localizer localizer;
 	while (true) {
 		CommandContext context(connector, localizer, -1, "");
 
