@@ -68,7 +68,7 @@ string access_token;
 unordered_set<int> reserved_ids;
 DeviceFactory device_factory;
 ControllerManager controller_manager;
-RascsiExecutor executor(device_factory, controller_manager);
+RascsiExecutor executor(service, device_factory, controller_manager);
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
 const SocketConnector socket_connector;
@@ -412,38 +412,6 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	return true;
 }
 
-bool Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
-{
-	// LUN 0 can only be detached if there is no other LUN anymore
-	if (!device.GetLun() && controller_manager.FindController(device.GetId())->GetLunCount() > 1) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
-	}
-
-	if (!dryRun) {
-		// Prepare log string before the device data are lost due to deletion
-		string s = "Detached " + device.GetType() + " device with ID " + to_string(device.GetId())
-				+ ", unit " + to_string(device.GetLun());
-
-		if (auto file_support = dynamic_cast<FileSupport *>(&device); file_support != nullptr) {
-			file_support->UnreserveFile();
-		}
-
-		// Delete the existing unit
-		service.Lock();
-		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
-			service.Unlock();
-
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
-		}
-		device_factory.DeleteDevice(device);
-		service.Unlock();
-
-		LOGINFO("%s", s.c_str())
-	}
-
-	return true;
-}
-
 bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
 {
 	if (!device->IsRemoved()) {
@@ -613,7 +581,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	if (operation == DETACH) {
-		return Detach(context, *device, dryRun);
+		return executor.Detach(context, *device, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
