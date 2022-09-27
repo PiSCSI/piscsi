@@ -19,4 +19,6 @@ namespace ras_util
 {
 	bool GetAsInt(const std::string&, int&);
 	std::string ListDevices(const std::list<rascsi_interface::PbDevice>&);
+
+	void FixCpu(int);
 }

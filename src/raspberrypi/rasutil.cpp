@@ -82,3 +82,22 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 
 	return s.str();
 }
+
+// Pin the thread to a specific CPU
+void ras_util::FixCpu(int cpu)
+{
+#ifdef __linux
+	// Get the number of CPUs
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
+	int cpus = CPU_COUNT(&cpuset);
+
+	// Set the thread affinity
+	if (cpu < cpus) {
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
+	}
+#endif
+}

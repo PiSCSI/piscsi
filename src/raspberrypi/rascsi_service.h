@@ -38,8 +38,6 @@ public:
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
 
-	static void FixCpu(int);
-
 	static void *MonThread(bool (*)(rascsi_interface::PbCommand&, CommandContext&));
 	static void Lock() { pthread_mutex_lock(&ctrl_mutex); }
 	static void Unlock() { pthread_mutex_unlock(&ctrl_mutex); }

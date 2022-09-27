@@ -11,6 +11,7 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "command_context.h"
+#include "rasutil.h"
 #include "rascsi_service.h"
 #include <netinet/in.h>
 #include <csignal>
@@ -90,25 +91,6 @@ bool RascsiService::Init(bool (execute)(PbCommand&, CommandContext&), int port)
 			&& signal(SIGTERM, KillHandler) != SIG_ERR;
 }
 
-// Pin the thread to a specific CPU
-void RascsiService::FixCpu(int cpu)
-{
-#ifdef __linux
-	// Get the number of CPUs
-	cpu_set_t cpuset;
-	CPU_ZERO(&cpuset);
-	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-	int cpus = CPU_COUNT(&cpuset);
-
-	// Set the thread affinity
-	if (cpu < cpus) {
-		CPU_ZERO(&cpuset);
-		CPU_SET(cpu, &cpuset);
-		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
-	}
-#endif
-}
-
 void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 {
     // Scheduler Settings
@@ -117,7 +99,7 @@ void *RascsiService::MonThread(bool (execute)(PbCommand&, CommandContext&))
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 
 	// Set the affinity to a specific processor core
-	FixCpu(2);
+	ras_util::FixCpu(2);
 
 	// Wait for the execution to start
 	while (!is_running) {
