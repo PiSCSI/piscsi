@@ -51,7 +51,7 @@ private:
 
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
-	PbDeviceProperties *GetDeviceProperties(const Device *);
+	PbDeviceProperties *GetDeviceProperties(const Device&);
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);

@@ -19,23 +19,23 @@
 using namespace rascsi_interface;
 using namespace command_util;
 
-PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
+PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device)
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
 
 	properties->set_luns(ScsiController::LUN_MAX);
-	properties->set_read_only(device->IsReadOnly());
-	properties->set_protectable(device->IsProtectable());
-	properties->set_stoppable(device->IsStoppable());
-	properties->set_removable(device->IsRemovable());
-	properties->set_lockable(device->IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(device) != nullptr);
-	properties->set_supports_params(device->SupportsParams());
+	properties->set_read_only(device.IsReadOnly());
+	properties->set_protectable(device.IsProtectable());
+	properties->set_stoppable(device.IsStoppable());
+	properties->set_removable(device.IsRemovable());
+	properties->set_lockable(device.IsLockable());
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(&device) != nullptr);
+	properties->set_supports_params(device.SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
-	PbDeviceType_Parse(device->GetType(), &t);
+	PbDeviceType_Parse(device.GetType(), &t);
 
-	if (device->SupportsParams()) {
+	if (device.SupportsParams()) {
 		for (const auto& [key, value] : device_factory->GetDefaultParams(t)) {
 			auto& map = *properties->mutable_default_params();
 			map[key] = value;
@@ -54,7 +54,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
 	const PrimaryDevice *device = device_factory->CreateDevice(type, "", -1);
-	type_properties->set_allocated_properties(GetDeviceProperties(device));
+	type_properties->set_allocated_properties(GetDeviceProperties(*device));
 	device_factory->DeleteDevice(*device); //NOSONAR The allocated memory is managed by protobuf
 }
 
@@ -82,7 +82,7 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 	PbDeviceType_Parse(device->GetType(), &type);
 	pb_device->set_type(type);
 
-    pb_device->set_allocated_properties(GetDeviceProperties(device));
+    pb_device->set_allocated_properties(GetDeviceProperties(*device));
 
     auto status = make_unique<PbDeviceStatus>().release();
 	pb_device->set_allocated_status(status);
