@@ -151,37 +151,40 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
-		if (is_supported_type && dir->d_name[0] != '.') {
-			string name_lower = dir->d_name;
-			if (!file_pattern.empty()) {
-				transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+		// Ignore unknown folder types and folder names starting with '.'
+		if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
+				|| dir->d_name[0] == '.') {
+			continue;
+		}
+
+		string name_lower = dir->d_name;
+		if (!file_pattern.empty()) {
+			transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+		}
+
+		string filename = folder + "/" + dir->d_name;
+
+		if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st) && !st.st_size) {
+			LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
+			continue;
+		}
+
+		if (struct stat st; dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+			LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
+			continue;
+		}
+
+		if (dir->d_type == DT_DIR) {
+			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
+				GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
+						file_pattern, scan_depth);
 			}
+			continue;
+		}
 
-			string filename = folder + "/" + dir->d_name;
-
-			if (struct stat st; dir->d_type == DT_REG && !stat(filename.c_str(), &st) && !st.st_size) {
-				LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
-				continue;
-			}
-
-			if (struct stat st; dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-				LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
-				continue;
-			}
-
-			if (dir->d_type == DT_DIR) {
-				if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
-					GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
-							file_pattern, scan_depth);
-				}
-				continue;
-			}
-
-			if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-				if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
-					GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
-				}
+		if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
+			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(image_file.get(), filename)) {
+				GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
 			}
 		}
 	}
