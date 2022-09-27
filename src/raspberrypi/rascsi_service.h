@@ -10,10 +10,10 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
-#include "protobuf_serializer.h"
 #include <pthread.h>
 
 class CommandContext;
+class ProtobufSerializer;
 
 class RascsiService
 {

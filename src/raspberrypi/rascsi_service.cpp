@@ -11,6 +11,7 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "command_context.h"
+#include "protobuf_serializer.h"
 #include "localizer.h"
 #include "rasutil.h"
 #include "rascsi_service.h"

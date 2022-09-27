@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "protobuf_serializer.h"
+
 class BUS;
 class RascsiService;
 class RascsiResponse;
@@ -17,7 +19,6 @@ class DeviceFactory;
 class ControllerManager;
 class PrimaryDevice;
 class CommandContext;
-class ProtobufSerializer;
 
 class RascsiExecutor
 {
