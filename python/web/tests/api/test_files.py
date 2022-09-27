@@ -208,36 +208,8 @@ def test_download_file(http_client, create_test_image):
     assert response.headers["content-length"] == str(FILE_SIZE_1_MIB)
 
 
-# route("/files/download_to_afp", methods=["POST"])
-def test_download_url_to_afp_dir(httpserver, http_client):
-    file_name = str(uuid.uuid4())
-    http_path = f"/images/{file_name}"
-    url = httpserver.url_for(http_path)
-
-    with open("tests/assets/test_image.hds", mode="rb") as file:
-        file_data = file.read()
-
-    httpserver.expect_request(http_path).respond_with_data(
-        file_data,
-        mimetype="application/octet-stream",
-    )
-
-    response = http_client.post(
-        "/files/download_to_afp",
-        data={
-            "url": url,
-        },
-    )
-
-    response_data = response.json()
-
-    assert response.status_code == 200
-    assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == f"{file_name} downloaded to {AFP_DIR}"
-
-
-# route("/files/download_to_images", methods=["POST"])
-def test_download_url_to_images_dir(httpserver, http_client, list_files, delete_file):
+# route("/files/download", methods=["POST"])
+def test_download_url_to_dir(httpserver, http_client):
     file_name = str(uuid.uuid4())
     http_path = f"/images/{file_name}"
     url = httpserver.url_for(http_path)
@@ -251,8 +223,9 @@ def test_download_url_to_images_dir(httpserver, http_client, list_files, delete_
     )
 
     response = http_client.post(
-        "/files/download_to_images",
+        "/files/download",
         data={
+            "destination": IMAGES_DIR,
             "url": url,
         },
     )
