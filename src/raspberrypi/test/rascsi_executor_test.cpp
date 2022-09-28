@@ -86,6 +86,34 @@ TEST(RascsiExecutorTest, Attach)
 	EXPECT_FALSE(executor.Attach(context, device_definition, false)) << "File has 0 bytes";
 }
 
+TEST(RascsiExecutorTest, Detach)
+{
+	const int ID = 3;
+
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+	ProtobufSerializer serializer;
+	Localizer localizer;
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+
+	PrimaryDevice *device1 = device_factory.CreateDevice(UNDEFINED, "services", ID);
+	device1->SetLun(0);
+	controller_manager.CreateScsiController(bus, device1);
+	PrimaryDevice *device2 = device_factory.CreateDevice(UNDEFINED, "services", ID);
+	device2->SetLun(1);
+	controller_manager.CreateScsiController(bus, device2);
+
+	EXPECT_FALSE(executor.Detach(context, *device1, false)) << "LUN1 must be detached first";
+
+	EXPECT_TRUE(executor.Detach(context, *device2, false));
+	EXPECT_TRUE(executor.Detach(context, *device1, false));
+	EXPECT_TRUE(device_factory.GetAllDevices().empty());
+}
+
 TEST(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
