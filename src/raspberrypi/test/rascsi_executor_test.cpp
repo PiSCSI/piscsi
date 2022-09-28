@@ -10,12 +10,14 @@
 #include "testing.h"
 #include "devices/device_factory.h"
 #include "localizer.h"
+#include "command_util.h"
 #include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_executor.h"
 #include <cstdio>
 
 using namespace rascsi_interface;
+using namespace command_util;
 
 TEST(RascsiExecutorTest, SetLogLevel)
 {
@@ -65,6 +67,14 @@ TEST(RascsiExecutorTest, Attach)
 
 	device_definition.set_type(PbDeviceType::SCHS);
 	EXPECT_TRUE(executor.Attach(context, device_definition, false));
+	device_factory.DeleteAllDevices();
+	controller_manager.DeleteAllControllers();
+
+	device_definition.set_type(PbDeviceType::SCHD);
+	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+
+	AddParam(device_definition, "name", "filename");
+	EXPECT_FALSE(executor.Attach(context, device_definition, true));
 }
 
 TEST(RascsiExecutorTest, DetachAll)
