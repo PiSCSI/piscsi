@@ -13,7 +13,6 @@
 
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
-#include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "devices/scsihd.h"
 #include "devices/scsihd_nec.h"
