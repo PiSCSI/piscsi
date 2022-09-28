@@ -131,7 +131,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& filenam
 	return false;
 }
 
-void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, string_view default_image_folder,
+void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, string_view default_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
 	if (scan_depth-- < 0) {
 		return;
@@ -162,7 +162,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 		if (dir->d_type == DT_DIR) {
 			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
-				GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
+				GetAvailableImages(image_files_info, default_folder, filename, folder_pattern,
 						file_pattern, scan_depth);
 			}
 
@@ -171,7 +171,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 
 		if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
 			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), filename)) {
-				GetImageFile(*image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
+				GetImageFile(*image_files_info.add_image_files(), filename.substr(default_folder.length() + 1));
 			}
 		}
 	}
@@ -184,11 +184,11 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 {
 	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
-	string default_image_folder = rascsi_image.GetDefaultFolder();
-	image_files_info->set_default_image_folder(default_image_folder);
+	string default_folder = rascsi_image.GetDefaultFolder();
+	image_files_info->set_default_image_folder(default_folder);
 	image_files_info->set_depth(scan_depth);
 
-	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, folder_pattern,
+	GetAvailableImages(*image_files_info, default_folder, default_folder, folder_pattern,
 			file_pattern, scan_depth);
 
 	result.set_status(true);
