@@ -26,8 +26,8 @@ public:
 	int GetDepth() const { return depth; }
 	bool CheckDepth(string_view) const;
 	bool CreateImageFolder(const CommandContext&, const string&) const;
-	string GetDefaultImageFolder() const { return default_image_folder; }
-	string SetDefaultImageFolder(const string&);
+	string GetDefaultFolder() const { return default_folder; }
+	string SetDefaultFolder(const string&);
 	bool IsValidSrcFilename(const string&) const;
 	bool IsValidDstFilename(const string&) const;
 	bool CreateImage(const CommandContext&, const PbCommand&) const;
@@ -40,7 +40,7 @@ private:
 
 	string GetHomeDir() const;
 
-	string default_image_folder;
+	string default_folder;
 
 	int depth = 1;
 };

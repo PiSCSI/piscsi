@@ -118,7 +118,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& filenam
 		image_file.set_name(filename);
 		image_file.set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : rascsi_image.GetDefaultImageFolder() + "/" + filename;
+		string f = filename[0] == '/' ? filename : rascsi_image.GetDefaultFolder() + "/" + filename;
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
@@ -184,7 +184,7 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 {
 	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
-	string default_image_folder = rascsi_image.GetDefaultImageFolder();
+	string default_image_folder = rascsi_image.GetDefaultFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
 	image_files_info->set_depth(scan_depth);
 
@@ -200,7 +200,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 		const string& file_pattern, int scan_depth)
 {
 	PbImageFilesInfo *image_files_info = GetAvailableImages(result, folder_pattern, file_pattern, scan_depth);
-	image_files_info->set_default_image_folder(rascsi_image.GetDefaultImageFolder());
+	image_files_info->set_default_image_folder(rascsi_image.GetDefaultFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
 	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf

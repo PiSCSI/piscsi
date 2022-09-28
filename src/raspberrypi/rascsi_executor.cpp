@@ -390,7 +390,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 			}
 			catch(const file_not_found_exception&) {
 				// If the file does not exist search for it in the default image folder
-				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
+				filepath.SetPath(string(rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
 				if (FileSupport::GetIdsForReservedFile(filepath, device_id, unit)) {
 					device_factory.DeleteDevice(*device);
@@ -504,7 +504,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
-			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
+			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));

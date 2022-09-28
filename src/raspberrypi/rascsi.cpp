@@ -253,7 +253,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'F': {
-				if (string result = rascsi_image.SetDefaultImageFolder(optarg); !result.empty()) {
+				if (string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -412,7 +412,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		}
 
 		case DEFAULT_FOLDER: {
-			if (string status = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder")); !status.empty()) {
+			if (string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
 				ReturnStatus(context, false, status);
 			}
 			else {
