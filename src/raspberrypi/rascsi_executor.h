@@ -50,7 +50,7 @@ public:
 	bool SetLogLevel(const string&) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool) const;
-	bool Detach(const CommandContext&, PrimaryDevice&, bool);
+	bool Detach(const CommandContext&, PrimaryDevice&, bool) const;
 	void DetachAll();
 	bool ShutDown(const CommandContext&, string_view);
 	string SetReservedIds(string_view);

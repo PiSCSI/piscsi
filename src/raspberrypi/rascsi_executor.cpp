@@ -532,7 +532,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
+bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun) const
 {
 	// LUN 0 can only be detached if there is no other LUN anymore
 	if (!device.GetLun() && controller_manager.FindController(device.GetId())->GetLunCount() > 1) {
