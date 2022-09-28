@@ -54,3 +54,35 @@ TEST(RascsiExecutorTest, DetachAll)
 	EXPECT_EQ(nullptr, controller_manager.FindController(4));
 	EXPECT_TRUE(device_factory.GetAllDevices().empty());
 }
+
+TEST(RascsiExecutorTest, SetReservedIds)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+
+	string error = executor.SetReservedIds("xyz");
+	EXPECT_FALSE(error.empty());
+	EXPECT_TRUE(executor.GetReservedIds().empty());
+	error = executor.SetReservedIds("8");
+	EXPECT_FALSE(error.empty());
+	EXPECT_TRUE(executor.GetReservedIds().empty());
+	error = executor.SetReservedIds("-1");
+	EXPECT_FALSE(error.empty());
+	EXPECT_TRUE(executor.GetReservedIds().empty());
+	error = executor.SetReservedIds("");
+	EXPECT_TRUE(error.empty());
+	EXPECT_TRUE(executor.GetReservedIds().empty());
+	error = executor.SetReservedIds("7,1,2,3,5");
+	EXPECT_TRUE(error.empty());
+	unordered_set<int> reserved_ids = executor.GetReservedIds();
+	EXPECT_EQ(5, reserved_ids.size());
+	EXPECT_NE(reserved_ids.end(), reserved_ids.find(1));
+	EXPECT_NE(reserved_ids.end(), reserved_ids.find(2));
+	EXPECT_NE(reserved_ids.end(), reserved_ids.find(3));
+	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
+	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
+}
