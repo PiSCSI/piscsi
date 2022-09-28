@@ -68,6 +68,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	Localizer localizer;
 	CommandContext context(serializer, localizer, 0, "");
 
+	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
 	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
 	EXPECT_FALSE(executor.ShutDown(context, "system"));
@@ -108,7 +109,14 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(3));
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
+
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", 5);
+	controller_manager.CreateScsiController(bus, device);
+	error = executor.SetReservedIds("5");
+	EXPECT_FALSE(error.empty());
+	device_factory.DeleteAllDevices();
 }
+
 TEST(RascsiExecutorTest, ValidateLunSetup)
 {
 	MockBus bus;
