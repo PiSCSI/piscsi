@@ -15,14 +15,6 @@
 using namespace rascsi_interface;
 using namespace command_util;
 
-
-class MockProtobufSerializer : public ProtobufSerializer
-{
-public:
-
-	using ProtobufSerializer::ProtobufSerializer;
-};
-
 void TestSpecialDevice(const string& name)
 {
 	PbDeviceDefinition device;
@@ -71,9 +63,9 @@ TEST(CommandUtil, ParseParameters)
 
 TEST(CommandUtil, ReturnLocalizedError)
 {
-	MockProtobufSerializer serializer;
+	ProtobufSerializer serializer;
 	Localizer localizer;
-	CommandContext context(serializer, localizer, -1, "dummy_locale");
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "dummy_locale");
 
 	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }
