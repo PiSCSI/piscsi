@@ -11,7 +11,6 @@
 
 #include "protobuf_serializer.h"
 
-class BUS;
 class RascsiResponse;
 class RascsiImage;
 class DeviceFactory;
@@ -21,8 +20,6 @@ class CommandContext;
 
 class RascsiExecutor
 {
-	BUS& bus;
-
 	RascsiResponse& rascsi_response;
 
 	RascsiImage& rascsi_image;
@@ -37,10 +34,10 @@ class RascsiExecutor
 
 public:
 
-	RascsiExecutor(BUS& bus, RascsiResponse& rascsi_response, RascsiImage& rascsi_image,
-			DeviceFactory& device_factory, ControllerManager& controller_manager)
-		: bus(bus), rascsi_response(rascsi_response), rascsi_image(rascsi_image),
-		  device_factory(device_factory), controller_manager(controller_manager) {}
+	RascsiExecutor(RascsiResponse& rascsi_response, RascsiImage& rascsi_image, DeviceFactory& device_factory,
+			ControllerManager& controller_manager)
+		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), device_factory(device_factory),
+		  controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }

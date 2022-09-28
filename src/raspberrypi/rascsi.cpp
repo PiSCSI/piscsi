@@ -69,7 +69,7 @@ DeviceFactory device_factory;
 ControllerManager controller_manager(bus);
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
-RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 const ProtobufSerializer serializer;
 
 //---------------------------------------------------------------------------
