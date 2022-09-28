@@ -36,7 +36,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	const int lun = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 	const PbOperation operation = command.operation();
-	const map<string, string> params = { command.params().begin(), command.params().end() };
+	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;
 	s << (dryRun ? "Validating" : "Executing");
