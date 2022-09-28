@@ -13,6 +13,7 @@
 #include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_executor.h"
+#include <cstdio>
 
 using namespace rascsi_interface;
 
@@ -66,7 +67,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
 	ProtobufSerializer serializer;
 	Localizer localizer;
-	CommandContext context(serializer, localizer, -1, "");
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
 
 	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
