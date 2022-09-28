@@ -9,6 +9,7 @@
 
 #include "testing.h"
 #include "devices/device_factory.h"
+#include "localizer.h"
 #include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_executor.h"
@@ -53,6 +54,24 @@ TEST(RascsiExecutorTest, DetachAll)
 	executor.DetachAll();
 	EXPECT_EQ(nullptr, controller_manager.FindController(4));
 	EXPECT_TRUE(device_factory.GetAllDevices().empty());
+}
+
+TEST(RascsiExecutorTest, ShutDown)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+	ProtobufSerializer serializer;
+	Localizer localizer;
+	CommandContext context(serializer, localizer, 0, "");
+
+	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
+	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
+	EXPECT_FALSE(executor.ShutDown(context, "system"));
+	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
 }
 
 TEST(RascsiExecutorTest, SetReservedIds)
