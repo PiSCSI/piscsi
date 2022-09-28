@@ -21,25 +21,12 @@
 
 using namespace rascsi_interface;
 
-bool RascsiService::is_instantiated = false;
-
 volatile bool RascsiService::is_running = false;
-
-RascsiService::RascsiService()
-{
-	// There may only be exactly one instance because MonThread must be static
-	if (is_instantiated) {
-		LOGERROR("There can only be exactly one service instance");
-		exit(EXIT_FAILURE);
-	}
-
-	is_instantiated = true;
-}
 
 RascsiService::~RascsiService()
 {
-	if (monsocket != -1) {
-		close(monsocket);
+	if (service_socket != -1) {
+		close(service_socket);
 	}
 }
 
@@ -47,8 +34,8 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
-	monsocket = socket(PF_INET, SOCK_STREAM, 0);
-	if (monsocket == -1) {
+	service_socket = socket(PF_INET, SOCK_STREAM, 0);
+	if (service_socket == -1) {
 		LOGERROR("Unable to create socket");
 		return false;
 	}
@@ -58,13 +45,13 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// Allow address reuse
-	if (int yes = 1; setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	if (int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return false;
 	}
 
 	signal(SIGPIPE, SIG_IGN);
 
-	if (bind(monsocket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
+	if (bind(service_socket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
 		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
 		return false;
 	}
@@ -95,7 +82,7 @@ void RascsiService::Execute()
 	}
 
 	// Set up the monitor socket to receive commands
-	listen(monsocket, 1);
+	listen(service_socket, 1);
 
 	ProtobufSerializer serializer;
 	Localizer localizer;
@@ -128,7 +115,7 @@ int RascsiService::ReadCommand(ProtobufSerializer& serializer, PbCommand& comman
 	// Wait for connection
 	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
-	int fd = accept(monsocket, &client, &socklen);
+	int fd = accept(service_socket, &client, &socklen);
 	if (fd < 0) {
 		throw io_exception("accept() failed");
 	}

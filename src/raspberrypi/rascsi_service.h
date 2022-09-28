@@ -20,18 +20,16 @@ class RascsiService
 {
 	bool (*execute)(rascsi_interface::PbCommand&, CommandContext&) = nullptr;
 
-	int monsocket = -1;
+	int service_socket = -1;
 
 	thread monthread;
 	mutex ctrl_mutex;
-
-	static bool is_instantiated;
 
 	static volatile bool is_running;
 
 public:
 
-	RascsiService();
+	RascsiService() = default;
 	~RascsiService();
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
