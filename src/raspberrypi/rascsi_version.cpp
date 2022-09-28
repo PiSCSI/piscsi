@@ -9,7 +9,6 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
-#include <netinet/in.h>
 #include <sstream>
 #include <iomanip>
 
