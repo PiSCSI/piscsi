@@ -44,16 +44,3 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 }
-
-TEST(ControllerManagerTest, ResetAllControllers)
-{
-	MockBus bus;
-	ControllerManager controller_manager(bus);
-
-	auto controller = make_shared<MockScsiController>(0);
-	controller_manager.controllers[0] = controller;
-	EXPECT_CALL(*controller, Reset()).Times(1);
-	controller_manager.ResetAllControllers();
-
-	controller_manager.DeleteAllControllers();
-}

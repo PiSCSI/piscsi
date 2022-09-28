@@ -24,6 +24,8 @@ class ControllerManager
 {
 	BUS& bus;
 
+	unordered_map<int, shared_ptr<AbstractController>> controllers;
+
 public:
 
 	ControllerManager(BUS& bus) : bus(bus) {}
@@ -39,6 +41,4 @@ public:
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
-
-	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };
