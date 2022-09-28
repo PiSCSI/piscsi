@@ -28,8 +28,7 @@ bool ControllerManager::CreateScsiController(BUS& bus, PrimaryDevice *device)
 
 bool ControllerManager::DeleteController(int target_id)
 {
-	auto controller = FindController(target_id);
-	if (controller == nullptr || controller->GetLunCount() > 0) {
+	if (auto controller = FindController(target_id); controller == nullptr || controller->GetLunCount() > 0) {
 		return false;
 	}
 
