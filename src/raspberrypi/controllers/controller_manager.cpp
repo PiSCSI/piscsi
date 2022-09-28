@@ -26,6 +26,18 @@ bool ControllerManager::CreateScsiController(BUS& bus, PrimaryDevice *device)
 	return controller->AddDevice(device);
 }
 
+bool ControllerManager::DeleteController(int target_id)
+{
+	auto controller = FindController(target_id);
+	if (controller == nullptr || controller->GetLunCount() > 0) {
+		return false;
+	}
+
+	controllers.erase(target_id);
+
+	return true;
+}
+
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
 {
 	for (const auto& [id, controller] : controllers) {

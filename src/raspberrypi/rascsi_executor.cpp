@@ -548,11 +548,16 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 			file_support->UnreserveFile();
 		}
 
-		// Delete the existing unit
-		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
+		auto controller = controller_manager.FindController(device.GetId());
+		if (controller == nullptr || !controller->DeleteDevice(device)) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
+
+		// Delete the device and if no LUN is left also delete the controller
 		device_factory.DeleteDevice(device);
+		if (!controller->GetLunCount() && !controller_manager.DeleteController(device.GetId())) {
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
+		}
 
 		LOGINFO("%s", s.c_str())
 	}

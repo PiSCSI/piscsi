@@ -31,6 +31,7 @@ public:
 	static const int DEVICE_MAX = 8;
 
 	bool CreateScsiController(BUS&, PrimaryDevice *);
+	bool DeleteController(int);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	void DeleteAllControllers();
