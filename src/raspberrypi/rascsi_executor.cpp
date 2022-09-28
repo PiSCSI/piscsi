@@ -432,9 +432,14 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
+	service.Lock();
+
 	if (!controller_manager.CreateScsiController(bus, device)) {
+		service.Unlock();
+
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
+	service.Unlock();
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
