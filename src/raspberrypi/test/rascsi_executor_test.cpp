@@ -16,6 +16,13 @@
 
 using namespace rascsi_interface;
 
+class MockProtobufSerializer : public ProtobufSerializer
+{
+public:
+
+	using ProtobufSerializer::ProtobufSerializer;
+};
+
 TEST(RascsiExecutorTest, SetLogLevel)
 {
 	MockBus bus;
@@ -64,7 +71,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
-	ProtobufSerializer serializer;
+	MockProtobufSerializer serializer;
 	Localizer localizer;
 	CommandContext context(serializer, localizer, 0, "");
 
