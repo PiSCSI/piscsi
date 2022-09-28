@@ -28,7 +28,7 @@ class ControllerManager
 
 public:
 
-	ControllerManager(BUS& bus) : bus(bus) {}
+	explicit ControllerManager(BUS& bus) : bus(bus) {}
 	~ControllerManager() = default;
 
 	// Maximum number of controller devices
