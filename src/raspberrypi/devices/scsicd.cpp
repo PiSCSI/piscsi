@@ -114,8 +114,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
-	if (file_size < 0x800) {
+	off_t size = fio.GetFileSize();
+	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
@@ -154,16 +154,16 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	if (rawfile) {
 		// Size must be a multiple of 2536
-		if (file_size % 2536) {
+		if (size % 2536) {
 			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
-					+ to_string(file_size) + " bytes");
+					+ to_string(size) + " bytes");
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size / 0x930));
+		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
+		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track

@@ -75,17 +75,17 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
-	file_size = (file_size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
-	FinalizeSetup(path, file_size);
+	FinalizeSetup(path, size);
 }
 
 vector<byte> SCSIHD::InquiryInternal() const

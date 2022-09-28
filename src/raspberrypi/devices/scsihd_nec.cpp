@@ -54,18 +54,18 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 
 	// NEC root sector
 	array<BYTE, 512> root_sector;
-	if (file_size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
+	if (size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
 		fio.Close();
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
 	fio.Close();
 
 	// Effective size must be a multiple of 512
-	file_size = (file_size / 512) * 512;
+	size = (size / 512) * 512;
 
 	int image_size = 0;
 	int sector_size = 0;
@@ -76,11 +76,11 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		image_offset = 0;
-		image_size = (int)file_size;
+		image_size = (int)size;
 		sector_size = 512;
 		sectors = 25;
 		heads = 8;
-		cylinders = (int)(file_size >> 9);
+		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
 	}
@@ -113,23 +113,23 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Image size consistency check
-	if (image_offset + image_size > file_size || image_size % sector_size != 0) {
+	if (image_offset + image_size > size || image_size % sector_size != 0) {
 		throw io_exception("Image size consistency check failed");
 	}
 
 	// Calculate sector size
-	for (file_size = 16; file_size > 0; --file_size) {
-		if ((1 << file_size) == sector_size)
+	for (size = 16; size > 0; --size) {
+		if ((1 << size) == sector_size)
 			break;
 	}
-	if (file_size <= 0 || file_size > 16) {
+	if (size <= 0 || size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
-	SetSectorSizeShiftCount((uint32_t)file_size);
+	SetSectorSizeShiftCount((uint32_t)size);
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
-	FinalizeSetup(path, file_size, image_offset);
+	FinalizeSetup(path, size, image_offset);
 }
 
 vector<byte> SCSIHD_NEC::InquiryInternal() const

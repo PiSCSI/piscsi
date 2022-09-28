@@ -88,7 +88,9 @@ bool Disk::Dispatch(scsi_command cmd)
 //---------------------------------------------------------------------------
 void Disk::Open(const Filepath& path)
 {
-	assert(blocks > 0);
+	if (blocks == 0) {
+		throw io_exception("File size is 0 bytes");
+	}
 
 	SetReady(true);
 
@@ -117,7 +119,7 @@ void Disk::SetUpCache(const Filepath& path, off_t image_offset, bool raw)
 
 void Disk::ResizeCache(const Filepath& path, bool raw)
 {
-	cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
+	cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)blocks));
 	cache->SetRawMode(raw);
 }
 
@@ -395,7 +397,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 		// Only if ready
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(buf, 4, (uint32_t)GetBlockCount());
+			SetInt32(buf, 4, (uint32_t)blocks);
 			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
 
@@ -434,7 +436,7 @@ int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 
 	// Add block descriptor if DBD is 0, only if ready
 	if ((cdb[1] & 0x08) == 0 && IsReady()) {
-		uint64_t disk_blocks = GetBlockCount();
+		uint64_t disk_blocks = blocks;
 		uint32_t disk_size = GetSectorSizeInBytes();
 
 		// Check LLBAA for short or long block descriptor
@@ -805,7 +807,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 {
 	uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
 
-	uint64_t capacity = GetBlockCount();
+	uint64_t capacity = blocks;
 
 	if (block > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
@@ -841,7 +843,7 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count)
 
 	// Check capacity
-	if (uint64_t capacity = GetBlockCount(); start > capacity || start + count > capacity) {
+	if (uint64_t capacity = blocks; start > capacity || start + count > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
