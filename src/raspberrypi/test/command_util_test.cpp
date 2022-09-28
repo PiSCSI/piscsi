@@ -73,7 +73,7 @@ TEST(CommandUtil, ReturnLocalizedError)
 {
 	MockProtobufSerializer serializer;
 	Localizer localizer;
-	CommandContext context(serializer, localizer, 1, "dummy_locale");
+	CommandContext context(serializer, localizer, -1, "dummy_locale");
 
 	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }
