@@ -9,7 +9,6 @@
 
 #include "testing.h"
 #include "devices/device_factory.h"
-#include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_executor.h"
