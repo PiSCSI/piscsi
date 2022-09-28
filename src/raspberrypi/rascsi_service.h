@@ -25,7 +25,7 @@ class RascsiService
 	thread monthread;
 	mutex ctrl_mutex;
 
-	static volatile bool is_running;
+	static volatile bool running;
 
 public:
 
@@ -37,12 +37,12 @@ public:
 	void Lock() { ctrl_mutex.lock(); }
 	void Unlock() { ctrl_mutex.unlock(); }
 
-	bool IsRunning() const { return is_running; }
-	void SetRunning(bool b) const { is_running = b; }
+	bool IsRunning() const { return running; }
+	void SetRunning(bool b) const { running = b; }
 
 	void Execute();
 
 	int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
 
-	static void KillHandler(int) { is_running = false; }
+	static void KillHandler(int) { running = false; }
 };

@@ -19,7 +19,7 @@
 
 using namespace rascsi_interface;
 
-volatile bool RascsiService::is_running = false;
+volatile bool RascsiService::running = false;
 
 RascsiService::~RascsiService()
 {
@@ -75,7 +75,7 @@ void RascsiService::Execute()
 	ras_util::FixCpu(2);
 
 	// Wait for the execution to start
-	while (!is_running) {
+	while (!running) {
 		usleep(1);
 	}
 
