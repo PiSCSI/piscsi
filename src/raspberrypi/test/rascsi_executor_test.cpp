@@ -15,6 +15,24 @@
 
 using namespace rascsi_interface;
 
+TEST(RascsiExecutorTest, SetLogLevel)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+
+	EXPECT_TRUE(executor.SetLogLevel("trace"));
+	EXPECT_TRUE(executor.SetLogLevel("debug"));
+	EXPECT_TRUE(executor.SetLogLevel("info"));
+	EXPECT_TRUE(executor.SetLogLevel("warn"));
+	EXPECT_TRUE(executor.SetLogLevel("err"));
+	EXPECT_TRUE(executor.SetLogLevel("critical"));
+	EXPECT_FALSE(executor.SetLogLevel("xyz"));
+}
+
 TEST(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;

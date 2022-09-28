@@ -291,6 +291,8 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		set_level(level::off);
 	}
 	else {
+		LOGWARN("Invalid log level '%s'", log_level.c_str())
+
 		return false;
 	}
 
