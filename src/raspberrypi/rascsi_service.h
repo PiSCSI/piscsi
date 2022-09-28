@@ -11,7 +11,6 @@
 
 #include "rascsi_interface.pb.h"
 #include <thread>
-#include <mutex>
 
 class CommandContext;
 class ProtobufSerializer;
@@ -23,7 +22,6 @@ class RascsiService
 	int service_socket = -1;
 
 	thread monthread;
-	mutex ctrl_mutex;
 
 	static volatile bool running;
 
@@ -33,9 +31,6 @@ public:
 	~RascsiService();
 
 	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
-
-	void Lock() { ctrl_mutex.lock(); }
-	void Unlock() { ctrl_mutex.unlock(); }
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }

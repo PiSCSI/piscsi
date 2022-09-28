@@ -69,7 +69,7 @@ DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
-RascsiExecutor executor(bus, service, rascsi_response, rascsi_image, device_factory, controller_manager);
+RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
 const ProtobufSerializer serializer;
 
 //---------------------------------------------------------------------------
@@ -645,7 +645,7 @@ int main(int argc, char* argv[])
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
-		service.Lock();
+		controller_manager.Lock();
 
 		// Identify the responsible controller
 		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
@@ -659,7 +659,7 @@ int main(int argc, char* argv[])
 
 		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::phase_t::selection) {
-			service.Unlock();
+			controller_manager.Unlock();
 			continue;
 		}
 
@@ -683,7 +683,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		service.Unlock();
+		controller_manager.Unlock();
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Set the scheduling priority back to normal

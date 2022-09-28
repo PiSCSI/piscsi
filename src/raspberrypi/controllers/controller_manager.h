@@ -12,6 +12,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <mutex>
 #include <memory>
 
 using namespace std; //NOSONAR Not relevant for rascsi
@@ -22,6 +23,7 @@ class PrimaryDevice;
 
 class ControllerManager
 {
+	mutex ctrl_mutex;
 
 public:
 
@@ -37,6 +39,9 @@ public:
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
+
+	void Lock() { ctrl_mutex.lock(); }
+	void Unlock() { ctrl_mutex.unlock(); }
 
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };

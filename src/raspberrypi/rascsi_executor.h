@@ -12,7 +12,6 @@
 #include "protobuf_serializer.h"
 
 class BUS;
-class RascsiService;
 class RascsiResponse;
 class RascsiImage;
 class DeviceFactory;
@@ -23,8 +22,6 @@ class CommandContext;
 class RascsiExecutor
 {
 	BUS& bus;
-
-	RascsiService& service;
 
 	RascsiResponse& rascsi_response;
 
@@ -40,9 +37,9 @@ class RascsiExecutor
 
 public:
 
-	RascsiExecutor(BUS& bus, RascsiService& service, RascsiResponse& rascsi_response, RascsiImage& rascsi_image,
+	RascsiExecutor(BUS& bus, RascsiResponse& rascsi_response, RascsiImage& rascsi_image,
 			DeviceFactory& device_factory, ControllerManager& controller_manager)
-		: bus(bus), service(service), rascsi_response(rascsi_response), rascsi_image(rascsi_image),
+		: bus(bus), rascsi_response(rascsi_response), rascsi_image(rascsi_image),
 		  device_factory(device_factory), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
