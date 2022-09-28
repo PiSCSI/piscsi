@@ -30,6 +30,7 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	EXPECT_TRUE(executor.SetLogLevel("warn"));
 	EXPECT_TRUE(executor.SetLogLevel("err"));
 	EXPECT_TRUE(executor.SetLogLevel("critical"));
+	EXPECT_TRUE(executor.SetLogLevel("off"));
 	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
