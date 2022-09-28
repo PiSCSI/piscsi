@@ -72,11 +72,6 @@ RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN
 RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 const ProtobufSerializer serializer;
 
-//---------------------------------------------------------------------------
-//
-//	Banner Output
-//
-//---------------------------------------------------------------------------
 void Banner(int argc, char* argv[])
 {
 	FPRT(stdout,"SCSI Target Emulator RaSCSI Reloaded ");
