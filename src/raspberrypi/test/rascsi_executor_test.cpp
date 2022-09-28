@@ -48,11 +48,11 @@ TEST(RascsiExecutorTest, DetachAll)
 
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	controller_manager.CreateScsiController(bus, device);
-	EXPECT_NE(nullptr, controller_manager.FindController(4));
+	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_FALSE(device_factory.GetAllDevices().empty());
 
 	executor.DetachAll();
-	EXPECT_EQ(nullptr, controller_manager.FindController(4));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_TRUE(device_factory.GetAllDevices().empty());
 }
 
