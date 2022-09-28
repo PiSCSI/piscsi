@@ -145,7 +145,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 			break;
 
 		case INSERT:
-			return Insert(context, pb_device, device, dryRun);
+			return Insert(context, pb_device, *device, dryRun);
 
 		case EJECT:
 			if (!dryRun) {
@@ -451,10 +451,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device,
+bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device& device,
 		bool dryRun) const
 {
-	if (!device->IsRemoved()) {
+	if (!device.IsRemoved()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
@@ -472,9 +472,9 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
+			filename.c_str(), device.GetType().c_str(), pb_device.id(), pb_device.unit())
 
-	auto disk = dynamic_cast<Disk *>(device);
+	auto disk = dynamic_cast<Disk *>(&device);
 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
@@ -483,7 +483,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 			}
 		}
 		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device.GetType());
 		}
 	}
 
@@ -497,7 +497,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
 	}
 
-	auto file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(&device);
 	try {
 		try {
 			file_support->Open(filepath);
@@ -517,12 +517,12 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
-	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+	file_support->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
-	if (device->IsProtectable() && !device->IsReadOnly()) {
-		device->SetProtected(pb_device.protected_());
+	if (device.IsProtectable() && !device.IsReadOnly()) {
+		device.SetProtected(pb_device.protected_());
 	}
 
 	if (disk != nullptr) {
