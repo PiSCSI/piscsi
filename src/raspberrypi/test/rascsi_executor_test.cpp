@@ -66,7 +66,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
 	ProtobufSerializer serializer;
 	Localizer localizer;
-	CommandContext context(serializer, localizer, 0, "");
+	CommandContext context(serializer, localizer, -1, "");
 
 	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));

@@ -52,7 +52,7 @@ public:
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device *, bool) const;
 	bool Detach(const CommandContext&, PrimaryDevice&, bool) const;
 	void DetachAll();
-	bool ShutDown(const CommandContext&, string_view);
+	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
 
 	string ValidateLunSetup(const PbCommand&) const;

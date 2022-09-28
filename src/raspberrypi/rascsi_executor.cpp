@@ -569,7 +569,7 @@ void RascsiExecutor::DetachAll()
 	LOGINFO("Detached all devices")
 }
 
-bool RascsiExecutor::ShutDown(const CommandContext& context, string_view mode) {
+bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
 	if (mode.empty()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
@@ -583,6 +583,10 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, string_view mode) {
 		serializer.SerializeMessage(context.fd, result);
 
 		return true;
+	}
+
+	if (mode != "system" && mode != "reboot") {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, mode);
 	}
 
 	// The root user has UID 0
@@ -613,7 +617,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, string_view mode) {
 		}
 	}
 	else {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID);
+		assert(false);
 	}
 
 	return false;
