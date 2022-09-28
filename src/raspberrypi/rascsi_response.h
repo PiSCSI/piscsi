@@ -17,7 +17,6 @@
 using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class DeviceFactory;
-class RascsiImage;
 class Device;
 
 class RascsiResponse
