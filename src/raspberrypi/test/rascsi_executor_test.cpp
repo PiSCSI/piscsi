@@ -73,14 +73,17 @@ TEST(RascsiExecutorTest, Attach)
 	device_definition.set_type(PbDeviceType::SCHD);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
 
-	device_definition.set_block_size(1234);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	device_definition.set_block_size(1);
+	EXPECT_FALSE(executor.Attach(context, device_definition, false)) << "Invalid sector size";
 
 	device_definition.set_block_size(1024);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
 
-	AddParam(device_definition, "file", "/dev/zero");
+	AddParam(device_definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+
+	AddParam(device_definition, "file", "/dev/zero");
+	EXPECT_FALSE(executor.Attach(context, device_definition, false)) << "File has 0 bytes";
 }
 
 TEST(RascsiExecutorTest, DetachAll)
