@@ -655,7 +655,7 @@ int main(int argc, char* argv[])
 		// Start target device
 		active = true;
 
-#ifndef USE_SEL_EVENT_ENABLE
+#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux)
 		// Scheduling policy setting (highest priority)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
@@ -672,7 +672,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-#ifndef USE_SEL_EVENT_ENABLE
+#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux)
 		// Set the scheduling priority back to normal
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
