@@ -11,15 +11,13 @@
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
-#include "rascsi_image.h"
 
 using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
 	DeviceFactory device_factory;
-	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiResponse rascsi_response(device_factory, 32);
 	PbResult pb_operation_info_result;
 
 	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
@@ -29,12 +27,11 @@ TEST(RascsiResponseTest, Operation_Count)
 TEST(RascsiResponseTest, GetDevice_Printer)
 {
 	DeviceFactory device_factory;
-	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiResponse rascsi_response(device_factory, 32);
 	device_factory.CreateDevice(UNDEFINED, "printer", -1);
 
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info);
+	rascsi_response.GetDevices(server_info, "image_folder");
 	device_factory.DeleteAllDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
@@ -57,12 +54,11 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 TEST(RascsiResponseTest, GetDevice_HostServices)
 {
 	DeviceFactory device_factory;
-	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiResponse rascsi_response(device_factory, 32);
 	device_factory.CreateDevice(UNDEFINED, "services", -1);
 
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info);
+	rascsi_response.GetDevices(server_info, "image_folder");
 	device_factory.DeleteAllDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
@@ -84,8 +80,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 TEST(RascsiResponseTest, GetReservedIds)
 {
 	DeviceFactory device_factory;
-	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiResponse rascsi_response(device_factory, 32);
 	unordered_set<int> ids;
 	PbResult result;
 

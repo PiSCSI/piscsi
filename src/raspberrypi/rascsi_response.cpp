@@ -70,7 +70,7 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	}
 }
 
-void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device)
+void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const string& default_folder)
 {
 	pb_device.set_id(device.GetId());
 	pb_device.set_unit(device.GetLun());
@@ -107,18 +107,18 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device)
 		Filepath filepath;
 		file_support->GetPath(filepath);
 		auto image_file = make_unique<PbImageFile>().release();
-		GetImageFile(*image_file, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
+		GetImageFile(*image_file, default_folder, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device.set_allocated_file(image_file);
 	}
 } //NOSONAR The allocated memory is managed by protobuf
 
-bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& filename) const
+bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default_folder, const string& filename) const
 {
 	if (!filename.empty()) {
 		image_file.set_name(filename);
 		image_file.set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : rascsi_image.GetDefaultFolder() + "/" + filename;
+		string f = filename[0] == '/' ? filename : default_folder + "/" + filename;
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
@@ -131,7 +131,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& filenam
 	return false;
 }
 
-void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, string_view default_folder,
+void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
 	if (scan_depth-- < 0) {
 		return;
@@ -170,8 +170,9 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 		}
 
 		if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), filename)) {
-				GetImageFile(*image_files_info.add_image_files(), filename.substr(default_folder.length() + 1));
+			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
+				GetImageFile(*image_files_info.add_image_files(), default_folder,
+						filename.substr(default_folder.length() + 1));
 			}
 		}
 	}
@@ -179,12 +180,11 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, stri
 	closedir(d);
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& folder_pattern,
-		const string& file_pattern, int scan_depth)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
+		const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
 	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
-	string default_folder = rascsi_image.GetDefaultFolder();
 	image_files_info->set_default_image_folder(default_folder);
 	image_files_info->set_depth(scan_depth);
 
@@ -196,11 +196,12 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 	return image_files_info;
 }
 
-void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& folder_pattern,
-		const string& file_pattern, int scan_depth)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& default_folder,
+		const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result, folder_pattern, file_pattern, scan_depth);
-	image_files_info->set_default_image_folder(rascsi_image.GetDefaultFolder());
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result, default_folder, folder_pattern, file_pattern,
+			scan_depth);
+	image_files_info->set_default_image_folder(default_folder);
 	server_info.set_allocated_image_files_info(image_files_info);
 
 	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
@@ -218,15 +219,15 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info)
+void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default_folder)
 {
 	for (const Device *device : device_factory.GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-		GetDevice(*device, *pb_device);
+		GetDevice(*device, *pb_device, default_folder);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const string& default_folder)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
@@ -251,7 +252,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command)
 	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& [id, lun] : id_sets) {
-		GetDevice(*device_factory.GetDeviceByIdAndLun(id, lun), *devices_info->add_devices());
+		GetDevice(*device_factory.GetDeviceByIdAndLun(id, lun), *devices_info->add_devices(), default_folder);
 	}
 
 	result.set_status(true);
@@ -269,17 +270,18 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 }
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
-		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
+		const string& current_log_level, const string& default_folder, const string& folder_pattern,
+		const string& file_pattern, int scan_depth)
 {
 	auto server_info = make_unique<PbServerInfo>().release();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level)); //NOSONAR The allocated memory is managed by protobuf
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The allocated memory is managed by protobuf
-	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
+	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result)); //NOSONAR The allocated memory is managed by protobuf
-	GetDevices(*server_info); //NOSONAR The allocated memory is managed by protobuf
+	GetDevices(*server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth)); //NOSONAR The allocated memory is managed by protobuf
 

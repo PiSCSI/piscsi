@@ -68,7 +68,7 @@ string access_token;
 DeviceFactory device_factory;
 ControllerManager controller_manager(bus);
 RascsiImage rascsi_image;
-RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
+RascsiResponse rascsi_response(device_factory, ScsiController::LUN_MAX);
 RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 const ProtobufSerializer serializer;
 
@@ -367,7 +367,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info);
+	rascsi_response.GetDevices(server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -422,7 +422,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response.GetDevicesInfo(result, command);
+			rascsi_response.GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.fd, result);
 			break;
 		}
@@ -435,8 +435,8 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case SERVER_INFO: {
 			result.set_allocated_server_info(rascsi_response.GetServerInfo(
-					result, executor.GetReservedIds(), current_log_level, GetParam(command, "folder_pattern"),
-					GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
+					result, executor.GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
+					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
 			serializer.SerializeMessage(context.fd, result);
 			break;
 		}
@@ -455,8 +455,8 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case DEFAULT_IMAGE_FILES_INFO: {
 			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
-					rascsi_image.GetDepth()));
+					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
+					GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
 			serializer.SerializeMessage(context.fd, result);
 			break;
 		}
@@ -467,7 +467,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				bool status = rascsi_response.GetImageFile(*image_file.get(), filename);
+				bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
