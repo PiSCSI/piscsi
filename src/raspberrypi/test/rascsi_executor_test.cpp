@@ -67,15 +67,19 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	string error = executor.SetReservedIds("xyz");
 	EXPECT_FALSE(error.empty());
 	EXPECT_TRUE(executor.GetReservedIds().empty());
+
 	error = executor.SetReservedIds("8");
 	EXPECT_FALSE(error.empty());
 	EXPECT_TRUE(executor.GetReservedIds().empty());
+
 	error = executor.SetReservedIds("-1");
 	EXPECT_FALSE(error.empty());
 	EXPECT_TRUE(executor.GetReservedIds().empty());
+
 	error = executor.SetReservedIds("");
 	EXPECT_TRUE(error.empty());
 	EXPECT_TRUE(executor.GetReservedIds().empty());
+
 	error = executor.SetReservedIds("7,1,2,3,5");
 	EXPECT_TRUE(error.empty());
 	unordered_set<int> reserved_ids = executor.GetReservedIds();
@@ -85,4 +89,28 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(3));
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
+}
+TEST(RascsiExecutorTest, ValidateLunSetup)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbCommand command;
+
+	PbDeviceDefinition *device = command.add_devices();
+	device->set_unit(0);
+	string error = executor.ValidateLunSetup(command);
+	EXPECT_TRUE(error.empty());
+
+	device->set_unit(1);
+	error = executor.ValidateLunSetup(command);
+	EXPECT_FALSE(error.empty());
+
+	device_factory.CreateDevice(UNDEFINED, "services", 0);
+	error = executor.ValidateLunSetup(command);
+	EXPECT_TRUE(error.empty());
+	device_factory.DeleteAllDevices();
 }
