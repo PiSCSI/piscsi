@@ -14,8 +14,10 @@
 class ProtobufSerializer;
 class Localizer;
 
-struct CommandContext
+class CommandContext
 {
+public:
+
 	CommandContext(const ProtobufSerializer& c, const Localizer& l, int f, const std::string& s)
 		: serializer(c), localizer(l), fd(f), locale(s) {}
 	~CommandContext() = default;
