@@ -66,10 +66,12 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 
 void RascsiService::Execute()
 {
+#ifdef __linux
     // Scheduler Settings
 	sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
+#endif
 
 	// Set the affinity to a specific processor core
 	ras_util::FixCpu(2);

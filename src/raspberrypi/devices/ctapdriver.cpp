@@ -21,7 +21,7 @@
 #include <sys/ioctl.h>
 #include <sstream>
 
-#ifdef __linux__
+#ifdef __linux
 #include <sys/epoll.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
