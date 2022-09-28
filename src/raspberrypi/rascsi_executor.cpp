@@ -432,14 +432,9 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
-	controller_manager.Lock();
-
 	if (!controller_manager.CreateScsiController(bus, device)) {
-		controller_manager.Unlock();
-
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
-	controller_manager.Unlock();
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -552,14 +547,10 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 		}
 
 		// Delete the existing unit
-		controller_manager.Lock();
 		if (!controller_manager.FindController(device.GetId())->DeleteDevice(device)) {
-			controller_manager.Unlock();
-
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
 		device_factory.DeleteDevice(device);
-		controller_manager.Unlock();
 
 		LOGINFO("%s", s.c_str())
 	}

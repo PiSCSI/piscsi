@@ -645,8 +645,6 @@ int main(int argc, char* argv[])
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
-		controller_manager.Lock();
-
 		// Identify the responsible controller
 		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
 		if (controller != nullptr) {
@@ -659,7 +657,6 @@ int main(int argc, char* argv[])
 
 		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::phase_t::selection) {
-			controller_manager.Unlock();
 			continue;
 		}
 
@@ -682,8 +679,6 @@ int main(int argc, char* argv[])
 				break;
 			}
 		}
-
-		controller_manager.Unlock();
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Set the scheduling priority back to normal
