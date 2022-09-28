@@ -66,7 +66,7 @@ GPIOBUS bus;						// GPIO Bus
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 DeviceFactory device_factory;
-ControllerManager controller_manager;
+ControllerManager controller_manager(bus);
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(device_factory, rascsi_image, ScsiController::LUN_MAX);
 RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);

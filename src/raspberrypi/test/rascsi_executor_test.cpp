@@ -23,7 +23,7 @@ TEST(RascsiExecutorTest, SetLogLevel)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -45,7 +45,7 @@ TEST(RascsiExecutorTest, Attach)
 
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -58,7 +58,7 @@ TEST(RascsiExecutorTest, Attach)
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
 
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", ID);
-	controller_manager.CreateScsiController(bus, device);
+	controller_manager.CreateScsiController(device);
 	device_definition.set_id(ID);
 	device_definition.set_unit(LUN);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
@@ -92,7 +92,7 @@ TEST(RascsiExecutorTest, Detach)
 
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -102,10 +102,10 @@ TEST(RascsiExecutorTest, Detach)
 
 	PrimaryDevice *device1 = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device1->SetLun(0);
-	controller_manager.CreateScsiController(bus, device1);
+	controller_manager.CreateScsiController(device1);
 	PrimaryDevice *device2 = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device2->SetLun(1);
-	controller_manager.CreateScsiController(bus, device2);
+	controller_manager.CreateScsiController(device2);
 
 	EXPECT_FALSE(executor.Detach(context, *device1, false)) << "LUN1 must be detached first";
 
@@ -120,13 +120,13 @@ TEST(RascsiExecutorTest, DetachAll)
 
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
 
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", ID);
-	controller_manager.CreateScsiController(bus, device);
+	controller_manager.CreateScsiController(device);
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_FALSE(device_factory.GetAllDevices().empty());
 
@@ -139,7 +139,7 @@ TEST(RascsiExecutorTest, ShutDown)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -158,7 +158,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -190,7 +190,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
 
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", 5);
-	controller_manager.CreateScsiController(bus, device);
+	controller_manager.CreateScsiController(device);
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
 	device_factory.DeleteAllDevices();
@@ -200,7 +200,7 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
 	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);

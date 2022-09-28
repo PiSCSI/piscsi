@@ -17,13 +17,13 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN1 = 2;
 	const int LUN2 = 3;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
 	MockBus bus;
+	ControllerManager controller_manager(bus);
 
 	auto device1 = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device1->SetId(ID);
 	device1->SetLun(LUN1);
-	controller_manager.CreateScsiController(bus, device1);
+	controller_manager.CreateScsiController(device1);
 	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
@@ -36,7 +36,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	auto device2 = device_factory.CreateDevice(UNDEFINED, "services", ID);
 	device2->SetId(ID);
 	device2->SetLun(LUN2);
-	controller_manager.CreateScsiController(bus, device2);
+	controller_manager.CreateScsiController(device2);
 	EXPECT_FALSE(controller_manager.DeleteController(ID));
 
 	controller_manager.DeleteAllControllers();
@@ -47,7 +47,8 @@ TEST(ControllerManagerTest, LifeCycle)
 
 TEST(ControllerManagerTest, ResetAllControllers)
 {
-	ControllerManager controller_manager;
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 
 	auto controller = make_shared<MockScsiController>(0);
 	controller_manager.controllers[0] = controller;

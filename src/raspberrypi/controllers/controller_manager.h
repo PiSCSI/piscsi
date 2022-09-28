@@ -22,15 +22,17 @@ class PrimaryDevice;
 
 class ControllerManager
 {
+	BUS& bus;
+
 public:
 
-	ControllerManager() = default;
+	ControllerManager(BUS& bus) : bus(bus) {}
 	~ControllerManager() = default;
 
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	bool CreateScsiController(BUS&, PrimaryDevice *);
+	bool CreateScsiController(PrimaryDevice *);
 	bool DeleteController(int);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
