@@ -25,7 +25,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-multimap<int, unique_ptr<PrimaryDevice>> DeviceFactory::devices;
+multimap<int, shared_ptr<PrimaryDevice>> DeviceFactory::devices;
 
 DeviceFactory::DeviceFactory()
 {

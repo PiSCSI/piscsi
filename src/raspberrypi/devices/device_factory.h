@@ -52,7 +52,7 @@ private:
 
 	string GetExtension(const string&) const;
 
-	static std::multimap<int, unique_ptr<PrimaryDevice>> devices;
+	static std::multimap<int, shared_ptr<PrimaryDevice>> devices;
 
 	unordered_set<uint32_t> empty_set;
 	unordered_map<string, string> empty_map;
