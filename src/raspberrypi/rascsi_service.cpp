@@ -17,8 +17,6 @@
 #include <netinet/in.h>
 #include <csignal>
 
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-
 using namespace rascsi_interface;
 
 volatile bool RascsiService::is_running = false;
@@ -52,7 +50,7 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 	signal(SIGPIPE, SIG_IGN);
 
 	if (bind(service_socket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
-		FPRT(stderr, "Error: Port %d is in use, is rascsi already running?\n", port);
+		cerr << "Error: Port " << port << " is in use, is rascsi already running?" << endl;
 		return false;
 	}
 
