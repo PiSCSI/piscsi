@@ -307,12 +307,12 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	const int lun = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 
-	if (controller_manager.GetDeviceByIdAndLun(id, lun) != nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
-	}
-
 	if (lun >= ScsiController::LUN_MAX) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX));
+	}
+
+	if (controller_manager.GetDeviceByIdAndLun(id, lun) != nullptr) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
 	string filename = GetParam(pb_device, "file");

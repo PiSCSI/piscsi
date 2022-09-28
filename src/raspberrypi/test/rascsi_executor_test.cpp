@@ -36,6 +36,37 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
+TEST(RascsiExecutorTest, Attach)
+{
+	const int ID = 3;
+	const int LUN = 0;
+
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager;
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, rascsi_image, 32);
+	RascsiExecutor executor(bus, rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbDeviceDefinition device_definition;
+	ProtobufSerializer serializer;
+	Localizer localizer;
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+
+	device_definition.set_unit(32);
+	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, "services", ID);
+	controller_manager.CreateScsiController(bus, device);
+	device_definition.set_id(ID);
+	device_definition.set_unit(LUN);
+	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	device_factory.DeleteAllDevices();
+	controller_manager.DeleteAllControllers();
+
+	device_definition.set_type(PbDeviceType::SCHS);
+	EXPECT_TRUE(executor.Attach(context, device_definition, false));
+}
+
 TEST(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
