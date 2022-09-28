@@ -824,34 +824,20 @@ def download_to_iso():
     ])
 
 
-@APP.route("/files/download_to_images", methods=["POST"])
+@APP.route("/files/download_url", methods=["POST"])
 @login_required
-def download_img():
+def download_file():
     """
     Downloads a remote file onto the images dir on the Pi
     """
+    destination = request.form.get("destination")
     url = request.form.get("url")
-    server_info = ractl_cmd.get_server_info()
-    process = file_cmd.download_to_dir(url, server_info["image_dir"], Path(url).name)
-    process = ReturnCodeMapper.add_msg(process)
-    if process["status"]:
-        return response(message=process["msg"])
-
-    return response(error=True, message=[
-        (_("Failed to download file from %(url)s", url=url), "error"),
-        (process["msg"], "error"),
-    ])
-
-
-@APP.route("/files/download_to_afp", methods=["POST"])
-@login_required
-def download_afp():
-    """
-    Downloads a remote file onto the AFP shared dir on the Pi
-    """
-    url = request.form.get("url")
-    file_name = Path(url).name
-    process = file_cmd.download_to_dir(url, AFP_DIR, file_name)
+    if destination == "afp":
+        destination_dir = AFP_DIR
+    else:
+        server_info = ractl_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         return response(message=process["msg"])
@@ -873,8 +859,13 @@ def upload_file():
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
 
-    server_info = ractl_cmd.get_server_info()
-    return upload_with_dropzonejs(server_info["image_dir"])
+    destination = request.form.get("destination")
+    if destination == "afp":
+        destination_dir = AFP_DIR
+    else:
+        server_info = ractl_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    return upload_with_dropzonejs(destination_dir)
 
 
 @APP.route("/files/create", methods=["POST"])
