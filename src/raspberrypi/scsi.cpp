@@ -71,7 +71,7 @@ const array<BUS::phase_t, 8> BUS::phase_table = {
 // Phase string to phase mapping
 //
 //---------------------------------------------------------------------------
-const unordered_map<BUS::phase_t, const char*> BUS::phase_str_mapping {
+const unordered_map<BUS::phase_t, const char*> BUS::phase_str_mapping = {
 	{ phase_t::busfree, "busfree" },
 	{ phase_t::arbitration, "arbitration" },
 	{ phase_t::selection, "selection" },
