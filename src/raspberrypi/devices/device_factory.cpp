@@ -25,7 +25,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-multimap<int, shared_ptr<PrimaryDevice>> DeviceFactory::devices;
+unordered_set<shared_ptr<PrimaryDevice>> DeviceFactory::devices;
 
 DeviceFactory::DeviceFactory()
 {
@@ -62,11 +62,9 @@ DeviceFactory::DeviceFactory()
 
 void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
 {
-	auto [begin, end] = devices.equal_range(device.GetId());
-	for (auto& it = begin; it != end; ++it) {
-		if (it->second->GetLun() == device.GetLun()) {
-			devices.erase(it);
-
+	for (auto const& d : devices) {
+		if (d->GetId() == device.GetId() && d->GetLun() == device.GetLun()) {
+			devices.erase(d);
 			break;
 		}
 	}
@@ -77,10 +75,10 @@ void DeviceFactory::DeleteAllDevices() const
 	devices.clear();
 }
 
-const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
+const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 {
-	for (const auto& [id, device] : devices) {
-		if (device->GetId() == i && device->GetLun() == lun) {
+	for (const auto& device : devices) {
+		if (device->GetId() == id && device->GetLun() == lun) {
 			return device.get();
 		}
 	}
@@ -92,7 +90,7 @@ list<PrimaryDevice *> DeviceFactory::GetAllDevices() const
 {
 	list<PrimaryDevice *> result;
 
-	for (const auto& [id, device] : devices) {
+	for (const auto& device : devices) {
 		result.push_back(device.get());
 	}
 
@@ -142,11 +140,11 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		}
 	}
 
-	unique_ptr<PrimaryDevice> device;
+	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_unique<SCSIHD_NEC>(id, lun);
+			device = make_shared<SCSIHD_NEC>(id, lun);
 		} else {
 			device = make_unique<SCSIHD>(id, lun, sector_sizes[SCHD], false,
 					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
@@ -163,7 +161,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 	}
 
 	case SCRM:
-		device = make_unique<SCSIHD>(id, lun, sector_sizes[SCRM], true);
+		device = make_shared<SCSIHD>(id, lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -172,7 +170,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCMO:
-		device = make_unique<SCSIMO>(id, lun, sector_sizes[SCMO]);
+		device = make_shared<SCSIMO>(id, lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -181,7 +179,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCCD:
-		device = make_unique<SCSICD>(id, lun, sector_sizes[SCCD]);
+		device = make_shared<SCSICD>(id, lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -190,14 +188,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCBR:
-		device = make_unique<SCSIBR>(id, lun);
+		device = make_shared<SCSIBR>(id, lun);
 		device->SetProduct("SCSI HOST BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
 	case SCDP:
-		device = make_unique<SCSIDaynaPort>(id, lun);
+		device = make_shared<SCSIDaynaPort>(id, lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -207,14 +205,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(id, lun, *this);
+		device = make_shared<HostServices>(id, lun, *this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = make_unique<SCSIPrinter>(id, lun);
+		device = make_shared<SCSIPrinter>(id, lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
@@ -225,11 +223,9 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 	}
 
 	if (device != nullptr) {
-		PrimaryDevice *d = device.release();
+		devices.insert(device);
 
-		devices.emplace(id, d);
-
-		return d;
+		return device.get();
 	}
 
 	return nullptr;
