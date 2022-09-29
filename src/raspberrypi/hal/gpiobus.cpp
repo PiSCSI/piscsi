@@ -1070,7 +1070,7 @@ void GPIOBUS::MakeTable(void)
 
 	// Create parity table
 	for (uint32_t i = 0; i < 0x100; i++) {
-		auto bits = i;
+		uint32_t bits = i;
 		uint32_t parity = 0;
 		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
@@ -1086,7 +1086,7 @@ void GPIOBUS::MakeTable(void)
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
 	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		auto bits = i;
+		uint32_t bits = i;
 
 		// Get parity
 		if (tblParity[i]) {
