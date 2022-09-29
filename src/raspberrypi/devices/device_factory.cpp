@@ -75,11 +75,11 @@ void DeviceFactory::DeleteAllDevices() const
 	devices.clear();
 }
 
-const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
+const shared_ptr<PrimaryDevice> DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 {
 	for (const auto& device : devices) {
 		if (device->GetId() == id && device->GetLun() == lun) {
-			return device.get();
+			return device;
 		}
 	}
 

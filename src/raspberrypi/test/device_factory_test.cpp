@@ -39,9 +39,12 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 
 TEST(DeviceFactoryTest, LifeCycle)
 {
+	const int ID = 3;
+	const int LUN = 5;
+
 	DeviceFactory device_factory;
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, 0, "services");
+	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, ID, LUN, "services");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 
@@ -49,7 +52,10 @@ TEST(DeviceFactoryTest, LifeCycle)
 	EXPECT_EQ(1, devices.size());
 	EXPECT_TRUE(devices.find(device) != devices.end());
 
-	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(0, 0));
+	auto d = device_factory.GetDeviceByIdAndLun(ID, LUN);
+	EXPECT_NE(nullptr, d);
+	EXPECT_EQ(ID, d->GetId());
+	EXPECT_EQ(LUN, d->GetLun());
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 1));
 
 	device_factory.DeleteDevice(*device);
