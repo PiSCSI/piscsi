@@ -505,9 +505,9 @@ private:
 
 	DWORD tblDatSet[3][256];			// Data setting table
 #else
-	array<DWORD, 256> tblDatMsk;		// Data mask table
+	array<DWORD, 256> tblDatMsk = {};	// Data mask table
 
-	array<DWORD, 256> tblDatSet;		// Table setting table
+	array<DWORD, 256> tblDatSet = {};	// Table setting table
 #endif
 
 	static const array<int, 19> SignalTable;	// signal table
