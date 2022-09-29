@@ -25,8 +25,6 @@
 using namespace std;
 using namespace rascsi_interface;
 
-unordered_set<shared_ptr<PrimaryDevice>> DeviceFactory::devices;
-
 DeviceFactory::DeviceFactory()
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
@@ -58,27 +56,6 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["hdr"] = SCRM;
 	extension_mapping["mos"] = SCMO;
 	extension_mapping["iso"] = SCCD;
-}
-
-void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
-{
-	for (auto const& d : devices) {
-		if (d->GetId() == device.GetId() && d->GetLun() == device.GetLun()) {
-			devices.erase(d);
-			break;
-		}
-	}
-}
-
-const shared_ptr<PrimaryDevice> DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
-{
-	for (const auto& device : devices) {
-		if (device->GetId() == id && device->GetLun() == lun) {
-			return device;
-		}
-	}
-
-	return nullptr;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
@@ -114,7 +91,8 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, const string& filename)
+PrimaryDevice *DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
+		int lun, const string& filename)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -124,13 +102,13 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		}
 	}
 
-	shared_ptr<PrimaryDevice> device;
+	unique_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_shared<SCSIHD_NEC>(id, lun);
+			device = make_unique<SCSIHD_NEC>(lun);
 		} else {
-			device = make_unique<SCSIHD>(id, lun, sector_sizes[SCHD], false,
+			device = make_unique<SCSIHD>(lun, sector_sizes[SCHD], false,
 					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
@@ -145,7 +123,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 	}
 
 	case SCRM:
-		device = make_shared<SCSIHD>(id, lun, sector_sizes[SCRM], true);
+		device = make_unique<SCSIHD>(lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -154,7 +132,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCMO:
-		device = make_shared<SCSIMO>(id, lun, sector_sizes[SCMO]);
+		device = make_unique<SCSIMO>(lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -163,7 +141,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(id, lun, sector_sizes[SCCD]);
+		device = make_unique<SCSICD>(lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -172,14 +150,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCBR:
-		device = make_shared<SCSIBR>(id, lun);
+		device = make_unique<SCSIBR>(lun);
 		device->SetProduct("SCSI HOST BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
 	case SCDP:
-		device = make_shared<SCSIDaynaPort>(id, lun);
+		device = make_unique<SCSIDaynaPort>(lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -189,14 +167,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 
 	case SCHS:
-		device = make_shared<HostServices>(id, lun, *this);
+		device = make_unique<HostServices>(lun, controller_manager);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = make_shared<SCSIPrinter>(id, lun);
+		device = make_unique<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
@@ -206,13 +184,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, c
 		break;
 	}
 
-	if (device != nullptr) {
-		devices.insert(device);
-
-		return device.get();
-	}
-
-	return nullptr;
+	return device != nullptr ? device.release() : nullptr;
 }
 
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const

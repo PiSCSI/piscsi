@@ -12,6 +12,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
 using namespace std; //NOSONAR Not relevant for rascsi
@@ -35,9 +36,10 @@ public:
 	static const int DEVICE_MAX = 8;
 
 	bool CreateScsiController(int, PrimaryDevice *);
-	bool DeleteController(int);
+	void DeleteController(shared_ptr<AbstractController>);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
+	unordered_set<PrimaryDevice *> GetAllDevices() const;
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;

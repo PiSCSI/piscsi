@@ -32,7 +32,7 @@ class SCSIBR final : public Disk
 
 public:
 
-	SCSIBR(int, int);
+	explicit SCSIBR(int);
 	~SCSIBR() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

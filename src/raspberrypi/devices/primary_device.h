@@ -19,13 +19,14 @@
 
 class PrimaryDevice: public ScsiPrimaryCommands, public Device
 {
-
 public:
 
-	PrimaryDevice(const string&, int, int);
+	PrimaryDevice(const string&, int);
 	~PrimaryDevice() override = default;
 
 	virtual bool Dispatch(scsi_command);
+
+	int GetId() const;
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);

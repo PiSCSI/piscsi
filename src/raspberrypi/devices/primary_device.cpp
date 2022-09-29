@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(const string& type, int id, int lun) : Device(type, id, lun)
+PrimaryDevice::PrimaryDevice(const string& type, int lun) : Device(type, lun)
 {
 	// Mandatory SCSI primary commands
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
@@ -31,6 +31,15 @@ PrimaryDevice::PrimaryDevice(const string& type, int id, int lun) : Device(type,
 bool PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	return dispatcher.Dispatch(this, cmd);
+}
+
+int PrimaryDevice::GetId() const
+{
+	if (controller == nullptr) {
+		LOGERROR("Device is missing its controller")
+	}
+
+	return controller != nullptr ? controller->GetTargetId() : -1;
 }
 
 void PrimaryDevice::SetController(AbstractController *c)

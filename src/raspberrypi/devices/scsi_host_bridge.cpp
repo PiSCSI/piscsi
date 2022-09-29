@@ -27,7 +27,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIBR::SCSIBR(int id, int lun) : Disk("SCBR", id, lun)
+SCSIBR::SCSIBR(int lun) : Disk("SCBR", lun)
 {
 	// Create host file system
 	fs.Reset();

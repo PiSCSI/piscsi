@@ -15,14 +15,14 @@
 #include <vector>
 #include <map>
 
-class DeviceFactory;
+class ControllerManager;
 
 class HostServices: public ModePageDevice
 {
 
 public:
 
-	HostServices(int, int, const DeviceFactory&);
+	HostServices(int, const ControllerManager&);
 	~HostServices() override = default;
 
 	bool Dispatch(scsi_command) override;
@@ -56,10 +56,10 @@ private:
 
 	Dispatcher<HostServices> dispatcher;
 
+	const ControllerManager& controller_manager;
+
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
-
-	const DeviceFactory& device_factory;
 };

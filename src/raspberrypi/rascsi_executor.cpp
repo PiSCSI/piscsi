@@ -317,7 +317,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	PrimaryDevice *device = device_factory.CreateDevice(type, id, lun, filename);
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, type, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
@@ -350,28 +350,20 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		auto disk = dynamic_cast<Disk *>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
-				device_factory.DeleteDevice(*device);
-
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			device_factory.DeleteDevice(*device);
-
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
 	}
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
-		device_factory.DeleteDevice(*device);
-
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	if (file_support != nullptr && !ReserveImageFile(context, *device, filename)) {
-		device_factory.DeleteDevice(*device);
-
+	if (file_support != nullptr && !ValidateImageFile(context, *device, filename)) {
 		return false;
 	}
 
@@ -383,8 +375,6 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
-		device_factory.DeleteDevice(*device);
-
 		return true;
 	}
 
@@ -392,16 +382,18 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	if (!device->SupportsFile()) {
 		params.erase("file");
 	}
-	if (!device->Init(params)) {
-		device_factory.DeleteDevice(*device);
 
+	if (!device->Init(params)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
 				to_string(id), to_string(lun));
 	}
-
 	if (!controller_manager.CreateScsiController(id, device)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
+
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -452,9 +444,13 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	if (!ReserveImageFile(context, device, filename)) {
+	if (!ValidateImageFile(context, device, filename)) {
 		return false;
 	}
+
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	dynamic_cast<FileSupport *>(&device)->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
@@ -491,9 +487,9 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 		}
 
 		// Delete the device and if no LUN is left also delete the controller
-		device_factory.DeleteDevice(device);
-		if (!controller->GetLunCount() && !controller_manager.DeleteController(device.GetId())) {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
+		controller->DeleteDevice(device);
+		if (!controller->GetLunCount()) {
+			controller_manager.DeleteController(controller);
 		}
 
 		LOGINFO("%s", s.c_str())
@@ -505,7 +501,6 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 void RascsiExecutor::DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	device_factory.DeleteDevices();
 	FileSupport::UnreserveAll();
 
 	LOGINFO("Detached all devices")
@@ -612,7 +607,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& device, const string& filename) const
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& device, const string& filename) const
 {
 	auto file_support = dynamic_cast<FileSupport *>(&device);
 	if (file_support == nullptr || filename.empty()) {
@@ -648,8 +643,6 @@ bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& dev
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
-	file_support->ReserveFile(filepath, device.GetId(), device.GetLun());
-
 	return true;
 }
 
@@ -664,7 +657,7 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto& device : device_factory.GetDevices()) {
+	for (const auto& device : controller_manager.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 

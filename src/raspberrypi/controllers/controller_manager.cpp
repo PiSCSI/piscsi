@@ -17,8 +17,6 @@ using namespace std;
 
 bool ControllerManager::CreateScsiController(int id, PrimaryDevice *device)
 {
-	assert(id == device->GetId());
-
 	shared_ptr<AbstractController> controller = FindController(id);
 	if (controller == nullptr) {
 		controller = make_shared<ScsiController>(bus, id);
@@ -28,15 +26,9 @@ bool ControllerManager::CreateScsiController(int id, PrimaryDevice *device)
 	return controller->AddDevice(device);
 }
 
-bool ControllerManager::DeleteController(int target_id)
+void ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
 {
-	if (auto controller = FindController(target_id); controller == nullptr || controller->GetLunCount() > 0) {
-		return false;
-	}
-
-	controllers.erase(target_id);
-
-	return true;
+	controllers.erase(controller->GetTargetId());
 }
 
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
@@ -54,6 +46,18 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 {
 	const auto& it = controllers.find(target_id);
 	return it == controllers.end() ? nullptr : it->second;
+}
+
+unordered_set<PrimaryDevice *> ControllerManager::GetAllDevices() const
+{
+	unordered_set<PrimaryDevice *> devices;
+
+	for (const auto& [id, controller] : controllers) {
+		auto d = controller->GetDevices();
+		devices.insert(d.begin(), d.end());
+	}
+
+	return devices;
 }
 
 void ControllerManager::DeleteAllControllers()

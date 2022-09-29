@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
@@ -16,8 +17,10 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	PbResult pb_operation_info_result;
 
 	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
@@ -26,13 +29,16 @@ TEST(RascsiResponseTest, Operation_Count)
 
 TEST(RascsiResponseTest, GetDevice_Printer)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, 0, 0, "printer");
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+
+	auto d = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
+	controller_manager.CreateScsiController(0, d);
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
@@ -48,18 +54,20 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 	EXPECT_FALSE(device.properties().removable());
 	EXPECT_FALSE(device.properties().lockable());
 	EXPECT_EQ(0, device.params().size());
-
 }
 
 TEST(RascsiResponseTest, GetDevice_HostServices)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, 0, 0, "services");
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+
+	auto d = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	controller_manager.CreateScsiController(0, d);
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
@@ -79,8 +87,10 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	unordered_set<int> ids;
 	PbResult result;
 

@@ -18,7 +18,7 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string&, int, int);
+	ModePageDevice(const string&, int);
 	~ModePageDevice()override = default;
 
 	bool Dispatch(scsi_command) override;

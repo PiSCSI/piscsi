@@ -18,13 +18,15 @@ using namespace std; //NOSONAR Not relevant for rascsi
 using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
 class DeviceFactory;
+class ControllerManager;
 class Device;
 
 class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory& device_factory, int max_luns) : device_factory(device_factory), max_luns(max_luns) {}
+	RascsiResponse(DeviceFactory& device_factory, const ControllerManager& controller_manager, int max_luns)
+		: device_factory(device_factory), controller_manager(controller_manager), max_luns(max_luns) {}
 	~RascsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
@@ -44,6 +46,8 @@ public:
 private:
 
 	DeviceFactory& device_factory;
+
+	const ControllerManager& controller_manager;
 
 	int max_luns;
 
