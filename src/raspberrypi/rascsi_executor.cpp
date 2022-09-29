@@ -371,13 +371,13 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	Filepath filepath;
 	if (file_support != nullptr && !filename.empty()) {
+		int reserved_id;
+		int reserved_lun;
+		Filepath filepath;
 		filepath.SetPath(filename.c_str());
 		string initial_filename = filepath.GetPath();
 
-		int reserved_id;
-		int reserved_lun;
 		if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
 			device_factory.DeleteDevice(*device);
 
