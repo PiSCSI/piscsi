@@ -51,7 +51,7 @@ using namespace scsi_defs;
 using namespace ras_util;
 using namespace scsi_command_util;
 
-SCSIPrinter::SCSIPrinter(int id, int lun) : PrimaryDevice("SCLP", id, lun)
+SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);

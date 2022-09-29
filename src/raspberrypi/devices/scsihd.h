@@ -26,7 +26,7 @@ class SCSIHD : public Disk, public FileSupport
 
 public:
 
-	SCSIHD(int, int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
+	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSIHD() override = default;
 
 	void FinalizeSetup(const Filepath&, off_t, off_t = 0);

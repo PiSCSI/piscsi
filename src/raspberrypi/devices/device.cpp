@@ -16,7 +16,7 @@
 
 using namespace std;
 
-Device::Device(const string& type, int id, int lun) : type(type), id(id), lun(lun)
+Device::Device(const string& type, int lun) : type(type), lun(lun)
 {
 	assert(type.length() == 4);
 

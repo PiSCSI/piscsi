@@ -24,7 +24,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	vector<int> cdb(6);
 	vector<BYTE> buf(512);
 
-	MockModePageDevice device(0, 0);
+	MockModePageDevice device(0);
 	cdb[2] = 0x3f;
 
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, -1)) << "Negative maximum length must be rejected";
@@ -39,7 +39,7 @@ TEST(ModePagesTest, SCSIHD_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD device(0, 0, sector_sizes);
+	MockSCSIHD device(0, sector_sizes);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
@@ -53,7 +53,7 @@ TEST(ModePagesTest, SCSIHD_SetUpModePages)
 TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
-	MockSCSIHD_NEC device(0, 0);
+	MockSCSIHD_NEC device(0);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
@@ -68,7 +68,7 @@ TEST(ModePagesTest, SCSICD_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD device(0, 0, sector_sizes);
+	MockSCSICD device(0, sector_sizes);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(7, mode_pages.size()) << "Unexpected number of mode pages";
@@ -85,7 +85,7 @@ TEST(ModePagesTest, SCSIMO_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO device(0, 0, sector_sizes);
+	MockSCSIMO device(0, sector_sizes);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(6, mode_pages.size()) << "Unexpected number of mode pages";
@@ -101,7 +101,7 @@ TEST(ModePagesTest, HostServices_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	DeviceFactory device_factory;
-	MockHostServices device(0, 0, device_factory);
+	MockHostServices device(0, device_factory);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";

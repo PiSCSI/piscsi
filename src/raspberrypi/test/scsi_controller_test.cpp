@@ -20,7 +20,7 @@ TEST(ScsiControllerTest, GetMaxLuns)
 TEST(ScsiControllerTest, RequestSense)
 {
 	MockScsiController controller(0);
-	MockPrimaryDevice device(0, 0);
+	MockPrimaryDevice device(0);
 
 	controller.AddDevice(&device);
 

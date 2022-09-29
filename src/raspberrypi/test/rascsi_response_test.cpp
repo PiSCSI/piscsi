@@ -26,9 +26,13 @@ TEST(RascsiResponseTest, Operation_Count)
 
 TEST(RascsiResponseTest, GetDevice_Printer)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, 0, 0, "printer");
+
+	auto d = device_factory.CreateDevice(UNDEFINED, 0, "printer");
+	controller_manager.CreateScsiController(0, d);
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
@@ -53,9 +57,13 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 
 TEST(RascsiResponseTest, GetDevice_HostServices)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, 0, 0, "services");
+
+	auto d = device_factory.CreateDevice(UNDEFINED, 0, "services");
+	controller_manager.CreateScsiController(0, d);
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");

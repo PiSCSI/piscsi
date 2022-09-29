@@ -30,7 +30,7 @@ public:
 	DeviceFactory();
 	~DeviceFactory() = default;
 
-	PrimaryDevice *CreateDevice(PbDeviceType, int, int, const string&);
+	PrimaryDevice *CreateDevice(PbDeviceType, int, const string&);
 	void DeleteDevice(const PrimaryDevice&) const;
 	void DeleteDevices() const { devices.clear(); }
 	const shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;

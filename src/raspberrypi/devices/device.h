@@ -46,8 +46,6 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool supports_params = false;
 
 	// Immutable device ID and LUN
-	// TODO The ID should depend on the controller only
-	int id;
 	int lun;
 
 	// Device identifier (for INQUIRY)
@@ -81,7 +79,7 @@ protected:
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	Device(const string&, int, int);
+	Device(const string&, int);
 
 public:
 
@@ -113,7 +111,7 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool b) { locked = b; }
 
-	int GetId() const { return id; }
+	virtual int GetId() const = 0;
 	int GetLun() const { return lun; }
 
 	string GetVendor() const { return vendor; }

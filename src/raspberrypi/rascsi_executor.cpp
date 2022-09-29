@@ -317,7 +317,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	PrimaryDevice *device = device_factory.CreateDevice(type, id, lun, filename);
+	PrimaryDevice *device = device_factory.CreateDevice(type, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
@@ -369,7 +369,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	if (file_support != nullptr && !ReserveImageFile(context, *device, filename)) {
+	if (file_support != nullptr && !ValidateImageFile(context, *device, filename)) {
 		device_factory.DeleteDevice(*device);
 
 		return false;
@@ -402,6 +402,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	if (!controller_manager.CreateScsiController(id, device)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
+
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -452,9 +456,13 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	if (!ReserveImageFile(context, device, filename)) {
+	if (!ValidateImageFile(context, device, filename)) {
 		return false;
 	}
+
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	dynamic_cast<FileSupport *>(&device)->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
@@ -492,8 +500,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 
 		// Delete the device and if no LUN is left also delete the controller
 		device_factory.DeleteDevice(device);
-		if (!controller->GetLunCount() && !controller_manager.DeleteController(device.GetId())) {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
+		if (!controller->GetLunCount()) {
+			controller_manager.DeleteController(controller);
 		}
 
 		LOGINFO("%s", s.c_str())
@@ -612,7 +620,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& device, const string& filename) const
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& device, const string& filename) const
 {
 	auto file_support = dynamic_cast<FileSupport *>(&device);
 	if (file_support == nullptr || filename.empty()) {
@@ -647,8 +655,6 @@ bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& dev
 	catch(const io_exception& e) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
-
-	file_support->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	return true;
 }

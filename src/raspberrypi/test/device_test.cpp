@@ -11,7 +11,7 @@
 #include "rascsi_exceptions.h"
 #include "devices/device.h"
 
-class TestDevice final : public Device
+class MockDevice final : public Device
 {
 	FRIEND_TEST(DeviceTest, Params);
 	FRIEND_TEST(DeviceTest, StatusCode);
@@ -22,16 +22,17 @@ class TestDevice final : public Device
 
 public:
 
-	TestDevice(int id, int lun) : Device("test", id, lun) {}
-	~TestDevice() override = default;
+	MOCK_METHOD(int, GetId, (), (const));
+
+	explicit MockDevice(int lun) : Device("test", lun) {}
+	~MockDevice() override = default;
 };
 
 TEST(DeviceTest, Properties)
 {
-	const int ID = 4;
 	const int LUN = 5;
 
-	TestDevice device(ID, LUN);
+	MockDevice device(LUN);
 
 	EXPECT_FALSE(device.IsProtectable());
 	device.SetProtectable(true);
@@ -69,13 +70,12 @@ TEST(DeviceTest, Properties)
 	device.SetLocked(true);
 	EXPECT_TRUE(device.IsLocked());
 
-	EXPECT_EQ(ID, device.GetId());
 	EXPECT_EQ(LUN, device.GetLun());
 }
 
 TEST(DeviceTest, Vendor)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	EXPECT_THROW(device.SetVendor(""), invalid_argument);
 	EXPECT_THROW(device.SetVendor("123456789"), invalid_argument);
@@ -85,7 +85,7 @@ TEST(DeviceTest, Vendor)
 
 TEST(DeviceTest, Product)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	EXPECT_THROW(device.SetProduct(""), invalid_argument);
 	EXPECT_THROW(device.SetProduct("12345678901234567"), invalid_argument);
@@ -97,7 +97,7 @@ TEST(DeviceTest, Product)
 
 TEST(DeviceTest, Revision)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	EXPECT_THROW(device.SetRevision(""), invalid_argument);
 	EXPECT_THROW(device.SetRevision("12345"), invalid_argument);
@@ -107,7 +107,7 @@ TEST(DeviceTest, Revision)
 
 TEST(DeviceTest, GetPaddedName)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetVendor("V");
 	device.SetProduct("P");
@@ -118,7 +118,7 @@ TEST(DeviceTest, GetPaddedName)
 
 TEST(DeviceTest, Params)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 	unordered_map<string, string> params;
 	params["key"] = "value";
 
@@ -138,7 +138,7 @@ TEST(DeviceTest, Params)
 
 TEST(DeviceTest, StatusCode)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetStatusCode(123);
 	EXPECT_EQ(123, device.GetStatusCode());
@@ -146,7 +146,7 @@ TEST(DeviceTest, StatusCode)
 
 TEST(DeviceTest, Reset)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetLocked(true);
 	device.SetAttn(true);
@@ -159,7 +159,7 @@ TEST(DeviceTest, Reset)
 
 TEST(DeviceTest, Start)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetStopped(true);
 	device.SetReady(false);
@@ -172,7 +172,7 @@ TEST(DeviceTest, Start)
 
 TEST(DeviceTest, Stop)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetReady(true);
 	device.SetAttn(true);
@@ -185,7 +185,7 @@ TEST(DeviceTest, Stop)
 
 TEST(DeviceTest, Eject)
 {
-	TestDevice device(0, 0);
+	MockDevice device(0);
 
 	device.SetReady(false);
 	device.SetRemovable(false);

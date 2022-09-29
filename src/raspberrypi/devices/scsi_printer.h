@@ -24,7 +24,7 @@ class SCSIPrinter final : public PrimaryDevice, public ScsiPrinterCommands //NOS
 
 public:
 
-	SCSIPrinter(int, int);
+	explicit SCSIPrinter(int);
 	~SCSIPrinter() override;
 
 	bool Dispatch(scsi_command) override;
