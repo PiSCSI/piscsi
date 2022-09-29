@@ -457,7 +457,6 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	auto file_support = dynamic_cast<FileSupport *>(&device);
-
 	if (!OpenImageFile(context, *file_support, device, filename)) {
 		return false;
 	}
