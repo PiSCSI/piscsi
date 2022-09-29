@@ -626,12 +626,13 @@ bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& f
 	int reserved_lun;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
-	string initial_filename = filepath.GetPath();
 
 	if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 				to_string(reserved_id), to_string(reserved_lun));
 	}
+
+	string initial_filename = filepath.GetPath();
 
 	try {
 		try {
