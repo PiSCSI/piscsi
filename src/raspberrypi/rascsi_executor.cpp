@@ -376,12 +376,13 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		filepath.SetPath(filename.c_str());
 		string initial_filename = filepath.GetPath();
 
-		int device_id;
-		int unit;
-		if (FileSupport::GetIdsForReservedFile(filepath, device_id, unit)) {
+		int reserved_id;
+		int reserved_lun;
+		if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(device_id), to_string(unit));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+					to_string(reserved_id), to_string(reserved_lun));
 		}
 
 		try {
@@ -392,10 +393,11 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				// If the file does not exist search for it in the default image folder
 				filepath.SetPath(string(rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-				if (FileSupport::GetIdsForReservedFile(filepath, device_id, unit)) {
+				if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
 					device_factory.DeleteDevice(*device);
 
-					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(device_id), to_string(unit));
+					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+							to_string(reserved_id), to_string(reserved_lun));
 				}
 
 				file_support->Open(filepath);
@@ -487,14 +489,15 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	int id;
-	int lun;
+	int reserved_id;
+	int reserved_lun;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 	string initial_filename = filepath.GetPath();
 
-	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
+	if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+				to_string(reserved_id), to_string(reserved_lun));
 	}
 
 	auto file_support = dynamic_cast<FileSupport *>(&device);
@@ -506,8 +509,9 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(lun));
+			if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename
+						, to_string(reserved_id), to_string(reserved_lun));
 			}
 
 			file_support->Open(filepath);
