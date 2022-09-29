@@ -22,7 +22,8 @@ bool ras_util::GetAsInt(const string& value, int& result)
 	}
 
 	try {
-		result = (int)stoul(value);
+		auto v = stoul(value);
+		result = (int)v;
 	}
 	catch(const invalid_argument&) {
 		return false;
