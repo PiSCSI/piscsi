@@ -479,7 +479,7 @@ msgstr "SCSI-id"
 #: src/templates/deviceinfo.html:13 src/templates/index.html:43
 #: src/templates/index.html:273 src/templates/index.html:381
 msgid "LUN"
-msgstr "Enhetsnummer"
+msgstr "LUN"
 
 #: src/templates/deviceinfo.html:17 src/templates/index.html:45
 msgid "Type"
