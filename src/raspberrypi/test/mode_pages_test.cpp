@@ -99,11 +99,12 @@ TEST(ModePagesTest, SCSIMO_SetUpModePages)
 
 TEST(ModePagesTest, HostServices_SetUpModePages)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	MockHostServices device(0, controller_manager);
 	map<int, vector<byte>> mode_pages;
-	DeviceFactory device_factory;
-	MockHostServices device(0, device_factory);
-	device.SetUpModePages(mode_pages, 0x3f, false);
 
+	device.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(10, mode_pages[32].size());
 }

@@ -21,6 +21,7 @@
 using namespace std; //NOSONAR Not relevant for rascsi
 using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
+class ControllerManager;
 class PrimaryDevice;
 
 class DeviceFactory
@@ -30,11 +31,10 @@ public:
 	DeviceFactory();
 	~DeviceFactory() = default;
 
-	PrimaryDevice *CreateDevice(PbDeviceType, int, const string&);
+	PrimaryDevice *CreateDevice(const ControllerManager&, PbDeviceType, int, const string&);
 	void DeleteDevice(const PrimaryDevice&) const;
 	void DeleteDevices() const { devices.clear(); }
 	const shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
-	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const { return devices; }
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;

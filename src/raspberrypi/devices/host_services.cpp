@@ -20,9 +20,9 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
+#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "rascsi_exceptions.h"
-#include "device_factory.h"
 #include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "host_services.h"
@@ -31,7 +31,8 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(int lun, const DeviceFactory& factory) : ModePageDevice("SCHS", lun), device_factory(factory)
+HostServices::HostServices(int lun, const ControllerManager& manager)
+	: ModePageDevice("SCHS", lun), controller_manager(manager)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
@@ -61,7 +62,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (const auto& device : device_factory.GetDevices()) {
+		for (const auto& device : controller_manager.GetAllDevices()) {
 			device->FlushCache();
 		}
 

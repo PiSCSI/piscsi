@@ -46,14 +46,10 @@ TEST(DeviceFactoryTest, LifeCycle)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = device_factory.CreateDevice(UNDEFINED, LUN, "services");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
 	controller_manager.CreateScsiController(ID, device);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
-
-	unordered_set<shared_ptr<PrimaryDevice>> devices = device_factory.GetDevices();
-	EXPECT_EQ(1, devices.size());
-	// TODO EXPECT_TRUE(devices.find(device) != devices.end());
 
 	auto d = device_factory.GetDeviceByIdAndLun(ID, LUN);
 	EXPECT_NE(nullptr, d);
@@ -62,8 +58,6 @@ TEST(DeviceFactoryTest, LifeCycle)
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 1));
 
 	device_factory.DeleteDevice(*device);
-	devices = device_factory.GetDevices();
-	EXPECT_TRUE(devices.empty());
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 0));
 }
 
@@ -159,23 +153,27 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device1 = device_factory.CreateDevice(UNDEFINED, 0, "test");
+	PrimaryDevice *device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test");
 	EXPECT_EQ(nullptr, device1);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	PrimaryDevice *device2 = device_factory.CreateDevice(SAHD, 0, "test");
+	PrimaryDevice *device2 = device_factory.CreateDevice(controller_manager, SAHD, 0, "test");
 #pragma GCC diagnostic pop
 	EXPECT_EQ(nullptr, device2);
 }
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "test.hda");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -197,17 +195,17 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 	device_factory.DeleteDevice(*device);
 
-	device = device_factory.CreateDevice(UNDEFINED, 0, "test.hds");
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hds");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	device_factory.DeleteDevice(*device);
 
-	device = device_factory.CreateDevice(UNDEFINED, 0, "test.hdi");
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdi");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	device_factory.DeleteDevice(*device);
 
-	device = device_factory.CreateDevice(UNDEFINED, 0, "test.nhd");
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.nhd");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	device_factory.DeleteDevice(*device);
@@ -215,9 +213,11 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "test.hdr");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -242,9 +242,11 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "test.mos");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -269,9 +271,11 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "test.iso");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -296,9 +300,11 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "bridge");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -323,9 +329,11 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "daynaport");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -349,9 +357,11 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "services");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -376,9 +386,11 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
+	MockBus bus;
 	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, 0, "printer");
+	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());

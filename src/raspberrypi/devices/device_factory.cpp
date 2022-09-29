@@ -114,7 +114,8 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int lun, const string& filename)
+PrimaryDevice *DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
+		int lun, const string& filename)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -189,7 +190,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int lun, const str
 		break;
 
 	case SCHS:
-		device = make_shared<HostServices>(lun, *this);
+		device = make_shared<HostServices>(lun, controller_manager);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
