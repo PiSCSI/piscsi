@@ -1084,9 +1084,9 @@ void GPIOBUS::MakeTable(void)
 	// Mask and setting data generation
 	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
+	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		auto bits = (DWORD)i;
+		auto bits = i;
 
 		// Get parity
 		if (tblParity[i]) {
@@ -1112,11 +1112,11 @@ void GPIOBUS::MakeTable(void)
 	}
 #else
 	// Mask and setting data generation
-	memset(tblDatMsk, 0x00, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
+	fill(tbldatMask.begin(), tbldatMask.end(), 0x00);
+	fill(tblDatSet.begin(), tbldatMask.end(), 0x00);
+	for (uint32_t i = 0; i < 0x100; i++) {
 		// bit string for inspection
-		DWORD bits = (DWORD)i;
+		uint32_t bits = i;
 
 		// get parity
 		if (tblParity[i]) {
@@ -1129,8 +1129,8 @@ void GPIOBUS::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		DWORD gpclr = 0;
-		DWORD gpset = 0;
+		uint32_t gpclr = 0;
+		uint32_t gpset = 0;
 		for (int j = 0; j < 9; j++) {
 			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
