@@ -399,7 +399,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
-	if (!controller_manager.CreateScsiController(device)) {
+	if (!controller_manager.CreateScsiController(id, device)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 

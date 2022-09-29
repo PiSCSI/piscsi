@@ -34,7 +34,7 @@ public:
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	bool CreateScsiController(PrimaryDevice *);
+	bool CreateScsiController(int, PrimaryDevice *);
 	bool DeleteController(int);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;

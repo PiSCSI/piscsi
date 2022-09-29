@@ -15,12 +15,14 @@
 
 using namespace std;
 
-bool ControllerManager::CreateScsiController(PrimaryDevice *device)
+bool ControllerManager::CreateScsiController(int id, PrimaryDevice *device)
 {
-	shared_ptr<AbstractController> controller = FindController(device->GetId());
+	assert(id == device->GetId());
+
+	shared_ptr<AbstractController> controller = FindController(id);
 	if (controller == nullptr) {
-		controller = make_shared<ScsiController>(bus, device->GetId());
-		controllers[device->GetId()] = controller;
+		controller = make_shared<ScsiController>(bus, id);
+		controllers[id] = controller;
 	}
 
 	return controller->AddDevice(device);
