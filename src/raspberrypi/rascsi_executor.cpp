@@ -371,7 +371,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	if (file_support != nullptr && !OpenImageFile(context, *device, filename)) {
+	if (file_support != nullptr && !ReserveImageFile(context, *device, filename)) {
 		device_factory.DeleteDevice(*device);
 
 		return false;
@@ -454,7 +454,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	if (!OpenImageFile(context, device, filename)) {
+	if (!ReserveImageFile(context, device, filename)) {
 		return false;
 	}
 
@@ -614,7 +614,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::OpenImageFile(const CommandContext& context, Device& device, const string& filename) const
+bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& device, const string& filename) const
 {
 	auto file_support = dynamic_cast<FileSupport *>(&device);
 	if (file_support == nullptr || filename.empty()) {
