@@ -45,16 +45,16 @@ TEST(DeviceFactoryTest, LifeCycle)
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 
-	list<PrimaryDevice *> devices = device_factory.GetAllDevices();
+	set<PrimaryDevice *> devices = device_factory.GetAllDevices();
 	EXPECT_EQ(1, devices.size());
-	EXPECT_EQ(device, devices.front());
+	EXPECT_TRUE(devices.find(device) != devices.end());
 
 	EXPECT_EQ(device, device_factory.GetDeviceByIdAndLun(0, 0));
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 1));
 
 	device_factory.DeleteDevice(*device);
 	devices = device_factory.GetAllDevices();
-	EXPECT_EQ(0, devices.size());
+	EXPECT_TRUE(devices.empty());
 	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 0));
 }
 

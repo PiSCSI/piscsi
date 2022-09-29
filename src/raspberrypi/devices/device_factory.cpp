@@ -86,12 +86,12 @@ const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 	return nullptr;
 }
 
-list<PrimaryDevice *> DeviceFactory::GetAllDevices() const
+set<PrimaryDevice *> DeviceFactory::GetAllDevices() const
 {
-	list<PrimaryDevice *> result;
+	set<PrimaryDevice *> result;
 
 	for (const auto& device : devices) {
-		result.push_back(device.get());
+		result.insert(device.get());
 	}
 
 	return result;
