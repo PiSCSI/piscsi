@@ -372,44 +372,11 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (file_support != nullptr && !filename.empty()) {
-		int reserved_id;
-		int reserved_lun;
-		Filepath filepath;
-		filepath.SetPath(filename.c_str());
-		string initial_filename = filepath.GetPath();
-
-		if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+		if (!OpenImageFile(context, *file_support, *device, filename)) {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-					to_string(reserved_id), to_string(reserved_lun));
+			return false;
 		}
-
-		try {
-			try {
-				file_support->Open(filepath);
-			}
-			catch(const file_not_found_exception&) {
-				// If the file does not exist search for it in the default image folder
-				filepath.SetPath(string(rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
-
-				if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
-					device_factory.DeleteDevice(*device);
-
-					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-							to_string(reserved_id), to_string(reserved_lun));
-				}
-
-				file_support->Open(filepath);
-			}
-		}
-		catch(const io_exception& e) {
-			device_factory.DeleteDevice(*device);
-
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
-		}
-
-		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 	}
 
 	// Only non read-only devices support protect/unprotect
@@ -489,39 +456,11 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	int reserved_id;
-	int reserved_lun;
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-	string initial_filename = filepath.GetPath();
-
-	if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(reserved_id), to_string(reserved_lun));
-	}
-
 	auto file_support = dynamic_cast<FileSupport *>(&device);
-	try {
-		try {
-			file_support->Open(filepath);
-		}
-		catch(const file_not_found_exception&) {
-			// If the file does not exist search for it in the default image folder
-			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename
-						, to_string(reserved_id), to_string(reserved_lun));
-			}
-
-			file_support->Open(filepath);
-		}
+	if (!OpenImageFile(context, *file_support, device, filename)) {
+		return false;
 	}
-	catch(const io_exception& e) { //NOSONAR This exception is handled properly
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
-	}
-
-	file_support->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
@@ -677,6 +616,45 @@ string RascsiExecutor::SetReservedIds(string_view ids)
     }
 
 	return "";
+}
+
+bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& file_support, const Device& device,
+		const string& filename) const
+{
+	int reserved_id;
+	int reserved_lun;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	string initial_filename = filepath.GetPath();
+
+	if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+				to_string(reserved_id), to_string(reserved_lun));
+	}
+
+	try {
+		try {
+			file_support.Open(filepath);
+		}
+		catch(const file_not_found_exception&) {
+			// If the file does not exist search for it in the default image folder
+			filepath.SetPath(string(rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
+
+			if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+						to_string(reserved_id), to_string(reserved_lun));
+			}
+
+			file_support.Open(filepath);
+		}
+	}
+	catch(const io_exception& e) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
+	}
+
+	file_support.ReserveFile(filepath, device.GetId(), device.GetLun());
+
+	return true;
 }
 
 string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
