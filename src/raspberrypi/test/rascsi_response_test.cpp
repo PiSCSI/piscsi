@@ -39,7 +39,6 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
@@ -55,7 +54,6 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 	EXPECT_FALSE(device.properties().removable());
 	EXPECT_FALSE(device.properties().lockable());
 	EXPECT_EQ(0, device.params().size());
-
 }
 
 TEST(RascsiResponseTest, GetDevice_HostServices)
@@ -70,7 +68,6 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];

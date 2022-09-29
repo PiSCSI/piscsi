@@ -55,7 +55,6 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_type(type);
 	const PrimaryDevice *device = device_factory.CreateDevice(controller_manager, type, 0, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(*device));
-	device_factory.DeleteDevice(*device); //NOSONAR The allocated memory is managed by protobuf
 }
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
@@ -230,20 +229,28 @@ void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default
 void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const string& default_folder)
 {
 	set<id_set> id_sets;
+
+	// If no devices list was provided in the command get information on all devices
 	if (!command.devices_size()) {
 		for (const auto& device : controller_manager.GetAllDevices()) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
+	// Otherwise get information on the devices provided in the command
 	else {
+		const auto& devices = controller_manager.GetAllDevices();
+
 		for (const auto& device : command.devices()) {
-			if (device_factory.GetDeviceByIdAndLun(device.id(), device.unit())) {
-				id_sets.insert(make_pair(device.id(), device.unit()));
-			}
-			else {
-				result.set_status(false);
-				result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
-				return;
+			for (const auto& d : devices) {
+				if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
+					id_sets.insert(make_pair(device.id(), device.unit()));
+					break;
+				}
+				else {
+					result.set_status(false);
+					result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
+					return;
+				}
 			}
 		}
 	}
@@ -251,8 +258,15 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	auto devices_info = make_unique<PbDevicesInfo>().release();
 	result.set_allocated_devices_info(devices_info);
 
+	const auto& devices = controller_manager.GetAllDevices();
+
 	for (const auto& [id, lun] : id_sets) {
-		GetDevice(*device_factory.GetDeviceByIdAndLun(id, lun), *devices_info->add_devices(), default_folder);
+		for (const auto& d : devices) {
+			if (d->GetId() == id && d->GetLun() == lun) {
+				GetDevice(*d, *devices_info->add_devices(), default_folder);
+				break;
+			}
+		}
 	}
 
 	result.set_status(true);

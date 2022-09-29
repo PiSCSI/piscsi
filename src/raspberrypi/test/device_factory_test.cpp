@@ -50,15 +50,6 @@ TEST(DeviceFactoryTest, LifeCycle)
 	controller_manager.CreateScsiController(ID, device);
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
-
-	auto d = device_factory.GetDeviceByIdAndLun(ID, LUN);
-	EXPECT_NE(nullptr, d);
-	EXPECT_EQ(ID, d->GetId());
-	EXPECT_EQ(LUN, d->GetLun());
-	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 1));
-
-	device_factory.DeleteDevice(*device);
-	EXPECT_EQ(nullptr, device_factory.GetDeviceByIdAndLun(0, 0));
 }
 
 TEST(DeviceFactoryTest, GetSectorSizes)
@@ -193,22 +184,17 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device_factory.DeleteDevice(*device);
-
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hds");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdi");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(*device);
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.nhd");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
@@ -236,8 +222,6 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_EQ("SCSI HD (REM.)", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
@@ -265,8 +249,6 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	EXPECT_EQ("SCSI MO", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
@@ -294,8 +276,6 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
@@ -323,8 +303,6 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_EQ("SCSI HOST BRIDGE", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
@@ -351,8 +329,6 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	EXPECT_EQ("Dayna", device->GetVendor());
 	EXPECT_EQ("SCSI/Link", device->GetProduct());
 	EXPECT_EQ("1.4a", device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
@@ -380,8 +356,6 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_EQ("Host Services", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
@@ -409,6 +383,4 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_EQ("SCSI PRINTER", device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
-
-	device_factory.DeleteDevice(*device);
 }

@@ -32,9 +32,6 @@ public:
 	~DeviceFactory() = default;
 
 	PrimaryDevice *CreateDevice(const ControllerManager&, PbDeviceType, int, const string&);
-	void DeleteDevice(const PrimaryDevice&) const;
-	void DeleteDevices() const { devices.clear(); }
-	const shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
@@ -51,8 +48,6 @@ private:
 	unordered_map<string, PbDeviceType> extension_mapping;
 
 	string GetExtension(const string&) const;
-
-	static unordered_set<shared_ptr<PrimaryDevice>> devices;
 
 	unordered_set<uint32_t> empty_set;
 	unordered_map<string, string> empty_map;

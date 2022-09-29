@@ -39,7 +39,6 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 
 	controller_manager.DeleteAllControllers();
-	device_factory.DeleteDevices();
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 }

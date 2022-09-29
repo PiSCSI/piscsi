@@ -62,12 +62,10 @@ TEST(RascsiExecutorTest, Attach)
 	device_definition.set_id(ID);
 	device_definition.set_unit(LUN);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
-	device_factory.DeleteDevices();
 	controller_manager.DeleteAllControllers();
 
 	device_definition.set_type(PbDeviceType::SCHS);
 	EXPECT_TRUE(executor.Attach(context, device_definition, false));
-	device_factory.DeleteDevices();
 	controller_manager.DeleteAllControllers();
 
 	device_definition.set_type(PbDeviceType::SCHD);
@@ -191,7 +189,6 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	controller_manager.CreateScsiController(5, device);
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
-	device_factory.DeleteDevices();
 }
 
 TEST(RascsiExecutorTest, ValidateLunSetup)
@@ -217,5 +214,4 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	controller_manager.CreateScsiController(0, device2);
 	error = executor.ValidateLunSetup(command);
 	EXPECT_TRUE(error.empty());
-	device_factory.DeleteDevices();
 }
