@@ -1082,8 +1082,11 @@ void GPIOBUS::MakeTable(void)
 
 #if SIGNAL_CONTROL_MODE == 0
 	// Mask and setting data generation
-	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
+	for (size_t i = 0; i < tblDatMsk.size(); i++) {
+		memset(tblDatMsk[i].data(), 0xff, tblDatMsk[i].size() * sizeof(uint32_t));
+		memset(tblDatSet[i].data(), 0x00, tblDatSet[i].size() * sizeof(uint32_t));
+	}
+
 	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
 		uint32_t bits = i;
@@ -1112,10 +1115,10 @@ void GPIOBUS::MakeTable(void)
 	}
 #else
 	for (uint32_t i = 0; i < 0x100; i++) {
-		// bit string for inspection
+		// Bit string for inspection
 		uint32_t bits = i;
 
-		// get parity
+		// Get parity
 		if (tblParity[i]) {
 			bits |= (1 << 8);
 		}

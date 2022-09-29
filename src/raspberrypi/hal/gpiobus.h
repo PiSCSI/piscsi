@@ -501,9 +501,9 @@ private:
 #endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
-	uint32_t tblDatMsk[3][256];			// Data mask table
+	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
 
-	uint32_t tblDatSet[3][256];			// Data setting table
+	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
 #else
 	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
 
