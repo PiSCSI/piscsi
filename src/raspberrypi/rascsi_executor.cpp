@@ -640,7 +640,7 @@ bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& f
 		}
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
-			filepath.SetPath(string(rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
+			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
