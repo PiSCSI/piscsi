@@ -15,7 +15,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
@@ -29,7 +28,7 @@ class AbstractController
 	BUS::phase_t phase = BUS::phase_t::busfree;
 
 	// Logical units of this device controller mapped to their LUN numbers
-	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
+	unordered_map<int, PrimaryDevice *> luns;
 
 public:
 
@@ -84,7 +83,7 @@ public:
 
 	unordered_set<PrimaryDevice *> GetDevices() const;
 	PrimaryDevice *GetDeviceForLun(int) const;
-	bool AddDevice(shared_ptr<PrimaryDevice>);
+	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice&);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
