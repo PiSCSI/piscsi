@@ -86,15 +86,9 @@ const shared_ptr<PrimaryDevice> DeviceFactory::GetDeviceByIdAndLun(int id, int l
 	return nullptr;
 }
 
-set<PrimaryDevice *> DeviceFactory::GetAllDevices() const
+unordered_set<shared_ptr<PrimaryDevice>> DeviceFactory::GetAllDevices() const
 {
-	set<PrimaryDevice *> result;
-
-	for (const auto& device : devices) {
-		result.insert(device.get());
-	}
-
-	return result;
+	return devices;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const

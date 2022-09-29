@@ -34,7 +34,7 @@ public:
 	void DeleteDevice(const PrimaryDevice&) const;
 	void DeleteAllDevices() const;
 	const shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
-	set<PrimaryDevice *> GetAllDevices() const;
+	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
