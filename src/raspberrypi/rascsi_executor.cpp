@@ -371,12 +371,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	if (file_support != nullptr && !filename.empty()) {
-		if (!OpenImageFile(context, *file_support, *device, filename)) {
-			device_factory.DeleteDevice(*device);
+	if (file_support != nullptr && !OpenImageFile(context, *file_support, *device, filename)) {
+		device_factory.DeleteDevice(*device);
 
-			return false;
-		}
+		return false;
 	}
 
 	// Only non read-only devices support protect/unprotect
@@ -620,6 +618,10 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& file_support, const Device& device,
 		const string& filename) const
 {
+	if (filename.empty()) {
+		return false;
+	}
+
 	int reserved_id;
 	int reserved_lun;
 	Filepath filepath;
