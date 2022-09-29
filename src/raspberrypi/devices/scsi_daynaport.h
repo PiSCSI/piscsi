@@ -45,7 +45,7 @@ class SCSIDaynaPort final : public Disk
 {
 public:
 
-	SCSIDaynaPort();
+	SCSIDaynaPort(int, int);
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

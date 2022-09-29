@@ -146,9 +146,10 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_unique<SCSIHD_NEC>();
+			device = make_unique<SCSIHD_NEC>(id, lun);
 		} else {
-			device = make_unique<SCSIHD>(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+			device = make_unique<SCSIHD>(id, lun, sector_sizes[SCHD], false,
+					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -162,7 +163,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 	}
 
 	case SCRM:
-		device = make_unique<SCSIHD>(sector_sizes[SCRM], true);
+		device = make_unique<SCSIHD>(id, lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -171,7 +172,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCMO:
-		device = make_unique<SCSIMO>(sector_sizes[SCMO]);
+		device = make_unique<SCSIMO>(id, lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -180,7 +181,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCCD:
-		device = make_unique<SCSICD>(sector_sizes[SCCD]);
+		device = make_unique<SCSICD>(id, lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -189,14 +190,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCBR:
-		device = make_unique<SCSIBR>();
+		device = make_unique<SCSIBR>(id, lun);
 		device->SetProduct("SCSI HOST BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
 	case SCDP:
-		device = make_unique<SCSIDaynaPort>();
+		device = make_unique<SCSIDaynaPort>(id, lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -206,14 +207,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(*this);
+		device = make_unique<HostServices>(id, lun, *this);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = make_unique<SCSIPrinter>();
+		device = make_unique<SCSIPrinter>(id, lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
@@ -225,9 +226,6 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 
 	if (device != nullptr) {
 		PrimaryDevice *d = device.release();
-
-		d->SetId(id);
-		d->SetLun(lun);
 
 		devices.emplace(id, d);
 

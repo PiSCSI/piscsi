@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI Host Bridge for the Sharp X68000 ]
@@ -27,7 +27,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIBR::SCSIBR() : Disk("SCBR")
+SCSIBR::SCSIBR(int id, int lun) : Disk("SCBR", id, lun)
 {
 	// Create host file system
 	fs.Reset();

@@ -145,7 +145,7 @@ public:
 	MOCK_METHOD(void, Reset, (), ());
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
-	MockPrimaryDevice() : PrimaryDevice("test") {}
+	MockPrimaryDevice(int id, int lun) : PrimaryDevice("test", id, lun) {}
 	~MockPrimaryDevice() override = default;
 };
 
@@ -153,7 +153,7 @@ class MockModePageDevice final : public ModePageDevice
 {
 	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
 
-	MockModePageDevice() : ModePageDevice("test") {}
+	MockModePageDevice(int id, int lun) : ModePageDevice("test", id, lun) {}
 	~MockModePageDevice() override = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
@@ -173,7 +173,7 @@ class MockSCSIHD final : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
 
-	explicit MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) {}
+	MockSCSIHD(int id, int lun, const unordered_set<uint32_t>& sector_sizes) : SCSIHD(id, lun, sector_sizes, false) {}
 	~MockSCSIHD() override = default;
 };
 

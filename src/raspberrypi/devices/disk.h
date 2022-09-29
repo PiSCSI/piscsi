@@ -47,7 +47,7 @@ class Disk : public ModePageDevice, public ScsiBlockCommands
 
 public:
 
-	explicit Disk(const string&);
+	Disk(const string&, int, int);
 	~Disk() override;
 
 	bool Dispatch(scsi_command) override;

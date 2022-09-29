@@ -22,7 +22,7 @@ class TestDevice final : public Device
 
 public:
 
-	TestDevice() : Device("test") {}
+	TestDevice() : Device("test", 0, 0) {}
 	~TestDevice() override = default;
 };
 

@@ -15,7 +15,7 @@
 TEST(PrimaryDeviceTest, PhaseChange)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	controller.AddDevice(&device);
 
@@ -32,7 +32,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	controller.AddDevice(&device);
 
@@ -69,7 +69,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 TEST(PrimaryDeviceTest, Inquiry)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	device.SetController(&controller);
 
@@ -130,7 +130,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 TEST(PrimaryDeviceTest, RequestSense)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	controller.AddDevice(&device);
 
@@ -153,13 +153,11 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN2 = 4;
 
 	MockAbstractController controller(0);
-	MockPrimaryDevice device1;
-	MockPrimaryDevice device2;
+	MockPrimaryDevice device1(0, LUN1);
+	MockPrimaryDevice device2(0, LUN2);
 
-	device1.SetLun(LUN1);
 	controller.AddDevice(&device1);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN1));
-	device2.SetLun(LUN2);
 	controller.AddDevice(&device2);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN2));
 
@@ -197,7 +195,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, UnknownCommand)
 {
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 	MockAbstractController controller(0);
 
 	controller.AddDevice(&device);
@@ -209,29 +207,29 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
 	vector<BYTE> data;
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device must not support writing byte sequences";
 }
 
 TEST(PrimaryDeviceTest, GetSendDelay)
 {
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	EXPECT_EQ(-1, device.GetSendDelay());
 }
 
 TEST(PrimaryDeviceTest, Init)
 {
-	MockPrimaryDevice device;
 	unordered_map<string, string> params;
+	MockPrimaryDevice device(0, 0);
 
 	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";
 }
 
 TEST(PrimaryDeviceTest, FlushCache)
 {
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	// Method must be present
 	device.FlushCache();

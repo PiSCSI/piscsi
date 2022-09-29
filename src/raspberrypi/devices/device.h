@@ -80,7 +80,7 @@ protected:
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	explicit Device(const string&);
+	Device(const string&, int, int);
 
 public:
 

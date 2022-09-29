@@ -14,7 +14,7 @@ TEST(DiskTest, Dispatch)
 {
 	MockAbstractController controller(0);
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD disk(sector_sizes);
+	MockSCSICD disk(0, 0, sector_sizes);
 
 	controller.AddDevice(&disk);
 
@@ -27,7 +27,7 @@ TEST(DiskTest, Dispatch)
 TEST(DiskTest, Rezero)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -44,7 +44,7 @@ TEST(DiskTest, Rezero)
 TEST(DiskTest, FormatUnit)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -66,7 +66,7 @@ TEST(DiskTest, FormatUnit)
 TEST(DiskTest, ReassignBlocks)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -83,7 +83,7 @@ TEST(DiskTest, ReassignBlocks)
 TEST(DiskTest, Seek)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -119,7 +119,7 @@ TEST(DiskTest, Seek)
 TEST(DiskTest, ReadCapacity)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -183,7 +183,7 @@ TEST(DiskTest, ReadCapacity)
 TEST(DiskTest, ReadWriteLong)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -239,7 +239,7 @@ TEST(DiskTest, ReadWriteLong)
 TEST(DiskTest, ReserveRelease)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -257,7 +257,7 @@ TEST(DiskTest, ReserveRelease)
 TEST(DiskTest, SendDiagnostic)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -284,7 +284,7 @@ TEST(DiskTest, SendDiagnostic)
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -310,7 +310,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 TEST(DiskTest, SynchronizeCache)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -332,7 +332,7 @@ TEST(DiskTest, SynchronizeCache)
 TEST(DiskTest, ReadDefectData)
 {
 	MockAbstractController controller(0);
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	controller.AddDevice(&disk);
 
@@ -345,7 +345,7 @@ TEST(DiskTest, ReadDefectData)
 
 TEST(DiskTest, SectorSize)
 {
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	unordered_set<uint32_t> sizes = { 1, 2, 3 };
 	disk.SetSectorSizes(sizes);
@@ -389,7 +389,7 @@ TEST(DiskTest, SectorSize)
 TEST(DiskTest, ConfiguredSectorSize)
 {
 	DeviceFactory device_factory;
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	EXPECT_TRUE(disk.SetConfiguredSectorSize(device_factory, 512));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
@@ -400,7 +400,7 @@ TEST(DiskTest, ConfiguredSectorSize)
 
 TEST(DiskTest, BlockCount)
 {
-	MockSCSIHD_NEC disk;
+	MockSCSIHD_NEC disk(0, 0);
 
 	disk.SetBlockCount(0x1234567887654321);
 	EXPECT_EQ(0x1234567887654321, disk.GetBlockCount());

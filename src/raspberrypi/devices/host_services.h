@@ -22,7 +22,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	explicit HostServices(const DeviceFactory&);
+	HostServices(int, int, const DeviceFactory&);
 	~HostServices() override = default;
 
 	bool Dispatch(scsi_command) override;

@@ -27,7 +27,7 @@ class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
 public:
 
-	explicit SCSICD(const unordered_set<uint32_t>&);
+	SCSICD(int, int, const unordered_set<uint32_t>&);
 	~SCSICD() override = default;
 
 	bool Dispatch(scsi_command) override;

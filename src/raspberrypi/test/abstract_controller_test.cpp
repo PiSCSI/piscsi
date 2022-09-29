@@ -14,7 +14,7 @@
 TEST(AbstractControllerTest, Reset)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device;
+	MockPrimaryDevice device(0, 0);
 
 	controller.AddDevice(&device);
 
@@ -113,9 +113,9 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int LUN = 4;
 
 	MockAbstractController controller(ID);
-	MockPrimaryDevice device1;
-	MockPrimaryDevice device2;
-	MockPrimaryDevice device3;
+	MockPrimaryDevice device1(ID, LUN);
+	MockPrimaryDevice device2(ID, 32);
+	MockPrimaryDevice device3(ID, -1);
 	EXPECT_EQ(0, controller.GetLunCount());
 
 	device1.SetLun(LUN);

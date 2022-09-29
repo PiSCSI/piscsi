@@ -31,7 +31,8 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(const DeviceFactory& factory) : ModePageDevice("SCHS"), device_factory(factory)
+HostServices::HostServices(int id, int lun, const DeviceFactory& factory)
+	: ModePageDevice("SCHS", id, lun), device_factory(factory)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);

@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI hard disk ]
@@ -22,8 +22,8 @@
 
 using namespace scsi_command_util;
 
-SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
-	: Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(int id, int lun, const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
+	: Disk(removable ? "SCRM" : "SCHD", id, lun)
 {
 	scsi_level = level;
 

@@ -31,7 +31,7 @@ class SCSIHD_NEC : public SCSIHD
 {
 public:
 
-	SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
+	SCSIHD_NEC(int id, int lun) : SCSIHD(id, lun, sector_sizes, false) {}
 	~SCSIHD_NEC() override = default;
 
 	void Open(const Filepath&) override;
