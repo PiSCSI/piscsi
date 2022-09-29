@@ -1069,9 +1069,9 @@ void GPIOBUS::MakeTable(void)
 	array<bool, 256> tblParity;
 
 	// Create parity table
-	for (int i = 0; i < 0x100; i++) {
-		auto bits = (DWORD)i;
-		DWORD parity = 0;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		auto bits = i;
+		uint32_t parity = 0;
 		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
