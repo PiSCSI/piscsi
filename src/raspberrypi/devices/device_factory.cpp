@@ -132,7 +132,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id, int lun)
+PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, int id, int lun, const string& filename)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {

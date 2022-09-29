@@ -30,7 +30,7 @@ public:
 	DeviceFactory();
 	~DeviceFactory() = default;
 
-	PrimaryDevice *CreateDevice(PbDeviceType, const string&, int, int);
+	PrimaryDevice *CreateDevice(PbDeviceType, int, int, const string&);
 	void DeleteDevice(const PrimaryDevice&) const;
 	void DeleteAllDevices() const;
 	const PrimaryDevice *GetDeviceByIdAndLun(int, int) const;

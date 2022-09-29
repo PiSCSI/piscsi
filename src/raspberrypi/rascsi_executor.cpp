@@ -317,7 +317,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	PrimaryDevice *device = device_factory.CreateDevice(type, filename, id, lun);
+	PrimaryDevice *device = device_factory.CreateDevice(type, id, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);

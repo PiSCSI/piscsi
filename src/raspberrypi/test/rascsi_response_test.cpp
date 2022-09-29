@@ -28,7 +28,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 {
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, "printer", -1, 0);
+	device_factory.CreateDevice(UNDEFINED, 0, 0, "printer");
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
@@ -55,7 +55,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 {
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, 32);
-	device_factory.CreateDevice(UNDEFINED, "services", -1, 0);
+	device_factory.CreateDevice(UNDEFINED, 0, 0, "services");
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
