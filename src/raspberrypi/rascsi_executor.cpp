@@ -317,7 +317,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	PrimaryDevice *device = device_factory.CreateDevice(type, filename, id);
+	PrimaryDevice *device = device_factory.CreateDevice(type, filename, id, lun);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
@@ -330,8 +330,6 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	// If no filename was provided the medium is considered removed
 	auto file_support = dynamic_cast<FileSupport *>(device);
 	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
-
-	device->SetLun(lun);
 
 	try {
 		if (!pb_device.vendor().empty()) {

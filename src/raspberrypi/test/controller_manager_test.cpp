@@ -20,9 +20,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 
-	auto device1 = device_factory.CreateDevice(UNDEFINED, "services", ID);
-	device1->SetId(ID);
-	device1->SetLun(LUN1);
+	auto device1 = device_factory.CreateDevice(UNDEFINED, "services", ID, LUN1);
 	controller_manager.CreateScsiController(device1);
 	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
@@ -33,9 +31,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(device1, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
-	auto device2 = device_factory.CreateDevice(UNDEFINED, "services", ID);
-	device2->SetId(ID);
-	device2->SetLun(LUN2);
+	auto device2 = device_factory.CreateDevice(UNDEFINED, "services", ID, LUN2);
 	controller_manager.CreateScsiController(device2);
 	EXPECT_FALSE(controller_manager.DeleteController(ID));
 
