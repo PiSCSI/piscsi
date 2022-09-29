@@ -490,7 +490,7 @@ private:
 
 	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
 
-	array<DWORD, 4> gpfsel;				// GPFSEL0-4 backup values
+	array<uint32_t, 4> gpfsel;			// GPFSEL0-4 backup values
 
 	uint32_t signals = 0;				// All bus signals
 
@@ -501,13 +501,13 @@ private:
 #endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
-	DWORD tblDatMsk[3][256];			// Data mask table
+	uint32_t tblDatMsk[3][256];			// Data mask table
 
-	DWORD tblDatSet[3][256];			// Data setting table
+	uint32_t tblDatSet[3][256];			// Data setting table
 #else
-	array<DWORD, 256> tblDatMsk = {};	// Data mask table
+	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
 
-	array<DWORD, 256> tblDatSet = {};	// Table setting table
+	array<uint32_t, 256> tblDatSet = {};	// Table setting table
 #endif
 
 	static const array<int, 19> SignalTable;	// signal table
