@@ -1082,12 +1082,10 @@ void GPIOBUS::MakeTable(void)
 
 #if SIGNAL_CONTROL_MODE == 0
 	// Mask and setting data generation
-	fill(tblDatMsk[0].begin(), tblDatMsk[0].end(), 0xff);
-	fill(tblDatMsk[1].begin(), tblDatMsk[1].end(), 0xff);
-	fill(tblDatMsk[2].begin(), tblDatMsk[2].end(), 0xff);
-	fill(tblDatSet[0].begin(), tblDatSet[0].end(), 0x00);
-	fill(tblDatSet[1].begin(), tblDatSet[1].end(), 0x00);
-	fill(tblDatSet[2].begin(), tblDatSet[2].end(), 0x00);
+	for (size_t i = 0; i < tblDatMsk.size(); i++) {
+		fill(tblDatMsk[i].begin(), tblDatMsk[i].end(), 0xff);
+		fill(tblDatSet[i].begin(), tblDatSet[i].end(), 0x00);
+	}
 	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
 		uint32_t bits = i;
