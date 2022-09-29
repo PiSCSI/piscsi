@@ -305,7 +305,7 @@ void RasctlCommands::CommandServerInfo()
 
 	if (server_info.devices_info().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
+		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 		cout << "Attached devices:" << endl;
 
