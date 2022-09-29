@@ -45,9 +45,9 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	// Device can be created with parameters
 	bool supports_params = false;
 
-	// Device ID and LUN
-	int id = 0;
-	int lun = 0;
+	// Immutable device ID and LUN
+	int id;
+	int lun;
 
 	// Device identifier (for INQUIRY)
 	string vendor = DEFAULT_VENDOR;
