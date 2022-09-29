@@ -62,7 +62,7 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (const auto& device : device_factory.GetAllDevices()) {
+		for (const auto& device : device_factory.GetDevices()) {
 			device->FlushCache();
 		}
 

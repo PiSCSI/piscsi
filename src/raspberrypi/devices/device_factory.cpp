@@ -70,11 +70,6 @@ void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
 	}
 }
 
-void DeviceFactory::DeleteAllDevices() const
-{
-	devices.clear();
-}
-
 const shared_ptr<PrimaryDevice> DeviceFactory::GetDeviceByIdAndLun(int id, int lun) const
 {
 	for (const auto& device : devices) {
@@ -84,11 +79,6 @@ const shared_ptr<PrimaryDevice> DeviceFactory::GetDeviceByIdAndLun(int id, int l
 	}
 
 	return nullptr;
-}
-
-unordered_set<shared_ptr<PrimaryDevice>> DeviceFactory::GetAllDevices() const
-{
-	return devices;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const

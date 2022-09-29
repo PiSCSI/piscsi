@@ -62,12 +62,12 @@ TEST(RascsiExecutorTest, Attach)
 	device_definition.set_id(ID);
 	device_definition.set_unit(LUN);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 	controller_manager.DeleteAllControllers();
 
 	device_definition.set_type(PbDeviceType::SCHS);
 	EXPECT_TRUE(executor.Attach(context, device_definition, false));
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 	controller_manager.DeleteAllControllers();
 
 	device_definition.set_type(PbDeviceType::SCHD);
@@ -109,7 +109,7 @@ TEST(RascsiExecutorTest, Detach)
 
 	EXPECT_TRUE(executor.Detach(context, *device2, false));
 	EXPECT_TRUE(executor.Detach(context, *device1, false));
-	EXPECT_TRUE(device_factory.GetAllDevices().empty());
+	EXPECT_TRUE(device_factory.GetDevices().empty());
 }
 
 TEST(RascsiExecutorTest, DetachAll)
@@ -126,11 +126,11 @@ TEST(RascsiExecutorTest, DetachAll)
 	PrimaryDevice *device = device_factory.CreateDevice(UNDEFINED, ID, 0, "services");
 	controller_manager.CreateScsiController(ID, device);
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
-	EXPECT_FALSE(device_factory.GetAllDevices().empty());
+	EXPECT_FALSE(device_factory.GetDevices().empty());
 
 	executor.DetachAll();
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
-	EXPECT_TRUE(device_factory.GetAllDevices().empty());
+	EXPECT_TRUE(device_factory.GetDevices().empty());
 }
 
 TEST(RascsiExecutorTest, ShutDown)
@@ -191,7 +191,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	controller_manager.CreateScsiController(5, device);
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 }
 
 TEST(RascsiExecutorTest, ValidateLunSetup)
@@ -216,5 +216,5 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	device_factory.CreateDevice(UNDEFINED, 0, 0, "services");
 	error = executor.ValidateLunSetup(command);
 	EXPECT_TRUE(error.empty());
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 }

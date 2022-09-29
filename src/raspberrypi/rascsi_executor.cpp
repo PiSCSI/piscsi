@@ -505,7 +505,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 void RascsiExecutor::DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 	FileSupport::UnreserveAll();
 
 	LOGINFO("Detached all devices")
@@ -664,7 +664,7 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto& device : device_factory.GetAllDevices()) {
+	for (const auto& device : device_factory.GetDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 

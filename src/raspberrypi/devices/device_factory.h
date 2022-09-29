@@ -32,9 +32,9 @@ public:
 
 	PrimaryDevice *CreateDevice(PbDeviceType, int, int, const string&);
 	void DeleteDevice(const PrimaryDevice&) const;
-	void DeleteAllDevices() const;
+	void DeleteDevices() const { devices.clear(); }
 	const shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
-	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
+	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const { return devices; }
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;

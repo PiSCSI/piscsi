@@ -32,7 +32,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
@@ -59,7 +59,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
-	device_factory.DeleteAllDevices();
+	device_factory.DeleteDevices();
 
 	EXPECT_EQ(1, server_info.devices_info().devices().size());
 	const auto& device = server_info.devices_info().devices()[0];
