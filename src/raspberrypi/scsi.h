@@ -13,7 +13,6 @@
 
 #include "os.h"
 #include <array>
-#include <unordered_map>
 
 using namespace std; //NOSONAR Not relevant for rascsi
 
@@ -115,7 +114,7 @@ public:
 private:
 	static const array<phase_t, 8> phase_table;
 
-	static const unordered_map<phase_t, const char *> phase_str_mapping;
+	static const array<const char *, 11> phase_str_table;
 };
 
 namespace scsi_defs {
