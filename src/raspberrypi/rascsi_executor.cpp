@@ -634,10 +634,7 @@ bool RascsiExecutor::OpenImageFile(const CommandContext& context, Device& device
 	string initial_filename = filepath.GetPath();
 
 	try {
-		try {
-			file_support->Open(filepath);
-		}
-		catch(const file_not_found_exception&) {
+		if (!file_support->FileExists(filepath)) {
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 

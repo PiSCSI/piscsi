@@ -37,6 +37,7 @@ public:
 	void ReserveFile(const Filepath&, int, int) const;
 	void UnreserveFile() const;
 	static void UnreserveAll();
+	bool FileExists(const Filepath&);
 
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)
