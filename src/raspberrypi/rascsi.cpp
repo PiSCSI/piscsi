@@ -352,7 +352,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		name = "";
 	}
 
-	if (executor.SetLogLevel(log_level)) {
+	if (!log_level.empty() && executor.SetLogLevel(log_level)) {
 		current_log_level = log_level;
 	}
 
