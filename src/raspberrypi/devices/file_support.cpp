@@ -41,7 +41,6 @@ void FileSupport::UnreserveAll()
 	reserved_files.clear();
 }
 
-
 bool FileSupport::FileExists(const Filepath& filepath)
 {
 	try {
