@@ -621,14 +621,14 @@ bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& dev
 		return false;
 	}
 
-	int reserved_id;
-	int reserved_lun;
+	int id;
+	int lun;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 
-	if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(reserved_id), to_string(reserved_lun));
+				to_string(id), to_string(lun));
 	}
 
 	string initial_filename = filepath.GetPath();
@@ -638,9 +638,9 @@ bool RascsiExecutor::ReserveImageFile(const CommandContext& context, Device& dev
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, reserved_id, reserved_lun)) {
+			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-						to_string(reserved_id), to_string(reserved_lun));
+						to_string(id), to_string(lun));
 			}
 
 			file_support->Open(filepath);
