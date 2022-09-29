@@ -1112,7 +1112,7 @@ void GPIOBUS::MakeTable(void)
 	}
 #else
 	// Mask and setting data generation
-	fill(tbldatMask.begin(), tbldatMask.end(), 0x00);
+	fill(tblDatMask.begin(), tblDatMask.end(), 0x00);
 	fill(tblDatSet.begin(), tblDatSet.end(), 0x00);
 	for (uint32_t i = 0; i < 0x100; i++) {
 		// bit string for inspection
