@@ -33,6 +33,15 @@ bool PrimaryDevice::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd);
 }
 
+int PrimaryDevice::GetId() const
+{
+	if (controller == nullptr) {
+		LOGERROR("Device is missing its controller")
+	}
+
+	return controller != nullptr ? controller->GetTargetId() : -1;
+}
+
 void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
