@@ -118,10 +118,6 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	MockPrimaryDevice device3(ID, -1);
 	EXPECT_EQ(0, controller.GetLunCount());
 
-	device1.SetLun(LUN);
-	device2.SetLun(32);
-	device3.SetLun(-1);
-
 	EXPECT_EQ(ID, controller.GetTargetId());
 	EXPECT_TRUE(controller.AddDevice(&device1));
 	EXPECT_FALSE(controller.AddDevice(&device2));

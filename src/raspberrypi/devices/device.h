@@ -113,9 +113,7 @@ public:
 	void SetLocked(bool b) { locked = b; }
 
 	int GetId() const { return id; }
-	void SetId(int i) { id = i; }
 	int GetLun() const { return lun; }
-	void SetLun(int l) { lun = l; }
 
 	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
