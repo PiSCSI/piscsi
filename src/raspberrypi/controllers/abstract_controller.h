@@ -12,6 +12,7 @@
 #pragma once
 
 #include "scsi.h"
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 
@@ -80,6 +81,7 @@ public:
 	int GetMaxLuns() const { return max_luns; }
 	int GetLunCount() const { return (int)luns.size(); }
 
+	unordered_set<PrimaryDevice *> GetDevices() const;
 	PrimaryDevice *GetDeviceForLun(int) const;
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice&);

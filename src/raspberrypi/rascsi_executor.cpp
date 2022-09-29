@@ -670,7 +670,7 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	}
 
 	// Collect LUN bit vectors of existing devices
-	for (const auto& device : device_factory.GetDevices()) {
+	for (const auto& device : controller_manager.GetAllDevices()) {
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 

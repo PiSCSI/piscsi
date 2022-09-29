@@ -48,6 +48,18 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 	return it == controllers.end() ? nullptr : it->second;
 }
 
+unordered_set<PrimaryDevice *> ControllerManager::GetAllDevices() const
+{
+	unordered_set<PrimaryDevice *> devices;
+
+	for (const auto& [id, controller] : controllers) {
+		auto d = controller->GetDevices();
+		devices.insert(d.begin(), d.end());
+	}
+
+	return devices;
+}
+
 void ControllerManager::DeleteAllControllers()
 {
 	controllers.clear();

@@ -25,7 +25,7 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
 	EXPECT_TRUE(executor.SetLogLevel("trace"));
@@ -47,7 +47,7 @@ TEST(RascsiExecutorTest, Attach)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	PbDeviceDefinition device_definition;
 	ProtobufSerializer serializer;
@@ -94,7 +94,7 @@ TEST(RascsiExecutorTest, Detach)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	ProtobufSerializer serializer;
 	Localizer localizer;
@@ -120,7 +120,7 @@ TEST(RascsiExecutorTest, DetachAll)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "services");
@@ -139,7 +139,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	ProtobufSerializer serializer;
 	Localizer localizer;
@@ -158,7 +158,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
 	string error = executor.SetReservedIds("xyz");
@@ -200,7 +200,7 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	PbCommand command;
 

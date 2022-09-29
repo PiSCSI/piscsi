@@ -18,6 +18,17 @@ void AbstractController::AllocateBuffer(size_t size)
 	}
 }
 
+unordered_set<PrimaryDevice *> AbstractController::GetDevices() const
+{
+	unordered_set<PrimaryDevice *> devices;
+
+	for (const auto& [id, lun] : luns) {
+		devices.insert(lun);
+	}
+
+	return devices;
+}
+
 PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 	const auto& it = luns.find(lun);
 	return it == luns.end() ? nullptr : it->second;

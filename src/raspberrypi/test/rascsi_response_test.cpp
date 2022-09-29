@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
@@ -16,8 +17,10 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	PbResult pb_operation_info_result;
 
 	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
@@ -29,7 +32,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 
 	auto d = device_factory.CreateDevice(UNDEFINED, 0, "printer");
 	controller_manager.CreateScsiController(0, d);
@@ -60,7 +63,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 
 	auto d = device_factory.CreateDevice(UNDEFINED, 0, "services");
 	controller_manager.CreateScsiController(0, d);
@@ -87,8 +90,10 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	RascsiResponse rascsi_response(device_factory, 32);
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	unordered_set<int> ids;
 	PbResult result;
 

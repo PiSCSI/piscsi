@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "controllers/controller_manager.h"
 #include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
@@ -220,7 +221,7 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 
 void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default_folder)
 {
-	for (const auto& device : device_factory.GetDevices()) {
+	for (const auto& device : controller_manager.GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 		GetDevice(*device, *pb_device, default_folder);
 	}
@@ -230,7 +231,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
-		for (const auto& device : device_factory.GetDevices()) {
+		for (const auto& device : controller_manager.GetAllDevices()) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}

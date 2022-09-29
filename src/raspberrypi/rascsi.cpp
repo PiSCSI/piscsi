@@ -68,7 +68,7 @@ string access_token;
 DeviceFactory device_factory;
 ControllerManager controller_manager(bus);
 RascsiImage rascsi_image;
-RascsiResponse rascsi_response(device_factory, ScsiController::LUN_MAX);
+RascsiResponse rascsi_response(device_factory, controller_manager, ScsiController::LUN_MAX);
 RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 const ProtobufSerializer serializer;
 
