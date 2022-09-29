@@ -46,6 +46,7 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool supports_params = false;
 
 	// Immutable device ID and LUN
+	// TODO The ID should depend on the controller only
 	int id;
 	int lun;
 
