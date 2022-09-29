@@ -371,7 +371,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
-	if (file_support != nullptr && !OpenImageFile(context, *file_support, *device, filename)) {
+	if (file_support != nullptr && !OpenImageFile(context, *device, filename)) {
 		device_factory.DeleteDevice(*device);
 
 		return false;
@@ -454,8 +454,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	auto file_support = dynamic_cast<FileSupport *>(&device);
-	if (!OpenImageFile(context, *file_support, device, filename)) {
+	if (!OpenImageFile(context, device, filename)) {
 		return false;
 	}
 
@@ -615,10 +614,10 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& file_support, const Device& device,
-		const string& filename) const
+bool RascsiExecutor::OpenImageFile(const CommandContext& context, Device& device, const string& filename) const
 {
-	if (filename.empty()) {
+	auto file_support = dynamic_cast<FileSupport *>(&device);
+	if (file_support == nullptr || filename.empty()) {
 		return false;
 	}
 
@@ -636,7 +635,7 @@ bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& f
 
 	try {
 		try {
-			file_support.Open(filepath);
+			file_support->Open(filepath);
 		}
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
@@ -647,14 +646,14 @@ bool RascsiExecutor::OpenImageFile(const CommandContext& context, FileSupport& f
 						to_string(reserved_id), to_string(reserved_lun));
 			}
 
-			file_support.Open(filepath);
+			file_support->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
-	file_support.ReserveFile(filepath, device.GetId(), device.GetLun());
+	file_support->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	return true;
 }
