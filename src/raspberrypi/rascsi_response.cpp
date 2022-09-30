@@ -252,8 +252,8 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 
 			if (!has_device) {
 				result.set_status(false);
-					result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
-					return;
+				result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
+				return;
 			}
 		}
 	}
