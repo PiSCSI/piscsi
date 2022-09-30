@@ -406,9 +406,9 @@ void SCSIDaynaPort::Write6()
 		ctrl->length = GetInt16(ctrl->cmd, 3 + 8);
 	}
 	else {
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
+		LOGWARN("%s Unknown data format $%02X", __PRETTY_FUNCTION__, data_format)
 	}
-	LOGTRACE("%s length: $%04X (%d) format: %02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
+	LOGTRACE("%s length: $%04X (%d) format: $%02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
 
 	if (ctrl->length <= 0) {
 		throw scsi_error_exception();
