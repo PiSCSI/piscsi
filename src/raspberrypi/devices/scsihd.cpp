@@ -41,13 +41,13 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	if (!IsRemovable()) {
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (capacity >= 1000000) {
-			capacity /= 1000000;
-			unit = "MB";
+		if (capacity >= 1048576) {
+			capacity /= 1048576;
+			unit = "MiB";
 		}
 		else {
-			capacity /= 1000;
-			unit = "KB";
+			capacity /= 1024;
+			unit = "KiB";
 		}
 		stringstream product;
 		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
