@@ -490,7 +490,6 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 		}
 
 		// Delete the device and if no LUN is left also delete the controller
-		controller->DeleteDevice(device);
 		if (!controller->GetLunCount()) {
 			controller_manager.DeleteController(controller);
 		}
