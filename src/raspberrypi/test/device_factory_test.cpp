@@ -148,12 +148,12 @@ TEST(DeviceFactoryTest, UnknownDeviceType)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test");
+	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test");
 	EXPECT_EQ(nullptr, device1);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	PrimaryDevice *device2 = device_factory.CreateDevice(controller_manager, SAHD, 0, "test");
+	auto device2 = device_factory.CreateDevice(controller_manager, SAHD, 0, "test");
 #pragma GCC diagnostic pop
 	EXPECT_EQ(nullptr, device2);
 }
@@ -164,7 +164,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -203,7 +203,7 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -230,7 +230,7 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -257,7 +257,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -284,7 +284,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -311,7 +311,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -337,7 +337,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -364,7 +364,7 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	PrimaryDevice *device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
