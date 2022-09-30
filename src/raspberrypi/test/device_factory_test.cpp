@@ -37,21 +37,6 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso.suffix"), UNDEFINED);
 }
 
-TEST(DeviceFactoryTest, LifeCycle)
-{
-	const int ID = 3;
-	const int LUN = 5;
-
-	MockBus bus;
-	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
-
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
-	controller_manager.AttachToScsiController(ID, device.get());
-	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHS", device->GetType());
-}
-
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
 	DeviceFactory device_factory;

@@ -100,7 +100,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	}
 
 	// Does the unit exist?
-	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, lun);
+	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 	if (device == nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
 	}
@@ -387,14 +387,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
 				to_string(id), to_string(lun));
 	}
-	if (!controller_manager.AttachToScsiController(id, device.get())) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
-	}
 
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
-
+	// Prepare the log message before the device is consumed by the controller (unique_ptr)
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
 		msg += "read-only ";
@@ -403,9 +397,16 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		msg += "protected ";
 	}
 	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(lun);
-	LOGINFO("%s", msg.c_str())
 
-	device.release();
+	if (!controller_manager.AttachToScsiController(id, device)) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
+	}
+
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	file_support->ReserveFile(filepath, id, lun);
+
+	LOGINFO("%s", msg.c_str())
 
 	return true;
 }

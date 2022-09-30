@@ -15,7 +15,7 @@
 
 using namespace std;
 
-bool ControllerManager::AttachToScsiController(int id, PrimaryDevice *device)
+bool ControllerManager::AttachToScsiController(int id, unique_ptr<PrimaryDevice>& device)
 {
 	auto controller = FindController(id);
 	if (controller == nullptr) {
@@ -23,7 +23,7 @@ bool ControllerManager::AttachToScsiController(int id, PrimaryDevice *device)
 		controllers[id] = controller;
 	}
 
-	return controller->AddDevice(device);
+	return controller->AddDevice(device.release());
 }
 
 void ControllerManager::DeleteController(shared_ptr<AbstractController> controller)

@@ -57,7 +57,7 @@ TEST(RascsiExecutorTest, Attach)
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
-	controller_manager.AttachToScsiController(ID, device.release());
+	controller_manager.AttachToScsiController(ID, device);
 	device_definition.set_id(ID);
 	device_definition.set_unit(LUN);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
@@ -86,6 +86,8 @@ TEST(RascsiExecutorTest, Attach)
 TEST(RascsiExecutorTest, Detach)
 {
 	const int ID = 3;
+	const int LUN1 = 0;
+	const int LUN2 = 1;
 
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -97,15 +99,16 @@ TEST(RascsiExecutorTest, Detach)
 	Localizer localizer;
 	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
 
-	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(ID, device1.get());
-	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, 1, "services");
-	controller_manager.AttachToScsiController(ID, device2.get());
+	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
+	controller_manager.AttachToScsiController(ID, device1);
+	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
+	controller_manager.AttachToScsiController(ID, device2);
 
-	EXPECT_FALSE(executor.Detach(context, *device1, false)) << "LUN1 must be detached first";
-
-	EXPECT_TRUE(executor.Detach(context, *device2, false));
-	EXPECT_TRUE(executor.Detach(context, *device1, false));
+	auto d1 = controller_manager.GetDeviceByIdAndLun(ID, LUN1);
+	EXPECT_FALSE(executor.Detach(context, *d1, false)) << "LUNs > 0 have to be detached first";
+	auto d2 = controller_manager.GetDeviceByIdAndLun(ID, LUN2);
+	EXPECT_TRUE(executor.Detach(context, *d2, false));
+	EXPECT_TRUE(executor.Detach(context, *d1, false));
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 }
 
@@ -121,7 +124,7 @@ TEST(RascsiExecutorTest, DetachAll)
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(ID, device.get());
+	controller_manager.AttachToScsiController(ID, device);
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_FALSE(controller_manager.GetAllDevices().empty());
 
@@ -185,7 +188,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(5, device.get());
+	controller_manager.AttachToScsiController(5, device);
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
 }
@@ -210,7 +213,7 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	EXPECT_FALSE(error.empty());
 
 	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(0, device2.get());
+	controller_manager.AttachToScsiController(0, device2);
 	error = executor.ValidateLunSetup(command);
 	EXPECT_TRUE(error.empty());
 }
