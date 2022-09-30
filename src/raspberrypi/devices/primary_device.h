@@ -26,7 +26,7 @@ public:
 
 	virtual bool Dispatch(scsi_command);
 
-	int GetId() const;
+	int GetId() const override;
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
