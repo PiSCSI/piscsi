@@ -296,7 +296,7 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, GetStatus())
+		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, (int)GetStatus())
 
 		SetPhase(BUS::phase_t::status);
 
