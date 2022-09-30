@@ -51,7 +51,7 @@ public:
 	void DetachAll();
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
-	bool ValidateImageFile(const CommandContext&, Device&, const string&) const;
+	bool ValidateImageFile(const CommandContext&, Device&, const string&, string&) const;
 
 	string ValidateLunSetup(const PbCommand&) const;
 };

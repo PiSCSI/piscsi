@@ -358,13 +358,14 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
+	string full_path;
 	if (file_support != nullptr) {
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
-		if (!ValidateImageFile(context, *device, filename)) {
+		if (!ValidateImageFile(context, *device, filename, full_path)) {
 			return false;
 		}
 	}
@@ -405,7 +406,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	Filepath filepath;
-	filepath.SetPath(filename.c_str());
+	filepath.SetPath(full_path.c_str());
 	file_support->ReserveFile(filepath, id, lun);
 
 	LOGINFO("%s", msg.c_str())
@@ -449,12 +450,13 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	if (!ValidateImageFile(context, device, filename)) {
+	string full_path;
+	if (!ValidateImageFile(context, device, filename, full_path)) {
 		return false;
 	}
 
 	Filepath filepath;
-	filepath.SetPath(filename.c_str());
+	filepath.SetPath(full_path.c_str());
 	dynamic_cast<FileSupport *>(&device)->ReserveFile(filepath, device.GetId(), device.GetLun());
 
 	// Only non read-only devices support protect/unprotect.
@@ -611,7 +613,8 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& device, const string& filename) const
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& device, const string& filename,
+		string& full_path) const
 {
 	auto file_support = dynamic_cast<FileSupport *>(&device);
 	if (file_support == nullptr || filename.empty()) {
@@ -646,6 +649,8 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& de
 	catch(const io_exception& e) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
+
+	full_path = filepath.GetPath();
 
 	return true;
 }
