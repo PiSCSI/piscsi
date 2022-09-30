@@ -388,7 +388,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
-	// Prepare the log message before the device is consumed by the controller (unique_ptr)
+	// Prepare the log message before the device is consumed by the controller
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
 		msg += "read-only ";
