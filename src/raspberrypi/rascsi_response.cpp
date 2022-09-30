@@ -241,16 +241,19 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 		const auto& devices = controller_manager.GetAllDevices();
 
 		for (const auto& device : command.devices()) {
+			bool has_device = false;
 			for (const auto& d : devices) {
 				if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
 					id_sets.insert(make_pair(device.id(), device.unit()));
+					has_device = true;
 					break;
 				}
-				else {
-					result.set_status(false);
+			}
+
+			if (!has_device) {
+				result.set_status(false);
 					result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
 					return;
-				}
 			}
 		}
 	}
