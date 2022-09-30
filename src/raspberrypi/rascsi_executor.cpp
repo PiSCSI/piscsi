@@ -615,7 +615,7 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& de
 {
 	auto file_support = dynamic_cast<FileSupport *>(&device);
 	if (file_support == nullptr || filename.empty()) {
-		return false;
+		return true;
 	}
 
 	int id;
