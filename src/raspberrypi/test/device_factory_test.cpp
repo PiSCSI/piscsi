@@ -47,7 +47,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
-	controller_manager.CreateScsiController(ID, device.get());
+	controller_manager.AttachToScsiController(ID, device.get());
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 }

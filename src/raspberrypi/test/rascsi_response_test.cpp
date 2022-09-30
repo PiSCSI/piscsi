@@ -35,7 +35,7 @@ TEST(RascsiResponseTest, GetDevice_Printer)
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 
 	auto d = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
-	controller_manager.CreateScsiController(0, d.get());
+	controller_manager.AttachToScsiController(0, d.get());
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
@@ -64,7 +64,7 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 
 	auto d = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.CreateScsiController(0, d.get());
+	controller_manager.AttachToScsiController(0, d.get());
 
 	PbServerInfo server_info;
 	rascsi_response.GetDevices(server_info, "image_folder");
