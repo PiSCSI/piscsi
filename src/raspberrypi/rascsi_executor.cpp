@@ -489,7 +489,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
 
-		// Delete the device and if no LUN is left also delete the controller
+		// If no LUN is left also delete the controller
 		if (!controller->GetLunCount()) {
 			controller_manager.DeleteController(controller);
 		}
