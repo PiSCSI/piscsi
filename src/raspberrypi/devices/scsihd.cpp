@@ -41,8 +41,8 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	if (!IsRemovable()) {
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (capacity >= 1073741824) {
-			capacity /= 1073741824;
+		if (capacity >= 1099511627776) {
+			capacity /= 1099511627776;
 			unit = "GiB";
 		}
 		else if (capacity >= 1048576) {
