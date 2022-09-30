@@ -317,7 +317,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
+	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, type, lun, filename));
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
@@ -328,7 +328,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	// If no filename was provided the medium is considered removed
-	auto file_support = dynamic_cast<FileSupport *>(device);
+	auto file_support = dynamic_cast<FileSupport *>(device.get());
 	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
 
 	try {
@@ -347,7 +347,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (pb_device.block_size()) {
-		auto disk = dynamic_cast<Disk *>(device);
+		auto disk = dynamic_cast<Disk *>(device.get());
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
@@ -387,7 +387,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
 				to_string(id), to_string(lun));
 	}
-	if (!controller_manager.CreateScsiController(id, device)) {
+	if (!controller_manager.CreateScsiController(id, device.get())) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 
@@ -404,6 +404,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(lun);
 	LOGINFO("%s", msg.c_str())
+
+	device.release();
 
 	return true;
 }
