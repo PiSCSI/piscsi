@@ -31,7 +31,7 @@ public:
 	DeviceFactory();
 	~DeviceFactory() = default;
 
-	PrimaryDevice *CreateDevice(const ControllerManager&, PbDeviceType, int, const string&);
+	unique_ptr<PrimaryDevice> CreateDevice(const ControllerManager&, PbDeviceType, int, const string&);
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
