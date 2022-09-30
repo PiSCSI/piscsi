@@ -47,7 +47,7 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 			<< "+----+-----+------+-------------------------------------" << endl;
 
 	list<PbDevice> devices = pb_devices;
-	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 	for (const auto& device : devices) {
 		string filename;
