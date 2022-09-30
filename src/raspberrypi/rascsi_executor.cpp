@@ -358,13 +358,15 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		}
 	}
 
-	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
-	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
-	}
+	if (file_support != nullptr) {
+		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
+		if (!device->IsRemovable() && filename.empty()) {
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
+		}
 
-	if (file_support != nullptr && !ValidateImageFile(context, *device, filename)) {
-		return false;
+		if (!ValidateImageFile(context, *device, filename)) {
+			return false;
+		}
 	}
 
 	// Only non read-only devices support protect/unprotect
