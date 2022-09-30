@@ -108,7 +108,7 @@ void ScsiController::BusFree()
 		bus.SetBSY(false);
 
 		// Initialize status and message
-		SetStatus(0);
+		SetStatus(status::GOOD);
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
@@ -236,7 +236,7 @@ void ScsiController::Execute()
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
-		SetStatus(0);
+		SetStatus(status::GOOD);
 	}
 
 	int lun = GetEffectiveLun();
@@ -466,7 +466,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
-	SetStatus((uint32_t)status);
+	SetStatus(status);
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)

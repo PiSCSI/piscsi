@@ -38,7 +38,7 @@ void AbstractController::Reset()
 {
 	SetPhase(BUS::phase_t::busfree);
 
-	ctrl.status = 0x00;
+	ctrl.status = status::GOOD;
 	ctrl.message = 0x00;
 	ctrl.blocks = 0;
 	ctrl.next = 0;

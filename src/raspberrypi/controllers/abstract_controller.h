@@ -41,7 +41,7 @@ public:
 
 	using ctrl_t = struct _ctrl_t {
 		vector<int> cmd;				// Command data, dynamically allocated per received command
-		uint32_t status;				// Status data
+		scsi_defs::status status;		// Status data
 		int message;					// Message data
 
 		// Transfer
@@ -90,8 +90,8 @@ public:
 
 	void AllocateBuffer(size_t);
 	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
-	uint32_t GetStatus() const { return ctrl.status; }
-	void SetStatus(uint32_t s) { ctrl.status = s; }
+	scsi_defs::status GetStatus() const { return ctrl.status; }
+	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
 
 protected:

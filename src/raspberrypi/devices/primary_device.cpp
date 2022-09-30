@@ -124,7 +124,7 @@ void PrimaryDevice::RequestSense()
 		// Do not raise an exception here because the rest of the code must be executed
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 
-		controller->SetStatus(0);
+		controller->SetStatus(status::GOOD);
 	}
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
@@ -204,7 +204,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, controller->GetStatus(),
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (int)controller->GetStatus(),
 			(int)buf[2], (int)buf[12])
 
 	return buf;

@@ -8,7 +8,10 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "scsi.h"
 #include "rascsi_exceptions.h"
+
+using namespace scsi_defs;
 
 TEST(DiskTest, Dispatch)
 {
@@ -38,7 +41,7 @@ TEST(DiskTest, Rezero)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRezero));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, FormatUnit)
@@ -56,7 +59,7 @@ TEST(DiskTest, FormatUnit)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdFormat));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[1] = 0x10;
 	cmd[4] = 1;
@@ -77,7 +80,7 @@ TEST(DiskTest, ReassignBlocks)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReassign));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, Seek)
@@ -106,14 +109,14 @@ TEST(DiskTest, Seek)
 	cmd[4] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSeek6));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	cmd[4] = 0;
 
 	// Block count for SEEK(10)
 	cmd[5] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSeek10));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, ReadCapacity)
@@ -191,10 +194,10 @@ TEST(DiskTest, ReadWriteLong)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadLong10));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdWriteLong10));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[2] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
@@ -220,11 +223,11 @@ TEST(DiskTest, ReadWriteLong)
 	cmd[1] = 0x11;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	cmd[1] = 0x00;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdWriteLong16));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[13] = 1;
 	// READ LONG(16), not READ CAPACITY(16)
@@ -247,11 +250,11 @@ TEST(DiskTest, ReserveRelease)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReserve6));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRelease6));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, SendDiagnostic)
@@ -265,7 +268,7 @@ TEST(DiskTest, SendDiagnostic)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSendDiag));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[1] = 0x10;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
@@ -297,13 +300,13 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	EXPECT_FALSE(disk.IsLocked());
 
 	cmd[4] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	EXPECT_TRUE(disk.IsLocked());
 }
 
@@ -319,14 +322,14 @@ TEST(DiskTest, SynchronizeCache)
 	EXPECT_CALL(disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache10));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	controller.InitCmd(16);
 
 	EXPECT_CALL(disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache16));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, ReadDefectData)
@@ -340,7 +343,7 @@ TEST(DiskTest, ReadDefectData)
 
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadDefectData10));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(DiskTest, SectorSize)

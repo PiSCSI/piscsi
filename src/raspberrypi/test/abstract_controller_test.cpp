@@ -8,8 +8,11 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "scsi.h"
 #include "rascsi_exceptions.h"
 #include "controllers/abstract_controller.h"
+
+using namespace scsi_defs;
 
 TEST(AbstractControllerTest, Reset)
 {
@@ -23,7 +26,7 @@ TEST(AbstractControllerTest, Reset)
 	EXPECT_CALL(device, Reset()).Times(1);
 	controller.Reset();
 	EXPECT_TRUE(controller.IsBusFree());
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 	EXPECT_EQ(0, controller.GetLength());
 }
 
@@ -31,8 +34,8 @@ TEST(AbstractControllerTest, SetGetStatus)
 {
 	MockAbstractController controller(0);
 
-	controller.SetStatus(0x1234);
-	EXPECT_EQ(0x1234, controller.GetStatus());
+	controller.SetStatus(status::BUSY);
+	EXPECT_EQ(status::BUSY, controller.GetStatus());
 }
 
 TEST(AbstractControllerTest, SetPhase)

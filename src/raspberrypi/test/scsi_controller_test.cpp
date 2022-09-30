@@ -8,7 +8,10 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "scsi.h"
 #include "controllers/scsi_controller.h"
+
+using namespace scsi_defs;
 
 TEST(ScsiControllerTest, GetMaxLuns)
 {
@@ -34,5 +37,5 @@ TEST(ScsiControllerTest, RequestSense)
 	EXPECT_CALL(controller, Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN, status::CHECK_CONDITION)).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(0, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
+	EXPECT_EQ(status::GOOD, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
 }

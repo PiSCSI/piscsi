@@ -8,9 +8,12 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "scsi.h"
 #include "rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
+
+using namespace scsi_defs;
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
@@ -63,7 +66,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 	device.SetReady(true);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdTestUnitReady));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(PrimaryDeviceTest, Inquiry)
@@ -144,7 +147,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 	device.SetReady(true);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(0, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)
