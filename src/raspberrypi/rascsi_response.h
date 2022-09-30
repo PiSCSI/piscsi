@@ -30,18 +30,18 @@ public:
 	~RascsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
-	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, const string&, int);
-	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
-	void GetDevices(PbServerInfo&, const string&);
-	void GetDevicesInfo(PbResult&, const PbCommand&, const string&);
-	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&);
-	PbVersionInfo *GetVersionInfo(PbResult&);
+	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, const string&, int) const;
+	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&) const;
+	void GetDevices(PbServerInfo&, const string&) const;
+	void GetDevicesInfo(PbResult&, const PbCommand&, const string&) const;
+	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&) const;
+	PbVersionInfo *GetVersionInfo(PbResult&) const;
 	PbServerInfo *GetServerInfo(PbResult&, const unordered_set<int>&, const string&, const string&, const string&,
-			const string&, int);
-	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
-	PbMappingInfo *GetMappingInfo(PbResult&);
-	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
-	PbOperationInfo *GetOperationInfo(PbResult&, int);
+			const string&, int) const;
+	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&) const;
+	PbMappingInfo *GetMappingInfo(PbResult&) const;
+	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&) const;
+	PbOperationInfo *GetOperationInfo(PbResult&, int) const;
 
 private:
 
@@ -53,15 +53,15 @@ private:
 
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
-	PbDeviceProperties *GetDeviceProperties(const Device&);
-	void GetDevice(const Device&, PbDevice&, const string&);
-	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
-	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int);
-	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int);
+	PbDeviceProperties *GetDeviceProperties(const Device&) const;
+	void GetDevice(const Device&, PbDevice&, const string&) const;
+	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&) const;
+	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;
+	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int) const;
+	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int) const;
 	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
-			const string& = "", bool = false);
+			const string& = "", bool = false) const;
 
 	static string GetNextImageFile(const dirent *, const string&);
 };

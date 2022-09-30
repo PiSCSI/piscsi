@@ -19,7 +19,7 @@
 using namespace rascsi_interface;
 using namespace command_util;
 
-PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device)
+PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device) const
 {
 	auto properties = make_unique<PbDeviceProperties>().release();
 
@@ -49,7 +49,7 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device& device)
 	return properties;
 }
 
-void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
+void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type) const
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
@@ -57,7 +57,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_allocated_properties(GetDeviceProperties(*device.release()));
 } //NOSONAR The allocated memory is managed by protobuf
 
-void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
+void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
 {
 	// Start with 2 instead of 1. 1 was the removed SASI drive type.
 	int ordinal = 2;
@@ -69,7 +69,7 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	}
 }
 
-void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const string& default_folder)
+void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const string& default_folder) const
 {
 	pb_device.set_id(device.GetId());
 	pb_device.set_unit(device.GetLun());
@@ -131,7 +131,8 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 }
 
 void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
-		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
+		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
+{
 	if (scan_depth-- < 0) {
 		return;
 	}
@@ -180,7 +181,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 }
 
 PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth)
+		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	auto image_files_info = make_unique<PbImageFilesInfo>().release();
 
@@ -196,7 +197,7 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 }
 
 void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth)
+		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	PbImageFilesInfo *image_files_info = GetAvailableImages(result, default_folder, folder_pattern, file_pattern,
 			scan_depth);
@@ -206,7 +207,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
 }
 
-PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
+PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
 {
 	auto reserved_ids_info = make_unique<PbReservedIdsInfo>().release();
 	for (int id : ids) {
@@ -218,7 +219,7 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unorde
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default_folder)
+void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default_folder) const
 {
 	for (const auto& device : controller_manager.GetAllDevices()) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
@@ -226,7 +227,7 @@ void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const string& default_folder)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const string& default_folder) const
 {
 	set<id_set> id_sets;
 
@@ -275,7 +276,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
+PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result) const
 {
 	auto device_types_info = make_unique<PbDeviceTypesInfo>().release();
 
@@ -288,7 +289,7 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result)
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
 		const string& current_log_level, const string& default_folder, const string& folder_pattern,
-		const string& file_pattern, int scan_depth)
+		const string& file_pattern, int scan_depth) const
 {
 	auto server_info = make_unique<PbServerInfo>().release();
 
@@ -307,7 +308,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const unordered_se
 	return server_info;
 }
 
-PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
+PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result) const
 {
 	auto version_info = make_unique<PbVersionInfo>().release();
 
@@ -320,7 +321,7 @@ PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 	return version_info;
 }
 
-PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level)
+PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level) const
 {
 	auto log_level_info = make_unique<PbLogLevelInfo>().release();
 
@@ -335,7 +336,7 @@ PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& 
 	return log_level_info;
 }
 
-PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result)
+PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result) const
 {
 	auto network_interfaces_info = make_unique<PbNetworkInterfacesInfo>().release();
 
@@ -348,7 +349,7 @@ PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& resu
 	return network_interfaces_info;
 }
 
-PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
+PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result) const
 {
 	auto mapping_info = make_unique<PbMappingInfo>().release();
 
@@ -361,7 +362,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 	return mapping_info;
 }
 
-PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
+PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth) const
 {
 	auto operation_info = make_unique<PbOperationInfo>();
 
@@ -485,7 +486,7 @@ PbOperationMetaData *RascsiResponse::CreateOperation(PbOperationInfo& operation_
 }
 
 PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData& meta_data, const string& name,
-		const string& description, const string& default_value, bool is_mandatory)
+		const string& description, const string& default_value, bool is_mandatory) const
 {
 	auto parameter = unique_ptr<PbOperationParameter>(meta_data.add_parameters());
 	parameter->set_name(name);
