@@ -46,7 +46,7 @@ TEST(DeviceFactoryTest, LifeCycle)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
 	controller_manager.CreateScsiController(ID, device.get());
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
@@ -164,7 +164,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -184,15 +184,15 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
-	device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hds"));
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hds");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 
-	device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdi"));
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdi");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 
-	device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.nhd"));
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.nhd");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHD", device->GetType());
 }
@@ -203,7 +203,7 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCRM", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -230,7 +230,7 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCMO", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -257,7 +257,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCCD", device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -284,7 +284,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCBR", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -311,7 +311,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCDP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -337,7 +337,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCHS", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -364,7 +364,7 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ("SCLP", device->GetType());
 	EXPECT_FALSE(device->SupportsFile());

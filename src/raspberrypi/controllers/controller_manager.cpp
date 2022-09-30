@@ -17,7 +17,7 @@ using namespace std;
 
 bool ControllerManager::CreateScsiController(int id, PrimaryDevice *device)
 {
-	shared_ptr<AbstractController> controller = FindController(id);
+	auto controller = FindController(id);
 	if (controller == nullptr) {
 		controller = make_shared<ScsiController>(bus, id);
 		controllers[id] = controller;

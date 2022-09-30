@@ -21,7 +21,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 
-	auto device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services"));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
 	controller_manager.CreateScsiController(ID, device.get());
 	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
@@ -32,7 +32,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
-	device = unique_ptr<PrimaryDevice>(device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services"));
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
 	controller_manager.CreateScsiController(ID, device.get());
 	controller = controller_manager.FindController(ID);
 	controller_manager.DeleteController(controller);
