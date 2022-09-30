@@ -100,7 +100,7 @@ TEST(RascsiExecutorTest, Detach)
 
 	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	controller_manager.CreateScsiController(ID, device1);
-	PrimaryDevice *device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, 1, "services");
+	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, 1, "services");
 	controller_manager.CreateScsiController(ID, device2);
 
 	EXPECT_FALSE(executor.Detach(context, *device1, false)) << "LUN1 must be detached first";
