@@ -138,15 +138,15 @@
 <table style="border: none;" cellpadding="3">
     <tr style="border: none;">
         <td style="border: none;">
-	    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+        <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
             <input type="submit" value="{{ _("Detach All Devices") }}">
-	    </form>
-	</td>
+        </form>
+        </td>
         <td style="border: none;">
-	    <form action="/scsi/info" method="post">
+        <form action="/scsi/info" method="post">
             <input type="submit" value="{{ _("Show Device Info") }}">
-	    </form>
-	</td>
+        </form>
+    </td>
     </tr>
 </table>
 
@@ -326,30 +326,35 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
+        <li>{{ _("Before using a networking device, it is recommended to run easyinstall.sh from the command line to configure your Raspberry Pi.") }}
         </li>
         <ul>
-        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
-        <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
+	{% else %}
+        <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
-        <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
+        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
+        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
-        <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
+        <li>{{ _("Read more about <a href=\"%(url)s\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
 </details>
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
-        <td>{{ _("Peripheral") }}</td>
+        <td>{{ _("Device") }}</td>
+        <td>{{ _("Code") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
-    {% for type in PERIPHERAL_DEVICE_TYPES %}
+    {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
+        </td>
+        <td>
+            <div>{{ type }}</div>
         </td>
         <td>
             <form action="/scsi/attach_device" method="post">
@@ -370,6 +375,35 @@
                 <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
+                {% if type in REMOVABLE_DEVICE_TYPES %}
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name">
+                <option value="">
+                {{ _("None") }}
+                </option>
+                {% if type == "SCCD" %}
+                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCRM" %}
+                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCMO" %}
+                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                </select>
+                {% endif %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
@@ -410,7 +444,7 @@
                     <option value="afp">{{ AFP_DIR }}</option>
                 </select>
                 </p>
-	    </form>
+            </form>
         </td>
     </tr>
 </table>
@@ -459,7 +493,7 @@
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
             <form action="/files/download_url" method="post">
-		<label for="destination">{{ _("Target directory:") }}</label>
+                <label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
                     <option value="images">{{ base_dir }}</option>
                     <option value="afp">{{ AFP_DIR }}</option>
@@ -481,7 +515,6 @@
     <ul>
         <li>{{ _("Create an ISO file system CD-ROM image with the downloaded file, and mount it on the given SCSI ID.") }}</li>
         <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
-        <li>{{ _("On Mac OS, a <a href=\"%(url)s\">compatible CD-ROM driver</a> is required.", url="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images") }}</li>
         <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
     </ul>
 </details>
@@ -701,7 +734,7 @@
 <center><tt>
         {% if netatalk_configured == 1 %}
         {{ _("The AppleShare server is running. No active connections.") }}
-	{% endif %}
+        {% endif %}
         {% if netatalk_configured == 2 %}
         {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
         {% elif netatalk_configured > 2 %}
