@@ -29,7 +29,7 @@ class AbstractController
 	BUS::phase_t phase = BUS::phase_t::busfree;
 
 	// Logical units of this device controller mapped to their LUN numbers
-	unordered_map<int, unique_ptr<PrimaryDevice>> luns;
+	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
 public:
 
