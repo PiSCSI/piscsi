@@ -12,6 +12,7 @@
 #pragma once
 
 #include "scsi.h"
+#include "phase_handler.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -21,12 +22,10 @@ using namespace std;
 
 class PrimaryDevice;
 
-class AbstractController
+class AbstractController : public PhaseHandler
 {
 	friend class PrimaryDevice;
 	friend class ScsiController;
-
-	BUS::phase_t phase = BUS::phase_t::busfree;
 
 	// Logical units of this device controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
@@ -55,15 +54,6 @@ public:
 
 	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
 	virtual ~AbstractController() = default;
-
-	virtual void BusFree() = 0;
-	virtual void Selection() = 0;
-	virtual void Command() = 0;
-	virtual void Status() = 0;
-	virtual void DataIn() = 0;
-	virtual void DataOut() = 0;
-	virtual void MsgIn() = 0;
-	virtual void MsgOut() = 0;
 
 	virtual BUS::phase_t Process(int) = 0;
 
@@ -108,17 +98,6 @@ protected:
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
-
-	BUS::phase_t GetPhase() const { return phase; }
-	void SetPhase(BUS::phase_t p) { phase = p; }
-	bool IsSelection() const { return phase == BUS::phase_t::selection; }
-	bool IsBusFree() const { return phase == BUS::phase_t::busfree; }
-	bool IsCommand() const { return phase == BUS::phase_t::command; }
-	bool IsStatus() const { return phase == BUS::phase_t::status; }
-	bool IsDataIn() const { return phase == BUS::phase_t::datain; }
-	bool IsDataOut() const { return phase == BUS::phase_t::dataout; }
-	bool IsMsgIn() const { return phase == BUS::phase_t::msgin; }
-	bool IsMsgOut() const { return phase == BUS::phase_t::msgout; }
 
 private:
 
