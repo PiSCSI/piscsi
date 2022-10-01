@@ -391,16 +391,6 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
-	// Prepare the log message before the device is consumed by the controller
-	string msg = "Attached ";
-	if (device->IsReadOnly()) {
-		msg += "read-only ";
-	}
-	else if (device->IsProtectable() && device->IsProtected()) {
-		msg += "protected ";
-	}
-	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(lun);
-
 	if (!controller_manager.AttachToScsiController(id, device)) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
@@ -409,6 +399,14 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	filepath.SetPath(full_path.c_str());
 	file_support->ReserveFile(filepath, id, lun);
 
+	string msg = "Attached ";
+	if (device->IsReadOnly()) {
+		msg += "read-only ";
+	}
+	else if (device->IsProtectable() && device->IsProtected()) {
+		msg += "protected ";
+	}
+	msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(lun);
 	LOGINFO("%s", msg.c_str())
 
 	return true;
