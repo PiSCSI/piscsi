@@ -23,7 +23,7 @@ TEST(RascsiResponseTest, Operation_Count)
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	PbResult pb_operation_info_result;
 
-	const auto operation_info = unique_ptr<PbOperationInfo>(rascsi_response.GetOperationInfo(pb_operation_info_result, 0));
+	const auto operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 	EXPECT_EQ(PbOperation_ARRAYSIZE - 1, operation_info->operations_size());
 }
 
