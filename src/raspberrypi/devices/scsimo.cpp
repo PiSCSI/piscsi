@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -24,13 +24,13 @@ SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO")
 	SetSectorSizes(sector_sizes);
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
-	geometries[0x797f400] = make_pair(512, 248826);
+	geometries[512 * 248826] = make_pair(512, 248826);
 	// 230 MB, 512 bytes per block, 446325 sectors
-	geometries[0xd9eea00] = make_pair(512, 446325);
+	geometries[512 * 446325] = make_pair(512, 446325);
 	// 540 MB, 512 bytes per sector, 1041500 sectors
-	geometries[0x1fc8b800] = make_pair(512, 1041500);
+	geometries[512 * 1041500] = make_pair(512, 1041500);
 	// 640 MB, 20248 bytes per sector, 310352 sectors
-	geometries[0x25e28000] = make_pair(2048, 310352);
+	geometries[2048 * 310352] = make_pair(2048, 310352);
 }
 
 void SCSIMO::Open(const Filepath& path)
