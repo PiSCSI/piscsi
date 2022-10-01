@@ -328,14 +328,13 @@
     <ul>
         <li>{{ _("When attaching an empty drive for removable media, you can choose the bespoke device that is should masquerade as.") }}
         </li>
-        <li>{{ _("<a href=\"%(url)s\">DaynaPORT SCSI/Link</a> is an Ethernet adapter device.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link") }}
+        <li>{{ _("Networking devices require the network bridge to be configured before you attach it.") }}
         </li>
         <ul>
-        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
-        <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% endif %}
+        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
         <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
