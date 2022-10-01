@@ -72,20 +72,15 @@ void HostServices::StartStopUnit()
 		else {
 			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
-
-		EnterStatusPhase();
-		return;
+	}
+	else if (load) {
+		controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		if (load) {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
-
-			EnterStatusPhase();
-			return;
-		}
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	EnterStatusPhase();
 }
 
 int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
