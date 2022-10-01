@@ -241,6 +241,9 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	// Otherwise get information on the devices provided in the command
 	else {
 		id_sets = MatchDevices(result, command);
+		if (id_sets.empty()) {
+			return;
+		}
 	}
 
 	auto devices_info = make_unique<PbDevicesInfo>();
