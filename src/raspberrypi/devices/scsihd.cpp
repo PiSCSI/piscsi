@@ -41,7 +41,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	if (!IsRemovable()) {
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-<<<<<<< HEAD
 		// 10 GiB and more
 		if (capacity >= 1099511627776) {
 			capacity /= 1099511627776;
@@ -49,9 +48,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 		}
 		// 1 MiB and more
 		else if (capacity >= 1048576) {
-=======
-		if (capacity >= 1048576) {
->>>>>>> feature_memory_management
 			capacity /= 1048576;
 			unit = "MiB";
 		}
