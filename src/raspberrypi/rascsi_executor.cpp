@@ -298,19 +298,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	auto file_support = dynamic_cast<FileSupport *>(device.get());
 	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
 
-	try {
-		if (!pb_device.vendor().empty()) {
-			device->SetVendor(pb_device.vendor());
-		}
-		if (!pb_device.product().empty()) {
-			device->SetProduct(pb_device.product());
-		}
-		if (!pb_device.revision().empty()) {
-			device->SetRevision(pb_device.revision());
-		}
-	}
-	catch(const invalid_argument& e) { //NOSONAR This exception is handled properly
-		return ReturnStatus(context, false, e.what());
+	if (!SetProductData(context, pb_device, device)) {
+		return false;
 	}
 
 	if (pb_device.block_size()) {
@@ -734,6 +723,27 @@ bool RascsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int
 	}
 	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::SetProductData(const CommandContext& context, const PbDeviceDefinition& pb_device,
+		shared_ptr<PrimaryDevice> device)
+{
+	try {
+		if (!pb_device.vendor().empty()) {
+			device->SetVendor(pb_device.vendor());
+		}
+		if (!pb_device.product().empty()) {
+			device->SetProduct(pb_device.product());
+		}
+		if (!pb_device.revision().empty()) {
+			device->SetRevision(pb_device.revision());
+		}
+	}
+	catch(const invalid_argument& e) { //NOSONAR This exception is handled properly
+		return ReturnStatus(context, false, e.what());
 	}
 
 	return true;

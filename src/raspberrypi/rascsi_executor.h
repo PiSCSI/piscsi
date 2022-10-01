@@ -64,4 +64,6 @@ public:
 	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
 			const PbOperation&);
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
+	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>);
+
 };
