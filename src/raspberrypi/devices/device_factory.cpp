@@ -190,7 +190,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 
 	case SCBR:
 		device = make_unique<SCSIBR>();
-		device->SetProduct("SCSI HOST BRIDGE");
+		device->SetProduct("RASCSI BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;

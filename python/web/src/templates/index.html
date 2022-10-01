@@ -100,17 +100,11 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Eject") }}">
                 </form>
-                {% else %}
+                {% endif %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('{{ _("Detach Device?") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Detach") }}">
-                </form>
-                {% endif %}
-                <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.unit }}">
-                    <input type="submit" value="{{ _("Info") }}">
                 </form>
             {% else %}
             <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
@@ -141,9 +135,20 @@
     </tbody>
 </table>
 
-<p><form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
-    <input type="submit" value="{{ _("Detach All Devices") }}">
-</form></p>
+<table style="border: none;" cellpadding="3">
+    <tr style="border: none;">
+        <td style="border: none;">
+	    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+            <input type="submit" value="{{ _("Detach All Devices") }}">
+	    </form>
+	</td>
+        <td style="border: none;">
+	    <form action="/scsi/info" method="post">
+            <input type="submit" value="{{ _("Show Device Info") }}">
+	    </form>
+	</td>
+    </tr>
+</table>
 
 <hr/>
 
@@ -156,8 +161,16 @@
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
-        <li>{{ _("Recognized image file types: %(valid_image_suffixes)s", valid_image_suffixes=valid_image_suffixes) }}</li>
-        <li>{{ _("Recognized archive file types: %(ARCHIVE_FILE_SUFFIXES)s", ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES) }}</li>
+        <li>
+            {{ _("Recognized image file types:") }}
+            {% set comma = joiner(", ") %}
+            {% for extension in valid_image_suffixes %}{{ comma() }}.{{ extension}}{% endfor %}
+        </li>
+        <li>
+            {{ _("Recognized archive file types:") }}
+            {% set comma = joiner(", ") %}
+            {% for extension in ARCHIVE_FILE_SUFFIXES %}{{ comma() }}.{{ extension}}{% endfor %}
+        </li>
     </ul>
 </details>
 
@@ -236,9 +249,7 @@
             </td>
             <td>
                 {% if file["name"] in attached_images %}
-                <center>
-                    {{ _("Attached!") }}
-                </center>
+                    {{ _("In use") }}
                 {% else %}
                 {% if file["archive_contents"] %}
                 <form action="/files/extract_image" method="post">
@@ -296,12 +307,18 @@
                     <input type="submit" value="{{ _("Delete") }}">
                 </form>
                 {% endif %}
+                {% if not file["archive_contents"] %}
+                <form action="/files/diskinfo" method="post">
+                    <input name="file_name" type="hidden" value="{{ file['name'] }}">
+                    <input type="submit" value="{{ _("?") }}">
+                </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
 
 <hr/>
 <details>
@@ -317,6 +334,7 @@
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% endif %}
+        <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
         <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
@@ -368,28 +386,31 @@
     </tr>
     {% endfor %}
 </table>
-{% if macproxy_configured %}
-<p><small>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=ip_addr) }}</small></p>
-{% else %}
-<p><small>{{ _("Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any vintage browser. It's not just for Macs!", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</small></p>
-{% endif %}
 
 <hr/>
 <details>
     <summary class="heading">
-        {{ _("Upload File") }}
+        {{ _("Upload File from Local Computer") }}
     </summary>
     <ul>
-        <li>{{ _("Files are uploaded to <tt>%(directory)s</tt>.", directory=base_dir) }}</li>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
-<table style="border: none">
-    <tr style="border: none">
+<table style="border: none;">
+    <tr style="border: none;">
         <td style="border: none; vertical-align:top;">
-            <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper"></form>
+            <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
+                <p>
+                <label for="destination">{{ _("Target directory:") }}</label>
+                <select name="destination">
+                    <option value="images">{{ base_dir }}</option>
+                    <option value="afp">{{ AFP_DIR }}</option>
+                </select>
+                </p>
+	    </form>
         </td>
     </tr>
 </table>
@@ -426,61 +447,30 @@
 
 <details>
     <summary class="heading">
-        {{ _("Download File to Images") }}
+        {{ _("Download File from the Web") }}
     </summary>
     <ul>
-        <li>{{ _("Given a URL, download that file to the <tt>%(directory)s</tt> directory.", directory=base_dir) }}</li>
+        <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
 <table style="border: none">
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
-            <form action="/files/download_to_images" method="post">
+            <form action="/files/download_url" method="post">
+		<label for="destination">{{ _("Target directory:") }}</label>
+                <select name="destination">
+                    <option value="images">{{ base_dir }}</option>
+                    <option value="afp">{{ AFP_DIR }}</option>
+                </select>
                 <label for="url">{{ _("URL:") }}</label>
                 <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File to Images...") }}')">
+                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
             </form>
         </td>
     </tr>
 </table>
-
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Download File to AppleShare") }}
-    </summary>
-    <ul>
-        <li>{{ _("Given a URL, download that file to the <tt>%(directory)s</tt> directory and share it over AFP.", directory=AFP_DIR) }}</li>
-        <li>{{ _("Manage the files you download here through AppleShare on your vintage Mac.") }}</li>
-        <li>{{ _("Requires <a href=\"%(url)s\">Netatalk</a> to be installed and configured correctly for your network.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
-    </ul>
-</details>
-
-{% if netatalk_configured %}
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/files/download_to_afp" method="post">
-                <label for="url">{{ _("URL:") }}</label>
-                <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File to AppleShare...") }}')">
-            </form>
-        </td>
-    </tr>
-</table>
-
-{% if netatalk_configured == 1 %}
-<p><small>{{ _("The AppleShare server is running. No active connections.") }}</small></p>
-{% elif netatalk_configured == 2 %}
-<p><small>{{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}</small></p>
-{% elif netatalk_configured > 2 %}
-<p><small>{{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}</small></p>
-{% endif %}
-{% else %}
-<p>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</p>
-{% endif %}
 
 <hr/>
 
@@ -707,5 +697,21 @@
         </td>
     </tr>
 </table>
+
+<center><tt>
+        {% if netatalk_configured == 1 %}
+        {{ _("The AppleShare server is running. No active connections.") }}
+	{% endif %}
+        {% if netatalk_configured == 2 %}
+        {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
+        {% elif netatalk_configured > 2 %}
+        {{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}
+        {% endif %}
+</center></tt>
+<center><tt>
+{% if macproxy_configured %}
+<center><tt>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}</tt></center>
+{% endif %}
+</center></tt>
 
 {% endblock content %}
