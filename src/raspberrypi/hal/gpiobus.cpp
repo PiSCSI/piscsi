@@ -1069,9 +1069,9 @@ void GPIOBUS::MakeTable(void)
 	array<bool, 256> tblParity;
 
 	// Create parity table
-	for (int i = 0; i < 0x100; i++) {
-		auto bits = (DWORD)i;
-		DWORD parity = 0;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		uint32_t bits = i;
+		uint32_t parity = 0;
 		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
@@ -1082,11 +1082,16 @@ void GPIOBUS::MakeTable(void)
 
 #if SIGNAL_CONTROL_MODE == 0
 	// Mask and setting data generation
-	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
+	for (auto& tbl : tblDatMsk) {
+		tbl.fill(-1);
+	}
+	for (auto& tbl : tblDatSet) {
+		tbl.fill(0);
+	}
+
+	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		auto bits = (DWORD)i;
+		uint32_t bits = i;
 
 		// Get parity
 		if (tblParity[i]) {
@@ -1111,14 +1116,11 @@ void GPIOBUS::MakeTable(void)
 		}
 	}
 #else
-	// Mask and setting data generation
-	memset(tblDatMsk, 0x00, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
-		// bit string for inspection
-		DWORD bits = (DWORD)i;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		// Bit string for inspection
+		uint32_t bits = i;
 
-		// get parity
+		// Get parity
 		if (tblParity[i]) {
 			bits |= (1 << 8);
 		}
@@ -1129,8 +1131,8 @@ void GPIOBUS::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		DWORD gpclr = 0;
-		DWORD gpset = 0;
+		uint32_t gpclr = 0;
+		uint32_t gpset = 0;
 		for (int j = 0; j < 9; j++) {
 			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
@@ -1392,11 +1394,10 @@ void GPIOBUS::DrvConfig(DWORD drive)
 BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
 	// Selection Phase
-	if (GetPinRaw(raw_data, PIN_SEL)) 
-	{
-		if(GetPinRaw(raw_data, PIN_IO)){
+	if (GetPinRaw(raw_data, PIN_SEL)) {
+		if(GetPinRaw(raw_data, PIN_IO)) {
 			return BUS::phase_t::reselection;
-		}else{
+		} else{
 			return BUS::phase_t::selection;
 		}
 	}
@@ -1407,7 +1408,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	}
 
 	// Get target phase from bus signal line
-	DWORD mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
+	int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
 	return GetPhase(mci);
