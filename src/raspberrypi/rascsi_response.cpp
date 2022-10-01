@@ -476,11 +476,11 @@ unique_ptr<PbOperationInfo> RascsiResponse::GetOperationInfo(PbResult& result, i
 PbOperationMetaData *RascsiResponse::CreateOperation(PbOperationInfo& operation_info, const PbOperation& operation,
 		const string& description) const
 {
-	auto meta_data = make_shared<PbOperationMetaData>();
+	auto meta_data = make_unique<PbOperationMetaData>();
 	meta_data->set_server_side_name(PbOperation_Name(operation));
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
-	(*operation_info.mutable_operations())[ordinal] = *meta_data.get();
+	(*operation_info.mutable_operations())[ordinal] = *meta_data.release();
 	return &(*operation_info.mutable_operations())[ordinal];
 }
 
