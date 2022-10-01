@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "devices/scsi_command_util.h"
 
 using namespace scsi_command_util;

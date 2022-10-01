@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "rascsi_version.h"
 #include "controllers/controller_manager.h"

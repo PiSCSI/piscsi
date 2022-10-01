@@ -131,6 +131,23 @@ public:
 	MockBus bus;
 };
 
+class MockDevice final : public Device
+{
+	FRIEND_TEST(DeviceTest, Params);
+	FRIEND_TEST(DeviceTest, StatusCode);
+	FRIEND_TEST(DeviceTest, Reset);
+	FRIEND_TEST(DeviceTest, Start);
+	FRIEND_TEST(DeviceTest, Stop);
+	FRIEND_TEST(DeviceTest, Eject);
+
+public:
+
+	MOCK_METHOD(int, GetId, (), (const));
+
+	explicit MockDevice(int lun) : Device("test", lun) {}
+	~MockDevice() override = default;
+};
+
 class MockPrimaryDevice final : public PrimaryDevice
 {
 	FRIEND_TEST(PrimaryDeviceTest, PhaseChange);

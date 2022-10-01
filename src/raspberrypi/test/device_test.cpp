@@ -7,26 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/device.h"
-
-class MockDevice final : public Device
-{
-	FRIEND_TEST(DeviceTest, Params);
-	FRIEND_TEST(DeviceTest, StatusCode);
-	FRIEND_TEST(DeviceTest, Reset);
-	FRIEND_TEST(DeviceTest, Start);
-	FRIEND_TEST(DeviceTest, Stop);
-	FRIEND_TEST(DeviceTest, Eject);
-
-public:
-
-	MOCK_METHOD(int, GetId, (), (const));
-
-	explicit MockDevice(int lun) : Device("test", lun) {}
-	~MockDevice() override = default;
-};
 
 TEST(DeviceTest, Properties)
 {

@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "localizer.h"

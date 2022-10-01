@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "rascsi_interface.pb.h"
 #include "protobuf_serializer.h"

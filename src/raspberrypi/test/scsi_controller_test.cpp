@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "scsi.h"
 #include "controllers/scsi_controller.h"
 

@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/scsihd.h"
 
