@@ -61,6 +61,7 @@ public:
 	string ValidateLunSetup(const PbCommand&) const;
 	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
 
-	static bool ValidateOperations(const CommandContext&, const shared_ptr<PrimaryDevice>, const PbOperation&);
+	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
+			const PbOperation&);
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 };

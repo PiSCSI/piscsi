@@ -50,7 +50,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 
-	if (!ValidateOperations(context, device, operation)) {
+	if (!ValidationOperationAgainstDevice(context, device, operation)) {
 		return false;
 	}
 
@@ -699,8 +699,8 @@ bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 	return true;
 }
 
-bool RascsiExecutor::ValidateOperations(const CommandContext& context, const shared_ptr<PrimaryDevice> device,
-		const PbOperation& operation)
+bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& context,
+		const shared_ptr<PrimaryDevice> device, const PbOperation& operation)
 {
 	const string& type = device->GetType();
 
