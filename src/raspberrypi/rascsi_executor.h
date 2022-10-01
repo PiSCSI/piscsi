@@ -45,6 +45,11 @@ public:
 	bool ProcessCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
 	bool ProcessCmd(const CommandContext&, const PbCommand&);
 	bool SetLogLevel(const string&) const;
+	bool Start(shared_ptr<PrimaryDevice>, bool) const;
+	bool Stop(shared_ptr<PrimaryDevice>, bool) const;
+	bool Eject(shared_ptr<PrimaryDevice>, bool) const;
+	bool Protect(shared_ptr<PrimaryDevice>, bool) const;
+	bool Unprotect(shared_ptr<PrimaryDevice>, bool) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device&, bool) const;
 	bool Detach(const CommandContext&, PrimaryDevice&, bool) const;

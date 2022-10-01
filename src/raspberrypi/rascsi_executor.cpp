@@ -54,27 +54,12 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return false;
 	}
 
-	const string& type = device->GetType();
-
 	switch (operation) {
 		case START:
-			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", type.c_str(), id, lun)
-
-				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", type.c_str(), id, lun)
-				}
-			}
-			break;
+			return Start(device, dryRun);
 
 		case STOP:
-			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", type.c_str(), id, lun)
-
-				// STOP is idempotent
-				device->Stop();
-			}
-			break;
+			return Stop(device, dryRun);
 
 		case ATTACH:
 			return Attach(context, pb_device, dryRun);
@@ -86,31 +71,13 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 			return Insert(context, pb_device, *device, dryRun);
 
 		case EJECT:
-			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", type.c_str(), id, lun)
-
-				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", type.c_str(), id, lun)
-				}
-			}
-			break;
+			return Eject(device, dryRun);
 
 		case PROTECT:
-			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", type.c_str(), id, lun)
-
-				// PROTECT is idempotent
-				device->SetProtected(true);
-			}
-			break;
+			return Protect(device, dryRun);
 
 		case UNPROTECT:
-			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", type.c_str(), id, lun)
-
-				// UNPROTECT is idempotent
-				device->SetProtected(false);
-			}
+			return Unprotect(device, dryRun);
 			break;
 
 		case CHECK_AUTHENTICATION:
@@ -229,6 +196,70 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 	}
 
 	LOGINFO("Set log level to '%s'", log_level.c_str())
+
+	return true;
+}
+
+bool RascsiExecutor::Start(shared_ptr<PrimaryDevice> device, bool dryRun) const
+{
+	if (!dryRun) {
+		LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun())
+
+		if (!device->Start()) {
+			LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), device->GetId(), device->GetLun())
+		}
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::Stop(shared_ptr<PrimaryDevice> device, bool dryRun) const
+{
+	if (!dryRun) {
+		LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun())
+
+		// STOP is idempotent
+		device->Stop();
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::Eject(shared_ptr<PrimaryDevice> device, bool dryRun) const
+{
+	if (!dryRun) {
+		LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun())
+
+		if (!device->Eject(true)) {
+			LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), device->GetId(), device->GetLun())
+		}
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::Protect(shared_ptr<PrimaryDevice> device, bool dryRun) const
+{
+	if (!dryRun) {
+		LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(),
+				device->GetLun())
+
+		// PROTECT is idempotent
+		device->SetProtected(true);
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::Unprotect(shared_ptr<PrimaryDevice> device, bool dryRun) const
+{
+	if (!dryRun) {
+		LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(),
+				device->GetLun())
+
+		// UNPROTECT is idempotent
+		device->SetProtected(false);
+	}
 
 	return true;
 }
