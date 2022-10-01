@@ -62,6 +62,7 @@ private:
 	unique_ptr<PbOperationMetaData> CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	unique_ptr<PbOperationParameter> AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false) const;
+	set<id_set> MatchDevices(PbResult&, const PbCommand&) const;
 
 	static string GetNextImageFile(const dirent *, const string&);
 };

@@ -232,7 +232,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 
 	const auto& devices = controller_manager.GetAllDevices();
 
-	// If no devices list was provided in the command get information on all devices
+	// If no device list was provided in the command get information on all devices
 	if (!command.devices_size()) {
 		for (const auto& device : devices) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
@@ -240,22 +240,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	}
 	// Otherwise get information on the devices provided in the command
 	else {
-		for (const auto& device : command.devices()) {
-			bool has_device = false;
-			for (const auto& d : devices) {
-				if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
-					id_sets.insert(make_pair(device.id(), device.unit()));
-					has_device = true;
-					break;
-				}
-			}
-
-			if (!has_device) {
-				result.set_status(false);
-				result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
-				return;
-			}
-		}
+		id_sets = MatchDevices(result, command);
 	}
 
 	auto devices_info = make_unique<PbDevicesInfo>();
@@ -535,4 +520,29 @@ string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 	}
 
 	return filename;
+}
+
+set<id_set> RascsiResponse::MatchDevices(PbResult& result, const PbCommand& command) const
+{
+	set<id_set> id_sets;
+
+	for (const auto& device : command.devices()) {
+		bool has_device = false;
+		for (const auto& d : controller_manager.GetAllDevices()) {
+			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+				has_device = true;
+				break;
+			}
+		}
+
+		if (!has_device) {
+			id_sets.clear();
+
+			result.set_status(false);
+			result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
+		}
+	}
+
+	return id_sets;
 }
