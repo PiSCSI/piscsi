@@ -221,7 +221,12 @@ def index():
     try:
         drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
     except:
-        drive_properties = {"hd_conf": [], "cd_conf": [], "rm_conf": []}
+        drive_properties = {
+            "hd_conf": [],
+            "cd_conf": [],
+            "rm_conf": [],
+            "mo_conf": [],
+            }
 
     return response(
         template="index.html",
@@ -278,7 +283,12 @@ def drive_list():
     try:
         drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
     except:
-        drive_properties = {"hd_conf": [], "cd_conf": [], "rm_conf": []}
+        drive_properties = {
+            "hd_conf": [],
+            "cd_conf": [],
+            "rm_conf": [],
+            "mo_conf": [],
+            }
 
     server_info = ractl_cmd.get_server_info()
 
