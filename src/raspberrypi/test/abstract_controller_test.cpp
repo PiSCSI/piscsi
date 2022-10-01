@@ -17,13 +17,13 @@ using namespace scsi_defs;
 TEST(AbstractControllerTest, Reset)
 {
 	MockAbstractController controller(0);
-	MockPrimaryDevice device(0);
+	auto device = new MockPrimaryDevice(0);
 
-	controller.AddDevice(&device);
+	controller.AddDevice(device);
 
 	controller.SetPhase(BUS::phase_t::status);
 	EXPECT_EQ(BUS::phase_t::status, controller.GetPhase());
-	EXPECT_CALL(device, Reset()).Times(1);
+	EXPECT_CALL(*device, Reset()).Times(1);
 	controller.Reset();
 	EXPECT_TRUE(controller.IsBusFree());
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
@@ -116,21 +116,21 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int LUN = 4;
 
 	MockAbstractController controller(ID);
-	MockPrimaryDevice device1(LUN);
-	MockPrimaryDevice device2(32);
-	MockPrimaryDevice device3(-1);
-	EXPECT_EQ(0, controller.GetLunCount());
+	auto device1 = new MockPrimaryDevice(LUN);
+	auto device2 = new MockPrimaryDevice(32);
+	auto device3 = new MockPrimaryDevice(-1);
 
+	EXPECT_EQ(0, controller.GetLunCount());
 	EXPECT_EQ(ID, controller.GetTargetId());
-	EXPECT_TRUE(controller.AddDevice(&device1));
-	EXPECT_FALSE(controller.AddDevice(&device2));
-	EXPECT_FALSE(controller.AddDevice(&device3));
+	EXPECT_TRUE(controller.AddDevice(device1));
+	EXPECT_FALSE(controller.AddDevice(device2));
+	EXPECT_FALSE(controller.AddDevice(device3));
 	EXPECT_TRUE(controller.GetLunCount() > 0);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN));
 	EXPECT_FALSE(controller.HasDeviceForLun(0));
-	EXPECT_EQ(&device1, controller.GetDeviceForLun(LUN));
+	EXPECT_EQ(device1, controller.GetDeviceForLun(LUN));
 	EXPECT_EQ(nullptr, controller.GetDeviceForLun(0));
-	EXPECT_TRUE(controller.DeleteDevice(device1));
+	EXPECT_TRUE(controller.DeleteDevice(*device1));
 	EXPECT_EQ(0, controller.GetLunCount());
 }
 

@@ -23,9 +23,9 @@ TEST(ScsiControllerTest, GetMaxLuns)
 TEST(ScsiControllerTest, RequestSense)
 {
 	MockScsiController controller(0);
-	MockPrimaryDevice device(0);
+	auto device = new MockPrimaryDevice(0);
 
-	controller.AddDevice(&device);
+	controller.AddDevice(device);
 
 	vector<int>& cmd = controller.InitCmd(6);
 	// ALLOCATION LENGTH
@@ -33,9 +33,9 @@ TEST(ScsiControllerTest, RequestSense)
 	// Non-existing LUN
 	cmd[1] = 0x20;
 
-	device.SetReady(true);
+	device->SetReady(true);
 	EXPECT_CALL(controller, Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN, status::CHECK_CONDITION)).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
-	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
+	EXPECT_TRUE(device->Dispatch(scsi_command::eCmdRequestSense));
 	EXPECT_EQ(status::GOOD, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
 }

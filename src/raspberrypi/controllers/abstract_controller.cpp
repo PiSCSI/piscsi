@@ -23,7 +23,7 @@ unordered_set<PrimaryDevice *> AbstractController::GetDevices() const
 	unordered_set<PrimaryDevice *> devices;
 
 	for (const auto& [id, lun] : luns) {
-		devices.insert(lun);
+		devices.insert(lun.get());
 	}
 
 	return devices;
@@ -31,7 +31,7 @@ unordered_set<PrimaryDevice *> AbstractController::GetDevices() const
 
 PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
 	const auto& it = luns.find(lun);
-	return it == luns.end() ? nullptr : it->second;
+	return it == luns.end() ? nullptr : it->second.get();
 }
 
 void AbstractController::Reset()
@@ -99,7 +99,7 @@ bool AbstractController::AddDevice(PrimaryDevice *device)
 		return false;
 	}
 
-	luns[device->GetLun()] = device;
+	luns[device->GetLun()] = unique_ptr<PrimaryDevice>(device);
 	device->SetController(this);
 
 	return true;
