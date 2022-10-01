@@ -29,9 +29,9 @@ unordered_set<PrimaryDevice *> AbstractController::GetDevices() const
 	return devices;
 }
 
-PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
+shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
 	const auto& it = luns.find(lun);
-	return it == luns.end() ? nullptr : it->second.get();
+	return it == luns.end() ? nullptr : it->second;
 }
 
 void AbstractController::Reset()

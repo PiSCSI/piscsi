@@ -128,7 +128,7 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	EXPECT_TRUE(controller.GetLunCount() > 0);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN));
 	EXPECT_FALSE(controller.HasDeviceForLun(0));
-	EXPECT_EQ(device1, controller.GetDeviceForLun(LUN));
+	EXPECT_NE(nullptr, controller.GetDeviceForLun(LUN));
 	EXPECT_EQ(nullptr, controller.GetDeviceForLun(0));
 	EXPECT_TRUE(controller.DeleteDevice(*device1));
 	EXPECT_EQ(0, controller.GetLunCount());

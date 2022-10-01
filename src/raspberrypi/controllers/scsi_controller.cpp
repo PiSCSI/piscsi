@@ -256,7 +256,7 @@ void ScsiController::Execute()
 		}
 	}
 
-	PrimaryDevice *device = GetDeviceForLun(lun);
+	auto device = GetDeviceForLun(lun);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
@@ -774,7 +774,7 @@ void ScsiController::FlushUnit()
 {
 	assert(IsDataOut());
 
-	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return;
 	}
@@ -839,7 +839,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 		case scsi_command::eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = (static_cast<Disk *>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
+				ctrl.length = (dynamic_pointer_cast<Disk>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
 			}
 			catch(const scsi_error_exception&) {
 				// If there is an error, go to the status phase
@@ -869,7 +869,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
-	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return false;
 	}
@@ -896,7 +896,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		{
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
-			if (auto bridge = dynamic_cast<SCSIBR *>(disk); bridge) {
+			if (auto bridge = dynamic_pointer_cast<SCSIBR>(disk); bridge) {
 				if (!bridge->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
 					// Write failed
 					return false;
@@ -908,7 +908,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
-			if (auto daynaport = dynamic_cast<SCSIDaynaPort *>(disk); daynaport) {
+			if (auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(disk); daynaport) {
 				daynaport->WriteBytes(ctrl.cmd, GetBuffer(), 0);
 
 				ResetOffset();

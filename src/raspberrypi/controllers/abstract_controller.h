@@ -83,7 +83,7 @@ public:
 	int GetLunCount() const { return (int)luns.size(); }
 
 	unordered_set<PrimaryDevice *> GetDevices() const;
-	PrimaryDevice *GetDeviceForLun(int) const;
+	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
 	bool AddDevice(PrimaryDevice *);
 	bool DeleteDevice(const PrimaryDevice&);
 	bool HasDeviceForLun(int) const;

@@ -73,7 +73,7 @@ void ControllerManager::ResetAllControllers() const
 	}
 }
 
-PrimaryDevice *ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
+shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
 {
 	if (const auto controller = FindController(id); controller != nullptr) {
 		return controller->GetDeviceForLun(lun);

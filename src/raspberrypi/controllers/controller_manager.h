@@ -42,5 +42,5 @@ public:
 	unordered_set<PrimaryDevice *> GetAllDevices() const;
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
-	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
+	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 };
