@@ -53,6 +53,9 @@ public:
 	string SetReservedIds(string_view);
 	bool ValidateImageFile(const CommandContext&, Device&, const string&, string&) const;
 	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
-
 	string ValidateLunSetup(const PbCommand&) const;
+	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
+
+	static bool HandleBasicOperations(const CommandContext&, const shared_ptr<PrimaryDevice>, const PbOperation&);
+	static bool ValidateIdAndLun(const CommandContext&, int, int);
 };

@@ -32,21 +32,15 @@ using namespace ras_util;
 bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
 {
-	const int id = pb_device.id();
-	const int lun = pb_device.unit();
 	const PbOperation operation = command.operation();
 
 	PrintCommand(command, pb_device, dryRun);
 
-	// Validate the device ID and LUN
-	if (id < 0) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
-	}
-	if (id >= ControllerManager::DEVICE_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
-	}
-	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
+	const int id = pb_device.id();
+	const int lun = pb_device.unit();
+
+	if (!ValidateIdAndLun(context, id, lun)) {
+		return false;
 	}
 
 	if (operation == ATTACH) {
@@ -54,34 +48,21 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	}
 
 	// For all commands except ATTACH the device and LUN must exist
-	if (!dryRun && controller_manager.FindController(id) == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
+	if (!dryRun && !VerifyExistingIdAndLun(context, id, lun)) {
+		return false;
 	}
+
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
-	if (device == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
-	}
 
 	if (operation == DETACH) {
 		return Detach(context, *device, dryRun);
 	}
 
+	if (!HandleBasicOperations(context, device, operation)) {
+		return false;
+	}
+
 	const string& type = device->GetType();
-
-	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, type);
-	}
-
-	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, type);
-	}
-
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, type);
-	}
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, type);
-	}
 
 	switch (operation) {
 		case START:
@@ -682,3 +663,55 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	return "";
 }
 
+bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int id, int lun) const
+{
+	if (controller_manager.FindController(id) == nullptr) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
+	}
+
+	if (controller_manager.GetDeviceByIdAndLun(id, lun) == nullptr) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::HandleBasicOperations(const CommandContext& context, const shared_ptr<PrimaryDevice> device,
+		const PbOperation& operation)
+{
+	const string& type = device->GetType();
+
+	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, type);
+	}
+
+	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, type);
+	}
+
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, type);
+	}
+
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, type);
+	}
+
+	return true;
+}
+
+bool RascsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int lun)
+{
+	// Validate the device ID and LUN
+	if (id < 0) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
+	}
+	if (id >= ControllerManager::DEVICE_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
+	}
+	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
+	}
+
+	return true;
+}
