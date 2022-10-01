@@ -53,12 +53,10 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return Attach(context, pb_device, dryRun);
 	}
 
-	// Does the controller/device exist?
+	// For all commands except ATTACH the device and LUN must exist
 	if (!dryRun && controller_manager.FindController(id) == nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
-
-	// Does the LUN exist?
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 	if (device == nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
