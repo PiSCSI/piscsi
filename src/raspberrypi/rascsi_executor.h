@@ -51,17 +51,17 @@ public:
 	bool Protect(shared_ptr<PrimaryDevice>, bool) const;
 	bool Unprotect(shared_ptr<PrimaryDevice>, bool) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
-	bool Insert(const CommandContext&, const PbDeviceDefinition&, Device&, bool) const;
-	bool Detach(const CommandContext&, PrimaryDevice&, bool) const;
+	bool Insert(const CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>, bool) const;
+	bool Detach(const CommandContext&, shared_ptr<PrimaryDevice>, bool) const;
 	void DetachAll();
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
-	bool ValidateImageFile(const CommandContext&, Device&, const string&, string&) const;
+	bool ValidateImageFile(const CommandContext&, shared_ptr<PrimaryDevice>, const string&, string&) const;
 	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
 	string ValidateLunSetup(const PbCommand&) const;
 	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
 	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
-	bool SetSectorSize(const CommandContext&, const PbDeviceType, shared_ptr<PrimaryDevice>, int) const;
+	bool SetSectorSize(const CommandContext&, const string& type, shared_ptr<PrimaryDevice>, int) const;
 
 	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
 			const PbOperation&);

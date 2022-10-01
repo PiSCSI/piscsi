@@ -65,10 +65,10 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 			return Attach(context, pb_device, dryRun);
 
 		case DETACH:
-			return Detach(context, *device, dryRun);
+			return Detach(context, device, dryRun);
 
 		case INSERT:
-			return Insert(context, pb_device, *device, dryRun);
+			return Insert(context, pb_device, device, dryRun);
 
 		case EJECT:
 			return Eject(device, dryRun);
@@ -297,7 +297,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	if (!SetSectorSize(context, type, device, pb_device.block_size())) {
+	if (!SetSectorSize(context, PbDeviceType_Name(type), device, pb_device.block_size())) {
 		return false;
 	}
 
@@ -308,7 +308,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
-		if (!ValidateImageFile(context, *device, filename, full_path)) {
+		if (!ValidateImageFile(context, device, filename, full_path)) {
 			return false;
 		}
 	}
@@ -355,10 +355,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device& device,
-		bool dryRun) const
+bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
+		shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
-	if (!device.IsRemoved()) {
+	if (!device->IsRemoved()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
@@ -376,19 +376,10 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device.GetType().c_str(), pb_device.id(), pb_device.unit())
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
 
-	auto disk = dynamic_cast<Disk *>(&device);
-
-	if (pb_device.block_size()) {
-		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
-			}
-		}
-		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device.GetType());
-		}
+	if (!SetSectorSize(context, device->GetType(), device, pb_device.block_size())) {
+		return false;
 	}
 
 	string full_path;
@@ -398,14 +389,15 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 	Filepath filepath;
 	filepath.SetPath(full_path.c_str());
-	dynamic_cast<FileSupport *>(&device)->ReserveFile(filepath, device.GetId(), device.GetLun());
+	dynamic_pointer_cast<FileSupport>(device)->ReserveFile(filepath, device->GetId(), device->GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
-	if (device.IsProtectable() && !device.IsReadOnly()) {
-		device.SetProtected(pb_device.protected_());
+	if (device->IsProtectable() && !device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
 	}
 
+	auto disk = dynamic_pointer_cast<Disk>(device);
 	if (disk != nullptr) {
 		disk->MediumChanged();
 	}
@@ -413,23 +405,23 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun) const
+bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
 	// LUN 0 can only be detached if there is no other LUN anymore
-	if (!device.GetLun() && controller_manager.FindController(device.GetId())->GetLunCount() > 1) {
+	if (!device->GetLun() && controller_manager.FindController(device->GetId())->GetLunCount() > 1) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
 	}
 
 	if (!dryRun) {
 		// Prepare log string before the device data are lost due to deletion
-		string s = "Detached " + device.GetType() + " device with ID " + to_string(device.GetId())
-				+ ", unit " + to_string(device.GetLun());
+		string s = "Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
+				+ ", unit " + to_string(device->GetLun());
 
-		if (auto file_support = dynamic_cast<FileSupport *>(&device); file_support != nullptr) {
+		if (auto file_support = dynamic_pointer_cast<FileSupport>(device); file_support != nullptr) {
 			file_support->UnreserveFile();
 		}
 
-		auto controller = controller_manager.FindController(device.GetId());
+		auto controller = controller_manager.FindController(device->GetId());
 		if (controller == nullptr || !controller->DeleteDevice(device)) {
 			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
@@ -554,10 +546,10 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& device, const string& filename,
-		string& full_path) const
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<PrimaryDevice> device,
+		const string& filename, string& full_path) const
 {
-	auto file_support = dynamic_cast<FileSupport *>(&device);
+	auto file_support = dynamic_pointer_cast<FileSupport>(device);
 	if (file_support == nullptr || filename.empty()) {
 		return true;
 	}
@@ -691,18 +683,18 @@ shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& con
 	return device;
 }
 
-bool RascsiExecutor::SetSectorSize(const CommandContext& context, const PbDeviceType type,
+bool RascsiExecutor::SetSectorSize(const CommandContext& context, const string& type,
 		shared_ptr<PrimaryDevice> device, int block_size) const
 {
 	if (block_size) {
-		auto disk = dynamic_cast<Disk *>(device.get());
+		auto disk = dynamic_pointer_cast<Disk>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, block_size)) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(block_size));
 			}
 		}
 		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, type);
 		}
 	}
 
