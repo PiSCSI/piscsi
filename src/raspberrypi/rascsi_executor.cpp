@@ -284,14 +284,9 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	string filename = GetParam(pb_device, "file");
 
-	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
+	auto device = CreateDevice(context, type, lun, filename);
 	if (device == nullptr) {
-		if (type == UNDEFINED) {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
-		}
-		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
-		}
+		return false;
 	}
 
 	// If no filename was provided the medium is considered removed
@@ -686,6 +681,22 @@ bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 	}
 
 	return true;
+}
+
+shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& context, const PbDeviceType type,
+		int lun, const string& filename) const
+{
+	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
+	if (device == nullptr) {
+		if (type == UNDEFINED) {
+			ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
+		}
+		else {
+			ReturnLocalizedError(context, LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
+		}
+	}
+
+	return device;
 }
 
 bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& context,
