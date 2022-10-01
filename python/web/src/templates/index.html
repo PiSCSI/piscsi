@@ -347,12 +347,16 @@
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
         <td>{{ _("Peripheral") }}</td>
+        <td>{{ _("Code") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
     {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
+        </td>
+        <td>
+            <div>{{ type }}</div>
         </td>
         <td>
             <form action="/scsi/attach_device" method="post">
