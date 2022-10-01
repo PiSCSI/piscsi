@@ -495,6 +495,33 @@ unique_ptr<PbOperationParameter> RascsiResponse::AddOperationParameter(PbOperati
 	return parameter;
 }
 
+set<id_set> RascsiResponse::MatchDevices(PbResult& result, const PbCommand& command) const
+{
+	set<id_set> id_sets;
+
+	for (const auto& device : command.devices()) {
+		bool has_device = false;
+		for (const auto& d : controller_manager.GetAllDevices()) {
+			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+				has_device = true;
+				break;
+			}
+		}
+
+		if (!has_device) {
+			id_sets.clear();
+
+			result.set_status(false);
+			result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
+
+			break;
+		}
+	}
+
+	return id_sets;
+}
+
 string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 {
 	// Ignore unknown folder types and folder names starting with '.'
@@ -520,29 +547,4 @@ string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 	}
 
 	return filename;
-}
-
-set<id_set> RascsiResponse::MatchDevices(PbResult& result, const PbCommand& command) const
-{
-	set<id_set> id_sets;
-
-	for (const auto& device : command.devices()) {
-		bool has_device = false;
-		for (const auto& d : controller_manager.GetAllDevices()) {
-			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
-				id_sets.insert(make_pair(device.id(), device.unit()));
-				has_device = true;
-				break;
-			}
-		}
-
-		if (!has_device) {
-			id_sets.clear();
-
-			result.set_status(false);
-			result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
-		}
-	}
-
-	return id_sets;
 }
