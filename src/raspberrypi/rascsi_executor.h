@@ -61,6 +61,7 @@ public:
 	string ValidateLunSetup(const PbCommand&) const;
 	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
 	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
+	bool SetSectorSize(const CommandContext&, const PbDeviceType, shared_ptr<PrimaryDevice>, int) const;
 
 	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
 			const PbOperation&);

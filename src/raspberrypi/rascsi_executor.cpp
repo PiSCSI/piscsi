@@ -297,16 +297,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	if (pb_device.block_size()) {
-		auto disk = dynamic_cast<Disk *>(device.get());
-		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
-			}
-		}
-		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
-		}
+	if (!SetSectorSize(context, type, device, pb_device.block_size())) {
+		return false;
 	}
 
 	string full_path;
@@ -389,7 +381,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	auto disk = dynamic_cast<Disk *>(&device);
 
 	if (pb_device.block_size()) {
-		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
+		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
@@ -697,6 +689,24 @@ shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& con
 	}
 
 	return device;
+}
+
+bool RascsiExecutor::SetSectorSize(const CommandContext& context, const PbDeviceType type,
+		shared_ptr<PrimaryDevice> device, int block_size) const
+{
+	if (block_size) {
+		auto disk = dynamic_cast<Disk *>(device.get());
+		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(device_factory, block_size)) {
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(block_size));
+			}
+		}
+		else {
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
+		}
+	}
+
+	return true;
 }
 
 bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& context,
