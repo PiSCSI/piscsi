@@ -89,7 +89,7 @@ def get_device_name(device_type):
     if device_type == "SCCD":
         return _("CD / DVD")
     if device_type == "SCBR":
-        return _("X68000 Host Bridge")
+        return _("Host Bridge")
     if device_type == "SCDP":
         return _("DaynaPORT SCSI/Link")
     if device_type == "SCLP":

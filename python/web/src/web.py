@@ -218,6 +218,11 @@ def index():
         server_info["sccd"]
         )
 
+    try:
+        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
+    except:
+        drive_properties = {"hd_conf": [], "cd_conf": [], "rm_conf": []}
+
     return response(
         template="index.html",
         locales=get_supported_locales(),
@@ -248,6 +253,7 @@ def index():
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
+        drive_properties=drive_properties,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),

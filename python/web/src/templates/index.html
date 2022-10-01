@@ -326,7 +326,7 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
+        <li>{{ _("<a href=\"%(url)s\">DaynaPORT SCSI/Link</a> is an Ethernet adapter device.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link") }}
         </li>
         <ul>
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
@@ -337,7 +337,8 @@
         <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
-        <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
+	<li>{{ _("The Host Bridge is used with <a href=\"%(url)s\">Sharp X68000</a> systems as a networking device.", url="https://github.com/rdmark/RASCSI-X68k/wiki#x68000-features") }}
+        <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://github.com/akuker/RASCSI/wiki/RaSCSI-Client-Tools") }}
         </li>
     </ul>
 </details>
