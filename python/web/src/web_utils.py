@@ -83,7 +83,7 @@ def get_device_name(device_type):
     if device_type == "SCHD":
         return _("Hard Disk Drive")
     if device_type == "SCRM":
-        return _("Removable Drive")
+        return _("Removable Disk Drive")
     if device_type == "SCMO":
         return _("Magneto-Optical Drive")
     if device_type == "SCCD":
