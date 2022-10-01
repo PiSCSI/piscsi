@@ -141,22 +141,23 @@ def format_drive_properties(drive_properties):
     cd_conf = []
     rm_conf = []
     mo_conf = []
+    FORMAT_FILTER = "{:,.2f}"
 
     for device in drive_properties:
         if device["device_type"] == "SCHD":
             device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             hd_conf.append(device)
         elif device["device_type"] == "SCCD":
-            device["size_mb"] = "N/A"
+            device["size_mb"] = _("N/A")
             cd_conf.append(device)
         elif device["device_type"] == "SCRM":
             device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
         elif device["device_type"] == "SCMO":
             device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             mo_conf.append(device)
 
     return {
