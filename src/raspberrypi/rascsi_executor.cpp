@@ -58,7 +58,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return Detach(context, *device, dryRun);
 	}
 
-	if (!HandleBasicOperations(context, device, operation)) {
+	if (!ValidateOperations(context, device, operation)) {
 		return false;
 	}
 
@@ -676,7 +676,7 @@ bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 	return true;
 }
 
-bool RascsiExecutor::HandleBasicOperations(const CommandContext& context, const shared_ptr<PrimaryDevice> device,
+bool RascsiExecutor::ValidateOperations(const CommandContext& context, const shared_ptr<PrimaryDevice> device,
 		const PbOperation& operation)
 {
 	const string& type = device->GetType();
