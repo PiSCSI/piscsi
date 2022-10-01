@@ -1,7 +1,6 @@
 import pytest
 
 from conftest import (
-    IMAGES_DIR,
     SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,

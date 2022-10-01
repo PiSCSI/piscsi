@@ -4,7 +4,6 @@ import os
 
 from conftest import (
     IMAGES_DIR,
-    AFP_DIR,
     SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
