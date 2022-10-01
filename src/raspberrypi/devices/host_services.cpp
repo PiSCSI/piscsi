@@ -67,10 +67,10 @@ void HostServices::StartStopUnit()
 		}
 
 		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_PI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_RASCSI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
 		EnterStatusPhase();
@@ -78,7 +78,7 @@ void HostServices::StartStopUnit()
 	}
 	else {
 		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::RESTART_PI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 
 			EnterStatusPhase();
 			return;
