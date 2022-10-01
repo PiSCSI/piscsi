@@ -38,7 +38,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 	PrintCommand(command, pb_device, dryRun);
 
-	// Check the Controller Number
+	// Validate the device ID
 	if (id < 0) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
@@ -50,7 +50,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
-	// Check the Unit Number
+	// Validate the LUN
 	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
 	}
@@ -59,12 +59,12 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return Attach(context, pb_device, dryRun);
 	}
 
-	// Does the controller exist?
+	// Does the controller/device exist?
 	if (!dryRun && controller_manager.FindController(id) == nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
-	// Does the unit exist?
+	// Does the LUN exist?
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 	if (device == nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
