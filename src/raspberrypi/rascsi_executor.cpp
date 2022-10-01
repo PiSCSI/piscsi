@@ -43,20 +43,12 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return false;
 	}
 
-	if (operation == ATTACH) {
-		return Attach(context, pb_device, dryRun);
-	}
-
 	// For all commands except ATTACH the device and LUN must exist
-	if (!dryRun && !VerifyExistingIdAndLun(context, id, lun)) {
+	if (operation != ATTACH && !VerifyExistingIdAndLun(context, id, lun)) {
 		return false;
 	}
 
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
-
-	if (operation == DETACH) {
-		return Detach(context, *device, dryRun);
-	}
 
 	if (!ValidateOperations(context, device, operation)) {
 		return false;
@@ -83,6 +75,12 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 				device->Stop();
 			}
 			break;
+
+		case ATTACH:
+			return Attach(context, pb_device, dryRun);
+
+		case DETACH:
+			return Detach(context, *device, dryRun);
 
 		case INSERT:
 			return Insert(context, pb_device, *device, dryRun);
@@ -113,12 +111,6 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 				// UNPROTECT is idempotent
 				device->SetProtected(false);
 			}
-			break;
-
-		case ATTACH:
-		case DETACH:
-			// The non dry-run case has been handled before the switch
-			assert(dryRun);
 			break;
 
 		case CHECK_AUTHENTICATION:
