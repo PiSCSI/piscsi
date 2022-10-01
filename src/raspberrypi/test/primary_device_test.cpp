@@ -22,7 +22,7 @@ TEST(PrimaryDeviceTest, GetId)
 	MockAbstractController controller(ID);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
-	EXPECT_EQ(-1, device->GetId());
+	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
 
 	controller.AddDevice(device);
 	EXPECT_EQ(ID, device->GetId());
