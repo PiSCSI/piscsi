@@ -38,21 +38,19 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 	PrintCommand(command, pb_device, dryRun);
 
-	// Validate the device ID
+	// Validate the device ID and LUN
 	if (id < 0) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
 	if (id >= ControllerManager::DEVICE_MAX) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
 	}
+	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
+	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
-	}
-
-	// Validate the LUN
-	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
 	}
 
 	if (operation == ATTACH) {
