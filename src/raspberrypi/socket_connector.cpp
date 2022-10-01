@@ -20,10 +20,9 @@ using namespace rascsi_interface;
 int SocketConnector::ReadCommand(PbCommand& command, int socket) const
 {
 	// Wait for connection
-	sockaddr_in client;
+	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
-	memset(&client, 0, socklen);
-	int fd = accept(socket, (sockaddr*)&client, &socklen);
+	int fd = accept(socket, &client, &socklen);
 	if (fd < 0) {
 		throw io_exception("accept() failed");
 	}

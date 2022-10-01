@@ -20,16 +20,23 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
-class MockAbstractController final : public AbstractController
+class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	FRIEND_TEST(AbstractControllerTest, Reset);
+	FRIEND_TEST(AbstractControllerTest, SetPhase);
+	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
+	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
+	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
+	FRIEND_TEST(AbstractControllerTest, GetOpcode);
+	FRIEND_TEST(AbstractControllerTest, GetLun);
+	FRIEND_TEST(AbstractControllerTest, Ctrl);
+
 public:
 
 	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
 	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));
-	MOCK_METHOD(void, SetUnit, (int), ());
-	MOCK_METHOD(void, Connect, (int, BUS *), ());
 	MOCK_METHOD(void, Status, (), ());
 	MOCK_METHOD(void, DataIn, (), ());
 	MOCK_METHOD(void, DataOut, (), ());
@@ -38,60 +45,15 @@ public:
 	MOCK_METHOD(void, Command, (), ());
 	MOCK_METHOD(void, MsgIn, (), ());
 	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, Send, (), ());
-	MOCK_METHOD(bool, XferMsg, (int), ());
-	MOCK_METHOD(bool, XferIn, (BYTE *), ());
-	MOCK_METHOD(bool, XferOut, (bool), ());
-	MOCK_METHOD(void, ReceiveBytes, (), ());
-	MOCK_METHOD(void, Execute, (), ());
-	MOCK_METHOD(void, FlushUnit, (), ());
-	MOCK_METHOD(void, Receive, (), ());
-	MOCK_METHOD(bool, HasUnit, (), (const override));
 	MOCK_METHOD(void, SetByteTransfer, (bool), (override));
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
-	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
-	MOCK_METHOD(void, Reset, (), (override));
 
-	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
-	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
-	FRIEND_TEST(AbstractControllerTest, GetOpcode);
-	FRIEND_TEST(AbstractControllerTest, GetLun);
-
-	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id) {}
+	explicit MockAbstractController(int target_id) : AbstractController(nullptr, target_id, 32) {}
 	~MockAbstractController() override = default;
-
-	int GetMaxLuns() const override { return 32; }
 };
 
 class MockScsiController final : public ScsiController
 {
-public:
-
-	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
-	MOCK_METHOD(int, GetInitiatorId, (), (const override));
-	MOCK_METHOD(void, SetUnit, (int), ());
-	MOCK_METHOD(void, Connect, (int, BUS *), ());
-	MOCK_METHOD(void, Status, (), ());
-	MOCK_METHOD(void, DataIn, (), ());
-	MOCK_METHOD(void, DataOut, (), ());
-	MOCK_METHOD(void, BusFree, (), ());
-	MOCK_METHOD(void, Selection, (), ());
-	MOCK_METHOD(void, Command, (), ());
-	MOCK_METHOD(void, MsgIn, (), ());
-	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, Send, (), ());
-	MOCK_METHOD(bool, XferMsg, (int), ());
-	MOCK_METHOD(bool, XferIn, (BYTE *), ());
-	MOCK_METHOD(bool, XferOut, (bool), ());
-	MOCK_METHOD(void, ReceiveBytes, (), ());
-	MOCK_METHOD(void, Execute, (), ());
-	MOCK_METHOD(void, FlushUnit, (), ());
-	MOCK_METHOD(void, Receive, (), ());
-	MOCK_METHOD(bool, HasUnit, (), (const override));
-	MOCK_METHOD(void, SetPhase, (BUS::phase_t), (override));
-	MOCK_METHOD(void, Sleep, (), ());
-
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
@@ -108,6 +70,12 @@ public:
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
+
+public:
+
+	MOCK_METHOD(void, Status, (), ());
+	MOCK_METHOD(void, DataIn, (), ());
+	MOCK_METHOD(void, DataOut, (), ());
 
 	using ScsiController::ScsiController;
 };
@@ -131,14 +99,12 @@ class MockModePageDevice final : public ModePageDevice
 {
 	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
 
-public:
-
 	MockModePageDevice() : ModePageDevice("test") {}
 	~MockModePageDevice() override = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, BYTE *, int), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, BYTE *, int), (const override));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&, int), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&, int), (const override));
 
 	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
@@ -177,25 +143,21 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 
 	MOCK_METHOD(void, FlushCache, (), (override));
 
-	MockSCSIHD_NEC() = default;
-	~MockSCSIHD_NEC() override = default;
+	using SCSIHD_NEC::SCSIHD_NEC;
 };
 
 class MockSCSICD final : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
 
-	explicit MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) {}
-	~MockSCSICD() override = default;
+	using SCSICD::SCSICD;
 };
 
 class MockSCSIMO final : public SCSIMO
 {
 	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
 
-	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
-		: SCSIMO(sector_sizes, geometries) {}
-	~MockSCSIMO() override = default;
+	using SCSIMO::SCSIMO;
 };
 
 class MockHostServices final : public HostServices

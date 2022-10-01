@@ -79,20 +79,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetReady(true);
 	SetReset(false);
 
-	// if (m_bTapEnable) {
-	// 	tap->GetMacAddr(m_mac_addr);
-	// 	m_mac_addr[5]++;
-	// }
-
-	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
-	// TODO: Remove this hard-coded address
-	m_mac_addr[0] = (byte)0x00;
-	m_mac_addr[1] = (byte)0x80;
-	m_mac_addr[2] = (byte)0x19;
-	m_mac_addr[3] = (byte)0x10;
-	m_mac_addr[4] = (byte)0x98;
-	m_mac_addr[5] = (byte)0xE3;
-
 	return true;
 }
 
@@ -144,10 +130,10 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
+int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	int rx_packet_size = 0;
-	auto response = (scsi_resp_read_t*)buf;
+	auto response = (scsi_resp_read_t*)buf.data();
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
@@ -246,8 +232,8 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, BYTE *buf, uint64_t)
 				// breaks because of this, the work-around has to be re-evaluated.
 				size = 64;
 			}
-			SetInt16(&buf[0], size);
-			SetInt32(&buf[2], m_tap.PendingPackets() ? 0x10 : 0x00);
+			SetInt16(buf, 0, size);
+			SetInt32(buf, 2, m_tap.PendingPackets() ? 0x10 : 0x00);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
@@ -291,19 +277,19 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const BYTE *buf, uint64_t)
+bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, uint64_t)
 {
 	int data_format = cdb[5];
-	int data_length = cdb[4] + (cdb[3] << 8);
+	int data_length = GetInt16(cdb, 3);
 
 	if (data_format == 0x00){
-		m_tap.Send(buf, data_length);
+		m_tap.Send(buf.data(), data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else if (data_format == 0x80){
 		// The data length is specified in the first 2 bytes of the payload
 		data_length=buf[1] + (buf[0] << 8);
-		m_tap.Send(&buf[4], data_length);
+		m_tap.Send(&(buf.data()[4]), data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
 	else
@@ -331,33 +317,11 @@ bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const BYTE *buf, uint64_t
 //              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, BYTE *buffer) const
+int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, vector<BYTE>& buf) const
 {
-	int allocation_length = cdb[4] + (cdb[3] << 8);
+	memcpy(buf.data(), &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
-	// memset(buffer,0,18);
-	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
-	// uint32_t frame_alignment_errors;
-	// uint32_t crc_errors;
-	// uint32_t frames_lost;
-	// // frame alignment errors
-	// frame_alignment_errors = htonl(0);
-	// memcpy(&(buffer[6]),&frame_alignment_errors,sizeof(frame_alignment_errors));
-	// // CRC errors
-	// crc_errors = htonl(0);
-	// memcpy(&(buffer[10]),&crc_errors,sizeof(crc_errors));
-	// // frames lost
-	// frames_lost = htonl(0);
-	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
-
-	int response_size = sizeof(m_scsi_link_stats);
-	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
-
-	if (response_size > allocation_length) {
-		response_size = allocation_length;
-	}
-
-	return response_size;
+	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 4));
 }
 
 //---------------------------------------------------------------------------
@@ -407,11 +371,7 @@ void SCSIDaynaPort::TestUnitReady()
 void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
-	uint32_t record = ctrl->cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl->cmd[2];
-	record <<= 8;
-	record |= ctrl->cmd[3];
+    uint32_t record = GetInt24(ctrl->cmd, 1) & 0x1fffff;
 	ctrl->blocks=1;
 
 	// If any commands have a bogus control value, they were probably not
@@ -423,7 +383,7 @@ void SCSIDaynaPort::Read6()
 
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, record, ctrl->blocks)
 
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
 
 	// Set next block
@@ -434,20 +394,16 @@ void SCSIDaynaPort::Read6()
 
 void SCSIDaynaPort::Write6()
 {
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
-		delete[] ctrl->buffer;
-		ctrl->buffer = new BYTE[ctrl->bufsize];
-		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
-	}
+	// Ensure a sufficient buffer size (because it is not transfer for each block)
+	controller->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
 
 	int data_format = ctrl->cmd[5];
 
-	if(data_format == 0x00) {
-		ctrl->length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
+	if (data_format == 0x00) {
+		ctrl->length = GetInt16(ctrl->cmd, 3);
 	}
 	else if (data_format == 0x80) {
-		ctrl->length = ctrl->cmd[4] + (ctrl->cmd[3] << 8) + 8;
+		ctrl->length = GetInt16(ctrl->cmd, 3 + 8);
 	}
 	else {
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
@@ -467,7 +423,7 @@ void SCSIDaynaPort::Write6()
 
 void SCSIDaynaPort::RetrieveStatistics()
 {
-	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+	ctrl->length = RetrieveStats(ctrl->cmd, controller->GetBuffer());
 
 	// Set next block
 	ctrl->blocks = 1;
@@ -506,7 +462,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
-	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+	ctrl->length = RetrieveStats(ctrl->cmd, controller->GetBuffer());
 	switch(ctrl->cmd[5]){
 		case CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing

@@ -21,8 +21,6 @@
 using namespace std; //NOSONAR Not relevant for rascsi
 using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
 
-using Geometry = pair<uint32_t, uint32_t>;
-
 class PrimaryDevice;
 
 class DeviceFactory
@@ -49,9 +47,6 @@ public:
 private:
 
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
-
-	// Optional mapping of drive capacities to drive geometries
-	unordered_map<PbDeviceType, unordered_map<uint64_t, Geometry>> geometries;
 
 	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;
 

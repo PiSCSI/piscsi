@@ -10,8 +10,6 @@
 //  	Licensed under the BSD 3-Clause License. 
 //  	See LICENSE file in the project root folder.
 //
-//  	[ SCSI device controller ]
-//
 //---------------------------------------------------------------------------
 
 #include "log.h"
@@ -29,42 +27,26 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id)
+ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
-	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
-	ctrl.buffer = new BYTE[ctrl.bufsize];
-}
-
-ScsiController::~ScsiController()
-{
-	delete[] ctrl.buffer;
+	AllocateBuffer(std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN));
 }
 
 void ScsiController::Reset()
 {
-	SetPhase(BUS::phase_t::busfree);
-	ctrl.status = 0x00;
-	ctrl.message = 0x00;
+	AbstractController::Reset();
+
 	execstart = 0;
-	ctrl.blocks = 0;
-	ctrl.next = 0;
-	ctrl.offset = 0;
-	ctrl.length = 0;
 	identified_lun = -1;
 
 	scsi.atnmsg = false;
 	scsi.msc = 0;
-	memset(scsi.msb.data(), 0x00, scsi.msb.size());
+	scsi.msb = {};
 
 	is_byte_transfer = false;
 	bytes_to_transfer = 0;
-
-	// Reset all LUNs
-	for (const auto& [lun, device] : ctrl.luns) {
-		device->Reset();
-	}
 }
 
 BUS::phase_t ScsiController::Process(int id)
@@ -82,7 +64,7 @@ BUS::phase_t ScsiController::Process(int id)
 		// Reset the bus
 		bus->Reset();
 
-		return ctrl.phase;
+		return GetPhase();
 	}
 
 	if (id != UNKNOWN_INITIATOR_ID) {
@@ -95,44 +77,7 @@ BUS::phase_t ScsiController::Process(int id)
 	initiator_id = id;
 
 	try {
-		// Phase processing
-		switch (ctrl.phase) {
-			case BUS::phase_t::busfree:
-				BusFree();
-				break;
-
-			case BUS::phase_t::selection:
-				Selection();
-				break;
-
-			case BUS::phase_t::dataout:
-				DataOut();
-				break;
-
-			case BUS::phase_t::datain:
-				DataIn();
-				break;
-
-			case BUS::phase_t::command:
-				Command();
-				break;
-
-			case BUS::phase_t::status:
-				Status();
-				break;
-
-			case BUS::phase_t::msgout:
-				MsgOut();
-				break;
-
-			case BUS::phase_t::msgin:
-				MsgIn();
-				break;
-
-			default:
-				assert(false);
-				break;
-		}
+		ProcessPhase();
 	}
 	catch(const scsi_error_exception&) {
 		// Any exception should have been handled during the phase processing
@@ -146,12 +91,12 @@ BUS::phase_t ScsiController::Process(int id)
 		BusFree();
 	}
 
-	return ctrl.phase;
+	return GetPhase();
 }
 
 void ScsiController::BusFree()
 {
-	if (ctrl.phase != BUS::phase_t::busfree) {
+	if (!IsBusFree()) {
 		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::phase_t::busfree);
@@ -163,7 +108,7 @@ void ScsiController::BusFree()
 		bus->SetBSY(false);
 
 		// Initialize status and message
-		ctrl.status = 0x00;
+		SetStatus(0);
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
@@ -211,14 +156,14 @@ void ScsiController::BusFree()
 
 void ScsiController::Selection()
 {
-	if (ctrl.phase != BUS::phase_t::selection) {
+	if (!IsSelection()) {
 		// A different device controller was selected
 		if (int id = 1 << GetTargetId(); ((int)bus->GetDAT() & id) == 0) {
 			return;
 		}
 
 		// Abort if there is no LUN for this controller
-		if (ctrl.luns.empty()) {
+		if (!HasLuns()) {
 			return;
 		}
 
@@ -244,7 +189,7 @@ void ScsiController::Selection()
 
 void ScsiController::Command()
 {
-	if (ctrl.phase != BUS::phase_t::command) {
+	if (!IsCommand()) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::phase_t::command);
@@ -253,8 +198,8 @@ void ScsiController::Command()
 		bus->SetCD(true);
 		bus->SetIO(false);
 
-		int actual_count = bus->CommandHandShake(ctrl.buffer);
-		int command_byte_count = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+		int actual_count = bus->CommandHandShake(GetBuffer().data());
+		int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -264,12 +209,12 @@ void ScsiController::Command()
 			return;
 		}
 
-		ctrl.cmd.resize(command_byte_count);
+		InitCmd(command_byte_count);
 
 		// Command data transfer
 		stringstream s;
 		for (int i = 0; i < command_byte_count; i++) {
-			ctrl.cmd[i] = ctrl.buffer[i];
+			ctrl.cmd[i] = GetBuffer()[i];
 			s << setfill('0') << setw(2) << hex << ctrl.cmd[i];
 		}
 		LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
@@ -287,13 +232,13 @@ void ScsiController::Execute()
 	SetPhase(BUS::phase_t::execute);
 
 	// Initialization for data transfer
-	ctrl.offset = 0;
+	ResetOffset();
 	ctrl.blocks = 1;
 	execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
-		ctrl.status = 0;
+		SetStatus(0);
 	}
 
 	int lun = GetEffectiveLun();
@@ -339,13 +284,13 @@ void ScsiController::Execute()
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId())
 
-		ctrl.buffer[0] = 0x7f;
+		GetBuffer().data()[0] = 0x7f;
 	}
 }
 
 void ScsiController::Status()
 {
-	if (ctrl.phase != BUS::phase_t::status) {
+	if (!IsStatus()) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
@@ -353,7 +298,7 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, ctrl.status)
+		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, GetStatus())
 
 		SetPhase(BUS::phase_t::status);
 
@@ -363,10 +308,10 @@ void ScsiController::Status()
 		bus->SetIO(true);
 
 		// Data transfer is 1 byte x 1 block
-		ctrl.offset = 0;
+		ResetOffset();
 		ctrl.length = 1;
 		ctrl.blocks = 1;
-		ctrl.buffer[0] = (BYTE)ctrl.status;
+		GetBuffer()[0] = (BYTE)GetStatus();
 
 		return;
 	}
@@ -376,7 +321,7 @@ void ScsiController::Status()
 
 void ScsiController::MsgIn()
 {
-	if (ctrl.phase != BUS::phase_t::msgin) {
+	if (!IsMsgIn()) {
 		LOGTRACE("%s Message In phase", __PRETTY_FUNCTION__)
 
 		SetPhase(BUS::phase_t::msgin);
@@ -386,9 +331,9 @@ void ScsiController::MsgIn()
 		bus->SetIO(true);
 
 		// length, blocks are already set
-		assert(ctrl.length > 0);
+		assert(HasValidLength());
 		assert(ctrl.blocks > 0);
-		ctrl.offset = 0;
+		ResetOffset();
 		return;
 	}
 
@@ -400,14 +345,14 @@ void ScsiController::MsgOut()
 {
 	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId())
 
-	if (ctrl.phase != BUS::phase_t::msgout) {
+	if (!IsMsgOut()) {
 		LOGTRACE("Message Out Phase")
 
 	    // process the IDENTIFY message
-		if (ctrl.phase == BUS::phase_t::selection) {
+		if (IsSelection()) {
 			scsi.atnmsg = true;
 			scsi.msc = 0;
-			memset(scsi.msb.data(), 0x00, scsi.msb.size());
+			scsi.msb = {};
 		}
 
 		SetPhase(BUS::phase_t::msgout);
@@ -417,7 +362,7 @@ void ScsiController::MsgOut()
 		bus->SetIO(false);
 
 		// Data transfer is 1 byte x 1 block
-		ctrl.offset = 0;
+		ResetOffset();
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 
@@ -429,14 +374,14 @@ void ScsiController::MsgOut()
 
 void ScsiController::DataIn()
 {
-	if (ctrl.phase != BUS::phase_t::datain) {
+	if (!IsDataIn()) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
 		}
 
 		// If the length is 0, go to the status phase
-		if (ctrl.length == 0) {
+		if (!HasValidLength()) {
 			Status();
 			return;
 		}
@@ -451,7 +396,7 @@ void ScsiController::DataIn()
 
 		// length, blocks are already set
 		assert(ctrl.blocks > 0);
-		ctrl.offset = 0;
+		ResetOffset();
 
 		return;
 	}
@@ -461,14 +406,14 @@ void ScsiController::DataIn()
 
 void ScsiController::DataOut()
 {
-	if (ctrl.phase != BUS::phase_t::dataout) {
+	if (!IsDataOut()) {
 		// Minimum execution time
 		if (execstart > 0) {
 			Sleep();
 		}
 
 		// If the length is 0, go to the status phase
-		if (ctrl.length == 0) {
+		if (!HasValidLength()) {
 			Status();
 			return;
 		}
@@ -482,7 +427,7 @@ void ScsiController::DataOut()
 		bus->SetCD(false);
 		bus->SetIO(false);
 
-		ctrl.offset = 0;
+		ResetOffset();
 		return;
 	}
 
@@ -503,7 +448,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	// Bus free for status phase and message in phase
-	if (ctrl.phase == BUS::phase_t::status || ctrl.phase == BUS::phase_t::msgin) {
+	if (IsStatus() || IsMsgIn()) {
 		BusFree();
 		return;
 	}
@@ -520,7 +465,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
-	ctrl.status = (uint32_t)status;
+	SetStatus((uint32_t)status);
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)
@@ -533,13 +478,13 @@ void ScsiController::Send()
 	assert(!bus->GetREQ());
 	assert(bus->GetIO());
 
-	if (ctrl.length != 0) {
+	if (HasValidLength()) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str())
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (int len = bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length,
+		if (int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase
@@ -547,9 +492,8 @@ void ScsiController::Send()
 			return;
 		}
 
-		// offset and length
-		ctrl.offset += ctrl.length;
-		ctrl.length = 0;
+		UpdateOffsetAndLength();
+
 		return;
 	}
 
@@ -558,9 +502,9 @@ void ScsiController::Send()
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (ctrl.phase == BUS::phase_t::datain && ctrl.blocks != 0) {
+	if (IsDataIn() && ctrl.blocks != 0) {
 		// set next buffer (set offset, length)
-		result = XferIn(ctrl.buffer);
+		result = XferIn(GetBuffer());
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
 	}
 
@@ -573,14 +517,14 @@ void ScsiController::Send()
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str())
-		assert(ctrl.length > 0);
+		assert(HasValidLength());
 		assert(ctrl.offset == 0);
 		return;
 	}
 
 	// Move to next phase
-	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), (int)ctrl.phase)
-	switch (ctrl.phase) {
+	LOGTRACE("%s Move to next phase: %s", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(GetPhase()))
+	switch (GetPhase()) {
 		// Message in phase
 		case BUS::phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
@@ -607,7 +551,7 @@ void ScsiController::Send()
 			// Message in phase
 			ctrl.length = 1;
 			ctrl.blocks = 1;
-			ctrl.buffer[0] = (BYTE)ctrl.message;
+			GetBuffer()[0] = (BYTE)ctrl.message;
 			MsgIn();
 			break;
 
@@ -631,20 +575,19 @@ void ScsiController::Receive()
 	assert(!bus->GetIO());
 
 	// Length != 0 if received
-	if (ctrl.length != 0) {
+	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (int len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		if (int len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
 				len != (int)ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
-		// Offset and Length
-		ctrl.offset += ctrl.length;
-		ctrl.length = 0;
+		UpdateOffsetAndLength();
+
 		return;
 	}
 
@@ -653,8 +596,8 @@ void ScsiController::Receive()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
-	switch (ctrl.phase) {
+	LOGTRACE("%s Phase: %s",__PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(GetPhase()))
+	switch (GetPhase()) {
 		case BUS::phase_t::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
@@ -666,7 +609,7 @@ void ScsiController::Receive()
 			break;
 
 		case BUS::phase_t::msgout:
-			ctrl.message = ctrl.buffer[0];
+			ctrl.message = GetBuffer()[0];
 			if (!XferMsg(ctrl.message)) {
 				// Immediately free the bus if message output fails
 				BusFree();
@@ -689,13 +632,13 @@ void ScsiController::Receive()
 
 	// Continue to receive if block !=0
 	if (ctrl.blocks != 0) {
-		assert(ctrl.length > 0);
+		assert(HasValidLength());
 		assert(ctrl.offset == 0);
 		return;
 	}
 
 	// Move to next phase
-	switch (ctrl.phase) {
+	switch (GetPhase()) {
 		case BUS::phase_t::command:
 			ProcessCommand();
 			break;
@@ -718,7 +661,7 @@ void ScsiController::Receive()
 
 bool ScsiController::XferMsg(int msg)
 {
-	assert(ctrl.phase == BUS::phase_t::msgout);
+	assert(IsMsgOut());
 
 	// Save message out data
 	if (scsi.atnmsg) {
@@ -732,17 +675,14 @@ bool ScsiController::XferMsg(int msg)
 
 void ScsiController::ReceiveBytes()
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__)
-
-	// REQ is low
 	assert(!bus->GetREQ());
 	assert(!bus->GetIO());
 
-	if (ctrl.length) {
+	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (uint32_t len = bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
 				len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len)
@@ -752,8 +692,7 @@ void ScsiController::ReceiveBytes()
 
 		bytes_to_transfer = ctrl.length;
 
-		ctrl.offset += ctrl.length;
-		ctrl.length = 0;
+		UpdateOffsetAndLength();
 
 		return;
 	}
@@ -762,15 +701,14 @@ void ScsiController::ReceiveBytes()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase))
-	switch (ctrl.phase) {
-
+	LOGTRACE("%s Phase: %s",__PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(GetPhase()))
+	switch (GetPhase()) {
 		case BUS::phase_t::dataout:
 			result = XferOut(false);
 			break;
 
 		case BUS::phase_t::msgout:
-			ctrl.message = ctrl.buffer[0];
+			ctrl.message = GetBuffer()[0];
 			if (!XferMsg(ctrl.message)) {
 				// Immediately free the bus if message output fails
 				BusFree();
@@ -792,7 +730,7 @@ void ScsiController::ReceiveBytes()
 	}
 
 	// Move to next phase
-	switch (ctrl.phase) {
+	switch (GetPhase()) {
 		case BUS::phase_t::command:
 			ProcessCommand();
 			break;
@@ -813,7 +751,7 @@ void ScsiController::ReceiveBytes()
 
 bool ScsiController::XferOut(bool cont)
 {
-	assert(ctrl.phase == BUS::phase_t::dataout);
+	assert(IsDataOut());
 
 	if (!is_byte_transfer) {
 		return XferOutBlockOriented(cont);
@@ -823,17 +761,17 @@ bool ScsiController::XferOut(bool cont)
 
 	if (auto device = GetDeviceForLun(GetEffectiveLun());
 		device != nullptr && GetOpcode() == scsi_command::eCmdWrite6) {
-		return device->WriteByteSequence(ctrl.buffer, bytes_to_transfer);
+		return device->WriteByteSequence(GetBuffer(), bytes_to_transfer);
 	}
 
-	LOGWARN("Received an unexpected command ($%02X) in %s", (int)GetOpcode(), __PRETTY_FUNCTION__)
+	LOGWARN("%s Received unexpected command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
 	return false;
 }
 
 void ScsiController::FlushUnit()
 {
-	assert(ctrl.phase == BUS::phase_t::dataout);
+	assert(IsDataOut());
 
 	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
@@ -857,7 +795,7 @@ void ScsiController::FlushUnit()
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
 			try {
-				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
@@ -882,9 +820,9 @@ void ScsiController::FlushUnit()
 //	*Reset offset and length
 //
 //---------------------------------------------------------------------------
-bool ScsiController::XferIn(BYTE *buf)
+bool ScsiController::XferIn(vector<BYTE>& buf)
 {
-	assert(ctrl.phase == BUS::phase_t::datain);
+	assert(IsDataIn());
 
 	LOGTRACE("%s command=%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
@@ -910,7 +848,7 @@ bool ScsiController::XferIn(BYTE *buf)
 			ctrl.next++;
 
 			// If things are normal, work setting
-			ctrl.offset = 0;
+			ResetOffset();
 			break;
 
 		// Other (impossible)
@@ -940,7 +878,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
 			try {
-				disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
@@ -958,27 +896,27 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
 			if (auto bridge = dynamic_cast<SCSIBR *>(disk); bridge) {
-				if (!bridge->WriteBytes(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!bridge->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
 					// Write failed
 					return false;
 				}
 
-				ctrl.offset = 0;
+				ResetOffset();
 				break;
 			}
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
 			if (auto daynaport = dynamic_cast<SCSIDaynaPort *>(disk); daynaport) {
-				daynaport->WriteBytes(ctrl.cmd, ctrl.buffer, 0);
+				daynaport->WriteBytes(ctrl.cmd, GetBuffer(), 0);
 
-				ctrl.offset = 0;
+				ResetOffset();
 				ctrl.blocks = 0;
 				break;
 			}
 
 			try {
-				disk->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1);
+				disk->Write(ctrl.cmd, GetBuffer(), ctrl.next - 1);
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
@@ -1002,7 +940,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				return false;
 			}
 
-			ctrl.offset = 0;
+			ResetOffset();
 			break;
 		}
 
@@ -1020,14 +958,79 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 void ScsiController::ProcessCommand()
 {
-	uint32_t len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+	uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
+	stringstream s;
 	for (uint32_t i = 0; i < len; i++) {
-		ctrl.cmd[i] = ctrl.buffer[i];
-		LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i])
+		ctrl.cmd[i] = GetBuffer()[i];
+		s << setfill('0') << setw(2) << hex << ctrl.cmd[i];
 	}
+	LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
 	Execute();
+}
+
+void ScsiController::ParseMessage()
+{
+	int i = 0;
+	while (i < scsi.msc) {
+		BYTE message_type = scsi.msb[i];
+
+		if (message_type == 0x06) {
+			LOGTRACE("Received ABORT message")
+			BusFree();
+			return;
+		}
+
+		if (message_type == 0x0C) {
+			LOGTRACE("Received BUS DEVICE RESET message")
+			scsi.syncoffset = 0;
+			BusFree();
+			return;
+		}
+
+		if (message_type >= 0x80) {
+			identified_lun = (int)message_type & 0x1F;
+			LOGTRACE("Received IDENTIFY message for LUN %d", identified_lun)
+		}
+
+		if (message_type == 0x01) {
+			LOGTRACE("Received EXTENDED MESSAGE")
+
+			// Check only when synchronous transfer is possible
+			if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
+				ctrl.length = 1;
+				ctrl.blocks = 1;
+				GetBuffer()[0] = 0x07;
+				MsgIn();
+				return;
+			}
+
+			scsi.syncperiod = scsi.msb[i + 3];
+			if (scsi.syncperiod > MAX_SYNC_PERIOD) {
+				scsi.syncperiod = MAX_SYNC_PERIOD;
+			}
+
+			scsi.syncoffset = scsi.msb[i + 4];
+			if (scsi.syncoffset > MAX_SYNC_OFFSET) {
+				scsi.syncoffset = MAX_SYNC_OFFSET;
+			}
+
+			// STDR response message generation
+			ctrl.length = 5;
+			ctrl.blocks = 1;
+			GetBuffer()[0] = 0x01;
+			GetBuffer()[1] = 0x03;
+			GetBuffer()[2] = 0x01;
+			GetBuffer()[3] = scsi.syncperiod;
+			GetBuffer()[4] = scsi.syncoffset;
+			MsgIn();
+			return;
+		}
+
+		// Next message
+		i++;
+	}
 }
 
 void ScsiController::ProcessMessage()
@@ -1035,78 +1038,14 @@ void ScsiController::ProcessMessage()
 	// Continue message out phase as long as ATN keeps asserting
 	if (bus->GetATN()) {
 		// Data transfer is 1 byte x 1 block
-		ctrl.offset = 0;
+		ResetOffset();
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 		return;
 	}
 
-	// Parsing messages sent by ATN
 	if (scsi.atnmsg) {
-		int i = 0;
-		while (i < scsi.msc) {
-			// Message type
-			BYTE data = scsi.msb[i];
-
-			// ABORT
-			if (data == 0x06) {
-				LOGTRACE("Message code ABORT $%02X", data)
-				BusFree();
-				return;
-			}
-
-			// BUS DEVICE RESET
-			if (data == 0x0C) {
-				LOGTRACE("Message code BUS DEVICE RESET $%02X", data)
-				scsi.syncoffset = 0;
-				BusFree();
-				return;
-			}
-
-			// IDENTIFY
-			if (data >= 0x80) {
-				identified_lun = (int)data & 0x1F;
-				LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, identified_lun)
-			}
-
-			// Extended Message
-			if (data == 0x01) {
-				LOGTRACE("Message code EXTENDED MESSAGE $%02X", data)
-
-				// Check only when synchronous transfer is possible
-				if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
-					ctrl.length = 1;
-					ctrl.blocks = 1;
-					ctrl.buffer[0] = 0x07;
-					MsgIn();
-					return;
-				}
-
-				scsi.syncperiod = scsi.msb[i + 3];
-				if (scsi.syncperiod > MAX_SYNC_PERIOD) {
-					scsi.syncperiod = MAX_SYNC_PERIOD;
-				}
-
-				scsi.syncoffset = scsi.msb[i + 4];
-				if (scsi.syncoffset > MAX_SYNC_OFFSET) {
-					scsi.syncoffset = MAX_SYNC_OFFSET;
-				}
-
-				// STDR response message generation
-				ctrl.length = 5;
-				ctrl.blocks = 1;
-				ctrl.buffer[0] = 0x01;
-				ctrl.buffer[1] = 0x03;
-				ctrl.buffer[2] = 0x01;
-				ctrl.buffer[3] = scsi.syncperiod;
-				ctrl.buffer[4] = scsi.syncoffset;
-				MsgIn();
-				return;
-			}
-
-			// next
-			i++;
-		}
+		ParseMessage();
 	}
 
 	// Initialize ATN message reception status

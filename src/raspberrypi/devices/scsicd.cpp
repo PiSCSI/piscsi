@@ -32,11 +32,6 @@ SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD")
 	dispatcher.Add(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
-SCSICD::~SCSICD()
-{
-	ClearTrack();
-}
-
 bool SCSICD::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
@@ -97,8 +92,10 @@ void SCSICD::Open(const Filepath& path)
 	super::Open(path);
 	FileSupport::SetPath(path);
 
+	SetUpCache(path);
+
 	// Set RAW flag
-	disk.dcache->SetRawMode(rawfile);
+	cache->SetRawMode(rawfile);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -120,8 +117,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off_t size = fio.GetFileSize();
-	if (size < 0x800) {
+	off_t file_size = fio.GetFileSize();
+	if (file_size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
@@ -135,7 +132,7 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	// Check if it is RAW format
 	array<BYTE, 12> sync;
-	memset(sync.data(), 0xff, sync.size());
+	sync.fill(0xff);
 	sync[0] = 0x00;
 	sync[11] = 0x00;
 	rawfile = false;
@@ -160,16 +157,16 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	if (rawfile) {
 		// Size must be a multiple of 2536
-		if (size % 2536) {
+		if (file_size % 2536) {
 			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
-					+ to_string(size) + " bytes");
+					+ to_string(file_size) + " bytes");
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size / 0x930));
+		SetBlockCount((DWORD)(file_size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+		SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -216,7 +213,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 void SCSICD::ReadToc()
 {
-	ctrl->length = ReadTocInternal(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ReadTocInternal(ctrl->cmd, controller->GetBuffer());
 
 	EnterDataInPhase();
 }
@@ -276,11 +273,8 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 	}
 }
 
-
-int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
+int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 {
-	assert(buf);
-
 	CheckReady();
 
 	// Search for the track
@@ -295,10 +289,6 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 
 	// If different from the current data track
 	if (dataindex != index) {
-		// Delete current disk cache (no need to save)
-		delete disk.dcache;
-		disk.dcache = nullptr;
-
 		// Reset the number of blocks
 		SetBlockCount(tracks[index]->GetBlocks());
 		assert(GetBlockCount() > 0);
@@ -306,8 +296,9 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount());
-		disk.dcache->SetRawMode(rawfile);
+		// Re-assign disk cache (no need to save)
+		cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
+		cache->SetRawMode(rawfile);
 
 		// Reset data index
 		dataindex = index;
@@ -318,7 +309,7 @@ int SCSICD::Read(const vector<int>& cdb, BYTE *buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
+int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 {
 	CheckReady();
 
@@ -327,9 +318,8 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 	assert(tracks[0]);
 
 	// Get allocation length, clear buffer
-	int length = cdb[7] << 8;
-	length |= cdb[8];
-	memset(buf, 0, length);
+	int length = GetInt16(cdb, 7);
+	fill_n(buf.data(), length, 0);
 
 	// Get MSF Flag
 	bool msf = cdb[1] & 0x02;
@@ -365,7 +355,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
-					SetInt16(&buf[10], lba);
+					SetInt16(buf, 10, lba);
 				}
 				return length;
 			}
@@ -380,34 +370,35 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, BYTE *buf)
 	assert(loop >= 1);
 
 	// Create header
-	SetInt16(&buf[0], (loop << 3) + 2);
+	SetInt16(buf, 0, (loop << 3) + 2);
 	buf[2] = (BYTE)tracks[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
-	buf += 4;
+
+	int offset = 4;
 
 	// Loop....
 	for (int i = 0; i < loop; i++) {
 		// ADR and Control
 		if (tracks[index]->IsAudio()) {
 			// audio track
-			buf[1] = 0x10;
+			buf[offset + 1] = 0x10;
 		} else {
 			// data track
-			buf[1] = 0x14;
+			buf[offset + 1] = 0x14;
 		}
 
 		// track number
-		buf[2] = (BYTE)tracks[index]->GetTrackNo();
+		buf[offset + 2] = (BYTE)tracks[index]->GetTrackNo();
 
 		// track address
 		if (msf) {
-			LBAtoMSF(tracks[index]->GetFirst(), &buf[4]);
+			LBAtoMSF(tracks[index]->GetFirst(), &buf[offset + 4]);
 		} else {
-			SetInt16(&buf[6], tracks[index]->GetFirst());
+			SetInt16(buf, offset + 6, tracks[index]->GetFirst());
 		}
 
 		// Advance buffer pointer and index
-		buf += 8;
+		offset += 8;
 		index++;
 	}
 

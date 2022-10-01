@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "scsi.h"
+#include <array>
 
 #ifdef __linux
 #include <linux/gpio.h>
@@ -39,6 +40,8 @@
 #else
 #error Invalid connection type or none specified
 #endif
+
+using namespace std; //NOSONAR Not relevant for rascsi
 
 //---------------------------------------------------------------------------
 //
@@ -455,7 +458,9 @@ private:
 
 	mode_e actmode = mode_e::TARGET;	// Operation mode
 
+#if !defined(__x86_64__) && !defined(__X86__)
 	uint32_t baseaddr = 0;				// Base address
+#endif
 
 	int rpitype = 0;					// Type of Raspberry Pi
 
@@ -463,7 +468,9 @@ private:
 
 	volatile uint32_t *pads = nullptr;	// PADS register
 
+#if !defined(__x86_64__) && !defined(__X86__)
 	volatile uint32_t *level = nullptr;	// GPIO input level
+#endif
 
 	volatile uint32_t *irpctl = nullptr;	// Interrupt control register
 
@@ -477,11 +484,13 @@ private:
 
 	volatile uint32_t giccpmr;			// GICC priority setting
 
+#if !defined(__x86_64__) && !defined(__X86__)
 	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
+#endif
 
 	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
 
-	DWORD gpfsel[4];					// GPFSEL0-4 backup values
+	array<uint32_t, 4> gpfsel;			// GPFSEL0-4 backup values
 
 	uint32_t signals = 0;				// All bus signals
 
@@ -492,15 +501,15 @@ private:
 #endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
-	DWORD tblDatMsk[3][256];			// Data mask table
+	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
 
-	DWORD tblDatSet[3][256];			// Data setting table
+	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
 #else
-	DWORD tblDatMsk[256];				// Data mask table
+	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
 
-	DWORD tblDatSet[256];				// Table setting table
+	array<uint32_t, 256> tblDatSet = {};	// Table setting table
 #endif
 
-	static const int SignalTable[19];	// signal table
+	static const array<int, 19> SignalTable;	// signal table
 };
 

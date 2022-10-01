@@ -34,15 +34,6 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	// 128 MB, 512 bytes per sector, 248826 sectors
-	geometries[SCMO][0x797f400] = make_pair(512, 248826);
-	// 230 MB, 512 bytes per block, 446325 sectors
-	geometries[SCMO][0xd9eea00] = make_pair(512, 446325);
-	// 540 MB, 512 bytes per sector, 1041500 sectors
-	geometries[SCMO][0x1fc8b800] = make_pair(512, 1041500);
-	// 640 MB, 20248 bytes per sector, 310352 sectors
-	geometries[SCMO][0x25e28000] = make_pair(2048, 310352);
-
 	string network_interfaces;
 	for (const auto& network_interface : GetNetworkInterfaces()) {
 		if (!network_interfaces.empty()) {
@@ -180,7 +171,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCMO:
-		device = make_unique<SCSIMO>(sector_sizes[SCMO], geometries[SCMO]);
+		device = make_unique<SCSIMO>(sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -232,17 +223,17 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 	}
 
-	assert(device != nullptr);
+	if (device != nullptr) {
+		PrimaryDevice *d = device.release();
 
-	PrimaryDevice *d = device.release();
-
-	if (d != nullptr) {
 		d->SetId(id);
 
 		devices.emplace(id, d);
+
+		return d;
 	}
 
-	return d;
+	return nullptr;
 }
 
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const

@@ -62,7 +62,7 @@ CTapDriver::~CTapDriver()
 			LOGERROR("Can't open bridge socket: %s", strerror(errno))
 		} else {
 			LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
-			if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) {
+			if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) { //NOSONAR No exception is raised here
 				LOGWARN("Warning: Removing ras0 from the bridge failed.")
 				LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
 			}
@@ -160,8 +160,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	LOGTRACE("Opened tap device %d", m_hTAP)
 	
 	// IFF_NO_PI for no extra packet information
-	ifreq ifr;
-	memset(&ifr, 0, sizeof(ifr));
+	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	string dev = "ras0";
 	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
@@ -262,10 +261,9 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 				// long long is required for compatibility with 32 bit platforms
 				auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
-				char buf[16];
-				sprintf(buf, "%lld.%lld.%lld.%lld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff,
-						mask & 0xff);
-				netmask = buf;
+				netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
+						to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
+
 			}
 
 			LOGTRACE("brctl addbr %s", BRIDGE_NAME)

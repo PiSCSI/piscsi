@@ -63,7 +63,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 	device.SetReady(true);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdTestUnitReady));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(PrimaryDeviceTest, Inquiry)
@@ -73,9 +73,9 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	device.SetController(&controller);
 
-	controller.ctrl.cmd.resize(6);
+	vector<int>& cmd = controller.InitCmd(6);
 	// ALLOCATION LENGTH
-	controller.ctrl.cmd[4] = 255;
+	cmd[4] = 255;
 
 	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
 		return device.HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
@@ -83,18 +83,18 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdInquiry));
-	EXPECT_EQ(0x7F, controller.ctrl.buffer[0]) << "Invalid LUN was not reported";
+	EXPECT_EQ(0x7F, controller.GetBuffer()[0]) << "Invalid LUN was not reported";
 
 	EXPECT_TRUE(controller.AddDevice(&device));
 	EXPECT_FALSE(controller.AddDevice(&device)) << "Duplicate LUN was not rejected";
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdInquiry));
-	EXPECT_EQ(device_type::PROCESSOR, (device_type)controller.ctrl.buffer[0]);
-	EXPECT_EQ(0x00, controller.ctrl.buffer[1]) << "Device was not reported as non-removable";
-	EXPECT_EQ(scsi_level::SPC_3, (scsi_level)controller.ctrl.buffer[2]) << "Wrong SCSI level";
-	EXPECT_EQ(scsi_level::SCSI_2, (scsi_level)controller.ctrl.buffer[3]) << "Wrong response level";
-	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
+	EXPECT_EQ(device_type::PROCESSOR, (device_type)controller.GetBuffer()[0]);
+	EXPECT_EQ(0x00, controller.GetBuffer()[1]) << "Device was not reported as non-removable";
+	EXPECT_EQ(scsi_level::SPC_3, (scsi_level)controller.GetBuffer()[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::SCSI_2, (scsi_level)controller.GetBuffer()[3]) << "Wrong response level";
+	EXPECT_EQ(0x1f, controller.GetBuffer()[4]) << "Wrong additional data size";
 
 	ON_CALL(device, InquiryInternal()).WillByDefault([&device]() {
 		return device.HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
@@ -102,29 +102,29 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdInquiry));
-	EXPECT_EQ(device_type::DIRECT_ACCESS, (device_type)controller.ctrl.buffer[0]);
-	EXPECT_EQ(0x80, controller.ctrl.buffer[1]) << "Device was not reported as removable";
-	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller.ctrl.buffer[2]) << "Wrong SCSI level";
-	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller.ctrl.buffer[3]) << "Wrong response level";
-	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
+	EXPECT_EQ(device_type::DIRECT_ACCESS, (device_type)controller.GetBuffer()[0]);
+	EXPECT_EQ(0x80, controller.GetBuffer()[1]) << "Device was not reported as removable";
+	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller.GetBuffer()[2]) << "Wrong SCSI level";
+	EXPECT_EQ(scsi_level::SCSI_1_CCS, (scsi_level)controller.GetBuffer()[3]) << "Wrong response level";
+	EXPECT_EQ(0x1F, controller.GetBuffer()[4]) << "Wrong additional data size";
 
-	controller.ctrl.cmd[1] = 0x01;
+	cmd[1] = 0x01;
 	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(scsi_command::eCmdInquiry), scsi_error_exception) << "EVPD bit is not supported";
 
-	controller.ctrl.cmd[2] = 0x01;
+	cmd[2] = 0x01;
 	EXPECT_CALL(controller, DataIn()).Times(0);
 	EXPECT_THROW(device.Dispatch(scsi_command::eCmdInquiry), scsi_error_exception) << "PAGE CODE field is not supported";
 
-	controller.ctrl.cmd[1] = 0x00;
-	controller.ctrl.cmd[2] = 0x00;
+	cmd[1] = 0x00;
+	cmd[2] = 0x00;
 	// ALLOCATION LENGTH
-	controller.ctrl.cmd[4] = 1;
+	cmd[4] = 1;
 	EXPECT_CALL(device, InquiryInternal()).Times(1);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdInquiry));
-	EXPECT_EQ(0x1F, controller.ctrl.buffer[4]) << "Wrong additional data size";
-	EXPECT_EQ(1, controller.ctrl.length) << "Wrong ALLOCATION LENGTH handling";
+	EXPECT_EQ(0x1F, controller.GetBuffer()[4]) << "Wrong additional data size";
+	EXPECT_EQ(1, controller.GetLength()) << "Wrong ALLOCATION LENGTH handling";
 }
 
 TEST(PrimaryDeviceTest, RequestSense)
@@ -134,9 +134,9 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd.resize(6);
+	vector<int>& cmd = controller.InitCmd(6);
 	// ALLOCATION LENGTH
-	controller.ctrl.cmd[4] = 255;
+	cmd[4] = 255;
 
 	device.SetReady(false);
 	EXPECT_THROW(device.Dispatch(scsi_command::eCmdRequestSense), scsi_error_exception);
@@ -144,7 +144,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 	device.SetReady(true);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device.Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(PrimaryDeviceTest, ReportLuns)
@@ -163,13 +163,13 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	controller.AddDevice(&device2);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN2));
 
-	controller.ctrl.cmd.resize(10);
+	vector<int>& cmd = controller.InitCmd(10);
 	// ALLOCATION LENGTH
-	controller.ctrl.cmd[9] = 255;
+	cmd[9] = 255;
 
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(device1.Dispatch(scsi_command::eCmdReportLuns));
-	const BYTE *buffer = controller.ctrl.buffer;
+	const vector<BYTE>& buffer = controller.GetBuffer();
 	EXPECT_EQ(0x00, buffer[0]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[1]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[2]) << "Wrong data length";
@@ -191,7 +191,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	EXPECT_EQ(0x00, buffer[22]) << "Wrong LUN2 number";
 	EXPECT_EQ(LUN2, buffer[23]) << "Wrong LUN2 number";
 
-	controller.ctrl.cmd[2] = 0x01;
+	cmd[2] = 0x01;
 	EXPECT_THROW(device1.Dispatch(scsi_command::eCmdReportLuns), scsi_error_exception) << "Only SELECT REPORT mode 0 is supported";
 }
 
@@ -202,7 +202,7 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.AddDevice(&device);
 
-	controller.ctrl.cmd.resize(1);
+	controller.InitCmd(1);
 	EXPECT_FALSE(device.Dispatch((scsi_command)0xFF));
 }
 

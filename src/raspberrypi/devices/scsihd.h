@@ -31,13 +31,13 @@ public:
 	SCSIHD(SCSIHD&) = delete;
 	SCSIHD& operator=(const SCSIHD&) = delete;
 
-	void FinalizeSetup(const Filepath&, off_t);
+	void FinalizeSetup(const Filepath&, off_t, off_t = 0);
 
 	void Open(const Filepath&) override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const BYTE *, int) const override;
+	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;

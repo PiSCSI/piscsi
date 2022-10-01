@@ -18,6 +18,10 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
+#include <iostream>
+#include <array>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -380,7 +384,7 @@ int MessageIn()
 //---------------------------------------------------------------------------
 int TestUnitReady(int id)
 {
-	BYTE cmd[256];
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -392,9 +396,8 @@ int TestUnitReady(int id)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x00;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -425,12 +428,11 @@ exit:
 //---------------------------------------------------------------------------
 int RequestSense(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -439,10 +441,9 @@ int RequestSense(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x03;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -486,12 +487,11 @@ exit:
 //---------------------------------------------------------------------------
 int ModeSense(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -500,11 +500,10 @@ int ModeSense(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x1a;
 	cmd[2] = 0x3f;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -548,12 +547,11 @@ exit:
 //---------------------------------------------------------------------------
 int Inquiry(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -562,10 +560,9 @@ int Inquiry(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x12;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -609,12 +606,11 @@ exit:
 //---------------------------------------------------------------------------
 int ReadCapacity(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -623,9 +619,8 @@ int ReadCapacity(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x25;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -669,12 +664,11 @@ exit:
 //---------------------------------------------------------------------------
 int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -683,7 +677,6 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x28;
 	cmd[2] = (BYTE)(bstart >> 24);
 	cmd[3] = (BYTE)(bstart >> 16);
@@ -691,7 +684,7 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	cmd[5] = (BYTE)bstart;
 	cmd[7] = (BYTE)(blength >> 8);
 	cmd[8] = (BYTE)blength;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -734,12 +727,11 @@ exit:
 //---------------------------------------------------------------------------
 int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -748,7 +740,6 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x2a;
 	cmd[2] = (BYTE)(bstart >> 24);
 	cmd[3] = (BYTE)(bstart >> 16);
@@ -756,7 +747,7 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	cmd[5] = (BYTE)bstart;
 	cmd[7] = (BYTE)(blength >> 8);
 	cmd[8] = (BYTE)blength;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -832,6 +823,11 @@ int main(int argc, char* argv[])
 		// Exit with invalid argument error
 		exit(EINVAL);
 	}
+
+#ifndef USE_SEL_EVENT_ENABLE
+	cerr << "Error: No RaSCSI hardware support" << endl;
+	exit(EXIT_FAILURE);
+#endif
 
 	// Reset the SCSI bus
 	Reset();
@@ -910,15 +906,15 @@ int main(int argc, char* argv[])
 		(buffer[2] << 8) | buffer[3];
 	bnum++;
 	printf("Number of blocks        : %d Blocks\n", (int)bnum);
-	printf("Block length            : %d B\n", (int)bsiz);
-	printf("Unit Capacity           : %d MiB %d B\n",
+	printf("Block length            : %d Bytes\n", (int)bsiz);
+	printf("Unit Capacity           : %d MBytes %d Bytes\n",
 		(int)(bsiz * bnum / 1024 / 1024),
 		(int)(bsiz * bnum));
 
 	// Get the restore file size
 	if (restore) {
 		size = fio.GetFileSize();
-		printf("Restore file size       : %d B", (int)size);
+		printf("Restore file size       : %d bytes", (int)size);
 		if (size > (off_t)(bsiz * bnum)) {
 			printf("(WARNING : File size is larger than disk size)");
 		} else if (size < (off_t)(bsiz * bnum)) {

@@ -52,6 +52,12 @@ TEST(ScsiCommandUtilTest, GetInt16)
 	EXPECT_EQ(0x1234, GetInt16(v, 0));
 }
 
+TEST(ScsiCommandUtilTest, GetInt24)
+{
+	vector<int> v = { 0x12, 0x34, 0x56 };
+	EXPECT_EQ(0x123456, GetInt24(v, 0));
+}
+
 TEST(ScsiCommandUtilTest, GetInt32)
 {
 	vector<int> v = { 0x12, 0x34, 0x56, 0x78 };
@@ -66,11 +72,6 @@ TEST(ScsiCommandUtilTest, GetInt64)
 
 TEST(ScsiCommandUtilTest, SetInt16)
 {
-	vector<BYTE> buf(2);
-	SetInt16(buf.data(), 0x1234);
-	EXPECT_EQ(0x12, buf[0]);
-	EXPECT_EQ(0x34, buf[1]);
-
 	vector<byte> v(2);
 	SetInt16(v, 0, 0x1234);
 	EXPECT_EQ(byte{0x12}, v[0]);
@@ -80,7 +81,7 @@ TEST(ScsiCommandUtilTest, SetInt16)
 TEST(ScsiCommandUtilTest, SetInt32)
 {
 	vector<BYTE> buf(4);
-	SetInt32(buf.data(), 0x12345678);
+	SetInt32(buf, 0, 0x12345678);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);
 	EXPECT_EQ(0x56, buf[2]);
@@ -97,7 +98,7 @@ TEST(ScsiCommandUtilTest, SetInt32)
 TEST(ScsiCommandUtilTest, SetInt64)
 {
 	vector<BYTE> buf(8);
-	SetInt64(buf.data(), 0x1234567887654321);
+	SetInt64(buf, 0, 0x1234567887654321);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);
 	EXPECT_EQ(0x56, buf[2]);

@@ -10,8 +10,6 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI device controller ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -53,8 +51,11 @@ class ScsiController : public AbstractController
 
 public:
 
+	// Maximum number of logical units
+	static const int LUN_MAX = 32;
+
 	ScsiController(shared_ptr<BUS>, int);
-	~ScsiController () override;
+	~ScsiController() override = default;
 	ScsiController(ScsiController&) = delete;
 	ScsiController& operator=(const ScsiController&) = delete;
 
@@ -63,8 +64,6 @@ public:
 	BUS::phase_t Process(int) override;
 
 	int GetEffectiveLun() const override;
-
-	int GetMaxLuns() const override { return LUN_MAX; }
 
 	void Error(scsi_defs::sense_key sense_key, scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
@@ -91,7 +90,6 @@ private:
 	uint32_t bytes_to_transfer = 0;
 
 	// Phases
-	void SetPhase(BUS::phase_t p) override { ctrl.phase = p; }
 	void BusFree() override;
 	void Selection() override;
 	void Command() override;
@@ -101,7 +99,7 @@ private:
 	// Data transfer
 	void Send();
 	bool XferMsg(int);
-	bool XferIn(BYTE* buf);
+	bool XferIn(vector<BYTE>&);
 	bool XferOut(bool);
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
@@ -111,6 +109,7 @@ private:
 	void Receive();
 
 	void ProcessCommand();
+	void ParseMessage();
 	void ProcessMessage();
 
 	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }

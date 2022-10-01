@@ -24,8 +24,9 @@
 //  This does NOT include the file system functionality that is present
 //  in the Sharp X68000 host bridge.
 //
-//  Note: This requires the DaynaPort SCSI Link driver.
+//  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "os.h"
@@ -42,8 +43,8 @@
 //===========================================================================
 class SCSIDaynaPort final : public Disk
 {
-
 public:
+
 	SCSIDaynaPort();
 	~SCSIDaynaPort() override = default;
 	SCSIDaynaPort(SCSIDaynaPort&) = delete;
@@ -54,14 +55,12 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const vector<int>&, BYTE *, uint64_t) override;
-	bool WriteBytes(const vector<int>&, const BYTE *, uint64_t);
+	int Read(const vector<int>&, vector<BYTE>&, uint64_t) override;
+	bool WriteBytes(const vector<int>&, const vector<BYTE>&, uint64_t);
 	int WriteCheck(uint64_t block) override;
 
-	int RetrieveStats(const vector<int>&, BYTE *) const;
+	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
 	bool EnableInterface(const vector<int>&);
-
-	void SetMacAddr(const vector<int>&, BYTE *);	// Set MAC address
 
 	void TestUnitReady() override;
 	void Read6() override;
@@ -108,19 +107,19 @@ private:
 		uint32_t length;
 		read_data_flags_t flags;
 		byte pad;
-		byte data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
+		array<byte, ETH_FRAME_LEN + sizeof(uint32_t)> data; // Frame length + 4 byte CRC
 	};
 
 	using scsi_resp_link_stats_t = struct __attribute__((packed)) {
-		byte mac_address[6];
+		array<byte, 6> mac_address;
 		uint32_t frame_alignment_errors;
 		uint32_t crc_errors;
 		uint32_t frames_lost;
 	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
-		//MAC address of @PotatoFi's DayanPort
-		.mac_address = { byte{0x00}, byte{0x80}, byte{0x19}, byte{0x10}, byte{0x98}, byte{0xE3} },
+		// TODO Remove this hard-coded MAC address, see https://github.com/akuker/RASCSI/issues/598
+		.mac_address = { byte{0x00}, byte{0x80}, byte{0x19}, byte{0x10}, byte{0x98}, byte{0xe3} },
 		.frame_alignment_errors = 0,
 		.crc_errors = 0,
 		.frames_lost = 0,
@@ -130,6 +129,4 @@ private:
 
 	// TAP valid flag
 	bool m_bTapEnable = false;
-
-	array<byte, 6> m_mac_addr;
 };

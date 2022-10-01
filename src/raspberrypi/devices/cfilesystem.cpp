@@ -796,9 +796,6 @@ BYTE* CHostFilename::CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLas
 //---------------------------------------------------------------------------
 void CHostFilename::ConvertHuman(int nCount)
 {
-	char szHost[FILEPATH_MAX];
-
-
 	// Don't do conversion for special directory names
 	if (m_szHost[0] == '.' &&
 		(m_szHost[1] == '\0' || (m_szHost[1] == '.' && m_szHost[2] == '\0'))) {
@@ -844,6 +841,7 @@ void CHostFilename::ConvertHuman(int nCount)
 	BYTE* pExt = nullptr;
 
 	{
+		char szHost[FILEPATH_MAX];
 		strcpy(szHost, m_szHost);
 		auto pRead = (const BYTE*)szHost;
 		BYTE* pWrite = szHuman;
@@ -1558,8 +1556,7 @@ void CHostPath::Refresh()
 						// If no match, confirm existence of real file
 						strcpy(szPath, m_szHost);
 						strcat(szPath, (const char*)pFilename->GetHuman());
-						struct stat sb;
-						if (stat(S2U(szPath), &sb))
+						if (struct stat sb; stat(S2U(szPath), &sb))
 							break;	// Discover available patterns
 					}
 				}
@@ -1575,7 +1572,7 @@ void CHostPath::Refresh()
 		strcpy(szPath, m_szHost);
 		strcat(szPath, U2S(pe->d_name));
 
-		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
+		struct stat sb;
 		if (stat(S2U(szPath), &sb))
 			continue;
 
@@ -1654,8 +1651,7 @@ void CHostPath::Backup()
 		len--;
 		assert(szPath[len] == '/');
 		szPath[len] = '\0';
-		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
-		if (stat(S2U(szPath), &sb) == 0)
+		if (struct stat sb; stat(S2U(szPath), &sb) == 0)
 			m_tBackup = sb.st_mtime;
 	}
 }
@@ -2291,8 +2287,7 @@ bool CHostFcb::Create(DWORD, bool bForce)
 
 	// Duplication check
 	if (!bForce) {
-		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
-		if (stat(S2U(m_szFilename), &sb) == 0)
+		if (struct stat sb; stat(S2U(m_szFilename), &sb) == 0)
 			return false;
 	}
 
@@ -2917,7 +2912,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 	// Generate attribute
 	if (DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) | (f.GetAttribute() & ~Human68k::AT_READONLY);
 		f.GetAttribute() != nAttribute) {
-		struct stat sb; //NOSONAR Cannot be declared in a separate statement because struct keyword is required
+		struct stat sb;
 		if (stat(S2U(f.GetPath()), &sb))
 			return FS_FILENOTFND;
 		mode_t m = sb.st_mode & 0777;

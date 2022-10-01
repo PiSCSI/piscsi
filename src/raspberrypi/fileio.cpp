@@ -42,10 +42,6 @@ bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 			break;
 
 		case OpenMode::ReadWrite:
-			// Make sure RW does not succeed when reading from CD-ROM
-			if (access(fname, 0x06) != 0) {
-				return false;
-			}
 			handle = open(fname, O_RDWR | omode);
 			break;
 
@@ -115,7 +111,7 @@ off_t Fileio::GetFileSize() const
 	assert(handle >= 0);
 
 	// Get file position in 64bit
-	off_t cur = GetFilePos();
+	off_t cur = lseek(handle, 0, SEEK_CUR);
 
 	// Get file size in64bitで
 	off_t end = lseek(handle, 0, SEEK_END);
@@ -124,14 +120,6 @@ off_t Fileio::GetFileSize() const
 	Seek(cur);
 
 	return end;
-}
-
-off_t Fileio::GetFilePos() const
-{
-	assert(handle >= 0);
-
-	// Get file position in 64bit
-	return lseek(handle, 0, SEEK_CUR);
 }
 
 void Fileio::Close()

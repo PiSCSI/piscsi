@@ -27,10 +27,10 @@ namespace command_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
-	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const string& = "", const string& = "",
+	bool ReturnLocalizedError(const CommandContext&, LocalizationKey, const string& = "", const string& = "",
 			const string& = "");
-	bool ReturnLocalizedError(const CommandContext&, const LocalizationKey, const PbErrorCode, const string& = "",
+	bool ReturnLocalizedError(const CommandContext&, LocalizationKey, PbErrorCode, const string& = "",
 			const string& = "", const string& = "");
 	bool ReturnStatus(const CommandContext&, bool = true, const string& = "",
-			const PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
+			PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
 }

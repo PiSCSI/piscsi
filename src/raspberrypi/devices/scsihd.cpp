@@ -30,7 +30,7 @@ SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi
 	SetSectorSizes(sector_sizes);
 }
 
-void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
+void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 {
     // 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
@@ -60,6 +60,8 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
+
+	SetUpCache(path, image_offset);
 }
 
 void SCSIHD::Open(const Filepath& path)
@@ -73,17 +75,17 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t size = fio.GetFileSize();
+	off_t file_size = fio.GetFileSize();
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
-	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
+	file_size = (file_size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
-	FinalizeSetup(path, size);
+	FinalizeSetup(path, file_size);
 }
 
 vector<byte> SCSIHD::InquiryInternal() const
@@ -91,7 +93,7 @@ vector<byte> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(const vector<int>& cdb, const BYTE *buf, int length) const
+void SCSIHD::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
 	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }

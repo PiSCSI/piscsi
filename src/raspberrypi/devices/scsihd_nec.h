@@ -13,9 +13,14 @@
 //  	[ SCSI NEC "Genuine" Hard Disk]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "scsihd.h"
+#include <unordered_set>
+#include <map>
+
+using namespace std; //NOSONAR Not relevant for rascsi
 
 //===========================================================================
 //
@@ -24,16 +29,14 @@
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
 {
-	static const unordered_set<uint32_t> sector_sizes;
-
 public:
 
-	explicit SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
+	SCSIHD_NEC() : SCSIHD(sector_sizes, false) {}
 	~SCSIHD_NEC() override = default;
 	SCSIHD_NEC(SCSIHD_NEC&) = delete;
 	SCSIHD_NEC& operator=(const SCSIHD_NEC&) = delete;
 
-	void Open(const Filepath& path) override;
+	void Open(const Filepath&) override;
 
 	vector<byte> InquiryInternal() const override;
 
@@ -42,6 +45,11 @@ public:
 	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
+
+	static const unordered_set<uint32_t> sector_sizes;
+
+	// Image file offset (NEC only)
+	off_t image_offset = 0;
 
 	// Geometry data
 	int cylinders = 0;

@@ -31,44 +31,40 @@ using namespace std;
 //	imported from bcm_host.c
 //
 //---------------------------------------------------------------------------
-static DWORD get_dt_ranges(const char *filename, DWORD offset)
+static uint32_t get_dt_ranges(const char *filename, DWORD offset)
 {
-	DWORD address = ~0;
+	uint32_t address = ~0;
 	if (FILE *fp = fopen(filename, "rb"); fp) {
 		fseek(fp, offset, SEEK_SET);
-		if (BYTE buf[4]; fread(buf, 1, sizeof buf, fp) == sizeof buf) {
-			address =
-				buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
+		if (array<BYTE, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
+			address = (int)buf[0] << 24 | (int)buf[1] << 16 | (int)buf[2] << 8 | (int)buf[3] << 0;
 		}
 		fclose(fp);
 	}
 	return address;
 }
 
-DWORD bcm_host_get_peripheral_address(void)
+uint32_t bcm_host_get_peripheral_address()
 {
-	DWORD address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
+	uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
 	if (address == 0) {
 		address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
 	}
-	address = (address == (DWORD)~0) ? 0x20000000 : address;
-#if 0
-	printf("Peripheral address : 0x%lx\n", address);
-#endif
+	address = (address == (uint32_t)~0) ? 0x20000000 : address;
 	return address;
 }
 #endif
 
 #ifdef __NetBSD__
 // Assume the Raspberry Pi series and estimate the address from CPU
-DWORD bcm_host_get_peripheral_address(void)
+uint32_t bcm_host_get_peripheral_address()
 {
-	char buf[1024];
-	size_t len = sizeof(buf);
+	array<char, 1024> buf;
+	size_t len = buf.size();
 	DWORD address;
 
-	if (sysctlbyname("hw.model", buf, &len, NULL, 0) ||
-	    strstr(buf, "ARM1176JZ-S") != buf) {
+	if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) ||
+	    strstr(buf, "ARM1176JZ-S") != buf.data()) {
 		// Failed to get CPU model || Not BCM2835
         // use the address of BCM283[67]
 		address = 0x3f000000;
@@ -79,7 +75,7 @@ DWORD bcm_host_get_peripheral_address(void)
 	printf("Peripheral address : 0x%lx\n", address);
 	return address;
 }
-#endif	// __NetBSD__
+#endif
 
 bool GPIOBUS::Init(mode_e mode)
 {
@@ -91,11 +87,11 @@ bool GPIOBUS::Init(mode_e mode)
 #else
 	int i;
 #ifdef USE_SEL_EVENT_ENABLE
-	struct epoll_event ev;
+	epoll_event ev = {};
 #endif
 
 	// Get the base address
-	baseaddr = (DWORD)bcm_host_get_peripheral_address();
+	baseaddr = (uint32_t)bcm_host_get_peripheral_address();
 
 	// Open /dev/mem
 	int fd = open("/dev/mem", O_RDWR | O_SYNC);
@@ -232,7 +228,6 @@ bool GPIOBUS::Init(mode_e mode)
 
 	// epoll initialization
 	epfd = epoll_create(1);
-	memset(&ev, 0, sizeof(ev));
 	ev.events = EPOLLIN | EPOLLPRI;
 	ev.data.fd = selevreq.fd;
 	epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
@@ -1021,20 +1016,17 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 //---------------------------------------------------------------------------
 bool GPIOBUS::PollSelectEvent()
 {
-	// clear errno
 	errno = 0;
-	struct epoll_event epev;
-	struct gpioevent_data gpev;
 
-	if (epoll_wait(epfd, &epev, 1, -1) <= 0) {
-                LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
+	if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
+		LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
 		return false;
 	}
 
-	if (read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
-            LOGWARN("%s read failed", __PRETTY_FUNCTION__)
-            return false;
-        }
+	if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
+		LOGWARN("%s read failed", __PRETTY_FUNCTION__)
+        return false;
+	}
 
 	return true;
 }
@@ -1054,7 +1046,7 @@ void GPIOBUS::ClearSelectEvent()
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const int GPIOBUS::SignalTable[19] = {
+const array<int, 19> GPIOBUS::SignalTable = {
 	PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3,
 	PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7,	PIN_DP,
 	PIN_SEL,PIN_ATN, PIN_RST, PIN_ACK,
@@ -1077,9 +1069,9 @@ void GPIOBUS::MakeTable(void)
 	array<bool, 256> tblParity;
 
 	// Create parity table
-	for (int i = 0; i < 0x100; i++) {
-		auto bits = (DWORD)i;
-		DWORD parity = 0;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		uint32_t bits = i;
+		uint32_t parity = 0;
 		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
@@ -1090,11 +1082,16 @@ void GPIOBUS::MakeTable(void)
 
 #if SIGNAL_CONTROL_MODE == 0
 	// Mask and setting data generation
-	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
+	for (auto& tbl : tblDatMsk) {
+		tbl.fill(-1);
+	}
+	for (auto& tbl : tblDatSet) {
+		tbl.fill(0);
+	}
+
+	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		auto bits = (DWORD)i;
+		uint32_t bits = i;
 
 		// Get parity
 		if (tblParity[i]) {
@@ -1119,14 +1116,11 @@ void GPIOBUS::MakeTable(void)
 		}
 	}
 #else
-	// Mask and setting data generation
-	memset(tblDatMsk, 0x00, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (int i = 0; i < 0x100; i++) {
-		// bit string for inspection
-		DWORD bits = (DWORD)i;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		// Bit string for inspection
+		uint32_t bits = i;
 
-		// get parity
+		// Get parity
 		if (tblParity[i]) {
 			bits |= (1 << 8);
 		}
@@ -1137,8 +1131,8 @@ void GPIOBUS::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		DWORD gpclr = 0;
-		DWORD gpset = 0;
+		uint32_t gpclr = 0;
+		uint32_t gpset = 0;
 		for (int j = 0; j < 9; j++) {
 			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
@@ -1400,11 +1394,10 @@ void GPIOBUS::DrvConfig(DWORD drive)
 BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
 	// Selection Phase
-	if (GetPinRaw(raw_data, PIN_SEL)) 
-	{
-		if(GetPinRaw(raw_data, PIN_IO)){
+	if (GetPinRaw(raw_data, PIN_SEL)) {
+		if(GetPinRaw(raw_data, PIN_IO)) {
 			return BUS::phase_t::reselection;
-		}else{
+		} else{
 			return BUS::phase_t::selection;
 		}
 	}
@@ -1415,7 +1408,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	}
 
 	// Get target phase from bus signal line
-	DWORD mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
+	int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
 	return GetPhase(mci);

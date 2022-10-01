@@ -24,7 +24,7 @@ TEST(DiskTest, Rezero)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRezero));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, FormatUnit)
@@ -34,7 +34,7 @@ TEST(DiskTest, FormatUnit)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(6);
+	vector<int>& cmd = controller.InitCmd(6);
 
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdFormat), scsi_error_exception);
 
@@ -42,10 +42,10 @@ TEST(DiskTest, FormatUnit)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdFormat));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
-	controller.ctrl.cmd[1] = 0x10;
-	controller.ctrl.cmd[4] = 1;
+	cmd[1] = 0x10;
+	cmd[4] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdFormat), scsi_error_exception);
 }
 
@@ -63,7 +63,7 @@ TEST(DiskTest, ReassignBlocks)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReassign));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, Seek)
@@ -73,7 +73,7 @@ TEST(DiskTest, Seek)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(10);
+	vector<int>& cmd = controller.InitCmd(10);
 
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSeek6), scsi_error_exception)
 		<< "SEEK(6) must fail for a medium with 0 blocks";
@@ -89,17 +89,17 @@ TEST(DiskTest, Seek)
 	disk.SetReady(true);
 
 	// Block count for SEEK(6)
-	controller.ctrl.cmd[4] = 1;
+	cmd[4] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSeek6));
-	EXPECT_EQ(0, controller.ctrl.status);
-	controller.ctrl.cmd[4] = 0;
+	EXPECT_EQ(0, controller.GetStatus());
+	cmd[4] = 0;
 
 	// Block count for SEEK(10)
-	controller.ctrl.cmd[5] = 1;
+	cmd[5] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSeek10));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, ReadCapacity)
@@ -109,7 +109,7 @@ TEST(DiskTest, ReadCapacity)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(16);
+	vector<int>& cmd = controller.InitCmd(16);
 
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
 		<< "Neithed READ CAPACITY(16) nor READ LONG(16)";
@@ -117,53 +117,53 @@ TEST(DiskTest, ReadCapacity)
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity10), scsi_error_exception)
 		<< "READ CAPACITY(10) must fail because drive is not ready";
 	// READ CAPACITY(16), not READ LONG(16)
-	controller.ctrl.cmd[1] = 0x10;
+	cmd[1] = 0x10;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
 		<< "READ CAPACITY(16) must fail because drive is not ready";
-	controller.ctrl.cmd[1] = 0x00;
+	cmd[1] = 0x00;
 
 	disk.SetReady(true);
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity10), scsi_error_exception)
 		<< "READ CAPACITY(10) must fail because the medium has no capacity";
 	// READ CAPACITY(16), not READ LONG(16)
-	controller.ctrl.cmd[1] = 0x10;
+	cmd[1] = 0x10;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
 		<< "READ CAPACITY(16) must fail because the medium has no capacity";
-	controller.ctrl.cmd[1] = 0x00;
+	cmd[1] = 0x00;
 
 	disk.SetBlockCount(0x12345678);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadCapacity10));
-	EXPECT_EQ(0x12, controller.ctrl.buffer[0]);
-	EXPECT_EQ(0x34, controller.ctrl.buffer[1]);
-	EXPECT_EQ(0x56, controller.ctrl.buffer[2]);
-	EXPECT_EQ(0x77, controller.ctrl.buffer[3]);
+	EXPECT_EQ(0x12, controller.GetBuffer()[0]);
+	EXPECT_EQ(0x34, controller.GetBuffer()[1]);
+	EXPECT_EQ(0x56, controller.GetBuffer()[2]);
+	EXPECT_EQ(0x77, controller.GetBuffer()[3]);
 
 	disk.SetBlockCount(0x1234567887654321);
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadCapacity10));
-	EXPECT_EQ(0xff, controller.ctrl.buffer[0]);
-	EXPECT_EQ(0xff, controller.ctrl.buffer[1]);
-	EXPECT_EQ(0xff, controller.ctrl.buffer[2]);
-	EXPECT_EQ(0xff, controller.ctrl.buffer[3]);
+	EXPECT_EQ(0xff, controller.GetBuffer()[0]);
+	EXPECT_EQ(0xff, controller.GetBuffer()[1]);
+	EXPECT_EQ(0xff, controller.GetBuffer()[2]);
+	EXPECT_EQ(0xff, controller.GetBuffer()[3]);
 
 	disk.SetSectorSizeInBytes(1024);
 	// READ CAPACITY(16), not READ LONG(16)
-	controller.ctrl.cmd[1] = 0x10;
+	cmd[1] = 0x10;
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
-	EXPECT_EQ(0x12, controller.ctrl.buffer[0]);
-	EXPECT_EQ(0x34, controller.ctrl.buffer[1]);
-	EXPECT_EQ(0x56, controller.ctrl.buffer[2]);
-	EXPECT_EQ(0x78, controller.ctrl.buffer[3]);
-	EXPECT_EQ(0x87, controller.ctrl.buffer[4]);
-	EXPECT_EQ(0x65, controller.ctrl.buffer[5]);
-	EXPECT_EQ(0x43, controller.ctrl.buffer[6]);
-	EXPECT_EQ(0x20, controller.ctrl.buffer[7]);
-	EXPECT_EQ(0x00, controller.ctrl.buffer[8]);
-	EXPECT_EQ(0x00, controller.ctrl.buffer[9]);
-	EXPECT_EQ(0x04, controller.ctrl.buffer[10]);
-	EXPECT_EQ(0x00, controller.ctrl.buffer[11]);
+	EXPECT_EQ(0x12, controller.GetBuffer()[0]);
+	EXPECT_EQ(0x34, controller.GetBuffer()[1]);
+	EXPECT_EQ(0x56, controller.GetBuffer()[2]);
+	EXPECT_EQ(0x78, controller.GetBuffer()[3]);
+	EXPECT_EQ(0x87, controller.GetBuffer()[4]);
+	EXPECT_EQ(0x65, controller.GetBuffer()[5]);
+	EXPECT_EQ(0x43, controller.GetBuffer()[6]);
+	EXPECT_EQ(0x20, controller.GetBuffer()[7]);
+	EXPECT_EQ(0x00, controller.GetBuffer()[8]);
+	EXPECT_EQ(0x00, controller.GetBuffer()[9]);
+	EXPECT_EQ(0x04, controller.GetBuffer()[10]);
+	EXPECT_EQ(0x00, controller.GetBuffer()[11]);
 }
 
 TEST(DiskTest, ReadWriteLong)
@@ -173,51 +173,51 @@ TEST(DiskTest, ReadWriteLong)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(16);
+	vector<int>& cmd = controller.InitCmd(16);
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadLong10));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdWriteLong10));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
-	controller.ctrl.cmd[2] = 1;
+	cmd[2] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
 		<< "READ LONG(10) must fail because the capacity is exceeded";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong10), scsi_error_exception)
 		<< "WRITE LONG(10) must fail because the capacity is exceeded";
 	// READ LONG(16), not READ CAPACITY(16)
-	controller.ctrl.cmd[1] = 0x11;
+	cmd[1] = 0x11;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
 		<< "READ LONG(16) must fail because the capacity is exceeded";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong16), scsi_error_exception)
 		<< "WRITE LONG(16) must fail because the capacity is exceeded";
-	controller.ctrl.cmd[2] = 0;
+	cmd[2] = 0;
 
-	controller.ctrl.cmd[7] = 1;
+	cmd[7] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadLong10), scsi_error_exception)
 		<< "READ LONG(10) must fail because it currently only supports 0 bytes transfer length";
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong10), scsi_error_exception)
 		<< "WRITE LONG(10) must fail because it currently only supports 0 bytes transfer length";
-	controller.ctrl.cmd[7] = 0;
+	cmd[7] = 0;
 
 	// READ LONG(16), not READ CAPACITY(16)
-	controller.ctrl.cmd[1] = 0x11;
+	cmd[1] = 0x11;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
-	EXPECT_EQ(0, controller.ctrl.status);
-	controller.ctrl.cmd[1] = 0x00;
+	EXPECT_EQ(0, controller.GetStatus());
+	cmd[1] = 0x00;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdWriteLong16));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
-	controller.ctrl.cmd[13] = 1;
+	cmd[13] = 1;
 	// READ LONG(16), not READ CAPACITY(16)
-	controller.ctrl.cmd[1] = 0x11;
+	cmd[1] = 0x11;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_error_exception)
 		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
-	controller.ctrl.cmd[1] = 0x00;
+	cmd[1] = 0x00;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdWriteLong16), scsi_error_exception)
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
 }
@@ -229,15 +229,15 @@ TEST(DiskTest, ReserveRelease)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(6);
+	controller.InitCmd(6);
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReserve6));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRelease6));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, SendDiagnostic)
@@ -247,22 +247,22 @@ TEST(DiskTest, SendDiagnostic)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(6);
+	vector<int>& cmd = controller.InitCmd(6);
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSendDiag));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
-	controller.ctrl.cmd[1] = 0x10;
+	cmd[1] = 0x10;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
 		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
-	controller.ctrl.cmd[1] = 0;
+	cmd[1] = 0;
 
-	controller.ctrl.cmd[3] = 1;
+	cmd[3] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
-	controller.ctrl.cmd[3] = 0;
-	controller.ctrl.cmd[4] = 1;
+	cmd[3] = 0;
+	cmd[4] = 1;
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdSendDiag), scsi_error_exception)
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 }
@@ -274,7 +274,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(6);
+	vector<int>& cmd = controller.InitCmd(6);
 
 	EXPECT_THROW(disk.Dispatch(scsi_command::eCmdRemoval), scsi_error_exception)
 		<< "REMOVAL must fail because drive is not ready";
@@ -283,13 +283,13 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 	EXPECT_FALSE(disk.IsLocked());
 
-	controller.ctrl.cmd[4] = 1;
+	cmd[4] = 1;
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdRemoval));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 	EXPECT_TRUE(disk.IsLocked());
 }
 
@@ -300,19 +300,19 @@ TEST(DiskTest, SynchronizeCache)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(10);
+	controller.InitCmd(10);
 
 	EXPECT_CALL(disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache10));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 
-	controller.ctrl.cmd.resize(16);
+	controller.InitCmd(16);
 
 	EXPECT_CALL(disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdSynchronizeCache16));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, ReadDefectData)
@@ -322,11 +322,11 @@ TEST(DiskTest, ReadDefectData)
 
 	controller.AddDevice(&disk);
 
-	controller.ctrl.cmd.resize(10);
+	controller.InitCmd(10);
 
 	EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(disk.Dispatch(scsi_command::eCmdReadDefectData10));
-	EXPECT_EQ(0, controller.ctrl.status);
+	EXPECT_EQ(0, controller.GetStatus());
 }
 
 TEST(DiskTest, SectorSize)

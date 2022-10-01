@@ -71,7 +71,7 @@ DeviceFactory device_factory;
 ControllerManager controller_manager;
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
-SocketConnector socket_connector;
+const SocketConnector socket_connector;
 
 void DetachAll();
 static void *MonThread(void *);
@@ -139,9 +139,8 @@ bool InitService(int port)
 	}
 
 	// Create socket for monitor
-	sockaddr_in server;
+	sockaddr_in server = {};
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
-	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
 	server.sin_port = htons(port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -388,11 +387,11 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	const PbDeviceType type = pb_device.type();
 
 	if (controller_manager.GetDeviceByIdAndLun(id, unit) != nullptr) {
-		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
-	if (unit >= AbstractController::LUN_MAX) {
-		return ReturnLocalizedError(context, ERROR_INVALID_LUN, to_string(unit), to_string(AbstractController::LUN_MAX));
+	if (unit >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(unit), to_string(ScsiController::LUN_MAX));
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -400,10 +399,10 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	PrimaryDevice *device = device_factory.CreateDevice(type, filename, id);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
-			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
 		}
 		else {
-			return ReturnLocalizedError(context, ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
 		}
 	}
 
@@ -434,13 +433,13 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
 				device_factory.DeleteDevice(*device);
 
-				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
 	}
 
@@ -448,7 +447,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (file_support != nullptr && !device->IsRemovable() && filename.empty()) {
 		device_factory.DeleteDevice(*device);
 
-		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 	}
 
 	Filepath filepath;
@@ -461,7 +460,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
 
 		try {
@@ -475,7 +474,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 					device_factory.DeleteDevice(*device);
 
-					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+					return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
 
 				file_support->Open(filepath);
@@ -484,7 +483,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		catch(const io_exception& e) {
 			device_factory.DeleteDevice(*device);
 
-			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -510,7 +509,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!device->Init(params)) {
 		device_factory.DeleteDevice(*device);
 
-		return ReturnLocalizedError(context, ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type), to_string(id), to_string(unit));
 	}
 
 	pthread_mutex_lock(&ctrl_mutex);
@@ -518,7 +517,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!controller_manager.CreateScsiController(bus, device)) {
 		pthread_mutex_unlock(&ctrl_mutex);
 
-		return ReturnLocalizedError(context, ERROR_SCSI_CONTROLLER);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 	pthread_mutex_unlock(&ctrl_mutex);
 
@@ -541,7 +540,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		for (const Device *d : device_factory.GetAllDevices()) {
 			// LUN 0 can only be detached if there is no other LUN anymore
 			if (d->GetId() == device->GetId() && d->GetLun()) {
-				return ReturnLocalizedError(context, ERROR_LUN0);
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
 			}
 		}
 	}
@@ -561,7 +560,7 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 		if (!controller_manager.FindController(id)->DeleteDevice(device)) {
 			pthread_mutex_unlock(&ctrl_mutex);
 
-			return ReturnLocalizedError(context, ERROR_DETACH);
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
 		}
 		device_factory.DeleteDevice(*device);
 		pthread_mutex_unlock(&ctrl_mutex);
@@ -575,16 +574,16 @@ bool Detach(const CommandContext& context, PrimaryDevice *device, bool dryRun)
 bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
 {
 	if (!device->IsRemoved()) {
-		return ReturnLocalizedError(context, ERROR_EJECT_REQUIRED);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
 	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-		return ReturnLocalizedError(context, ERROR_DEVICE_NAME_UPDATE);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_DEVICE_NAME_UPDATE);
 	}
 
 	string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
-		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
 	}
 
 	if (dryRun) {
@@ -599,11 +598,11 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (pb_device.block_size()) {
 		if (disk != nullptr&& disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, pb_device.block_size())) {
-				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
 		}
 	}
 
@@ -614,7 +613,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	string initial_filename = filepath.GetPath();
 
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 	}
 
 	auto file_support = dynamic_cast<FileSupport *>(device);
@@ -627,14 +626,14 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-				return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
+				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 			}
 
 			file_support->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) { //NOSONAR This exception is handled properly
-		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.get_msg());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -711,19 +710,19 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Check the Controller Number
 	if (id < 0) {
-		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
 	if (id >= ControllerManager::DEVICE_MAX) {
-		return ReturnLocalizedError(context, ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
-		return ReturnLocalizedError(context, ERROR_RESERVED_ID, to_string(id));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
 	// Check the Unit Number
-	if (unit < 0 || unit >= AbstractController::LUN_MAX) {
-		return ReturnLocalizedError(context, ERROR_INVALID_LUN, to_string(unit), to_string(AbstractController::LUN_MAX - 1));
+	if (unit < 0 || unit >= ScsiController::LUN_MAX) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(unit), to_string(ScsiController::LUN_MAX - 1));
 	}
 
 	if (operation == ATTACH) {
@@ -732,13 +731,13 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Does the controller exist?
 	if (!dryRun && controller_manager.FindController(id) == nullptr) {
-		return ReturnLocalizedError(context, ERROR_NON_EXISTING_DEVICE, to_string(id));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
 	// Does the unit exist?
 	PrimaryDevice *device = controller_manager.GetDeviceByIdAndLun(id, unit);
 	if (device == nullptr) {
-		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
 
 	if (operation == DETACH) {
@@ -746,18 +745,18 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_STOPPABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device->GetType());
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_REMOVABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device->GetType());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_PROTECTABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device->GetType());
 	}
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnLocalizedError(context, ERROR_OPERATION_DENIED_READY, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, device->GetType());
 	}
 
 	switch (operation) {
@@ -824,7 +823,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 			break;
 
 		default:
-			return ReturnLocalizedError(context, ERROR_OPERATION);
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION);
 	}
 
 	return true;
@@ -915,8 +914,8 @@ bool ProcessId(const string& id_spec, int& id, int& unit)
 		unit = 0;
 	}
 	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= AbstractController::LUN_MAX) {
-		cerr << optarg << ": Invalid unit (0-" << (AbstractController::LUN_MAX - 1) << ")" << endl;
+			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= ScsiController::LUN_MAX) {
+		cerr << optarg << ": Invalid unit (0-" << (ScsiController::LUN_MAX - 1) << ")" << endl;
 		return false;
 	}
 
@@ -925,7 +924,7 @@ bool ProcessId(const string& id_spec, int& id, int& unit)
 
 void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode.empty()) {
-		ReturnLocalizedError(context, ERROR_SHUTDOWN_MODE_MISSING);
+		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 		return;
 	}
 
@@ -942,7 +941,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 
 	// The root user has UID 0
 	if (getuid()) {
-		ReturnLocalizedError(context, ERROR_SHUTDOWN_PERMISSION);
+		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
 		return;
 	}
 
@@ -969,7 +968,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 		}
 	}
 	else {
-		ReturnLocalizedError(context, ERROR_SHUTDOWN_MODE_INVALID);
+		ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID);
 	}
 }
 
@@ -1132,7 +1131,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	command.set_operation(ATTACH);
 
 	Localizer localizer;
-	CommandContext context(&socket_connector, &localizer, -1, locale);
+	CommandContext context(socket_connector, localizer, -1, locale);
 	if (!ProcessCmd(context, command)) {
 		return false;
 	}
@@ -1179,13 +1178,13 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 	}
 
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
-		return ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
 	if (!PbOperation_IsValid(command.operation())) {
 		LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
-		return ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
 	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
@@ -1196,7 +1195,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		case LOG_LEVEL: {
 			string log_level = GetParam(command, "level");
 			if (bool status = SetLogLevel(log_level); !status) {
-				ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
+				ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
 				ReturnStatus(context);
@@ -1256,7 +1255,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case IMAGE_FILE_INFO: {
 			if (string filename = GetParam(command, "file"); filename.empty()) {
-				ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
+				ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
@@ -1267,7 +1266,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 					socket_connector.SerializeMessage(context.fd, result);
 				}
 				else {
-					ReturnLocalizedError(context, ERROR_IMAGE_FILE_INFO);
+					ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_FILE_INFO);
 				}
 			}
 			break;
@@ -1340,9 +1339,10 @@ static void *MonThread(void *) //NOSONAR The pointer cannot be const void * beca
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
+	Localizer localizer;
+
 	while (true) {
-		Localizer localizer;
-		CommandContext context(&socket_connector, &localizer, -1, "");
+		CommandContext context(socket_connector, localizer, -1, "");
 
 		try {
 			PbCommand command;

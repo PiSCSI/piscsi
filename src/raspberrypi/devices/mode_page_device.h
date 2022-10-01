@@ -25,11 +25,11 @@ public:
 
 	bool Dispatch(scsi_command) override;
 
-	virtual void ModeSelect(const vector<int>&, const BYTE *, int) const;
+	virtual void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const;
 
 protected:
 
-	int AddModePages(const vector<int>&, BYTE *, int) const;
+	int AddModePages(const vector<int>&, vector<BYTE>&, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
 private:
@@ -38,8 +38,8 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	virtual int ModeSense6(const vector<int>&, BYTE *, int) const = 0;
-	virtual int ModeSense10(const vector<int>&, BYTE *, int) const = 0;
+	virtual int ModeSense6(const vector<int>&, vector<BYTE>&, int) const = 0;
+	virtual int ModeSense10(const vector<int>&, vector<BYTE>&, int) const = 0;
 
 	void ModeSense6();
 	void ModeSense10();

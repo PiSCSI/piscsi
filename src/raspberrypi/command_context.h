@@ -16,12 +16,12 @@ class Localizer;
 
 struct CommandContext
 {
-	CommandContext(SocketConnector *c, const Localizer *l, int f, const std::string& s)
+	CommandContext(const SocketConnector& c, const Localizer& l, int f, const std::string& s)
 		: connector(c), localizer(l), fd(f), locale(s) {}
 	~CommandContext() = default;
 
-	SocketConnector *connector;
-	const Localizer *localizer;
+	const SocketConnector& connector;
+	const Localizer& localizer;
 	int fd;
 	std::string locale;
 };

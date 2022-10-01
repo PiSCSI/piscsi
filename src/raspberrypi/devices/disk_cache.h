@@ -16,43 +16,46 @@
 #pragma once
 
 #include "filepath.h"
+#include <array>
+#include <memory>
 
-// Number of tracks to cache
-static const int CACHE_MAX = 16;
+using namespace std; //NOSONAR Not relevant for rascsi
 
 class DiskCache
 {
+	// Number of tracks to cache
+	static const int CACHE_MAX = 16;
+
 public:
 
 	// Internal data definition
 	using cache_t = struct {
-		DiskTrack *disktrk;					// Disk Track
-		uint32_t serial;					// Serial
+		shared_ptr<DiskTrack> disktrk;	// Disk Track
+		uint32_t serial;				// Serial
 	};
 
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
-	~DiskCache();
+	~DiskCache() = default;
 	DiskCache(DiskCache&) = delete;
 	DiskCache& operator=(const DiskCache&) = delete;
 
-	void SetRawMode(bool);					// CD-ROM raw mode setting
+	void SetRawMode(bool b) { cd_raw = b; }		// CD-ROM raw mode setting
 
 	// Access
 	bool Save() const;							// Save and release all
-	bool ReadSector(BYTE *buf, uint32_t block);				// Sector Read
-	bool WriteSector(const BYTE *buf, uint32_t block);			// Sector Write
-	bool GetCache(int index, int& track, uint32_t& serial) const;	// Get cache information
+	bool ReadSector(vector<BYTE>&, uint32_t);				// Sector Read
+	bool WriteSector(const vector<BYTE>&, uint32_t);		// Sector Write
 
 private:
 
 	// Internal Management
-	void Clear();							// Clear all tracks
-	DiskTrack* Assign(int track);					// Load track
-	bool Load(int index, int track, DiskTrack *disktrk = nullptr);	// Load track
-	void UpdateSerialNumber();							// Update serial number
+	shared_ptr<DiskTrack> Assign(int);
+	shared_ptr<DiskTrack> GetTrack(uint32_t);
+	bool Load(int index, int track, shared_ptr<DiskTrack>);
+	void UpdateSerialNumber();
 
 	// Internal data
-	cache_t cache[CACHE_MAX] = {};				// Cache management
+	array<cache_t, CACHE_MAX> cache = {};		// Cache management
 	uint32_t serial = 0;						// Last serial number
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
