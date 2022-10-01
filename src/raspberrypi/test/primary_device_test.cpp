@@ -15,6 +15,19 @@
 
 using namespace scsi_defs;
 
+TEST(PrimaryDeviceTest, GetId)
+{
+	const int ID = 5;
+
+	MockAbstractController controller(ID);
+	auto device = make_shared<MockPrimaryDevice>(0);
+
+	EXPECT_EQ(-1, device->GetId());
+
+	controller.AddDevice(device);
+	EXPECT_EQ(ID, device->GetId());
+}
+
 TEST(PrimaryDeviceTest, PhaseChange)
 {
 	MockAbstractController controller(0);
