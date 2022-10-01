@@ -79,10 +79,12 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 	// Page 0 must be last
 	if (!page0.empty()) {
+		size_t off = result.size();
+
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[result.size() + 1] = (byte)(page0.size() - 2);
+		result[off + 1] = (byte)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes
