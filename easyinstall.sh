@@ -691,23 +691,31 @@ function setupWiredNetworking() {
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
-    read REPLY
 
-    if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
-        echo "Available wired interfaces on this system:"
-        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
-        echo "Please type the wired interface you want to use and press Enter:"
-        read SELECTED
-        LAN_INTERFACE=$SELECTED
+    if [[ -z $HEADLESS ]]; then
+        echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
+        read REPLY
+
+        if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
+            echo "Available wired interfaces on this system:"
+            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+            echo "Please type the wired interface you want to use and press Enter:"
+            read SELECTED
+            LAN_INTERFACE=$SELECTED
+        fi
     fi
 
     if [ "$(grep -c "^denyinterfaces" /etc/dhcpcd.conf)" -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
-        echo "Press enter to continue or CTRL-C to exit"
-        read REPLY
+
+        if [[ -z $HEADLESS ]]; then
+            echo "Press enter to continue or CTRL-C to exit"
+            read REPLY
+        fi
+
         sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
+
     sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
@@ -720,6 +728,12 @@ function setupWiredNetworking() {
     echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
     echo "rasctl -i 6 -c attach -t scdp -f $LAN_INTERFACE"
     echo ""
+
+    if [[ $HEADLESS ]]; then
+        echo "Skipping reboot in headless mode"
+        return 0
+    fi
+
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
     read
@@ -1269,6 +1283,7 @@ function runChoice() {
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
+              enableWebInterfaceAuth
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
@@ -1366,6 +1381,9 @@ while [ "$1" != "" ]; do
             ;;
         -s | --skip-token)
             SKIP_TOKEN=1
+            ;;
+        -h | --headless)
+            HEADLESS=1
             ;;
         *)
             echo "ERROR: Unknown parameter \"$PARAM\""

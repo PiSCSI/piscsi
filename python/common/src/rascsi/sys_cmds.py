@@ -161,7 +161,21 @@ class SysCmds:
         process = run(
                 ["journalctl"] + line_param + scope_param,
                 capture_output=True,
-                check=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def get_diskinfo(file_path):
+        """
+        Takes (str) file_path path to image file to inspect.
+        Returns either the disktype output, or the stderr output.
+        """
+        process = run(
+                ["disktype", file_path],
+                capture_output=True,
                 )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")

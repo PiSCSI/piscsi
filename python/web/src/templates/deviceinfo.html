@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>{{ _("Detailed Info for Attached Devices") }}</h3>
+{% for device in devices %}
+<p>
+<table border="black" cellpadding="3">
+<tr>
+    <td><i>{{ _("SCSI ID") }}</i></td>
+    <td>{{ device["id"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("LUN") }}</i></td>
+    <td>{{ device["unit"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Type") }}</i></td>
+    <td>{{ device["device_type"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Status") }}</i></td>
+    <td>{{ device["status"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("File") }}</i></td>
+    <td>{{ device["image"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Parameters") }}</i></td>
+    <td>{{ device["params"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Vendor") }}</i></td>
+    <td>{{ device["vendor"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Product") }}</i></td>
+    <td>{{ device["product"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Revision") }}</i></td>
+    <td>{{ device["revision"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Block Size") }}</i></td>
+    <td>{{ device["block_size"] }}</td>
+</tr>
+<tr>
+    <td><i>{{ _("Image Size") }}</i></td>
+    <td>{{ device["size"] }}</td>
+</tr>
+</table>
+</p>
+{% endfor %}
+<p><a href="/">{{ _("Go to Home") }}</a></p>
+
+{% endblock content %}

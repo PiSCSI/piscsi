@@ -63,14 +63,24 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
+<<<<<<< HEAD
 			size_t off = result.size();
+=======
+			size_t offset = result.size();
+>>>>>>> feature_memory_management
 
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
+<<<<<<< HEAD
 			result[off] |= (byte)index;
 			// Page payload size
 			result[off + 1] = (byte)(data.size() - 2);
+=======
+			result[offset] |= (byte)index;
+			// Page payload size
+			result[offset + 1] = (byte)(data.size() - 2);
+>>>>>>> feature_memory_management
 		}
 		else {
 			page0 = data;

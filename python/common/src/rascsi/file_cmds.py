@@ -521,6 +521,8 @@ class FileCmds:
                 # introduce more sophisticated format detection logic here.
                 if isinstance(config, dict):
                     self.ractl.detach_all()
+                    for scsi_id in range(0, 8):
+                        RESERVATIONS[scsi_id] = ""
                     ids_to_reserve = []
                     for item in config["reserved_ids"]:
                         ids_to_reserve.append(item["id"])
