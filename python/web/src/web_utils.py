@@ -135,7 +135,7 @@ def get_image_description(file_suffix):
 def format_drive_properties(drive_properties):
     """
     Takes a (dict) with structured drive properties data
-    Returns a (dict) with the formatted HD, CD, and RM properties
+    Returns a (dict) with the formatted properties, one (list) per device type
     """
     hd_conf = []
     cd_conf = []
