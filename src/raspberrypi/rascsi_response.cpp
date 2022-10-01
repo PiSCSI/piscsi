@@ -272,7 +272,6 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	}
 
 	result.set_allocated_devices_info(devices_info.release());
-
 	result.set_status(true);
 }
 
