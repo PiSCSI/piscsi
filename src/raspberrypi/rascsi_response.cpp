@@ -258,8 +258,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 		}
 	}
 
-	auto devices_info = make_unique<PbDevicesInfo>().release();
-	result.set_allocated_devices_info(devices_info);
+	auto devices_info = make_unique<PbDevicesInfo>();
 
 	const auto& devices = controller_manager.GetAllDevices();
 
@@ -271,6 +270,8 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 			}
 		}
 	}
+
+	result.set_allocated_devices_info(devices_info.release());
 
 	result.set_status(true);
 }
