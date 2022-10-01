@@ -66,35 +66,37 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return Detach(context, *device, dryRun);
 	}
 
+	const string& type = device->GetType();
+
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, type);
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, type);
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, type);
 	}
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, device->GetType());
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, type);
 	}
 
 	switch (operation) {
 		case START:
 			if (!dryRun) {
-				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
+				LOGINFO("Start requested for %s ID %d, unit %d", type.c_str(), id, lun)
 
 				if (!device->Start()) {
-					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
+					LOGWARN("Starting %s ID %d, unit %d failed", type.c_str(), id, lun)
 				}
 			}
 			break;
 
 		case STOP:
 			if (!dryRun) {
-				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
+				LOGINFO("Stop requested for %s ID %d, unit %d", type.c_str(), id, lun)
 
 				// STOP is idempotent
 				device->Stop();
@@ -106,17 +108,17 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 		case EJECT:
 			if (!dryRun) {
-				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
+				LOGINFO("Eject requested for %s ID %d, unit %d", type.c_str(), id, lun)
 
 				if (!device->Eject(true)) {
-					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, lun)
+					LOGWARN("Ejecting %s ID %d, unit %d failed", type.c_str(), id, lun)
 				}
 			}
 			break;
 
 		case PROTECT:
 			if (!dryRun) {
-				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
+				LOGINFO("Write protection requested for %s ID %d, unit %d", type.c_str(), id, lun)
 
 				// PROTECT is idempotent
 				device->SetProtected(true);
@@ -125,7 +127,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 		case UNPROTECT:
 			if (!dryRun) {
-				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, lun)
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", type.c_str(), id, lun)
 
 				// UNPROTECT is idempotent
 				device->SetProtected(false);
