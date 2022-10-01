@@ -138,15 +138,15 @@
 <table style="border: none;" cellpadding="3">
     <tr style="border: none;">
         <td style="border: none;">
-	    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+        <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
             <input type="submit" value="{{ _("Detach All Devices") }}">
-	    </form>
-	</td>
+        </form>
+        </td>
         <td style="border: none;">
-	    <form action="/scsi/info" method="post">
+        <form action="/scsi/info" method="post">
             <input type="submit" value="{{ _("Show Device Info") }}">
-	    </form>
-	</td>
+        </form>
+    </td>
     </tr>
 </table>
 
@@ -339,7 +339,7 @@
         <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
-	<li>{{ _("The Host Bridge is used with <a href=\"%(url)s\">Sharp X68000</a> systems as a networking device.", url="https://github.com/rdmark/RASCSI-X68k/wiki#x68000-features") }}
+        <li>{{ _("The Host Bridge is used with <a href=\"%(url)s\">Sharp X68000</a> systems as a networking device.", url="https://github.com/rdmark/RASCSI-X68k/wiki#x68000-features") }}
         <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://github.com/akuker/RASCSI/wiki/RaSCSI-Client-Tools") }}
         </li>
     </ul>
@@ -377,34 +377,34 @@
                 <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
-		{% if type in REMOVABLE_DEVICE_TYPES %}
-		<label for="drive_name">{{ _("Masquerade as:") }}</label>
-		<select name="drive_name">
-			<option value="">
-			{{ _("None") }}
-			</option>
-			{% if type == "SCCD" %}
-			{% for drive in drive_properties["cd_conf"] %}
-			<option value="{{ drive.name }}">
-			{{ drive.name }}
-			</option>
-			{% endfor %}
-			{% endif %}
-			{% if type == "SCRM" %}
-			{% for drive in drive_properties["rm_conf"] %}
-			<option value="{{ drive.name }}">
-			{{ drive.name }}
-			</option>
-			{% endfor %}
-			{% endif %}
-			{% if type == "SCMO" %}
-			{% for drive in drive_properties["mo_conf"] %}
-			<option value="{{ drive.name }}">
-			{{ drive.name }}
-			</option>
-			{% endfor %}
-			{% endif %}
-		</select>
+                {% if type in REMOVABLE_DEVICE_TYPES %}
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name">
+                <option value="">
+                {{ _("None") }}
+                </option>
+                {% if type == "SCCD" %}
+                {% for drive in drive_properties["cd_conf"] %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCRM" %}
+                {% for drive in drive_properties["rm_conf"] %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCMO" %}
+                {% for drive in drive_properties["mo_conf"] %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                </select>
                 {% endif %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
@@ -446,7 +446,7 @@
                     <option value="afp">{{ AFP_DIR }}</option>
                 </select>
                 </p>
-	    </form>
+            </form>
         </td>
     </tr>
 </table>
@@ -495,7 +495,7 @@
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
             <form action="/files/download_url" method="post">
-		<label for="destination">{{ _("Target directory:") }}</label>
+                <label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
                     <option value="images">{{ base_dir }}</option>
                     <option value="afp">{{ AFP_DIR }}</option>
@@ -737,7 +737,7 @@
 <center><tt>
         {% if netatalk_configured == 1 %}
         {{ _("The AppleShare server is running. No active connections.") }}
-	{% endif %}
+        {% endif %}
         {% if netatalk_configured == 2 %}
         {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
         {% elif netatalk_configured > 2 %}
