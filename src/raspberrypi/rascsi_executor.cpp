@@ -32,8 +32,6 @@ using namespace ras_util;
 bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
 {
-	const PbOperation operation = command.operation();
-
 	PrintCommand(command, pb_device, dryRun);
 
 	const int id = pb_device.id();
@@ -42,6 +40,8 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	if (!ValidateIdAndLun(context, id, lun)) {
 		return false;
 	}
+
+	const PbOperation operation = command.operation();
 
 	// For all commands except ATTACH the device and LUN must exist
 	if (operation != ATTACH && !VerifyExistingIdAndLun(context, id, lun)) {
