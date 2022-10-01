@@ -426,9 +426,9 @@
     "revision": "1.0k",
     "block_size": 2048,
     "size": null,
-    "name": "Apple CD 600e (Matsushita CR-8005)",
+    "name": "AppleCD 600e (Matsushita CR-8005)",
     "file_type": null,
-    "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
+    "description": "Emulates an Apple CD-ROM drive for use with Macintosh computers.",
     "url": ""
 },
 {
