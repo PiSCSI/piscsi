@@ -14,7 +14,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for hd in hd_conf|sort(attribute='name') %}
+{% for hd in drive_properties['hd_conf']|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ hd.name }}</td>
     <td style="text-align:center">{{ hd.size_mb }}</td>
@@ -58,7 +58,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for cd in cd_conf|sort(attribute='name') %}
+{% for cd in drive_properties['cd_conf']|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ cd.name }}</td>
     <td style="text-align:center">{{ cd.size_mb }}</td>
@@ -104,7 +104,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for rm in rm_conf|sort(attribute='name') %}
+{% for rm in drive_properties['rm_conf']|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ rm.name }}</td>
     <td style="text-align:center">{{ rm.size_mb }}</td>

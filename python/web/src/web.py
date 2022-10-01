@@ -280,9 +280,7 @@ def drive_list():
         template="drives.html",
         files=file_cmd.list_images()["files"],
         base_dir=server_info["image_dir"],
-        hd_conf=drive_properties["hd_conf"],
-        cd_conf=drive_properties["cd_conf"],
-        rm_conf=drive_properties["rm_conf"],
+        drive_properties=drive_properties,
         version=server_info["version"],
         cdrom_file_suffix=tuple(server_info["sccd"]),
         )
