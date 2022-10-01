@@ -39,7 +39,7 @@ public:
 	void DeleteController(shared_ptr<AbstractController>);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
-	unordered_set<PrimaryDevice *> GetAllDevices() const;
+	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;

@@ -18,12 +18,12 @@ void AbstractController::AllocateBuffer(size_t size)
 	}
 }
 
-unordered_set<PrimaryDevice *> AbstractController::GetDevices() const
+unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 {
-	unordered_set<PrimaryDevice *> devices;
+	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
 	for (const auto& [id, lun] : luns) {
-		devices.insert(lun.get());
+		devices.insert(lun);
 	}
 
 	return devices;
