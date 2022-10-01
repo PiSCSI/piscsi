@@ -53,11 +53,11 @@ void TestNonDiskDevice(const string& name, int default_param_count)
 	EXPECT_EQ(0, device.block_count());
 	EXPECT_EQ(default_param_count, device.properties().default_params().size());
 	EXPECT_FALSE(device.properties().supports_file());
-	if (!default_param_count) {
-		EXPECT_FALSE(device.properties().supports_file());
+	if (default_param_count) {
+		EXPECT_TRUE(device.properties().supports_params());
 	}
 	else {
-		EXPECT_TRUE(device.properties().supports_params());
+		EXPECT_FALSE(device.properties().supports_params());
 	}
 }
 
