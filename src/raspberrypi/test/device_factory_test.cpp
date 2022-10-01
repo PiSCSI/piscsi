@@ -183,15 +183,15 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 	EXPECT_EQ("SCHD", device->GetType());
 }
 
-TEST(DeviceFactoryTest, SCRM_Device_Defaults)
+void TestRemovableDrive(const string& type, const string& filename, const string& product)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
 	ControllerManager controller_manager(bus);
 
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdr");
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, filename);
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCRM", device->GetType());
+	EXPECT_EQ(type, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -205,36 +205,20 @@ TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("RaSCSI", device->GetVendor());
-	EXPECT_EQ("SCSI HD (REM.)", device->GetProduct());
+	EXPECT_EQ(product, device->GetProduct());
 	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
+
+}
+
+TEST(DeviceFactoryTest, SCRM_Device_Defaults)
+{
+	TestRemovableDrive("SCRM", "test.hdr", "SCSI HD (REM.)");
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
-	MockBus bus;
-	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
-
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.mos");
-	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCMO", device->GetType());
-	EXPECT_TRUE(device->SupportsFile());
-	EXPECT_FALSE(device->SupportsParams());
-	EXPECT_TRUE(device->IsProtectable());
-	EXPECT_FALSE(device->IsProtected());
-	EXPECT_FALSE(device->IsReadOnly());
-	EXPECT_TRUE(device->IsRemovable());
-	EXPECT_FALSE(device->IsRemoved());
-	EXPECT_TRUE(device->IsLockable());
-	EXPECT_FALSE(device->IsLocked());
-	EXPECT_TRUE(device->IsStoppable());
-	EXPECT_FALSE(device->IsStopped());
-
-	EXPECT_EQ("RaSCSI", device->GetVendor());
-	EXPECT_EQ("SCSI MO", device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
-			device->GetRevision());
+	TestRemovableDrive("SCMO", "test.mos", "SCSI MO");
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
