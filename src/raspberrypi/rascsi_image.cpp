@@ -113,7 +113,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	string full_filename = default_folder + "/" + filename;
+	string full_filename = GetFullName(filename);
 	if (!IsValidDstFilename(full_filename)) {
 		return ReturnStatus(context, false, "Can't create image file: '" + full_filename + "': File already exists");
 	}
@@ -186,7 +186,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	string full_filename = default_folder + "/" + filename;
+	string full_filename = GetFullName(filename);
 
 	int id;
 	int unit;
@@ -205,7 +205,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	size_t last_slash = filename.rfind('/');
 	while (last_slash != string::npos) {
 		string folder = filename.substr(0, last_slash);
-		string full_folder = default_folder + "/" + folder;
+		string full_folder = GetFullName(folder);
 
 		if (error_code error; !filesystem::is_empty(full_folder, error) || error) {
 			break;
@@ -234,7 +234,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
-	from = default_folder + "/" + from;
+	from = GetFullName(from);
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(context, false, "Can't rename/move image file: '" + from + "': Invalid name or type");
 	}
@@ -248,7 +248,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
 	}
 
-	to = default_folder + "/" + to;
+	to = GetFullName(to);
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': File already exists");
 	}
@@ -277,7 +277,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
-	from = default_folder + "/" + from;
+	from = GetFullName(from);
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(context, false, "Can't copy image file: '" + from + "': Invalid name or type");
 	}
@@ -291,7 +291,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
 	}
 
-	to = default_folder + "/" + to;
+	to = GetFullName(to);
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(context, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
 	}
@@ -370,7 +370,7 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	filename = default_folder + "/" + filename;
+	filename = GetFullName(filename);
 	if (!IsValidSrcFilename(filename)) {
 		return ReturnStatus(context, false, "Can't modify image file '" + filename + "': Invalid name or type");
 	}

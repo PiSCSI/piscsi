@@ -35,6 +35,7 @@ public:
 	bool RenameImage(const CommandContext&, const PbCommand&) const;
 	bool CopyImage(const CommandContext&, const PbCommand&) const;
 	bool SetImagePermissions(const CommandContext&, const PbCommand&) const;
+	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
 
 private:
 
