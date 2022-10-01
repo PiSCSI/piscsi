@@ -429,7 +429,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth) c
 	AddOperationParameter(*operation, "ids", "Comma-separated device ID list", "", true);
 
 	operation = CreateOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	PbOperationParameter *parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
+	auto parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true);
 	parameter->add_permitted_values("rascsi");
 	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
