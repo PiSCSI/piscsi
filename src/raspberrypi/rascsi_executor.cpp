@@ -49,10 +49,6 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
 	}
 
-	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
-	}
-
 	if (operation == ATTACH) {
 		return Attach(context, pb_device, dryRun);
 	}
@@ -276,6 +272,10 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	if (controller_manager.GetDeviceByIdAndLun(id, lun) != nullptr) {
 		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
+	}
+
+	if (reserved_ids.find(id) != reserved_ids.end()) {
+		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
 	string filename = GetParam(pb_device, "file");
