@@ -55,7 +55,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 	type_properties->set_type(type);
 	auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(*device).release());
-}
+} //NOSONAR The allocated memory is managed by protobuf
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info) const
 {
@@ -90,7 +90,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 	status->set_removed(device.IsRemoved());
 	status->set_locked(device.IsLocked());
 
-	if (device.SupportsParams()) {
+	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
 		for (const auto& [key, value] : device.GetParams()) {
 			AddParam(pb_device, key, value);
 		}
@@ -109,7 +109,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 		GetImageFile(*image_file, default_folder, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device.set_allocated_file(image_file);
 	}
-}
+} //NOSONAR The allocated memory is managed by protobuf
 
 bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default_folder, const string& filename) const
 {
@@ -203,7 +203,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	image_files_info->set_default_image_folder(default_folder);
 	server_info.set_allocated_image_files_info(image_files_info.release());
 
-	result.set_status(true);
+	result.set_status(true); //NOSONAR The allocated memory is managed by protobuf
 }
 
 unique_ptr<PbReservedIdsInfo> RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
@@ -293,14 +293,14 @@ unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(PbResult& result, const u
 	auto server_info = make_unique<PbServerInfo>();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result).release());
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level).release());
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level).release()); //NOSONAR The allocated memory is managed by protobuf
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The allocated memory is managed by protobuf
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result).release());
-	server_info->set_allocated_mapping_info(GetMappingInfo(result).release());
-	GetDevices(*server_info, default_folder);
+	server_info->set_allocated_mapping_info(GetMappingInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
+	GetDevices(*server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids).release());
-	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth).release());
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth).release()); //NOSONAR The allocated memory is managed by protobuf
 
 	result.set_status(true);
 
