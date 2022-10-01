@@ -230,16 +230,16 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 {
 	set<id_set> id_sets;
 
+	const auto& devices = controller_manager.GetAllDevices();
+
 	// If no devices list was provided in the command get information on all devices
 	if (!command.devices_size()) {
-		for (const auto& device : controller_manager.GetAllDevices()) {
+		for (const auto& device : devices) {
 			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
 		}
 	}
 	// Otherwise get information on the devices provided in the command
 	else {
-		const auto& devices = controller_manager.GetAllDevices();
-
 		for (const auto& device : command.devices()) {
 			bool has_device = false;
 			for (const auto& d : devices) {
@@ -259,8 +259,6 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	}
 
 	auto devices_info = make_unique<PbDevicesInfo>();
-
-	const auto& devices = controller_manager.GetAllDevices();
 
 	for (const auto& [id, lun] : id_sets) {
 		for (const auto& d : devices) {
