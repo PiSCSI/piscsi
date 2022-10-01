@@ -19,7 +19,7 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 
-class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
+class MockBus final : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
 public:
 
@@ -55,7 +55,7 @@ public:
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
 	MockBus() = default;
-	~MockBus() final = default;
+	~MockBus() override = default;
 };
 
 class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
