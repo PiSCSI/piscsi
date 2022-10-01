@@ -34,44 +34,10 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 {
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
-	const PbDeviceType type = pb_device.type();
 	const PbOperation operation = command.operation();
 	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
 
-	ostringstream s;
-	s << (dryRun ? "Validating" : "Executing");
-	s << ": operation=" << PbOperation_Name(operation);
-
-	if (!params.empty()) {
-		s << ", command params=";
-		bool isFirst = true;
-		for (const auto& [key, value]: params) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			isFirst = false;
-			string v = key != "token" ? value : "???";
-			s << "'" << key << "=" << v << "'";
-		}
-	}
-
-	s << ", device id=" << id << ", lun=" << lun << ", type=" << PbDeviceType_Name(type);
-
-	if (pb_device.params_size()) {
-		s << ", device params=";
-		bool isFirst = true;
-		for (const auto& [key, value]: pb_device.params()) {
-			if (!isFirst) {
-				s << ":";
-			}
-			isFirst = false;
-			s << "'" << key << "=" << value << "'";
-		}
-	}
-
-	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
-		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
-	LOGINFO("%s", s.str().c_str())
+	PrintCommand(command, pb_device, dryRun);
 
 	// Check the Controller Number
 	if (id < 0) {
@@ -653,6 +619,47 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, Device& de
 	return true;
 }
 
+void RascsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefinition& pb_device, bool dryRun) const
+{
+	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
+
+	ostringstream s;
+	s << (dryRun ? "Validating" : "Executing");
+	s << ": operation=" << PbOperation_Name(command.operation());
+
+	if (!params.empty()) {
+		s << ", command params=";
+		bool isFirst = true;
+		for (const auto& [key, value]: params) {
+			if (!isFirst) {
+				s << ", ";
+			}
+			isFirst = false;
+			string v = key != "token" ? value : "???";
+			s << "'" << key << "=" << v << "'";
+		}
+	}
+
+	s << ", device id=" << pb_device.id() << ", lun=" << pb_device.unit() << ", type="
+			<< PbDeviceType_Name(pb_device.type());
+
+	if (pb_device.params_size()) {
+		s << ", device params=";
+		bool isFirst = true;
+		for (const auto& [key, value]: pb_device.params()) {
+			if (!isFirst) {
+				s << ":";
+			}
+			isFirst = false;
+			s << "'" << key << "=" << value << "'";
+		}
+	}
+
+	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
+		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
+	LOGINFO("%s", s.str().c_str())
+}
+
 string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 {
 	// Mapping of available LUNs (bit vector) to devices
@@ -677,3 +684,4 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 
 	return "";
 }
+

@@ -52,6 +52,7 @@ public:
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
 	bool ValidateImageFile(const CommandContext&, Device&, const string&, string&) const;
+	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
 
 	string ValidateLunSetup(const PbCommand&) const;
 };
