@@ -71,8 +71,10 @@ TEST(DeviceTest, Properties)
 	EXPECT_TRUE(device.IsLocked());
 
 	EXPECT_FALSE(device.SupportsParams());
+	EXPECT_TRUE(device.SupportsFile());
 	device.SupportsParams(true);
 	EXPECT_TRUE(device.SupportsParams());
+	EXPECT_FALSE(device.SupportsFile());
 
 	EXPECT_EQ(LUN, device.GetLun());
 }
