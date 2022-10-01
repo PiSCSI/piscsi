@@ -31,7 +31,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(int lun, const ControllerManager& manager)
+HostServices::HostServices(int lun, ControllerManager& manager)
 	: ModePageDevice("SCHS", lun), controller_manager(manager)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
@@ -60,32 +60,9 @@ void HostServices::StartStopUnit()
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
 
-	if (!start) {
-		// Flush any caches
-		for (const auto& device : controller_manager.GetAllDevices()) {
-			device->FlushCache();
-		}
-
-		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_PI);
-		}
-		else {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_RASCSI);
-		}
-
-		EnterStatusPhase();
-		return;
+	if (!controller_manager.ShutDown(controller, start, load)) {
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	else {
-		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::RESTART_PI);
-
-			EnterStatusPhase();
-			return;
-		}
-	}
-
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
