@@ -80,35 +80,3 @@ shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun
 
 	return nullptr;
 }
-
-bool ControllerManager::ShutDown(AbstractController *controller, bool start, bool load)
-{
-	if (!start) {
-		// Flush any caches
-		for (const auto& device : GetAllDevices()) {
-			device->FlushCache();
-		}
-
-		if (load) {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
-		}
-		else {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
-		}
-
-		controller->Status();
-
-		return true;
-	}
-	else {
-		if (load) {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
-
-			controller->Status();
-
-			return true;
-		}
-	}
-
-	return false;
-}

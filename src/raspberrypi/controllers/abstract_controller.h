@@ -53,7 +53,7 @@ public:
 	};
 
 	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
-	~AbstractController() override = default;
+	virtual ~AbstractController() = default;
 
 	virtual BUS::phase_t Process(int) = 0;
 

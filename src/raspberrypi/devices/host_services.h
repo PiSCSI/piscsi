@@ -22,7 +22,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	HostServices(int, ControllerManager&);
+	HostServices(int, const ControllerManager&);
 	~HostServices() override = default;
 
 	bool Dispatch(scsi_command) override;
@@ -56,7 +56,7 @@ private:
 
 	Dispatcher<HostServices> dispatcher;
 
-	ControllerManager& controller_manager;
+	const ControllerManager& controller_manager;
 
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;

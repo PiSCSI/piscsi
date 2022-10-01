@@ -120,21 +120,21 @@ void ScsiController::BusFree()
 		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down.
-		// This code belongs here because it has to be executed in the bus free phase.
+		// TODO Try to find a better place for this code without breaking encapsulation
 		switch(shutdown_mode) {
-		case rascsi_shutdown_mode::STOP_RASCSI:
+		case AbstractController::rascsi_shutdown_mode::STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested")
 			exit(0);
 			break;
 
-		case rascsi_shutdown_mode::STOP_PI:
+		case AbstractController::rascsi_shutdown_mode::STOP_PI:
 			LOGINFO("Raspberry Pi shutdown requested")
 			if (system("init 0") == -1) {
 				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno))
 			}
 			break;
 
-		case rascsi_shutdown_mode::RESTART_PI:
+		case AbstractController::rascsi_shutdown_mode::RESTART_PI:
 			LOGINFO("Raspberry Pi restart requested")
 			if (system("init 6") == -1) {
 				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno))

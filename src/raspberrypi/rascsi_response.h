@@ -25,7 +25,7 @@ class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory& device_factory, ControllerManager& controller_manager, int max_luns)
+	RascsiResponse(DeviceFactory& device_factory, const ControllerManager& controller_manager, int max_luns)
 		: device_factory(device_factory), controller_manager(controller_manager), max_luns(max_luns) {}
 	~RascsiResponse() = default;
 
@@ -47,7 +47,7 @@ private:
 
 	DeviceFactory& device_factory;
 
-	ControllerManager& controller_manager;
+	const ControllerManager& controller_manager;
 
 	int max_luns;
 

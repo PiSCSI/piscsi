@@ -43,5 +43,4 @@ public:
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
-	bool ShutDown(AbstractController *, bool, bool);
 };
