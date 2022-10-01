@@ -150,8 +150,12 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCBR:
+<<<<<<< HEAD
 		device = make_unique<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
+=======
+		device = make_unique<SCSIBR>();
+>>>>>>> develop
 		device->SetProduct("RASCSI BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
