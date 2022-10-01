@@ -344,7 +344,7 @@
 </details>
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
-        <td>{{ _("Peripheral") }}</td>
+        <td>{{ _("Device") }}</td>
         <td>{{ _("Code") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
@@ -382,21 +382,21 @@
                 {{ _("None") }}
                 </option>
                 {% if type == "SCCD" %}
-                {% for drive in drive_properties["cd_conf"] %}
+                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCRM" %}
-                {% for drive in drive_properties["rm_conf"] %}
+                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCMO" %}
-                {% for drive in drive_properties["mo_conf"] %}
+                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
