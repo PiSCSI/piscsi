@@ -20,7 +20,7 @@ class io_exception : public std::exception
 public:
 
 	explicit io_exception(const string& msg) : msg(msg) {}
-	virtual ~io_exception() override = default;
+	~io_exception() override = default;
 
 	const string& get_msg() const { return msg; }
 };
