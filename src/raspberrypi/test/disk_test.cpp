@@ -17,7 +17,7 @@ TEST(DiskTest, Dispatch)
 {
 	MockAbstractController controller(0);
 	const unordered_set<uint32_t> sector_sizes;
-	auto disk = new MockSCSICD(0, sector_sizes);
+	auto disk = make_shared<MockSCSICD>(0, sector_sizes);
 
 	controller.AddDevice(disk);
 
@@ -30,7 +30,7 @@ TEST(DiskTest, Dispatch)
 TEST(DiskTest, Rezero)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -47,7 +47,7 @@ TEST(DiskTest, Rezero)
 TEST(DiskTest, FormatUnit)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -69,7 +69,7 @@ TEST(DiskTest, FormatUnit)
 TEST(DiskTest, ReassignBlocks)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -86,7 +86,7 @@ TEST(DiskTest, ReassignBlocks)
 TEST(DiskTest, Seek)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -122,7 +122,7 @@ TEST(DiskTest, Seek)
 TEST(DiskTest, ReadCapacity)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -186,7 +186,7 @@ TEST(DiskTest, ReadCapacity)
 TEST(DiskTest, ReadWriteLong)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -242,7 +242,7 @@ TEST(DiskTest, ReadWriteLong)
 TEST(DiskTest, ReserveRelease)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -260,7 +260,7 @@ TEST(DiskTest, ReserveRelease)
 TEST(DiskTest, SendDiagnostic)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -287,7 +287,7 @@ TEST(DiskTest, SendDiagnostic)
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -313,7 +313,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 TEST(DiskTest, SynchronizeCache)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 
@@ -335,7 +335,7 @@ TEST(DiskTest, SynchronizeCache)
 TEST(DiskTest, ReadDefectData)
 {
 	MockAbstractController controller(0);
-	auto disk = new MockSCSIHD_NEC(0);
+	auto disk = make_shared<MockSCSIHD_NEC>(0);
 
 	controller.AddDevice(disk);
 

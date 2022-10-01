@@ -84,7 +84,7 @@ public:
 
 	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
 	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
-	bool AddDevice(PrimaryDevice *);
+	bool AddDevice(shared_ptr<PrimaryDevice>);
 	bool DeleteDevice(const PrimaryDevice&);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;

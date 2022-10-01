@@ -17,7 +17,7 @@ using namespace scsi_defs;
 TEST(AbstractControllerTest, Reset)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
 
@@ -116,9 +116,9 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int LUN = 4;
 
 	MockAbstractController controller(ID);
-	auto device1 = new MockPrimaryDevice(LUN);
-	auto device2 = new MockPrimaryDevice(32);
-	auto device3 = new MockPrimaryDevice(-1);
+	auto device1 = make_shared<MockPrimaryDevice>(LUN);
+	auto device2 = make_shared<MockPrimaryDevice>(32);
+	auto device3 = make_shared<MockPrimaryDevice>(-1);
 
 	EXPECT_EQ(0, controller.GetLunCount());
 	EXPECT_EQ(ID, controller.GetTargetId());

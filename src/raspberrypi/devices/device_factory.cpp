@@ -91,7 +91,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
+shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
 		int lun, const string& filename)
 {
 	// If no type was specified try to derive the device type from the filename
@@ -102,13 +102,13 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		}
 	}
 
-	unique_ptr<PrimaryDevice> device;
+	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_unique<SCSIHD_NEC>(lun);
+			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_unique<SCSIHD>(lun, sector_sizes[SCHD], false,
+			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
 					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
@@ -123,7 +123,7 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	}
 
 	case SCRM:
-		device = make_unique<SCSIHD>(lun, sector_sizes[SCRM], true);
+		device = make_shared<SCSIHD>(lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -132,7 +132,7 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCMO:
-		device = make_unique<SCSIMO>(lun, sector_sizes[SCMO]);
+		device = make_shared<SCSIMO>(lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -141,7 +141,7 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCCD:
-		device = make_unique<SCSICD>(lun, sector_sizes[SCCD]);
+		device = make_shared<SCSICD>(lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -150,7 +150,7 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCBR:
-		device = make_unique<SCSIBR>(lun);
+		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
 		device->SupportsParams(true);
@@ -158,7 +158,7 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCDP:
-		device = make_unique<SCSIDaynaPort>(lun);
+		device = make_shared<SCSIDaynaPort>(lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -168,14 +168,14 @@ unique_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(lun, controller_manager);
+		device = make_shared<HostServices>(lun, controller_manager);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = make_unique<SCSIPrinter>(lun);
+		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);

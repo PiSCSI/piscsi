@@ -18,7 +18,7 @@ using namespace scsi_defs;
 TEST(PrimaryDeviceTest, PhaseChange)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
 
@@ -35,7 +35,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
 
@@ -72,7 +72,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 TEST(PrimaryDeviceTest, Inquiry)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	device->SetController(&controller);
 
@@ -133,7 +133,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 TEST(PrimaryDeviceTest, RequestSense)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
 
@@ -156,8 +156,8 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN2 = 4;
 
 	MockAbstractController controller(0);
-	auto device1 = new MockPrimaryDevice(LUN1);
-	auto device2 = new MockPrimaryDevice(LUN2);
+	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
+	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
 
 	controller.AddDevice(device1);
 	EXPECT_TRUE(controller.HasDeviceForLun(LUN1));
@@ -199,7 +199,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 TEST(PrimaryDeviceTest, UnknownCommand)
 {
 	MockAbstractController controller(0);
-	auto device = new MockPrimaryDevice(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
 
@@ -210,30 +210,30 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
 	vector<BYTE> data;
-	auto device = new MockPrimaryDevice(0);
+	MockPrimaryDevice device(0);
 
-	EXPECT_FALSE(device->WriteByteSequence(data, 0)) << "Primary device must not support writing byte sequences";
+	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device must not support writing byte sequences";
 }
 
 TEST(PrimaryDeviceTest, GetSendDelay)
 {
-	auto device = new MockPrimaryDevice(0);
+	MockPrimaryDevice device(0);
 
-	EXPECT_EQ(-1, device->GetSendDelay());
+	EXPECT_EQ(-1, device.GetSendDelay());
 }
 
 TEST(PrimaryDeviceTest, Init)
 {
 	unordered_map<string, string> params;
-	auto device = new MockPrimaryDevice(0);
+	MockPrimaryDevice device(0);
 
-	EXPECT_TRUE(device->Init(params)) << "Initialization of primary device must not fail";
+	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";
 }
 
 TEST(PrimaryDeviceTest, FlushCache)
 {
-	auto device = new MockPrimaryDevice(0);
+	MockPrimaryDevice device(0);
 
 	// Method must be present
-	device->FlushCache();
+	device.FlushCache();
 }

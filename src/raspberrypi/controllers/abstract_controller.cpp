@@ -93,13 +93,13 @@ void AbstractController::ProcessPhase()
 	}
 }
 
-bool AbstractController::AddDevice(PrimaryDevice *device)
+bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 {
 	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || HasDeviceForLun(device->GetLun())) {
 		return false;
 	}
 
-	luns[device->GetLun()] = shared_ptr<PrimaryDevice>(device);
+	luns[device->GetLun()] = device;
 	device->SetController(this);
 
 	return true;
