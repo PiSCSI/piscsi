@@ -38,23 +38,41 @@ def test_attach_image(http_client, create_test_image, detach_devices):
 @pytest.mark.parametrize(
     "device_name,device_config",
     [
-        ("Removable Disk Drive", {
-            "type": "SCRM", "drive_props": {
-                "vendor": "VENDOR", "product": "PRODUCT", "revision": "0123", "block_size": "512"
-                }
-            }
+        (
+            "Removable Disk Drive",
+            {
+                "type": "SCRM",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
         ),
-        ("Magneto-Optical Drive", {
-            "type": "SCMO", "drive_props": {
-                "vendor": "VENDOR", "product": "PRODUCT", "revision": "0123", "block_size": "512"
-                }
-            }
+        (
+            "Magneto-Optical Drive",
+            {
+                "type": "SCMO",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
         ),
-        ("CD/DVD Drive", {
-            "type": "SCCD", "drive_props": {
-                "vendor": "VENDOR", "product": "PRODUCT", "revision": "0123", "block_size": "512"
-                }
-            }
+        (
+            "CD/DVD Drive",
+            {
+                "type": "SCCD",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
         ),
         ("Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
         ("DaynaPORT SCSI/Link", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),

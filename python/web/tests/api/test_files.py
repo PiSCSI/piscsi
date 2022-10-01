@@ -201,10 +201,7 @@ def test_upload_file(http_client, delete_file):
 def test_download_file(http_client, create_test_image):
     file_name = create_test_image()
 
-    response = http_client.post(
-        "/files/download",
-        data={"file": f"{IMAGES_DIR}/{file_name}"}
-    )
+    response = http_client.post("/files/download", data={"file": f"{IMAGES_DIR}/{file_name}"})
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/octet-stream"
