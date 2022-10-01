@@ -11,7 +11,6 @@
 
 #include <gmock/gmock.h>
 
-#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/primary_device.h"
 #include "devices/scsihd.h"

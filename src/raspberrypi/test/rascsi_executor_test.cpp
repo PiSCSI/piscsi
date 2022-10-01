@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "testing.h"
+#include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "localizer.h"
 #include "command_util.h"

@@ -10,6 +10,7 @@
 #include "testing.h"
 #include "rascsi_exceptions.h"
 #include "rascsi_version.h"
+#include "controllers/controller_manager.h"
 #include "devices/device.h"
 #include "devices/device_factory.h"
 #include <unordered_map>

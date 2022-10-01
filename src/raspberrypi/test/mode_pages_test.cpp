@@ -10,6 +10,7 @@
 #include "testing.h"
 #include "spdlog/spdlog.h"
 #include "rascsi_exceptions.h"
+#include "controllers/controller_manager.h"
 #include "devices/scsi_command_util.h"
 #include "devices/scsihd.h"
 #include "devices/scsihd_nec.h"
