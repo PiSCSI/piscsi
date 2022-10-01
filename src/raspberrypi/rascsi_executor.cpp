@@ -35,7 +35,6 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
 	const PbOperation operation = command.operation();
-	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
 
 	PrintCommand(command, pb_device, dryRun);
 
