@@ -20,7 +20,7 @@
 #include <unordered_set>
 #include <map>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 //===========================================================================
 //

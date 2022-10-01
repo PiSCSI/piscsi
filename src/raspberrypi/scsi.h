@@ -15,7 +15,7 @@
 #include <array>
 #include <unordered_map>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 //===========================================================================
 //

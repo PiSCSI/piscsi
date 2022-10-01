@@ -18,7 +18,7 @@
 #include "filepath.h"
 #include <vector>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class DiskTrack
 {

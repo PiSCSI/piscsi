@@ -18,8 +18,8 @@
 #include <string>
 #include "rascsi_interface.pb.h"
 
-using namespace std; //NOSONAR Not relevant for rascsi
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace std;
+using namespace rascsi_interface;
 
 class ControllerManager;
 class PrimaryDevice;

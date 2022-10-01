@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <string>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {

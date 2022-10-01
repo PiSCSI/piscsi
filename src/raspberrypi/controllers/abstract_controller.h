@@ -17,7 +17,7 @@
 #include <vector>
 #include <memory>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class PrimaryDevice;
 

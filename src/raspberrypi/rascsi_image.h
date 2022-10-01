@@ -13,7 +13,7 @@
 #include "command_context.h"
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface;
 
 class RascsiImage
 {

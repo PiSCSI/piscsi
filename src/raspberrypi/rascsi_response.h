@@ -14,8 +14,8 @@
 #include <list>
 #include <string>
 
-using namespace std; //NOSONAR Not relevant for rascsi
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace std;
+using namespace rascsi_interface;
 
 class DeviceFactory;
 class ControllerManager;

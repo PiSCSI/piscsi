@@ -19,7 +19,7 @@
 #include <string>
 #include <array>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class CTapDriver
 {

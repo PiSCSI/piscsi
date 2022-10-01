@@ -15,7 +15,7 @@
 #include <string>
 #include "filepath.h"
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 using id_set = pair<int, int>;
 
