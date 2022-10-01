@@ -165,7 +165,7 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
-    if not ractl_cmd.is_token_auth()["status"] and not APP.config["TOKEN"]:
+    if not ractl_cmd.is_token_auth()["status"] and not APP.config["TOKEN_RASCSI"]:
         abort(
             403,
             _(
@@ -219,7 +219,7 @@ def index():
         )
 
     try:
-        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
+        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES_RASCSI"])
     except:
         drive_properties = {
             "hd_conf": [],
@@ -281,7 +281,7 @@ def drive_list():
     Sets up the data structures and kicks off the rendering of the drive list page
     """
     try:
-        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
+        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES_RASCSI"])
     except:
         drive_properties = {
             "hd_conf": [],
@@ -544,7 +544,7 @@ def attach_device():
             device_type = request.form.get(item)
         elif item == "drive_name":
             drive_name = request.form.get(item)
-            for drive in APP.config["DRIVE_PROPERTIES"]:
+            for drive in APP.config["DRIVE_PROPERTIES_RASCSI"]:
                 if drive["name"] == drive_name:
                     drive_props = drive
                     break
@@ -1098,11 +1098,11 @@ if __name__ == "__main__":
         )
 
     arguments = parser.parse_args()
-    APP.config["TOKEN"] = arguments.password
+    APP.config["TOKEN_RASCSI"] = arguments.password
 
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
-    ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
-    file_cmd = FileCmds(sock_cmd=sock_cmd, ractl=ractl_cmd, token=APP.config["TOKEN"])
+    ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN_RASCSI"])
+    file_cmd = FileCmds(sock_cmd=sock_cmd, ractl=ractl_cmd, token=APP.config["TOKEN_RASCSI"])
     sys_cmd = SysCmds()
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
@@ -1110,7 +1110,7 @@ if __name__ == "__main__":
     if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
         process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
         if process["status"]:
-            APP.config["DRIVE_PROPERTIES"] = process["conf"]
+            APP.config["DRIVE_PROPERTIES_RASCSI"] = process["conf"]
         else:
             logging.error(process["msg"])
     else:
