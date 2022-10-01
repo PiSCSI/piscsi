@@ -185,17 +185,8 @@ class MockModePageDevice final : public ModePageDevice
 	}
 };
 
-class MockSCSIHD final : public SCSIHD
+class MockDisk final : public Disk
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
-
-	MockSCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes) : SCSIHD(lun, sector_sizes, false) {}
-	~MockSCSIHD() override = default;
-};
-
-class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
-{
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
 	FRIEND_TEST(DiskTest, ReassignBlocks);
@@ -208,8 +199,29 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
-	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(DiskTest, BlockCount);
+
+public:
+
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(void, FlushCache, (), (override));
+
+	MockDisk() : Disk("test", 0) {}
+	~MockDisk() override = default;
+};
+
+class MockSCSIHD final : public SCSIHD
+{
+	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
+
+	MockSCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes) : SCSIHD(lun, sector_sizes, false) {}
+	~MockSCSIHD() override = default;
+};
+
+class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
+{
+	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
+	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 
 	MOCK_METHOD(void, FlushCache, (), (override));
 

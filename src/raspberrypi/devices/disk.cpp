@@ -888,7 +888,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 			break;
 
 		default:
-			assert(false);
+			throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
 			break;
 	}
 }
