@@ -74,7 +74,7 @@ void PrimaryDevice::Inquiry()
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
-		controller->GetBuffer()[0] |= 0x7f;
+		controller->GetBuffer().data()[0] |= 0x7f;
 	}
 
 	EnterDataInPhase();
