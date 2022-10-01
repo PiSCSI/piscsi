@@ -397,8 +397,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		device->SetProtected(pb_device.protected_());
 	}
 
-	auto disk = dynamic_pointer_cast<Disk>(device);
-	if (disk != nullptr) {
+	if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
 		disk->MediumChanged();
 	}
 
