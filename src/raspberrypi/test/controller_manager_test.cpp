@@ -42,3 +42,21 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 }
+
+TEST(ControllerManagerTest, ResetAllControllers)
+{
+	const int ID = 2;
+
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	DeviceFactory device_factory;
+
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	controller_manager.AttachToScsiController(ID, device);
+	auto controller = controller_manager.FindController(ID);
+	EXPECT_NE(nullptr, controller);
+
+	controller->SetStatus(status::BUSY);
+	controller_manager.ResetAllControllers();
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
+}
