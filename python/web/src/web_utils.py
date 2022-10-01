@@ -81,13 +81,13 @@ def get_device_name(device_type):
     Returns the human-readable name for the device type.
     """
     if device_type == "SCHD":
-        return _("Hard Disk")
+        return _("Hard Disk Drive")
     if device_type == "SCRM":
-        return _("Removable Disk")
+        return _("Removable Drive")
     if device_type == "SCMO":
-        return _("Magneto-Optical Disk")
+        return _("Magneto-Optical Drive")
     if device_type == "SCCD":
-        return _("CD / DVD")
+        return _("CD/DVD Drive")
     if device_type == "SCBR":
         return _("Host Bridge")
     if device_type == "SCDP":
@@ -140,6 +140,7 @@ def format_drive_properties(drive_properties):
     hd_conf = []
     cd_conf = []
     rm_conf = []
+    mo_conf = []
 
     for device in drive_properties:
         if device["device_type"] == "SCHD":
@@ -153,8 +154,17 @@ def format_drive_properties(drive_properties):
             device["secure_name"] = secure_filename(device["name"])
             device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
+        elif device["device_type"] == "SCMO":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            mo_conf.append(device)
 
-    return {"hd_conf": hd_conf, "cd_conf": cd_conf, "rm_conf": rm_conf}
+    return {
+        "hd_conf": hd_conf,
+        "cd_conf": cd_conf,
+        "rm_conf": rm_conf,
+        "mo_conf": mo_conf,
+        }
 
 def auth_active(group):
     """

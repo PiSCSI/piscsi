@@ -326,6 +326,8 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
+        <li>{{ _("When attaching an empty drive for removable media, you can choose the bespoke device that is should masquerade as.") }}
+        </li>
         <li>{{ _("<a href=\"%(url)s\">DaynaPORT SCSI/Link</a> is an Ethernet adapter device.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link") }}
         </li>
         <ul>
@@ -347,7 +349,7 @@
         <td>{{ _("Peripheral") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
-    {% for type in PERIPHERAL_DEVICE_TYPES %}
+    {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
@@ -371,6 +373,35 @@
                 <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
+		{% if type in REMOVABLE_DEVICE_TYPES %}
+		<label for="drive_name">{{ _("Masquerade as:") }}</label>
+		<select name="drive_name">
+			<option value="">
+			{{ _("None") }}
+			</option>
+			{% if type == "SCCD" %}
+			{% for drive in drive_properties["cd_conf"] %}
+			<option value="{{ drive.name }}">
+			{{ drive.name }}
+			</option>
+			{% endfor %}
+			{% endif %}
+			{% if type == "SCRM" %}
+			{% for drive in drive_properties["rm_conf"] %}
+			<option value="{{ drive.name }}">
+			{{ drive.name }}
+			</option>
+			{% endfor %}
+			{% endif %}
+			{% if type == "SCMO" %}
+			{% for drive in drive_properties["mo_conf"] %}
+			<option value="{{ drive.name }}">
+			{{ drive.name }}
+			</option>
+			{% endfor %}
+			{% endif %}
+		</select>
+                {% endif %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}

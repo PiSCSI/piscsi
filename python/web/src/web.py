@@ -524,6 +524,7 @@ def attach_device():
     Attaches a peripheral device that doesn't take an image file as argument
     """
     params = {}
+    drive_props = None
     for item in request.form:
         if item == "scsi_id":
             scsi_id = request.form.get(item)
@@ -531,6 +532,12 @@ def attach_device():
             unit = request.form.get(item)
         elif item == "type":
             device_type = request.form.get(item)
+        elif item == "drive_name":
+            drive_name = request.form.get(item)
+            for drive in APP.config["DRIVE_PROPERTIES"]:
+                if drive["name"] == drive_name:
+                    drive_props = drive
+                    break
         else:
             param = request.form.get(item)
             if param:
@@ -553,6 +560,12 @@ def attach_device():
             "device_type": device_type,
             "params": params,
             }
+    if drive_props:
+        kwargs["vendor"] = drive_props["vendor"]
+        kwargs["product"] = drive_props["product"]
+        kwargs["revision"] = drive_props["revision"]
+        kwargs["block_size"] = drive_props["block_size"]
+
     process = ractl_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
