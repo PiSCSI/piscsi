@@ -51,6 +51,7 @@ from web_utils import (
     map_device_types_and_names,
     get_device_name,
     map_image_file_descriptions,
+    format_drive_properties,
     auth_active,
     is_bridge_configured,
     upload_with_dropzonejs,
@@ -268,39 +269,10 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    # Reads the canonical drive properties into a dict
-    # The file resides in the current dir of the web ui process
-    drive_properties = Path(DRIVE_PROPERTIES_FILE)
-    if not drive_properties.is_file():
-        return response(
-            error=True,
-            message=_("Could not read drive properties from %(properties_file)s",
-                      properties_file=drive_properties),
-            )
-
-    process = file_cmd.read_drive_properties(str(drive_properties))
-    process = ReturnCodeMapper.add_msg(process)
-
-    if not process["status"]:
-        return response(error=True, message=process["msg"])
-
-    conf = process["conf"]
-    hd_conf = []
-    cd_conf = []
-    rm_conf = []
-
-    for device in conf:
-        if device["device_type"] == "SCHD":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
-            hd_conf.append(device)
-        elif device["device_type"] == "SCCD":
-            device["size_mb"] = "N/A"
-            cd_conf.append(device)
-        elif device["device_type"] == "SCRM":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
-            rm_conf.append(device)
+    try:
+        drive_properties = format_drive_properties(APP.config["DRIVE_PROPERTIES"])
+    except:
+        drive_properties = {"hd_conf": [], "cd_conf": [], "rm_conf": []}
 
     server_info = ractl_cmd.get_server_info()
 
@@ -308,9 +280,9 @@ def drive_list():
         template="drives.html",
         files=file_cmd.list_images()["files"],
         base_dir=server_info["image_dir"],
-        hd_conf=hd_conf,
-        cd_conf=cd_conf,
-        rm_conf=rm_conf,
+        hd_conf=drive_properties["hd_conf"],
+        cd_conf=drive_properties["cd_conf"],
+        rm_conf=drive_properties["rm_conf"],
         version=server_info["version"],
         cdrom_file_suffix=tuple(server_info["sccd"]),
         )
@@ -1108,6 +1080,14 @@ if __name__ == "__main__":
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)
+    if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
+        process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
+        if process["status"]:
+            APP.config["DRIVE_PROPERTIES"] = process["conf"]
+        else:
+            logging.error(process["msg"])
+    else:
+        logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.basicConfig(stream=sys.stdout,
                         format="%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(message)s",

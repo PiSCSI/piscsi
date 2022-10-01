@@ -132,6 +132,30 @@ def get_image_description(file_suffix):
     return file_suffix
 
 
+def format_drive_properties(drive_properties):
+    """
+    Takes a (dict) with structured drive properties data
+    Returns a (dict) with the formatted HD, CD, and RM properties
+    """
+    hd_conf = []
+    cd_conf = []
+    rm_conf = []
+
+    for device in drive_properties:
+        if device["device_type"] == "SCHD":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            hd_conf.append(device)
+        elif device["device_type"] == "SCCD":
+            device["size_mb"] = "N/A"
+            cd_conf.append(device)
+        elif device["device_type"] == "SCRM":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            rm_conf.append(device)
+
+    return {"hd_conf": hd_conf, "cd_conf": cd_conf, "rm_conf": rm_conf}
+
 def auth_active(group):
     """
     Inspects if the group defined in (str) group exists on the system.
