@@ -188,6 +188,29 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_FALSE(error.empty());
 }
 
+TEST(RascsiExecutorTest, ValidateImageFile)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	MockCommandContext context;
+
+	string full_path;
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
+	EXPECT_TRUE(full_path.empty());
+
+	device = device_factory.CreateDevice(controller_manager, SCHD, 0, "test");
+	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
+	EXPECT_TRUE(full_path.empty());
+
+	EXPECT_FALSE(executor.ValidateImageFile(context, device, "/non_existing_file", full_path));
+	EXPECT_TRUE(full_path.empty());
+}
+
 TEST(RascsiExecutorTest, ValidateLunSetup)
 {
 	MockBus bus;
