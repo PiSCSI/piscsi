@@ -7,7 +7,7 @@ GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
 ##                   arm-linux-gnueabihf-
-CROSS_COMPILE = arm-linux-gnueabihf-
+CROSS_COMPILE = 
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
