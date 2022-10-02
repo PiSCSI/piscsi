@@ -218,3 +218,24 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	error = executor.ValidateLunSetup(command);
 	EXPECT_TRUE(error.empty());
 }
+
+TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
+{
+	const int ID = 1;
+	const int LUN = 2;
+
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	ProtobufSerializer serializer;
+	Localizer localizer;
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+
+	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
+	controller_manager.AttachToScsiController(ID, device);
+	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN));
+}
