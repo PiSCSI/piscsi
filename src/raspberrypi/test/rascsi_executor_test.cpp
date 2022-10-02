@@ -216,7 +216,8 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 {
 	const int ID = 1;
-	const int LUN = 2;
+	const int LUN1 = 2;
+	const int LUN2 = 3;
 
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -226,10 +227,11 @@ TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
-	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN));
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
+	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
 	controller_manager.AttachToScsiController(ID, device);
-	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN));
+	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
+	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
 TEST(RascsiExecutorTest, SetSectorSize)
