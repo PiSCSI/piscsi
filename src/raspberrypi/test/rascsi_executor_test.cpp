@@ -286,9 +286,12 @@ TEST(RascsiExecutorTest, SetSectorSize)
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
-	unordered_set<uint32_t> sizes = { 512 };
+	unordered_set<uint32_t> sizes;
 	auto disk = make_shared<MockSCSIHD>(0, sizes, false);
+	EXPECT_FALSE(executor.SetSectorSize(context, "test", disk, 512));
 
+	sizes.insert(512);
+	disk = make_shared<MockSCSIHD>(0, sizes, false);
 	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 0));
 	EXPECT_FALSE(executor.SetSectorSize(context, "test", disk, 1));
 	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 512));
