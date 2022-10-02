@@ -6,7 +6,7 @@ FROM "${OS_ARCH}/${OS_DISTRO}:${OS_VERSION}"
 EXPOSE 80 443
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends sudo systemd rsyslog procps
+RUN apt-get update && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db
 
 RUN groupadd pi
 RUN useradd --create-home --shell /bin/bash -g pi pi
