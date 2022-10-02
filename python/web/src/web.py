@@ -601,6 +601,9 @@ def attach_image():
     unit = request.form.get("unit")
     device_type = request.form.get("type")
 
+    if not file_name:
+        return response(error=True, message=_("No image file to insert"))
+
     kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
     if device_type:
