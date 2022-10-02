@@ -82,9 +82,13 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
+            {% if device.params %}
             {% for key in device.params %}
             <b>{{ key }}:</b>{{ device.params[key] }}
             {% endfor %}
+            {% elif device.file %}
+            {{ device.file }}
+            {% endif %}
             {% endif %}
             </td>
             <td style="text-align:center">

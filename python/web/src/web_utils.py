@@ -51,8 +51,6 @@ def sort_and_format_devices(devices):
     for device in devices:
         occupied_ids.append(device["id"])
         device["device_name"] = get_device_name(device["device_type"])
-        if device["file"]:
-            device["params"]["file"] = device["file"]
         formatted_devices.append(device)
 
     # Add placeholder data for non-occupied IDs
@@ -100,7 +98,7 @@ def get_device_name(device_type):
     if device_type == "SCBR":
         return _("Host Bridge")
     if device_type == "SCDP":
-        return _("DaynaPORT SCSI/Link")
+        return _("Ethernet Adapter")
     if device_type == "SCLP":
         return _("Printer")
     if device_type == "SCHS":
