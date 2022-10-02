@@ -38,35 +38,6 @@ TEST(AbstractControllerTest, SetGetStatus)
 	EXPECT_EQ(status::BUSY, controller.GetStatus());
 }
 
-TEST(AbstractControllerTest, SetPhase)
-{
-	MockAbstractController controller(0);
-
-	controller.SetPhase(BUS::phase_t::selection);
-	EXPECT_TRUE(controller.IsSelection());
-
-	controller.SetPhase(BUS::phase_t::busfree);
-	EXPECT_TRUE(controller.IsBusFree());
-
-	controller.SetPhase(BUS::phase_t::command);
-	EXPECT_TRUE(controller.IsCommand());
-
-	controller.SetPhase(BUS::phase_t::status);
-	EXPECT_TRUE(controller.IsStatus());
-
-	controller.SetPhase(BUS::phase_t::datain);
-	EXPECT_TRUE(controller.IsDataIn());
-
-	controller.SetPhase(BUS::phase_t::dataout);
-	EXPECT_TRUE(controller.IsDataOut());
-
-	controller.SetPhase(BUS::phase_t::msgin);
-	EXPECT_TRUE(controller.IsMsgIn());
-
-	controller.SetPhase(BUS::phase_t::msgout);
-	EXPECT_TRUE(controller.IsMsgOut());
-}
-
 TEST(AbstractControllerTest, ProcessPhase)
 {
 	MockAbstractController controller(0);

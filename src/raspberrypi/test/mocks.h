@@ -61,10 +61,28 @@ public:
 	~MockBus() override = default;
 };
 
+class MockPhaseHandler : PhaseHandler
+{
+	FRIEND_TEST(PhaseHandlerTest, Phases);
+
+public:
+
+	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
+	MOCK_METHOD(void, Status, (), ());
+	MOCK_METHOD(void, DataIn, (), ());
+	MOCK_METHOD(void, DataOut, (), ());
+	MOCK_METHOD(void, BusFree, (), ());
+	MOCK_METHOD(void, Selection, (), ());
+	MOCK_METHOD(void, Command, (), ());
+	MOCK_METHOD(void, MsgIn, (), ());
+	MOCK_METHOD(void, MsgOut, (), ());
+
+	using PhaseHandler::PhaseHandler;
+};
+
 class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
 	FRIEND_TEST(AbstractControllerTest, Reset);
-	FRIEND_TEST(AbstractControllerTest, SetPhase);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
