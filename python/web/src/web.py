@@ -876,17 +876,33 @@ def create_file():
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
+    drive_name = request.form.get("drive_name")
+
     full_file_name = file_name + "." + file_type
-
     process = file_cmd.create_new_image(file_name, file_type, size)
-    if process["status"]:
-        return response(
-            status_code=201,
-            message=_("Image file created: %(file_name)s", file_name=full_file_name),
-            image=full_file_name,
-            )
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
-    return response(error=True, message=process["msg"])
+    # Creating the drive properties file, if one is chosen
+    if drive_name:
+        drive_props = None
+        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
+            if drive["name"] == drive_name:
+                drive_props = drive
+                break
+        properties = {
+            "vendor": drive_props["vendor"],
+            "product": drive_props["product"],
+            "revision": drive_props["revision"],
+            "block_size": drive_props["block_size"],
+            }
+        prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+        process = file_cmd.write_drive_properties(prop_file_name, properties)
+        process = ReturnCodeMapper.add_msg(process)
+        if not process["status"]:
+            return response(error=True, message=process["msg"])
+
+    return response(message=_("Image file created: %(file_name)s", file_name=full_file_name))
 
 
 @APP.route("/files/download", methods=["POST"])
