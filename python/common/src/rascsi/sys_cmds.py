@@ -181,3 +181,18 @@ class SysCmds:
             return process.returncode, process.stdout.decode("utf-8")
 
         return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def get_manpage(app):
+        """
+        Takes (str) app, the name of the application to fetch the man page for.
+        Returns either the man output, or the stderr output.
+        """
+        process = run(
+                ["man", app],
+                capture_output=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")

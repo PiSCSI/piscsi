@@ -487,6 +487,29 @@ def show_diskinfo():
     )
 
 
+@APP.route("/sys/manpage", methods=["GET"])
+def show_manpage():
+    """
+    Displays manpage
+    """
+    app = request.args.get("app", default = "", type = str)
+
+    returncode, manpage = sys_cmd.get_manpage(app)
+    if returncode == 0:
+        server_info = ractl_cmd.get_server_info()
+        return response(
+            template="manpage.html",
+            app=app,
+            manpage=manpage,
+            version=server_info["version"],
+            )
+
+    return response(
+        error=True,
+        message=_("An error occurred when accessing man page: %(error)s", error=logs)
+    )
+
+
 @APP.route("/logs/show", methods=["POST"])
 def show_logs():
     """
