@@ -47,10 +47,18 @@ def sort_and_format_devices(devices):
     For SCSI IDs where no device is attached, inject a (dict) with placeholder text.
     """
     occupied_ids = []
+    formatted_devices = []
     for device in devices:
         occupied_ids.append(device["id"])
-
-    formatted_devices = devices
+        device["device_name"] = get_device_name(device["device_type"])
+        if device["params"]:
+            formatted_params = ""
+            for item in device["params"]:
+                formatted_params += item + ":" + device["params"][item] + " "
+            device["file"] = formatted_params
+        else:
+            device["file"] = "file:" + device["file"]
+        formatted_devices.append(device)
 
     # Add padding devices and sort the list
     for i in range(8):
