@@ -259,6 +259,6 @@ class MockCommandContext : public CommandContext
 
 public:
 
-	MockCommandContext() : CommandContext(serializer, localizer, STDOUT_FILENO, "") {};
+	MockCommandContext() : CommandContext(serializer, localizer, STDOUT_FILENO, "") {}
 	~MockCommandContext() = default;
 };
