@@ -11,6 +11,8 @@ CROSS_COMPILE = arm-linux-gnueabihf-
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
+AR = $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
 
 ##   DEBUG=1  : A Debug build includes the debugger symbols
 ##              and disables compiler optimization. Typically,
@@ -293,8 +295,8 @@ $(MAN_PAGE_DIR)/:
 	echo "-- Creating directory $@"
 	mkdir -p $@
 
-$(LIB_BPI_WIRINGPI) :
-	make -j1 -C ../BPI-WiringPi2/wiringPi/ static
+$(LIB_BPI_WIRINGPI) : | $(OBJDIR)
+	make -j1 -C ../BPI-WiringPi2/wiringPi/ static CC=$(CC) AR=$(AR) RANLIB=$(RANLIB)
 	cp ../BPI-WiringPi2/wiringPi/libwiringPi.a $@
 
 
