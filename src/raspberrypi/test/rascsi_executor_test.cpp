@@ -48,37 +48,89 @@ TEST(RascsiExecutorTest, Attach)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
-	PbDeviceDefinition device_definition;
+	PbDeviceDefinition definition;
 	MockCommandContext context;
 
-	device_definition.set_unit(32);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	definition.set_unit(32);
+	EXPECT_FALSE(executor.Attach(context, definition, false));
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
 	controller_manager.AttachToScsiController(ID, device);
-	device_definition.set_id(ID);
-	device_definition.set_unit(LUN);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	definition.set_id(ID);
+	definition.set_unit(LUN);
+	EXPECT_FALSE(executor.Attach(context, definition, false));
 	controller_manager.DeleteAllControllers();
 
-	device_definition.set_type(PbDeviceType::SCHS);
-	EXPECT_TRUE(executor.Attach(context, device_definition, false));
+	definition.set_type(PbDeviceType::SCHS);
+	EXPECT_TRUE(executor.Attach(context, definition, false));
 	controller_manager.DeleteAllControllers();
 
-	device_definition.set_type(PbDeviceType::SCHD);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	definition.set_type(PbDeviceType::SCHD);
+	EXPECT_FALSE(executor.Attach(context, definition, false));
 
-	device_definition.set_block_size(1);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false)) << "Invalid sector size";
+	definition.set_block_size(1);
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Invalid sector size";
 
-	device_definition.set_block_size(1024);
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	definition.set_block_size(1024);
+	EXPECT_FALSE(executor.Attach(context, definition, false));
 
-	AddParam(device_definition, "file", "/non_existing_file");
-	EXPECT_FALSE(executor.Attach(context, device_definition, false));
+	AddParam(definition, "file", "/non_existing_file");
+	EXPECT_FALSE(executor.Attach(context, definition, false));
 
-	AddParam(device_definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Attach(context, device_definition, false)) << "File has 0 bytes";
+	AddParam(definition, "file", "/dev/zero");
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "File has 0 bytes";
+
+	// Further testing is not possible without a filesystem
+}
+
+TEST(RascsiExecutorTest, Insert)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbDeviceDefinition definition;
+	MockCommandContext context;
+
+	auto device = device_factory.CreateDevice(controller_manager, SCRM, 0, "test");
+
+	device->SetRemoved(false);
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Medium is not removed";
+
+	device->SetRemoved(true);
+	definition.set_vendor("v");
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Product data must not be set";
+	definition.set_vendor("");
+
+	definition.set_product("p");
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Product data must not be set";
+	definition.set_product("");
+
+	definition.set_revision("r");
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Product data must not be set";
+	definition.set_revision("");
+
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Filename is missing";
+
+	AddParam(definition, "file", "filename");
+	EXPECT_TRUE(executor.Insert(context, definition, device, true)) << "Dry-run must not fail";
+	EXPECT_FALSE(executor.Insert(context, definition, device, false));
+
+	definition.set_block_size(1);
+	EXPECT_FALSE(executor.Insert(context, definition, device, false));
+
+	definition.set_block_size(0);
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Image file validation has to fail";
+
+	AddParam(definition, "file", "/non_existing_file");
+	EXPECT_FALSE(executor.Insert(context, definition, device, false));
+
+	AddParam(definition, "file", "/dev/zero");
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "File has 0 bytes";
+
+	// Further testing is not possible without a filesystem
 }
 
 TEST(RascsiExecutorTest, Detach)
