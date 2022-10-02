@@ -50,7 +50,7 @@ protected:
 	void EnterDataOutPhase() { controller->DataOut(); }
 
 	AbstractController *controller = nullptr;
-	shared_ptr<AbstractController::ctrl_t> ctrl = nullptr;
+	AbstractController::ctrl_t *ctrl = nullptr;
 
 private:
 

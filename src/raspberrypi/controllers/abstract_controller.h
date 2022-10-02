@@ -107,5 +107,5 @@ private:
 
 	ctrl_t ctrl = {};
 
-	shared_ptr<ctrl_t> GetCtrl() { return make_shared<ctrl_t>(ctrl); }
+	ctrl_t* GetCtrl() { return &ctrl; }
 };
