@@ -319,4 +319,25 @@ TEST(RascsiExecutorTest, SetProductData)
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+
+	definition.set_vendor("123456789");
+	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	definition.set_vendor("1");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	definition.set_vendor("12345678");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+
+	definition.set_product("12345678901234567");
+	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	definition.set_product("1");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	definition.set_product("1234567890123456");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+
+	definition.set_revision("12345");
+	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	definition.set_revision("1");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	definition.set_revision("1234");
+	EXPECT_TRUE(executor.SetProductData(context, definition, device));
 }

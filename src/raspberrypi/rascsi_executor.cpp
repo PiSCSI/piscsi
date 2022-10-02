@@ -754,7 +754,7 @@ bool RascsiExecutor::SetProductData(const CommandContext& context, const PbDevic
 			device->SetRevision(pb_device.revision());
 		}
 	}
-	catch(const invalid_argument& e) { //NOSONAR This exception is handled properly
+	catch(const invalid_argument& e) {
 		return ReturnStatus(context, false, e.what());
 	}
 
