@@ -50,9 +50,7 @@ TEST(RascsiExecutorTest, Attach)
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	PbDeviceDefinition device_definition;
-	ProtobufSerializer serializer;
-	Localizer localizer;
-	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+	MockCommandContext context;
 
 	device_definition.set_unit(32);
 	EXPECT_FALSE(executor.Attach(context, device_definition, false));
@@ -96,9 +94,7 @@ TEST(RascsiExecutorTest, Detach)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
-	ProtobufSerializer serializer;
-	Localizer localizer;
-	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+	MockCommandContext context;
 
 	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
 	controller_manager.AttachToScsiController(ID, device1);
@@ -142,9 +138,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
-	ProtobufSerializer serializer;
-	Localizer localizer;
-	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+	MockCommandContext context;
 
 	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
@@ -230,9 +224,7 @@ TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
-	ProtobufSerializer serializer;
-	Localizer localizer;
-	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+	MockCommandContext context;
 
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN));
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
@@ -248,9 +240,7 @@ TEST(RascsiExecutorTest, SetSectorSize)
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
-	ProtobufSerializer serializer;
-	Localizer localizer;
-	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+	MockCommandContext context;
 
 	unordered_set<uint32_t> sizes = { 512 };
 	auto disk = make_shared<MockSCSIHD>(0, sizes, false);
