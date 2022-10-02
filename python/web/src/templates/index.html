@@ -84,7 +84,13 @@
             {% else %}
             {% if device.params %}
             {% for key in device.params %}
-            <b>{{ key }}:</b>{{ device.params[key] }}
+            {% if key == "interface" %}
+            ({{device.params[key]}})
+            {% elif key == "timeout" %}
+            ({{key}}:{{device.params[key]}})
+            {% else %}
+            {{device.params[key]}}
+            {% endif %}
             {% endfor %}
             {% elif device.file %}
             {{ device.file }}
