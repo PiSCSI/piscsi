@@ -80,7 +80,7 @@ public:
 	using PhaseHandler::PhaseHandler;
 };
 
-class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
+class MockAbstractController final : public AbstractController
 {
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
