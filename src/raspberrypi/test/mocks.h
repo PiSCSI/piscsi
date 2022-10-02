@@ -234,6 +234,7 @@ public:
 
 class MockSCSIHD final : public SCSIHD
 {
+	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
 	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
 
@@ -243,7 +244,6 @@ class MockSCSIHD final : public SCSIHD
 class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
-	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 
 	MOCK_METHOD(void, FlushCache, (), (override));
 
