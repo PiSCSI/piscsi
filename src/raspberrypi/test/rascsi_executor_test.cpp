@@ -352,6 +352,24 @@ TEST(RascsiExecutorTest, ValidationOperationAgainstDevice)
 	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
 }
 
+TEST(RascsiExecutorTest, ValidateIdAndLun)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	MockCommandContext context;
+
+	EXPECT_FALSE(executor.ValidateIdAndLun(context, -1, 0));
+	EXPECT_FALSE(executor.ValidateIdAndLun(context, 8, 0));
+	EXPECT_FALSE(executor.ValidateIdAndLun(context, 7, -1));
+	EXPECT_FALSE(executor.ValidateIdAndLun(context, 7, 32));
+	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 0));
+	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 31));
+}
+
 TEST(RascsiExecutorTest, SetProductData)
 {
 	MockBus bus;
