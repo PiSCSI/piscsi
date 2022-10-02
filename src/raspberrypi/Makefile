@@ -7,7 +7,7 @@ GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
 ##                   arm-linux-gnueabihf-
-CROSS_COMPILE =
+CROSS_COMPILE = arm-linux-gnueabihf-
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -31,7 +31,7 @@ ifeq ("$(shell uname -s)","Linux")
 endif
 
 
-CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP -I../BPI-WiringPi2/wiringPi
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
@@ -58,6 +58,8 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
+REGISTERS_TEST = registers
+GPIO_TEST = gpiotest
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -131,8 +133,12 @@ SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
+SRC_GPIO_TEST = \
+	scsi.cpp \
+	gpiotest.cpp
+SRC_GPIO_TEST += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ../BPI-WiringPi2/wiringPi/
 vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
@@ -144,9 +150,11 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
+OBJ_GPIO_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GPIO_TEST:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
+LIB_BPI_WIRINGPI := $(OBJDIR)/libwiringPi.a
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
@@ -192,27 +200,33 @@ lcov: test
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(LIB_BPI_WIRINGPI)  -lpthread -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) 
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(LIB_BPI_WIRINGPI) -lpthread
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) $(LIB_BPI_WIRINGPI)  -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+
+
+$(BINDIR)/$(GPIO_TEST): $(OBJ_GPIO_TEST) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+	echo  $(OBJ_GPIO_TEST)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_GPIO_TEST) $(LIB_BPI_WIRINGPI) -lpthread
 
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON)
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(GPIO_TEST)
 $(RASCSI)  : $(BINDIR)/$(RASCSI) 
 $(RASCTL)  : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
+$(GPIO_TEST) : $(BINDIR)/$(GPIO_TEST)
 
 
 ##   clean    : Remove all of the object files, intermediate 
@@ -277,6 +291,12 @@ $(RSYSLOG_LOG) :
 $(MAN_PAGE_DIR)/:
 	echo "-- Creating directory $@"
 	mkdir -p $@
+
+$(LIB_BPI_WIRINGPI) :
+	make -j1 -C ../BPI-WiringPi2/wiringPi/ static
+	cp ../BPI-WiringPi2/wiringPi/libwiringPi.a $@
+
+
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:
