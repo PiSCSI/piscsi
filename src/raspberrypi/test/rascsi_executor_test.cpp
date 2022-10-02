@@ -239,3 +239,24 @@ TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 	controller_manager.AttachToScsiController(ID, device);
 	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN));
 }
+
+TEST(RascsiExecutorTest, SetSectorSize)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	ProtobufSerializer serializer;
+	Localizer localizer;
+	CommandContext context(serializer, localizer, STDOUT_FILENO, "");
+
+	unordered_set<uint32_t> sizes = { 512 };
+	auto disk = make_shared<MockSCSIHD>(0, sizes, false);
+
+	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 0));
+	EXPECT_FALSE(executor.SetSectorSize(context, "test", disk, 1));
+	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 512));
+}
+

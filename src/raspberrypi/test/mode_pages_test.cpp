@@ -40,7 +40,7 @@ TEST(ModePagesTest, SCSIHD_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD device(0, sector_sizes);
+	MockSCSIHD device(0, sector_sizes, false);
 	device.SetUpModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
