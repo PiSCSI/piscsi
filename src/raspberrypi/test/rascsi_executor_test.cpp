@@ -234,6 +234,25 @@ TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
+TEST(RascsiExecutorTest, CreateDevice)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	MockCommandContext context;
+
+	EXPECT_EQ(nullptr, executor.CreateDevice(context, UNDEFINED, 0, ""));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	EXPECT_EQ(nullptr, executor.CreateDevice(context, SAHD, 0, ""));
+#pragma GCC diagnostic pop
+	EXPECT_NE(nullptr, executor.CreateDevice(context, UNDEFINED, 0, "services"));
+	EXPECT_NE(nullptr, executor.CreateDevice(context, SCHS, 0, ""));
+}
+
 TEST(RascsiExecutorTest, SetSectorSize)
 {
 	MockBus bus;
