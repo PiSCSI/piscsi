@@ -506,7 +506,7 @@ def show_manpage():
 
     return response(
         error=True,
-        message=_("An error occurred when accessing man page: %(error)s", error=logs)
+        message=_("An error occurred when accessing man page: %(error)s", error=manpage)
     )
 
 
