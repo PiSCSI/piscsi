@@ -18,6 +18,35 @@
 using namespace rascsi_interface;
 using namespace command_util;
 
+TEST(RascsiExecutorTest, ProcessCmd)
+{
+	const int ID = 3;
+	const int LUN = 0;
+
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbDeviceDefinition definition;
+	PbCommand command;
+	MockCommandContext context;
+
+	definition.set_id(8);
+	definition.set_unit(32);
+	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Invalid ID must fail";
+
+	definition.set_id(ID);
+	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Invalid LUN must fail";
+
+	definition.set_unit(LUN);
+	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Unknown operation must fail";
+
+	command.set_operation(ATTACH);
+	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Operation for unknown device must fail";
+}
+
 TEST(RascsiExecutorTest, SetLogLevel)
 {
 	MockBus bus;
