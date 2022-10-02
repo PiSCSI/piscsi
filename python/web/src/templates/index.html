@@ -585,6 +585,17 @@
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
                 <input name="size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name">
+                <option value="">
+                {{ _("None") }}
+                </option>
+                {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                </select>
                 <input type="submit" value="{{ _("Create") }}">
             </form>
         </td>
