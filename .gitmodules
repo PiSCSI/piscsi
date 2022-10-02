@@ -1,0 +1,3 @@
+[submodule "src/BPI-WiringPi2"]
+	path = src/BPI-WiringPi2
+	url = https://github.com/akuker/BPI-WiringPi2
