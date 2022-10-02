@@ -13,6 +13,7 @@
 
 #include "hal/systimer_raspberry.h"
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 #include <memory>
 
 #include "os.h"

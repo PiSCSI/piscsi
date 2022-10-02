@@ -16,10 +16,14 @@
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_raspberry.h"
 #include "hal/systimer.h"
-#include "scsi_bus.h" // TODO - shouldn't have any dependnecies on scsi_bus!!!
+#include <sys/epoll.h>
 #include "config.h"
 #include "log.h"
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
@@ -85,8 +89,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	// When we're running on x86, there is no hardware to talk to, so just return.
 	return true;
 #else
-	void *map;
-	int i;
 #ifdef USE_SEL_EVENT_ENABLE
 	epoll_event ev = {};
 #endif
@@ -188,7 +190,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	// Initialize all signals
 	LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
-	for (i = 0; SignalTable[i] >= 0; i++) {
+	for (int i = 0; SignalTable[i] >= 0; i++) {
 		int j = SignalTable[i];
 		PinSetSignal(j, OFF);
 		PinConfig(j, GPIO_INPUT);
@@ -518,31 +520,20 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::MakeTable(void)
 {
-
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
-		const int pintbl[] = {
+
+	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
 		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
 	};
 
-	int i;
-	int j;
-	BOOL tblParity[256];
-#if SIGNAL_CONTROL_MODE == 0
-	int index;
-	int shift;
-#else
-	DWORD gpclr;
-	DWORD gpset;
-#endif
+	array<bool, 256> tblParity;
 
 	// Create parity table
-	for (i = 0; i < 0x100; i++)
-	{
-		auto bits = (DWORD)i;
-		DWORD parity = 0;
-		for (j = 0; j < 8; j++)
-		{
+	for (uint32_t i = 0; i < 0x100; i++) {
+		uint32_t bits = i;
+		uint32_t parity = 0;
+		for (int j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
 		}
@@ -552,32 +543,33 @@ void GPIOBUS_Raspberry::MakeTable(void)
 
 #if SIGNAL_CONTROL_MODE == 0
 	// Mask and setting data generation
-	memset(tblDatMsk, 0xff, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (i = 0; i < 0x100; i++)
-	{
+	for (auto& tbl : tblDatMsk) {
+		tbl.fill(-1);
+	}
+	for (auto& tbl : tblDatSet) {
+		tbl.fill(0);
+	}
+
+	for (uint32_t i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		auto bits = (DWORD)i;
+		uint32_t bits = i;
 
 		// Get parity
-		if (tblParity[i])
-		{
+		if (tblParity[i]) {
 			bits |= (1 << 8);
 		}
 
 		// Bit check
-		for (j = 0; j < 9; j++)
-		{
+		for (int j = 0; j < 9; j++) {
 			// Index and shift amount calculation
-			index = pintbl[j] / 10;
-			shift = (pintbl[j] % 10) * 3;
+			int index = pintbl[j] / 10;
+			int shift = (pintbl[j] % 10) * 3;
 
 			// Mask data
 			tblDatMsk[index][i] &= ~(0x7 << shift);
 
 			// Setting data
-			if (bits & 1)
-			{
+			if (bits & 1) {
 				tblDatSet[index][i] |= (1 << shift);
 			}
 
@@ -585,17 +577,12 @@ void GPIOBUS_Raspberry::MakeTable(void)
 		}
 	}
 #else
-	// Mask and setting data generation
-	memset(tblDatMsk, 0x00, sizeof(tblDatMsk));
-	memset(tblDatSet, 0x00, sizeof(tblDatSet));
-	for (i = 0; i < 0x100; i++)
-	{
-		// bit string for inspection
-		DWORD bits = (DWORD)i;
+	for (uint32_t i = 0; i < 0x100; i++) {
+		// Bit string for inspection
+		uint32_t bits = i;
 
-		// get parity
-		if (tblParity[i])
-		{
+		// Get parity
+		if (tblParity[i]) {
 			bits |= (1 << 8);
 		}
 
@@ -605,16 +592,12 @@ void GPIOBUS_Raspberry::MakeTable(void)
 #endif
 
 		// Create GPIO register information
-		gpclr = 0;
-		gpset = 0;
-		for (j = 0; j < 9; j++)
-		{
-			if (bits & 1)
-			{
+		uint32_t gpclr = 0;
+		uint32_t gpset = 0;
+		for (int j = 0; j < 9; j++) {
+			if (bits & 1) {
 				gpset |= (1 << pintbl[j]);
-			}
-			else
-			{
+			} else {
 				gpclr |= (1 << pintbl[j]);
 			}
 			bits >>= 1;
@@ -624,7 +607,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 		tblDatSet[i] = gpset;
 	}
 #endif
-}
+}	
 
 //---------------------------------------------------------------------------
 //
@@ -710,7 +693,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 //
 // TODO: maybe this should be moved to SCSI_Bus?
 //---------------------------------------------------------------------------
-bool GPIOBUS_Raspberry::WaitSignal(int pin, BOOL ast)
+bool GPIOBUS_Raspberry::WaitSignal(int pin, int ast)
 {
 	// Get current time
 	uint32_t now = SysTimer::instance().GetTimerLow();

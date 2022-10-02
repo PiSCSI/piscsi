@@ -26,13 +26,13 @@
 
 
 #if defined CONNECT_TYPE_STANDARD
-#include "hal/board_type_standard.h"
+#include "hal/gpiobus_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/board_type_fullspec.h"
+#include "hal/gpiobus_fullspec.h"
 #elif defined CONNECT_TYPE_AIBOM
-#include "hal/board_type_aibom.h"
+#include "hal/gpiobus_aibom.h"
 #elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/board_type_gamernium.h"
+#include "hal/gpiobus_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
@@ -75,47 +75,13 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 
 using namespace std;
 
-#ifdef __linux
 
 // Nothing SBC hardware specific should be done in this function
 bool GPIOBUS::Init(mode_e mode)
 {
 	// Save operation mode
 	actmode = mode;
-	
-
-	// Initialize all signals
-	for (i = 0; SignalTable[i] >= 0; i++) {
-		int j = SignalTable[i];
-		PinSetSignal(j, OFF);
-		PinConfig(j, GPIO_INPUT);
-		PullConfig(j, pullmode);
-	}
-
-	// Set control signals
-	PinSetSignal(PIN_ACT, OFF);
-	PinSetSignal(PIN_TAD, OFF);
-	PinSetSignal(PIN_IND, OFF);
-	PinSetSignal(PIN_DTD, OFF);
-	PinConfig(PIN_ACT, GPIO_OUTPUT);
-	PinConfig(PIN_TAD, GPIO_OUTPUT);
-	PinConfig(PIN_IND, GPIO_OUTPUT);
-	PinConfig(PIN_DTD, GPIO_OUTPUT);
-
-	// Set the ENABLE signal
-	// This is used to show that the application is running
-	PinSetSignal(PIN_ENB, ENB_OFF);
-	PinConfig(PIN_ENB, GPIO_OUTPUT);
-
-	// Create work table
-	MakeTable();
-
-	// Finally, enable ENABLE
-	// Show the user that this app is running
-	SetControl(PIN_ENB, ENB_ON);
-
 	return true;
-#endif // ifdef __x86_64__ || __X86__
 
 }
 
@@ -436,27 +402,6 @@ void GPIOBUS::SetREQ(bool ast)
 	SetSignal(PIN_REQ, ast);
 }
 
-//---------------------------------------------------------------------------
-//
-// Get data signals
-//
-//---------------------------------------------------------------------------
-BYTE GPIOBUS::GetDAT()
-{
-	uint32_t data = Acquire();
-	data =
-		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
-		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-		((data >> (PIN_DT2 - 2)) & (1 << 2)) |
-		((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-		((data >> (PIN_DT4 - 4)) & (1 << 4)) |
-		((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-		((data >> (PIN_DT6 - 6)) & (1 << 6)) |
-		((data >> (PIN_DT7 - 7)) & (1 << 7));
-
-	return (BYTE)data;
-}
-
 bool GPIOBUS::GetDP() const
 {
 	return GetSignal(PIN_DP);
@@ -483,7 +428,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	bool ret = WaitSignal(PIN_ACK, ON);
 
 	// Wait until the signal line stabilizes
-	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+	SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 	// Get data
 	*buf = GetDAT();
@@ -520,7 +465,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
 		ret = WaitSignal(PIN_ACK, ON);
 
-		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get the actual SCSI command
 		*buf = GetDAT();
@@ -554,7 +499,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		ret = WaitSignal(PIN_ACK, ON);
 
 		// Wait until the signal line stabilizes
-		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get data
 		*buf = GetDAT();
@@ -605,7 +550,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			bool ret = WaitSignal(PIN_ACK, ON);
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -648,7 +593,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -700,7 +645,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
-				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+				SysTimer::instance().SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
 			// Set the DATA signals
@@ -743,7 +688,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
-				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+				SysTimer::instance().SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
 			// Set the DATA signals
@@ -948,7 +893,7 @@ void GPIOBUS::MakeTable(void)
 bool GPIOBUS::WaitSignal(int pin, int ast)
 {
 	// Get current time
-	uint32_t now = SysTimer::GetTimerLow();
+	uint32_t now = SysTimer::instance().GetTimerLow();
 
 	// Calculate timeout (3000ms)
 	uint32_t timeout = 3000 * 1000;
@@ -965,7 +910,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
         if (((signals >> pin) ^ ~ast) & 1) {
 			return true;
 		}
-	} while ((SysTimer::GetTimerLow() - now) < timeout);
+	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
 	return false;

@@ -50,30 +50,30 @@ protected:
 	// SCSI I/O signal control
 	void MakeTable();
 										// Create work data
-	void SetControl(int pin, bool ast);
+	void SetControl(int pin, bool ast) override;
 										// Set Control Signal
-	void SetMode(int pin, int mode);
+	void SetMode(int pin, int mode) override;
 										// Set SCSI I/O mode
 	bool GetSignal(int pin) const override;
 										// Get SCSI input signal value
 	void SetSignal(int pin, bool ast) override;
 										// Set SCSI output signal value
-	bool WaitSignal(int pin, int ast);
+	bool WaitSignal(int pin, int ast) override;
 										// Wait for a signal to change
 	// Interrupt control
-	void DisableIRQ();
+	void DisableIRQ() override;
 										// IRQ Disabled
-	void EnableIRQ();
+	void EnableIRQ() override;
 										// IRQ Enabled
 
 	//  GPIO pin functionality settings
-	void PinConfig(int pin, int mode);
+	void PinConfig(int pin, int mode) override;
 										// GPIO pin direction setting
-	void PullConfig(int pin, int mode);
+	void PullConfig(int pin, int mode) override;
 										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, bool ast);
+	void PinSetSignal(int pin, bool ast) override;
 										// Set GPIO output signal
-	void DrvConfig(DWORD drive);
+	void DrvConfig(DWORD drive) override;
 										// Set GPIO drive strength
 
 
@@ -129,5 +129,4 @@ protected:
 	array<uint32_t, 256> tblDatSet = {};	// Table setting table
 #endif
 
-	static const array<int, 19> SignalTable;	// signal table
 };

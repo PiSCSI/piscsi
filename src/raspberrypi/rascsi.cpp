@@ -17,6 +17,7 @@
 #include "devices/disk.h"
 #include "devices/file_support.h"
 #include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
 #include "socket_connector.h"
@@ -181,7 +182,7 @@ bool InitService(int port)
 bool InitBus()
 {
 	// GPIOBUS creation
-	bus = make_shared<GPIOBUS>();
+	bus = GPIOBUS_Factory::Create();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
@@ -1469,8 +1470,8 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
-			uint32_t now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+			uint32_t now = SysTimer::instance().GetTimerLow();
+			while ((SysTimer::instance().GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus->Acquire();
 				if (!bus->GetBSY()) {
 					break;

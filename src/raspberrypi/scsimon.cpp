@@ -11,6 +11,7 @@
 #include "os.h"
 #include "log.h"
 #include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
 #include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
@@ -186,7 +187,7 @@ bool Init()
     }
 
     // GPIO Initialization
-    bus = make_unique<GPIOBUS>();
+    bus = GPIOBUS_Factory::Create();
     if (!bus->Init())
     {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")

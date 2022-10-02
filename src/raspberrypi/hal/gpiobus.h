@@ -30,13 +30,13 @@
 //#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 #if defined CONNECT_TYPE_STANDARD
-#include "hal/board_type_standard.h"
+#include "hal/gpio_bus_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/board_type_fullspec.h"
+#include "hal/gpiobus_fullspec.h"
 #elif defined CONNECT_TYPE_AIBOM
-#include "hal/board_type_aibom.h"
+#include "hal/gpiobus_aibom.h"
 #elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/board_type_gamernium.h"
+#include "hal/gpiobus_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
@@ -366,15 +366,19 @@ public:
 										// Clear SEL signal event
 #endif	// USE_SEL_EVENT_ENABLE
 
-private:
+protected:
 	// SCSI I/O signal control
 	virtual void MakeTable() = 0;
 										// Create work data
-	virtual bool GetSignal(int pin) const = 0;
+	virtual void SetControl(int pin, bool ast) = 0;
 										// Set Control Signal
 	virtual void SetMode(int pin, int mode) = 0;
 										// Set SCSI I/O mode
-	virtual bool WaitSignal(int pin, BOOL ast) = 0;
+	virtual bool GetSignal(int pin) const = 0;
+										// Set Control Signal
+	virtual void SetSignal(int pin, bool ast) = 0;
+										// Set SCSI I/O mode
+	virtual bool WaitSignal(int pin, int ast) = 0;
 										// Wait for a signal to change
 	// Interrupt control
 	virtual void DisableIRQ() = 0;
@@ -438,17 +442,17 @@ private:
 #endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
-	DWORD tblDatMsk[3][256]; // Data mask table
+	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
 
-	DWORD tblDatSet[3][256]; // Data setting table
+	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
 #else
-	DWORD tblDatMsk[256]; // Data mask table
+	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
 
-	DWORD tblDatSet[256]; // Table setting table
+	array<uint32_t, 256> tblDatSet = {};	// Table setting table
 #endif
 
 
-	const static int SignalTable[19]; // signal table
+	static const array<int, 19> SignalTable;	// signal table
 	
 };
 

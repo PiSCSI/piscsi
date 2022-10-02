@@ -199,13 +199,13 @@ lcov: test
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
-$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) | $(BINDIR)
+$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(LIB_BPI_WIRINGPI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(LIB_BPI_WIRINGPI)  -lpthread -lpcap -lprotobuf -lstdc++fs
 
-$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
+$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) $(LIB_BPI_WIRINGPI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) 
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
