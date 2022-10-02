@@ -8,6 +8,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
     - name: Add armhf as architecture
       run: sudo dpkg --add-architecture armhf

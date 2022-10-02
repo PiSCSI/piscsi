@@ -233,6 +233,7 @@ $(GPIO_TEST) : $(BINDIR)/$(GPIO_TEST)
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
+	make -j1 -C ../BPI-WiringPi2/wiringPi/ clean
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
 ##   install  : Copies all of the man pages to the correct location
