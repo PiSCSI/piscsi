@@ -54,31 +54,34 @@ TEST(RascsiExecutorTest, Attach)
 	definition.set_unit(32);
 	EXPECT_FALSE(executor.Attach(context, definition, false));
 
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	auto device = device_factory.CreateDevice(controller_manager, SCHD, LUN, "");
 	definition.set_id(ID);
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor.Attach(context, definition, false));
-	controller_manager.DeleteAllControllers();
+
+	executor.SetReservedIds(to_string(ID));
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Reserved ID not rejected";
+
+	executor.SetReservedIds("");
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Unknown device type not rejected";
 
 	definition.set_type(PbDeviceType::SCHS);
 	EXPECT_TRUE(executor.Attach(context, definition, false));
 	controller_manager.DeleteAllControllers();
 
 	definition.set_type(PbDeviceType::SCHD);
-	EXPECT_FALSE(executor.Attach(context, definition, false));
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive without sectors not rejected";
 
 	definition.set_block_size(1);
-	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Invalid sector size";
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with invalid sector size not rejeced";
 
 	definition.set_block_size(1024);
-	EXPECT_FALSE(executor.Attach(context, definition, false));
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive without image file not rejected";
 
 	AddParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Attach(context, definition, false));
 
 	AddParam(definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Attach(context, definition, false)) << "File has 0 bytes";
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Empty image file not rejected";
 
 	// Further testing is not possible without a filesystem
 }
