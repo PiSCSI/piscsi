@@ -158,7 +158,7 @@
     </summary>
     <ul>
         <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=base_dir, scan_depth=scan_depth) }}</li>
-        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
+        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
         <li>
@@ -335,17 +335,17 @@
         <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
-        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
+        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
-        <li>{{ _("Read more about <a href=\"%(url)s\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
+        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
 </details>
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
         <td>{{ _("Device") }}</td>
-        <td>{{ _("Code") }}</td>
+        <td>{{ _("Key") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
     {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
@@ -429,7 +429,7 @@
     <ul>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
@@ -485,7 +485,7 @@
     </summary>
     <ul>
         <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
@@ -566,7 +566,7 @@
         {{ _("Create Empty Disk Image File") }}
     </summary>
     <ul>
-        <li><a href="/sys/manpage?app=rascsi">{{ _("See the RaSCSI documentation for details about supported hard disk image types.") }}</a></p>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types#image-types") }}</li>
     </ul>
 </details>
 <table style="border: none">
