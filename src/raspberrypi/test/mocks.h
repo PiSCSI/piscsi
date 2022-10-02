@@ -273,11 +273,11 @@ class MockHostServices final : public HostServices
 
 class MockCommandContext : public CommandContext
 {
-	ProtobufSerializer serializer;
-	Localizer localizer;
+	ProtobufSerializer s;
+	Localizer l;
 
 public:
 
-	MockCommandContext() : CommandContext(serializer, localizer, STDOUT_FILENO, "") {}
+	MockCommandContext() : CommandContext(s, l, STDOUT_FILENO, "") {}
 	~MockCommandContext() = default;
 };
