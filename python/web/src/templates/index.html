@@ -47,7 +47,7 @@
             <td><b>{{ _("Product") }}</b></td>
             <td><b>{{ _("Actions") }}</b></td>
         </tr>
-        {% for device in devices %}
+        {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{ device.id }}</td>
@@ -82,7 +82,9 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
-            {{ device.file }}
+            {% for key in device.params %}
+            <b>{{ key }}:</b>{{ device.params[key] }}
+            {% endfor %}
             {% endif %}
             </td>
             <td style="text-align:center">
