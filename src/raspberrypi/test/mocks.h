@@ -61,7 +61,7 @@ public:
 	~MockBus() override = default;
 };
 
-class MockPhaseHandler : PhaseHandler
+class MockPhaseHandler : public PhaseHandler
 {
 	FRIEND_TEST(PhaseHandlerTest, Phases);
 
