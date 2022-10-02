@@ -250,3 +250,47 @@ TEST(RascsiExecutorTest, SetSectorSize)
 	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 512));
 }
 
+TEST(RascsiExecutorTest, ValidationOperationAgainstDevice)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	MockCommandContext context;
+
+	auto device = make_shared<MockPrimaryDevice>(0);
+
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, ATTACH));
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, DETACH));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, START));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, STOP));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+
+	device->SetStoppable(true);
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, START));
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, STOP));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+
+	device->SetRemovable(true);
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+
+	device->SetProtectable(true);
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+
+	device->SetReady(true);
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+
+}
