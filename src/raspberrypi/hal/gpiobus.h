@@ -30,13 +30,13 @@
 //#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 #if defined CONNECT_TYPE_STANDARD
-#include "hal/gpiobus_standard.h"
+#include "hal/board_type_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/gpiobus_fullspec.h"
+#include "hal/board_type_fullspec.h"
 #elif defined CONNECT_TYPE_AIBOM
-#include "hal/gpiobus_aibom.h"
+#include "hal/board_type_aibom.h"
 #elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/gpiobus_gamernium.h"
+#include "hal/board_type_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
@@ -271,47 +271,14 @@ const static int OFF =	0;
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations (bus control timing)
-//
-//---------------------------------------------------------------------------
-// SCSI Bus timings taken from:
-//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
-const static int SCSI_DELAY_ARBITRATION_DELAY_NS =        2400;
-const static int SCSI_DELAY_ASSERTION_PERIOD_NS =           90;
-const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS =           800;
-const static int SCSI_DELAY_BUS_FREE_DELAY_NS =            800;
-const static int SCSI_DELAY_BUS_SET_DELAY_NS =            1800;
-const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS =          400;
-const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS =           10;
-const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS =        400;
-const static int SCSI_DELAY_DESKEW_DELAY_NS =               45;
-const static int SCSI_DELAY_DISCONNECTION_DELAY_US =       200;
-const static int SCSI_DELAY_HOLD_TIME_NS =                  45;
-const static int SCSI_DELAY_NEGATION_PERIOD_NS =            90;
-const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S =  10;      // (recommended)
-const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US =   250*1000; // (recommended)
-const static int SCSI_DELAY_RESET_HOLD_TIME_US =            25;
-const static int SCSI_DELAY_SELECTION_ABORT_TIME_US =      200;
-const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS =  250*1000;  // (recommended)
-const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS =      30;
-const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS =       5;
-const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS =          20;
-const static int SCSI_DELAY_FAST_HOLD_TIME_NS =             10;
-const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS =       30;
-
-// The DaynaPort SCSI Link do a short delay in the middle of transfering
-// a packet. This is the number of uS that will be delayed between the
-// header and the actual data.
-const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
-
-//---------------------------------------------------------------------------
-//
 //	Class definition
 //
 //---------------------------------------------------------------------------
-class GPIOBUS final : public BUS
+class GPIOBUS : public BUS
 {
 public:
+	static GPIOBUS *create();
+
 	// Basic Functions
 	GPIOBUS()= default;
 	~GPIOBUS() override = default;
@@ -323,28 +290,7 @@ public:
 	void Cleanup() override;
 										// Cleanup
 
-	//---------------------------------------------------------------------------
-	//
-	//	Bus signal acquisition
-	//
-	//---------------------------------------------------------------------------
-	inline uint32_t Acquire() override
-	{
-	#if defined(__x86_64__) || defined(__X86__)
-		// Only used for development/debugging purposes. Isn't really applicable
-		// to any real-world RaSCSI application
-		return 0;
-	#else
-		signals = *level;
-
-	#if SIGNAL_CONTROL_MODE < 2
-		// Invert if negative logic (internal processing is unified to positive logic)
-		signals = ~signals;
-	#endif	// SIGNAL_CONTROL_MODE
-
-		return signals;
-	#endif // ifdef __x86_64__ || __X86__
-	}
+	virtual DWORD Acquire() = 0;
 
 	void SetENB(bool ast);
 										// Set ENB signal
@@ -398,11 +344,6 @@ public:
 										// Get REQ signal
 	void SetREQ(bool ast) override;
 										// Set REQ signal
-
-	BYTE GetDAT() override;
-										// Get DAT signal
-	void SetDAT(BYTE dat) override;
-										// Set DAT signal
 	bool GetDP() const override;
 										// Get Data parity signal
 	int CommandHandShake(BYTE *buf) override;
@@ -427,32 +368,28 @@ public:
 
 private:
 	// SCSI I/O signal control
-	void MakeTable();
+	virtual void MakeTable() = 0;
 										// Create work data
-	void SetControl(int pin, bool ast);
+	virtual bool GetSignal(int pin) const = 0;
 										// Set Control Signal
-	void SetMode(int pin, int mode);
+	virtual void SetMode(int pin, int mode) = 0;
 										// Set SCSI I/O mode
-	bool GetSignal(int pin) const override;
-										// Get SCSI input signal value
-	void SetSignal(int pin, bool ast) override;
-										// Set SCSI output signal value
-	bool WaitSignal(int pin, int ast);
+	virtual bool WaitSignal(int pin, BOOL ast) = 0;
 										// Wait for a signal to change
 	// Interrupt control
-	void DisableIRQ();
+	virtual void DisableIRQ() = 0;
 										// IRQ Disabled
-	void EnableIRQ();
+	virtual void EnableIRQ() = 0;
 										// IRQ Enabled
 
 	//  GPIO pin functionality settings
-	void PinConfig(int pin, int mode);
-										// GPIO pin direction setting
-	void PullConfig(int pin, int mode);
-										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, bool ast);
+	virtual void PinConfig(int pin, int mode) = 0;
+	// GPIO pin direction setting
+	virtual void PullConfig(int pin, int mode) = 0;
+	// GPIO pin pull up/down resistor setting
+	virtual void PinSetSignal(int pin, bool ast) = 0;
 										// Set GPIO output signal
-	void DrvConfig(DWORD drive);
+	virtual void DrvConfig(DWORD drive) = 0;
 										// Set GPIO drive strength
 
 
@@ -501,15 +438,17 @@ private:
 #endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
-	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
+	DWORD tblDatMsk[3][256]; // Data mask table
 
-	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
+	DWORD tblDatSet[3][256]; // Data setting table
 #else
-	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
+	DWORD tblDatMsk[256]; // Data mask table
 
-	array<uint32_t, 256> tblDatSet = {};	// Table setting table
+	DWORD tblDatSet[256]; // Table setting table
 #endif
 
-	static const array<int, 19> SignalTable;	// signal table
+
+	const static int SignalTable[19]; // signal table
+	
 };
 

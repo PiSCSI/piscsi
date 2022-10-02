@@ -13,38 +13,33 @@
 
 #pragma once
 
-#include <memory>
 #include <stdint.h>
-
-#include "config.h"
-#include "scsi.h"
+#include "systimer.h"
 
 //===========================================================================
 //
 //	System timer
 //
 //===========================================================================
-class SysTimer
+class SysTimer_Raspberry : public SysTimer
 {
 public:
-	virtual void Init() = 0;
-
+	// Initialization
+	void Init();
 	// Get system timer low byte
-	virtual uint32_t GetTimerLow() = 0;
+	uint32_t GetTimerLow();
 	// Get system timer high byte
-	virtual uint32_t GetTimerHigh() = 0;
+	uint32_t GetTimerHigh();
 	// Sleep for N nanoseconds
-	virtual void SleepNsec(uint32_t nsec) = 0;
+	void SleepNsec(uint32_t nsec);
 	// Sleep for N microseconds
-	virtual void SleepUsec(uint32_t usec) = 0;
-	// Get an instance of the SysTimer. Will automatically create/initialize
-	// the appropriate version if necessary.
-	static SysTimer &instance();
-
-	typedef std::shared_ptr<SysTimer> systimer_ptr;
+	void SleepUsec(uint32_t usec);
 
 private:
-	static bool initialized;
-	static bool is_allwinnner;
-	static bool is_raspberry;
+	// System timer address
+	static volatile uint32_t *systaddr;
+	// ARM timer address
+	static volatile uint32_t *armtaddr;
+	// Core frequency
+	static volatile uint32_t corefreq;
 };
