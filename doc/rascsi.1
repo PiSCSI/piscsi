@@ -18,7 +18,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-HDn[:u]\fR \fIFILE\fR]...
 .SH DESCRIPTION
 .B rascsi
-Emulates SCSI devices using the Raspberry Pi GPIO pins.
+emulates SCSI devices using the Raspberry Pi GPIO pins.
 .PP
 In the arguments to RaSCSI, one or more SCSI (-IDn[:u]) devices can be specified.
 The number (n) after the ID or HD identifier specifies the ID number for that device. The optional number (u) specifies the LUN (logical unit) for that device. The default LUN is 0.
@@ -28,12 +28,12 @@ RaSCSI will determine the type of device based upon the file extension of the FI
     hd1: SCSI Hard Disk image (generic, non-removable, SCSI-1)
     hds: SCSI Hard Disk image (generic, non-removable)
     hdr: SCSI Hard Disk image (generic, removable)
-    hdn: SCSI Hard Disk image (NEC GENUINE)
-    hdi: SCSI Hard Disk image (Anex86 HD image)
-    nhd: SCSI Hard Disk image (T98Next HD image)
-    hda: SCSI Hard Disk image (APPLE GENUINE - typically used with Mac SCSI emulation)
-    mos: SCSI Magneto-optical image (XM6 SCSI MO image - typically only used with X68000)
-    iso: SCSI CD-ROM image (ISO 9660 image)
+    hdn: SCSI Hard Disk image (NEC compatible - only used with PC-98 computers)
+    hdi: SCSI Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
+    nhd: SCSI Hard Disk image (T98Next proprietary - only used with PC-98 computers)
+    hda: SCSI Hard Disk image (Apple compatible - typically used with Macintosh computers)
+    mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
+    iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
   
 For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
     sudo rascsi -ID0 /path/to/drive/hdimage.hda
