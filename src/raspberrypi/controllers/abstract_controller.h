@@ -27,7 +27,7 @@ class AbstractController : public PhaseHandler
 	friend class PrimaryDevice;
 	friend class ScsiController;
 
-	// Logical units of this device controller mapped to their LUN numbers
+	// Logical units of this controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
 public:
@@ -54,8 +54,6 @@ public:
 
 	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
 	~AbstractController() override = default;
-
-	virtual BUS::phase_t Process(int) = 0;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;

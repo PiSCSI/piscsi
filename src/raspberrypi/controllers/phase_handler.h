@@ -29,6 +29,8 @@ public:
 	virtual void MsgIn() = 0;
 	virtual void MsgOut() = 0;
 
+	virtual BUS::phase_t Process(int) = 0;
+
 protected:
 
 	BUS::phase_t GetPhase() const { return phase; }
