@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "command_util.h"
 
