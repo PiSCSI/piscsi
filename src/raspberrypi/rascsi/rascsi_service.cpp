@@ -119,8 +119,8 @@ PbCommand RascsiService::ReadCommand(CommandContext& context) const
 
 	// Read magic string
 	vector<byte> magic(6);
-	size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
-	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
+	if (size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
+		bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 		throw io_exception("Invalid magic");
 	}
 
