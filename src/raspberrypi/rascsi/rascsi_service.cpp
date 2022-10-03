@@ -21,7 +21,7 @@ using namespace rascsi_interface;
 
 volatile bool RascsiService::running = false;
 
-RascsiService::~RascsiService()
+void RascsiService::Cleanup()
 {
 	if (service_socket != -1) {
 		close(service_socket);

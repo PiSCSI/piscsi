@@ -17,7 +17,7 @@ class CommandContext;
 
 using namespace std;
 
-class RascsiService //NOSONAR Destructor is needed to close socket
+class RascsiService
 {
 	using callback = function<bool(const CommandContext&, rascsi_interface::PbCommand&)>;
 
@@ -32,9 +32,10 @@ class RascsiService //NOSONAR Destructor is needed to close socket
 public:
 
 	RascsiService() = default;
-	~RascsiService();
+	~RascsiService() = default;
 
 	bool Init(const callback&, int);
+	void Cleanup();
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }

@@ -116,6 +116,8 @@ void Cleanup()
 {
 	executor.DetachAll();
 
+	service.Cleanup();
+
 	// Clean up and discard the bus
 	bus.Cleanup();
 }
