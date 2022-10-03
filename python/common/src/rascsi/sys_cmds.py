@@ -183,31 +183,13 @@ class SysCmds:
         return process.returncode, process.stderr.decode("utf-8")
 
     @staticmethod
-    def get_manpage(app):
-        """
-        Takes (str) app, the name of the application to fetch the man page for.
-        Returns either the man output, or the stderr output.
-        """
-        process = run(
-                ["man", app],
-                capture_output=True,
-                )
-        if process.returncode == 0:
-            return process.returncode, process.stdout.decode("utf-8")
-
-        return process.returncode, process.stderr.decode("utf-8")
-
-    @staticmethod
     def get_filecontents(file_path):
         """
-        Takes (str) file_path path to file to cat the content of.
-        Returns either the cat output, or the stderr output.
+        Takes (str) file_path, with the path to the file to fetch the contents of.
+        Returns either the file contents, or the exception error.
         """
-        process = run(
-                ["cat", file_path],
-                capture_output=True,
-                )
-        if process.returncode == 0:
-            return process.returncode, process.stdout.decode("utf-8")
-
-        return process.returncode, process.stderr.decode("utf-8")
+        try:
+            with open(file_path) as file:
+                return 0, file.read()
+        except Exception as error:
+            return 1, error

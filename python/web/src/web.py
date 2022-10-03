@@ -493,24 +493,24 @@ def show_manpage():
     """
     Displays manpage
     """
-    app = request.args.get("app", default = "", type = str)
-    server_info = ractl_cmd.get_server_info()
+    app_allowlist = ["rascsi", "rasctl", "rasdump", "scsimon"]
 
-    returncode, manpage = sys_cmd.get_manpage(app)
+    app = request.args.get("app", type = str)
+
+    if app not in app_allowlist:
+        return response(
+            error=True,
+            message=_("%(app)s is not a recognized RaSCSI app", app=app)
+        )
+
+    server_info = ractl_cmd.get_server_info()
+    file_path = f"{WEB_DIR}/../../../doc/{app}_man_page.txt"
+
+    returncode, manpage = sys_cmd.get_filecontents(file_path)
     if returncode == 0:
         return response(
             template="manpage.html",
             app=app,
-            manpage=manpage,
-            version=server_info["version"],
-            )
-
-    # When the man command fails, fall back to display the rascsi manpage txt in the source dir
-    returncode, manpage = sys_cmd.get_filecontents(f"{WEB_DIR}/../../../doc/rascsi_man_page.txt")
-    if returncode == 0:
-        return response(
-            template="manpage.html",
-            app="rascsi",
             manpage=manpage,
             version=server_info["version"],
             )
