@@ -87,10 +87,9 @@ void RascsiService::Execute() const
 	ProtobufSerializer serializer;
 	while (true) {
 		CommandContext context;
+		PbCommand command;
 
 		try {
-			PbCommand command;
-
 			context.SetFd(ReadCommand(serializer, command));
 			if (context.IsValid()) {
 				execute(context, command);
