@@ -104,7 +104,8 @@ function installPackages() {
         unzip \
         unar \
         disktype \
-        libgmock-dev
+        libgmock-dev \
+        man2html
 }
 
 # install Debian packges for RaSCSI standalone
@@ -116,7 +117,8 @@ function installPackagesStandalone() {
         libprotobuf-dev \
         protobuf-compiler \
         disktype \
-        libgmock-dev
+        libgmock-dev \
+        man2html
 }
 
 # cache the pip packages

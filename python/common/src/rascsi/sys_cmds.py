@@ -183,13 +183,16 @@ class SysCmds:
         return process.returncode, process.stderr.decode("utf-8")
 
     @staticmethod
-    def get_filecontents(file_path):
+    def get_manpage(file_path):
         """
-        Takes (str) file_path, with the path to the file to fetch the contents of.
-        Returns either the file contents, or the exception error.
+        Takes (str) file_path path to image file to generate manpage for.
+        Returns either the man2html output, or the stderr output.
         """
-        try:
-            with open(file_path) as file:
-                return 0, file.read()
-        except Exception as error:
-            return 1, error
+        process = run(
+                ["man2html", file_path, "-M", "/"],
+                capture_output=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")
