@@ -508,10 +508,16 @@ def show_manpage():
 
     returncode, manpage = sys_cmd.get_filecontents(file_path)
     if returncode == 0:
+        formatted_manpage = ""
+        for line in manpage.splitlines(True):
+            # Strip out irrelevant header
+            if not line.startswith("!!"):
+                formatted_manpage += line
+
         return response(
             template="manpage.html",
             app=app,
-            manpage=manpage,
+            manpage=formatted_manpage,
             version=server_info["version"],
             )
 
