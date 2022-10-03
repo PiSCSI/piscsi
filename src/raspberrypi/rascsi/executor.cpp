@@ -30,7 +30,7 @@ using namespace spdlog;
 using namespace command_util;
 using namespace ras_util;
 
-bool RascsiExecutor::ProcessCmd(CommandContext& context, const PbDeviceDefinition& pb_device,
+bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
 {
 	PrintCommand(command, pb_device, dryRun);
@@ -94,7 +94,7 @@ bool RascsiExecutor::ProcessCmd(CommandContext& context, const PbDeviceDefinitio
 	return true;
 }
 
-bool RascsiExecutor::ProcessCmd(CommandContext& context, const PbCommand& command)
+bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& command)
 {
 	switch (command.operation()) {
 		case DETACH_ALL:
@@ -265,7 +265,7 @@ bool RascsiExecutor::Unprotect(shared_ptr<PrimaryDevice> device, bool dryRun) co
 	return true;
 }
 
-bool RascsiExecutor::Attach(CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
+bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
@@ -356,7 +356,7 @@ bool RascsiExecutor::Attach(CommandContext& context, const PbDeviceDefinition& p
 	return true;
 }
 
-bool RascsiExecutor::Insert(CommandContext& context, const PbDeviceDefinition& pb_device,
+bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
 	if (!device->IsRemoved()) {
@@ -405,7 +405,7 @@ bool RascsiExecutor::Insert(CommandContext& context, const PbDeviceDefinition& p
 	return true;
 }
 
-bool RascsiExecutor::Detach(CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
 	// LUN 0 can only be detached if there is no other LUN anymore
 	if (!device->GetLun() && controller_manager.FindController(device->GetId())->GetLunCount() > 1) {
@@ -445,7 +445,7 @@ void RascsiExecutor::DetachAll()
 	LOGINFO("Detached all devices")
 }
 
-bool RascsiExecutor::ShutDown(CommandContext& context, const string& mode) {
+bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
 	if (mode.empty()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
@@ -546,7 +546,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ValidateImageFile(CommandContext& context, shared_ptr<PrimaryDevice> device,
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<PrimaryDevice> device,
 		const string& filename, string& full_path) const
 {
 	auto file_support = dynamic_pointer_cast<FileSupport>(device);
@@ -654,7 +654,7 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	return "";
 }
 
-bool RascsiExecutor::VerifyExistingIdAndLun(CommandContext& context, int id, int lun) const
+bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int id, int lun) const
 {
 	if (controller_manager.FindController(id) == nullptr) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
@@ -667,7 +667,7 @@ bool RascsiExecutor::VerifyExistingIdAndLun(CommandContext& context, int id, int
 	return true;
 }
 
-shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(CommandContext& context, const PbDeviceType type,
+shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& context, const PbDeviceType type,
 		int lun, const string& filename) const
 {
 	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
@@ -683,7 +683,7 @@ shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(CommandContext& context, 
 	return device;
 }
 
-bool RascsiExecutor::SetSectorSize(CommandContext& context, const string& type,
+bool RascsiExecutor::SetSectorSize(const CommandContext& context, const string& type,
 		shared_ptr<PrimaryDevice> device, int block_size) const
 {
 	if (block_size) {
@@ -701,7 +701,7 @@ bool RascsiExecutor::SetSectorSize(CommandContext& context, const string& type,
 	return true;
 }
 
-bool RascsiExecutor::ValidationOperationAgainstDevice(CommandContext& context,
+bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& context,
 		const shared_ptr<PrimaryDevice> device, const PbOperation& operation)
 {
 	const string& type = device->GetType();
@@ -725,7 +725,7 @@ bool RascsiExecutor::ValidationOperationAgainstDevice(CommandContext& context,
 	return true;
 }
 
-bool RascsiExecutor::ValidateIdAndLun(CommandContext& context, int id, int lun)
+bool RascsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int lun)
 {
 	// Validate the device ID and LUN
 	if (id < 0) {
@@ -741,7 +741,7 @@ bool RascsiExecutor::ValidateIdAndLun(CommandContext& context, int id, int lun)
 	return true;
 }
 
-bool RascsiExecutor::SetProductData(CommandContext& context, const PbDeviceDefinition& pb_device,
+bool RascsiExecutor::SetProductData(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		shared_ptr<PrimaryDevice> device)
 {
 	try {

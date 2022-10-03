@@ -376,7 +376,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	return true;
 }
 
-static bool ExecuteCommand(PbCommand& command, CommandContext& context)
+static bool ExecuteCommand(CommandContext& context, PbCommand& command)
 {
 	context.locale = GetParam(command, "locale");
 	if (context.locale.empty()) {

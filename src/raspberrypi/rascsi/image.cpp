@@ -39,7 +39,7 @@ bool RascsiImage::CheckDepth(string_view filename) const
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
-bool RascsiImage::CreateImageFolder(CommandContext& context, const string& filename) const
+bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
 	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
@@ -103,7 +103,7 @@ bool RascsiImage::IsValidDstFilename(const string& filename) const
 	return stat(filename.c_str(), &st);
 }
 
-bool RascsiImage::CreateImage(CommandContext& context, const PbCommand& command) const
+bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
@@ -176,7 +176,7 @@ bool RascsiImage::CreateImage(CommandContext& context, const PbCommand& command)
 #endif
 }
 
-bool RascsiImage::DeleteImage(CommandContext& context, const PbCommand& command) const
+bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
@@ -224,7 +224,7 @@ bool RascsiImage::DeleteImage(CommandContext& context, const PbCommand& command)
 	return context.ReturnStatus();
 }
 
-bool RascsiImage::RenameImage(CommandContext& context, const PbCommand& command) const
+bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
@@ -267,7 +267,7 @@ bool RascsiImage::RenameImage(CommandContext& context, const PbCommand& command)
 	return context.ReturnStatus();
 }
 
-bool RascsiImage::CopyImage(CommandContext& context, const PbCommand& command) const
+bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
@@ -360,7 +360,7 @@ bool RascsiImage::CopyImage(CommandContext& context, const PbCommand& command) c
 #endif
 }
 
-bool RascsiImage::SetImagePermissions(CommandContext& context, const PbCommand& command) const
+bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {

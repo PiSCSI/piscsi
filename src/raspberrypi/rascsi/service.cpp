@@ -28,7 +28,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
+bool RascsiService::Init(bool (e)(CommandContext&, PbCommand&), int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
@@ -96,7 +96,7 @@ void RascsiService::Execute()
 				continue;
 			}
 
-			execute(command, context);
+			execute(context, command);
 		}
 		catch(const io_exception& e) {
 			LOGWARN("%s", e.get_msg().c_str())

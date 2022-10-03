@@ -42,30 +42,30 @@ public:
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
 
-	bool ProcessCmd(CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
-	bool ProcessCmd(CommandContext&, const PbCommand&);
+	bool ProcessCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
+	bool ProcessCmd(const CommandContext&, const PbCommand&);
 	bool SetLogLevel(const string&) const;
 	bool Start(shared_ptr<PrimaryDevice>, bool) const;
 	bool Stop(shared_ptr<PrimaryDevice>, bool) const;
 	bool Eject(shared_ptr<PrimaryDevice>, bool) const;
 	bool Protect(shared_ptr<PrimaryDevice>, bool) const;
 	bool Unprotect(shared_ptr<PrimaryDevice>, bool) const;
-	bool Attach(CommandContext&, const PbDeviceDefinition&, bool);
-	bool Insert(CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>, bool) const;
-	bool Detach(CommandContext&, shared_ptr<PrimaryDevice>, bool) const;
+	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
+	bool Insert(const CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>, bool) const;
+	bool Detach(const CommandContext&, shared_ptr<PrimaryDevice>, bool) const;
 	void DetachAll();
-	bool ShutDown(CommandContext&, const string&);
+	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
-	bool ValidateImageFile(CommandContext&, shared_ptr<PrimaryDevice>, const string&, string&) const;
+	bool ValidateImageFile(const CommandContext&, shared_ptr<PrimaryDevice>, const string&, string&) const;
 	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
 	string ValidateLunSetup(const PbCommand&) const;
-	bool VerifyExistingIdAndLun(CommandContext&, int, int) const;
-	shared_ptr<PrimaryDevice> CreateDevice(CommandContext&, const PbDeviceType, int, const string&) const;
-	bool SetSectorSize(CommandContext&, const string& type, shared_ptr<PrimaryDevice>, int) const;
+	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
+	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
+	bool SetSectorSize(const CommandContext&, const string& type, shared_ptr<PrimaryDevice>, int) const;
 
-	static bool ValidationOperationAgainstDevice(CommandContext&, const shared_ptr<PrimaryDevice>,
+	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
 			const PbOperation&);
-	static bool ValidateIdAndLun(CommandContext&, int, int);
-	static bool SetProductData(CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>);
+	static bool ValidateIdAndLun(const CommandContext&, int, int);
+	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>);
 
 };
