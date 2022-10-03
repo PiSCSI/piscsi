@@ -99,9 +99,7 @@ void RascsiService::Execute() const
             // Fall through
 		}
 
-		if (context.IsValid()) {
-			close(context.GetFd());
-		}
+		context.Cleanup();
 	}
 }
 
