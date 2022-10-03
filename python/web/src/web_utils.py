@@ -54,11 +54,11 @@ def sort_and_format_devices(devices):
         formatted_devices.append(device)
 
     # Add placeholder data for non-occupied IDs
-    for i in range(8):
-        if i not in occupied_ids:
+    for scsi_id in range(8):
+        if scsi_id not in occupied_ids:
             formatted_devices.append(
                 {
-                    "id": i,
+                    "id": scsi_id,
                     "unit": "-",
                     "device_name": "-",
                     "status": "-",

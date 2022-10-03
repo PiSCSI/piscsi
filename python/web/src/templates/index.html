@@ -98,7 +98,14 @@
             {% endif %}
             </td>
             <td style="text-align:center">
-                {% if device.vendor != "RaSCSI" %}{{ device.vendor }} {% endif %}{{ device.product }}{% if device.vendor != "RaSCSI" %} {{ device.revision }}{% endif %}</td>
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.vendor }}
+                {% endif %}
+                {{ device.product }}
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.revision }}
+                {% endif %}
+            </td>
             <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
