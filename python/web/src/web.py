@@ -512,7 +512,6 @@ def show_manpage():
             "<HTML>",
             "<HEAD>",
             "<BODY>",
-            "<H1>",
         ]
 
     returncode, manpage = sys_cmd.get_manpage(file_path)
