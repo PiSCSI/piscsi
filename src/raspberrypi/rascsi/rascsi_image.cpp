@@ -386,7 +386,7 @@ bool RascsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 	return true;
 }
 
-string RascsiImage::GetHomeDir() const
+string RascsiImage::GetHomeDir()
 {
 	int uid = getuid();
 	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {

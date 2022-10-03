@@ -25,23 +25,24 @@ public:
 
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
-	bool CheckDepth(string_view) const;
-	bool CreateImageFolder(const CommandContext&, const string&) const;
 	string GetDefaultFolder() const { return default_folder; }
 	string SetDefaultFolder(const string&);
-	bool IsValidSrcFilename(const string&) const;
-	bool IsValidDstFilename(const string&) const;
 	bool CreateImage(const CommandContext&, const PbCommand&) const;
 	bool DeleteImage(const CommandContext&, const PbCommand&) const;
 	bool RenameImage(const CommandContext&, const PbCommand&) const;
 	bool CopyImage(const CommandContext&, const PbCommand&) const;
 	bool SetImagePermissions(const CommandContext&, const PbCommand&) const;
-	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
 
 private:
 
+	bool CheckDepth(string_view) const;
+	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
+	bool CreateImageFolder(const CommandContext&, const string&) const;
+	bool IsValidSrcFilename(const string&) const;
+	bool IsValidDstFilename(const string&) const;
 	bool ValidateParams(const CommandContext&, const PbCommand&, const string&, string&, string&) const;
-	string GetHomeDir() const;
+
+	static string GetHomeDir();
 
 	string default_folder;
 
