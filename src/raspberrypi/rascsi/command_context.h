@@ -32,6 +32,7 @@ public:
 	CommandContext(const std::string& s = "", int f = -1) : locale(s), fd(f) {}
 	~CommandContext() = default;
 
+	const ProtobufSerializer& GetSerializer() const { return serializer; }
 	int GetFd() const { return fd; }
 	void SetFd(int f) { fd = f; }
 	bool IsValid() const { return fd != -1; }

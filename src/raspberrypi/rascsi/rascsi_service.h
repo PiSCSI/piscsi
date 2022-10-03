@@ -14,7 +14,6 @@
 #include <thread>
 
 class CommandContext;
-class ProtobufSerializer;
 
 using namespace std;
 
@@ -42,7 +41,7 @@ public:
 
 	void Execute() const;
 
-	int ReadCommand(const ProtobufSerializer&, rascsi_interface::PbCommand&) const;
+	PbCommand ReadCommand(CommandContext&) const;
 
 	static void KillHandler(int) { running = false; }
 };
