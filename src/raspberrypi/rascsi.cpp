@@ -11,11 +11,10 @@
 //---------------------------------------------------------------------------
 
 #include "config.h"
+#include "log.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/device.h"
-#include "devices/disk.h"
 #include "devices/file_support.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
