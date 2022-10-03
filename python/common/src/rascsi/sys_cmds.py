@@ -196,3 +196,18 @@ class SysCmds:
             return process.returncode, process.stdout.decode("utf-8")
 
         return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def get_filecontents(file_path):
+        """
+        Takes (str) file_path path to file to cat the content of.
+        Returns either the cat output, or the stderr output.
+        """
+        process = run(
+                ["cat", file_path],
+                capture_output=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")

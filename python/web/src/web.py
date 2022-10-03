@@ -57,6 +57,7 @@ from web_utils import (
     upload_with_dropzonejs,
 )
 from settings import (
+    WEB_DIR,
     AFP_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
@@ -493,13 +494,23 @@ def show_manpage():
     Displays manpage
     """
     app = request.args.get("app", default = "", type = str)
+    server_info = ractl_cmd.get_server_info()
 
     returncode, manpage = sys_cmd.get_manpage(app)
     if returncode == 0:
-        server_info = ractl_cmd.get_server_info()
         return response(
             template="manpage.html",
             app=app,
+            manpage=manpage,
+            version=server_info["version"],
+            )
+
+    # When the man command fails, fall back to display the rascsi manpage txt in the source dir
+    returncode, manpage = sys_cmd.get_filecontents(f"{WEB_DIR}/../../../doc/rascsi_man_page.txt")
+    if returncode == 0:
+        return response(
+            template="manpage.html",
+            app="rascsi",
             manpage=manpage,
             version=server_info["version"],
             )
