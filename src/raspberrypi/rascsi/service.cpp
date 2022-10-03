@@ -28,7 +28,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(bool (e)(const CommandContext&, PbCommand&), int port)
+bool RascsiService::Init(callback cb, int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
@@ -54,7 +54,7 @@ bool RascsiService::Init(bool (e)(const CommandContext&, PbCommand&), int port)
 		return false;
 	}
 
-	execute = e;
+	execute = cb;
 
 	monthread = thread(&RascsiService::Execute, this);
 	monthread.detach();
