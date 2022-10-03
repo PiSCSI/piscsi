@@ -83,7 +83,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 
     pb_device.set_allocated_properties(GetDeviceProperties(device).release());
 
-    auto status = make_unique<PbDeviceStatus>().release();
+    auto status = make_unique<PbDeviceStatus>().release(); //NOSONAR The allocated memory is managed by protobuf
 	pb_device.set_allocated_status(status);
 	status->set_protected_(device.IsProtected());
 	status->set_stopped(device.IsStopped());
