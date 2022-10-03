@@ -15,10 +15,9 @@
 using namespace std;
 using namespace rascsi_interface;
 
-void CommandContext::Cleanup()
+void CommandContext::Cleanup() const
 {
-	if (fd != -1)
-	{
+	if (fd != -1) {
 		close(fd);
 	}
 }
