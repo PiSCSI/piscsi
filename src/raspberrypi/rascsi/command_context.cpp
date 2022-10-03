@@ -15,13 +15,6 @@
 using namespace std;
 using namespace rascsi_interface;
 
-CommandContext::~CommandContext()
-{
-	if (fd != -1 && fd != STDOUT_FILENO) {
-		close(fd);
-	}
-}
-
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
 		const string& arg3) const
 {

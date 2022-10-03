@@ -97,6 +97,12 @@ void RascsiService::Execute() const
 		}
 		catch(const io_exception& e) {
 			LOGWARN("%s", e.get_msg().c_str())
+
+            // Fall through
+		}
+
+		if (context.IsValid()) {
+			close(context.GetFd());
 		}
 	}
 }
