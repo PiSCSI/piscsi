@@ -108,7 +108,7 @@ EXAMPLES
           fallocate -l 104857600 /path/to/newimage.hda
 
 SEE ALSO
-       rasctl(1), scsimon(1), rasdump(1), sasidump(1)
+       rasctl(1), scsimon(1), rasdump(1)
 
        Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
 

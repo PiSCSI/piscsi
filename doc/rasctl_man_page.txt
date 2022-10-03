@@ -143,7 +143,7 @@ EXAMPLES
           rasctl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       rascsi(1), scsimon(1), rasdump(1), sasidump(1)
+       rascsi(1), scsimon(1), rasdump(1)
 
        Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
 
