@@ -98,7 +98,7 @@ SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 
-SRC_RASCSI = ./rascsi/rascsi.cpp
+SRC_RASCSI = rascsi.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
