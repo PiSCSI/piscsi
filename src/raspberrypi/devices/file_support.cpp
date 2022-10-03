@@ -9,7 +9,6 @@
 
 #include "rascsi_exceptions.h"
 #include "file_support.h"
-#include <filesystem>
 
 using namespace std;
 
@@ -42,7 +41,14 @@ void FileSupport::UnreserveAll()
 	reserved_files.clear();
 }
 
-bool FileSupport::FileExists(const Filepath& filepath) const
+bool FileSupport::FileExists(const Filepath& filepath)
 {
-	return filesystem::exists(filepath.GetPath());
+	try {
+		Open(filepath);
+	}
+	catch(const file_not_found_exception&) {
+		return false;
+	}
+
+	return true;
 }
