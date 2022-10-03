@@ -12,12 +12,10 @@
 #include "localizer.h"
 #include "protobuf_serializer.h"
 #include "command_context.h"
-#include <sstream>
+#include <iostream>
 
 using namespace std;
 using namespace rascsi_interface;
-
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
 		const string& arg3) const
@@ -44,13 +42,10 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 	if (fd == -1) {
 		if (!msg.empty()) {
 			if (status) {
-				FPRT(stderr, "Error: ");
-				FPRT(stderr, "%s", msg.c_str());
-				FPRT(stderr, "\n");
+				cerr << "Error: " << msg << endl;
 			}
 			else {
-				FPRT(stdout, "%s", msg.c_str());
-				FPRT(stderr, "\n");
+				cout << msg << endl;
 			}
 		}
 	}
