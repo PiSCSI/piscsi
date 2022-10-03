@@ -28,7 +28,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(callback cb, int port)
+bool RascsiService::Init(const callback& cb, int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
@@ -64,7 +64,7 @@ bool RascsiService::Init(callback cb, int port)
 			&& signal(SIGTERM, KillHandler) != SIG_ERR;
 }
 
-void RascsiService::Execute()
+void RascsiService::Execute() const
 {
 #ifdef __linux
     // Scheduler Settings

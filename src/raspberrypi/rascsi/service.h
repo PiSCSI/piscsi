@@ -18,7 +18,7 @@ class ProtobufSerializer;
 
 using namespace std;
 
-class RascsiService
+class RascsiService //NOSONAR Destructor is needed to close socket
 {
 	using callback = function<bool(const CommandContext&, rascsi_interface::PbCommand&)>;
 
@@ -33,14 +33,14 @@ class RascsiService
 public:
 
 	RascsiService() = default;
-	~RascsiService(); //NOSONAR Destructor is needed to release external resource
+	~RascsiService();
 
-	bool Init(callback, int);
+	bool Init(const callback&, int);
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }
 
-	void Execute();
+	void Execute() const;
 
 	int ReadCommand(const ProtobufSerializer&, rascsi_interface::PbCommand&) const;
 
