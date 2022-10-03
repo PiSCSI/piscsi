@@ -376,13 +376,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	return true;
 }
 
-static bool ExecuteCommand(CommandContext& context, PbCommand& command)
+static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 {
-	context.locale = GetParam(command, "locale");
-	if (context.locale.empty()) {
-		context.locale = "en";
-	}
-
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}

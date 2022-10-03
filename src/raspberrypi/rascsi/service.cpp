@@ -13,6 +13,7 @@
 #include "protobuf_serializer.h"
 #include "localizer.h"
 #include "rasutil.h"
+#include "command_util.h"
 #include "service.h"
 #include <netinet/in.h>
 #include <csignal>
@@ -28,7 +29,7 @@ RascsiService::~RascsiService()
 	}
 }
 
-bool RascsiService::Init(bool (e)(CommandContext&, PbCommand&), int port)
+bool RascsiService::Init(bool (e)(const CommandContext&, PbCommand&), int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
@@ -94,6 +95,11 @@ void RascsiService::Execute()
 			context.fd = ReadCommand(serializer, command);
 			if (context.fd == -1) {
 				continue;
+			}
+
+			context.locale = command_util::GetParam(command, "locale");
+			if (context.locale.empty()) {
+				context.locale = "en";
 			}
 
 			execute(context, command);

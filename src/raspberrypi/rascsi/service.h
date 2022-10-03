@@ -17,7 +17,7 @@ class ProtobufSerializer;
 
 class RascsiService
 {
-	bool (*execute)(CommandContext&, rascsi_interface::PbCommand&) = nullptr;
+	bool (*execute)(const CommandContext&, rascsi_interface::PbCommand&) = nullptr;
 
 	int service_socket = -1;
 
@@ -30,7 +30,7 @@ public:
 	RascsiService() = default;
 	~RascsiService();
 
-	bool Init(bool (ExecuteCommand)(CommandContext&, rascsi_interface::PbCommand&), int);
+	bool Init(bool (ExecuteCommand)(const CommandContext&, rascsi_interface::PbCommand&), int);
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }
