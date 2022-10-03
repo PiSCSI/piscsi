@@ -9,8 +9,6 @@
 
 #include "log.h"
 #include "rascsi_interface.pb.h"
-#include "localizer.h"
-#include "protobuf_serializer.h"
 #include "command_context.h"
 #include <iostream>
 
