@@ -384,13 +384,13 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 	}
 
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
 	if (!PbOperation_IsValid(command.operation())) {
 		LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
 	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
@@ -401,22 +401,22 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		case LOG_LEVEL: {
 			string log_level = GetParam(command, "level");
 			if (bool status = executor.SetLogLevel(log_level); !status) {
-				ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL, log_level);
+				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
 				current_log_level = log_level;
 
-				ReturnStatus(context);
+				context.ReturnStatus();
 			}
 			break;
 		}
 
 		case DEFAULT_FOLDER: {
 			if (string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
-				ReturnStatus(context, false, status);
+				context.ReturnStatus(false, status);
 			}
 			else {
-				ReturnStatus(context);
+				context.ReturnStatus();
 			}
 			break;
 		}
@@ -464,7 +464,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case IMAGE_FILE_INFO: {
 			if (string filename = GetParam(command, "file"); filename.empty()) {
-				ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
+				context.ReturnLocalizedError( LocalizationKey::ERROR_MISSING_FILENAME);
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
@@ -475,7 +475,7 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 					serializer.SerializeMessage(context.fd, result);
 				}
 				else {
-					ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_FILE_INFO);
+					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
 				}
 			}
 			break;

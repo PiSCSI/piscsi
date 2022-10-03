@@ -9,10 +9,13 @@
 
 #pragma once
 
+#include "rascsi_interface.pb.h"
+#include "localizer.h"
 #include <string>
 
+using namespace rascsi_interface;
+
 class ProtobufSerializer;
-class Localizer;
 
 class CommandContext
 {
@@ -26,4 +29,8 @@ public:
 	const Localizer& localizer;
 	int fd;
 	std::string locale;
+
+	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "");
+	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "");
+	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
 };

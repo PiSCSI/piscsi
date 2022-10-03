@@ -19,8 +19,8 @@
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
 #include "protobuf_serializer.h"
-#include "command_context.h"
-#include "localizer.h"
+#include "rascsi/command_context.h"
+#include "rascsi/localizer.h"
 
 class MockBus final : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {

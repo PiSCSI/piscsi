@@ -14,6 +14,7 @@
 #include "spdlog/spdlog.h"
 #include "devices/file_support.h"
 #include "command_util.h"
+#include "command_context.h"
 #include "image.h"
 #include <string>
 #include <array>
@@ -38,7 +39,7 @@ bool RascsiImage::CheckDepth(string_view filename) const
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
-bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
+bool RascsiImage::CreateImageFolder(CommandContext& context, const string& filename) const
 {
 	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
@@ -48,7 +49,7 @@ bool RascsiImage::CreateImageFolder(const CommandContext& context, const string&
 			std::error_code error;
 			filesystem::create_directories(folder, error);
 			if (error) {
-				ReturnStatus(context, false, "Can't create image folder '" + folder + "': " + strerror(errno));
+				context.ReturnStatus(false, "Can't create image folder '" + folder + "': " + strerror(errno));
 				return false;
 			}
 		}
@@ -102,25 +103,25 @@ bool RascsiImage::IsValidDstFilename(const string& filename) const
 	return stat(filename.c_str(), &st);
 }
 
-bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
+bool RascsiImage::CreateImage(CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
-		return ReturnStatus(context, false, "Can't create image file: Missing image filename");
+		return context.ReturnStatus(false, "Can't create image file: Missing image filename");
 	}
 
 	if (!CheckDepth(filename)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
 	string full_filename = GetFullName(filename);
 	if (!IsValidDstFilename(full_filename)) {
-		return ReturnStatus(context, false, "Can't create image file: '" + full_filename + "': File already exists");
+		return context.ReturnStatus(false, "Can't create image file: '" + full_filename + "': File already exists");
 	}
 
 	const string size = GetParam(command, "size");
 	if (size.empty()) {
-		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Missing image size");
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': Missing image size");
 	}
 
 	off_t len;
@@ -128,13 +129,13 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		len = stoull(size);
 	}
 	catch(const invalid_argument&) {
-		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	catch(const out_of_range&) {
-		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
-		return ReturnStatus(context, false, "Invalid image file size " + to_string(len) + " (not a multiple of 512)");
+		return context.ReturnStatus(false, "Invalid image file size " + to_string(len) + " (not a multiple of 512)");
 	}
 
 	if (!CreateImageFolder(context, full_filename)) {
@@ -148,7 +149,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 
 	int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
-		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
 #ifndef __linux
@@ -163,7 +164,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 
 		unlink(full_filename.c_str());
 
-		return ReturnStatus(context, false, "Can't allocate space for image file '" + full_filename + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't allocate space for image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
 	close(image_fd);
@@ -171,19 +172,19 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	LOGINFO("%s", string("Created " + string(permissions & S_IWUSR ? "": "read-only ") + "image file '" + full_filename +
 			"' with a size of " + to_string(len) + " bytes").c_str())
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 #endif
 }
 
-bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
+bool RascsiImage::DeleteImage(CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
-		return ReturnStatus(context, false, "Missing image filename");
+		return context.ReturnStatus(false, "Missing image filename");
 	}
 
 	if (!CheckDepth(filename)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
 	string full_filename = GetFullName(filename);
@@ -193,12 +194,12 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	Filepath filepath;
 	filepath.SetPath(full_filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		return ReturnStatus(context, false, "Can't delete image file '" + full_filename +
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
 				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(unit));
 	}
 
 	if (remove(full_filename.c_str())) {
-		return ReturnStatus(context, false, "Can't delete image file '" + full_filename + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
 	// Delete empty subfolders
@@ -212,7 +213,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		}
 
 		if (remove(full_folder.c_str())) {
-			return ReturnStatus(context, false, "Can't delete empty image folder '" + full_folder + "'");
+			return context.ReturnStatus(false, "Can't delete empty image folder '" + full_folder + "'");
 		}
 
 		last_slash = folder.rfind('/');
@@ -220,37 +221,37 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 
 	LOGINFO("Deleted image file '%s'", full_filename.c_str())
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 }
 
-bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
+bool RascsiImage::RenameImage(CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
-		return ReturnStatus(context, false, "Can't rename/move image file: Missing source filename");
+		return context.ReturnStatus(false, "Can't rename/move image file: Missing source filename");
 	}
 
 	if (!CheckDepth(from)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
 	from = GetFullName(from);
 	if (!IsValidSrcFilename(from)) {
-		return ReturnStatus(context, false, "Can't rename/move image file: '" + from + "': Invalid name or type");
+		return context.ReturnStatus(false, "Can't rename/move image file: '" + from + "': Invalid name or type");
 	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
-		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "': Missing destination filename");
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "': Missing destination filename");
 	}
 
 	if (!CheckDepth(to)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
 	}
 
 	to = GetFullName(to);
 	if (!IsValidDstFilename(to)) {
-		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': File already exists");
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': File already exists");
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -258,47 +259,47 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 	}
 
 	if (rename(from.c_str(), to.c_str())) {
-		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
 	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str())
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 }
 
-bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
+bool RascsiImage::CopyImage(CommandContext& context, const PbCommand& command) const
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
-		return ReturnStatus(context, false, "Can't copy image file: Missing source filename");
+		return context.ReturnStatus(false, "Can't copy image file: Missing source filename");
 	}
 
 	if (!CheckDepth(from)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
 	from = GetFullName(from);
 	if (!IsValidSrcFilename(from)) {
-		return ReturnStatus(context, false, "Can't copy image file: '" + from + "': Invalid name or type");
+		return context.ReturnStatus(false, "Can't copy image file: '" + from + "': Invalid name or type");
 	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
-		return ReturnStatus(context, false, "Can't copy image file '" + from + "': Missing destination filename");
+		return context.ReturnStatus(false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
 
 	if (!CheckDepth(to)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
 	}
 
 	to = GetFullName(to);
 	if (!IsValidDstFilename(to)) {
-		return ReturnStatus(context, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
+		return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
 	}
 
 	struct stat st;
     if (lstat(from.c_str(), &st)) {
-    	return ReturnStatus(context, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
+    	return context.ReturnStatus(false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
     }
 
 	if (!CreateImageFolder(context, to)) {
@@ -308,17 +309,17 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
     // Symbolic links need a special handling
 	if ((st.st_mode & S_IFMT) == S_IFLNK) {
 		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
-	    	return ReturnStatus(context, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
+	    	return context.ReturnStatus(false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
 
 		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str())
 
-		return ReturnStatus(context);
+		return context.ReturnStatus();
 	}
 
 	int fd_src = open(from.c_str(), O_RDONLY, 0);
 	if (fd_src == -1) {
-		return ReturnStatus(context, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
 	string permission = GetParam(command, "read_only");
@@ -330,7 +331,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	if (fd_dst == -1) {
 		close(fd_src);
 
-		return ReturnStatus(context, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
+		return context.ReturnStatus(false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
 #ifndef __linux
@@ -347,7 +348,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 
 		unlink(to.c_str());
 
-        return ReturnStatus(context, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+        return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
     close(fd_dst);
@@ -355,31 +356,31 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 
 	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 #endif
 }
 
-bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
+bool RascsiImage::SetImagePermissions(CommandContext& context, const PbCommand& command) const
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
-		return ReturnStatus(context, false, "Missing image filename");
+		return context.ReturnStatus(false, "Missing image filename");
 	}
 
 	if (!CheckDepth(filename)) {
-		return ReturnStatus(context, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
 	filename = GetFullName(filename);
 	if (!IsValidSrcFilename(filename)) {
-		return ReturnStatus(context, false, "Can't modify image file '" + filename + "': Invalid name or type");
+		return context.ReturnStatus(false, "Can't modify image file '" + filename + "': Invalid name or type");
 	}
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
 	if (int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 		chmod(filename.c_str(), permissions) == -1) {
-		return ReturnStatus(context, false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
+		return context.ReturnStatus(false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
 				strerror(errno));
 	}
 
@@ -390,7 +391,7 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 		LOGINFO("Unprotected image file '%s'", filename.c_str())
 	}
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 }
 
 string RascsiImage::GetHomeDir() const

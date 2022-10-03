@@ -92,8 +92,7 @@ SRC_RASCSI_CORE = \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	command_util.cpp \
-	protobuf_serializer.cpp \
-	localizer.cpp
+	protobuf_serializer.cpp
 SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
@@ -114,8 +113,7 @@ SRC_RASCTL = \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	command_util.cpp \
-	protobuf_serializer.cpp \
-	localizer.cpp
+	protobuf_serializer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 SRC_RASCTL += $(shell find ./rasctl -name '*.cpp')
 
