@@ -276,7 +276,5 @@ public:
 	MockCommandContext() {
 		SetFd(open("/dev/null", O_WRONLY));
 	}
-	~MockCommandContext() {
-		Cleanup();
-	}
+	~MockCommandContext() = default;
 };
