@@ -14,6 +14,7 @@
 #include "protobuf_serializer.h"
 #include <string>
 
+using namespace std;
 using namespace rascsi_interface;
 
 class CommandContext
@@ -22,13 +23,13 @@ class CommandContext
 
 	const Localizer localizer;
 
-	int fd = -1;
+	string locale;
 
-	std::string locale;
+	int fd;
 
 public:
 
-	CommandContext(int f, const std::string& s) : fd(f), locale(s) {}
+	CommandContext(const std::string& s = "", int f = -1) : locale(s), fd(f) {}
 	~CommandContext() = default;
 
 	int GetFd() const { return fd; }

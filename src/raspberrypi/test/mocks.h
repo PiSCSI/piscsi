@@ -273,6 +273,6 @@ class MockCommandContext : public CommandContext
 {
 public:
 
-	MockCommandContext() : CommandContext(STDOUT_FILENO, "") {}
+	MockCommandContext() : CommandContext("", STDOUT_FILENO) {}
 	~MockCommandContext() = default;
 };

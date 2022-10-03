@@ -86,7 +86,7 @@ void RascsiService::Execute() const
 
 	ProtobufSerializer serializer;
 	while (true) {
-		CommandContext context(-1, "");
+		CommandContext context;
 
 		try {
 			PbCommand command;
