@@ -28,7 +28,7 @@ class RascsiService
 public:
 
 	RascsiService() = default;
-	~RascsiService();
+	~RascsiService(); //NOSONAR Destructor is needed to release external resource
 
 	bool Init(bool (ExecuteCommand)(const CommandContext&, rascsi_interface::PbCommand&), int);
 
