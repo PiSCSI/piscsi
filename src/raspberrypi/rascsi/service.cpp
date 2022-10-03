@@ -110,7 +110,7 @@ void RascsiService::Execute()
 	}
 }
 
-int RascsiService::ReadCommand(const ProtobufSerializer& serializer, PbCommand& command)
+int RascsiService::ReadCommand(const ProtobufSerializer& serializer, PbCommand& command) const
 {
 	// Wait for connection
 	sockaddr client = {};
