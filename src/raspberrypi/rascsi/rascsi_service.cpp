@@ -90,21 +90,14 @@ void RascsiService::Execute() const
 
 		try {
 			PbCommand command;
-			context.SetFd(ReadCommand(serializer, command));
-			if (!context.HasValidFd()) {
-				continue;
-			}
 
-			execute(context, command);
+			context.SetFd(ReadCommand(serializer, command));
+			if (context.IsValid()) {
+				execute(context, command);
+			}
 		}
 		catch(const io_exception& e) {
 			LOGWARN("%s", e.get_msg().c_str())
-
-			// Fall through
-		}
-
-		if (context.HasValidFd()) {
-			close(context.GetFd());
 		}
 	}
 }

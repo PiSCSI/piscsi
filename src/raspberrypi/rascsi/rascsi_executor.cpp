@@ -155,7 +155,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	}
 
 	// ATTACH and DETACH return the device list
-	if (context.HasValidFd() && (command.operation() == ATTACH || command.operation() == DETACH)) {
+	if (context.IsValid() && (command.operation() == ATTACH || command.operation() == DETACH)) {
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;

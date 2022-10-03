@@ -17,7 +17,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-class CommandContext
+class CommandContext //NOSONAR Destructor is needed to close socket
 {
 	const ProtobufSerializer serializer;
 
@@ -30,11 +30,11 @@ class CommandContext
 public:
 
 	CommandContext(const std::string& s = "", int f = -1) : locale(s), fd(f) {}
-	~CommandContext() = default;
+	~CommandContext();
 
 	int GetFd() const { return fd; }
 	void SetFd(int f) { fd = f; }
-	bool HasValidFd() const { return fd != -1; }
+	bool IsValid() const { return fd != -1; }
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
 	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "") const;
 	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true) const;
