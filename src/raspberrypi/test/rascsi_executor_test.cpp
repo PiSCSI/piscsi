@@ -109,9 +109,6 @@ TEST(RascsiExecutorTest, Attach)
 	AddParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Attach(context, definition, false));
 
-	AddParam(definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Empty image file not rejected";
-
 	// Further testing is not possible without a filesystem
 }
 
@@ -158,9 +155,6 @@ TEST(RascsiExecutorTest, Insert)
 
 	AddParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
-
-	AddParam(definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "File has 0 bytes";
 
 	// Further testing is not possible without a filesystem
 }
