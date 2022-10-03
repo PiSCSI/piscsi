@@ -35,7 +35,7 @@ public:
 	~RascsiService() = default;
 
 	bool Init(const callback&, int);
-	void Cleanup();
+	void Cleanup() const;
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }
