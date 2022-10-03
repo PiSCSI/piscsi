@@ -13,6 +13,7 @@
 #include "command_context.h"
 #include <string>
 
+using namespace std;
 using namespace rascsi_interface;
 
 class RascsiImage
@@ -39,6 +40,7 @@ public:
 
 private:
 
+	bool ValidateParams(const CommandContext&, const PbCommand&, const string&, string&, string&) const;
 	string GetHomeDir() const;
 
 	string default_folder;

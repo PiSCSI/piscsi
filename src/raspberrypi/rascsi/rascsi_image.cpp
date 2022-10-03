@@ -226,32 +226,10 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 
 bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
 {
-	string from = GetParam(command, "from");
-	if (from.empty()) {
-		return context.ReturnStatus(false, "Can't rename/move image file: Missing source filename");
-	}
-
-	if (!CheckDepth(from)) {
-		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
-	}
-
-	from = GetFullName(from);
-	if (!IsValidSrcFilename(from)) {
-		return context.ReturnStatus(false, "Can't rename/move image file: '" + from + "': Invalid name or type");
-	}
-
-	string to = GetParam(command, "to");
-	if (to.empty()) {
-		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "': Missing destination filename");
-	}
-
-	if (!CheckDepth(to)) {
-		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
-	}
-
-	to = GetFullName(to);
-	if (!IsValidDstFilename(to)) {
-		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': File already exists");
+	string from;
+	string to;
+	if (!ValidateParams(context, command, "rename/move", from, to)) {
+		return false;
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -269,32 +247,10 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 
 bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
 {
-	string from = GetParam(command, "from");
-	if (from.empty()) {
-		return context.ReturnStatus(false, "Can't copy image file: Missing source filename");
-	}
-
-	if (!CheckDepth(from)) {
-		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
-	}
-
-	from = GetFullName(from);
-	if (!IsValidSrcFilename(from)) {
-		return context.ReturnStatus(false, "Can't copy image file: '" + from + "': Invalid name or type");
-	}
-
-	string to = GetParam(command, "to");
-	if (to.empty()) {
-		return context.ReturnStatus(false, "Can't copy image file '" + from + "': Missing destination filename");
-	}
-
-	if (!CheckDepth(to)) {
-		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
-	}
-
-	to = GetFullName(to);
-	if (!IsValidDstFilename(to)) {
-		return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
+	string from;
+	string to;
+	if (!ValidateParams(context, command, "copy", from, to)) {
+		return false;
 	}
 
 	struct stat st;
@@ -339,6 +295,8 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
     close(fd_src);
 
 	unlink(to.c_str());
+
+	LOGWARN("Copying image files is only supported under Linux")
 
 	return false;
 #else
@@ -392,6 +350,40 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	}
 
 	return context.ReturnStatus();
+}
+
+bool RascsiImage::ValidateParams(const CommandContext& context, const PbCommand& command, const string& operation,
+		string& from, string& to) const
+{
+	from = GetParam(command, "from");
+	if (from.empty()) {
+		return context.ReturnStatus(false, "Can't " + operation + " image file: Missing source filename");
+	}
+
+	if (!CheckDepth(from)) {
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	}
+
+	from = GetFullName(from);
+	if (!IsValidSrcFilename(from)) {
+		return context.ReturnStatus(false, "Can't " + operation + " image file: '" + from + "': Invalid name or type");
+	}
+
+	to = GetParam(command, "to");
+	if (to.empty()) {
+		return context.ReturnStatus(false, "Can't " + operation + " image file '" + from + "': Missing destination filename");
+	}
+
+	if (!CheckDepth(to)) {
+		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+	}
+
+	to = GetFullName(to);
+	if (!IsValidDstFilename(to)) {
+		return context.ReturnStatus(false, "Can't " + operation + " image file '" + from + "' to '" + to + "': File already exists");
+	}
+
+	return true;
 }
 
 string RascsiImage::GetHomeDir() const
