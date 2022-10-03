@@ -89,7 +89,7 @@ bool Disk::Dispatch(scsi_command cmd)
 void Disk::Open(const Filepath& path)
 {
 	if (blocks == 0) {
-		throw io_exception("File size is 0 bytes");
+		throw io_exception("Disk has 0 blocks");
 	}
 
 	SetReady(true);
