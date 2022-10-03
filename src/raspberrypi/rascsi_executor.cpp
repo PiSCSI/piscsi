@@ -565,21 +565,18 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 
 	string initial_filename = filepath.GetPath();
 
-	try {
-		if (!file_support->FileExists(filepath)) {
-			// If the file does not exist search for it in the default image folder
-			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
+	if (!file_support->FileExists(filepath)) {
+		// If the file does not exist search for it in the default image folder
+		filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-						to_string(id), to_string(lun));
-			}
-
-			file_support->Open(filepath);
+		if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+					to_string(id), to_string(lun));
 		}
-	}
-	catch(const io_exception& e) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
+
+		if (!file_support->FileExists(filepath)) {
+			return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename);
+		}
 	}
 
 	full_path = filepath.GetPath();

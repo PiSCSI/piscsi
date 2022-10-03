@@ -114,11 +114,11 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "sv", "Saknar root-rättigheter för att kunna stänga av eller starta om systemet");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "fr", "Permissions root manquantes pour extinction ou redémarrage");
 	Add(LocalizationKey::ERROR_SHUTDOWN_PERMISSION, "es", "Falta el permiso de root para el apagado o el reinicio");
-	Add(LocalizationKey::ERROR_FILE_OPEN, "en", "Invalid or non-existing file '%1': %2");
-	Add(LocalizationKey::ERROR_FILE_OPEN, "de", "Ungültige oder fehlende Datei '%1': %2");
-	Add(LocalizationKey::ERROR_FILE_OPEN, "sv", "Ogiltig eller saknad fil '%1': %2");
-	Add(LocalizationKey::ERROR_FILE_OPEN, "fr", "Fichier invalide ou non-existant '%1': %2");
-	Add(LocalizationKey::ERROR_FILE_OPEN, "es", "Archivo inválido o inexistente '%1': %2");
+	Add(LocalizationKey::ERROR_FILE_OPEN, "en", "Invalid or non-existing file '%1'");
+	Add(LocalizationKey::ERROR_FILE_OPEN, "de", "Ungültige oder fehlende Datei '%1'");
+	Add(LocalizationKey::ERROR_FILE_OPEN, "sv", "Ogiltig eller saknad fil '%1'");
+	Add(LocalizationKey::ERROR_FILE_OPEN, "fr", "Fichier invalide ou non-existant '%1'");
+	Add(LocalizationKey::ERROR_FILE_OPEN, "es", "Archivo inválido o inexistente '%1'");
 	Add(LocalizationKey::ERROR_BLOCK_SIZE, "en", "Invalid block size %1 bytes");
 	Add(LocalizationKey::ERROR_BLOCK_SIZE, "de", "Ungültige Blockgröße %1 Bytes");
 	Add(LocalizationKey::ERROR_BLOCK_SIZE, "sv", "Ogiltig blockstorlek: %1 byte");
