@@ -273,6 +273,10 @@ class MockCommandContext : public CommandContext
 {
 public:
 
-	MockCommandContext() : CommandContext("", STDOUT_FILENO) {}
-	~MockCommandContext() = default;
+	MockCommandContext() {
+		SetFd(open("/dev/null", O_WRONLY));
+	}
+	~MockCommandContext() {
+		Cleanup();
+	}
 };
