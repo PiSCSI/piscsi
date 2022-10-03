@@ -353,8 +353,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	Localizer localizer;
-	CommandContext context(serializer, localizer, -1, locale);
+	CommandContext context(-1, locale);
 	if (!executor.ProcessCmd(context, command)) {
 		return false;
 	}

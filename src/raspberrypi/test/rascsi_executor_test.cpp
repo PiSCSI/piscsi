@@ -11,6 +11,7 @@
 #include "command_util.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
+#include "rascsi/command_context.h"
 #include "rascsi/response.h"
 #include "rascsi/image.h"
 #include "rascsi/executor.h"

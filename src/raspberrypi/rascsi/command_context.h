@@ -11,22 +11,20 @@
 
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
+#include "protobuf_serializer.h"
 #include <string>
 
 using namespace rascsi_interface;
-
-class ProtobufSerializer;
 
 class CommandContext
 {
 public:
 
-	CommandContext(const ProtobufSerializer& c, const Localizer& l, int f, const std::string& s)
-		: serializer(c), localizer(l), fd(f), locale(s) {}
+	CommandContext(int f, const std::string& s) : fd(f), locale(s) {}
 	~CommandContext() = default;
 
-	const ProtobufSerializer& serializer;
-	const Localizer& localizer;
+	const ProtobufSerializer serializer;
+	const Localizer localizer;
 	int fd;
 	std::string locale;
 
