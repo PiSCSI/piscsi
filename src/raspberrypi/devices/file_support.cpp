@@ -44,6 +44,7 @@ void FileSupport::UnreserveAll()
 bool FileSupport::FileExists(const Filepath& filepath)
 {
 	try {
+		// Disk::Open closes the file in case it exists
 		Open(filepath);
 	}
 	catch(const file_not_found_exception&) {
