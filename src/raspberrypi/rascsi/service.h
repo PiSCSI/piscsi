@@ -37,7 +37,7 @@ public:
 
 	void Execute();
 
-	int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
+	int ReadCommand(const ProtobufSerializer&, rascsi_interface::PbCommand&);
 
 	static void KillHandler(int) { running = false; }
 };

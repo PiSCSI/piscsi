@@ -34,12 +34,12 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 	sockaddr_in server = {};
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		LOGERROR("Unable to create socket");
+		LOGERROR("Unable to create socket")
 		return false;
 	}
 
 	server.sin_family = PF_INET;
-	server.sin_port = htons(port);
+	server.sin_port = htons((uint16_t)port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// Allow address reuse
@@ -110,7 +110,7 @@ void RascsiService::Execute()
 	}
 }
 
-int RascsiService::ReadCommand(ProtobufSerializer& serializer, PbCommand& command)
+int RascsiService::ReadCommand(const ProtobufSerializer& serializer, PbCommand& command)
 {
 	// Wait for connection
 	sockaddr client = {};

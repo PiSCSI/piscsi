@@ -30,7 +30,7 @@ public:
 	int fd;
 	std::string locale;
 
-	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "");
-	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "");
-	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
+	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
+	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "") const;
+	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true) const;
 };

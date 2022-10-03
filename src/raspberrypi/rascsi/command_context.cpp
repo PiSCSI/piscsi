@@ -20,13 +20,13 @@ using namespace rascsi_interface;
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
-		const string& arg3)
+		const string& arg3) const
 {
 	return ReturnLocalizedError(key, NO_ERROR_CODE, arg1, arg2, arg3);
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, PbErrorCode error_code, const string& arg1,
-		const string& arg2, const string& arg3)
+		const string& arg2, const string& arg3) const
 {
 	// For the logfile always use English
 	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
@@ -34,7 +34,7 @@ bool CommandContext::ReturnLocalizedError(LocalizationKey key, PbErrorCode error
 	return ReturnStatus(false, localizer.Localize(key, locale, arg1, arg2, arg3), error_code, false);
 }
 
-bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode error_code, bool log)
+bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode error_code, bool log) const
 {
 	// Do not log twice if logging has already been done in the localized error handling above
 	if (log && !status && !msg.empty()) {
