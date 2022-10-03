@@ -95,3 +95,11 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
     # Cleanup
     delete_file(file_name)
+
+# route("/sys/manpage", methods=["POST"])
+def test_show_manpage(http_client):
+    response = http_client.get("/sys/manpage?app=rascsi")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert "rascsi" in response_data["data"]["manpage"]

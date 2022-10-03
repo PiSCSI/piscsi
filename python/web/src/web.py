@@ -57,6 +57,7 @@ from web_utils import (
     upload_with_dropzonejs,
 )
 from settings import (
+    WEB_DIR,
     AFP_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
@@ -484,6 +485,45 @@ def show_diskinfo():
     return response(
         error=True,
         message=_("An error occurred when getting disk info: %(error)s", error=diskinfo)
+    )
+
+
+@APP.route("/sys/manpage", methods=["GET"])
+def show_manpage():
+    """
+    Displays manpage
+    """
+    app_allowlist = ["rascsi", "rasctl", "rasdump", "scsimon"]
+
+    app = request.args.get("app", type = str)
+
+    if app not in app_allowlist:
+        return response(
+            error=True,
+            message=_("%(app)s is not a recognized RaSCSI app", app=app)
+        )
+
+    server_info = ractl_cmd.get_server_info()
+    file_path = f"{WEB_DIR}/../../../doc/{app}_man_page.txt"
+
+    returncode, manpage = sys_cmd.get_filecontents(file_path)
+    if returncode == 0:
+        formatted_manpage = ""
+        for line in manpage.splitlines(True):
+            # Strip out irrelevant header
+            if not line.startswith("!!"):
+                formatted_manpage += line
+
+        return response(
+            template="manpage.html",
+            app=app,
+            manpage=formatted_manpage,
+            version=server_info["version"],
+            )
+
+    return response(
+        error=True,
+        message=_("An error occurred when accessing man page: %(error)s", error=manpage)
     )
 
 
