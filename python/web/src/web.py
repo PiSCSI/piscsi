@@ -504,14 +504,14 @@ def show_manpage():
         )
 
     server_info = ractl_cmd.get_server_info()
-    file_path = f"{WEB_DIR}/../../../doc/{app}_man_page.txt"
+    file_path = f"{WEB_DIR}/../../../doc/{app}.1"
 
-    returncode, manpage = sys_cmd.get_filecontents(file_path)
+    returncode, manpage = sys_cmd.get_manpage(file_path)
     if returncode == 0:
         formatted_manpage = ""
         for line in manpage.splitlines(True):
             # Strip out irrelevant header
-            if not line.startswith("!!"):
+            #if not line.startswith("!!"):
                 formatted_manpage += line
 
         return response(
