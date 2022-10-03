@@ -353,8 +353,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	CommandContext context(-1, locale);
-	if (!executor.ProcessCmd(context, command)) {
+	if (CommandContext context(-1, locale); !executor.ProcessCmd(context, command)) {
 		return false;
 	}
 
