@@ -97,7 +97,6 @@ SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
-SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
 SRC_RASCSI = ./rascsi/rascsi.cpp
 
@@ -114,7 +113,6 @@ SRC_RASCTL = \
 	rasutil.cpp \
 	command_util.cpp \
 	protobuf_serializer.cpp
-SRC_RASCTL += $(SRC_PROTOBUF)
 SRC_RASCTL += $(shell find ./rasctl -name '*.cpp')
 
 SRC_RASDUMP = \
@@ -140,6 +138,7 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
+OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
@@ -189,11 +188,11 @@ docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/s
 
 $(SRC_RASCSI_CORE): $(SRC_PROTOBUF)
 
-$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs
+$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs
 
-$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf
+$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
@@ -201,8 +200,8 @@ $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI_TEST) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 
 # Phony rules for building individual utilities
