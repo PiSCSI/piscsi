@@ -14,7 +14,7 @@
 #include "command_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
-#include "rascsi_response.h"
+#include "response.h"
 
 using namespace rascsi_interface;
 using namespace command_util;

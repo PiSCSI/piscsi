@@ -9,7 +9,7 @@
 
 #include "rascsi_interface.pb.h"
 #include "rasutil.h"
-#include "rasctl_display.h"
+#include "display.h"
 #include <iostream>
 #include <list>
 

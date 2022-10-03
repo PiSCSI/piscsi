@@ -90,20 +90,17 @@ SRC_RASCSI_CORE = \
 	filepath.cpp \
 	fileio.cpp \
 	rascsi_version.cpp \
-	rascsi_image.cpp \
-	rascsi_response.cpp \
-	rascsi_executor.cpp \
 	rasutil.cpp \
 	command_util.cpp \
 	protobuf_serializer.cpp \
 	localizer.cpp
+SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
-SRC_RASCSI = rascsi.cpp \
-	rascsi_service.cpp
+SRC_RASCSI = ./rascsi/rascsi.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
@@ -114,14 +111,13 @@ SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
-	rasctl_commands.cpp \
-	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	command_util.cpp \
 	protobuf_serializer.cpp \
 	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
+SRC_RASCTL += $(shell find ./rasctl -name '*.cpp')
 
 SRC_RASDUMP = \
 	rasdump.cpp \
@@ -134,8 +130,8 @@ SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./rascsi ./rasctl
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -192,6 +188,8 @@ lcov: test
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
+
+$(SRC_RASCSI_CORE): $(SRC_PROTOBUF)
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs

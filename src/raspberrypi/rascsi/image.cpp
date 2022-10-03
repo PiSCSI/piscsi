@@ -14,7 +14,7 @@
 #include "spdlog/spdlog.h"
 #include "devices/file_support.h"
 #include "command_util.h"
-#include "rascsi_image.h"
+#include "image.h"
 #include <string>
 #include <array>
 #include <filesystem>

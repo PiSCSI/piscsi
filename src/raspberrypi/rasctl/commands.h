@@ -11,7 +11,7 @@
 
 #include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
-#include "rasctl_display.h"
+#include "display.h"
 #include <string>
 
 using namespace rascsi_interface;

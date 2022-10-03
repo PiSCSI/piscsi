@@ -14,6 +14,8 @@
 #include "google/protobuf/message.h"
 #include <vector>
 
+using namespace std;
+
 class ProtobufSerializer
 {
 public:

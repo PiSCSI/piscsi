@@ -13,7 +13,7 @@
 #include "protobuf_serializer.h"
 #include "localizer.h"
 #include "rasutil.h"
-#include "rascsi_service.h"
+#include "service.h"
 #include <netinet/in.h>
 #include <csignal>
 
