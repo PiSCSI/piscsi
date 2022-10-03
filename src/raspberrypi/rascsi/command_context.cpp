@@ -17,7 +17,7 @@ using namespace rascsi_interface;
 
 CommandContext::~CommandContext()
 {
-	if (fd != -1) {
+	if (fd != -1 && fd != STDOUT_FILENO) {
 		close(fd);
 	}
 }
