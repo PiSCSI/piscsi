@@ -15,7 +15,7 @@
 #include "devices/file_support.h"
 #include "command_util.h"
 #include "command_context.h"
-#include "image.h"
+#include "rascsi_image.h"
 #include <string>
 #include <array>
 #include <filesystem>

@@ -12,9 +12,9 @@
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "rascsi/command_context.h"
-#include "rascsi/response.h"
-#include "rascsi/image.h"
-#include "rascsi/executor.h"
+#include "rascsi/rascsi_response.h"
+#include "rascsi/rascsi_image.h"
+#include "rascsi/rascsi_executor.h"
 
 using namespace rascsi_interface;
 using namespace command_util;
