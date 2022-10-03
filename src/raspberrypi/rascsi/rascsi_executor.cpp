@@ -155,12 +155,12 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	}
 
 	// ATTACH and DETACH return the device list
-	if (context.fd != -1 && (command.operation() == ATTACH || command.operation() == DETACH)) {
+	if (context.HasValidFd() && (command.operation() == ATTACH || command.operation() == DETACH)) {
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, cmd, rascsi_image.GetDefaultFolder());
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 		return true;
 	}
 
@@ -456,7 +456,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "rascsi") {
 		LOGINFO("RaSCSI shutdown requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		return true;
 	}
@@ -473,7 +473,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "system") {
 		LOGINFO("System shutdown requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 
@@ -484,7 +484,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	else if (mode == "reboot") {
 		LOGINFO("System reboot requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 

@@ -410,13 +410,13 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 		case DEVICES_INFO: {
 			rascsi_response.GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
 			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -425,19 +425,19 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 					result, executor.GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case VERSION_INFO: {
 			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
 			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -445,7 +445,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -459,7 +459,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
-					serializer.SerializeMessage(context.fd, result);
+					serializer.SerializeMessage(context.GetFd(), result);
 				}
 				else {
 					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
@@ -470,27 +470,27 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 		case NETWORK_INTERFACES_INFO: {
 			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case MAPPING_INFO: {
 			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case OPERATION_INFO: {
 			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
 					rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
 			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result,
 					executor.GetReservedIds()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 

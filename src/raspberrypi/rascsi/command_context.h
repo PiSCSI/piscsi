@@ -18,16 +18,22 @@ using namespace rascsi_interface;
 
 class CommandContext
 {
+	const ProtobufSerializer serializer;
+
+	const Localizer localizer;
+
+	int fd = -1;
+
+	std::string locale;
+
 public:
 
 	CommandContext(int f, const std::string& s) : fd(f), locale(s) {}
 	~CommandContext() = default;
 
-	const ProtobufSerializer serializer;
-	const Localizer localizer;
-	int fd;
-	std::string locale;
-
+	int GetFd() const { return fd; }
+	void SetFd(int f) { fd = f; }
+	bool HasValidFd() const { return fd != -1; }
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
 	bool ReturnLocalizedError(LocalizationKey, PbErrorCode, const string& = "", const string& = "", const string& = "") const;
 	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true) const;
