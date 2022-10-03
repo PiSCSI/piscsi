@@ -42,21 +42,19 @@
             {% if units %}
             <td><b>{{ _("LUN") }}</b></td>
             {% endif %}
-            <td><b>{{ _("Type") }}</b></td>
-            <td><b>{{ _("Status") }}</b></td>
-            <td><b>{{ _("File") }}</b></td>
+            <td><b>{{ _("Device") }}</b></td>
+            <td><b>{{ _("Parameters") }}</b></td>
             <td><b>{{ _("Product") }}</b></td>
             <td><b>{{ _("Actions") }}</b></td>
         </tr>
-        {% for device in devices %}
+        {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{ device.id }}</td>
             {% if units %}
             <td style="text-align:center">{{ device.unit }}</td>
             {% endif %}
-            <td style="text-align:center">{{ device.device_type }}</td>
-            <td style="text-align:center">{{ device.status }}</td>
+            <td style="text-align:center">{{ device.device_name }}</td>
             <td style="text-align:left">
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
@@ -84,14 +82,30 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
+            {% if device.params %}
+            {% for key in device.params %}
+            {% if key == "interface" %}
+            ({{device.params[key]}})
+            {% elif key == "timeout" %}
+            ({{key}}:{{device.params[key]}})
+            {% else %}
+            {{device.params[key]}}
+            {% endif %}
+            {% endfor %}
+            {% elif device.file %}
             {{ device.file }}
             {% endif %}
-            </td>
-            {% if device.vendor == "RaSCSI" %}
-            <td style="text-align:center">{{ device.product }}</td>
-            {% else %}
-            <td style="text-align:center">{{ device.vendor }} {{ device.product }}</td>
             {% endif %}
+            </td>
+            <td style="text-align:center">
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.vendor }}
+                {% endif %}
+                {{ device.product }}
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.revision }}
+                {% endif %}
+            </td>
             <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
@@ -119,7 +133,6 @@
             {% if units %}
             <td class="inactive"></td>
             {% endif %}
-            <td class="inactive"></td>
             <td class="inactive">{{ _("Reserved ID") }}</td>
             <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
             <td class="inactive"></td>
@@ -179,7 +192,7 @@
         <tr style="font-weight: bold;">
             <td>{{ _("File") }}</td>
             <td>{{ _("Size") }}</td>
-            <td>{{ _("Parameters and Actions") }}</td>
+            <td>{{ _("Actions") }}</td>
         </tr>
         {% for file in files|sort(attribute='name') %}
         <tr>

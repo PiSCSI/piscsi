@@ -47,18 +47,25 @@ def sort_and_format_devices(devices):
     For SCSI IDs where no device is attached, inject a (dict) with placeholder text.
     """
     occupied_ids = []
+    formatted_devices = []
     for device in devices:
         occupied_ids.append(device["id"])
+        device["device_name"] = get_device_name(device["device_type"])
+        formatted_devices.append(device)
 
-    formatted_devices = devices
-
-    # Add padding devices and sort the list
-    for i in range(8):
-        if i not in occupied_ids:
-            formatted_devices.append({"id": i, "device_type": "-", \
-                    "status": "-", "file": "-", "product": "-"})
-    # Sort list of devices by id
-    formatted_devices.sort(key=lambda dic: str(dic["id"]))
+    # Add placeholder data for non-occupied IDs
+    for scsi_id in range(8):
+        if scsi_id not in occupied_ids:
+            formatted_devices.append(
+                {
+                    "id": scsi_id,
+                    "unit": "-",
+                    "device_name": "-",
+                    "status": "-",
+                    "file": "-",
+                    "product": "-",
+                }
+            )
 
     return formatted_devices
 
@@ -91,7 +98,7 @@ def get_device_name(device_type):
     if device_type == "SCBR":
         return _("Host Bridge")
     if device_type == "SCDP":
-        return _("DaynaPORT SCSI/Link")
+        return _("Ethernet Adapter")
     if device_type == "SCLP":
         return _("Printer")
     if device_type == "SCHS":
