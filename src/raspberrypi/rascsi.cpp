@@ -51,7 +51,6 @@ using namespace command_util;
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 static const int DEFAULT_PORT = 6868;
 static const char COMPONENT_SEPARATOR = ':';
 
@@ -74,32 +73,28 @@ const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
 {
-	FPRT(stdout,"SCSI Target Emulator RaSCSI Reloaded ");
-	FPRT(stdout,"version %s (%s, %s)\n",
-		rascsi_get_version_string().c_str(),
-		__DATE__,
-		__TIME__);
-	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
-	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
-	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC.c_str());
+	cout << "SCSI Target Emulator RaSCSI Reloaded version " << rascsi_get_version_string()
+			<< "  (" << __DATE__ << ' ' << __TIME__ << ')' << endl;
+	cout << "Powered by XM6 TypeG Technology / ";
+	cout << "Copyright (C) 2016-2020 GIMONS" << endl;
+	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project" << endl;
+	cout << "Connect type: " << CONNECT_DESC << endl;
 
-	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
-		(argc > 1 && strcmp(argv[1], "--help") == 0)){
-		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-idn[:m] FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is SCSI device ID (0-7).\n");
-		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
-		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
-		FPRT(stdout," Image type is detected based on file extension if no explicit type is specified.\n");
-		FPRT(stdout,"  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n");
-		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
-		FPRT(stdout,"  hdr : SCSI HD image (Removable generic HD image)\n");
-		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
-		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
-		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
-		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
-		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
+	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
+		cout << endl;
+		cout << "Usage: " << argv[0] << " [-idn[:m] FILE] ..." << endl << endl;
+		cout << " n is SCSI device ID (0-7)." << endl;
+		cout << " m is the optional logical unit (LUN) (0-31)." << endl;
+		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\"." << endl << endl;
+		cout << " Image type is detected based on file extension if no explicit type is specified." << endl;
+		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)" << endl;
+		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)" << endl;
+		cout << "  hdr : SCSI HD image (Removable generic HD image)" << endl;
+		cout << "  hdn : SCSI HD image (NEC GENUINE)" << endl;
+		cout << "  hdi : SCSI HD image (Anex86 HD image)" << endl;
+		cout << "  nhd : SCSI HD image (T98Next HD image)" << endl;
+		cout << "  mos : SCSI MO image (MO image)" << endl;
+		cout << "  iso : SCSI CD image (ISO 9660 image)" << endl;
 
 		exit(EXIT_SUCCESS);
 	}
