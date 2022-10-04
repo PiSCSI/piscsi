@@ -55,7 +55,7 @@ private:
 	// Internal data
 	array<cache_t, CACHE_MAX> cache = {};		// Cache management
 	uint32_t serial = 0;						// Last serial number
-	const Filepath sec_path;					// Path
+	Filepath sec_path;							// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
 	bool cd_raw = false;						// CD-ROM RAW mode
