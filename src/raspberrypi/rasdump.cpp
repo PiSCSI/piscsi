@@ -18,6 +18,7 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
+#include <cstring>
 #include <iostream>
 #include <array>
 
@@ -258,8 +259,8 @@ bool Selection(int id)
 	// wait for busy
 	count = 10000;
 	do {
-		// Wait 20 ms
-		timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000000};
+		// Wait 20 microseconds
+		timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
 		nanosleep(&ts, nullptr);
 		bus.Acquire();
 		if (bus.GetBSY()) {

@@ -504,8 +504,8 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		default: {
-			// Wait 500 s until we become idle
-			timespec ts = { .tv_sec = 500, .tv_nsec = 0};
+			// Wait until we become idle
+			timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
 			while (active) {
 				nanosleep(&ts, nullptr);
 			}
