@@ -45,39 +45,39 @@
     <div class="header">
         {% if env["auth_active"] %}
         {% if env["username"] %}
+        <span class="header" id="logged_in">
         <center>
-            <span style="display: inline-block; width: 100%; color: white; background-color: green; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
             {{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }} &#8211; <a href="/logout">{{ _("Log Out") }}</a>
-            </span>
         </center>
+        </span>
         {% else %}
+        <span class="header" id="logged_out">
         <center>
-            <span style="display: inline-block; width: 100%; color: white; background-color: red; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
-                <form method="POST" action="/login">
-                    <div>{{ _("Log In to Use Web Interface") }}</div>
-                    <input type="text" name="username" placeholder="{{ _("Username") }}">
-                    <input type="password" name="password" placeholder="{{ _("Password") }}">
-                    <input type="submit" value="Login">
-                </form>
-            </span>
+            <form method="POST" action="/login">
+                <div>{{ _("Log In to Use Web Interface") }}</div>
+                <input type="text" name="username" placeholder="{{ _("Username") }}">
+                <input type="password" name="password" placeholder="{{ _("Password") }}">
+                <input type="submit" value="Login">
+            </form>
         </center>
+        </span>
         {% endif %}
         {% else %}
+        <span class="header" id="logged_out">
         <center>
-            <span style="display: inline-block; width: 100%; color: white; background-color: green; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
-                {{ _("Web Interface Authentication Disabled") }} &#8211; {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
-            </span>
+            {{ _("Web Interface Authentication Disabled") }} &#8211; {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
         </center>
+        </span>
         {% endif %}
+        <span class="header">
         <center>
-            <span style="display: inline-block; width: 100%; color: white; background-color: black; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
-                    <a href="/">
-                        <h1>{{ _("RaSCSI Reloaded Control Page") }}</h1>
-                    </a>
-            </span>
+            <a href="/">
+                <h1>{{ _("RaSCSI Reloaded Control Page") }}</h1>
+            </a>
         </center>
-        <span style="display: inline-block; width: 100%; color: white; background-color: black; text-align: left; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
-                hostname: {{ env["host"] }} ip: {{ env["ip_addr"] }}
+        </span>
+        <span>
+            hostname: {{ env["host"] }} ip: {{ env["ip_addr"] }}
         </span>
     </div>
     <div class="flash" id="flash">

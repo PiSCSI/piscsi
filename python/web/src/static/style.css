@@ -31,6 +31,22 @@ table, tr, td {
   margin: none;
 }
 
+.header {
+  display: inline-block;
+  width: 100%;
+  color: white;
+  vertical-align: center;
+  background-color: black;
+}
+
+#logged_in {
+  background-color: green;
+}
+
+#logged_out {
+  background-color: red;
+}
+
 div.flash {
   margin-top: 5px;
   margin-bottom: 5px;
