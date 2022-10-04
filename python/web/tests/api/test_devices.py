@@ -1,7 +1,6 @@
 import pytest
 
 from conftest import (
-    IMAGES_DIR,
     SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
@@ -27,7 +26,7 @@ def test_attach_image(http_client, create_test_image, detach_devices):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"Attached {test_image} as Hard Disk to SCSI ID {SCSI_ID} LUN 0"
+        f"Attached {test_image} as Hard Disk Drive to SCSI ID {SCSI_ID} LUN 0"
     )
 
     # Cleanup
@@ -38,9 +37,44 @@ def test_attach_image(http_client, create_test_image, detach_devices):
 @pytest.mark.parametrize(
     "device_name,device_config",
     [
-        # TODO: Fix networking in container, else SCBR attachment fails
-        # ("X68000 Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
-        ("DaynaPORT SCSI/Link", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
+        (
+            "Removable Disk Drive",
+            {
+                "type": "SCRM",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
+        ),
+        (
+            "Magneto-Optical Drive",
+            {
+                "type": "SCMO",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
+        ),
+        (
+            "CD/DVD Drive",
+            {
+                "type": "SCCD",
+                "drive_props": {
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
+                    "revision": "0123",
+                    "block_size": "512",
+                },
+            },
+        ),
+        ("Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
+        ("Ethernet Adapter", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
         ("Host Services", {"type": "SCHS"}),
         ("Printer", {"type": "SCLP", "timeout": 30, "cmd": "lp -oraw %f"}),
     ],
