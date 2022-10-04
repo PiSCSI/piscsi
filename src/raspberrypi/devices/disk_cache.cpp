@@ -16,6 +16,7 @@
 
 #include "disk_track.h"
 #include "disk_cache.h"
+#include <cassert>
 
 DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff)
 	: sec_size(size), sec_blocks(blocks), imgoffset(imgoff)

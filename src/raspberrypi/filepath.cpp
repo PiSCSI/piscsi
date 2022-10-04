@@ -11,6 +11,7 @@
 #include "filepath.h"
 #include <libgen.h>
 #include <cstring>
+#include <cassert>
 
 Filepath& Filepath::operator=(const Filepath& path)
 {

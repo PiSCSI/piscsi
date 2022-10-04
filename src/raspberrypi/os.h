@@ -14,7 +14,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cassert>
 #include <cstdint>
 
 using BYTE = unsigned char;

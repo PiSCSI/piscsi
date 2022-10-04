@@ -11,6 +11,7 @@
 #include "fileio.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <cassert>
 
 Fileio::~Fileio()
 {
