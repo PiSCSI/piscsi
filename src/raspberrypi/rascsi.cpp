@@ -504,9 +504,10 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		default: {
-			// Wait until we become idle
+			// Wait 500 s until we become idle
+			timespec ts = { .tv_sec = 500, .tv_nsec = 0};
 			while (active) {
-				usleep(500 * 1000);
+				nanosleep(&ts, nullptr);
 			}
 
 			executor.ProcessCmd(context, command);
@@ -598,7 +599,8 @@ int main(int argc, char* argv[])
 #else
 		bus.Acquire();
 		if (!bus.GetSEL()) {
-			usleep(0);
+			timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+			nanosleep(&ts, nullptr);
 			continue;
 		}
 #endif
