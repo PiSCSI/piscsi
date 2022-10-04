@@ -10,7 +10,7 @@
 #include "mocks.h"
 #include "devices/ctapdriver.h"
 
-TEST(CTapDriver, Crc32)
+TEST(CTapDriverTest, Crc32)
 {
 	BYTE buf[ETH_FRAME_LEN];
 
