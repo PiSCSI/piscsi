@@ -951,7 +951,7 @@ void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 
 	switch (nFunction) {
 		case 2:
-		case (DWORD)-2:
+		case (uint32_t)-2:
 			pIoctrl->param = htonl(pIoctrl->param);
 			break;
 		default:
@@ -965,7 +965,7 @@ void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 			pIoctrl->media = htons(pIoctrl->media);
 			break;
 		case 1:
-		case (DWORD)-3:
+		case (uint32_t)-3:
 			pIoctrl->param = htonl(pIoctrl->param);
 			break;
 		default:

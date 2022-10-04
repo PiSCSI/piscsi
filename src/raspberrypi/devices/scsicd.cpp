@@ -160,10 +160,10 @@ void SCSICD::OpenIso(const Filepath& path)
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size / 0x930));
+		SetBlockCount((uint32_t)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -197,7 +197,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
 	assert(!tracks.size());
@@ -459,7 +459,7 @@ void SCSICD::ClearTrack()
 //	* Returns -1 if not found
 //
 //---------------------------------------------------------------------------
-int SCSICD::SearchTrack(DWORD lba) const
+int SCSICD::SearchTrack(uint32_t lba) const
 {
 	// Track loop
 	for (size_t i = 0; i < tracks.size(); i++) {

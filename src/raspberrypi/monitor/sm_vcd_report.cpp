@@ -54,14 +54,14 @@ static BYTE prev_value[32] = {0xFF};
 
 extern double ns_per_loop;
 
-static BYTE get_pin_value(DWORD data, int pin)
+static BYTE get_pin_value(uint32_t data, int pin)
 {
     return (data >> pin) & 1;
 }
 
-static BYTE get_data_field(DWORD data)
+static BYTE get_data_field(uint32_t data)
 {
-    DWORD data_out =
+    uint32_t data_out =
         ((data >> (PIN_DT0 - 0)) & (1 << 7)) |
         ((data >> (PIN_DT1 - 1)) & (1 << 6)) |
         ((data >> (PIN_DT2 - 2)) & (1 << 5)) |
@@ -74,7 +74,7 @@ static BYTE get_data_field(DWORD data)
     return (BYTE)data_out;
 }
 
-static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
 {
     BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
     if (prev_value[pin] != (int)new_value)
@@ -84,7 +84,7 @@ static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char 
     }
 }
 
-static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, char symbol)
 {
     BYTE new_value = get_pin_value(data, pin);
     if (prev_value[pin] != new_value)
@@ -94,7 +94,7 @@ static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char s
     }
 }
 
-static void vcd_output_if_changed_byte(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, char symbol)
 {
     BYTE new_value = get_data_field(data);
     if (prev_value[pin] != new_value)
@@ -113,7 +113,7 @@ static void vcd_output_if_changed_byte(ofstream& fp, DWORD data, int pin, char s
     }
 }
 
-void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
+void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
     LOGTRACE("Creating Value Change Dump file (%s)", filename);
     ofstream vcd_ofstream;
@@ -126,7 +126,7 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
     char timestamp[256];
     strftime(timestamp, sizeof(timestamp), "%d-%m-%Y %H-%M-%S", timeinfo);
 
-    vcd_ofstream 
+    vcd_ofstream
         << "$date" << endl
         << timestamp << endl
         << "$end" << endl
@@ -167,7 +167,7 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
         << "b00000000 " << SYMBOL_PIN_DAT << endl
         << "$end" << endl;
 
-    DWORD i = 0;
+    uint32_t i = 0;
     while (i < capture_count)
     {
         vcd_ofstream << "#" << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop) << endl;

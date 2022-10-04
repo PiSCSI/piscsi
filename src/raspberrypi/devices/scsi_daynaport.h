@@ -88,7 +88,7 @@ public:
 	// The READ response has a header which consists of:
 	//   2 bytes - payload size
 	//   4 bytes - status flags
-	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
+	static const uint32_t DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
 	using super = Disk;

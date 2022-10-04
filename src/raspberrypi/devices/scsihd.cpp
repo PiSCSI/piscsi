@@ -84,7 +84,7 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
 	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();

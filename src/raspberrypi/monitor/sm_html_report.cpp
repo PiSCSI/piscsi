@@ -98,12 +98,12 @@ for (i = 0; i < coll.length; i++) {
 )";
 
 
-static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, DWORD capture_count)
+static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, uint32_t capture_count)
 {
     const data_capture *data;
     bool prev_data_valid = false;
     bool curr_data_valid;
-    DWORD selected_id = 0;
+    uint32_t selected_id = 0;
     BUS::phase_t prev_phase = BUS::phase_t::busfree;
     bool close_row = false;
     int data_space_count = 0;
@@ -112,7 +112,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
 
     html_fp << "<table>" << endl;
 
-    for (DWORD idx = 0; idx < capture_count; idx++)
+    for (uint32_t idx = 0; idx < capture_count; idx++)
     {
         data = &data_capture_array[idx];
         curr_data_valid = GetAck(data) && GetReq(data);
@@ -187,7 +187,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
     }
 }
 
-void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
+void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
     LOGINFO("Creating HTML report file (%s)", filename);
 

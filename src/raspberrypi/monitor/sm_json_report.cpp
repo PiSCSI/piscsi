@@ -19,11 +19,11 @@ using namespace std;
 const char timestamp_label[] = "\"timestamp\":\"0x";
 const char data_label[] = "\"data\":\"0x";
 
-DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_array, DWORD max_sz)
+uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture_array, uint32_t max_sz)
 {
     char str_buf[1024];
     FILE *fp = fopen(json_filename, "r");
-    DWORD sample_count = 0;
+    uint32_t sample_count = 0;
 
     while (fgets(str_buf, sizeof(str_buf), fp))
     {
@@ -74,7 +74,7 @@ DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_ar
 //	Generate JSON Output File
 //
 //---------------------------------------------------------------------------
-void scsimon_generate_json(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
+void scsimon_generate_json(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
     LOGTRACE("Creating JSON file (%s)", filename);
     ofstream json_ofstream;
@@ -82,7 +82,7 @@ void scsimon_generate_json(const char *filename, const data_capture *data_captur
 
     json_ofstream << "[" << endl;
 
-    DWORD i = 0;
+    uint32_t i = 0;
     while (i < capture_count)
     {
         json_ofstream << fmt::format("{{\"id\": \"{0:d}\", \"timestamp\":\"{1:#016x}\", \"data\":\"{2:#08x}\"}}", i, data_capture_array[i].timestamp, data_capture_array[i].data);

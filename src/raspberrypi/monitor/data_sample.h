@@ -16,7 +16,7 @@
 
 using data_capture_t = struct data_capture
 {
-	DWORD data;
+	uint32_t data;
 	uint64_t timestamp;
 };
 
@@ -34,7 +34,7 @@ inline bool GetReq(const data_capture *sample) { return BUS::GetPinRaw(sample->d
 inline bool GetDp(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_DP); }
 inline BYTE GetData(const data_capture *sample)
 {
-	DWORD data = sample->data;
+	uint32_t data = sample->data;
 	return (BYTE)((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		   ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
 		   ((data >> (PIN_DT2 - 2)) & (1 << 2)) |

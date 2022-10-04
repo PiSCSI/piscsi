@@ -7,15 +7,11 @@
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) 2020 akuker
 //
-//	[ OS related definitions ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include <cstdlib>
 #include <cstdint>
 
 using BYTE = unsigned char;
-using WORD = uint16_t;
 using DWORD = uint32_t;

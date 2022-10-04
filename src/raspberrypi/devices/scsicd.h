@@ -68,7 +68,7 @@ private:
 
 	// Track management
 	void ClearTrack();						// Clear the track
-	int SearchTrack(DWORD lba) const;		// Track search
+	int SearchTrack(uint32_t lba) const;	// Track search
 	vector<unique_ptr<CDTrack>> tracks;		// Track opbject references
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track

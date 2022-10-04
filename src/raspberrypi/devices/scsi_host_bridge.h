@@ -99,9 +99,9 @@ private:
 	void FS_Lock(vector<BYTE>&);					// $58 - get exclusive control
 
 	CFileSys fs;								// File system accessor
-	DWORD fsresult = 0;							// File system access result code
+	uint32_t fsresult = 0;						// File system access result code
 	array<BYTE, 0x800> fsout;					// File system access result buffer
-	DWORD fsoutlen = 0;							// File system access result buffer size
+	uint32_t fsoutlen = 0;						// File system access result buffer size
 	array<BYTE, 0x1000000> fsopt;				// File system access buffer
-	DWORD fsoptlen = 0;							// File system access buffer size
+	uint32_t fsoptlen = 0;						// File system access buffer size
 };

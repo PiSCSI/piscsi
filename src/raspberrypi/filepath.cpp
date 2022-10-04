@@ -10,6 +10,7 @@
 
 #include "filepath.h"
 #include <libgen.h>
+#include <cstdlib>
 #include <cstring>
 #include <cassert>
 

@@ -665,7 +665,7 @@ exit:
 //	READ10
 //
 //---------------------------------------------------------------------------
-int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
 	array<BYTE, 256> cmd = {};
 
@@ -728,7 +728,7 @@ exit:
 //	WRITE10
 //
 //---------------------------------------------------------------------------
-int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
 	array<BYTE, 256> cmd = {};
 
@@ -796,11 +796,11 @@ int main(int argc, char* argv[])
 	int i;
 	int count;
 	char str[32];
-	DWORD bsiz;
-	DWORD bnum;
-	DWORD duni;
-	DWORD dsiz;
-	DWORD dnum;
+	uint32_t bsiz;
+	uint32_t bnum;
+	uint32_t duni;
+	uint32_t dsiz;
+	uint32_t dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
 	off_t size;

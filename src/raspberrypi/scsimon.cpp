@@ -35,9 +35,9 @@ static const int _MAX_FNAME = 256;
 static volatile bool running; // Running flag
 GPIOBUS bus;			      // GPIO Bus
 
-DWORD buff_size = 1000000;
+uint32_t buff_size = 1000000;
 data_capture *data_buffer;
-DWORD data_idx = 0;
+uint32_t data_idx = 0;
 
 double ns_per_loop;
 
@@ -249,8 +249,8 @@ void FixCpu(int cpu)
 #endif
 
 #ifdef DEBUG
-static DWORD high_bits = 0x0;
-static DWORD low_bits = 0xFFFFFFFF;
+static uint32_t high_bits = 0x0;
+static uint32_t low_bits = 0xFFFFFFFF;
 #endif
 
 //---------------------------------------------------------------------------
@@ -272,12 +272,12 @@ int main(int argc, char *argv[])
     parse_arguments(argc, argv);
 
 #ifdef DEBUG
-    DWORD prev_high = high_bits;
-    DWORD prev_low = low_bits;
+    uint32_t prev_high = high_bits;
+    uint32_t prev_low = low_bits;
 #endif
     ostringstream s;
-    DWORD prev_sample = 0xFFFFFFFF;
-    DWORD this_sample = 0;
+    uint32_t prev_sample = 0xFFFFFFFF;
+    uint32_t this_sample = 0;
     timeval start_time;
     timeval stop_time;
     uint64_t loop_count = 0;
