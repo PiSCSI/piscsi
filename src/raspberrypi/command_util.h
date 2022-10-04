@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021-2022 Uwe Seimet
 //
-// Helper methods for serializing/deserializing protobuf messages
+// Helper methods for setting up/evaluating protobuf messages
 //
 //---------------------------------------------------------------------------
 
