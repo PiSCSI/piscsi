@@ -76,9 +76,10 @@ void RascsiService::Execute() const
 	// Set the affinity to a specific processor core
 	ras_util::FixCpu(2);
 
-	// Wait for the execution to start
+	// Wait 1 ms for the execution to start
+	timespec ts = { .tv_sec = 0, .tv_nsec = 1000000};
 	while (!running) {
-		usleep(1);
+		nanosleep(&ts, nullptr);
 	}
 
 	// Set up the monitor socket to receive commands
