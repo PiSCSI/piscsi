@@ -854,8 +854,8 @@ int main(int argc, char* argv[])
 
 	// Assert reset signal
 	bus.SetRST(true);
-	// Wait 1 s
-	timespec ts = { .tv_sec = 1, .tv_nsec = 0};
+	// Wait 1 ms
+	timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
 	nanosleep(&ts, nullptr);
 	bus.SetRST(false);
 
