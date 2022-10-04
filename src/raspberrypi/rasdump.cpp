@@ -18,6 +18,7 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
+#include <cstring>
 #include <iostream>
 #include <array>
 
@@ -854,7 +855,7 @@ int main(int argc, char* argv[])
 	// Assert reset signal
 	bus.SetRST(true);
 	// Wait 1 ms
-	timespec ts = { .tv_sec = 0, .tv_nsec = 1000000};
+	timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
 	nanosleep(&ts, nullptr);
 	bus.SetRST(false);
 
