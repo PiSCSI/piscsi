@@ -14,7 +14,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "dispatcher.h"
