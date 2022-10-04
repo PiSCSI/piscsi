@@ -21,7 +21,7 @@
 #include "scsi_controller.h"
 #include <sstream>
 #include <iomanip>
-#ifdef __linux
+#ifdef __linux__
 #include <linux/if_tun.h>
 #endif
 

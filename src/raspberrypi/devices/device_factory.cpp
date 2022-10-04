@@ -212,7 +212,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
-#ifdef __linux
+#ifdef __linux__
 	ifaddrs *addrs;
 	getifaddrs(&addrs);
 	ifaddrs *tmp = addrs;

@@ -66,7 +66,7 @@ bool RascsiService::Init(const callback& cb, int port)
 
 void RascsiService::Execute() const
 {
-#ifdef __linux
+#ifdef __linux__
     // Scheduler Settings
 	sched_param schedparam;
 	schedparam.sched_priority = 0;

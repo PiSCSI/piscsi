@@ -19,7 +19,7 @@
 #include <string>
 #include <array>
 #include <filesystem>
-#ifdef __linux
+#ifdef __linux__
 #include <sys/sendfile.h>
 #endif
 
@@ -152,7 +152,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
-#ifndef __linux
+#ifndef __linux__
 	close(image_fd);
 
 	unlink(full_filename.c_str());
@@ -290,7 +290,7 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return context.ReturnStatus(false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
-#ifndef __linux
+#ifndef __linux__
     close(fd_dst);
     close(fd_src);
 
