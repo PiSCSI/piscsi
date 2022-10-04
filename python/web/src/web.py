@@ -521,6 +521,9 @@ def show_manpage():
             # Make URIs compatible with the Flask webapp
             if "/?1+" in line:
                 line = line.replace("/?1+", "manpage?app=")
+            # Strip out useless hyperlink
+            elif "man2html" in line:
+                line = line.replace("<A HREF=\"/\">man2html</A>", "man2html")
             if not any(ele in line for ele in html_to_strip):
                 formatted_manpage += line
 
