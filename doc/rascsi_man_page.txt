@@ -8,8 +8,8 @@ NAME
        rascsi - Emulates SCSI devices using the Raspberry Pi GPIO pins
 
 SYNOPSIS
-       rascsi  [-F  FOLDER]  [-L LOG_LEVEL] [-P ACCESS_TOKEN_FILE] [-R SCAN_DEPTH] [-h] [-n VENDOR:PRODUCT:REVISION] [-p PORT] [-r
-       RESERVED_IDS] [-n TYPE] [-v] [-z LOCALE] [-IDn:[u] FILE] [-HDn[:u] FILE]...
+       rascsi [-F[u00AE] FOLDER] [-L[u00AE] LOG_LEVEL] [-P[u00AE] ACCESS_TOKEN_FILE] [-R SCAN_DEPTH] [-h] [-n VENDOR:PRODUCT:REVI‐
+       SION] [-p[u00AE] PORT] [-r RESERVED_IDS] [-n TYPE] [-v] [-z LOCALE] [-IDn:[u] FILE] [-HDn[:u] FILE]...
 
 DESCRIPTION
        rascsi emulates SCSI devices using the Raspberry Pi GPIO pins.
