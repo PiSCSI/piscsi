@@ -10,7 +10,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <unistd.h>
 #include "rascsi_version.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
