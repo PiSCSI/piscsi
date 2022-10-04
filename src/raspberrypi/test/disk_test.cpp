@@ -14,19 +14,6 @@
 
 using namespace scsi_defs;
 
-class TestDisk : public Disk
-{
-public:
-
-	void Open(const Filepath&) final {
-		// Do nothing when running unit tests
-	}
-
-	void SetPath(const Filepath& path) { Disk::SetPath(path); }
-
-	using Disk::Disk;
-};
-
 TEST(DiskTest, Dispatch)
 {
 	MockAbstractController controller(0);
