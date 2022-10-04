@@ -80,6 +80,14 @@ summary.heading {
     position: relative;
 }
 
+.dropzone .dz-button {
+    position: relative;
+    background-color: white;
+    color: black;
+    border: 2px solid #4CAF50; /* Green */
+    padding: 12px 28px;
+}
+
 .dropzone .dz-preview {
     position: relative;
     display: inline-block;
@@ -112,6 +120,7 @@ summary.heading {
 .dropzone .dz-preview.dz-error .dz-error-mark {
     display: block;
     filter: drop-shadow(0px 0px 2px red);
+    opacity: 0;
 }
 
 .dropzone .dz-preview.dz-success .dz-success-mark {
@@ -122,7 +131,6 @@ summary.heading {
 .dropzone .dz-preview .dz-error-mark, .dropzone .dz-preview .dz-success-mark {
     position: absolute;
     display: none;
-    left: 30px;
     top: 30px;
     width: 54px;
     height: 58px;
