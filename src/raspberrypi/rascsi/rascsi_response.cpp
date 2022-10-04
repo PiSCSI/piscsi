@@ -10,13 +10,13 @@
 #include "controllers/controller_manager.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
 
 using namespace rascsi_interface;
-using namespace command_util;
+using namespace protobuf_util;
 
 unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device& device) const
 {

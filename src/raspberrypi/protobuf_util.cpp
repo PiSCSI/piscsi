@@ -10,7 +10,7 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "protobuf_serializer.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include <sstream>
 
 using namespace std;
@@ -21,7 +21,7 @@ using namespace rascsi_interface;
 static const char COMPONENT_SEPARATOR = ':';
 static const char KEY_VALUE_SEPARATOR = '=';
 
-void command_util::ParseParameters(PbDeviceDefinition& device, const string& params)
+void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
 	if (params.empty()) {
 		return;
@@ -50,19 +50,19 @@ void command_util::ParseParameters(PbDeviceDefinition& device, const string& par
 	}
 }
 
-string command_util::GetParam(const PbCommand& command, const string& key)
+string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
 	const auto& it = command.params().find(key);
 	return it != command.params().end() ? it->second : "";
 }
 
-string command_util::GetParam(const PbDeviceDefinition& device, const string& key)
+string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
 {
 	const auto& it = device.params().find(key);
 	return it != device.params().end() ? it->second : "";
 }
 
-void command_util::AddParam(PbCommand& command, const string& key, string_view value)
+void protobuf_util::AddParam(PbCommand& command, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *command.mutable_params();
@@ -70,7 +70,7 @@ void command_util::AddParam(PbCommand& command, const string& key, string_view v
 	}
 }
 
-void command_util::AddParam(PbDevice& device, const string& key, string_view value)
+void protobuf_util::AddParam(PbDevice& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -78,7 +78,7 @@ void command_util::AddParam(PbDevice& device, const string& key, string_view val
 	}
 }
 
-void command_util::AddParam(PbDeviceDefinition& device, const string& key, string_view value)
+void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();

@@ -13,7 +13,7 @@
 #include "filepath.h"
 #include "spdlog/spdlog.h"
 #include "devices/disk.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "command_context.h"
 #include "rascsi_image.h"
 #include <string>
@@ -26,7 +26,7 @@
 using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
-using namespace command_util;
+using namespace protobuf_util;
 
 RascsiImage::RascsiImage()
 {

@@ -18,7 +18,7 @@
 #include "rascsi_image.h"
 #include "rascsi_exceptions.h"
 #include "localizer.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "command_context.h"
 #include "rasutil.h"
 #include "spdlog/spdlog.h"
@@ -26,7 +26,7 @@
 #include <sstream>
 
 using namespace spdlog;
-using namespace command_util;
+using namespace protobuf_util;
 using namespace ras_util;
 
 bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,

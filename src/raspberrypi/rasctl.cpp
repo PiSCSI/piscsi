@@ -12,7 +12,7 @@
 
 #include <unistd.h>
 #include "rascsi_version.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl/commands.h"
@@ -27,7 +27,7 @@ static const char COMPONENT_SEPARATOR = ':';
 using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace command_util;
+using namespace protobuf_util;
 
 PbOperation ParseOperation(const string& operation)
 {

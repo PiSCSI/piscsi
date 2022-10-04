@@ -18,7 +18,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-namespace command_util
+namespace protobuf_util
 {
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	string GetParam(const PbCommand&, const string&);

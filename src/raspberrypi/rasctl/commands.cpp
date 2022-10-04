@@ -9,7 +9,7 @@
 
 #include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rasutil.h"
 #include "commands.h"
 #include "rascsi_interface.pb.h"
@@ -20,7 +20,7 @@
 
 using namespace std;
 using namespace rascsi_interface;
-using namespace command_util;
+using namespace protobuf_util;
 
 // Separator for the INQUIRY name components
 static const char COMPONENT_SEPARATOR = ':';

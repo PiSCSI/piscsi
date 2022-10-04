@@ -9,10 +9,10 @@
 
 #include "mocks.h"
 #include "rascsi_interface.pb.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 
 using namespace rascsi_interface;
-using namespace command_util;
+using namespace protobuf_util;
 
 void TestSpecialDevice(const string& name)
 {

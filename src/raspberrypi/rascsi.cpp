@@ -20,7 +20,7 @@
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi/rascsi_executor.h"
@@ -43,7 +43,7 @@ using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace command_util;
+using namespace protobuf_util;
 
 //---------------------------------------------------------------------------
 //
