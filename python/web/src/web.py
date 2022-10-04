@@ -231,6 +231,7 @@ def index():
 
     return response(
         template="index.html",
+        locale=session["language"],
         locales=get_supported_locales(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         netatalk_configured=sys_cmd.running_proc("afpd"),
@@ -295,6 +296,7 @@ def drive_list():
 
     return response(
         template="drives.html",
+        locale=session["language"],
         files=file_cmd.list_images()["files"],
         base_dir=server_info["image_dir"],
         drive_properties=drive_properties,
@@ -476,6 +478,7 @@ def show_diskinfo():
         )
     if returncode == 0:
         return response(
+            locale=session["language"],
             template="diskinfo.html",
             file_name=file_name,
             diskinfo=diskinfo,
@@ -529,6 +532,7 @@ def show_manpage():
 
         return response(
             template="manpage.html",
+            locale=session["language"],
             app=app,
             manpage=formatted_manpage,
             version=server_info["version"],
@@ -553,6 +557,7 @@ def show_logs():
         server_info = ractl_cmd.get_server_info()
         return response(
             template="logs.html",
+            locale=session["language"],
             scope=scope,
             lines=lines,
             logs=logs,
@@ -773,6 +778,7 @@ def device_info():
     if process["status"]:
         return response(
             template="deviceinfo.html",
+            locale=session["language"],
             devices=process["device_list"],
             version=server_info["version"],
             )
