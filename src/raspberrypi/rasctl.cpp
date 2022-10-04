@@ -15,7 +15,7 @@
 #include "command_util.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
-#include "rasctl/commands.h"
+#include "rasctl/rasctl_commands.h"
 #include <unistd.h>
 #include <clocale>
 #include <iostream>

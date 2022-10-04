@@ -11,7 +11,7 @@
 #include "protobuf_serializer.h"
 #include "command_util.h"
 #include "rasutil.h"
-#include "commands.h"
+#include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
 #include <unistd.h>
 #include <netdb.h>
