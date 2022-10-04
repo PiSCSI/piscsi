@@ -76,8 +76,8 @@ void RascsiService::Execute() const
 	// Set the affinity to a specific processor core
 	ras_util::FixCpu(2);
 
-	// Wait 1 ms for the execution to start
-	timespec ts = { .tv_sec = 0, .tv_nsec = 1000000};
+	// Wait 1 microsecond for the execution to start
+	timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
 	while (!running) {
 		nanosleep(&ts, nullptr);
 	}
