@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_interface.pb.h"
 #include "command_util.h"
 
@@ -58,4 +58,11 @@ TEST(CommandUtil, ParseParameters)
 	TestSpecialDevice("daynaport");
 	TestSpecialDevice("printer");
 	TestSpecialDevice("services");
+}
+
+TEST(CommandUtil, ReturnLocalizedError)
+{
+	MockCommandContext context;
+
+	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
 }

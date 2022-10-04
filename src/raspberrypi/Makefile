@@ -92,16 +92,18 @@ SRC_RASCSI_CORE = \
 	rascsi_version.cpp \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
+	rascsi_executor.cpp \
 	rasutil.cpp \
 	command_util.cpp \
-	socket_connector.cpp \
+	protobuf_serializer.cpp \
 	localizer.cpp
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 SRC_RASCSI_CORE += $(SRC_PROTOBUF)
 
-SRC_RASCSI = rascsi.cpp
+SRC_RASCSI = rascsi.cpp \
+	rascsi_service.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
@@ -117,7 +119,7 @@ SRC_RASCTL = \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	command_util.cpp \
-	socket_connector.cpp \
+	protobuf_serializer.cpp \
 	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 

@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -22,8 +22,6 @@ public:
 
 	CDTrack() = default;
 	~CDTrack() = default;
-	CDTrack(CDTrack&) = delete;
-	CDTrack& operator=(const CDTrack&) = delete;
 
 	void Init(int track, DWORD first, DWORD last);
 

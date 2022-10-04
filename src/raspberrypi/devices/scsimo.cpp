@@ -19,7 +19,7 @@
 
 using namespace scsi_command_util;
 
-SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO")
+SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO", lun)
 {
 	SetSectorSizes(sector_sizes);
 
@@ -45,14 +45,14 @@ void SCSIMO::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	// For some capacities there are hard-coded, well-defined sector sizes and block counts
-	if (!SetGeometryForCapacity(file_size)) {
+	if (!SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-		SetBlockCount(file_size >> GetSectorSizeShiftCount());
+		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
 	SetReadOnly(false);
@@ -62,7 +62,7 @@ void SCSIMO::Open(const Filepath& path)
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 
-	SetUpCache(path);
+	SetUpCache(path, 0);
 
 	// Attention if ready
 	if (IsReady()) {

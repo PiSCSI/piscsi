@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI CD-ROM ]
@@ -24,7 +24,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD")
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD", lun)
 {
 	SetSectorSizes(sector_sizes);
 
@@ -92,10 +92,7 @@ void SCSICD::Open(const Filepath& path)
 	super::Open(path);
 	FileSupport::SetPath(path);
 
-	SetUpCache(path);
-
-	// Set RAW flag
-	cache->SetRawMode(rawfile);
+	SetUpCache(path, 0, rawfile);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -117,8 +114,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
-	if (file_size < 0x800) {
+	off_t size = fio.GetFileSize();
+	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
@@ -157,16 +154,16 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	if (rawfile) {
 		// Size must be a multiple of 2536
-		if (file_size % 2536) {
+		if (size % 2536) {
 			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
-					+ to_string(file_size) + " bytes");
+					+ to_string(size) + " bytes");
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size / 0x930));
+		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
+		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -296,9 +293,9 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
+
 		// Re-assign disk cache (no need to save)
-		cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
-		cache->SetRawMode(rawfile);
+		ResizeCache(path, rawfile);
 
 		// Reset data index
 		dataindex = index;

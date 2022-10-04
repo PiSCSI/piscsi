@@ -11,24 +11,24 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "bus.h"
+#include "phase_handler.h"
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class PrimaryDevice;
 
-class AbstractController
+class AbstractController : public PhaseHandler
 {
 	friend class PrimaryDevice;
 	friend class ScsiController;
 
-	BUS::phase_t phase = BUS::phase_t::busfree;
-
-	// Logical units of this device controller mapped to their LUN numbers
-	unordered_map<int, PrimaryDevice *> luns;
+	// Logical units of this controller mapped to their LUN numbers
+	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
 public:
 
@@ -41,7 +41,7 @@ public:
 
 	using ctrl_t = struct _ctrl_t {
 		vector<int> cmd;				// Command data, dynamically allocated per received command
-		uint32_t status;				// Status data
+		scsi_defs::status status;		// Status data
 		int message;					// Message data
 
 		// Transfer
@@ -52,21 +52,8 @@ public:
 		uint32_t length;				// Transfer remaining length
 	};
 
-	AbstractController(shared_ptr<BUS> bus, int target_id, int luns) : target_id(target_id), bus(bus), max_luns(luns) {}
-	virtual ~AbstractController() = default;
-	AbstractController(AbstractController&) = delete;
-	AbstractController& operator=(const AbstractController&) = delete;
-
-	virtual void BusFree() = 0;
-	virtual void Selection() = 0;
-	virtual void Command() = 0;
-	virtual void Status() = 0;
-	virtual void DataIn() = 0;
-	virtual void DataOut() = 0;
-	virtual void MsgIn() = 0;
-	virtual void MsgOut() = 0;
-
-	virtual BUS::phase_t Process(int) = 0;
+	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
+	~AbstractController() override = default;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
@@ -81,19 +68,19 @@ public:
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }
-	bool HasLuns() const { return !luns.empty(); }
+	int GetLunCount() const { return (int)luns.size(); }
 
-	PrimaryDevice *GetDeviceForLun(int) const;
-	bool AddDevice(PrimaryDevice *);
-	bool DeleteDevice(const PrimaryDevice *);
+	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
+	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
+	bool AddDevice(shared_ptr<PrimaryDevice>);
+	bool DeleteDevice(const shared_ptr<PrimaryDevice>);
 	bool HasDeviceForLun(int) const;
-	int ExtractInitiatorId(int id_data) const;
+	int ExtractInitiatorId(int) const;
 
 	void AllocateBuffer(size_t);
 	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
-	size_t GetBufferSize() const { return ctrl.buffer.size(); }
-	uint32_t GetStatus() const { return ctrl.status; }
-	void SetStatus(uint32_t s) { ctrl.status = s; }
+	scsi_defs::status GetStatus() const { return ctrl.status; }
+	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
 
 protected:
@@ -106,25 +93,15 @@ protected:
 	vector<int>& InitCmd(int size) { ctrl.cmd.resize(size); return ctrl.cmd; }
 
 	bool HasValidLength() const  { return ctrl.length != 0; }
+	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
-
-	BUS::phase_t GetPhase() const { return phase; }
-	void SetPhase(BUS::phase_t p) { phase = p; }
-	bool IsSelection() const { return phase == BUS::phase_t::selection; }
-	bool IsBusFree() const { return phase == BUS::phase_t::busfree; }
-	bool IsCommand() const { return phase == BUS::phase_t::command; }
-	bool IsStatus() const { return phase == BUS::phase_t::status; }
-	bool IsDataIn() const { return phase == BUS::phase_t::datain; }
-	bool IsDataOut() const { return phase == BUS::phase_t::dataout; }
-	bool IsMsgIn() const { return phase == BUS::phase_t::msgin; }
-	bool IsMsgOut() const { return phase == BUS::phase_t::msgout; }
 
 private:
 
 	int target_id;
 
-	shared_ptr<BUS> bus;
+	BUS& bus;
 
 	int max_luns;
 

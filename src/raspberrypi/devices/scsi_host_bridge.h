@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //  	[ SCSI Host Bridge for the Sharp X68000 ]
@@ -24,7 +24,7 @@
 #include <string>
 #include <array>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class SCSIBR final : public Disk
 {
@@ -32,10 +32,8 @@ class SCSIBR final : public Disk
 
 public:
 
-	SCSIBR();
+	explicit SCSIBR(int);
 	~SCSIBR() override = default;
-	SCSIBR(SCSIBR&) = delete;
-	SCSIBR& operator=(const SCSIBR&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(scsi_command) override;

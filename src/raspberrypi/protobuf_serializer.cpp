@@ -9,48 +9,21 @@
 
 #include "rascsi_interface.pb.h"
 #include "rascsi_exceptions.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include <unistd.h>
-#include <netinet/in.h>
 #include <sstream>
 
 using namespace std;
 using namespace rascsi_interface;
 
-int SocketConnector::ReadCommand(PbCommand& command, int socket) const
-{
-	// Wait for connection
-	sockaddr client = {};
-	socklen_t socklen = sizeof(client);
-	int fd = accept(socket, &client, &socklen);
-	if (fd < 0) {
-		throw io_exception("accept() failed");
-	}
-
-	// Read magic string
-	vector<byte> magic(6);
-	size_t bytes_read = ReadBytes(fd, magic);
-	if (!bytes_read) {
-		return -1;
-	}
-	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
-		throw io_exception("Invalid magic");
-	}
-
-	// Fetch the command
-	DeserializeMessage(fd, command);
-
-	return fd;
-}
-
 //---------------------------------------------------------------------------
 //
-//	Serialize/Deserialize protobuf message: Length followed by the actual data.
-//  Little endian is assumed.
+// Serialize/Deserialize protobuf message: Length followed by the actual data.
+// A little endian platform is assumed.
 //
 //---------------------------------------------------------------------------
 
-void SocketConnector::SerializeMessage(int fd, const google::protobuf::Message& message) const
+void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Message& message) const
 {
 	string data;
 	message.SerializeToString(&data);
@@ -67,7 +40,7 @@ void SocketConnector::SerializeMessage(int fd, const google::protobuf::Message& 
     }
 }
 
-void SocketConnector::DeserializeMessage(int fd, google::protobuf::Message& message) const
+void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& message) const
 {
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
@@ -91,7 +64,7 @@ void SocketConnector::DeserializeMessage(int fd, google::protobuf::Message& mess
 	message.ParseFromString(data);
 }
 
-size_t SocketConnector::ReadBytes(int fd, vector<byte>& buf) const
+size_t ProtobufSerializer::ReadBytes(int fd, vector<byte>& buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {

@@ -9,54 +9,60 @@
 
 #pragma once
 
-#include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
+#include <dirent.h>
 #include <list>
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace std;
+using namespace rascsi_interface;
 
 class DeviceFactory;
-class RascsiImage;
+class ControllerManager;
 class Device;
 
 class RascsiResponse
 {
 public:
 
-	RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
-		: device_factory(device_factory), rascsi_image(rascsi_image) {}
+	RascsiResponse(DeviceFactory& device_factory, const ControllerManager& controller_manager, int max_luns)
+		: device_factory(device_factory), controller_manager(controller_manager), max_luns(max_luns) {}
 	~RascsiResponse() = default;
-	RascsiResponse(RascsiResponse&) = delete;
-	RascsiResponse& operator=(const RascsiResponse&) = delete;
 
-	bool GetImageFile(PbImageFile *, const string&) const;
-	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
-	PbReservedIdsInfo *GetReservedIds(PbResult&, const unordered_set<int>&);
-	void GetDevices(PbServerInfo&);
-	void GetDevicesInfo(PbResult&, const PbCommand&);
-	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&);
-	PbVersionInfo *GetVersionInfo(PbResult&);
-	PbServerInfo *GetServerInfo(PbResult&, const unordered_set<int>&, const string&, const string&, const string&, int);
-	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
-	PbMappingInfo *GetMappingInfo(PbResult&);
-	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
-	PbOperationInfo *GetOperationInfo(PbResult&, int);
+	bool GetImageFile(PbImageFile&, const string&, const string&) const;
+	unique_ptr<PbImageFilesInfo> GetAvailableImages(PbResult&, const string&, const string&, const string&, int) const;
+	unique_ptr<PbReservedIdsInfo> GetReservedIds(PbResult&, const unordered_set<int>&) const;
+	void GetDevices(PbServerInfo&, const string&) const;
+	void GetDevicesInfo(PbResult&, const PbCommand&, const string&) const;
+	unique_ptr<PbDeviceTypesInfo> GetDeviceTypesInfo(PbResult&) const;
+	unique_ptr<PbVersionInfo> GetVersionInfo(PbResult&) const;
+	unique_ptr<PbServerInfo> GetServerInfo(PbResult&, const unordered_set<int>&, const string&, const string&, const string&,
+			const string&, int) const;
+	unique_ptr<PbNetworkInterfacesInfo> GetNetworkInterfacesInfo(PbResult&) const;
+	unique_ptr<PbMappingInfo> GetMappingInfo(PbResult&) const;
+	unique_ptr<PbLogLevelInfo> GetLogLevelInfo(PbResult&, const string&) const;
+	unique_ptr<PbOperationInfo> GetOperationInfo(PbResult&, int) const;
 
 private:
 
-	DeviceFactory *device_factory;
-	const RascsiImage *rascsi_image;
+	DeviceFactory& device_factory;
+
+	const ControllerManager& controller_manager;
+
+	int max_luns;
 
 	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
 
-	PbDeviceProperties *GetDeviceProperties(const Device *);
-	void GetDevice(const Device *, PbDevice *);
-	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
-	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, string_view, const string&, const string&, const string&, int);
-	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
-	PbOperationMetaData *CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
-	PbOperationParameter *AddOperationParameter(PbOperationMetaData&, const string&, const string&,
-			const string& = "", bool = false);
+	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
+	void GetDevice(const Device&, PbDevice&, const string&) const;
+	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&) const;
+	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType) const;
+	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int) const;
+	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, const string&, int) const;
+	unique_ptr<PbOperationMetaData> CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
+	unique_ptr<PbOperationParameter> AddOperationParameter(PbOperationMetaData&, const string&, const string&,
+			const string& = "", bool = false) const;
+	set<id_set> MatchDevices(PbResult&, const PbCommand&) const;
+
+	static string GetNextImageFile(const dirent *, const string&);
 };

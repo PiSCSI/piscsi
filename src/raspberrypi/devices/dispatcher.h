@@ -14,8 +14,8 @@
 #include "log.h"
 #include <unordered_map>
 
-using namespace std; //NOSONAR Not relevant for rascsi
-using namespace scsi_defs; //NOSONAR Not relevant for rascsi
+using namespace std;
+using namespace scsi_defs;
 
 template<class T>
 class Dispatcher
@@ -24,8 +24,6 @@ public:
 
 	Dispatcher() = default;
 	~Dispatcher() = default;
-	Dispatcher(Dispatcher&) = delete;
-	Dispatcher& operator=(const Dispatcher&) = delete;
 
 	using operation = void (T::*)();
 	using command_t = struct _command_t {

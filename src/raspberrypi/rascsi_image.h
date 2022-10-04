@@ -13,7 +13,7 @@
 #include "command_context.h"
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface;
 
 class RascsiImage
 {
@@ -21,15 +21,13 @@ public:
 
 	RascsiImage();
 	~RascsiImage() = default;
-	RascsiImage(RascsiImage&) = delete;
-	RascsiImage& operator=(const RascsiImage&) = delete;
 
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
 	bool CheckDepth(string_view) const;
 	bool CreateImageFolder(const CommandContext&, const string&) const;
-	string GetDefaultImageFolder() const { return default_image_folder; }
-	string SetDefaultImageFolder(const string&);
+	string GetDefaultFolder() const { return default_folder; }
+	string SetDefaultFolder(const string&);
 	bool IsValidSrcFilename(const string&) const;
 	bool IsValidDstFilename(const string&) const;
 	bool CreateImage(const CommandContext&, const PbCommand&) const;
@@ -37,12 +35,13 @@ public:
 	bool RenameImage(const CommandContext&, const PbCommand&) const;
 	bool CopyImage(const CommandContext&, const PbCommand&) const;
 	bool SetImagePermissions(const CommandContext&, const PbCommand&) const;
+	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
 
 private:
 
 	string GetHomeDir() const;
 
-	string default_image_folder;
+	string default_folder;
 
 	int depth = 1;
 };

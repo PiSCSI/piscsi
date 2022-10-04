@@ -15,15 +15,20 @@
 
 using namespace std;
 
-bool ControllerManager::CreateScsiController(shared_ptr<BUS> bus, PrimaryDevice *device)
+bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice> device)
 {
-	shared_ptr<AbstractController> controller = FindController(device->GetId());
+	auto controller = FindController(id);
 	if (controller == nullptr) {
-		controller = make_shared<ScsiController>(bus, device->GetId());
-		controllers[device->GetId()] = controller;
+		controller = make_shared<ScsiController>(bus, id);
+		controllers[id] = controller;
 	}
 
 	return controller->AddDevice(device);
+}
+
+void ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
+{
+	controllers.erase(controller->GetTargetId());
 }
 
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
@@ -43,6 +48,18 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 	return it == controllers.end() ? nullptr : it->second;
 }
 
+unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() const
+{
+	unordered_set<shared_ptr<PrimaryDevice>> devices;
+
+	for (const auto& [id, controller] : controllers) {
+		auto d = controller->GetDevices();
+		devices.insert(d.begin(), d.end());
+	}
+
+	return devices;
+}
+
 void ControllerManager::DeleteAllControllers()
 {
 	controllers.clear();
@@ -55,7 +72,7 @@ void ControllerManager::ResetAllControllers() const
 	}
 }
 
-PrimaryDevice *ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
+shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
 {
 	if (const auto controller = FindController(id); controller != nullptr) {
 		return controller->GetDeviceForLun(lun);

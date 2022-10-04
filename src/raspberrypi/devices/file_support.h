@@ -15,7 +15,7 @@
 #include <string>
 #include "filepath.h"
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 using id_set = pair<int, int>;
 
@@ -30,8 +30,6 @@ public:
 
 	FileSupport() = default;
 	virtual ~FileSupport() = default;
-	FileSupport(FileSupport&) = delete;
-	FileSupport& operator=(const FileSupport&) = delete;
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }
@@ -39,6 +37,7 @@ public:
 	void ReserveFile(const Filepath&, int, int) const;
 	void UnreserveFile() const;
 	static void UnreserveAll();
+	bool FileExists(const Filepath&);
 
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)

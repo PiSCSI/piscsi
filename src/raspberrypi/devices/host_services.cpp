@@ -20,8 +20,9 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
+#include "controllers/controller_manager.h"
+#include "controllers/scsi_controller.h"
 #include "rascsi_exceptions.h"
-#include "device_factory.h"
 #include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "host_services.h"
@@ -30,7 +31,8 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(const DeviceFactory& factory) : ModePageDevice("SCHS"), device_factory(factory)
+HostServices::HostServices(int lun, const ControllerManager& manager)
+	: ModePageDevice("SCHS", lun), controller_manager(manager)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
@@ -60,40 +62,35 @@ void HostServices::StartStopUnit()
 
 	if (!start) {
 		// Flush any caches
-		for (PrimaryDevice *device : device_factory.GetAllDevices()) {
+		for (const auto& device : controller_manager.GetAllDevices()) {
 			device->FlushCache();
 		}
 
 		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_PI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::STOP_RASCSI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
-
-		EnterStatusPhase();
-		return;
+	}
+	else if (load) {
+		controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		if (load) {
-			controller->ScheduleShutdown(ScsiController::rascsi_shutdown_mode::RESTART_PI);
-
-			EnterStatusPhase();
-			return;
-		}
+		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min((size_t)max_length, (size_t)cdb[4]);
+	auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
@@ -114,14 +111,14 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf, int max_
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf, int max_length) const
+int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min((size_t)max_length, (size_t)GetInt16(cdb, 7));
+	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
