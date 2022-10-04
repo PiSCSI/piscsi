@@ -504,14 +504,27 @@ def show_manpage():
         )
 
     server_info = ractl_cmd.get_server_info()
-    file_path = f"{WEB_DIR}/../../../doc/{app}_man_page.txt"
+    file_path = f"{WEB_DIR}/../../../doc/{app}.1"
+    html_to_strip = [
+            "Content-type",
+            "!DOCTYPE",
+            "<HTML>",
+            "<HEAD>",
+            "<BODY>",
+            "<H1>",
+        ]
 
-    returncode, manpage = sys_cmd.get_filecontents(file_path)
+    returncode, manpage = sys_cmd.get_manpage(file_path)
     if returncode == 0:
         formatted_manpage = ""
         for line in manpage.splitlines(True):
-            # Strip out irrelevant header
-            if not line.startswith("!!"):
+            # Make URIs compatible with the Flask webapp
+            if "/?1+" in line:
+                line = line.replace("/?1+", "manpage?app=")
+            # Strip out useless hyperlink
+            elif "man2html" in line:
+                line = line.replace("<A HREF=\"/\">man2html</A>", "man2html")
+            if not any(ele in line for ele in html_to_strip):
                 formatted_manpage += line
 
         return response(
@@ -945,7 +958,11 @@ def create_file():
         if not process["status"]:
             return response(error=True, message=process["msg"])
 
-    return response(message=_("Image file created: %(file_name)s", file_name=full_file_name))
+    return response(
+        status_code=201,
+        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        image=full_file_name,
+        )
 
 
 @APP.route("/files/download", methods=["POST"])
