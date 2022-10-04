@@ -39,6 +39,8 @@ protected:
 
 private:
 
+	using super = Disk;
+
 	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 
 	bool SetGeometryForCapacity(uint64_t);

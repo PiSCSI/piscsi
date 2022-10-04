@@ -41,5 +41,7 @@ public:
 
 private:
 
+	using super = Disk;
+
 	scsi_defs::scsi_level scsi_level;
 };
