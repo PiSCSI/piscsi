@@ -8,11 +8,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "filepath.h"
-#include "config.h"
-#include "fileio.h"
 #include <libgen.h>
+#include <cstring>
 
 Filepath& Filepath::operator=(const Filepath& path)
 {
