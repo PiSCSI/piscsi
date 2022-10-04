@@ -34,7 +34,8 @@ public:
 		uint32_t serial;				// Serial
 	};
 
-	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0)
+		: sec_path(path), sec_size(size), sec_blocks(blocks), imgoffset(imgoff) {}
 	~DiskCache() = default;
 
 	void SetRawMode(bool b) { cd_raw = b; }		// CD-ROM raw mode setting
@@ -55,7 +56,7 @@ private:
 	// Internal data
 	array<cache_t, CACHE_MAX> cache = {};		// Cache management
 	uint32_t serial = 0;						// Last serial number
-	Filepath sec_path;							// Path
+	const Filepath& sec_path;					// Path
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
 	bool cd_raw = false;						// CD-ROM RAW mode
