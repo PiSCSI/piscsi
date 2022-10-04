@@ -52,6 +52,7 @@ from web_utils import (
     get_device_name,
     map_image_file_descriptions,
     format_drive_properties,
+    get_properties_by_drive_name,
     auth_active,
     is_bridge_configured,
     upload_with_dropzonejs,
@@ -359,10 +360,7 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
+    drive_name = request.form.get("drive_name")
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
@@ -375,12 +373,10 @@ def drive_create():
 
     # Creating the drive properties file
     prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
-    properties = {
-                "vendor": vendor,
-                "product": product,
-                "revision": revision,
-                "block_size": block_size,
-                }
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
     process = file_cmd.write_drive_properties(prop_file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
@@ -395,20 +391,15 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
+    drive_name = request.form.get("drive_name")
     file_name = request.form.get("file_name")
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = {
-        "vendor": vendor,
-        "product": product,
-        "revision": revision,
-        "block_size": block_size,
-        }
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -584,10 +575,10 @@ def attach_device():
             device_type = request.form.get(item)
         elif item == "drive_name":
             drive_name = request.form.get(item)
-            for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-                if drive["name"] == drive_name:
-                    drive_props = drive
-                    break
+            drive_props = get_properties_by_drive_name(
+                APP.config["RASCSI_DRIVE_PROPERTIES"],
+                drive_name
+                )
         else:
             param = request.form.get(item)
             if param:
@@ -928,17 +919,10 @@ def create_file():
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
-        drive_props = None
-        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-            if drive["name"] == drive_name:
-                drive_props = drive
-                break
-        properties = {
-            "vendor": drive_props["vendor"],
-            "product": drive_props["product"],
-            "revision": drive_props["revision"],
-            "block_size": drive_props["block_size"],
-            }
+        properties = get_properties_by_drive_name(
+            APP.config["RASCSI_DRIVE_PROPERTIES"],
+            drive_name
+            )
         prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
         process = file_cmd.write_drive_properties(prop_file_name, properties)
         process = ReturnCodeMapper.add_msg(process)

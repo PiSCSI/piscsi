@@ -174,6 +174,32 @@ def format_drive_properties(drive_properties):
         "mo_conf": mo_conf,
         }
 
+def get_properties_by_drive_name(drives, drive_name):
+    """
+    Takes (list) of (dict) drives, and (str) drive_name
+    Returns (dict) with the collection of drive properties that matches drive_name
+    """
+    drives.sort(key=lambda item: item.get("name"))
+
+    drive_props = None
+    prev_drive = {"name": ""}
+    for drive in drives:
+        if drive["name"] == prev_drive["name"]:
+            logging.warning(
+                "Device with duplicate name \"%s\" in drive properties database. This is a bug.",
+                drive["name"],
+                )
+        prev_drive = drive
+        if drive["name"] == drive_name:
+            drive_props = drive
+
+    return {
+        "vendor": drive_props["vendor"],
+        "product": drive_props["product"],
+        "revision": drive_props["revision"],
+        "block_size": drive_props["block_size"],
+        }
+
 def auth_active(group):
     """
     Inspects if the group defined in (str) group exists on the system.
