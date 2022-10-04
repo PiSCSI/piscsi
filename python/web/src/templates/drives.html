@@ -8,11 +8,11 @@
 <table cellpadding="3" border="black">
 <tbody>
 <tr>
-    <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MiB)") }}</b></td>
-    <td><b>{{ _("Description") }}</b></td>
-    <td><b>{{ _("Ref.") }}</b></td>
-    <td><b>{{ _("Action") }}</b></td>
+    <th scope="col">{{ _("Name") }}</th>
+    <th scope="col">{{ _("Size (MiB)") }}</th>
+    <th scope="col">{{ _("Description") }}</th>
+    <th scope="col">{{ _("Ref.") }}</th>
+    <th scope="col">{{ _("Action") }}</th>
 </tr>
 {% for hd in drive_properties['hd_conf']|sort(attribute='name') %}
 <tr>
@@ -52,11 +52,11 @@
 <table cellpadding="3" border="black">
 <tbody>
 <tr>
-    <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MiB)") }}</b></td>
-    <td><b>{{ _("Description") }}</b></td>
-    <td><b>{{ _("Ref.") }}</b></td>
-    <td><b>{{ _("Action") }}</b></td>
+    <th scope="col">{{ _("Name") }}</th>
+    <th scope="col">{{ _("Size (MiB)") }}</th>
+    <th scope="col">{{ _("Description") }}</th>
+    <th scope="col">{{ _("Ref.") }}</th>
+    <th scope="col">{{ _("Action") }}</th>
 </tr>
 {% for cd in drive_properties['cd_conf']|sort(attribute='name') %}
 <tr>
@@ -98,11 +98,11 @@
 <table cellpadding="3" border="black">
 <tbody>
 <tr>
-    <td><b>{{ _("Name") }}</b></td>
-    <td><b>{{ _("Size (MiB)") }}</b></td>
-    <td><b>{{ _("Description") }}</b></td>
-    <td><b>{{ _("Ref.") }}</b></td>
-    <td><b>{{ _("Action") }}</b></td>
+    <th scope="col">{{ _("Name") }}</th>
+    <th scope="col">{{ _("Size (MiB)") }}</th>
+    <th scope="col">{{ _("Description") }}</th>
+    <th scope="col">{{ _("Ref.") }}</th>
+    <th scope="col">{{ _("Action") }}</th>
 </tr>
 {% for rm in drive_properties['rm_conf']|sort(attribute='name') %}
 <tr>

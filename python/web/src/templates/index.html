@@ -38,14 +38,14 @@
 <table border="black" cellpadding="3">
     <tbody>
         <tr>
-            <td><b>{{ _("ID") }}</b></td>
+            <th scope="col">{{ _("ID") }}</th>
             {% if units %}
-            <td><b>{{ _("LUN") }}</b></td>
+            <th scope="col">{{ _("LUN") }}</th>
             {% endif %}
-            <td><b>{{ _("Device") }}</b></td>
-            <td><b>{{ _("Parameters") }}</b></td>
-            <td><b>{{ _("Product") }}</b></td>
-            <td><b>{{ _("Actions") }}</b></td>
+            <th scope="col">{{ _("Device") }}</th>
+            <th scope="col">{{ _("Parameters") }}</th>
+            <th scope="col">{{ _("Product") }}</th>
+            <th scope="col">{{ _("Actions") }}</th>
         </tr>
         {% for device in devices | sort(attribute='id') %}
         <tr>
@@ -189,10 +189,10 @@
 
 <table border="black" cellpadding="3">
     <tbody>
-        <tr style="font-weight: bold;">
-            <td>{{ _("File") }}</td>
-            <td>{{ _("Size") }}</td>
-            <td>{{ _("Actions") }}</td>
+        <tr>
+            <th scope="col">{{ _("File") }}</th>
+            <th scope="col">{{ _("Size") }}</th>
+            <th scope="col">{{ _("Actions") }}</th>
         </tr>
         {% for file in files|sort(attribute='name') %}
         <tr>
@@ -356,10 +356,10 @@
     </ul>
 </details>
 <table border="black" cellpadding="3">
-    <tr style="font-weight: bold;">
-        <td>{{ _("Device") }}</td>
-        <td>{{ _("Key") }}</td>
-        <td>{{ _("Parameters and Actions") }}</td>
+    <tr>
+        <th scope="col">{{ _("Device") }}</th>
+        <th scope="col">{{ _("Key") }}</th>
+        <th scope="col">{{ _("Parameters and Actions") }}</th>
     </tr>
     {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
