@@ -245,7 +245,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		}
 		else {
 			string address = inet;
-			string netmask = "255.255.255.0";
+			string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
 			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
