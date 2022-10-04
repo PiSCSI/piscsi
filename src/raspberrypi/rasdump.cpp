@@ -258,7 +258,9 @@ bool Selection(int id)
 	// wait for busy
 	count = 10000;
 	do {
-		usleep(20);
+		// Wait 20 ms
+		timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000000};
+		nanosleep(&ts, nullptr);
 		bus.Acquire();
 		if (bus.GetBSY()) {
 			break;
@@ -289,7 +291,7 @@ bool Command(BYTE *buf, int length)
 	// Send Command
 	count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
-	// Success if the transmission result is the same as the number 
+	// Success if the transmission result is the same as the number
 	// of requests
 	if (count == length) {
 		return true;
@@ -851,7 +853,9 @@ int main(int argc, char* argv[])
 
 	// Assert reset signal
 	bus.SetRST(true);
-	usleep(1000);
+	// Wait 1 s
+	timespec ts = { .tv_sec = 1, .tv_nsec = 0};
+	nanosleep(&ts, nullptr);
 	bus.SetRST(false);
 
 	// Start dump
