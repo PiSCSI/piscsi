@@ -25,7 +25,7 @@ class PrimaryDevice;
 
 class DeviceFactory
 {
-	const string DEFAULT_IP = "10.10.20.1/24";
+	const string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hdardcoded IP address is safe
 
 public:
 
