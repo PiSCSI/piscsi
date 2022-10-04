@@ -15,7 +15,7 @@
 #include "scsi.h"
 #include <array>
 
-#ifdef __linux
+#ifdef __linux__
 #include <linux/gpio.h>
 #endif
 

@@ -41,7 +41,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 
-#ifdef __linux
+#ifdef __linux__
 	// TAP Driver Generation
 	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){

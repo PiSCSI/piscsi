@@ -87,7 +87,7 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 // Pin the thread to a specific CPU
 void ras_util::FixCpu(int cpu)
 {
-#ifdef __linux
+#ifdef __linux__
 	// Get the number of CPUs
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
