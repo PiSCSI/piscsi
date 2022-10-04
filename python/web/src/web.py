@@ -958,7 +958,11 @@ def create_file():
         if not process["status"]:
             return response(error=True, message=process["msg"])
 
-    return response(message=_("Image file created: %(file_name)s", file_name=full_file_name))
+    return response(
+        status_code=201,
+        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        image=full_file_name,
+        )
 
 
 @APP.route("/files/download", methods=["POST"])

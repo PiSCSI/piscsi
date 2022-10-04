@@ -74,7 +74,7 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             },
         ),
         ("Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
-        ("DaynaPORT SCSI/Link", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
+        ("Ethernet Adapter", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
         ("Host Services", {"type": "SCHS"}),
         ("Printer", {"type": "SCLP", "timeout": 30, "cmd": "lp -oraw %f"}),
     ],
