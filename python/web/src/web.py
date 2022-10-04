@@ -8,7 +8,6 @@ import argparse
 from pathlib import Path
 from functools import wraps
 from grp import getgrall
-from re import sub
 
 import bjoern
 from rascsi.return_codes import ReturnCodes
@@ -520,7 +519,7 @@ def show_manpage():
         for line in manpage.splitlines(True):
             # Make URIs compatible with the Flask webapp
             if "/?1+" in line:
-                line = sub("/\?1\+", "manpage?app=", line)
+                line = line.replace("/?1+", "manpage?app=")
             if not any(ele in line for ele in html_to_strip):
                 formatted_manpage += line
 
