@@ -28,7 +28,7 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 	properties->set_stoppable(device.IsStoppable());
 	properties->set_removable(device.IsRemovable());
 	properties->set_lockable(device.IsLockable());
-	properties->set_supports_file(dynamic_cast<const Disk *>(&device) != nullptr);
+	properties->set_supports_file(device.SupportsFile());
 	properties->set_supports_params(device.SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
