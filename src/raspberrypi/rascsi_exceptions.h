@@ -13,41 +13,31 @@
 #include <exception>
 #include <string>
 
-using namespace std; //NOSONAR Not relevant for rascsi
-
-class illegal_argument_exception final : public exception {
-private:
+class io_exception : public std::exception
+{
 	string msg;
 
 public:
-	explicit illegal_argument_exception(const string& msg) : msg(msg) {}
-	~illegal_argument_exception() override = default;
 
-	const string& get_msg() const { return msg; }
-};
-
-class io_exception : public exception {
-private:
-	string msg;
-
-public:
 	explicit io_exception(const string& msg) : msg(msg) {}
 	~io_exception() override = default;
 
 	const string& get_msg() const { return msg; }
 };
 
-class file_not_found_exception : public io_exception {
+class file_not_found_exception : public io_exception
+{
 	using io_exception::io_exception;
 };
 
-class scsi_error_exception final : public exception {
-private:
+class scsi_error_exception final : public std::exception
+{
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;
 	scsi_defs::status status;
 
 public:
+
 	scsi_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION)

@@ -37,7 +37,7 @@ using namespace ras_util;
 //
 //---------------------------------------------------------------------------
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	ifreq ifr;
@@ -83,7 +83,7 @@ CTapDriver::~CTapDriver()
 }
 
 static bool ip_link(int fd, const char* ifname, bool up) {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	ifreq ifr;
@@ -126,7 +126,7 @@ static bool is_interface_up(string_view interface) {
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	unordered_map<string, string> params = const_params;
@@ -158,7 +158,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 
 	LOGTRACE("Opened tap device %d", m_hTAP)
-	
+
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;

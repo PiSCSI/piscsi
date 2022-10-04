@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //  [ SCSI hard disk ]
@@ -26,10 +26,8 @@ class SCSIHD : public Disk, public FileSupport
 
 public:
 
-	SCSIHD(const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
+	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSIHD() override = default;
-	SCSIHD(SCSIHD&) = delete;
-	SCSIHD& operator=(const SCSIHD&) = delete;
 
 	void FinalizeSetup(const Filepath&, off_t, off_t = 0);
 

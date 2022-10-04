@@ -17,7 +17,7 @@
 #include "localizer.h"
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface;
 
 namespace command_util
 {

@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(const string& id) : Device(id)
+PrimaryDevice::PrimaryDevice(const string& type, int lun) : Device(type, lun)
 {
 	// Mandatory SCSI primary commands
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
@@ -31,6 +31,15 @@ PrimaryDevice::PrimaryDevice(const string& id) : Device(id)
 bool PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	return dispatcher.Dispatch(this, cmd);
+}
+
+int PrimaryDevice::GetId() const
+{
+	if (controller == nullptr) {
+		LOGERROR("Device is missing its controller")
+	}
+
+	return controller != nullptr ? controller->GetTargetId() : -1;
 }
 
 void PrimaryDevice::SetController(AbstractController *c)
@@ -65,7 +74,7 @@ void PrimaryDevice::Inquiry()
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
-		controller->GetBuffer()[0] |= 0x7f;
+		controller->GetBuffer().data()[0] = 0x7f;
 	}
 
 	EnterDataInPhase();
@@ -81,7 +90,7 @@ void PrimaryDevice::ReportLuns()
 	uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
-	fill_n(buf.begin(), min(controller->GetBufferSize(), (size_t)allocation_length), 0);
+	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
@@ -115,7 +124,7 @@ void PrimaryDevice::RequestSense()
 		// Do not raise an exception here because the rest of the code must be executed
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 
-		controller->SetStatus(0);
+		controller->SetStatus(status::GOOD);
 	}
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
@@ -195,7 +204,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, controller->GetStatus(),
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (int)controller->GetStatus(),
 			(int)buf[2], (int)buf[12])
 
 	return buf;

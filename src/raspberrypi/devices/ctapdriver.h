@@ -19,7 +19,7 @@
 #include <string>
 #include <array>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class CTapDriver
 {
@@ -30,8 +30,8 @@ class CTapDriver
 
 	CTapDriver() = default;
 	~CTapDriver();
-	CTapDriver(CTapDriver&) = delete;
-	CTapDriver& operator=(const CTapDriver&) = delete;
+	CTapDriver(CTapDriver&) = default;
+	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
 

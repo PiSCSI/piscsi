@@ -9,16 +9,13 @@
 
 #pragma once
 
-#include "scsi.h"
 #include <unordered_map>
 #include <string>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
-class Device
+class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
-	friend class DeviceFactory;
-
 	const string DEFAULT_VENDOR = "RaSCSI";
 
 	string type;
@@ -45,15 +42,11 @@ class Device
 	bool lockable = false;
 	bool locked = false;
 
-	// The block size is configurable
-	bool block_size_configurable = false;
-
 	// Device can be created with parameters
 	bool supports_params = false;
 
-	// Device ID and LUN
-	int32_t id = 0;
-	int32_t lun = 0;
+	// Immutable LUN
+	int lun;
 
 	// Device identifier (for INQUIRY)
 	string vendor = DEFAULT_VENDOR;
@@ -86,21 +79,16 @@ protected:
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	explicit Device(const string&);
+	Device(const string&, int);
 
 public:
 
 	virtual ~Device() = default;
-	Device(Device&) = delete;
-	Device& operator=(const Device&) = delete;
-
-	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
-	void Reset();
+	virtual void Reset();
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool b) { protectable = b; }
@@ -123,10 +111,8 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool b) { locked = b; }
 
-	int32_t GetId() const { return id; }
-	void SetId(int32_t i) { id = i; }
-	int32_t GetLun() const { return lun; }
-	void SetLun(int32_t l) { lun = l; }
+	virtual int GetId() const = 0;
+	int GetLun() const { return lun; }
 
 	string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
@@ -142,12 +128,9 @@ public:
 	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 
-	void SetStatusCode(int);
+	void SetStatusCode(int s) { status_code = s; }
 
 	bool Start();
 	void Stop();
 	virtual bool Eject(bool);
-	virtual void FlushCache() {
-		// Devices with a cache have to implement this method
-	}
 };

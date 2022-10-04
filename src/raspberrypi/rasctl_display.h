@@ -11,7 +11,7 @@
 
 #include "rascsi_interface.pb.h"
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface;
 
 class RasctlDisplay
 {
@@ -19,8 +19,6 @@ class RasctlDisplay
 
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
-	RasctlDisplay(RasctlDisplay&) = delete;
-	RasctlDisplay& operator=(const RasctlDisplay&) = delete;
 
 	void DisplayDevices(const PbDevicesInfo&) const;
 	void DisplayDeviceInfo(const PbDevice&) const;

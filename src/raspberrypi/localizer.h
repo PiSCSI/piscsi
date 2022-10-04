@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 enum class LocalizationKey {
 	ERROR_AUTHENTICATION,

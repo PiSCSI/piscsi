@@ -10,7 +10,7 @@
 #include "log.h"
 #include "rascsi_interface.pb.h"
 #include "localizer.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "command_util.h"
 #include <sstream>
 
@@ -129,7 +129,7 @@ bool command_util::ReturnStatus(const CommandContext& context, bool status, cons
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		context.connector.SerializeMessage(context.fd, result);
+		context.serializer.SerializeMessage(context.fd, result);
 	}
 
 	return status;
