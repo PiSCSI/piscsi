@@ -90,7 +90,7 @@ void SCSICD::Open(const Filepath& path)
 	assert(GetBlockCount() > 0);
 
 	super::Open(path);
-	FileSupport::SetPath(path);
+	super::SetPath(path);
 
 	SetUpCache(path, 0, rawfile);
 

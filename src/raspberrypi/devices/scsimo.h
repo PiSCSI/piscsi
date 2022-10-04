@@ -15,12 +15,11 @@
 #pragma once
 
 #include "disk.h"
-#include "file_support.h"
 #include "filepath.h"
 
 using Geometry = pair<uint32_t, uint32_t>;
 
-class SCSIMO : public Disk, public FileSupport
+class SCSIMO : public Disk
 {
 public:
 

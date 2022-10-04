@@ -15,7 +15,7 @@
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/file_support.h"
+#include "devices/disk.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"

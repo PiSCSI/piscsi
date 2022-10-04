@@ -220,6 +220,7 @@ class MockDisk final : public Disk
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
 	FRIEND_TEST(DiskTest, BlockCount);
+	FRIEND_TEST(DiskTest, Reserve);
 
 public:
 

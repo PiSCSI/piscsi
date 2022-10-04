@@ -63,7 +63,7 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	SetProtected(false);
 
 	Disk::Open(path);
-	FileSupport::SetPath(path);
+	Disk::SetPath(path);
 
 	SetUpCache(path, image_offset);
 }

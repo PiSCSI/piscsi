@@ -13,7 +13,6 @@
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "devices/disk.h"
-#include "devices/file_support.h"
 #include "rascsi_service.h"
 #include "rascsi_response.h"
 #include "rascsi_image.h"
@@ -132,17 +131,17 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	}
 
 	// Remember the list of reserved files, than run the dry run
-	const auto& reserved_files = FileSupport::GetReservedFiles();
+	const auto& reserved_files = Disk::GetReservedFiles();
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(context, device, command, true)) {
 			// Dry run failed, restore the file list
-			FileSupport::SetReservedFiles(reserved_files);
+			Disk::SetReservedFiles(reserved_files);
 			return false;
 		}
 	}
 
 	// Restore the list of reserved files before proceeding
-	FileSupport::SetReservedFiles(reserved_files);
+	Disk::SetReservedFiles(reserved_files);
 
 	if (string result = ValidateLunSetup(command); !result.empty()) {
 		return context.ReturnStatus(false, result);
@@ -291,8 +290,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	// If no filename was provided the medium is considered removed
-	auto file_support = dynamic_cast<FileSupport *>(device.get());
-	device->SetRemoved(file_support != nullptr ? filename.empty() : false);
+	auto disk = dynamic_pointer_cast<Disk>(device);
+	device->SetRemoved(disk != nullptr ? filename.empty() : false);
 
 	if (!SetProductData(context, pb_device, device)) {
 		return false;
@@ -303,7 +302,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	string full_path;
-	if (file_support != nullptr) {
+	if (disk != nullptr) {
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
@@ -341,7 +340,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	Filepath filepath;
 	filepath.SetPath(full_path.c_str());
-	file_support->ReserveFile(filepath, id, lun);
+	disk->ReserveFile(filepath, id, lun);
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -390,7 +389,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 	Filepath filepath;
 	filepath.SetPath(full_path.c_str());
-	dynamic_pointer_cast<FileSupport>(device)->ReserveFile(filepath, device->GetId(), device->GetLun());
+	dynamic_pointer_cast<Disk>(device)->ReserveFile(filepath, device->GetId(), device->GetLun());
 
 	// Only non read-only devices support protect/unprotect.
 	// This operation must not be executed before Open() because Open() overrides some settings.
@@ -417,8 +416,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 		string s = "Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
 				+ ", unit " + to_string(device->GetLun());
 
-		if (auto file_support = dynamic_pointer_cast<FileSupport>(device); file_support != nullptr) {
-			file_support->UnreserveFile();
+		if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
+			disk->UnreserveFile();
 		}
 
 		auto controller = controller_manager.FindController(device->GetId());
@@ -440,7 +439,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 void RascsiExecutor::DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	FileSupport::UnreserveAll();
+	Disk::UnreserveAll();
 
 	LOGINFO("Detached all devices")
 }
@@ -549,8 +548,8 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<PrimaryDevice> device,
 		const string& filename, string& full_path) const
 {
-	auto file_support = dynamic_pointer_cast<FileSupport>(device);
-	if (file_support == nullptr || filename.empty()) {
+	auto disk = dynamic_pointer_cast<Disk>(device);
+	if (disk == nullptr || filename.empty()) {
 		return true;
 	}
 
@@ -559,7 +558,7 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 
-	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
+	if (Disk::GetIdsForReservedFile(filepath, id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 				to_string(id), to_string(lun));
 	}
@@ -567,16 +566,16 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 	string initial_filename = filepath.GetPath();
 
 	try {
-		if (!file_support->FileExists(filepath)) {
+		if (!disk->FileExists(filepath)) {
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
-			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
+			if (Disk::GetIdsForReservedFile(filepath, id, lun)) {
 				return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 						to_string(id), to_string(lun));
 			}
 
-			file_support->Open(filepath);
+			disk->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) {

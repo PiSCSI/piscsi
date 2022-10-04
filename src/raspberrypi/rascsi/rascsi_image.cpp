@@ -12,7 +12,7 @@
 #include "log.h"
 #include "filepath.h"
 #include "spdlog/spdlog.h"
-#include "devices/file_support.h"
+#include "devices/disk.h"
 #include "command_util.h"
 #include "command_context.h"
 #include "rascsi_image.h"
@@ -193,7 +193,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	int unit;
 	Filepath filepath;
 	filepath.SetPath(full_filename.c_str());
-	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+	if (Disk::GetIdsForReservedFile(filepath, id, unit)) {
 		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
 				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(unit));
 	}

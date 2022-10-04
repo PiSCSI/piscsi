@@ -25,6 +25,10 @@
 #include <string>
 #include <unordered_set>
 
+using namespace std;
+
+using id_set = pair<int, int>;
+
 class Disk : public ModePageDevice, public ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
@@ -44,6 +48,11 @@ class Disk : public ModePageDevice, public ScsiBlockCommands
 	uint64_t blocks = 0;
 
 	bool is_medium_changed = false;
+
+	Filepath diskpath;
+
+	// The list of image files in use and the IDs and LUNs using these files
+	static unordered_map<string, id_set> reserved_files;
 
 public:
 
@@ -66,6 +75,18 @@ public:
 	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
 	uint64_t GetBlockCount() const { return blocks; }
 	void FlushCache() override;
+
+	virtual void Open(const Filepath&);
+	void GetPath(Filepath& path) const { path = diskpath; }
+
+	void ReserveFile(const Filepath&, int, int) const;
+	void UnreserveFile() const;
+	static void UnreserveAll();
+	bool FileExists(const Filepath&);
+
+	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
+	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)	{ reserved_files = files_in_use; }
+	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
 
 private:
 
@@ -110,7 +131,6 @@ private:
 
 protected:
 
-	virtual void Open(const Filepath&);
 	void SetUpCache(const Filepath&, off_t, bool = false);
 	void ResizeCache(const Filepath&, bool);
 
@@ -127,4 +147,5 @@ protected:
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
 	void SetBlockCount(uint64_t b) { blocks = b; }
+	void SetPath(const Filepath& path) { diskpath = path; }
 };

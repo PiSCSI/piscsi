@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "controllers/controller_manager.h"
-#include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
 #include "command_util.h"
@@ -29,7 +28,7 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 	properties->set_stoppable(device.IsStoppable());
 	properties->set_removable(device.IsRemovable());
 	properties->set_lockable(device.IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(&device) != nullptr);
+	properties->set_supports_file(dynamic_cast<const Disk *>(&device) != nullptr);
 	properties->set_supports_params(device.SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
@@ -101,10 +100,10 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
     	pb_device.set_block_count(device.IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const auto file_support = dynamic_cast<const FileSupport *>(&device);
-	if (file_support) {
+    const auto disk = dynamic_cast<const Disk *>(&device);
+	if (disk != nullptr) {
 		Filepath filepath;
-		file_support->GetPath(filepath);
+		disk->GetPath(filepath);
 		auto image_file = make_unique<PbImageFile>().release();
 		GetImageFile(*image_file, default_folder, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device.set_allocated_file(image_file);

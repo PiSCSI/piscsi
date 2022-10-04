@@ -16,7 +16,6 @@
 
 #include "os.h"
 #include "fileio.h"
-#include "file_support.h"
 #include "rascsi_exceptions.h"
 #include "dispatcher.h"
 #include "scsi_command_util.h"
@@ -24,6 +23,8 @@
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
+
+unordered_map<string, id_set> Disk::reserved_files;
 
 Disk::Disk(const string& type, int lun) : ModePageDevice(type, lun)
 {
@@ -367,9 +368,7 @@ bool Disk::Eject(bool force)
 		cache.reset();
 
 		// The image file for this drive is not in use anymore
-		if (auto file_support = dynamic_cast<FileSupport *>(this); file_support) {
-			file_support->UnreserveFile();
-		}
+		UnreserveFile();
 	}
 
 	return status;
@@ -906,6 +905,46 @@ bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t
 	}
 
 	configured_sector_size = configured_size;
+
+	return true;
+}
+
+void Disk::ReserveFile(const Filepath& path, int id, int lun) const
+{
+	reserved_files[path.GetPath()] = make_pair(id, lun);
+}
+
+void Disk::UnreserveFile() const
+{
+	reserved_files.erase(diskpath.GetPath());
+}
+
+bool Disk::GetIdsForReservedFile(const Filepath& path, int& id, int& lun)
+{
+	if (const auto& it = reserved_files.find(path.GetPath()); it != reserved_files.end()) {
+		id = it->second.first;
+		lun = it->second.second;
+
+		return true;
+	}
+
+	return false;
+}
+
+void Disk::UnreserveAll()
+{
+	reserved_files.clear();
+}
+
+bool Disk::FileExists(const Filepath& filepath)
+{
+	try {
+		// Disk::Open closes the file in case it exists
+		Open(filepath);
+	}
+	catch(const file_not_found_exception&) {
+		return false;
+	}
 
 	return true;
 }
