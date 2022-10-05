@@ -205,7 +205,7 @@ const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceTyp
 	return it != default_params.end() ? it->second : empty_map;
 }
 
-const list<string> DeviceFactory::GetNetworkInterfaces() const
+list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
