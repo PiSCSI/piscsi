@@ -20,6 +20,7 @@ using namespace ras_util;
 void RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info) const
 {
 	const list<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
+
 	cout << ListDevices(devices) << endl;
 }
 
@@ -92,6 +93,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
 {
 	cout << "rascsi server version: " << version_info.major_version() << "." << version_info.minor_version();
+
 	if (version_info.patch_version() > 0) {
 		cout << "." << version_info.patch_version();
 	}
@@ -109,6 +111,7 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) co
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:\n";
+
 		for (const auto& log_level : log_level_info.log_levels()) {
 			cout << "  " << log_level << '\n';
 		}
@@ -120,6 +123,7 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) co
 void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
 {
 	cout << "Supported device types and their properties:";
+
 	for (const auto& device_type_info : device_types_info.properties()) {
 		cout << "\n  " << PbDeviceType_Name(device_type_info.type()) << "  ";
 
@@ -163,6 +167,7 @@ void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids
 void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 {
 	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
+
 	if (image_file_info.read_only()) {
 		cout << "  read-only";
 	}
@@ -199,9 +204,10 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) 
 
 void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
 {
+	cout << "Available (up) network interfaces:\n";
+
 	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
-	cout << "Available (up) network interfaces:\n";
 	bool isFirst = true;
 	for (const auto& interface : sorted_interfaces) {
 		if (!isFirst) {
@@ -220,9 +226,9 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 {
-	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
-
 	cout << "Supported image file extension to device type mappings:\n";
+
+	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
 	for (const auto& [extension, type] : sorted_mappings) {
 		cout << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
@@ -272,6 +278,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
 {
 	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
+
 	bool isFirst = true;
 	for (const auto& [key, value] : sorted_params) {
 		if (!isFirst) {
@@ -318,9 +325,9 @@ void RasctlDisplay::DisplayAttributes(const PbDeviceProperties& properties) cons
 void RasctlDisplay::DisplayDefaultParameters(const PbDeviceProperties& properties) const
 {
 	if (properties.supports_params() && properties.default_params_size()) {
-		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
-
 		cout << "Default parameters: ";
+
+		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
 
 		bool isFirst = true;
 		for (const auto& [key, value] : sorted_params) {
@@ -338,9 +345,9 @@ void RasctlDisplay::DisplayDefaultParameters(const PbDeviceProperties& propertie
 void RasctlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) const
 {
 	if (properties.block_sizes_size()) {
-		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-
 		cout << "Configurable block sizes in bytes: ";
+
+		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 
 		bool isFirst = true;
 		for (const auto& size : sorted_sizes) {
