@@ -9,6 +9,7 @@
 
 #include "rascsi_interface.pb.h"
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -21,5 +22,27 @@ public:
 	~RasctlParser() = default;
 
 	PbOperation ParseOperation(const string&) const;
-	PbDeviceType ParseType(const char *) const;
+	PbDeviceType ParseType(const string&) const;
+
+private:
+
+	unordered_map<char, PbOperation> operations = {
+			{ 'a', ATTACH },
+			{ 'd', DETACH },
+			{ 'i', INSERT },
+			{ 'e', EJECT },
+			{ 'p', PROTECT },
+			{ 'u', UNPROTECT }
+	};
+
+	unordered_map<char, PbDeviceType> device_types = {
+			{ 'b', SCBR },
+			{ 'c', SCCD },
+			{ 'd', SCDP },
+			{ 'h', SCHD },
+			{ 'l', SCLP },
+			{ 'm', SCMO },
+			{ 'r', SCRM },
+			{ 's', SCHS }
+	};
 };

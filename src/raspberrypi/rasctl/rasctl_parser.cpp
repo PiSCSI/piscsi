@@ -11,34 +11,11 @@
 
 PbOperation RasctlParser::ParseOperation(const string& operation) const
 {
-	switch (tolower(operation[0])) {
-		case 'a':
-			return ATTACH;
-
-		case 'd':
-			return DETACH;
-
-		case 'i':
-			return INSERT;
-
-		case 'e':
-			return EJECT;
-
-		case 'p':
-			return PROTECT;
-
-		case 'u':
-			return UNPROTECT;
-
-		case 's':
-			return DEVICES_INFO;
-
-		default:
-			return NO_OPERATION;
-	}
+	const auto& it = operations.find(tolower(operation[0]));
+	return it != operations.end() ? it->second : NO_OPERATION;
 }
 
-PbDeviceType RasctlParser::ParseType(const char *type) const
+PbDeviceType RasctlParser::ParseType(const string& type) const
 {
 	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
@@ -47,33 +24,7 @@ PbDeviceType RasctlParser::ParseType(const char *type) const
 		return parsed_type;
 	}
 
-	// Parse convenience device types (shortcuts)
-	switch (tolower(type[0])) {
-	case 'c':
-		return SCCD;
-
-	case 'b':
-		return SCBR;
-
-	case 'd':
-		return SCDP;
-
-	case 'h':
-		return SCHD;
-
-	case 'm':
-		return SCMO;
-
-	case 'r':
-		return SCRM;
-
-	case 'l':
-		return SCLP;
-
-	case 's':
-		return SCHS;
-
-	default:
-		return UNDEFINED;
-	}
+	// Handle convenience device types (shortcuts)
+	const auto& it = device_types.find(tolower(type[0]));
+	return it != device_types.end() ? it->second : UNDEFINED;
 }
