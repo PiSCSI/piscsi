@@ -31,7 +31,7 @@ bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 	}
 
 	// Default mode
-	mode_t omode = directIO ? O_DIRECT : 0;
+	const mode_t omode = directIO ? O_DIRECT : 0;
 
 	switch (mode) {
 		case OpenMode::ReadOnly:
@@ -112,10 +112,10 @@ off_t Fileio::GetFileSize() const
 	assert(handle >= 0);
 
 	// Get file position in 64bit
-	off_t cur = lseek(handle, 0, SEEK_CUR);
+	const off_t cur = lseek(handle, 0, SEEK_CUR);
 
 	// Get file size in64bitで
-	off_t end = lseek(handle, 0, SEEK_END);
+	const off_t end = lseek(handle, 0, SEEK_END);
 
 	// Return to start position
 	Seek(cur);
