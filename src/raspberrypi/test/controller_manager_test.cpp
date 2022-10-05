@@ -38,7 +38,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
 	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	controller = controller_manager.FindController(ID);
-	controller_manager.DeleteController(controller);
+	EXPECT_TRUE(controller_manager.DeleteController(controller));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 
 	controller_manager.DeleteAllControllers();

@@ -426,8 +426,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 		}
 
 		// If no LUN is left also delete the controller
-		if (!controller->GetLunCount()) {
-			controller_manager.DeleteController(controller);
+		if (!controller->GetLunCount() && !controller_manager.DeleteController(controller)) {
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
 		LOGINFO("%s", s.c_str())

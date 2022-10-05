@@ -31,9 +31,9 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 	return controller->AddDevice(device);
 }
 
-void ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
+bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
 {
-	controllers.erase(controller->GetTargetId());
+	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
