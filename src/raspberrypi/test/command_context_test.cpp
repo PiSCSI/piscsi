@@ -7,10 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
-#include "rascsi/command_context.h"
+#include <gmock/gmock.h>
 
-using namespace rascsi_interface;
+#include "rascsi/command_context.h"
 
 TEST(CommandContext, IsValid)
 {
@@ -24,7 +23,7 @@ TEST(CommandContext, IsValid)
 
 TEST(CommandContext, ReturnLocalizedError)
 {
-	MockCommandContext context;
+	CommandContext context("", -1);
 
 	EXPECT_FALSE(context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL));
 }
