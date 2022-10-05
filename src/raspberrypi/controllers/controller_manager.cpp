@@ -19,7 +19,13 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 	auto controller = FindController(id);
 	if (controller == nullptr) {
 		controller = make_shared<ScsiController>(bus, id);
-		controllers[id] = controller;
+		if (controller->AddDevice(device)) {
+			controllers[id] = controller;
+
+			return true;
+		}
+
+		return false;
 	}
 
 	return controller->AddDevice(device);
