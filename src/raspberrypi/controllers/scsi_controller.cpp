@@ -485,7 +485,7 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (const int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase

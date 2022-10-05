@@ -511,7 +511,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
     }
 
     unordered_set<int> reserved;
-    for (string id_to_reserve : ids_to_reserve) {
+    for (const string& id_to_reserve : ids_to_reserve) {
     	int res_id;
  		if (!GetAsInt(id_to_reserve, res_id) || res_id > 7) {
  			return "Invalid ID " + id_to_reserve;

@@ -41,8 +41,8 @@ bool RascsiImage::CheckDepth(string_view filename) const
 
 bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
-	if (size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
-		string folder = filename.substr(0, filename_start);
+	if (const size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
+		const string folder = filename.substr(0, filename_start);
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
 		if (struct stat st; stat(folder.c_str(), &st)) {
@@ -142,12 +142,12 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return false;
 	}
 
-	string permission = GetParam(command, "read_only");
+	const string permission = GetParam(command, "read_only");
 	// Since rascsi is running as root ensure that others can access the file
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
+	const int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
-	int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
+	const int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
 		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
@@ -178,7 +178,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 
 bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
 {
-	string filename = GetParam(command, "file");
+	const string filename = GetParam(command, "file");
 	if (filename.empty()) {
 		return context.ReturnStatus(false, "Missing image filename");
 	}
@@ -273,17 +273,17 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return context.ReturnStatus();
 	}
 
-	int fd_src = open(from.c_str(), O_RDONLY, 0);
+	const int fd_src = open(from.c_str(), O_RDONLY, 0);
 	if (fd_src == -1) {
 		return context.ReturnStatus(false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	string permission = GetParam(command, "read_only");
+	const string permission = GetParam(command, "read_only");
 	// Since rascsi is running as root ensure that others can access the file
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
+	const int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
+	const int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
 	if (fd_dst == -1) {
 		close(fd_src);
 
@@ -336,7 +336,7 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
-	if (int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	if (const int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 		chmod(filename.c_str(), permissions) == -1) {
 		return context.ReturnStatus(false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
 				strerror(errno));
