@@ -208,7 +208,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 unique_ptr<PbReservedIdsInfo> RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
 {
 	auto reserved_ids_info = make_unique<PbReservedIdsInfo>();
-	for (int id : ids) {
+	for (const int id : ids) {
 		reserved_ids_info->add_ids(id);
 	}
 
