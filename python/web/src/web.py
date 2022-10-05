@@ -588,23 +588,27 @@ def attach_device():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     device_type = request.form.get("type")
-
-    params = {}
-    drive_props = None
-    for item in request.form:
-        if item == "drive_name":
-            drive_name = request.form.get(item)
-            for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-                if drive["name"] == drive_name:
-                    drive_props = drive
-                    break
-        else:
-            param = request.form.get(item)
-            if param:
-                params.update({item: param})
+    drive_name = request.form.get("drive_name")
 
     if not scsi_id:
         return response(error=True, message=_("No SCSI ID specified"))
+
+    # Attempt to fetch the drive properties based on drive name
+    drive_props = None
+    if drive_name:
+        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
+            if drive["name"] == drive_name:
+                drive_props = drive
+                break
+
+    # Collect device parameters into a dictionary
+    PARAM_PREFIX = "param_"
+    params = {}
+    for item in request.form:
+        if item.startswith(PARAM_PREFIX):
+            param = request.form.get(item)
+            if param:
+                params.update({item.replace(PARAM_PREFIX, ""): param})
 
     error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)

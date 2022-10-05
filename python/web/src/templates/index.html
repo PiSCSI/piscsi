@@ -373,11 +373,11 @@
             <form action="/scsi/attach_device" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
-                <label for="{{ key }}">{{ key }}:</label>
+                <label for="param_{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" value="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
-                <select name="interface">
+                <select name="param_{{ key }}" id="param_{{ key }}">
                 {% for if in netinfo["ifs"] %}
                     <option value="{{ if }}">
                         {{ if }}
@@ -385,7 +385,7 @@
                 {% endfor %}
                 </select>
                 {% else %}
-                <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
                 {% if type in REMOVABLE_DEVICE_TYPES %}
@@ -420,7 +420,7 @@
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids["valid_ids"] %}
-                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                         {{ id }}
                     </option>
                 {% endfor %}
@@ -538,7 +538,7 @@
             <form action="/files/download_to_iso" method="post">
                 <select name="scsi_id">
                     {% for id in scsi_ids["valid_ids"] %}
-                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                         {{ id }}
                     </option>
                     {% endfor %}
