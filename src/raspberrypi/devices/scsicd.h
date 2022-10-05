@@ -19,7 +19,7 @@
 #include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
 
-class SCSICD : public Disk, ScsiMmcCommands
+class SCSICD : public Disk, private ScsiMmcCommands
 {
 public:
 

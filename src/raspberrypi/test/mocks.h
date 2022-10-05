@@ -20,7 +20,7 @@
 #include "devices/host_services.h"
 #include "rascsi/command_context.h"
 
-class MockBus final : public BUS //NOSONAR Having many fields/methods cannot be avoided
+class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
 public:
 
@@ -78,7 +78,7 @@ public:
 	using PhaseHandler::PhaseHandler;
 };
 
-class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
+class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
@@ -131,7 +131,7 @@ public:
 	MockBus bus;
 };
 
-class MockScsiController final : public ScsiController
+class MockScsiController : public ScsiController
 {
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
@@ -150,7 +150,7 @@ public:
 	MockBus bus;
 };
 
-class MockDevice final : public Device
+class MockDevice : public Device
 {
 	FRIEND_TEST(DeviceTest, Params);
 	FRIEND_TEST(DeviceTest, StatusCode);
@@ -167,7 +167,7 @@ public:
 	~MockDevice() override = default;
 };
 
-class MockPrimaryDevice final : public PrimaryDevice
+class MockPrimaryDevice : public PrimaryDevice
 {
 	FRIEND_TEST(PrimaryDeviceTest, PhaseChange);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
@@ -185,7 +185,7 @@ public:
 	~MockPrimaryDevice() override = default;
 };
 
-class MockModePageDevice final : public ModePageDevice
+class MockModePageDevice : public ModePageDevice
 {
 	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
 
@@ -205,7 +205,7 @@ class MockModePageDevice final : public ModePageDevice
 	}
 };
 
-class MockDisk final : public Disk
+class MockDisk : public Disk
 {
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
@@ -231,7 +231,7 @@ public:
 	~MockDisk() override = default;
 };
 
-class MockSCSIHD final : public SCSIHD
+class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
@@ -240,7 +240,7 @@ class MockSCSIHD final : public SCSIHD
 	using SCSIHD::SCSIHD;
 };
 
-class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
+class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
 
@@ -249,21 +249,21 @@ class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hier
 	using SCSIHD_NEC::SCSIHD_NEC;
 };
 
-class MockSCSICD final : public SCSICD
+class MockSCSICD : public SCSICD
 {
 	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
 
 	using SCSICD::SCSICD;
 };
 
-class MockSCSIMO final : public SCSIMO
+class MockSCSIMO : public SCSIMO
 {
 	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
 
 	using SCSIMO::SCSIMO;
 };
 
-class MockHostServices final : public HostServices
+class MockHostServices : public HostServices
 {
 	FRIEND_TEST(ModePagesTest, HostServices_SetUpModePages);
 
