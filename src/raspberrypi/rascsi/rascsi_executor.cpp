@@ -102,7 +102,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
-			if (string error = SetReservedIds(ids); !error.empty()) {
+			if (const string error = SetReservedIds(ids); !error.empty()) {
 				return context.ReturnStatus(false, error);
 			}
 
@@ -366,7 +366,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DEVICE_NAME_UPDATE);
 	}
 
-	string filename = GetParam(pb_device, "file");
+	const string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
 	}
@@ -649,7 +649,7 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 	}
 
 	// LUN 0 must exist for all devices
-	for (auto const& [id, lun]: luns) {
+	for (const auto& [id, lun]: luns) {
 		if (!(lun & 0x01)) {
 			return "LUN 0 is missing for device ID " + to_string(id);
 		}
