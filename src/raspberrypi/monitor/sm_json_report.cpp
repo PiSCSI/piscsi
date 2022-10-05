@@ -25,8 +25,7 @@ uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture
     FILE *fp = fopen(json_filename, "r");
     uint32_t sample_count = 0;
 
-    while (fgets(str_buf, sizeof(str_buf), fp))
-    {
+    while (fgets(str_buf, sizeof(str_buf), fp)) {
         char timestamp[1024];
         char data[1024];
         uint64_t timestamp_uint;
@@ -47,15 +46,12 @@ uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture
         data[8] = '\0';
         data_uint = strtoul(data, &ptr, 16);
 
-        // printf("Time: %016llX Data: %08X\n", timestamp_uint, data_uint);
-
         data_capture_array[sample_count].timestamp = timestamp_uint;
         data_capture_array[sample_count].data = data_uint;
         sample_count++;
-        if (sample_count >= max_sz)
-        {
-            LOGWARN("File exceeds maximum buffer size. Some data may be missing.");
-            LOGWARN("Try re-running the tool with a larger buffer size");
+        if (sample_count >= max_sz) {
+            LOGWARN("File exceeds maximum buffer size. Some data may be missing.")
+            LOGWARN("Try re-running the tool with a larger buffer size")
             break;
         }
     }
@@ -74,15 +70,14 @@ uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture
 //---------------------------------------------------------------------------
 void scsimon_generate_json(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
-    LOGTRACE("Creating JSON file (%s)", filename);
+    LOGTRACE("Creating JSON file (%s)", filename)
     ofstream json_ofstream;
     json_ofstream.open(filename, ios::out);
 
     json_ofstream << "[" << endl;
 
     uint32_t i = 0;
-    while (i < capture_count)
-    {
+    while (i < capture_count) {
         json_ofstream << fmt::format("{{\"id\": \"{0:d}\", \"timestamp\":\"{1:#016x}\", \"data\":\"{2:#08x}\"}}", i, data_capture_array[i].timestamp, data_capture_array[i].data);
 
         if (i != (capture_count - 1))

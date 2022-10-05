@@ -112,7 +112,7 @@ static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, cha
 
 void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
-    LOGTRACE("Creating Value Change Dump file (%s)", filename);
+    LOGTRACE("Creating Value Change Dump file (%s)", filename)
     ofstream vcd_ofstream;
     vcd_ofstream.open(filename, ios::out);
 
