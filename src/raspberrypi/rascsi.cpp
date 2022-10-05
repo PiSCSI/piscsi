@@ -248,7 +248,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'F': {
-				if (string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
+				if (const string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
