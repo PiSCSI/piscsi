@@ -55,8 +55,10 @@
         <center>
             <form method="POST" action="/login">
                 <div>{{ _("Log In to Use Web Interface") }}</div>
-                <input type="text" name="username" placeholder="{{ _("Username") }}">
-                <input type="password" name="password" placeholder="{{ _("Password") }}">
+                <label for="username">{{ _("Username") }}</label>
+                <input type="text" name="username" id="username">
+                <label for="password">{{ _("Password") }}</label>
+                <input type="password" name="password" id="password">
                 <input type="submit" value="Login">
             </form>
         </center>

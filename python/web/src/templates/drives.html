@@ -5,7 +5,7 @@
 <p>{{ _("These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>.", url="https://github.com/akuker/RASCSI/issues") }}</p>
 <h2>{{ _("Hard Disk Drives") }}</h2>
 
-<table cellpadding="3" border="black">
+<table cellpadding="3" border="black" summary="List of hard drives">
 <tbody>
 <tr>
     <th scope="col">{{ _("Name") }}</th>
@@ -33,10 +33,11 @@
         <input type="hidden" name="revision" value="{{ hd.revision }}">
         <input type="hidden" name="blocks" value="{{ hd.blocks }}">
         <input type="hidden" name="block_size" value="{{ hd.block_size }}">
-        {{ _("Size:") }} <input type="number" name="size" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
+        <label for="size">{{ _("Size:") }}</label>
+        <input type="number" name="size" id="size" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
     <input type="hidden" name="file_type" value="{{ hd.file_type }}">
     <label for="file_name">{{ _("Save as:") }}</label>
-    <input type="text" name="file_name" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
+    <input type="text" name="file_name" id="file_name" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
     <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>
@@ -49,7 +50,7 @@
 
 <h2>{{ _("CD/DVD Drives") }}</h2>
 <p><em>{{ _("This will create a properties file for the given CD-ROM or DVD image. No new image file will be created.") }}</em></p>
-<table cellpadding="3" border="black">
+<table cellpadding="3" border="black" summary="List of CD-ROM or DVD drives">
 <tbody>
 <tr>
     <th scope="col">{{ _("Name") }}</th>
@@ -77,13 +78,13 @@
         <input type="hidden" name="revision" value="{{ cd.revision }}">
         <input type="hidden" name="block_size" value="{{ cd.block_size }}">
         <label for="file_name">{{ _("Create for:") }}</label>
-    <select type="select" name="file_name">
-        {% for file in files|sort(attribute='name') %}
-    {% if file["name"].lower().endswith(cdrom_file_suffix) %}
-    <option value="{{ file["name"] }}">{{ file["name"].replace(base_dir, '') }}</option>
-    {% endif %}
-    {% endfor %}
-    </select>
+        <select type="select" name="file_name" id="file_name">
+            {% for file in files|sort(attribute='name') %}
+        {% if file["name"].lower().endswith(cdrom_file_suffix) %}
+        <option value="{{ file["name"] }}">{{ file["name"].replace(base_dir, '') }}</option>
+        {% endif %}
+        {% endfor %}
+        </select>
     <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>
@@ -95,7 +96,7 @@
 <hr/>
 
 <h2>{{ _("Removable Disk Drives") }}</h2>
-<table cellpadding="3" border="black">
+<table cellpadding="3" border="black" summary="List of removable disk drives">
 <tbody>
 <tr>
     <th scope="col">{{ _("Name") }}</th>
@@ -123,10 +124,11 @@
         <input type="hidden" name="revision" value="{{ rm.revision }}">
         <input type="hidden" name="blocks" value="{{ rm.blocks }}">
         <input type="hidden" name="block_size" value="{{ rm.block_size }}">
-        {{ _("Size:") }} <input type="number" name="size" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
+        <label for="size">{{ _("Size:") }}</label>
+        <input type="number" name="size" id="size" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
         <input type="hidden" name="file_type" value="{{ rm.file_type }}">
         <label for="file_name">{{ _("Save as:") }}</label>
-        <input type="text" name="file_name" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
+        <input type="text" name="file_name" id="file_name" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
         <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>

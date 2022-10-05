@@ -263,6 +263,7 @@ def index():
         drive_properties=drive_properties,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
+        CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
         PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),

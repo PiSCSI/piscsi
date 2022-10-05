@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>{{ _("Detailed Info for Attached Devices") }}</h3>
+<h1>{{ _("Detailed Info for Attached Devices") }}</h1>
 {% for device in devices %}
 <p>
-<table border="black" cellpadding="3">
+<table border="black" cellpadding="3" summary="Detailed information for attached devices">
 <tr>
     <th scope="row">{{ _("SCSI ID") }}</th>
     <td>{{ device["id"] }}</td>
