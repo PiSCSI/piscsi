@@ -107,7 +107,7 @@
                 {% endif %}
             </td>
             <td style="text-align:center">
-            {% if device.device_type != "-" %}
+            {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -277,8 +277,8 @@
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="id">{{ _("ID") }}</label>
                     <select name="scsi_id">
-                        {% for id in scsi_ids %}
-                        <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
+                        {% for id in scsi_ids["valid_ids"] %}
+                        <option name="id" value="{{id}}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                             {{ id }}
                         </option>
                         {% endfor %}
@@ -419,7 +419,7 @@
                 {% endif %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
-                {% for id in scsi_ids %}
+                {% for id in scsi_ids["valid_ids"] %}
                     <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
                         {{ id }}
                     </option>
@@ -537,7 +537,7 @@
             <label for="scsi_id">{{ _("SCSI ID:") }}</label>
             <form action="/files/download_to_iso" method="post">
                 <select name="scsi_id">
-                    {% for id in scsi_ids %}
+                    {% for id in scsi_ids["valid_ids"] %}
                     <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
                         {{ id }}
                     </option>
