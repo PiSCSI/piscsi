@@ -39,4 +39,5 @@ private:
 	void DisplayDefaultParameters(const PbDeviceProperties&) const;
 	void DisplayBlockSizes(const PbDeviceProperties&) const;
 	void DisplayParameters(const PbOperationMetaData&) const;
+	void DisplayPermittedValues(const PbOperationParameter&) const;
 };

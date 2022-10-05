@@ -375,26 +375,30 @@ void RasctlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) cons
 		}
 		cout << '\n';
 
-		if (parameter.permitted_values_size()) {
-			cout << "      Permitted values: ";
-
-			bool isFirst = true;
-
-			for (const auto& permitted_value : parameter.permitted_values()) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-
-				isFirst = false;
-				cout << permitted_value;
-			}
-
-			cout << '\n';
-		}
+		DisplayPermittedValues(parameter);
 
 		if (!parameter.default_value().empty()) {
 			cout << "      Default value: " << parameter.default_value() << '\n';
 		}
 	}
+}
 
+void RasctlDisplay::DisplayPermittedValues(const PbOperationParameter& parameter) const
+{
+	if (parameter.permitted_values_size()) {
+		cout << "      Permitted values: ";
+
+		bool isFirst = true;
+
+		for (const auto& permitted_value : parameter.permitted_values()) {
+			if (!isFirst) {
+				cout << ", ";
+			}
+
+			isFirst = false;
+			cout << permitted_value;
+		}
+
+		cout << '\n';
+	}
 }
