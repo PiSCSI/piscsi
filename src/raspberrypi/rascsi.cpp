@@ -61,7 +61,7 @@ static const char COMPONENT_SEPARATOR = ':';
 static volatile bool active;		// Processing flag
 RascsiService service;
 GPIOBUS bus;
-string current_log_level;			// Some versions of spdlog do not support get_log_level()
+string current_log_level = "info";	// Some versions of spdlog do not support get_log_level()
 string access_token;
 DeviceFactory device_factory;
 ControllerManager controller_manager(bus);
@@ -532,7 +532,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	executor.SetLogLevel("info");
+	executor.SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("rascsi stdout logger");

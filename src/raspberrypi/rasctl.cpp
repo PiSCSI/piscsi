@@ -38,7 +38,7 @@ void Banner(int argc, char* argv[])
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cout << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
 		cout <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
-		cout << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n";
+		cout << "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n";
 		cout << " where  ID := {0-7}\n";
 		cout << "        UNIT := {0-31}, default is 0\n";
 		cout << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n";
