@@ -549,6 +549,10 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<PrimaryDevice> device,
 		const string& filename, string& full_path) const
 {
+	if (!device->SupportsFile()) {
+		return true;
+	}
+
 	auto disk = dynamic_pointer_cast<Disk>(device);
 	if (disk == nullptr || filename.empty()) {
 		return true;
