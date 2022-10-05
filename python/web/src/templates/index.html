@@ -57,12 +57,12 @@
         {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
-            <td style="text-align:center">{{ device.id }}</td>
+            <td><center>{{ device.id }}</center></td>
             {% if units %}
-            <td style="text-align:center">{{ device.unit }}</td>
+            <td><center>{{ device.unit }}</center></td>
             {% endif %}
-            <td style="text-align:center">{{ device.device_name }}</td>
-            <td style="text-align:left">
+            <td><center>{{ device.device_name }}</center></td>
+            <td>
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -105,7 +105,8 @@
             {% endif %}
             {% endif %}
             </td>
-            <td style="text-align:center">
+            <td>
+                <center>
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.vendor }}
                 {% endif %}
@@ -113,9 +114,11 @@
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.revision }}
                 {% endif %}
+                </center>
             </td>
-            <td style="text-align:center">
-            {% if device.device_type != "-" %}
+            <td>
+                <center>
+                {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -128,13 +131,14 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Detach") }}">
                 </form>
-            {% else %}
-            <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
+                {% else %}
+                <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="memo" id="memo_{{ device.id }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Reserve") }}">
                 </form>
-            {% endif %}
+                {% endif %}
+                </center>
             </td>
             {% else %}
             <td class="inactive">{{ device.id }}</td>
@@ -204,7 +208,7 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul style="list-style: none;">
+                    <ul class="inline_list">
                     {% for key in file["prop"] %}
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
@@ -221,7 +225,7 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul style="list-style: none;">
+                    <ul class="inline_list">
                         {% for member in file["archive_contents"] %}
                             {% if not member["is_properties_file"] %}
                                 <li>
@@ -235,7 +239,7 @@
                                                     <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
                                                 </form>
                                             </summary>
-                                            <ul style="list-style: none;">
+                                            <ul class="inline_list">
                                                 <li>{{ member["related_properties_file"] }}</li>
                                             </ul>
                                         </details>
@@ -256,11 +260,13 @@
             {% else %}
             <td>{{ file["name"] }}</td>
             {% endif %}
-            <td style="text-align:center">
+            <td>
+                <center>
                 <form action="/files/download" method="post">
                     <input name="file" type="hidden" value="{{ base_dir }}/{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
+                </center>
             </td>
             <td>
                 {% if file["name"] in attached_images %}
@@ -347,7 +353,7 @@
         <ul>
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
-	{% else %}
+        {% else %}
         <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
@@ -392,8 +398,8 @@
                 {% endif %}
                 {% endfor %}
                 {% if type in REMOVABLE_DEVICE_TYPES %}
-                <label for="drive_name" id="drive_name">{{ _("Masquerade as:") }}</label>
-                <select name="drive_name">
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name" id="drive_name">
                 <option value="">
                 {{ _("None") }}
                 </option>
