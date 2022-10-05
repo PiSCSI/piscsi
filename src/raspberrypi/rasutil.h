@@ -15,10 +15,13 @@
 #include <string>
 #include "rascsi_interface.pb.h"
 
+using namespace std;
+
 namespace ras_util
 {
-	bool GetAsInt(const std::string&, int&);
-	std::string ListDevices(const std::list<rascsi_interface::PbDevice>&);
+	void Banner(const string&);
+	bool GetAsInt(const string&, int&);
+	string ListDevices(const list<rascsi_interface::PbDevice>&);
 
 	void FixCpu(int);
 }

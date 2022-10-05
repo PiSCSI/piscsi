@@ -32,11 +32,7 @@ using namespace protobuf_util;
 void Banner(int argc, char* argv[])
 {
 	if (argc < 2) {
-		cout << "SCSI Target Emulator RaSCSI Controller version " << rascsi_get_version_string()
-				<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
-		cout << "Powered by XM6 TypeG Technology / ";
-		cout << "Copyright (C) 2016-2020 GIMONS\n";
-		cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n";
+		Banner("Controller");
 
 		cout << "\nUsage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";

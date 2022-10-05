@@ -18,10 +18,10 @@
 #include "devices/disk.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
+#include "rascsi_version.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
-#include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi/rascsi_executor.h"
 #include "rascsi/rascsi_response.h"
@@ -72,11 +72,7 @@ const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
 {
-	cout << "SCSI Target Emulator RaSCSI Reloaded version " << rascsi_get_version_string()
-			<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
-	cout << "Powered by XM6 TypeG Technology / ";
-	cout << "Copyright (C) 2016-2020 GIMONS\n";
-	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n";
+	Banner("Reloaded");
 	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
