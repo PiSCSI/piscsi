@@ -94,8 +94,7 @@ void parse_arguments(int argc, char *argv[])
     }
 
     /* Process any remaining command line arguments (not options). */
-    if (optind < argc)
-    {
+    if (optind < argc) {
         while (optind < argc)
             strncpy(file_base_name, argv[optind++], sizeof(file_base_name)-1);
     }
@@ -147,12 +146,10 @@ void print_help_text(int, char *argv[])
 //---------------------------------------------------------------------------
 void Banner(int, char *[])
 {
-    if (import_data)
-    {
+    if (import_data) {
         LOGINFO("Reading input file: %s", input_file_name)
     }
-    else
-    {
+    else {
         LOGINFO("Reading live data from the GPIO pins")
         LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
@@ -172,16 +169,13 @@ void Banner(int, char *[])
 bool Init()
 {
     // Interrupt handler settings
-    if (signal(SIGINT, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGINT, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGHUP, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGHUP, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGTERM, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGTERM, KillHandler) == SIG_ERR) {
         return false;
     }
 
@@ -312,8 +306,7 @@ int main(int argc, char *argv[])
 
     // Initialize
     int ret = 0;
-    if (!Init())
-    {
+    if (!Init()) {
         ret = EPERM;
         goto init_exit;
     }

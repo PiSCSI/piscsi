@@ -77,7 +77,7 @@ void RascsiService::Execute() const
 	ras_util::FixCpu(2);
 
 	// Wait for the execution to start
-	timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
 	while (!running) {
 		nanosleep(&ts, nullptr);
 	}

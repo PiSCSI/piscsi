@@ -387,8 +387,8 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 	switch(command.operation()) {
 		case LOG_LEVEL: {
-			string log_level = GetParam(command, "level");
-			if (bool status = executor.SetLogLevel(log_level); !status) {
+			const string log_level = GetParam(command, "level");
+			if (const bool status = executor.SetLogLevel(log_level); !status) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
@@ -400,7 +400,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		case DEFAULT_FOLDER: {
-			if (string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
+			if (const string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
 				context.ReturnStatus(false, status);
 			}
 			else {
@@ -456,7 +456,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
+				const bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
@@ -504,7 +504,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 		default: {
 			// Wait until we become idle
-			timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
 			while (active) {
 				nanosleep(&ts, nullptr);
 			}
@@ -598,7 +598,7 @@ int main(int argc, char* argv[])
 #else
 		bus.Acquire();
 		if (!bus.GetSEL()) {
-			timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
 			nanosleep(&ts, nullptr);
 			continue;
 		}
