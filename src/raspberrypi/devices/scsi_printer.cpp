@@ -217,7 +217,7 @@ void SCSIPrinter::StopPrint()
 bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 {
 	if (fd == -1) {
-		strcpy(filename, TMP_FILE_PATTERN);
+		strcpy(filename, TMP_FILE_PATTERN); //NOSONAR Using strcpy is safe here
 		fd = mkstemp(filename);
 		if (fd == -1) {
 			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
