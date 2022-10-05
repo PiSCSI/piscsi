@@ -412,14 +412,6 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 	}
 
 	if (!dryRun) {
-		// Prepare log string before the device data are lost due to deletion
-		string s = "Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
-				+ ", unit " + to_string(device->GetLun());
-
-		if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
-			disk->UnreserveFile();
-		}
-
 		auto controller = controller_manager.FindController(device->GetId());
 		if (controller == nullptr || !controller->DeleteDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
@@ -430,7 +422,12 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
-		LOGINFO("%s", s.c_str())
+		if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
+			disk->UnreserveFile();
+		}
+
+		LOGINFO("%s", ("Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
+				+ ", unit " + to_string(device->GetLun())).c_str());
 	}
 
 	return true;
