@@ -12,6 +12,16 @@
 
 using namespace rascsi_interface;
 
+TEST(CommandContext, IsValid)
+{
+	CommandContext context("", -1);
+
+	EXPECT_FALSE(context.IsValid());
+
+	context.SetFd(1);
+	EXPECT_TRUE(context.IsValid());
+}
+
 TEST(CommandContext, ReturnLocalizedError)
 {
 	MockCommandContext context;
