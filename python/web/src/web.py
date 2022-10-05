@@ -610,11 +610,10 @@ def attach_device():
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)
 
     if "interface" in params.keys():
-        # Note: is_bridge_configured returns False if the bridge is configured
         bridge_status = is_bridge_configured(params["interface"])
-        if bridge_status:
+        if not bridge_status["status"]:
             return response(error=True, message=[
-                (bridge_status, "error"),
+                (bridge_status["msg"], "error"),
                 (error_msg, "error")
             ])
 
