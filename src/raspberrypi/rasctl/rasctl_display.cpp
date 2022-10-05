@@ -251,6 +251,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 	// Copies result into a map sorted by operation name
 	auto unknown_operation = make_unique<PbOperationMetaData>();
 	map<string, PbOperationMetaData, less<>> sorted_operations;
+
 	for (const auto& [ordinal, meta_data] : operations) {
 		if (PbOperation_IsValid(static_cast<PbOperation>(ordinal))) {
 			sorted_operations[PbOperation_Name(static_cast<PbOperation>(ordinal))] = meta_data;
