@@ -15,7 +15,7 @@ using namespace rascsi_interface;
 
 class RasctlDisplay
 {
-	friend class RasctlCommands;
+public:
 
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
@@ -31,5 +31,9 @@ class RasctlDisplay
 	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
 	void DisplayMappingInfo(const PbMappingInfo&) const;
 	void DisplayOperationInfo(const PbOperationInfo&) const;
+
+private:
+
 	void DisplayParams(const PbDevice&) const;
+	void DisplayBlockSizes(const PbDeviceProperties&) const;
 };

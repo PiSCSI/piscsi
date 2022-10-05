@@ -165,22 +165,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			}
 		}
 
-		if (properties.block_sizes_size()) {
-			// Creates a sorted set
-			set<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-
-			cout << "Configurable block sizes in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& block_size : block_sizes) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << block_size;
-
-				isFirst = false;
-			}
-		}
+		DisplayBlockSizes(properties);
 	}
 }
 
@@ -334,5 +319,24 @@ void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
 		}
 		isFirst = false;
 		cout << key << "=" << value;
+	}
+}
+
+void RasctlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) const
+{
+	if (properties.block_sizes_size()) {
+		set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
+
+		cout << "Configurable block sizes in bytes: ";
+
+		bool isFirst = true;
+		for (const auto& block_size : sorted_sizes) {
+			if (!isFirst) {
+				cout << ", ";
+			}
+			cout << block_size;
+
+			isFirst = false;
+		}
 	}
 }
