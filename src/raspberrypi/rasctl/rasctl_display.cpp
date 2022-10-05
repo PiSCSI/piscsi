@@ -117,30 +117,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
-		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
-			cout << "Properties: ";
-			bool has_property = false;
-			if (properties.read_only()) {
-				cout << "read-only";
-				has_property = true;
-			}
-			if (properties.protectable()) {
-				cout << (has_property ? ", " : "") << "protectable";
-				has_property = true;
-			}
-			if (properties.stoppable()) {
-				cout << (has_property ? ", " : "") << "stoppable";
-				has_property = true;
-			}
-			if (properties.removable()) {
-				cout << (has_property ? ", " : "") << "removable";
-				has_property = true;
-			}
-			if (properties.lockable()) {
-				cout << (has_property ? ", " : "") << "lockable";
-			}
-			cout << "\n        ";
-		}
+		DisplayAttributes(properties);
 
 		if (properties.supports_file()) {
 			cout << "Image file support\n        ";
@@ -328,6 +305,35 @@ void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
 		}
 		isFirst = false;
 		cout << key << "=" << value;
+	}
+}
+
+void RasctlDisplay::DisplayAttributes(const PbDeviceProperties& properties) const
+{
+	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
+		cout << "Properties: ";
+		bool has_property = false;
+		if (properties.read_only()) {
+			cout << "read-only";
+			has_property = true;
+		}
+		if (properties.protectable()) {
+			cout << (has_property ? ", " : "") << "protectable";
+			has_property = true;
+		}
+		if (properties.stoppable()) {
+			cout << (has_property ? ", " : "") << "stoppable";
+			has_property = true;
+		}
+		if (properties.removable()) {
+			cout << (has_property ? ", " : "") << "removable";
+			has_property = true;
+		}
+		if (properties.lockable()) {
+			cout << (has_property ? ", " : "") << "lockable";
+		}
+
+		cout << "\n        ";
 	}
 }
 

@@ -35,5 +35,6 @@ public:
 private:
 
 	void DisplayParams(const PbDevice&) const;
+	void DisplayAttributes(const PbDeviceProperties&) const;
 	void DisplayBlockSizes(const PbDeviceProperties&) const;
 };
