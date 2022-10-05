@@ -42,21 +42,19 @@
             {% if units %}
             <td><b>{{ _("LUN") }}</b></td>
             {% endif %}
-            <td><b>{{ _("Type") }}</b></td>
-            <td><b>{{ _("Status") }}</b></td>
-            <td><b>{{ _("File") }}</b></td>
+            <td><b>{{ _("Device") }}</b></td>
+            <td><b>{{ _("Parameters") }}</b></td>
             <td><b>{{ _("Product") }}</b></td>
             <td><b>{{ _("Actions") }}</b></td>
         </tr>
-        {% for device in devices %}
+        {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{ device.id }}</td>
             {% if units %}
             <td style="text-align:center">{{ device.unit }}</td>
             {% endif %}
-            <td style="text-align:center">{{ device.device_type }}</td>
-            <td style="text-align:center">{{ device.status }}</td>
+            <td style="text-align:center">{{ device.device_name }}</td>
             <td style="text-align:left">
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
@@ -84,14 +82,30 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
+            {% if device.params %}
+            {% for key in device.params %}
+            {% if key == "interface" %}
+            ({{device.params[key]}})
+            {% elif key == "timeout" %}
+            ({{key}}:{{device.params[key]}})
+            {% else %}
+            {{device.params[key]}}
+            {% endif %}
+            {% endfor %}
+            {% elif device.file %}
             {{ device.file }}
             {% endif %}
-            </td>
-            {% if device.vendor == "RaSCSI" %}
-            <td style="text-align:center">{{ device.product }}</td>
-            {% else %}
-            <td style="text-align:center">{{ device.vendor }} {{ device.product }}</td>
             {% endif %}
+            </td>
+            <td style="text-align:center">
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.vendor }}
+                {% endif %}
+                {{ device.product }}
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.revision }}
+                {% endif %}
+            </td>
             <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
@@ -119,7 +133,6 @@
             {% if units %}
             <td class="inactive"></td>
             {% endif %}
-            <td class="inactive"></td>
             <td class="inactive">{{ _("Reserved ID") }}</td>
             <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
             <td class="inactive"></td>
@@ -138,15 +151,15 @@
 <table style="border: none;" cellpadding="3">
     <tr style="border: none;">
         <td style="border: none;">
-	    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+        <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
             <input type="submit" value="{{ _("Detach All Devices") }}">
-	    </form>
-	</td>
+        </form>
+        </td>
         <td style="border: none;">
-	    <form action="/scsi/info" method="post">
+        <form action="/scsi/info" method="post">
             <input type="submit" value="{{ _("Show Device Info") }}">
-	    </form>
-	</td>
+        </form>
+    </td>
     </tr>
 </table>
 
@@ -158,7 +171,7 @@
     </summary>
     <ul>
         <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=base_dir, scan_depth=scan_depth) }}</li>
-        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
+        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
         <li>
@@ -179,7 +192,7 @@
         <tr style="font-weight: bold;">
             <td>{{ _("File") }}</td>
             <td>{{ _("Size") }}</td>
-            <td>{{ _("Parameters and Actions") }}</td>
+            <td>{{ _("Actions") }}</td>
         </tr>
         {% for file in files|sort(attribute='name') %}
         <tr>
@@ -326,30 +339,35 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
+        <li>{{ _("Before using a networking device, it is recommended to run easyinstall.sh from the command line to configure your Raspberry Pi.") }}
         </li>
         <ul>
-        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
-        <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
+	{% else %}
+        <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
-        <li>{{ _("To browse the modern web, install a vintage web proxy like <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
+        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
+        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
         </ul>
-        <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
+        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
 </details>
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
-        <td>{{ _("Peripheral") }}</td>
+        <td>{{ _("Device") }}</td>
+        <td>{{ _("Key") }}</td>
         <td>{{ _("Parameters and Actions") }}</td>
     </tr>
-    {% for type in PERIPHERAL_DEVICE_TYPES %}
+    {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
+        </td>
+        <td>
+            <div>{{ type }}</div>
         </td>
         <td>
             <form action="/scsi/attach_device" method="post">
@@ -370,6 +388,35 @@
                 <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
+                {% if type in REMOVABLE_DEVICE_TYPES %}
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name">
+                <option value="">
+                {{ _("None") }}
+                </option>
+                {% if type == "SCCD" %}
+                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCRM" %}
+                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                {% if type == "SCMO" %}
+                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                {% endif %}
+                </select>
+                {% endif %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
@@ -395,7 +442,7 @@
     <ul>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
@@ -410,7 +457,7 @@
                     <option value="afp">{{ AFP_DIR }}</option>
                 </select>
                 </p>
-	    </form>
+            </form>
         </td>
     </tr>
 </table>
@@ -451,7 +498,7 @@
     </summary>
     <ul>
         <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
@@ -459,7 +506,7 @@
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
             <form action="/files/download_url" method="post">
-		<label for="destination">{{ _("Target directory:") }}</label>
+                <label for="destination">{{ _("Target directory:") }}</label>
                 <select name="destination">
                     <option value="images">{{ base_dir }}</option>
                     <option value="afp">{{ AFP_DIR }}</option>
@@ -481,7 +528,6 @@
     <ul>
         <li>{{ _("Create an ISO file system CD-ROM image with the downloaded file, and mount it on the given SCSI ID.") }}</li>
         <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
-        <li>{{ _("On Mac OS, a <a href=\"%(url)s\">compatible CD-ROM driver</a> is required.", url="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images") }}</li>
         <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
     </ul>
 </details>
@@ -533,11 +579,7 @@
         {{ _("Create Empty Disk Image File") }}
     </summary>
     <ul>
-        <li>{{ _("The Generic Hard Disk image type is recommended for most computer platforms.") }}</li>
-        <li>{{ _("The Apple image type improves compatibility with Apple Macintosh computers.") }}</li>
-        <li>{{ _("The NEC image type improves compatibility with NEC PC-98 computers.") }}</li>
-        <li>{{ _("The SCSI-1 image type makes RaSCSI behave like a legacy SCSI-1 device, which may improve compatibility with very old SCSI controllers.") }}</li>
-        <li>{{ _("The Removable Disk image type can be used with SCSI floppy drives, SyQuest drives, Zip drives, etc.") }}</li>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types#image-types") }}</li>
     </ul>
 </details>
 <table style="border: none">
@@ -556,6 +598,17 @@
                 </select>
                 <label for="size">{{ _("Size:") }}</label>
                 <input name="size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+                <label for="drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name">
+                <option value="">
+                {{ _("None") }}
+                </option>
+                {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+                <option value="{{ drive.name }}">
+                {{ drive.name }}
+                </option>
+                {% endfor %}
+                </select>
                 <input type="submit" value="{{ _("Create") }}">
             </form>
         </td>
@@ -698,10 +751,14 @@
     </tr>
 </table>
 
+<hr/>
+
+<a href="/sys/manpage?app=rascsi"><p>{{ _("Read the RaSCSI Manual") }}</p></a>
+
 <center><tt>
         {% if netatalk_configured == 1 %}
         {{ _("The AppleShare server is running. No active connections.") }}
-	{% endif %}
+        {% endif %}
         {% if netatalk_configured == 2 %}
         {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
         {% elif netatalk_configured > 2 %}

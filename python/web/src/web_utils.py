@@ -47,18 +47,25 @@ def sort_and_format_devices(devices):
     For SCSI IDs where no device is attached, inject a (dict) with placeholder text.
     """
     occupied_ids = []
+    formatted_devices = []
     for device in devices:
         occupied_ids.append(device["id"])
+        device["device_name"] = get_device_name(device["device_type"])
+        formatted_devices.append(device)
 
-    formatted_devices = devices
-
-    # Add padding devices and sort the list
-    for i in range(8):
-        if i not in occupied_ids:
-            formatted_devices.append({"id": i, "device_type": "-", \
-                    "status": "-", "file": "-", "product": "-"})
-    # Sort list of devices by id
-    formatted_devices.sort(key=lambda dic: str(dic["id"]))
+    # Add placeholder data for non-occupied IDs
+    for scsi_id in range(8):
+        if scsi_id not in occupied_ids:
+            formatted_devices.append(
+                {
+                    "id": scsi_id,
+                    "unit": "-",
+                    "device_name": "-",
+                    "status": "-",
+                    "file": "-",
+                    "product": "-",
+                }
+            )
 
     return formatted_devices
 
@@ -81,17 +88,17 @@ def get_device_name(device_type):
     Returns the human-readable name for the device type.
     """
     if device_type == "SCHD":
-        return _("Hard Disk")
+        return _("Hard Disk Drive")
     if device_type == "SCRM":
-        return _("Removable Disk")
+        return _("Removable Disk Drive")
     if device_type == "SCMO":
-        return _("Magneto-Optical Disk")
+        return _("Magneto-Optical Drive")
     if device_type == "SCCD":
-        return _("CD / DVD")
+        return _("CD/DVD Drive")
     if device_type == "SCBR":
-        return _("X68000 Host Bridge")
+        return _("Host Bridge")
     if device_type == "SCDP":
-        return _("DaynaPORT SCSI/Link")
+        return _("Ethernet Adapter")
     if device_type == "SCLP":
         return _("Printer")
     if device_type == "SCHS":
@@ -131,6 +138,41 @@ def get_image_description(file_suffix):
         return _("Magneto-Optical Disk Image")
     return file_suffix
 
+
+def format_drive_properties(drive_properties):
+    """
+    Takes a (dict) with structured drive properties data
+    Returns a (dict) with the formatted properties, one (list) per device type
+    """
+    hd_conf = []
+    cd_conf = []
+    rm_conf = []
+    mo_conf = []
+    FORMAT_FILTER = "{:,.2f}"
+
+    for device in drive_properties:
+        if device["device_type"] == "SCHD":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
+            hd_conf.append(device)
+        elif device["device_type"] == "SCCD":
+            device["size_mb"] = _("N/A")
+            cd_conf.append(device)
+        elif device["device_type"] == "SCRM":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
+            rm_conf.append(device)
+        elif device["device_type"] == "SCMO":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
+            mo_conf.append(device)
+
+    return {
+        "hd_conf": hd_conf,
+        "cd_conf": cd_conf,
+        "rm_conf": rm_conf,
+        "mo_conf": mo_conf,
+        }
 
 def auth_active(group):
     """

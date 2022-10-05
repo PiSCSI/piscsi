@@ -426,9 +426,9 @@
     "revision": "1.0k",
     "block_size": 2048,
     "size": null,
-    "name": "Apple CD 600e",
+    "name": "AppleCD 600e (Matsushita CR-8005)",
     "file_type": null,
-    "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
+    "description": "Emulates an Apple CD-ROM drive for use with Macintosh computers.",
     "url": ""
 },
 {
@@ -438,7 +438,7 @@
     "revision": null,
     "block_size": 512,
     "size": null,
-    "name": "Generic CD-ROM 512 block size",
+    "name": "Generic CD-ROM block size 512",
     "file_type": null,
     "description": "For use with host systems that expect the non-standard 512 byte block size for CD-ROM drives, such as Akai samplers.",
     "url": ""
