@@ -258,34 +258,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 			}
 			cout << '\n';
 
-			list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
-			sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
-
-			for (const auto& parameter : sorted_parameters) {
-				cout << "    " << parameter.name() << ": "
-					<< (parameter.is_mandatory() ? "mandatory" : "optional");
-				if (!parameter.description().empty()) {
-					cout << " (" << parameter.description() << ")";
-				}
-				cout << '\n';
-
-				if (parameter.permitted_values_size()) {
-					cout << "      Permitted values: ";
-					bool isFirst = true;
-					for (const auto& permitted_value : parameter.permitted_values()) {
-						if (!isFirst) {
-							cout << ", ";
-						}
-						isFirst = false;
-						cout << permitted_value;
-					}
-					cout << '\n';
-				}
-
-				if (!parameter.default_value().empty()) {
-					cout << "      Default value: " << parameter.default_value() << '\n';
-				}
-			}
+			PrintParameters(meta_data);
 		}
 		else {
 			cout << "  " << name << " (Unknown server-side operation)\n";
@@ -354,4 +327,37 @@ void RasctlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) cons
 			isFirst = false;
 		}
 	}
+}
+
+void RasctlDisplay::PrintParameters(const PbOperationMetaData& meta_data) const
+{
+	list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
+	sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+	for (const auto& parameter : sorted_parameters) {
+		cout << "    " << parameter.name() << ": "
+			<< (parameter.is_mandatory() ? "mandatory" : "optional");
+		if (!parameter.description().empty()) {
+			cout << " (" << parameter.description() << ")";
+		}
+		cout << '\n';
+
+		if (parameter.permitted_values_size()) {
+			cout << "      Permitted values: ";
+			bool isFirst = true;
+			for (const auto& permitted_value : parameter.permitted_values()) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				isFirst = false;
+				cout << permitted_value;
+			}
+			cout << '\n';
+		}
+
+		if (!parameter.default_value().empty()) {
+			cout << "      Default value: " << parameter.default_value() << '\n';
+		}
+	}
+
 }
