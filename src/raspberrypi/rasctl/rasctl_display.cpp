@@ -78,7 +78,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 
 	DisplayParams(pb_device);
 
-	cout << '\n';
+	cout << endl;
 }
 
 void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
@@ -90,7 +90,8 @@ void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
 	else if (version_info.patch_version() < 0) {
 		cout << " (development version)";
 	}
-	cout << '\n';
+
+	cout << endl;
 }
 
 void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) const
@@ -105,7 +106,7 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) co
 		}
 	}
 
-	cout << "Current rascsi log level: " << log_level_info.current_log_level() << '\n';
+	cout << "Current rascsi log level: " << log_level_info.current_log_level() << endl;
 }
 
 void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
@@ -166,6 +167,8 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		DisplayBlockSizes(properties);
 	}
+
+	cout << flush;
 }
 
 void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info) const
@@ -178,7 +181,8 @@ void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids
 			}
 			cout << reserved_ids_info.ids(i);
 		}
-		cout << '\n';
+
+		cout << endl;
 	}
 }
 
@@ -191,8 +195,8 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 	if (image_file_info.type() != UNDEFINED) {
 		cout << "  " << PbDeviceType_Name(image_file_info.type());
 	}
-	cout << '\n';
 
+	cout << endl;
 }
 
 void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) const
@@ -213,6 +217,8 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) 
 			DisplayImageFile(image_file);
 		}
 	}
+
+	cout << flush;
 }
 
 void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
@@ -231,7 +237,8 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 		isFirst = false;
 		cout << interface;
 	}
-	cout << '\n';
+
+	cout << endl;
 }
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
@@ -242,6 +249,8 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 	for (const auto& [extension, type] : sorted_mappings) {
 		cout << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
+
+	cout << flush;
 }
 
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
@@ -305,6 +314,8 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 			cout << "  " << name << " (Unknown server-side operation)\n";
 		}
 	}
+
+	cout << flush;
 }
 
 void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
