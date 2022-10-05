@@ -171,7 +171,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	}
 
 	// Make the file readable for the lp user
-	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH); //NOSONAR Granting permissions to "others" is required here
 
 	struct stat st;
 	fstat(fd, &st);
