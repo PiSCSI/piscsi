@@ -33,16 +33,14 @@ uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture
         uint32_t data_uint;
         char *ptr;
 
-        const char *timestamp_str;
-        const char *data_str;
-        timestamp_str = strstr(str_buf, timestamp_label);
+        const char *timestamp_str = strstr(str_buf, timestamp_label);
         if (!timestamp_str)
             continue;
         strncpy(timestamp, &timestamp_str[strlen(timestamp_label)], 16);
         timestamp[16] = '\0';
         timestamp_uint = strtoull(timestamp, &ptr, 16);
 
-        data_str = strstr(str_buf, data_label);
+        const char *data_str = strstr(str_buf, data_label);
         if (!data_str)
             continue;
         strncpy(data, &data_str[strlen(data_label)], 8);

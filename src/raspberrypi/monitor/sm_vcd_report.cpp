@@ -61,7 +61,7 @@ static BYTE get_pin_value(uint32_t data, int pin)
 
 static BYTE get_data_field(uint32_t data)
 {
-    uint32_t data_out =
+    const uint32_t data_out =
         ((data >> (PIN_DT0 - 0)) & (1 << 7)) |
         ((data >> (PIN_DT1 - 1)) & (1 << 6)) |
         ((data >> (PIN_DT2 - 2)) & (1 << 5)) |
@@ -76,9 +76,8 @@ static BYTE get_data_field(uint32_t data)
 
 static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if (prev_value[pin] != (int)new_value)
-    {
+    const BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
+    if (prev_value[pin] != (int)new_value) {
         prev_value[pin] = (int)new_value;
         fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
@@ -86,9 +85,8 @@ static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, ch
 
 static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BYTE new_value = get_pin_value(data, pin);
-    if (prev_value[pin] != new_value)
-    {
+    const BYTE new_value = get_pin_value(data, pin);
+    if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << new_value << symbol << endl;
     }
@@ -96,9 +94,8 @@ static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, cha
 
 static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BYTE new_value = get_data_field(data);
-    if (prev_value[pin] != new_value)
-    {
+	const BYTE new_value = get_data_field(data);
+    if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << "b"
             << fmt::format("{0:b}", get_pin_value(data, PIN_DT7))
@@ -168,8 +165,7 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
         << "$end" << endl;
 
     uint32_t i = 0;
-    while (i < capture_count)
-    {
+    while (i < capture_count) {
         vcd_ofstream << "#" << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop) << endl;
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);
