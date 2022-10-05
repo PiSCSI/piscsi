@@ -431,7 +431,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 		}
 
 		LOGINFO("%s", ("Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
-				+ ", unit " + to_string(device->GetLun())).c_str());
+				+ ", unit " + to_string(device->GetLun())).c_str())
 	}
 
 	return true;
