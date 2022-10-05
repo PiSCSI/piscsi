@@ -698,8 +698,6 @@
 <form action="/pi/reboot" method="post" onclick="if (confirm('{{ _("Reboot the Raspberry Pi?") }}')) shutdownNotify('{{ _("Rebooting the Raspberry Pi...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Reboot Raspberry Pi") }}">
 </form>
-</td>
-<td style="border: none; vertical-align:top;">
 <form action="/pi/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the Raspberry Pi?") }}')) shutdownNotify('{{ _("Shutting down the Raspberry Pi...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Shut Down Raspberry Pi") }}">
 </form>
