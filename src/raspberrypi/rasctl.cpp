@@ -29,11 +29,8 @@ using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-int main(int argc, char* argv[])
+void Banner(int argc, char* argv[])
 {
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-	// Display help
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller\n";
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")\n";
@@ -60,6 +57,13 @@ int main(int argc, char* argv[])
 
 		exit(EXIT_SUCCESS);
 	}
+}
+
+int main(int argc, char* argv[])
+{
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+	Banner(argc, argv);
 
 	RasctlParser parser;
 	PbCommand command;
