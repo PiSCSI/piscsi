@@ -66,7 +66,7 @@ DeviceFactory::DeviceFactory()
 string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
-	if (size_t separator = filename.rfind('.'); separator != string::npos) {
+	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -102,7 +102,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
-		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
+		if (const string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
 			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
@@ -217,7 +217,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
 	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
-	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        ifreq ifr = {};
 	        strcpy(ifr.ifr_name, tmp->ifa_name);
