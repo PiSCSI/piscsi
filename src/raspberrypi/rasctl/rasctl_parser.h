@@ -16,6 +16,8 @@ using namespace rascsi_interface;
 
 class RasctlParser
 {
+	const char COMPONENT_SEPARATOR = ':';
+
 public:
 
 	RasctlParser() = default;

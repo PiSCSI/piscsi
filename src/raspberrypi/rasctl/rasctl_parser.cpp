@@ -9,6 +9,7 @@
 
 #include "rasctl_parser.h"
 
+
 PbOperation RasctlParser::ParseOperation(const string& operation) const
 {
 	const auto& it = operations.find(tolower(operation[0]));

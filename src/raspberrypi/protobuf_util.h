@@ -26,4 +26,5 @@ namespace protobuf_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
+	void SetPatternParams(PbCommand&, string_view);
 }

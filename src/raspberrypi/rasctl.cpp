@@ -29,22 +29,6 @@ using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-void SetPatternParams(PbCommand& command, string_view patterns)
-{
-	string folder_pattern;
-	string file_pattern;
-	if (const size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		folder_pattern = patterns.substr(0, separator_pos);
-		file_pattern = patterns.substr(separator_pos + 1);
-	}
-	else {
-		file_pattern = patterns;
-	}
-
-	AddParam(command, "folder_pattern", folder_pattern);
-	AddParam(command, "file_pattern", file_pattern);
-}
-
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
