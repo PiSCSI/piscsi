@@ -36,6 +36,7 @@ private:
 
 	void DisplayParams(const PbDevice&) const;
 	void DisplayAttributes(const PbDeviceProperties&) const;
+	void DisplayDefaultParameters(const PbDeviceProperties&) const;
 	void DisplayBlockSizes(const PbDeviceProperties&) const;
-	void PrintParameters(const PbOperationMetaData&) const;
+	void DisplayParameters(const PbOperationMetaData&) const;
 };

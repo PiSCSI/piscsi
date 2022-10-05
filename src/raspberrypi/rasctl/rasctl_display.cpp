@@ -30,6 +30,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 
 	if (pb_device.block_size()) {
 		cout << "  " << pb_device.block_size() << " bytes per sector";
+
 		if (pb_device.block_count()) {
 			cout << "  " << pb_device.block_size() * pb_device.block_count() << " bytes capacity";
 		}
@@ -40,11 +41,14 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 	}
 
 	cout << "  ";
+
 	bool hasProperty = false;
+
 	if (pb_device.properties().read_only()) {
 		cout << "read-only";
 		hasProperty = true;
 	}
+
 	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
 		if (hasProperty) {
 			cout << ", ";
@@ -52,6 +56,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		cout << "protected";
 		hasProperty = true;
 	}
+
 	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
 		if (hasProperty) {
 			cout << ", ";
@@ -59,6 +64,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		cout << "stopped";
 		hasProperty = true;
 	}
+
 	if (pb_device.properties().removable() && pb_device.status().removed()) {
 		if (hasProperty) {
 			cout << ", ";
@@ -66,12 +72,14 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		cout << "removed";
 		hasProperty = true;
 	}
+
 	if (pb_device.properties().lockable() && pb_device.status().locked()) {
 		if (hasProperty) {
 			cout << ", ";
 		}
 		cout << "locked";
 	}
+
 	if (hasProperty) {
 		cout << "  ";
 	}
@@ -122,25 +130,12 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		if (properties.supports_file()) {
 			cout << "Image file support\n        ";
 		}
+
 		if (properties.supports_params()) {
 			cout << "Parameter support\n        ";
 		}
 
-		if (properties.supports_params() && properties.default_params_size()) {
-			const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
-
-			cout << "Default parameters: ";
-
-			bool isFirst = true;
-			for (const auto& [key, value] : sorted_params) {
-				if (!isFirst) {
-					cout << "\n                            ";
-				}
-				cout << key << "=" << value;
-
-				isFirst = false;
-			}
-		}
+		DisplayDefaultParameters(properties);
 
 		DisplayBlockSizes(properties);
 	}
@@ -152,10 +147,12 @@ void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids
 {
 	if (reserved_ids_info.ids_size()) {
 		cout << "Reserved device IDs: ";
+
 		for (int i = 0; i < reserved_ids_info.ids_size(); i++) {
 			if(i) {
 				cout << ", ";
 			}
+
 			cout << reserved_ids_info.ids(i);
 		}
 
@@ -169,6 +166,7 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 	if (image_file_info.read_only()) {
 		cout << "  read-only";
 	}
+
 	if (image_file_info.type() != UNDEFINED) {
 		cout << "  " << PbDeviceType_Name(image_file_info.type());
 	}
@@ -191,6 +189,7 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) 
 		cout << "Available image files:\n";
 		for (const auto& image_file : image_files) {
 			cout << "  ";
+
 			DisplayImageFile(image_file);
 		}
 	}
@@ -211,6 +210,7 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 		else {
 			cout << "  ";
 		}
+
 		isFirst = false;
 		cout << interface;
 	}
@@ -223,6 +223,7 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
 	cout << "Supported image file extension to device type mappings:\n";
+
 	for (const auto& [extension, type] : sorted_mappings) {
 		cout << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
@@ -258,7 +259,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 			}
 			cout << '\n';
 
-			PrintParameters(meta_data);
+			DisplayParameters(meta_data);
 		}
 		else {
 			cout << "  " << name << " (Unknown server-side operation)\n";
@@ -276,6 +277,7 @@ void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
 		if (!isFirst) {
 			cout << ":";
 		}
+
 		isFirst = false;
 		cout << key << "=" << value;
 	}
@@ -285,11 +287,14 @@ void RasctlDisplay::DisplayAttributes(const PbDeviceProperties& properties) cons
 {
 	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
 		cout << "Properties: ";
+
 		bool has_property = false;
+
 		if (properties.read_only()) {
 			cout << "read-only";
 			has_property = true;
 		}
+
 		if (properties.protectable()) {
 			cout << (has_property ? ", " : "") << "protectable";
 			has_property = true;
@@ -308,6 +313,26 @@ void RasctlDisplay::DisplayAttributes(const PbDeviceProperties& properties) cons
 
 		cout << "\n        ";
 	}
+}
+
+void RasctlDisplay::DisplayDefaultParameters(const PbDeviceProperties& properties) const
+{
+	if (properties.supports_params() && properties.default_params_size()) {
+		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
+
+		cout << "Default parameters: ";
+
+		bool isFirst = true;
+		for (const auto& [key, value] : sorted_params) {
+			if (!isFirst) {
+				cout << "\n                            ";
+			}
+			cout << key << "=" << value;
+
+			isFirst = false;
+		}
+	}
+
 }
 
 void RasctlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) const
@@ -329,7 +354,7 @@ void RasctlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) cons
 	}
 }
 
-void RasctlDisplay::PrintParameters(const PbOperationMetaData& meta_data) const
+void RasctlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) const
 {
 	list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
 	sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
@@ -337,6 +362,7 @@ void RasctlDisplay::PrintParameters(const PbOperationMetaData& meta_data) const
 	for (const auto& parameter : sorted_parameters) {
 		cout << "    " << parameter.name() << ": "
 			<< (parameter.is_mandatory() ? "mandatory" : "optional");
+
 		if (!parameter.description().empty()) {
 			cout << " (" << parameter.description() << ")";
 		}
@@ -344,14 +370,18 @@ void RasctlDisplay::PrintParameters(const PbOperationMetaData& meta_data) const
 
 		if (parameter.permitted_values_size()) {
 			cout << "      Permitted values: ";
+
 			bool isFirst = true;
+
 			for (const auto& permitted_value : parameter.permitted_values()) {
 				if (!isFirst) {
 					cout << ", ";
 				}
+
 				isFirst = false;
 				cout << permitted_value;
 			}
+
 			cout << '\n';
 		}
 
