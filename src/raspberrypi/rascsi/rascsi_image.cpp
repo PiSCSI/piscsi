@@ -114,7 +114,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	string full_filename = GetFullName(filename);
+	const string full_filename = GetFullName(filename);
 	if (!IsValidDstFilename(full_filename)) {
 		return context.ReturnStatus(false, "Can't create image file: '" + full_filename + "': File already exists");
 	}
@@ -187,7 +187,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	string full_filename = GetFullName(filename);
+	const string full_filename = GetFullName(filename);
 
 	int id;
 	int unit;
@@ -334,7 +334,7 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 		return context.ReturnStatus(false, "Can't modify image file '" + filename + "': Invalid name or type");
 	}
 
-	bool protect = command.operation() == PROTECT_IMAGE;
+	const bool protect = command.operation() == PROTECT_IMAGE;
 
 	if (const int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 		chmod(filename.c_str(), permissions) == -1) {
