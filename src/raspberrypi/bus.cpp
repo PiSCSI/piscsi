@@ -1,11 +1,10 @@
 //---------------------------------------------------------------------------
 //
-//	X68000 EMULATOR "XM6"
+// X68000 EMULATOR "XM6"
 //
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2020 GIMONS
-//
-//	[ SCSI Common Functionality ]
+// Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+// Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
