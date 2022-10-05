@@ -48,7 +48,7 @@ static void convert(char const *src, char const *dest,
 		return;
 	}
 
-	if (size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out); ret == (size_t)-1) {
+	if (const size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out); ret == (size_t)-1) {
 		return;
 	}
 
@@ -166,7 +166,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	if (i >= 8) {
 		// Transfer the extraneous part
 		for (i = 0; i < 10; i++) {
-			BYTE c = add[i];
+			const BYTE c = add[i];
 			if (c == '\0')
 				break;
 			*p++ = c;
@@ -178,7 +178,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	if (ext[0] != ' ' || ext[1] != ' ' || ext[2] != ' ') {
 		*p++ = '.';
 		for (i = 0; i < 3; i++) {
-			BYTE c = ext[i];
+			const BYTE c = ext[i];
 			if (c == ' ') {
 				// Check that the file extension continues after a space is detected
 				/// TODO: Should change this function to be compatible with 8+3 chars and TwentyOne
@@ -253,7 +253,7 @@ void CHostDrv::Init(const TCHAR* szBase, uint32_t nFlag)
 	TCHAR* pClear = nullptr;
 	TCHAR* p = m_szBase;
 	for (;;) {
-		TCHAR c = *p;
+		const TCHAR c = *p;
 		if (c == '\0')
 			break;
 		if (c == '/' || c == '\\') {
@@ -413,7 +413,7 @@ uint32_t CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 	assert(pCapacity);
 	assert(m_bEnable);
 
-	uint32_t nFree = 0x7FFF8000;
+	const uint32_t nFree = 0x7FFF8000;
 	uint32_t freearea;
 	uint32_t clusters;
 	uint32_t sectors;
@@ -1099,7 +1099,7 @@ int CHostFilename::CheckAttribute(uint32_t nHumanAttribute) const
 const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 {
 	// Obtain the file name length
-	size_t nLength = strlen((const char*)szHuman);
+	const size_t nLength = strlen((const char*)szHuman);
 	const BYTE* pFirst = szHuman;
 	const BYTE* pLast = pFirst + nLength;
 
@@ -1144,7 +1144,7 @@ CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
 {
 	assert(nLength < FILEPATH_MAX);
 
-	size_t n = offsetof(ring_t, f) + CHostFilename::Offset() + (nLength + 1) * sizeof(TCHAR);
+	const size_t n = offsetof(ring_t, f) + CHostFilename::Offset() + (nLength + 1) * sizeof(TCHAR);
 	auto p = (ring_t*)malloc(n);
 	assert(p);
 
@@ -1295,8 +1295,8 @@ bool CHostPath::isSameHuman(const BYTE* szHuman) const
 	assert(szHuman);
 
 	// Calulate number of chars
-	size_t nLength = strlen((const char*)m_szHuman);
-	size_t n = strlen((const char*)szHuman);
+	const size_t nLength = strlen((const char*)m_szHuman);
+	const size_t n = strlen((const char*)szHuman);
 
 	// Check number of chars
 	if (nLength != n)
@@ -3265,8 +3265,7 @@ int CFileSys::Read(uint32_t nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, uint32_t
 	}
 
 	// Read
-	uint32_t nResult;
-	nResult = pHostFcb->Read(pBuffer, nSize);
+	const uint32_t nResult = pHostFcb->Read(pBuffer, nSize);
 	if (nResult == (uint32_t)-1) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDFUNC;	// TODO: Should return error code 10 (read error) as well here
@@ -3544,9 +3543,9 @@ int CFileSys::GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const
 	// Cluster 1: FAT
 	// Cluster 2: Root directory
 	// Cluster 3: Data memory (pseudo-sector)
-	uint32_t nFat = cap.sectors;
-	uint32_t nRoot = cap.sectors * 2;
-	uint32_t nData = cap.sectors * 3;
+	const uint32_t nFat = cap.sectors;
+	const uint32_t nRoot = cap.sectors * 2;
+	const uint32_t nData = cap.sectors * 3;
 
 	// Set DPB
 	pDpb->sector_size = cap.bytes;		// Bytes per sector
