@@ -56,6 +56,11 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["hdr"] = SCRM;
 	extension_mapping["mos"] = SCMO;
 	extension_mapping["iso"] = SCCD;
+
+	device_mapping["bridge"] = SCBR;
+	device_mapping["daynaport"] = SCDP;
+	device_mapping["printer"] = SCLP;
+	device_mapping["services"] = SCHS;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
@@ -74,17 +79,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	if (const auto& it = extension_mapping.find(GetExtension(filename)); it != extension_mapping.end()) {
 		return it->second;
 	}
-	else if (filename == "bridge") {
-		return SCBR;
-	}
-	else if (filename == "daynaport") {
-		return SCDP;
-	}
-	else if (filename == "printer") {
-		return SCLP;
-	}
-	else if (filename == "services") {
-		return SCHS;
+
+	if (const auto& it = device_mapping.find(filename); it != device_mapping.end()) {
+		return it->second;
 	}
 
 	return UNDEFINED;

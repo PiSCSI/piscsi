@@ -50,6 +50,8 @@ private:
 
 	unordered_map<string, PbDeviceType> extension_mapping;
 
+	unordered_map<string, PbDeviceType> device_mapping;
+
 	unordered_set<uint32_t> empty_set;
 	unordered_map<string, string> empty_map;
 };
