@@ -209,7 +209,7 @@ void RasctlCommands::CommandReserveIds(const string& reserved_ids)
 
 void RasctlCommands::CommandCreateImage(const string& image_params)
 {
-	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		AddParam(command, "file", string_view(image_params).substr(0, separator_pos));
 		AddParam(command, "size", string_view(image_params).substr(separator_pos + 1));
 	}
@@ -232,7 +232,7 @@ void RasctlCommands::CommandDeleteImage(const string& filename)
 
 void RasctlCommands::CommandRenameImage(const string& image_params)
 {
-	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
 		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
@@ -246,7 +246,7 @@ void RasctlCommands::CommandRenameImage(const string& image_params)
 
 void RasctlCommands::CommandCopyImage(const string& image_params)
 {
-	if (size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
 		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
