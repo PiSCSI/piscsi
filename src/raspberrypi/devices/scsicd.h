@@ -10,20 +10,16 @@
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM  ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "disk.h"
 #include "filepath.h"
 #include "cd_track.h"
 #include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
-#include "interfaces/scsi_primary_commands.h"
 
-class SCSICD : public Disk, public ScsiMmcCommands
+class SCSICD : public Disk, ScsiMmcCommands
 {
 public:
 

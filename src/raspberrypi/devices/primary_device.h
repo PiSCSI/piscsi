@@ -17,7 +17,7 @@
 #include "dispatcher.h"
 #include <string>
 
-class PrimaryDevice: public ScsiPrimaryCommands, public Device
+class PrimaryDevice: ScsiPrimaryCommands, public Device
 {
 public:
 

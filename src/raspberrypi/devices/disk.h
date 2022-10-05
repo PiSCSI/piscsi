@@ -29,7 +29,7 @@ using namespace std;
 
 using id_set = pair<int, int>;
 
-class Disk : public ModePageDevice, public ScsiBlockCommands
+class Disk : public ModePageDevice, ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 

@@ -15,7 +15,7 @@
 #include <string>
 #include <unordered_map>
 
-class SCSIPrinter final : public PrimaryDevice, public ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
+class SCSIPrinter : public PrimaryDevice, ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
 {
 	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX"; //NOSONAR Using /tmp is safe
 	static const int TMP_FILENAME_LENGTH = string_view(TMP_FILE_PATTERN).size();
