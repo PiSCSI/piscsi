@@ -31,4 +31,5 @@ class RasctlDisplay
 	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
 	void DisplayMappingInfo(const PbMappingInfo&) const;
 	void DisplayOperationInfo(const PbOperationInfo&) const;
+	void DisplayParams(const PbDevice&) const;
 };

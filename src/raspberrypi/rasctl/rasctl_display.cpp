@@ -76,16 +76,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		cout << "  ";
 	}
 
-	// Creates a sorted map
-	map<string, string, less<>> params = { pb_device.params().begin(), pb_device.params().end() };
-	bool isFirst = true;
-	for (const auto& [key, value] : params) {
-		if (!isFirst) {
-			cout << ":";
-		}
-		isFirst = false;
-		cout << key << "=" << value;
-	}
+	DisplayParams(pb_device);
 
 	cout << '\n';
 }
@@ -331,6 +322,17 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 			cout << "  " << name << " (Unknown server-side operation)\n";
 		}
 	}
+}
 
-	cout << flush;
+void RasctlDisplay::DisplayParams(const PbDevice& pb_device) const
+{
+	map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
+	bool isFirst = true;
+	for (const auto& [key, value] : sorted_params) {
+		if (!isFirst) {
+			cout << ":";
+		}
+		isFirst = false;
+		cout << key << "=" << value;
+	}
 }
