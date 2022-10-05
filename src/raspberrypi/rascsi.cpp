@@ -92,7 +92,7 @@ void Banner(int argc, char* argv[])
 		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
 		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
 		cout << "  mos : SCSI MO image (MO image)\n";
-		cout << "  iso : SCSI CD image (ISO 9660 image)" << endl;
+		cout << "  iso : SCSI CD image (ISO 9660 image)\n" << flush;
 
 		exit(EXIT_SUCCESS);
 	}

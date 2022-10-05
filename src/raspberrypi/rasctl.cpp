@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'\n";
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required.\n";
 		cerr << "Usage: " << argv[0] << " -l\n";
-		cerr << "       Print device list." << endl;
+		cerr << "       Print device list.\n" << flush;
 
 		exit(EXIT_SUCCESS);
 	}
