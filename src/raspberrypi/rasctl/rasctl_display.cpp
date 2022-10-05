@@ -87,7 +87,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		cout << key << "=" << value;
 	}
 
-	cout << endl;
+	cout << '\n';
 }
 
 void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
@@ -99,29 +99,29 @@ void RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
 	else if (version_info.patch_version() < 0) {
 		cout << " (development version)";
 	}
-	cout << endl;
+	cout << '\n';
 }
 
 void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) const
 {
 	if (!log_level_info.log_levels_size()) {
-		cout << "  No log level settings available" << endl;
+		cout << "  No log level settings available\n";
 	}
 	else {
-		cout << "rascsi log levels, sorted by severity:" << endl;
+		cout << "rascsi log levels, sorted by severity:\n";
 		for (const auto& log_level : log_level_info.log_levels()) {
-			cout << "  " << log_level << endl;
+			cout << "  " << log_level << '\n';
 		}
 	}
 
-	cout << "Current rascsi log level: " << log_level_info.current_log_level() << endl;
+	cout << "Current rascsi log level: " << log_level_info.current_log_level() << '\n';
 }
 
 void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
 {
 	cout << "Supported device types and their properties:";
 	for (const auto& device_type_info : device_types_info.properties()) {
-		cout << endl << "  " << PbDeviceType_Name(device_type_info.type()) << "  ";
+		cout << "\n  " << PbDeviceType_Name(device_type_info.type()) << "  ";
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
@@ -147,14 +147,14 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			if (properties.lockable()) {
 				cout << (has_property ? ", " : "") << "lockable";
 			}
-			cout << endl << "        ";
+			cout << "\n        ";
 		}
 
 		if (properties.supports_file()) {
-			cout << "Image file support" << endl << "        ";
+			cout << "Image file support\n        ";
 		}
 		if (properties.supports_params()) {
-			cout << "Parameter support" << endl << "        ";
+			cout << "Parameter support\n        ";
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
@@ -166,7 +166,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			bool isFirst = true;
 			for (const auto& [key, value] : params) {
 				if (!isFirst) {
-					cout << endl << "                            ";
+					cout << "\n                            ";
 				}
 				cout << key << "=" << value;
 
@@ -203,7 +203,7 @@ void RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids
 			}
 			cout << reserved_ids_info.ids(i);
 		}
-		cout <<endl;
+		cout << '\n';
 	}
 }
 
@@ -216,23 +216,23 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 	if (image_file_info.type() != UNDEFINED) {
 		cout << "  " << PbDeviceType_Name(image_file_info.type());
 	}
-	cout << endl;
+	cout << '\n';
 
 }
 
 void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) const
 {
-	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
-	cout << "Supported folder depth: " << image_files_info.depth() << endl;
+	cout << "Default image file folder: " << image_files_info.default_image_folder() << '\n';
+	cout << "Supported folder depth: " << image_files_info.depth() << '\n';
 
 	if (image_files_info.image_files().empty()) {
-		cout << "  No image files available" << endl;
+		cout << "  No image files available\n";
 	}
 	else {
 		list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
 		image_files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
-		cout << "Available image files:" << endl;
+		cout << "Available image files:\n";
 		for (const auto& image_file : image_files) {
 			cout << "  ";
 			DisplayImageFile(image_file);
@@ -245,7 +245,7 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 	// Creates a sorted list
 	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
-	cout << "Available (up) network interfaces:" << endl;
+	cout << "Available (up) network interfaces:\n";
 	bool isFirst = true;
 	for (const auto& interface : interfaces) {
 		if (!isFirst) {
@@ -257,7 +257,7 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 		isFirst = false;
 		cout << interface;
 	}
-	cout << endl;
+	cout << '\n';
 }
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
@@ -265,9 +265,9 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 	// Creates a sorted map
 	const map<string, PbDeviceType, less<>> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
-	cout << "Supported image file extension to device type mappings:" << endl;
+	cout << "Supported image file extension to device type mappings:\n";
 	for (const auto& [extension, type] : mappings) {
-		cout << "  " << extension << "->" << PbDeviceType_Name(type) << endl;
+		cout << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
 }
 
@@ -289,14 +289,14 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 		}
 	}
 
-	cout << "Operations supported by rascsi server and their parameters:" << endl;
+	cout << "Operations supported by rascsi server and their parameters:\n";
 	for (const auto& [name, meta_data] : sorted_operations) {
 		if (!meta_data.server_side_name().empty()) {
 			cout << "  " << name;
 			if (!meta_data.description().empty()) {
 				cout << " (" << meta_data.description() << ")";
 			}
-			cout << endl;
+			cout << '\n';
 
 			list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
 			sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
@@ -307,7 +307,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 				if (!parameter.description().empty()) {
 					cout << " (" << parameter.description() << ")";
 				}
-				cout << endl;
+				cout << '\n';
 
 				if (parameter.permitted_values_size()) {
 					cout << "      Permitted values: ";
@@ -319,16 +319,18 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 						isFirst = false;
 						cout << permitted_value;
 					}
-					cout << endl;
+					cout << '\n';
 				}
 
 				if (!parameter.default_value().empty()) {
-					cout << "      Default value: " << parameter.default_value() << endl;
+					cout << "      Default value: " << parameter.default_value() << '\n';
 				}
 			}
 		}
 		else {
-			cout << "  " << name << " (Unknown server-side operation)" << endl;
+			cout << "  " << name << " (Unknown server-side operation)\n";
 		}
 	}
+
+	cout << flush;
 }
