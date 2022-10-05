@@ -149,13 +149,12 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
-			// Creates a sorted map
-			map<string, string, less<>> params = { properties.default_params().begin(), properties.default_params().end() };
+			map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
 
 			cout << "Default parameters: ";
 
 			bool isFirst = true;
-			for (const auto& [key, value] : params) {
+			for (const auto& [key, value] : sorted_params) {
 				if (!isFirst) {
 					cout << "\n                            ";
 				}
@@ -218,12 +217,11 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) 
 
 void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
 {
-	// Creates a sorted list
-	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
 	cout << "Available (up) network interfaces:\n";
 	bool isFirst = true;
-	for (const auto& interface : interfaces) {
+	for (const auto& interface : sorted_interfaces) {
 		if (!isFirst) {
 			cout << ", ";
 		}
@@ -238,11 +236,10 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 {
-	// Creates a sorted map
-	const map<string, PbDeviceType, less<>> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
 	cout << "Supported image file extension to device type mappings:\n";
-	for (const auto& [extension, type] : mappings) {
+	for (const auto& [extension, type] : sorted_mappings) {
 		cout << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
 	}
 }
