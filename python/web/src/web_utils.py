@@ -192,24 +192,30 @@ def auth_active(group):
 def is_bridge_configured(interface):
     """
     Takes (str) interface of a network device being attached.
-    Returns (bool) False if the network bridge is configured.
-    Returns (str) with an error message if the network bridge is not configured.
+    Returns a (dict) with (bool) status and (str) msg
     """
+    return_code = True
+    return_msg = ""
     sys_cmd = SysCmds()
     if interface.startswith("wlan"):
         if not sys_cmd.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            return _("Configure IPv4 forwarding before using a wireless network device.")
-        if not Path("/etc/iptables/rules.v4").is_file():
-            return _("Configure NAT before using a wireless network device.")
+            return_code = False
+            return_msg = _("Configure IPv4 forwarding before using a wireless network device.")
+        elif not Path("/etc/iptables/rules.v4").is_file():
+            return_code = False
+            return_msg = _("Configure NAT before using a wireless network device.")
     else:
         if not sys_cmd.introspect_file(
                 "/etc/dhcpcd.conf",
                 r"^denyinterfaces " + interface + r"$",
                 ):
-            return _("Configure the network bridge before using a wired network device.")
-        if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            return _("Configure the network bridge before using a wired network device.")
-    return False
+            return_code = False
+            return_msg = _("Configure the network bridge before using a wired network device.")
+        elif not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
+            return_code = False
+            return_msg = _("Configure the network bridge before using a wired network device.")
+
+    return {"status": return_code, "msg": return_msg + f" ({interface})"}
 
 
 def upload_with_dropzonejs(image_dir):
