@@ -26,7 +26,7 @@
 
 using namespace std;
 
-class SCSIBR final : public Disk
+class SCSIBR : public Disk
 {
 	static constexpr const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
