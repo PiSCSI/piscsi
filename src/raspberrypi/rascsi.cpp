@@ -73,26 +73,25 @@ const ProtobufSerializer serializer;
 void Banner(int argc, char* argv[])
 {
 	cout << "SCSI Target Emulator RaSCSI Reloaded version " << rascsi_get_version_string()
-			<< "  (" << __DATE__ << ' ' << __TIME__ << ')' << endl;
+			<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
 	cout << "Powered by XM6 TypeG Technology / ";
-	cout << "Copyright (C) 2016-2020 GIMONS" << endl;
-	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project" << endl;
-	cout << "Connect type: " << CONNECT_DESC << endl;
+	cout << "Copyright (C) 2016-2020 GIMONS\n";
+	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n";
+	cout << "Connect type: " << CONNECT_DESC << '\n';
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
-		cout << endl;
-		cout << "Usage: " << argv[0] << " [-idn[:m] FILE] ..." << endl << endl;
-		cout << " n is SCSI device ID (0-7)." << endl;
-		cout << " m is the optional logical unit (LUN) (0-31)." << endl;
-		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\"." << endl << endl;
-		cout << " Image type is detected based on file extension if no explicit type is specified." << endl;
-		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)" << endl;
-		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)" << endl;
-		cout << "  hdr : SCSI HD image (Removable generic HD image)" << endl;
-		cout << "  hdn : SCSI HD image (NEC GENUINE)" << endl;
-		cout << "  hdi : SCSI HD image (Anex86 HD image)" << endl;
-		cout << "  nhd : SCSI HD image (T98Next HD image)" << endl;
-		cout << "  mos : SCSI MO image (MO image)" << endl;
+		cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\”";
+		cout << " n is SCSI device ID (0-7).\n";
+		cout << " m is the optional logical unit (LUN) (0-31).\n";
+		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
+		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
+		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
+		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)\n";
+		cout << "  hdr : SCSI HD image (Removable generic HD image)\n";
+		cout << "  hdn : SCSI HD image (NEC GENUINE)\n";
+		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
+		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
+		cout << "  mos : SCSI MO image (MO image)\n";
 		cout << "  iso : SCSI CD image (ISO 9660 image)" << endl;
 
 		exit(EXIT_SUCCESS);

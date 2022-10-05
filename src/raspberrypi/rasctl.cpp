@@ -119,27 +119,27 @@ int main(int argc, char* argv[])
 
 	// Display help
 	if (argc < 2) {
-		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
-		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
+		cerr << "SCSI Target Emulator RaSCSI Controller\n";
+		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")\n";
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
 		cerr <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]" << endl;
-		cerr << " where  ID := {0-7}" << endl;
-		cerr << "        UNIT := {0-31}, default is 0" << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
-		cerr << "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
-		cerr << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block" << endl;
-		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
-		cerr << "        FILE|PARAM := image file path or device-specific parameter" << endl;
-		cerr << "        IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
-		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
-		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
-		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve" << endl;
-		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'" << endl;
-		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
-		cerr << "Usage: " << argv[0] << " -l" << endl;
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n";
+		cerr << " where  ID := {0-7}\n";
+		cerr << "        UNIT := {0-31}, default is 0\n";
+		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n";
+		cerr << "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}\n";
+		cerr << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block\n";
+		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)\n";
+		cerr << "        FILE|PARAM := image file path or device-specific parameter\n";
+		cerr << "        IMAGE_FOLDER := default location for image files, default is '~/images'\n";
+		cerr << "        HOST := rascsi host to connect to, default is 'localhost'\n";
+		cerr << "        PORT := rascsi port to connect to, default is 6868\n";
+		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve\n";
+		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'\n";
+		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required.\n";
+		cerr << "Usage: " << argv[0] << " -l\n";
 		cerr << "       Print device list." << endl;
 
 		exit(EXIT_SUCCESS);
