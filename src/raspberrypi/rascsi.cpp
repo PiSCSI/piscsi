@@ -80,7 +80,7 @@ void Banner(int argc, char* argv[])
 	cout << "Connect type: " << CONNECT_DESC << '\n';
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
-		cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\”";
+		cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
 		cout << " n is SCSI device ID (0-7).\n";
 		cout << " m is the optional logical unit (LUN) (0-31).\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
