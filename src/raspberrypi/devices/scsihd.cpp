@@ -40,13 +40,13 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
 		// 10 GiB and more
-		if (capacity >= 1099511627776) {
-			capacity /= 1099511627776;
+		if (capacity >= 1'099'511'627'776) {
+			capacity /= 1'099'511'627'776;
 			unit = "GiB";
 		}
 		// 1 MiB and more
-		else if (capacity >= 1048576) {
-			capacity /= 1048576;
+		else if (capacity >= 1'048'576) {
+			capacity /= 1'048'576;
 			unit = "MiB";
 		}
 		else {

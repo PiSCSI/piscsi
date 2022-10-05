@@ -184,7 +184,7 @@ void TerminationHandler(int signum)
 
 bool ProcessId(const string& id_spec, int& id, int& unit)
 {
-	if (size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
+	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
 		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
 			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
@@ -539,7 +539,7 @@ int main(int argc, char* argv[])
 	executor.SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
-	auto logger = stdout_color_mt("rascsi stdout logger");
+	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
 		return EPERM;
@@ -607,7 +607,7 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus.GetBSY()) {
-			uint32_t now = SysTimer::GetTimerLow();
+			const uint32_t now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus.Acquire();
 				if (!bus.GetBSY()) {
@@ -624,7 +624,7 @@ int main(int argc, char* argv[])
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		BYTE id_data = bus.GetDAT();
+		const BYTE id_data = bus.GetDAT();
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 

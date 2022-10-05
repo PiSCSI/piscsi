@@ -109,7 +109,7 @@ PbCommand RascsiService::ReadCommand(CommandContext& context) const
 	// Wait for connection
 	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
-	int fd = accept(service_socket, &client, &socklen);
+	const int fd = accept(service_socket, &client, &socklen);
 	if (fd == -1) {
 		throw io_exception("accept() failed");
 	}

@@ -58,7 +58,7 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
 	for (const auto& [id, controller] : controllers) {
-		auto d = controller->GetDevices();
+		const auto& d = controller->GetDevices();
 		devices.insert(d.begin(), d.end());
 	}
 

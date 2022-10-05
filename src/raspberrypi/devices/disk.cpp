@@ -271,8 +271,8 @@ void Disk::Verify16()
 
 void Disk::StartStopUnit()
 {
-	bool start = ctrl->cmd[4] & 0x01;
-	bool load = ctrl->cmd[4] & 0x02;
+	const bool start = ctrl->cmd[4] & 0x01;
+	const bool load = ctrl->cmd[4] & 0x02;
 
 	if (load) {
 		LOGTRACE(start ? "Loading medium" : "Ejecting medium")
@@ -322,7 +322,7 @@ void Disk::PreventAllowMediumRemoval()
 {
 	CheckReady();
 
-	bool lock = ctrl->cmd[4] & 0x01;
+	const bool lock = ctrl->cmd[4] & 0x01;
 
 	LOGTRACE(lock ? "Locking medium" : "Unlocking medium")
 
@@ -340,7 +340,7 @@ void Disk::SynchronizeCache()
 
 void Disk::ReadDefectData10()
 {
-	size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
+	const size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
 
 	// The defect list is empty
 	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
@@ -361,7 +361,7 @@ void Disk::MediumChanged()
 
 bool Disk::Eject(bool force)
 {
-	bool status = super::Eject(force);
+	const bool status = super::Eject(force);
 	if (status) {
 		FlushCache();
 		cache.reset();
@@ -376,7 +376,7 @@ bool Disk::Eject(bool force)
 int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -421,7 +421,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -803,12 +803,10 @@ void Disk::Release()
 
 void Disk::ValidateBlockAddress(access_mode mode) const
 {
-	uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
+	const uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
 
-	uint64_t capacity = blocks;
-
-	if (block > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+	if (block > blocks) {
+		LOGTRACE("%s", ("Capacity of " + to_string(blocks) + " block(s) exceeded: Trying to access block "
 				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}

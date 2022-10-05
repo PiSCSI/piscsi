@@ -282,7 +282,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
-	string filename = GetParam(pb_device, "file");
+	const string filename = GetParam(pb_device, "file");
 
 	auto device = CreateDevice(context, type, lun, filename);
 	if (device == nullptr) {

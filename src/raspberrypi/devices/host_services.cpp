@@ -57,8 +57,8 @@ vector<byte> HostServices::InquiryInternal() const
 
 void HostServices::StartStopUnit()
 {
-	bool start = ctrl->cmd[4] & 0x01;
-	bool load = ctrl->cmd[4] & 0x02;
+	const bool start = ctrl->cmd[4] & 0x01;
+	const bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
 		// Flush any caches
@@ -90,7 +90,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information
@@ -118,7 +118,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// Basic Information

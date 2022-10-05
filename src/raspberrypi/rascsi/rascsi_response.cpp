@@ -116,7 +116,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 		image_file.set_name(filename);
 		image_file.set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : default_folder + "/" + filename;
+		const string f = filename[0] == '/' ? filename : default_folder + "/" + filename;
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
@@ -532,14 +532,14 @@ string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 		return "";
 	}
 
-	string filename = folder + "/" + dir->d_name;
+	const string filename = folder + "/" + dir->d_name;
 
 	struct stat st;
 
-	bool file_exists = !stat(filename.c_str(), &st);
+	const bool file_exists = !stat(filename.c_str(), &st);
 
 	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
-		LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
+		LOGWARN("File '%s' in image folder '%s' is empty", dir->d_name, folder.c_str())
 		return "";
 	}
 

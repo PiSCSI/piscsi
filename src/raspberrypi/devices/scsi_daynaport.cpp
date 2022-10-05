@@ -133,7 +133,7 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	int rx_packet_size = 0;
-	auto response = (scsi_resp_read_t*)buf.data();
+	const auto response = (scsi_resp_read_t*)buf.data();
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
@@ -279,7 +279,7 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, uint64_t)
 {
-	int data_format = cdb[5];
+	const int data_format = cdb[5];
 	int data_length = GetInt16(cdb, 3);
 
 	if (data_format == 0x00){
@@ -397,7 +397,7 @@ void SCSIDaynaPort::Write6()
 	// Ensure a sufficient buffer size (because it is not transfer for each block)
 	controller->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
 
-	int data_format = ctrl->cmd[5];
+	const int data_format = ctrl->cmd[5];
 
 	if (data_format == 0x00) {
 		ctrl->length = GetInt16(ctrl->cmd, 3);

@@ -107,13 +107,13 @@ void SCSIBR::TestUnitReady()
 int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 {
 	// Type
-	int type = cdb[2];
+	const int type = cdb[2];
 
 	// Function number
-	int func = cdb[3];
+	const int func = cdb[3];
 
 	// Phase
-	int phase = cdb[9];
+	const int phase = cdb[9];
 
 	switch (type) {
 		case 1:		// Ethernet
@@ -195,16 +195,16 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	// Type
-	int type = cdb[2];
+	const int type = cdb[2];
 
 	// Function number
-	int func = cdb[3];
+	const int func = cdb[3];
 
 	// Phase
-	int phase = cdb[9];
+	const int phase = cdb[9];
 
 	// Get the number of lights
-	int len = GetInt24(cdb, 6);
+	const int len = GetInt24(cdb, 6);
 
 	switch (type) {
 		case 1:		// Ethernet
@@ -436,7 +436,7 @@ void SCSIBR::FS_Delete(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
 	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const int i = sizeof(uint32_t);
 
 	const auto *pNamests = (Human68k::namests_t*)&(buf.data()[i]);
 
@@ -863,7 +863,7 @@ void SCSIBR::FS_CtrlDrive(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
 	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const int i = sizeof(uint32_t);
 
 	auto pCtrlDrive = (Human68k::ctrldrive_t*)&(buf.data()[i]);
 
@@ -986,7 +986,7 @@ void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 void SCSIBR::FS_Flush(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.Flush(nUnit);
 }
@@ -999,7 +999,7 @@ void SCSIBR::FS_Flush(vector<BYTE>& buf)
 void SCSIBR::FS_CheckMedia(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.CheckMedia(nUnit);
 }
@@ -1012,7 +1012,7 @@ void SCSIBR::FS_CheckMedia(vector<BYTE>& buf)
 void SCSIBR::FS_Lock(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.Lock(nUnit);
 }
