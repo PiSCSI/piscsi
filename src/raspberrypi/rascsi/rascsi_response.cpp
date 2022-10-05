@@ -52,7 +52,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
+	const auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(*device).release());
 } //NOSONAR The allocated memory is managed by protobuf
 
