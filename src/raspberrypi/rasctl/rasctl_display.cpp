@@ -77,7 +77,7 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 	}
 
 	// Creates a sorted map
-	map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
+	map<string, string, less<>> params = { pb_device.params().begin(), pb_device.params().end() };
 	bool isFirst = true;
 	for (const auto& [key, value] : params) {
 		if (!isFirst) {
@@ -159,7 +159,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		if (properties.supports_params() && properties.default_params_size()) {
 			// Creates a sorted map
-			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
+			map<string, string, less<>> params = { properties.default_params().begin(), properties.default_params().end() };
 
 			cout << "Default parameters: ";
 
@@ -263,7 +263,7 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 {
 	// Creates a sorted map
-	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+	const map<string, PbDeviceType, less<>> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
 
 	cout << "Supported image file extension to device type mappings:" << endl;
 	for (const auto& [extension, type] : mappings) {
@@ -273,11 +273,11 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
 {
-	const map<int, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
+	const map<int, PbOperationMetaData, less<>> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
 	// Copies result into a map sorted by operation name
 	const PbOperationMetaData *unknown_operation = new PbOperationMetaData();
-	map<string, PbOperationMetaData> sorted_operations;
+	map<string, PbOperationMetaData, less<>> sorted_operations;
 	for (const auto& [ordinal, meta_data] : operations) {
 		if (PbOperation_IsValid(static_cast<PbOperation>(ordinal))) {
 			sorted_operations[PbOperation_Name(static_cast<PbOperation>(ordinal))] = meta_data;

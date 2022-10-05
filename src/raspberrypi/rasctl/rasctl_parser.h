@@ -28,7 +28,7 @@ public:
 
 private:
 
-	unordered_map<char, PbOperation> operations = {
+	unordered_map<int, PbOperation> operations = {
 			{ 'a', ATTACH },
 			{ 'd', DETACH },
 			{ 'i', INSERT },
@@ -37,7 +37,7 @@ private:
 			{ 'u', UNPROTECT }
 	};
 
-	unordered_map<char, PbDeviceType> device_types = {
+	unordered_map<int, PbDeviceType> device_types = {
 			{ 'b', SCBR },
 			{ 'c', SCCD },
 			{ 'd', SCDP },
