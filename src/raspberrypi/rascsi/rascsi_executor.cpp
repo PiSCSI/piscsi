@@ -406,14 +406,18 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
+	auto controller = controller_manager.FindController(device->GetId());
+	if (controller == nullptr) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
+	}
+
 	// LUN 0 can only be detached if there is no other LUN anymore
-	if (!device->GetLun() && controller_manager.FindController(device->GetId())->GetLunCount() > 1) {
+	if (!device->GetLun() && controller->GetLunCount() > 1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_LUN0);
 	}
 
 	if (!dryRun) {
-		auto controller = controller_manager.FindController(device->GetId());
-		if (controller == nullptr || !controller->DeleteDevice(device)) {
+		if (!controller->DeleteDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
