@@ -14,6 +14,7 @@
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
+#include "rasctl/rasctl_parser.h"
 #include "rasctl/rasctl_commands.h"
 #include <unistd.h>
 #include <clocale>
@@ -27,75 +28,6 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
-
-PbOperation ParseOperation(const string& operation)
-{
-	switch (tolower(operation[0])) {
-		case 'a':
-			return ATTACH;
-
-		case 'd':
-			return DETACH;
-
-		case 'i':
-			return INSERT;
-
-		case 'e':
-			return EJECT;
-
-		case 'p':
-			return PROTECT;
-
-		case 'u':
-			return UNPROTECT;
-
-		case 's':
-			return DEVICES_INFO;
-
-		default:
-			return NO_OPERATION;
-	}
-}
-
-PbDeviceType ParseType(const char *type)
-{
-	string t = type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
-
-	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
-		return parsed_type;
-	}
-
-	// Parse convenience device types (shortcuts)
-	switch (tolower(type[0])) {
-	case 'c':
-		return SCCD;
-
-	case 'b':
-		return SCBR;
-
-	case 'd':
-		return SCDP;
-
-	case 'h':
-		return SCHD;
-
-	case 'm':
-		return SCMO;
-
-	case 'r':
-		return SCRM;
-
-	case 'l':
-		return SCLP;
-
-	case 's':
-		return SCHS;
-
-	default:
-		return UNDEFINED;
-	}
-}
 
 void SetPatternParams(PbCommand& command, string_view patterns)
 {
@@ -145,6 +77,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
+	RasctlParser parser;
 	PbCommand command;
 	list<PbDeviceDefinition> devices;
 	PbDeviceDefinition* device = command.add_devices();
@@ -204,7 +137,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				command.set_operation(ParseOperation(optarg));
+				command.set_operation(parser.ParseOperation(optarg));
 				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
@@ -275,7 +208,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 't':
-				device->set_type(ParseType(optarg));
+				device->set_type(parser.ParseType(optarg));
 				if (device->type() == UNDEFINED) {
 					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
