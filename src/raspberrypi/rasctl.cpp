@@ -101,7 +101,7 @@ void SetPatternParams(PbCommand& command, string_view patterns)
 {
 	string folder_pattern;
 	string file_pattern;
-	if (size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+	if (const size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		folder_pattern = patterns.substr(0, separator_pos);
 		file_pattern = patterns.substr(separator_pos + 1);
 	}
