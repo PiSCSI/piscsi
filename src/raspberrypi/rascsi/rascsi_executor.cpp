@@ -143,7 +143,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	// Restore the list of reserved files before proceeding
 	Disk::SetReservedFiles(reserved_files);
 
-	if (string result = ValidateLunSetup(command); !result.empty()) {
+	if (const string result = ValidateLunSetup(command); !result.empty()) {
 		return context.ReturnStatus(false, result);
 	}
 
