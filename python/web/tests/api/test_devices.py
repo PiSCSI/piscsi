@@ -42,8 +42,8 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCRM",
                 "drive_props": {
-                    "vendor": "VENDOR",
-                    "product": "PRODUCT",
+                    "vendor": "HD VENDOR",
+                    "product": "HD PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
@@ -54,8 +54,8 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCMO",
                 "drive_props": {
-                    "vendor": "VENDOR",
-                    "product": "PRODUCT",
+                    "vendor": "MO VENDOR",
+                    "product": "MO PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
@@ -66,17 +66,17 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCCD",
                 "drive_props": {
-                    "vendor": "VENDOR",
-                    "product": "PRODUCT",
+                    "vendor": "CD VENDOR",
+                    "product": "CD PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
             },
         ),
-        ("Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
-        ("Ethernet Adapter", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
+        ("Host Bridge", {"type": "SCBR", "inet": "192.168.0.1/24"}),
+        ("Ethernet Adapter", {"type": "SCDP", "inet": "192.168.0.1/24"}),
         ("Host Services", {"type": "SCHS"}),
-        ("Printer", {"type": "SCLP", "timeout": 30, "cmd": "lp -oraw %f"}),
+        ("Printer", {"type": "SCLP", "timeout": 60, "cmd": "lp -fart %f"}),
     ],
 )
 def test_attach_device(http_client, detach_devices, device_name, device_config):
