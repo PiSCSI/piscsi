@@ -504,7 +504,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 		default: {
 			// Wait until we become idle
-			const timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
 			while (active) {
 				nanosleep(&ts, nullptr);
 			}
@@ -608,7 +608,7 @@ int main(int argc, char* argv[])
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus.GetBSY()) {
 			const uint32_t now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
 				bus.Acquire();
 				if (!bus.GetBSY()) {
 					break;
