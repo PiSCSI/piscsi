@@ -252,7 +252,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) 
 	const map<int, PbOperationMetaData, less<>> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
 	// Copies result into a map sorted by operation name
-	const PbOperationMetaData *unknown_operation = new PbOperationMetaData();
+	auto unknown_operation = make_unique<PbOperationMetaData>();
 	map<string, PbOperationMetaData, less<>> sorted_operations;
 	for (const auto& [ordinal, meta_data] : operations) {
 		if (PbOperation_IsValid(static_cast<PbOperation>(ordinal))) {
