@@ -30,6 +30,16 @@ TEST(RasctlParserTest, ParseType)
 {
 	RasctlParser parser;
 
+	EXPECT_EQ(SCBR, parser.ParseType("SCBR"));
+	EXPECT_EQ(SCBR, parser.ParseType("scbr"));
+	EXPECT_EQ(SCCD, parser.ParseType("sccd"));
+	EXPECT_EQ(SCDP, parser.ParseType("scdp"));
+	EXPECT_EQ(SCHD, parser.ParseType("schd"));
+	EXPECT_EQ(SCLP, parser.ParseType("sclp"));
+	EXPECT_EQ(SCMO, parser.ParseType("scmo"));
+	EXPECT_EQ(SCRM, parser.ParseType("scrm"));
+	EXPECT_EQ(SCHS, parser.ParseType("schs"));
+
 	EXPECT_EQ(SCBR, parser.ParseType("B"));
 	EXPECT_EQ(SCBR, parser.ParseType("b"));
 	EXPECT_EQ(SCCD, parser.ParseType("c"));
@@ -39,6 +49,7 @@ TEST(RasctlParserTest, ParseType)
 	EXPECT_EQ(SCMO, parser.ParseType("m"));
 	EXPECT_EQ(SCRM, parser.ParseType("r"));
 	EXPECT_EQ(SCHS, parser.ParseType("s"));
+
 	EXPECT_EQ(UNDEFINED, parser.ParseType(""));
 	EXPECT_EQ(UNDEFINED, parser.ParseType("xyz"));
 }
