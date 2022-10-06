@@ -95,6 +95,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
 	FRIEND_TEST(ModePageDeviceTest, ModeSense6);
 	FRIEND_TEST(ModePageDeviceTest, ModeSense10);
+	FRIEND_TEST(ModePageDeviceTest, ModeSelect6);
+	FRIEND_TEST(ModePageDeviceTest, ModeSelect10);
 	FRIEND_TEST(DiskTest, Dispatch);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);

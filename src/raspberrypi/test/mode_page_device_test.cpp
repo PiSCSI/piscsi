@@ -55,3 +55,29 @@ TEST(ModePageDeviceTest, ModeSense10)
     EXPECT_CALL(controller, DataIn()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
 }
+
+TEST(ModePageDeviceTest, ModeSelect6)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<MockModePageDevice>();
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(6);
+
+    EXPECT_CALL(controller, DataOut()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
+}
+
+TEST(ModePageDeviceTest, ModeSelect10)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<MockModePageDevice>();
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(10);
+
+    EXPECT_CALL(controller, DataOut()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
+}
