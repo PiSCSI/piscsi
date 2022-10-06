@@ -20,8 +20,20 @@ TEST(ProtobufSerializerTest, SerializeMessage)
 	ProtobufSerializer serializer;
 
 	int fd = open("/dev/null", O_WRONLY);
-	ASSERT_NE(-1, fd);
+	EXPECT_NE(-1, fd);
 	serializer.SerializeMessage(fd, message);
 	close(fd);
 	EXPECT_THROW(serializer.SerializeMessage(-1, message), io_exception);
+}
+
+TEST(ProtobufSerializerTest, ReadBytes)
+{
+	PbResult message;
+	ProtobufSerializer serializer;
+	vector<byte> buf(1);
+
+	int fd = open("/dev/null", O_WRONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_EQ(-1, serializer.ReadBytes(fd, buf));
+	close(fd);
 }

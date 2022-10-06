@@ -69,7 +69,7 @@ size_t ProtobufSerializer::ReadBytes(int fd, vector<byte>& buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {
-		const ssize_t len = read(fd, &buf[offset], buf.size() - offset);
+		const ssize_t len = read(fd, &buf.data()[offset], buf.size() - offset);
 		if (len <= 0) {
 			return len;
 		}
