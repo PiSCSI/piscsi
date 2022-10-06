@@ -179,7 +179,7 @@ void RasctlCommands::CommandDevicesInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayDevices(result.devices_info());
+	cout << rasctl_display.DisplayDevices(result.devices_info()) << flush;
 }
 
 void RasctlCommands::CommandLogLevel(const string& log_level)
@@ -259,22 +259,24 @@ void RasctlCommands::CommandDeviceInfo()
 	SendCommand();
 
 	for (const auto& device : result.devices_info().devices()) {
-		rasctl_display.DisplayDeviceInfo(device);
+		cout << rasctl_display.DisplayDeviceInfo(device);
 	}
+
+	cout << flush;
 }
 
 void RasctlCommands::CommandDeviceTypesInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayDeviceTypesInfo(result.device_types_info());
+	cout << rasctl_display.DisplayDeviceTypesInfo(result.device_types_info()) << flush;
 }
 
 void RasctlCommands::CommandVersionInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayVersionInfo(result.version_info());
+	cout << rasctl_display.DisplayVersionInfo(result.version_info()) << flush;
 }
 
 void RasctlCommands::CommandServerInfo()
@@ -283,32 +285,34 @@ void RasctlCommands::CommandServerInfo()
 
 	PbServerInfo server_info = result.server_info();
 
-	rasctl_display.DisplayVersionInfo(server_info.version_info());
-	rasctl_display.DisplayLogLevelInfo(server_info.log_level_info());
-	rasctl_display.DisplayImageFiles(server_info.image_files_info());
-	rasctl_display.DisplayMappingInfo(server_info.mapping_info());
-	rasctl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
-	rasctl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
-	rasctl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
-	rasctl_display.DisplayOperationInfo(server_info.operation_info());
+	cout << rasctl_display.DisplayVersionInfo(server_info.version_info());
+	cout << rasctl_display.DisplayLogLevelInfo(server_info.log_level_info());
+	cout << rasctl_display.DisplayImageFiles(server_info.image_files_info());
+	cout << rasctl_display.DisplayMappingInfo(server_info.mapping_info());
+	cout << rasctl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
+	cout << rasctl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
+	cout << rasctl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
+	cout << rasctl_display.DisplayOperationInfo(server_info.operation_info());
 
 	if (server_info.devices_info().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
-		cout << "Attached devices:" << endl;
+		cout << "Attached devices:\n";
 
 		for (const auto& device : sorted_devices) {
-			rasctl_display.DisplayDeviceInfo(device);
+			cout << rasctl_display.DisplayDeviceInfo(device);
 		}
 	}
+
+	cout << flush;
 }
 
 void RasctlCommands::CommandDefaultImageFilesInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayImageFiles(result.image_files_info());
+	cout << rasctl_display.DisplayImageFiles(result.image_files_info()) << flush;
 }
 
 void RasctlCommands::CommandImageFileInfo(const string& filename)
@@ -317,42 +321,42 @@ void RasctlCommands::CommandImageFileInfo(const string& filename)
 
 	SendCommand();
 
-	rasctl_display.DisplayImageFile(result.image_file_info());
+	cout << rasctl_display.DisplayImageFile(result.image_file_info()) << flush;
 }
 
 void RasctlCommands::CommandNetworkInterfacesInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayNetworkInterfaces(result.network_interfaces_info());
+	cout << rasctl_display.DisplayNetworkInterfaces(result.network_interfaces_info()) << flush;
 }
 
 void RasctlCommands::CommandLogLevelInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayLogLevelInfo(result.log_level_info());
+	cout << rasctl_display.DisplayLogLevelInfo(result.log_level_info()) << flush;
 }
 
 void RasctlCommands::CommandReservedIdsInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayReservedIdsInfo(result.reserved_ids_info());
+	cout << rasctl_display.DisplayReservedIdsInfo(result.reserved_ids_info()) << flush;
 }
 
 void RasctlCommands::CommandMappingInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayMappingInfo(result.mapping_info());
+	cout << rasctl_display.DisplayMappingInfo(result.mapping_info()) << flush;
 }
 
 void RasctlCommands::CommandOperationInfo()
 {
 	SendCommand();
 
-	rasctl_display.DisplayOperationInfo(result.operation_info());
+	cout << rasctl_display.DisplayOperationInfo(result.operation_info()) << flush;
 }
 
 bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in *addr)

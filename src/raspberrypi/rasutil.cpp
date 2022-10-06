@@ -55,9 +55,9 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 	}
 
 	ostringstream s;
-	s << "+----+-----+------+-------------------------------------" << endl
-			<< "| ID | LUN | TYPE | IMAGE FILE" << endl
-			<< "+----+-----+------+-------------------------------------" << endl;
+	s << "+----+-----+------+-------------------------------------\n"
+			<< "| ID | LUN | TYPE | IMAGE FILE\n"
+			<< "+----+-----+------+-------------------------------------\n";
 
 	list<PbDevice> devices = pb_devices;
 	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
@@ -89,10 +89,10 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (filename.empty() ? "NO MEDIA" : filename)
 				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
-				<< endl;
+				<< '\n';
 	}
 
-	s << "+----+-----+------+-------------------------------------";
+	s << "+----+-----+------+-------------------------------------\n";
 
 	return s.str();
 }

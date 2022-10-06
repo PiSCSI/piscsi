@@ -10,6 +10,7 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
+#include <sstream>
 
 using namespace rascsi_interface;
 
@@ -20,24 +21,24 @@ public:
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
 
-	void DisplayDevices(const PbDevicesInfo&) const;
-	void DisplayDeviceInfo(const PbDevice&) const;
-	void DisplayVersionInfo(const PbVersionInfo&) const;
-	void DisplayLogLevelInfo(const PbLogLevelInfo&) const;
-	void DisplayDeviceTypesInfo(const PbDeviceTypesInfo&) const;
-	void DisplayReservedIdsInfo(const PbReservedIdsInfo&) const;
-	void DisplayImageFile(const PbImageFile&) const;
-	void DisplayImageFiles(const PbImageFilesInfo&) const;
-	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
-	void DisplayMappingInfo(const PbMappingInfo&) const;
-	void DisplayOperationInfo(const PbOperationInfo&) const;
+	string DisplayDevices(const PbDevicesInfo&) const;
+	string DisplayDeviceInfo(const PbDevice&) const;
+	string DisplayVersionInfo(const PbVersionInfo&) const;
+	string DisplayLogLevelInfo(const PbLogLevelInfo&) const;
+	string DisplayDeviceTypesInfo(const PbDeviceTypesInfo&) const;
+	string DisplayReservedIdsInfo(const PbReservedIdsInfo&) const;
+	string DisplayImageFile(const PbImageFile&) const;
+	string DisplayImageFiles(const PbImageFilesInfo&) const;
+	string DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
+	string DisplayMappingInfo(const PbMappingInfo&) const;
+	string DisplayOperationInfo(const PbOperationInfo&) const;
 
 private:
 
-	void DisplayParams(const PbDevice&) const;
-	void DisplayAttributes(const PbDeviceProperties&) const;
-	void DisplayDefaultParameters(const PbDeviceProperties&) const;
-	void DisplayBlockSizes(const PbDeviceProperties&) const;
-	void DisplayParameters(const PbOperationMetaData&) const;
-	void DisplayPermittedValues(const PbOperationParameter&) const;
+	void DisplayParams(ostringstream&, const PbDevice&) const;
+	void DisplayAttributes(ostringstream&, const PbDeviceProperties&) const;
+	void DisplayDefaultParameters(ostringstream&, const PbDeviceProperties&) const;
+	void DisplayBlockSizes(ostringstream&, const PbDeviceProperties&) const;
+	void DisplayParameters(ostringstream&, const PbOperationMetaData&) const;
+	void DisplayPermittedValues(ostringstream&, const PbOperationParameter&) const;
 };
