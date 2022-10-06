@@ -63,10 +63,14 @@ TEST(ModePageDeviceTest, ModeSelect6)
 
     controller.AddDevice(device);
 
-    controller.InitCmd(6);
+    vector<int>& cmd = controller.InitCmd(6);
 
     EXPECT_CALL(controller, DataOut()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
+
+    cmd[1] = 0x01;
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect6), scsi_error_exception)
+    	<< "Saving parameters is not supported for most device types";
 }
 
 TEST(ModePageDeviceTest, ModeSelect10)
@@ -76,8 +80,12 @@ TEST(ModePageDeviceTest, ModeSelect10)
 
     controller.AddDevice(device);
 
-    controller.InitCmd(10);
+    vector<int>& cmd = controller.InitCmd(10);
 
     EXPECT_CALL(controller, DataOut()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
+
+    cmd[1] = 0x01;
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect10), scsi_error_exception)
+    	<< "Saving parameters is not supported for most device types";
 }
