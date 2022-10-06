@@ -226,7 +226,7 @@ string RasctlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files_
 		for (const auto& image_file : image_files) {
 			s << "  ";
 
-			DisplayImageFile(image_file);
+			s << DisplayImageFile(image_file);
 		}
 	}
 

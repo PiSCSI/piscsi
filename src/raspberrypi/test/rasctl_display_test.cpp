@@ -44,7 +44,15 @@ TEST(RasctlDisplayTest, DisplayVersionInfo)
 	RasctlDisplay display;
 	PbVersionInfo info;
 
-	EXPECT_FALSE(display.DisplayVersionInfo(info).empty());
+	info.set_patch_version(1);
+	string s = display.DisplayVersionInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("development version"));
+
+	info.set_patch_version(-1);
+	s = display.DisplayVersionInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("development version"));
 }
 
 TEST(RasctlDisplayTest, DisplayLogLevelInfo)
@@ -52,7 +60,14 @@ TEST(RasctlDisplayTest, DisplayLogLevelInfo)
 	RasctlDisplay display;
 	PbLogLevelInfo info;
 
-	EXPECT_FALSE(display.DisplayLogLevelInfo(info).empty());
+	string s = display.DisplayLogLevelInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("test"));
+
+	info.add_log_levels("test");
+	s = display.DisplayLogLevelInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("test"));
 }
 
 TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
@@ -65,14 +80,20 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 	while (PbDeviceType_IsValid(ordinal)) {
 		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
+
 		auto type_properties = info.add_properties();
 		type_properties->set_type(type);
+
 		if (type == SCHD) {
 			type_properties->mutable_properties()->add_block_sizes(512);
+			type_properties->mutable_properties()->set_supports_file(true);
 		}
+		if (type == SCLP) {
+			type_properties->mutable_properties()->set_supports_params(true);
+		}
+
 		ordinal++;
 	}
-
 
 	EXPECT_FALSE(display.DisplayDeviceTypesInfo(info).empty());
 }
@@ -85,11 +106,17 @@ TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
 	string s = display.DisplayReservedIdsInfo(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_EQ(string::npos, s.find("5"));
+	EXPECT_EQ(string::npos, s.find("5, 6"));
 
 	info.mutable_ids()->Add(5);
 	s = display.DisplayReservedIdsInfo(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("5"));
+
+	info.mutable_ids()->Add(6);
+	s = display.DisplayReservedIdsInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("5, 6"));
 }
 
 TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
@@ -115,11 +142,19 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 	string s = display.DisplayImageFile(file);
 	EXPECT_FALSE(s.empty());
 	EXPECT_EQ(string::npos, s.find("filename"));
+	EXPECT_EQ(string::npos, s.find("read-only"));
 
 	file.set_name("filename");
 	s = display.DisplayImageFile(file);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
+	EXPECT_EQ(string::npos, s.find("read-only"));
+
+	file.set_read_only(true);
+	s = display.DisplayImageFile(file);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("filename"));
+	EXPECT_NE(string::npos, s.find("read-only"));
 }
 
 TEST(RasctlDisplayTest, DisplayImageFilesInfo)
@@ -127,7 +162,16 @@ TEST(RasctlDisplayTest, DisplayImageFilesInfo)
 	RasctlDisplay display;
 	PbImageFilesInfo info;
 
+	string s = display.DisplayImageFilesInfo(info);
 	EXPECT_FALSE(display.DisplayImageFilesInfo(info).empty());
+	EXPECT_EQ(string::npos, s.find("filename"));
+
+	PbImageFile *file = info.add_image_files();
+	file->set_name("filename");
+	s = display.DisplayImageFilesInfo(info);
+	EXPECT_FALSE(s.empty());
+	cerr << s << endl;
+	EXPECT_NE(string::npos, s.find("filename"));
 }
 
 TEST(RasctlDisplayTest, DisplayMappingInfo)
