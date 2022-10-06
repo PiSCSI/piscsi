@@ -57,6 +57,17 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
+
+	device.mutable_properties()->set_supports_params(true);
+	(*device.mutable_params())["key1"] = "value1";
+	s = display.DisplayDeviceInfo(device);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("key1=value1"));
+	(*device.mutable_params())["key2"] = "value2";
+	s = display.DisplayDeviceInfo(device);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("key1=value1"));
+	EXPECT_NE(string::npos, s.find("key2=value2"));
 }
 
 TEST(RasctlDisplayTest, DisplayVersionInfo)
