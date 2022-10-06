@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -21,13 +21,13 @@
 #include "scsi_controller.h"
 #include <sstream>
 #include <iomanip>
-#ifdef __linux
+#ifdef __linux__
 #include <linux/if_tun.h>
 #endif
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
+ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -52,17 +52,17 @@ void ScsiController::Reset()
 BUS::phase_t ScsiController::Process(int id)
 {
 	// Get bus information
-	bus->Acquire();
+	bus.Acquire();
 
 	// Check to see if the reset signal was asserted
-	if (bus->GetRST()) {
+	if (bus.GetRST()) {
 		LOGWARN("RESET signal received!")
 
 		// Reset the controller
 		Reset();
 
 		// Reset the bus
-		bus->Reset();
+		bus.Reset();
 
 		return GetPhase();
 	}
@@ -86,7 +86,7 @@ BUS::phase_t ScsiController::Process(int id)
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__)
 
 		Reset();
-		bus->Reset();
+		bus.Reset();
 
 		BusFree();
 	}
@@ -101,14 +101,14 @@ void ScsiController::BusFree()
 
 		SetPhase(BUS::phase_t::busfree);
 
-		bus->SetREQ(false);
-		bus->SetMSG(false);
-		bus->SetCD(false);
-		bus->SetIO(false);
-		bus->SetBSY(false);
+		bus.SetREQ(false);
+		bus.SetMSG(false);
+		bus.SetCD(false);
+		bus.SetIO(false);
+		bus.SetBSY(false);
 
 		// Initialize status and message
-		SetStatus(0);
+		SetStatus(status::GOOD);
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
@@ -120,21 +120,21 @@ void ScsiController::BusFree()
 		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down.
-		// TODO Try to find a better place for this code without breaking encapsulation
+		// This code has to be executed in the bus free phase and thus has to be located in the controller.
 		switch(shutdown_mode) {
-		case AbstractController::rascsi_shutdown_mode::STOP_RASCSI:
+		case rascsi_shutdown_mode::STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested")
 			exit(0);
 			break;
 
-		case AbstractController::rascsi_shutdown_mode::STOP_PI:
+		case rascsi_shutdown_mode::STOP_PI:
 			LOGINFO("Raspberry Pi shutdown requested")
 			if (system("init 0") == -1) {
 				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno))
 			}
 			break;
 
-		case AbstractController::rascsi_shutdown_mode::RESTART_PI:
+		case rascsi_shutdown_mode::RESTART_PI:
 			LOGINFO("Raspberry Pi restart requested")
 			if (system("init 6") == -1) {
 				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno))
@@ -149,7 +149,7 @@ void ScsiController::BusFree()
 	}
 
 	// Move to selection phase
-	if (bus->GetSEL() && !bus->GetBSY()) {
+	if (bus.GetSEL() && !bus.GetBSY()) {
 		Selection();
 	}
 }
@@ -158,12 +158,12 @@ void ScsiController::Selection()
 {
 	if (!IsSelection()) {
 		// A different device controller was selected
-		if (int id = 1 << GetTargetId(); ((int)bus->GetDAT() & id) == 0) {
+		if (int id = 1 << GetTargetId(); ((int)bus.GetDAT() & id) == 0) {
 			return;
 		}
 
 		// Abort if there is no LUN for this controller
-		if (!HasLuns()) {
+		if (!GetLunCount()) {
 			return;
 		}
 
@@ -172,14 +172,14 @@ void ScsiController::Selection()
 		SetPhase(BUS::phase_t::selection);
 
 		// Raise BSY and respond
-		bus->SetBSY(true);
+		bus.SetBSY(true);
 		return;
 	}
 
 	// Selection completed
-	if (!bus->GetSEL() && bus->GetBSY()) {
+	if (!bus.GetSEL() && bus.GetBSY()) {
 		// Message out phase if ATN=1, otherwise command phase
-		if (bus->GetATN()) {
+		if (bus.GetATN()) {
 			MsgOut();
 		} else {
 			Command();
@@ -194,11 +194,11 @@ void ScsiController::Command()
 
 		SetPhase(BUS::phase_t::command);
 
-		bus->SetMSG(false);
-		bus->SetCD(true);
-		bus->SetIO(false);
+		bus.SetMSG(false);
+		bus.SetCD(true);
+		bus.SetIO(false);
 
-		int actual_count = bus->CommandHandShake(GetBuffer().data());
+		int actual_count = bus.CommandHandShake(GetBuffer().data());
 		int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
@@ -229,8 +229,6 @@ void ScsiController::Execute()
 {
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
 
-	SetPhase(BUS::phase_t::execute);
-
 	// Initialization for data transfer
 	ResetOffset();
 	ctrl.blocks = 1;
@@ -238,7 +236,7 @@ void ScsiController::Execute()
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
-		SetStatus(0);
+		SetStatus(status::GOOD);
 	}
 
 	int lun = GetEffectiveLun();
@@ -258,13 +256,13 @@ void ScsiController::Execute()
 		}
 	}
 
-	PrimaryDevice *device = GetDeviceForLun(lun);
+	auto device = GetDeviceForLun(lun);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
 		device->SetStatusCode(0);
 	}
-	
+
 	try {
 		if (!device->Dispatch(GetOpcode())) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
@@ -298,14 +296,14 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase $%02X",__PRETTY_FUNCTION__, GetStatus())
+		LOGTRACE("%s Status Phase, status is $%02X",__PRETTY_FUNCTION__, (int)GetStatus())
 
 		SetPhase(BUS::phase_t::status);
 
 		// Signal line operated by the target
-		bus->SetMSG(false);
-		bus->SetCD(true);
-		bus->SetIO(true);
+		bus.SetMSG(false);
+		bus.SetCD(true);
+		bus.SetIO(true);
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
@@ -326,9 +324,9 @@ void ScsiController::MsgIn()
 
 		SetPhase(BUS::phase_t::msgin);
 
-		bus->SetMSG(true);
-		bus->SetCD(true);
-		bus->SetIO(true);
+		bus.SetMSG(true);
+		bus.SetCD(true);
+		bus.SetIO(true);
 
 		// length, blocks are already set
 		assert(HasValidLength());
@@ -357,9 +355,9 @@ void ScsiController::MsgOut()
 
 		SetPhase(BUS::phase_t::msgout);
 
-		bus->SetMSG(true);
-		bus->SetCD(true);
-		bus->SetIO(false);
+		bus.SetMSG(true);
+		bus.SetCD(true);
+		bus.SetIO(false);
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
@@ -390,9 +388,9 @@ void ScsiController::DataIn()
 
 		SetPhase(BUS::phase_t::datain);
 
-		bus->SetMSG(false);
-		bus->SetCD(false);
-		bus->SetIO(true);
+		bus.SetMSG(false);
+		bus.SetCD(false);
+		bus.SetIO(true);
 
 		// length, blocks are already set
 		assert(ctrl.blocks > 0);
@@ -423,9 +421,9 @@ void ScsiController::DataOut()
 		SetPhase(BUS::phase_t::dataout);
 
 		// Signal line operated by the target
-		bus->SetMSG(false);
-		bus->SetCD(false);
-		bus->SetIO(false);
+		bus.SetMSG(false);
+		bus.SetCD(false);
+		bus.SetIO(false);
 
 		ResetOffset();
 		return;
@@ -437,12 +435,12 @@ void ScsiController::DataOut()
 void ScsiController::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
-	bus->Acquire();
+	bus.Acquire();
 
 	// Reset check
-	if (bus->GetRST()) {
+	if (bus.GetRST()) {
 		Reset();
-		bus->Reset();
+		bus.Reset();
 
 		return;
 	}
@@ -461,11 +459,14 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
-		// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X",
+				(int)sense_key << 16, (int)asc << 8, (int)asc & 0xff)
+
+				// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
-	SetStatus((uint32_t)status);
+	SetStatus(status);
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__)
@@ -475,16 +476,16 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 void ScsiController::Send()
 {
-	assert(!bus->GetREQ());
-	assert(bus->GetIO());
+	assert(!bus.GetREQ());
+	assert(bus.GetIO());
 
 	if (HasValidLength()) {
-		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(GetOffset()) + ", length "
 				+ to_string(ctrl.length)).c_str())
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase
@@ -571,15 +572,15 @@ void ScsiController::Receive()
 	LOGTRACE("%s",__PRETTY_FUNCTION__)
 
 	// REQ is low
-	assert(!bus->GetREQ());
-	assert(!bus->GetIO());
+	assert(!bus.GetREQ());
+	assert(!bus.GetIO());
 
 	// Length != 0 if received
 	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (int len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
+		if (int len = bus.ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != (int)ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
@@ -675,14 +676,14 @@ bool ScsiController::XferMsg(int msg)
 
 void ScsiController::ReceiveBytes()
 {
-	assert(!bus->GetREQ());
-	assert(!bus->GetIO());
+	assert(!bus.GetREQ());
+	assert(!bus.GetIO());
 
 	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + ctrl.offset, ctrl.length);
+		if (uint32_t len = bus.ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len)
@@ -773,7 +774,7 @@ void ScsiController::FlushUnit()
 {
 	assert(IsDataOut());
 
-	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return;
 	}
@@ -795,7 +796,7 @@ void ScsiController::FlushUnit()
             // Without it we would not need this method at all.
             // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_error_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
@@ -838,7 +839,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 		case scsi_command::eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = (static_cast<Disk *>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
+				ctrl.length = (dynamic_pointer_cast<Disk>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
 			}
 			catch(const scsi_error_exception&) {
 				// If there is an error, go to the status phase
@@ -868,7 +869,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
-	auto disk = dynamic_cast<Disk *>(GetDeviceForLun(GetEffectiveLun()));
+	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
 	if (disk == nullptr) {
 		return false;
 	}
@@ -878,7 +879,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), ctrl.offset);
+				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_error_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
@@ -895,7 +896,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		{
 			// Special case Write function for brige
 			// TODO This class must not know about SCSIBR
-			if (auto bridge = dynamic_cast<SCSIBR *>(disk); bridge) {
+			if (auto bridge = dynamic_pointer_cast<SCSIBR>(disk); bridge) {
 				if (!bridge->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
 					// Write failed
 					return false;
@@ -907,7 +908,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
-			if (auto daynaport = dynamic_cast<SCSIDaynaPort *>(disk); daynaport) {
+			if (auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(disk); daynaport) {
 				daynaport->WriteBytes(ctrl.cmd, GetBuffer(), 0);
 
 				ResetOffset();
@@ -961,9 +962,10 @@ void ScsiController::ProcessCommand()
 	uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 	stringstream s;
+	s << setfill('0') << setw(2) << hex;
 	for (uint32_t i = 0; i < len; i++) {
 		ctrl.cmd[i] = GetBuffer()[i];
-		s << setfill('0') << setw(2) << hex << ctrl.cmd[i];
+		s << ctrl.cmd[i];
 	}
 	LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
@@ -1036,7 +1038,7 @@ void ScsiController::ParseMessage()
 void ScsiController::ProcessMessage()
 {
 	// Continue message out phase as long as ATN keeps asserting
-	if (bus->GetATN()) {
+	if (bus.GetATN()) {
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
 		ctrl.length = 1;

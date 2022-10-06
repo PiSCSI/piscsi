@@ -52,6 +52,7 @@ from web_utils import (
     get_device_name,
     map_image_file_descriptions,
     format_drive_properties,
+    get_properties_by_drive_name,
     auth_active,
     is_bridge_configured,
     upload_with_dropzonejs,
@@ -202,7 +203,7 @@ def index():
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
-    scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
     image_suffixes_to_create = map_image_file_descriptions(
@@ -246,7 +247,6 @@ def index():
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
         scsi_ids=scsi_ids,
-        recommended_id=recommended_id,
         attached_images=attached_images,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -360,28 +360,23 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
+    drive_name = request.form.get("drive_name")
     size = request.form.get("size")
-    file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
-    full_file_name = file_name + "." + file_type
+
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
 
     # Creating the image file
-    process = file_cmd.create_new_image(file_name, file_type, size)
+    process = file_cmd.create_new_image(file_name, properties["file_type"], size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
     # Creating the drive properties file
-    prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
-    properties = {
-                "vendor": vendor,
-                "product": product,
-                "revision": revision,
-                "block_size": block_size,
-                }
+    full_file_name = f"{file_name}.{properties['file_type']}"
+    prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
     process = file_cmd.write_drive_properties(prop_file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
@@ -396,20 +391,15 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
+    drive_name = request.form.get("drive_name")
     file_name = request.form.get("file_name")
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = {
-        "vendor": vendor,
-        "product": product,
-        "revision": revision,
-        "block_size": block_size,
-        }
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -582,35 +572,39 @@ def attach_device():
     """
     Attaches a peripheral device that doesn't take an image file as argument
     """
-    params = {}
+    scsi_id = request.form.get("scsi_id")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
+    drive_name = request.form.get("drive_name")
+
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
+
+    # Attempt to fetch the drive properties based on drive name
     drive_props = None
+    if drive_name:
+        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
+            if drive["name"] == drive_name:
+                drive_props = drive
+                break
+
+    # Collect device parameters into a dictionary
+    PARAM_PREFIX = "param_"
+    params = {}
     for item in request.form:
-        if item == "scsi_id":
-            scsi_id = request.form.get(item)
-        elif item == "unit":
-            unit = request.form.get(item)
-        elif item == "type":
-            device_type = request.form.get(item)
-        elif item == "drive_name":
-            drive_name = request.form.get(item)
-            for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-                if drive["name"] == drive_name:
-                    drive_props = drive
-                    break
-        else:
+        if item.startswith(PARAM_PREFIX):
             param = request.form.get(item)
             if param:
-                params.update({item: param})
+                params.update({item.replace(PARAM_PREFIX, ""): param})
 
     error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)
 
     if "interface" in params.keys():
-        # Note: is_bridge_configured returns False if the bridge is configured
         bridge_status = is_bridge_configured(params["interface"])
-        if bridge_status:
+        if not bridge_status["status"]:
             return response(error=True, message=[
-                (bridge_status, "error"),
+                (bridge_status["msg"], "error"),
                 (error_msg, "error")
             ])
 
@@ -650,6 +644,8 @@ def attach_image():
     unit = request.form.get("unit")
     device_type = request.form.get("type")
 
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
     if not file_name:
         return response(error=True, message=_("No image file to insert"))
 
@@ -935,17 +931,10 @@ def create_file():
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
-        drive_props = None
-        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-            if drive["name"] == drive_name:
-                drive_props = drive
-                break
-        properties = {
-            "vendor": drive_props["vendor"],
-            "product": drive_props["product"],
-            "revision": drive_props["revision"],
-            "block_size": drive_props["block_size"],
-            }
+        properties = get_properties_by_drive_name(
+            APP.config["RASCSI_DRIVE_PROPERTIES"],
+            drive_name
+            )
         prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
         process = file_cmd.write_drive_properties(prop_file_name, properties)
         process = ReturnCodeMapper.add_msg(process)

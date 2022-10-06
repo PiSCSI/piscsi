@@ -73,15 +73,15 @@
                     <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
-                    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
+                    {% if f["name"].lower().endswith(env['cd_suffixes']) %}
                     <option value="{{ f["name"] }}">{{ f["name"].replace(env["base_dir"], '') }}</option>
                     {% endif %}
                     {% elif device.device_type == "SCRM" %}
-                    {% if f["name"].lower().endswith(removable_file_suffix) %}
+                    {% if f["name"].lower().endswith(env['rm_suffixes']) %}
                     <option value="{{ f["name"] }}">{{ f["name"].replace(env["base_dir"], '') }}</option>
                     {% endif %}
                     {% elif device.device_type == "SCMO" %}
-                    {% if f["name"].lower().endswith(mo_file_suffix) %}
+                    {% if f["name"].lower().endswith(env['mo_suffixes']) %}
                     <option value="{{ f["name"] }}">{{ f["name"].replace(env["base_dir"], '') }}</option>
                     {% endif %}
                     {% endif %}
@@ -118,7 +118,7 @@
             </td>
             <td>
                 <center>
-                {% if device.device_type != "-" %}
+                {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -285,8 +285,8 @@
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
                     <select name="scsi_id" id="image_list_scsi_id_{{ file["name"] }}">
-                        {% for id in scsi_ids %}
-                        <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
+                        {% for id in scsi_ids["valid_ids"] %}
+                        <option name="id" value="{{id}}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                             {{ id }}
                         </option>
                         {% endfor %}
@@ -382,11 +382,11 @@
             <form action="/scsi/attach_device" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
-                <label for="{{ type }}_{{ key }}">{{ key }}:</label>
+                <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" id="{{ type }}_{{ key }}" type="number" value="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
-                <select name="{{ key }}" id="{{ type }}_{{ key }}">
+                <select name="param_{{ key }}" id="param_{{ type }}_{{ key }}">
                 {% for if in netinfo["ifs"] %}
                     <option value="{{ if }}">
                         {{ if }}
@@ -394,7 +394,7 @@
                 {% endfor %}
                 </select>
                 {% else %}
-                <input name="{{ key }}" id="{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
                 {% if type in REMOVABLE_DEVICE_TYPES %}
@@ -428,8 +428,8 @@
                 {% endif %}
                 <label for="{{ type }}_scsi_id">{{ _("ID") }}</label>
                 <select name="scsi_id" id="{{ type }}_scsi_id">
-                {% for id in scsi_ids %}
-                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                {% for id in scsi_ids["valid_ids"] %}
+                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                         {{ id }}
                     </option>
                 {% endfor %}
@@ -556,8 +556,8 @@
     </select>
     <label for="iso_scsi_id">{{ _("ID") }}</label>
     <select name="scsi_id" id="iso_scsi_id">
-        {% for id in scsi_ids %}
-        <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+        {% for id in scsi_ids["valid_ids"] %}
+        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
             {{ id }}
         </option>
         {% endfor %}

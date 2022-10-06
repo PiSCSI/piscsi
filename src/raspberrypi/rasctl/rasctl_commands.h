@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace rascsi_interface;
 
 class RasctlCommands
 {
@@ -22,8 +22,6 @@ public:
 
 	RasctlCommands(const PbCommand&, const string&, int, const string&, const string&);
 	~RasctlCommands() = default;
-	RasctlCommands(RasctlCommands&) = delete;
-	RasctlCommands& operator=(const RasctlCommands&) = delete;
 
 	void Execute(const string&, const string&, const string&, const string&, const string&);
 
@@ -51,7 +49,7 @@ private:
 	void CommandOperationInfo();
 	void SendCommand();
 
-	SocketConnector socket_connector;
+	ProtobufSerializer serializer;
 	PbCommand command;
 	string hostname;
 	int port;

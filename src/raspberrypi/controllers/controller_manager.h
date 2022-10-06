@@ -12,9 +12,10 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class BUS;
 class AbstractController;
@@ -22,23 +23,24 @@ class PrimaryDevice;
 
 class ControllerManager
 {
+	BUS& bus;
+
+	unordered_map<int, shared_ptr<AbstractController>> controllers;
 
 public:
 
-	ControllerManager() = default;
+	explicit ControllerManager(BUS& bus) : bus(bus) {}
 	~ControllerManager() = default;
-	ControllerManager(ControllerManager&) = delete;
-	ControllerManager& operator=(const ControllerManager&) = delete;
 
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	bool CreateScsiController(shared_ptr<BUS>, PrimaryDevice *);
+	bool AttachToScsiController(int, shared_ptr<PrimaryDevice>);
+	void DeleteController(shared_ptr<AbstractController>);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
+	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
 	void DeleteAllControllers();
 	void ResetAllControllers() const;
-	PrimaryDevice *GetDeviceByIdAndLun(int, int) const;
-
-	unordered_map<int, shared_ptr<AbstractController>> controllers;
+	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 };

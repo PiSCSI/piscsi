@@ -7,17 +7,17 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //
-//  Licensed under the BSD 3-Clause License. 
+//  Licensed under the BSD 3-Clause License.
 //  See LICENSE file in the project root folder.
 //
 //  [ Emulation of the DaynaPort SCSI Link Ethernet interface ]
 //
-//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's 
+//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's
 //  Tiny SCSI Emulator
 //    - SLINKCMD: http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/SLINKCMD.TXT
 //    - Tiny SCSI : https://hackaday.io/project/18974-tiny-scsi-emulator
 //
-//  Additional documentation and clarification is available at the 
+//  Additional documentation and clarification is available at the
 //  following link:
 //    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
 //
@@ -36,7 +36,7 @@ using namespace scsi_defs;
 using namespace scsi_command_util;
 
 // TODO Disk must not be the superclass
-SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
+SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk("SCDP", lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
@@ -139,7 +139,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
 
 
-	// At host startup, it will send a READ(6) command with a length of 1. We should 
+	// At host startup, it will send a READ(6) command with a length of 1. We should
 	// respond by going into the status mode with a code of 0x02
 	if (requested_length == 1) {
 		return 0;
@@ -169,7 +169,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 		LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count)
 
 		// This is a very basic filter to prevent unnecessary packets from
-		// being sent to the SCSI initiator. 
+		// being sent to the SCSI initiator.
 		send_message_to_host = false;
 
 	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
@@ -192,7 +192,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 	///////	}
 		send_message_to_host = true;
 
-		// TODO: We should check to see if this message is in the multicast 
+		// TODO: We should check to see if this message is in the multicast
 		// configuration from SCSI command 0x0D
 
 		if (!send_message_to_host) {
@@ -239,7 +239,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 			// The CRC was already appended by the ctapdriver
 			return size + DAYNAPORT_READ_HEADER_SZ;
 		}
-		// If we got to this point, there are still messages in the queue, so 
+		// If we got to this point, there are still messages in the queue, so
 		// we should loop back and get the next one.
 	} // end while
 
@@ -300,7 +300,7 @@ bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, 
 
 	return true;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //	RetrieveStats
@@ -406,9 +406,9 @@ void SCSIDaynaPort::Write6()
 		ctrl->length = GetInt16(ctrl->cmd, 3 + 8);
 	}
 	else {
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
+		LOGWARN("%s Unknown data format $%02X", __PRETTY_FUNCTION__, data_format)
 	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
+	LOGTRACE("%s length: $%04X (%d) format: $%02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
 
 	if (ctrl->length <= 0) {
 		throw scsi_error_exception();

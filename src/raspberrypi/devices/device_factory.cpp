@@ -25,8 +25,6 @@
 using namespace std;
 using namespace rascsi_interface;
 
-multimap<int, unique_ptr<PrimaryDevice>> DeviceFactory::devices;
-
 DeviceFactory::DeviceFactory()
 {
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
@@ -43,9 +41,9 @@ DeviceFactory::DeviceFactory()
 	}
 
 	default_params[SCBR]["interface"] = network_interfaces;
-	default_params[SCBR]["inet"] = "10.10.20.1/24";
+	default_params[SCBR]["inet"] = DEFAULT_IP;
 	default_params[SCDP]["interface"] = network_interfaces;
-	default_params[SCDP]["inet"] = "10.10.20.1/24";
+	default_params[SCDP]["inet"] = DEFAULT_IP;
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 	default_params[SCLP]["timeout"] = "30";
 
@@ -58,45 +56,6 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["hdr"] = SCRM;
 	extension_mapping["mos"] = SCMO;
 	extension_mapping["iso"] = SCCD;
-}
-
-void DeviceFactory::DeleteDevice(const PrimaryDevice& device) const
-{
-	auto [begin, end] = devices.equal_range(device.GetId());
-	for (auto& it = begin; it != end; ++it) {
-		if (it->second->GetLun() == device.GetLun()) {
-			devices.erase(it);
-
-			break;
-		}
-	}
-}
-
-void DeviceFactory::DeleteAllDevices() const
-{
-	devices.clear();
-}
-
-const PrimaryDevice *DeviceFactory::GetDeviceByIdAndLun(int i, int lun) const
-{
-	for (const auto& [id, device] : devices) {
-		if (device->GetId() == i && device->GetLun() == lun) {
-			return device.get();
-		}
-	}
-
-	return nullptr;
-}
-
-list<PrimaryDevice *> DeviceFactory::GetAllDevices() const
-{
-	list<PrimaryDevice *> result;
-
-	for (const auto& [id, device] : devices) {
-		result.push_back(device.get());
-	}
-
-	return result;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
@@ -132,7 +91,8 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 }
 
 // ID -1 is used by rascsi to create a temporary device
-PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, int id)
+shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
+		int lun, const string& filename)
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -142,13 +102,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		}
 	}
 
-	unique_ptr<PrimaryDevice> device;
+	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
 		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = make_unique<SCSIHD_NEC>();
+			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_unique<SCSIHD>(sector_sizes[SCHD], false, ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
+					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -162,7 +123,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 	}
 
 	case SCRM:
-		device = make_unique<SCSIHD>(sector_sizes[SCRM], true);
+		device = make_shared<SCSIHD>(lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -171,7 +132,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCMO:
-		device = make_unique<SCSIMO>(sector_sizes[SCMO]);
+		device = make_shared<SCSIMO>(lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -180,7 +141,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCCD:
-		device = make_unique<SCSICD>(sector_sizes[SCCD]);
+		device = make_shared<SCSICD>(lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
 		device->SetStoppable(true);
 		device->SetRemovable(true);
@@ -189,14 +150,15 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCBR:
-		device = make_unique<SCSIBR>();
+		device = make_shared<SCSIBR>(lun);
+		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
 	case SCDP:
-		device = make_unique<SCSIDaynaPort>();
+		device = make_shared<SCSIDaynaPort>(lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
@@ -206,14 +168,14 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 
 	case SCHS:
-		device = make_unique<HostServices>(*this);
+		device = make_shared<HostServices>(lun, controller_manager);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
 		break;
 
 	case SCLP:
-		device = make_unique<SCSIPrinter>();
+		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
@@ -223,17 +185,7 @@ PrimaryDevice *DeviceFactory::CreateDevice(PbDeviceType type, const string& file
 		break;
 	}
 
-	if (device != nullptr) {
-		PrimaryDevice *d = device.release();
-
-		d->SetId(id);
-
-		devices.emplace(id, d);
-
-		return d;
-	}
-
-	return nullptr;
+	return device;
 }
 
 const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) const
@@ -260,7 +212,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 {
 	list<string> network_interfaces;
 
-#ifdef __linux
+#ifdef __linux__
 	ifaddrs *addrs;
 	getifaddrs(&addrs);
 	ifaddrs *tmp = addrs;

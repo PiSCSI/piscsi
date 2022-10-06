@@ -18,10 +18,8 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	explicit ModePageDevice(const string&);
+	ModePageDevice(const string&, int);
 	~ModePageDevice()override = default;
-	ModePageDevice(ModePageDevice&) = delete;
-	ModePageDevice& operator=(const ModePageDevice&) = delete;
 
 	bool Dispatch(scsi_command) override;
 
@@ -38,8 +36,8 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	virtual int ModeSense6(const vector<int>&, vector<BYTE>&, int) const = 0;
-	virtual int ModeSense10(const vector<int>&, vector<BYTE>&, int) const = 0;
+	virtual int ModeSense6(const vector<int>&, vector<BYTE>&) const = 0;
+	virtual int ModeSense10(const vector<int>&, vector<BYTE>&) const = 0;
 
 	void ModeSense6();
 	void ModeSense10();

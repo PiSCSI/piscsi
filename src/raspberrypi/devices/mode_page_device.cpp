@@ -20,7 +20,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
+ModePageDevice::ModePageDevice(const string& type, int lun) : PrimaryDevice(type, lun)
 {
 	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
@@ -63,14 +63,14 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
-			size_t offset = result.size();
+			size_t off = result.size();
 
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
 			// Page code, PS bit may already have been set
-			result[offset] |= (byte)index;
+			result[off] |= (byte)index;
 			// Page payload size
-			result[offset + 1] = (byte)(data.size() - 2);
+			result[off + 1] = (byte)(data.size() - 2);
 		}
 		else {
 			page0 = data;
@@ -79,10 +79,12 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 	// Page 0 must be last
 	if (!page0.empty()) {
+		size_t off = result.size();
+
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		result[result.size() + 1] = (byte)(page0.size() - 2);
+		result[off + 1] = (byte)(page0.size() - 2);
 	}
 
 	// Do not return more than the requested number of bytes
@@ -94,14 +96,14 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
+	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer());
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer(), (int)controller->GetBufferSize());
+	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer());
 
 	EnterDataInPhase();
 }
@@ -145,7 +147,7 @@ int ModePageDevice::ModeSelectCheck6() const
 int ModePageDevice::ModeSelectCheck10() const
 {
 	// Receive the data specified by the parameter length
-	size_t length = min(controller->GetBufferSize(), (size_t)GetInt16(ctrl->cmd, 7));
+	size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
 
 	return ModeSelectCheck((int)length);
 }

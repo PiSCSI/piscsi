@@ -28,16 +28,10 @@
     <td>{{ hd.description }}</td>
     <td>
     <form action="/drive/create" method="post">
-        <input type="hidden" name="vendor" value="{{ hd.vendor }}">
-        <input type="hidden" name="product" value="{{ hd.product }}">
-        <input type="hidden" name="revision" value="{{ hd.revision }}">
-        <input type="hidden" name="blocks" value="{{ hd.blocks }}">
-        <input type="hidden" name="block_size" value="{{ hd.block_size }}">
         <label for="size_{{ hd.name }}">{{ _("Size:") }}</label>
         <input type="number" name="size" id="size_{{ hd.name }}" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
-    <input type="hidden" name="file_type" value="{{ hd.file_type }}">
-    <label for="file_name_{{ hd.name }}">{{ _("Save as:") }}</label>
-    <input type="text" name="file_name" id="file_name_{{ hd.name }}" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
+        <label for="file_name_{{ hd.name }}">{{ _("Save as:") }}</label>
+        <input type="text" name="file_name" id="file_name_{{ hd.name }}" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
     <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>
@@ -73,14 +67,10 @@
     <td>{{ cd.description }}</td>
     <td>
     <form action="/drive/cdrom" method="post">
-        <input type="hidden" name="vendor" value="{{ cd.vendor }}">
-        <input type="hidden" name="product" value="{{ cd.product }}">
-        <input type="hidden" name="revision" value="{{ cd.revision }}">
-        <input type="hidden" name="block_size" value="{{ cd.block_size }}">
         <label for="file_name_{{ cd.name }}">{{ _("Create for:") }}</label>
         <select type="select" name="file_name" id="file_name_{{ cd.name }}">
-            {% for file in files|sort(attribute='name') %}
-        {% if file["name"].lower().endswith(cdrom_file_suffix) %}
+        {% for file in files|sort(attribute='name') %}
+        {% if file["name"].lower().endswith(env['cd_suffixes']) %}
         <option value="{{ file["name"] }}">{{ file["name"].replace(env["base_dir"], '') }}</option>
         {% endif %}
         {% endfor %}
@@ -119,14 +109,8 @@
     <td>{{ rm.description }}</td>
     <td>
     <form action="/drive/create" method="post">
-        <input type="hidden" name="vendor" value="{{ rm.vendor }}">
-        <input type="hidden" name="product" value="{{ rm.product }}">
-        <input type="hidden" name="revision" value="{{ rm.revision }}">
-        <input type="hidden" name="blocks" value="{{ rm.blocks }}">
-        <input type="hidden" name="block_size" value="{{ rm.block_size }}">
         <label for="size_{{ rm.name }}">{{ _("Size:") }}</label>
         <input type="number" name="size" id="size_{{ rm.name }}" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
-        <input type="hidden" name="file_type" value="{{ rm.file_type }}">
         <label for="file_name_{{ rm.name }}">{{ _("Save as:") }}</label>
         <input type="text" name="file_name" id="file_name_{{ rm.name }}" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
         <input type="submit" value="{{ _("Create") }}" />

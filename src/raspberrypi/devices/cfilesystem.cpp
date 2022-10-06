@@ -2381,18 +2381,16 @@ bool CHostFcb::Truncate() const
 /// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
-DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
+DWORD CHostFcb::Seek(DWORD nOffset, Human68k::seek_t nHumanSeek)
 {
-	assert(nHumanSeek == Human68k::SK_BEGIN ||
-		nHumanSeek == Human68k::SK_CURRENT || nHumanSeek == Human68k::SK_END);
 	assert(m_pFile);
 
 	int nSeek;
 	switch (nHumanSeek) {
-		case Human68k::SK_BEGIN:
+		case Human68k::seek_t::SK_BEGIN:
 			nSeek = SEEK_SET;
 			break;
-		case Human68k::SK_CURRENT:
+		case Human68k::seek_t::SK_CURRENT:
 			nSeek = SEEK_CUR;
 			break;
 			// case SK_END:
@@ -3356,13 +3354,13 @@ int CFileSys::Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset)
 		return FS_NOTOPENED;
 
 	// Parameter check
-	if (nSeek > Human68k::SK_END) {
+	if (nSeek > (DWORD)Human68k::seek_t::SK_END) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPRM;
 	}
 
 	// File seek
-	DWORD nResult = pHostFcb->Seek(nOffset, nSeek);
+	DWORD nResult = pHostFcb->Seek(nOffset, (Human68k::seek_t)nSeek);
 	if (nResult == (DWORD)-1) {
 		m_cFcb.Free(pHostFcb);
 		return FS_CANTSEEK;

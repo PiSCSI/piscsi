@@ -22,7 +22,8 @@ bool ras_util::GetAsInt(const string& value, int& result)
 	}
 
 	try {
-		result = (int)stoul(value);
+		auto v = stoul(value);
+		result = (int)v;
 	}
 	catch(const invalid_argument&) {
 		return false;
@@ -46,7 +47,7 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 			<< "+----+-----+------+-------------------------------------" << endl;
 
 	list<PbDevice> devices = pb_devices;
-	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 	for (const auto& device : devices) {
 		string filename;
@@ -81,4 +82,23 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 	s << "+----+-----+------+-------------------------------------";
 
 	return s.str();
+}
+
+// Pin the thread to a specific CPU
+void ras_util::FixCpu(int cpu)
+{
+#ifdef __linux__
+	// Get the number of CPUs
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
+	int cpus = CPU_COUNT(&cpuset);
+
+	// Set the thread affinity
+	if (cpu < cpus) {
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
+	}
+#endif
 }
