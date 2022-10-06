@@ -287,7 +287,7 @@ void RasctlCommands::CommandServerInfo()
 
 	cout << rasctl_display.DisplayVersionInfo(server_info.version_info());
 	cout << rasctl_display.DisplayLogLevelInfo(server_info.log_level_info());
-	cout << rasctl_display.DisplayImageFiles(server_info.image_files_info());
+	cout << rasctl_display.DisplayImageFilesInfo(server_info.image_files_info());
 	cout << rasctl_display.DisplayMappingInfo(server_info.mapping_info());
 	cout << rasctl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	cout << rasctl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
@@ -312,7 +312,7 @@ void RasctlCommands::CommandDefaultImageFilesInfo()
 {
 	SendCommand();
 
-	cout << rasctl_display.DisplayImageFiles(result.image_files_info()) << flush;
+	cout << rasctl_display.DisplayImageFilesInfo(result.image_files_info()) << flush;
 }
 
 void RasctlCommands::CommandImageFileInfo(const string& filename)

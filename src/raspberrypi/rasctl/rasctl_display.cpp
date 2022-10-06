@@ -208,7 +208,7 @@ string RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 	return s.str();
 }
 
-string RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info) const
+string RasctlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files_info) const
 {
 	ostringstream s;
 

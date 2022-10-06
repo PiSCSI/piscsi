@@ -30,7 +30,7 @@ public:
 	string DisplayDeviceTypesInfo(const PbDeviceTypesInfo&) const;
 	string DisplayReservedIdsInfo(const PbReservedIdsInfo&) const;
 	string DisplayImageFile(const PbImageFile&) const;
-	string DisplayImageFiles(const PbImageFilesInfo&) const;
+	string DisplayImageFilesInfo(const PbImageFilesInfo&) const;
 	string DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&) const;
 	string DisplayMappingInfo(const PbMappingInfo&) const;
 	string DisplayOperationInfo(const PbOperationInfo&) const;

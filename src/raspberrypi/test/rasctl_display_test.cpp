@@ -11,20 +11,20 @@
 
 #include "rasctl/rasctl_display.h"
 
-TEST(RasctlDisplayTest, DisplayDeviceInfo)
-{
-	RasctlDisplay display;
-	PbDevice device;
-
-	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
-}
-
 TEST(RasctlDisplayTest, DisplayDevices)
 {
 	RasctlDisplay display;
 	PbDevicesInfo info;
 
 	EXPECT_FALSE(display.DisplayDevices(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayDeviceInfo)
+{
+	RasctlDisplay display;
+	PbDevice device;
+
+	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
 }
 
 TEST(RasctlDisplayTest, DisplayVersionInfo)
@@ -73,6 +73,14 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 	PbImageFile file;
 
 	EXPECT_FALSE(display.DisplayImageFile(file).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayImageFilesInfo)
+{
+	RasctlDisplay display;
+	PbImageFilesInfo info;
+
+	EXPECT_FALSE(display.DisplayImageFilesInfo(info).empty());
 }
 
 TEST(RasctlDisplayTest, DisplayMappingInfo)
