@@ -41,7 +41,6 @@
 </head>
 
 <body>
-<div class="content">
     <div class="header">
         {% if env["auth_active"] %}
         {% if env["username"] %}
@@ -106,8 +105,15 @@
                 {% endif %}
             </tt>
         </center>
-        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></strong></tt></center>
-        <center><tt>{{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}</tt></center>
+        <center>
+            <tt>
+                {{ _("RaSCSI Reloaded version: ") }}<b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+            </tt>
+        </center>
+        <center>
+            <tt>
+                {{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}
+            </tt>
+        </center>
     </div>
-</div>
 </body>
