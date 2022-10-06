@@ -115,13 +115,8 @@ void RasctlCommands::Execute(const string& log_level, const string& default_fold
 
 void RasctlCommands::SendCommand()
 {
-	if (!token.empty()) {
-		AddParam(command, "token", token);
-	}
-
-	if (!locale.empty()) {
-		AddParam(command, "locale", locale);
-	}
+	AddParam(command, "token", token);
+	AddParam(command, "locale", locale);
 
 	int fd = -1;
 	try {
