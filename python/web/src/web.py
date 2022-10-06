@@ -74,6 +74,7 @@ def get_env_info():
     """
     Get information about the app/host environment
     """
+    server_info = ractl_cmd.get_server_info()
     ip_addr, host = sys_cmd.get_ip_and_host()
 
     if "username" in session:
@@ -88,6 +89,8 @@ def get_env_info():
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "locale": get_locale(),
+        "version": server_info["version"],
     }
 
 
@@ -231,7 +234,6 @@ def index():
 
     return response(
         template="index.html",
-        locale=get_locale(),
         locales=get_supported_locales(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         netatalk_configured=sys_cmd.running_proc("afpd"),
@@ -250,7 +252,6 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         RESERVATIONS=RESERVATIONS,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl_cmd.get_network_info(),
@@ -297,7 +298,6 @@ def drive_list():
 
     return response(
         template="drives.html",
-        locale=get_locale(),
         files=file_cmd.list_images()["files"],
         base_dir=server_info["image_dir"],
         drive_properties=drive_properties,
@@ -479,11 +479,9 @@ def show_diskinfo():
         )
     if returncode == 0:
         return response(
-            locale=get_locale(),
             template="diskinfo.html",
             file_name=file_name,
             diskinfo=diskinfo,
-            version=server_info["version"],
             )
 
     return response(
@@ -507,7 +505,6 @@ def show_manpage():
             message=_("%(app)s is not a recognized RaSCSI app", app=app)
         )
 
-    server_info = ractl_cmd.get_server_info()
     file_path = f"{WEB_DIR}/../../../doc/{app}.1"
     html_to_strip = [
             "Content-type",
@@ -533,10 +530,8 @@ def show_manpage():
 
         return response(
             template="manpage.html",
-            locale=get_locale(),
             app=app,
             manpage=formatted_manpage,
-            version=server_info["version"],
             )
 
     return response(
@@ -555,14 +550,11 @@ def show_logs():
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
-        server_info = ractl_cmd.get_server_info()
         return response(
             template="logs.html",
-            locale=get_locale(),
             scope=scope,
             lines=lines,
             logs=logs,
-            version=server_info["version"],
             )
 
     return response(
@@ -774,14 +766,11 @@ def device_info():
     """
     Displays detailed info for all attached devices
     """
-    server_info = ractl_cmd.get_server_info()
     process = ractl_cmd.list_devices()
     if process["status"]:
         return response(
             template="deviceinfo.html",
-            locale=get_locale(),
             devices=process["device_list"],
-            version=server_info["version"],
             )
 
     return response(error=True, message=_("No devices attached"))

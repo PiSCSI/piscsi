@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ locale }}">
+<html lang="{{ env["locale"] }}">
 <head>
     <title>{{ _("RaSCSI Reloaded Control Page") }} [{{ env["host"] }}]</title>
 
@@ -95,7 +95,7 @@
         {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></strong></tt></center>
+        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></strong></tt></center>
         <center><tt>{{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}</tt></center>
     </div>
 </div>
