@@ -100,6 +100,7 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 
 		if (type == SCHD) {
 			type_properties->mutable_properties()->add_block_sizes(512);
+			type_properties->mutable_properties()->add_block_sizes(1024);
 			type_properties->mutable_properties()->set_supports_file(true);
 		}
 		if (type == SCLP) {
