@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ private:
 	void CommandMappingInfo();
 	void CommandOperationInfo();
 	void SendCommand();
+
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
 	ProtobufSerializer serializer;
