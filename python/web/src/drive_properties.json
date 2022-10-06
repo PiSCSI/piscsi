@@ -434,7 +434,7 @@
 {
     "device_type": "SCCD",
     "vendor": null,
-    "product": null,
+    "product": "SCSI CD-ROM 512",
     "revision": null,
     "block_size": 512,
     "size": null,
