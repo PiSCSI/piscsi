@@ -18,3 +18,51 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 
 	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
 }
+
+TEST(RasctlDisplayTest, DisplayVersionInfo)
+{
+	RasctlDisplay display;
+	PbVersionInfo info;
+
+	EXPECT_FALSE(display.DisplayVersionInfo(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayLogLevelInfo)
+{
+	RasctlDisplay display;
+	PbLogLevelInfo info;
+
+	EXPECT_FALSE(display.DisplayLogLevelInfo(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
+{
+	RasctlDisplay display;
+	PbDeviceTypesInfo info;
+
+	EXPECT_FALSE(display.DisplayDeviceTypesInfo(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
+{
+	RasctlDisplay display;
+	PbReservedIdsInfo info;
+
+	EXPECT_FALSE(display.DisplayReservedIdsInfo(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayMappingInfo)
+{
+	RasctlDisplay display;
+	PbMappingInfo info;
+
+	EXPECT_FALSE(display.DisplayMappingInfo(info).empty());
+}
+
+TEST(RasctlDisplayTest, DisplayOperationInfo)
+{
+	RasctlDisplay display;
+	PbOperationInfo info;
+
+	EXPECT_FALSE(display.DisplayOperationInfo(info).empty());
+}

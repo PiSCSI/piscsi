@@ -182,6 +182,9 @@ string RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_i
 
 		s << '\n';
 	}
+	else {
+		s << "No reserved device IDs\n";
+	}
 
 	return s.str();
 }
