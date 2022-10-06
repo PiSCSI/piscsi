@@ -187,7 +187,7 @@ public:
 
 class MockModePageDevice : public ModePageDevice
 {
-	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
+	FRIEND_TEST(ModePageDeviceTest, AddModePages);
 
 	explicit MockModePageDevice(int lun) : ModePageDevice("test", lun) {}
 	~MockModePageDevice() override = default;

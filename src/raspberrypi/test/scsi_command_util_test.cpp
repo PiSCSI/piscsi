@@ -8,9 +8,46 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "rascsi_exceptions.h"
 #include "devices/scsi_command_util.h"
 
 using namespace scsi_command_util;
+
+TEST(ScsiCommandUtilTest, ModeSelect)
+{
+	const int LENGTH = 12;
+
+	vector<int> cdb(16);
+	vector<BYTE> buf(255);
+
+	// PF (vendor-specific parameter format)
+	cdb[1] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 0), scsi_error_exception)
+		<< "Vendor-specific parameters are not supported";
+
+	// PF (standard parameter format)
+	cdb[1] = 0x10;
+	// Request 512 bytes per sector
+	buf[9] = 0x00;
+	buf[10] = 0x02;
+	buf[11] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 256), scsi_error_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Page 0
+	buf[LENGTH] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+		<< "Unsupported page 0 was not rejected";
+
+	// Page 3 (Format Device Page)
+	buf[LENGTH] = 0x03;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Match the requested to the current sector size
+	buf[LENGTH + 12] = 0x02;
+	ModeSelect(cdb, buf, LENGTH + 2, 512);
+}
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)
 {
