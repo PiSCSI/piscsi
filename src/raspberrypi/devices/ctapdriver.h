@@ -23,19 +23,16 @@ using namespace std;
 
 class CTapDriver
 {
-	friend class SCSIDaynaPort;
-	friend class SCSIBR;
-
 	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
+
+	bool Init(const unordered_map<string, string>&);
+
+public:
 
 	CTapDriver() = default;
 	~CTapDriver();
 	CTapDriver(CTapDriver&) = default;
 	CTapDriver& operator=(const CTapDriver&) = default;
-
-	bool Init(const unordered_map<string, string>&);
-
-public:
 
 	void OpenDump(const Filepath& path);	// Capture packets
 	void GetMacAddr(BYTE *mac) const;
