@@ -51,9 +51,9 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	EXPECT_NE(string::npos, s.find(to_string(1234 *4321)));
 
 	device.mutable_properties()->set_supports_file(true);
-	PbImageFile *file = new PbImageFile();
+	auto file = make_unique<PbImageFile>();
 	file->set_name("filename");
-	device.set_allocated_file(file);
+	device.set_allocated_file(file.release());
 	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
