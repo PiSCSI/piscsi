@@ -21,6 +21,15 @@ TEST(CommandContext, IsValid)
 	EXPECT_TRUE(context.IsValid());
 }
 
+TEST(CommandContext, Cleanup)
+{
+	CommandContext context("", 0);
+
+	EXPECT_EQ(0, context.GetFd());
+	context.Cleanup();
+	EXPECT_EQ(-1, context.GetFd());
+}
+
 TEST(CommandContext, ReturnLocalizedError)
 {
 	CommandContext context("", -1);
