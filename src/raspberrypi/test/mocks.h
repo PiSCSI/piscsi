@@ -20,6 +20,8 @@
 #include "devices/host_services.h"
 #include "rascsi/command_context.h"
 
+using namespace testing;
+
 class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
 public:

@@ -33,7 +33,7 @@ TEST(ModePageDeviceTest, AddModePages)
 TEST(ModePageDeviceTest, ModeSense6)
 {
     MockAbstractController controller(0);
-	auto device = make_shared<MockModePageDevice>();
+	auto device = make_shared<NiceMock<MockModePageDevice>>();
 
     controller.AddDevice(device);
 
@@ -46,7 +46,7 @@ TEST(ModePageDeviceTest, ModeSense6)
 TEST(ModePageDeviceTest, ModeSense10)
 {
     MockAbstractController controller(0);
-	auto device = make_shared<MockModePageDevice>();
+	auto device = make_shared<NiceMock<MockModePageDevice>>();
 
     controller.AddDevice(device);
 

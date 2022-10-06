@@ -21,47 +21,47 @@ TEST(BusTest, GetPhase)
 	EXPECT_EQ(BUS::phase_t::msgout, BUS::GetPhase(0b110));
 	EXPECT_EQ(BUS::phase_t::msgin, BUS::GetPhase(0b111));
 
-	MockBus bus;
+	NiceMock<MockBus> bus;
 
 	EXPECT_EQ(BUS::phase_t::busfree, bus.GetPhase());
 
-	ON_CALL(bus, GetSEL()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetSEL()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::selection, bus.GetPhase());
 
-	ON_CALL(bus, GetSEL()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetBSY()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetSEL()).WillByDefault(Return(false));
+	ON_CALL(bus, GetBSY()).WillByDefault(Return(true));
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(false));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(false));
 	EXPECT_EQ(BUS::phase_t::dataout, bus.GetPhase());
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::reserved, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(false));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::command, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(true));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(true));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::msgout, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetIO()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(false));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(false));
+	ON_CALL(bus, GetIO()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::datain, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(true));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetIO()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(true));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(false));
+	ON_CALL(bus, GetIO()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::reserved, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(true));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(true));
-	ON_CALL(bus, GetIO()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(true));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(true));
+	ON_CALL(bus, GetIO()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::msgin, bus.GetPhase());
 
-	ON_CALL(bus, GetMSG()).WillByDefault(testing::Return(false));
-	ON_CALL(bus, GetCD()).WillByDefault(testing::Return(true));
-	ON_CALL(bus, GetIO()).WillByDefault(testing::Return(true));
+	ON_CALL(bus, GetMSG()).WillByDefault(Return(false));
+	ON_CALL(bus, GetCD()).WillByDefault(Return(true));
+	ON_CALL(bus, GetIO()).WillByDefault(Return(true));
 	EXPECT_EQ(BUS::phase_t::status, bus.GetPhase());
 }
 

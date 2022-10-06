@@ -84,7 +84,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	MockAbstractController controller(0);
+	NiceMock<MockAbstractController> controller(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	device->SetController(&controller);
@@ -145,7 +145,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	MockAbstractController controller(0);
+	NiceMock<MockAbstractController> controller(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
