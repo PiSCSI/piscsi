@@ -136,12 +136,17 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 
 		if (type == SCLP) {
 			type_properties->mutable_properties()->set_supports_params(true);
+			(*type_properties->mutable_properties()->mutable_default_params())["key1"] = "value1";
+			(*type_properties->mutable_properties()->mutable_default_params())["key2"] = "value2";
 		}
 
 		ordinal++;
 	}
 
-	EXPECT_FALSE(display.DisplayDeviceTypesInfo(info).empty());
+	const string s = display.DisplayDeviceTypesInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("key1=value1"));
+	EXPECT_NE(string::npos, s.find("key2=value2"));
 }
 
 TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
