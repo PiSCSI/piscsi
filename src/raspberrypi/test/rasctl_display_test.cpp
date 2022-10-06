@@ -260,9 +260,13 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	PbOperationParameter *param2 = meta_data.add_parameters();
 	param2->set_name("default_key2");
 	param2->set_default_value("default_value2");
-	param2->set_description("description");
-	param2->add_permitted_values("permitted_value1");
-	param2->add_permitted_values("permitted_value2");
+	param2->set_description("description2");
+	PbOperationParameter *param3 = meta_data.add_parameters();
+	param3->set_name("default_key3");
+	param3->set_default_value("default_value3");
+	param3->set_description("description3");
+	param3->add_permitted_values("permitted_value3_1");
+	param3->add_permitted_values("permitted_value3_2");
 	(*info.mutable_operations())[0] = meta_data;
 	s = display.DisplayOperationInfo(info);
 	EXPECT_FALSE(s.empty());
@@ -276,7 +280,8 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_NE(string::npos, s.find("default_value1"));
 	EXPECT_NE(string::npos, s.find("default_key2"));
 	EXPECT_NE(string::npos, s.find("default_value2"));
-	EXPECT_NE(string::npos, s.find("description"));
-	EXPECT_NE(string::npos, s.find("permitted_value1"));
-	EXPECT_NE(string::npos, s.find("permitted_value2"));
+	EXPECT_NE(string::npos, s.find("description2"));
+	EXPECT_NE(string::npos, s.find("description3"));
+	EXPECT_NE(string::npos, s.find("permitted_value3_1"));
+	EXPECT_NE(string::npos, s.find("permitted_value3_2"));
 }
