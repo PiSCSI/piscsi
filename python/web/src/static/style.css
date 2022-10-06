@@ -39,10 +39,7 @@ summary.heading {
 }
 
 div.header {
-  display: inline-block;
-  width: 100%;
   color: white;
-  vertical-align: center;
   background-color: black;
 }
 
@@ -104,7 +101,7 @@ ul.inline_list {
   position: relative;
   background-color: white;
   color: black;
-  border: 2px solid #4CAF50; /* Green */
+  border: 2px dashed blue;
   padding: 12px 28px;
 }
 
