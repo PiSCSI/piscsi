@@ -56,6 +56,15 @@ TEST(ModePageDeviceTest, ModeSense10)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
 }
 
+TEST(ModePageDeviceTest, ModeSelect)
+{
+	MockModePageDevice device;
+	vector<int> cmd;
+	vector<BYTE> buf;
+
+	EXPECT_THROW(device.ModeSelect(cmd, buf, 0), scsi_error_exception) << "Unexpected MODE SELECT default implementation";
+}
+
 TEST(ModePageDeviceTest, ModeSelect6)
 {
     MockAbstractController controller(0);
