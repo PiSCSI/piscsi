@@ -49,7 +49,7 @@ private:
 	void CommandMappingInfo();
 	void CommandOperationInfo();
 	void SendCommand();
-	static bool ResolveHostName(const string&, sockaddr_in*);
+	static bool ResolveHostName(const string&, sockaddr_in *);
 
 	ProtobufSerializer serializer;
 	PbCommand command;

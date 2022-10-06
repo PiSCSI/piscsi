@@ -355,7 +355,7 @@ void RasctlCommands::CommandOperationInfo()
 	rasctl_display.DisplayOperationInfo(result.operation_info());
 }
 
-bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in* addr)
+bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
 {
 	addrinfo hints = {};
 	hints.ai_family = AF_INET;
