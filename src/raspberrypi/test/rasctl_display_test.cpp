@@ -25,6 +25,18 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	PbDevice device;
 
 	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
+
+	device.mutable_properties()->set_supports_file(true);
+	device.mutable_properties()->set_read_only(true);
+	device.mutable_properties()->set_protectable(true);
+	device.mutable_status()->set_protected_(true);
+	device.mutable_properties()->set_stoppable(true);
+	device.mutable_status()->set_stopped(true);
+	device.mutable_properties()->set_removable(true);
+	device.mutable_status()->set_removed(true);
+	device.mutable_properties()->set_lockable(true);
+	device.mutable_status()->set_locked(true);
+	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
 }
 
 TEST(RasctlDisplayTest, DisplayVersionInfo)
@@ -66,7 +78,14 @@ TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
 	RasctlDisplay display;
 	PbReservedIdsInfo info;
 
-	EXPECT_FALSE(display.DisplayReservedIdsInfo(info).empty());
+	string s = display.DisplayReservedIdsInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("5"));
+
+	info.mutable_ids()->Add(5);
+	s = display.DisplayReservedIdsInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("5"));
 }
 
 TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
@@ -74,7 +93,14 @@ TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
 	RasctlDisplay display;
 	PbNetworkInterfacesInfo info;
 
-	EXPECT_FALSE(display.DisplayNetworkInterfaces(info).empty());
+	string s = display.DisplayNetworkInterfaces(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("eth0"));
+
+	info.mutable_name()->Add("eth0");
+	s = display.DisplayNetworkInterfaces(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("eth0"));
 }
 
 TEST(RasctlDisplayTest, DisplayImageFile)
@@ -82,7 +108,14 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 	RasctlDisplay display;
 	PbImageFile file;
 
-	EXPECT_FALSE(display.DisplayImageFile(file).empty());
+	string s = display.DisplayImageFile(file);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("filename"));
+
+	file.set_name("filename");
+	s = display.DisplayImageFile(file);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("filename"));
 }
 
 TEST(RasctlDisplayTest, DisplayImageFilesInfo)
