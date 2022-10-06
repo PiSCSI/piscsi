@@ -20,6 +20,7 @@
 #include "rascsi_exceptions.h"
 #include "localizer.h"
 #include "command_util.h"
+#include "command_context.h"
 #include "rasutil.h"
 #include "spdlog/spdlog.h"
 #include "rascsi_executor.h"
@@ -87,7 +88,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 			break;
 
 		default:
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION);
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION);
 	}
 
 	return true;
@@ -98,15 +99,15 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	switch (command.operation()) {
 		case DETACH_ALL:
 			DetachAll();
-			return ReturnStatus(context);
+			return context.ReturnStatus();
 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
 			if (string error = SetReservedIds(ids); !error.empty()) {
-				return ReturnStatus(context, false, error);
+				return context.ReturnStatus(false, error);
 			}
 
-			return ReturnStatus(context);
+			return context.ReturnStatus();
 		}
 
 		case CREATE_IMAGE:
@@ -144,7 +145,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	FileSupport::SetReservedFiles(reserved_files);
 
 	if (string result = ValidateLunSetup(command); !result.empty()) {
-		return ReturnStatus(context, false, result);
+		return context.ReturnStatus(false, result);
 	}
 
 	for (const auto& device : command.devices()) {
@@ -154,16 +155,16 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	}
 
 	// ATTACH and DETACH return the device list
-	if (context.fd != -1 && (command.operation() == ATTACH || command.operation() == DETACH)) {
+	if (context.IsValid() && (command.operation() == ATTACH || command.operation() == DETACH)) {
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, cmd, rascsi_image.GetDefaultFolder());
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 		return true;
 	}
 
-	return ReturnStatus(context);
+	return context.ReturnStatus();
 }
 
 bool RascsiExecutor::SetLogLevel(const string& log_level) const
@@ -271,15 +272,15 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	const PbDeviceType type = pb_device.type();
 
 	if (lun >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX));
 	}
 
 	if (controller_manager.GetDeviceByIdAndLun(id, lun) != nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
 	if (reserved_ids.find(id) != reserved_ids.end()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_RESERVED_ID, to_string(id));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -305,7 +306,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	if (file_support != nullptr) {
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
 		if (!ValidateImageFile(context, device, filename, full_path)) {
@@ -330,12 +331,12 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (!device->Init(params)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
 				to_string(id), to_string(lun));
 	}
 
 	if (!controller_manager.AttachToScsiController(id, device)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SCSI_CONTROLLER);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 
 	Filepath filepath;
@@ -359,16 +360,16 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
 	if (!device->IsRemoved()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_EJECT_REQUIRED);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
 	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_DEVICE_NAME_UPDATE);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_DEVICE_NAME_UPDATE);
 	}
 
 	string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
 	}
 
 	if (dryRun) {
@@ -408,7 +409,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 {
 	// LUN 0 can only be detached if there is no other LUN anymore
 	if (!device->GetLun() && controller_manager.FindController(device->GetId())->GetLunCount() > 1) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_LUN0);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_LUN0);
 	}
 
 	if (!dryRun) {
@@ -422,7 +423,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 
 		auto controller = controller_manager.FindController(device->GetId());
 		if (controller == nullptr || !controller->DeleteDevice(device)) {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_DETACH);
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
 		// If no LUN is left also delete the controller
@@ -446,7 +447,7 @@ void RascsiExecutor::DetachAll()
 
 bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
 	if (mode.empty()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING);
 	}
 
 	PbResult result;
@@ -455,24 +456,24 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "rascsi") {
 		LOGINFO("RaSCSI shutdown requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		return true;
 	}
 
 	if (mode != "system" && mode != "reboot") {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, mode);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_MODE_INVALID, mode);
 	}
 
 	// The root user has UID 0
 	if (getuid()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_SHUTDOWN_PERMISSION);
 	}
 
 	if (mode == "system") {
 		LOGINFO("System shutdown requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 
@@ -483,7 +484,7 @@ bool RascsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	else if (mode == "reboot") {
 		LOGINFO("System reboot requested")
 
-		serializer.SerializeMessage(context.fd, result);
+		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 
@@ -559,7 +560,7 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 	filepath.SetPath(filename.c_str());
 
 	if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 				to_string(id), to_string(lun));
 	}
 
@@ -571,7 +572,7 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, id, lun)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+				return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 						to_string(id), to_string(lun));
 			}
 
@@ -579,7 +580,7 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, initial_filename, e.get_msg());
 	}
 
 	full_path = filepath.GetPath();
@@ -656,11 +657,11 @@ string RascsiExecutor::ValidateLunSetup(const PbCommand& command) const
 bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int id, int lun) const
 {
 	if (controller_manager.FindController(id) == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
 	if (controller_manager.GetDeviceByIdAndLun(id, lun) == nullptr) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
 	}
 
 	return true;
@@ -672,10 +673,10 @@ shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& con
 	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
-			ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
+			context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);
 		}
 		else {
-			ReturnLocalizedError(context, LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
+			context.ReturnLocalizedError(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
 		}
 	}
 
@@ -689,11 +690,11 @@ bool RascsiExecutor::SetSectorSize(const CommandContext& context, const string& 
 		auto disk = dynamic_pointer_cast<Disk>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(device_factory, block_size)) {
-				return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE, to_string(block_size));
+				return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE, to_string(block_size));
 			}
 		}
 		else {
-			return ReturnLocalizedError(context, LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, type);
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, type);
 		}
 	}
 
@@ -706,19 +707,19 @@ bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& cont
 	const string& type = device->GetType();
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, type);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, type);
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, type);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, type);
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, type);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, type);
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION_DENIED_READY, type);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, type);
 	}
 
 	return true;
@@ -728,13 +729,13 @@ bool RascsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int
 {
 	// Validate the device ID and LUN
 	if (id < 0) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_DEVICE_ID);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
 	if (id >= ControllerManager::DEVICE_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(ControllerManager::DEVICE_MAX - 1));
 	}
 	if (lun < 0 || lun >= ScsiController::LUN_MAX) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ScsiController::LUN_MAX - 1));
 	}
 
 	return true;
@@ -755,7 +756,7 @@ bool RascsiExecutor::SetProductData(const CommandContext& context, const PbDevic
 		}
 	}
 	catch(const invalid_argument& e) {
-		return ReturnStatus(context, false, e.what());
+		return context.ReturnStatus(false, e.what());
 	}
 
 	return true;

@@ -21,25 +21,25 @@ using namespace rascsi_interface;
 
 volatile bool RascsiService::running = false;
 
-RascsiService::~RascsiService()
+void RascsiService::Cleanup() const
 {
 	if (service_socket != -1) {
 		close(service_socket);
 	}
 }
 
-bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
+bool RascsiService::Init(const callback& cb, int port)
 {
 	// Create socket for monitor
 	sockaddr_in server = {};
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		LOGERROR("Unable to create socket");
+		LOGERROR("Unable to create socket")
 		return false;
 	}
 
 	server.sin_family = PF_INET;
-	server.sin_port = htons(port);
+	server.sin_port = htons((uint16_t)port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// Allow address reuse
@@ -54,7 +54,7 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 		return false;
 	}
 
-	execute = e;
+	execute = cb;
 
 	monthread = thread(&RascsiService::Execute, this);
 	monthread.detach();
@@ -64,7 +64,7 @@ bool RascsiService::Init(bool (e)(PbCommand&, CommandContext&), int port)
 			&& signal(SIGTERM, KillHandler) != SIG_ERR;
 }
 
-void RascsiService::Execute()
+void RascsiService::Execute() const
 {
 #ifdef __linux__
     // Scheduler Settings
@@ -77,62 +77,57 @@ void RascsiService::Execute()
 	ras_util::FixCpu(2);
 
 	// Wait for the execution to start
+	timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
 	while (!running) {
-		usleep(1);
+		nanosleep(&ts, nullptr);
 	}
 
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	ProtobufSerializer serializer;
-	Localizer localizer;
 	while (true) {
-		CommandContext context(serializer, localizer, -1, "");
+		CommandContext context;
 
 		try {
-			PbCommand command;
-			context.fd = ReadCommand(serializer, command);
-			if (context.fd == -1) {
-				continue;
+			PbCommand command = ReadCommand(context);
+			if (context.IsValid()) {
+				execute(context, command);
 			}
-
-			execute(command, context);
 		}
 		catch(const io_exception& e) {
 			LOGWARN("%s", e.get_msg().c_str())
 
-			// Fall through
+            // Fall through
 		}
 
-		if (context.fd != -1) {
-			close(context.fd);
-		}
+		context.Cleanup();
 	}
 }
 
-int RascsiService::ReadCommand(ProtobufSerializer& serializer, PbCommand& command)
+PbCommand RascsiService::ReadCommand(CommandContext& context) const
 {
 	// Wait for connection
 	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
 	int fd = accept(service_socket, &client, &socklen);
-	if (fd < 0) {
+	if (fd == -1) {
 		throw io_exception("accept() failed");
 	}
 
+	PbCommand command;
+
 	// Read magic string
 	vector<byte> magic(6);
-	size_t bytes_read = serializer.ReadBytes(fd, magic);
-	if (!bytes_read) {
-		return -1;
-	}
-	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
+	if (size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
+		bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 		throw io_exception("Invalid magic");
 	}
 
 	// Fetch the command
-	serializer.DeserializeMessage(fd, command);
+	context.GetSerializer().DeserializeMessage(fd, command);
 
-	return fd;
+	context.SetFd(fd);
+
+	return command;
 }
 

@@ -46,6 +46,8 @@ public:
 	bool Disable() const;		// Disable the ras0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
+	static uint32_t Crc32(const BYTE *, int);
+
 private:
 	array<byte, 6> m_MacAddr;	// MAC Address
 

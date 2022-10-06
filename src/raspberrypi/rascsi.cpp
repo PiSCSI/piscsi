@@ -11,11 +11,10 @@
 //---------------------------------------------------------------------------
 
 #include "config.h"
+#include "log.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/device.h"
-#include "devices/disk.h"
 #include "devices/file_support.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
@@ -23,11 +22,11 @@
 #include "protobuf_serializer.h"
 #include "command_util.h"
 #include "rascsi_version.h"
-#include "rascsi_executor.h"
-#include "rascsi_response.h"
-#include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
-#include "rascsi_service.h"
+#include "rascsi/rascsi_executor.h"
+#include "rascsi/rascsi_response.h"
+#include "rascsi/rascsi_image.h"
+#include "rascsi/rascsi_service.h"
 #include "rasutil.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -51,7 +50,6 @@ using namespace command_util;
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 static const int DEFAULT_PORT = 6868;
 static const char COMPONENT_SEPARATOR = ':';
 
@@ -74,32 +72,28 @@ const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
 {
-	FPRT(stdout,"SCSI Target Emulator RaSCSI Reloaded ");
-	FPRT(stdout,"version %s (%s, %s)\n",
-		rascsi_get_version_string().c_str(),
-		__DATE__,
-		__TIME__);
-	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
-	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
-	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
-	FPRT(stdout,"Connect type: %s\n", CONNECT_DESC.c_str());
+	cout << "SCSI Target Emulator RaSCSI Reloaded version " << rascsi_get_version_string()
+			<< "  (" << __DATE__ << ' ' << __TIME__ << ')' << endl;
+	cout << "Powered by XM6 TypeG Technology / ";
+	cout << "Copyright (C) 2016-2020 GIMONS" << endl;
+	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project" << endl;
+	cout << "Connect type: " << CONNECT_DESC << endl;
 
-	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
-		(argc > 1 && strcmp(argv[1], "--help") == 0)){
-		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-idn[:m] FILE] ...\n\n", argv[0]);
-		FPRT(stdout," n is SCSI device ID (0-7).\n");
-		FPRT(stdout," m is the optional logical unit (LUN) (0-31).\n");
-		FPRT(stdout," FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
-		FPRT(stdout," Image type is detected based on file extension if no explicit type is specified.\n");
-		FPRT(stdout,"  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n");
-		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
-		FPRT(stdout,"  hdr : SCSI HD image (Removable generic HD image)\n");
-		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
-		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
-		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
-		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
-		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
+	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
+		cout << endl;
+		cout << "Usage: " << argv[0] << " [-idn[:m] FILE] ..." << endl << endl;
+		cout << " n is SCSI device ID (0-7)." << endl;
+		cout << " m is the optional logical unit (LUN) (0-31)." << endl;
+		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\"." << endl << endl;
+		cout << " Image type is detected based on file extension if no explicit type is specified." << endl;
+		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)" << endl;
+		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)" << endl;
+		cout << "  hdr : SCSI HD image (Removable generic HD image)" << endl;
+		cout << "  hdn : SCSI HD image (NEC GENUINE)" << endl;
+		cout << "  hdi : SCSI HD image (Anex86 HD image)" << endl;
+		cout << "  nhd : SCSI HD image (T98Next HD image)" << endl;
+		cout << "  mos : SCSI MO image (MO image)" << endl;
+		cout << "  iso : SCSI CD image (ISO 9660 image)" << endl;
 
 		exit(EXIT_SUCCESS);
 	}
@@ -121,6 +115,8 @@ bool InitBus()
 void Cleanup()
 {
 	executor.DetachAll();
+
+	service.Cleanup();
 
 	// Clean up and discard the bus
 	bus.Cleanup();
@@ -359,9 +355,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	Localizer localizer;
-	CommandContext context(serializer, localizer, -1, locale);
-	if (!executor.ProcessCmd(context, command)) {
+	if (CommandContext context(locale); !executor.ProcessCmd(context, command)) {
 		return false;
 	}
 
@@ -376,21 +370,16 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	return true;
 }
 
-static bool ExecuteCommand(PbCommand& command, CommandContext& context)
+static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 {
-	context.locale = GetParam(command, "locale");
-	if (context.locale.empty()) {
-		context.locale = "en";
-	}
-
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
 
 	if (!PbOperation_IsValid(command.operation())) {
 		LOGERROR("Received unknown command with operation opcode %d", command.operation())
 
-		return ReturnLocalizedError(context, LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
 	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
@@ -401,35 +390,35 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 		case LOG_LEVEL: {
 			string log_level = GetParam(command, "level");
 			if (bool status = executor.SetLogLevel(log_level); !status) {
-				ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL, log_level);
+				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
 				current_log_level = log_level;
 
-				ReturnStatus(context);
+				context.ReturnStatus();
 			}
 			break;
 		}
 
 		case DEFAULT_FOLDER: {
 			if (string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
-				ReturnStatus(context, false, status);
+				context.ReturnStatus(false, status);
 			}
 			else {
-				ReturnStatus(context);
+				context.ReturnStatus();
 			}
 			break;
 		}
 
 		case DEVICES_INFO: {
 			rascsi_response.GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
 			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -438,19 +427,19 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 					result, executor.GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case VERSION_INFO: {
 			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
 			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -458,13 +447,13 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case IMAGE_FILE_INFO: {
 			if (string filename = GetParam(command, "file"); filename.empty()) {
-				ReturnLocalizedError(context, LocalizationKey::ERROR_MISSING_FILENAME);
+				context.ReturnLocalizedError( LocalizationKey::ERROR_MISSING_FILENAME);
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
@@ -472,10 +461,10 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
-					serializer.SerializeMessage(context.fd, result);
+					serializer.SerializeMessage(context.GetFd(), result);
 				}
 				else {
-					ReturnLocalizedError(context, LocalizationKey::ERROR_IMAGE_FILE_INFO);
+					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
 				}
 			}
 			break;
@@ -483,27 +472,27 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		case NETWORK_INTERFACES_INFO: {
 			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case MAPPING_INFO: {
 			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case OPERATION_INFO: {
 			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
 					rascsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
 			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result,
 					executor.GetReservedIds()).release());
-			serializer.SerializeMessage(context.fd, result);
+			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
@@ -516,8 +505,9 @@ static bool ExecuteCommand(PbCommand& command, CommandContext& context)
 
 		default: {
 			// Wait until we become idle
+			timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
 			while (active) {
-				usleep(500 * 1000);
+				nanosleep(&ts, nullptr);
 			}
 
 			executor.ProcessCmd(context, command);
@@ -609,7 +599,8 @@ int main(int argc, char* argv[])
 #else
 		bus.Acquire();
 		if (!bus.GetSEL()) {
-			usleep(0);
+			timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+			nanosleep(&ts, nullptr);
 			continue;
 		}
 #endif

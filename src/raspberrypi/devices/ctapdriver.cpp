@@ -245,7 +245,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		}
 		else {
 			string address = inet;
-			string netmask = "255.255.255.0";
+			string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
 			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
@@ -447,12 +447,12 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t crc32(const BYTE *buf, int length) {
+uint32_t CTapDriver::Crc32(const BYTE *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];
       for (int j = 0; j < 8; j++) {
-         uint32_t mask = -(crc & 1);
+         uint32_t mask = -((int)crc & 1);
          crc = (crc >> 1) ^ (0xEDB88320 & mask);
       }
    }
@@ -480,7 +480,7 @@ int CTapDriver::Receive(BYTE *buf)
 		// We need to add the Frame Check Status (FCS) CRC back onto the end of the packet.
 		// The Linux network subsystem removes it, since most software apps shouldn't ever
 		// need it.
-		int crc = crc32(buf, dwReceived);
+		int crc = Crc32(buf, dwReceived);
 
 		buf[dwReceived + 0] = (BYTE)((crc >> 0) & 0xFF);
 		buf[dwReceived + 1] = (BYTE)((crc >> 8) & 0xFF);

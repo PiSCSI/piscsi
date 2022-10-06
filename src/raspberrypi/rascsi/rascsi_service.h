@@ -10,14 +10,18 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
+#include <functional>
 #include <thread>
 
 class CommandContext;
-class ProtobufSerializer;
+
+using namespace std;
 
 class RascsiService
 {
-	bool (*execute)(rascsi_interface::PbCommand&, CommandContext&) = nullptr;
+	using callback = function<bool(const CommandContext&, rascsi_interface::PbCommand&)>;
+
+	callback execute;
 
 	int service_socket = -1;
 
@@ -28,16 +32,17 @@ class RascsiService
 public:
 
 	RascsiService() = default;
-	~RascsiService();
+	~RascsiService() = default;
 
-	bool Init(bool (ExecuteCommand)(rascsi_interface::PbCommand&, CommandContext&), int);
+	bool Init(const callback&, int);
+	void Cleanup() const;
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }
 
-	void Execute();
+	void Execute() const;
 
-	int ReadCommand(ProtobufSerializer&, rascsi_interface::PbCommand&);
+	PbCommand ReadCommand(CommandContext&) const;
 
 	static void KillHandler(int) { running = false; }
 };
