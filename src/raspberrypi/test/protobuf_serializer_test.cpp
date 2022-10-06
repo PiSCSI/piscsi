@@ -47,4 +47,9 @@ TEST(ProtobufSerializerTest, ReadBytes)
 	EXPECT_NE(-1, fd);
 	EXPECT_EQ(-1, serializer.ReadBytes(fd, buf));
 	close(fd);
+
+	fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_EQ(1, serializer.ReadBytes(fd, buf));
+	close(fd);
 }
