@@ -20,22 +20,6 @@
 
 using namespace std;
 
-TEST(ModePagesTest, ModePageDevice_AddModePages)
-{
-	vector<int> cdb(6);
-	vector<BYTE> buf(512);
-
-	MockModePageDevice device;
-	cdb[2] = 0x3f;
-
-	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, -1)) << "Negative maximum length must be rejected";
-	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0)) << "Allocation length 0 must be rejected";
-	EXPECT_EQ(1, device.AddModePages(cdb, buf, 0, 1)) << "Allocation length 1 must be rejected";
-
-	cdb[2] = 0x00;
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12), scsi_error_exception) << "Data for non-existing mode page 0 were returned";
-}
-
 TEST(ModePagesTest, SCSIHD_SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
