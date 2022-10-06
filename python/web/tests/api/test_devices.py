@@ -42,8 +42,8 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCRM",
                 "drive_props": {
-                    "vendor": "HD VENDOR",
-                    "product": "HD PRODUCT",
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
@@ -54,8 +54,8 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCMO",
                 "drive_props": {
-                    "vendor": "MO VENDOR",
-                    "product": "MO PRODUCT",
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
@@ -66,19 +66,17 @@ def test_attach_image(http_client, create_test_image, detach_devices):
             {
                 "type": "SCCD",
                 "drive_props": {
-                    "vendor": "CD VENDOR",
-                    "product": "CD PRODUCT",
+                    "vendor": "VENDOR",
+                    "product": "PRODUCT",
                     "revision": "0123",
                     "block_size": "512",
                 },
             },
         ),
-        # TODO: Find a portable way to detect network interfaces for testing
-        ("Host Bridge", {"type": "SCBR", "param_inet": "192.168.0.1/24"}),
-        # TODO: Find a portable way to detect network interfaces for testing
-        ("Ethernet Adapter", {"type": "SCDP", "param_inet": "192.168.0.1/24"}),
+        ("Host Bridge", {"type": "SCBR", "interface": "eth0", "inet": "10.10.20.1/24"}),
+        ("Ethernet Adapter", {"type": "SCDP", "interface": "eth0", "inet": "10.10.20.1/24"}),
         ("Host Services", {"type": "SCHS"}),
-        ("Printer", {"type": "SCLP", "param_timeout": 60, "param_cmd": "lp -fart %f"}),
+        ("Printer", {"type": "SCLP", "timeout": 30, "cmd": "lp -oraw %f"}),
     ],
 )
 def test_attach_device(http_client, detach_devices, device_name, device_config):
