@@ -11,6 +11,14 @@
 
 #include "rascsi/command_context.h"
 
+TEST(CommandContext, GetSerializer)
+{
+	CommandContext context("", -1);
+
+	// There is nothing more that can be tested
+	context.GetSerializer();
+}
+
 TEST(CommandContext, IsValid)
 {
 	CommandContext context("", -1);
