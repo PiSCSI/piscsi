@@ -131,7 +131,14 @@ TEST(RasctlDisplayTest, DisplayMappingInfo)
 	RasctlDisplay display;
 	PbMappingInfo info;
 
-	EXPECT_FALSE(display.DisplayMappingInfo(info).empty());
+	string s = display.DisplayMappingInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_EQ(string::npos, s.find("key->SCHD"));
+
+	(*info.mutable_mapping())["key"] = SCHD;
+	s = display.DisplayMappingInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("key->SCHD"));
 }
 
 TEST(RasctlDisplayTest, DisplayOperationInfo)
