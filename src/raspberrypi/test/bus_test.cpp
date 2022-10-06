@@ -22,3 +22,11 @@ TEST(BusTest, GetPhase)
 	EXPECT_EQ(BUS::phase_t::msgout, BUS::GetPhase(0b110));
 	EXPECT_EQ(BUS::phase_t::msgin, BUS::GetPhase(0b111));
 }
+
+TEST(BusTest, GetPinRaw)
+{
+	EXPECT_EQ(0, BUS::GetPinRaw(0, 0));
+	EXPECT_EQ(0, BUS::GetPinRaw(0, 7));
+	EXPECT_EQ(1, BUS::GetPinRaw(-1, 0));
+	EXPECT_EQ(1, BUS::GetPinRaw(-1, 7));
+}
