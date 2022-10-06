@@ -176,18 +176,26 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 	EXPECT_FALSE(s.empty());
 	EXPECT_EQ(string::npos, s.find("filename"));
 	EXPECT_EQ(string::npos, s.find("read-only"));
+	EXPECT_EQ(string::npos, s.find("SCHD"));
 
 	file.set_name("filename");
 	s = display.DisplayImageFile(file);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
 	EXPECT_EQ(string::npos, s.find("read-only"));
+	EXPECT_EQ(string::npos, s.find("SCHD"));
 
 	file.set_read_only(true);
 	s = display.DisplayImageFile(file);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("filename"));
 	EXPECT_NE(string::npos, s.find("read-only"));
+	EXPECT_EQ(string::npos, s.find("SCHD"));
+
+	file.set_type(SCHD);
+	s = display.DisplayImageFile(file);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("SCHD"));
 }
 
 TEST(RasctlDisplayTest, DisplayImageFilesInfo)
