@@ -10,8 +10,10 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
+#include <string>
 #include <sstream>
 
+using namespace std;
 using namespace rascsi_interface;
 
 class RasctlDisplay
