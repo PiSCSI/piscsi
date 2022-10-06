@@ -18,6 +18,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
     Takes a list of (dict)s devices, and list of (int)s reserved_ids.
     Returns:
     - (list) of (int)s valid_ids, which are the SCSI ids that are not reserved
+    - (list) of (int)s occupied_ids, which are the SCSI ids were a device is attached
     - (int) recommended_id, which is the id that the Web UI should default to recommend
     """
     occupied_ids = []
@@ -33,11 +34,15 @@ def get_valid_scsi_ids(devices, reserved_ids):
         recommended_id = unoccupied_ids[-1]
     else:
         if occupied_ids:
-            recommended_id = occupied_ids.pop(0)
+            recommended_id = occupied_ids[0]
         else:
             recommended_id = 0
 
-    return valid_ids, recommended_id
+    return {
+        "valid_ids": valid_ids,
+        "occupied_ids": occupied_ids,
+        "recommended_id": recommended_id,
+        }
 
 
 def sort_and_format_devices(devices):
