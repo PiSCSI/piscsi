@@ -44,15 +44,19 @@ TEST(RasctlDisplayTest, DisplayVersionInfo)
 	RasctlDisplay display;
 	PbVersionInfo info;
 
-	info.set_patch_version(1);
+	info.set_major_version(1);
+	info.set_minor_version(2);
+	info.set_patch_version(3);
 	string s = display.DisplayVersionInfo(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_EQ(string::npos, s.find("development version"));
+	EXPECT_NE(string::npos, s.find("01.02.3"));
 
 	info.set_patch_version(-1);
 	s = display.DisplayVersionInfo(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("development version"));
+	EXPECT_NE(string::npos, s.find("01.02"));
 }
 
 TEST(RasctlDisplayTest, DisplayLogLevelInfo)

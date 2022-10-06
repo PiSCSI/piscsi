@@ -12,6 +12,7 @@
 #include "rasctl_display.h"
 #include <sstream>
 #include <list>
+#include <iomanip>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -102,7 +103,8 @@ string RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) cons
 {
 	ostringstream s;
 
-	s << "rascsi server version: " << version_info.major_version() << "." << version_info.minor_version();
+	s << "rascsi server version: " << setw(2) << setfill('0') << version_info.major_version() << "."
+			<< setw(2) << setfill('0') << version_info.minor_version();
 
 	if (version_info.patch_version() > 0) {
 		s << "." << version_info.patch_version();
