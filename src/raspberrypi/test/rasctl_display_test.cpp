@@ -67,8 +67,12 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
 		auto type_properties = info.add_properties();
 		type_properties->set_type(type);
+		if (type == SCHD) {
+			type_properties->mutable_properties()->add_block_sizes(512);
+		}
 		ordinal++;
 	}
+
 
 	EXPECT_FALSE(display.DisplayDeviceTypesInfo(info).empty());
 }
