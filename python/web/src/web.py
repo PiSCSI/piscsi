@@ -91,6 +91,8 @@ def get_env_info():
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
+        "netatalk_configured": sys_cmd.running_proc("afpd"),
+        "macproxy_configured": sys_cmd.running_proc("macproxy"),
     }
 
 
@@ -236,8 +238,6 @@ def index():
         template="index.html",
         locales=get_supported_locales(),
         bridge_configured=sys_cmd.is_bridge_setup(),
-        netatalk_configured=sys_cmd.running_proc("afpd"),
-        macproxy_configured=sys_cmd.running_proc("macproxy"),
         devices=formatted_devices,
         files=extended_image_files,
         config_files=config_files,

@@ -721,24 +721,4 @@
 
 <a href="/sys/manpage?app=rascsi"><p>{{ _("Read the RaSCSI Manual") }}</p></a>
 
-<center>
-    <tt>
-        {% if netatalk_configured == 1 %}
-        {{ _("The AppleShare server is running. No active connections.") }}
-        {% endif %}
-        {% if netatalk_configured == 2 %}
-        {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
-        {% elif netatalk_configured > 2 %}
-        {{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}
-        {% endif %}
-    </tt>
-</center>
-<center>
-    <tt>
-        {% if macproxy_configured %}
-        {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}</tt></center>
-        {% endif %}
-    </tt>
-</center>
-
 {% endblock content %}

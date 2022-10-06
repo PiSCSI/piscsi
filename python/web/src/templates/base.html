@@ -95,6 +95,25 @@
         {% block content %}{% endblock content %}
     </div>
     <div class="footer">
+        <center>
+            <tt>
+                {% if env["netatalk_configured"] == 1 %}
+                {{ _("The AppleShare server is running. No active connections.") }}
+                {% endif %}
+                {% if env["netatalk_configured"] == 2 %}
+                {{ _("%(value)d active AFP connection", value=(env["netatalk_configured"] - 1)) }}
+                {% elif env["netatalk_configured"] > 2 %}
+                {{ _("%(value)d active AFP connections", value=(env["netatalk_configured"] - 1)) }}
+                {% endif %}
+            </tt>
+        </center>
+        <center>
+            <tt>
+                {% if env["macproxy_configured"] %}
+                {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}</tt></center>
+                {% endif %}
+            </tt>
+        </center>
         <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></strong></tt></center>
         <center><tt>{{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}</tt></center>
     </div>
