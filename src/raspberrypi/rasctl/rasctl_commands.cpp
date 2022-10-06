@@ -145,11 +145,11 @@ void RasctlCommands::SendCommand()
     catch(const io_exception& e) {
     	cerr << "Error: " << e.get_msg() << endl;
 
-        if (fd >= 0) {
+        if (fd != -1) {
         	close(fd);
         }
 
-        exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
+        exit(fd == -1 ? ENOTCONN : EXIT_FAILURE);
     }
 
     // Receive result
