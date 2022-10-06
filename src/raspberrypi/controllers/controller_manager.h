@@ -36,7 +36,7 @@ public:
 	static const int DEVICE_MAX = 8;
 
 	bool AttachToScsiController(int, shared_ptr<PrimaryDevice>);
-	void DeleteController(shared_ptr<AbstractController>);
+	bool DeleteController(shared_ptr<AbstractController>);
 	shared_ptr<AbstractController> IdentifyController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;

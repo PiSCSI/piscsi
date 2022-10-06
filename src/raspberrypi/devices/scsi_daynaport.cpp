@@ -133,11 +133,10 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	int rx_packet_size = 0;
-	auto response = (scsi_resp_read_t*)buf.data();
+	const auto response = (scsi_resp_read_t*)buf.data();
 
-	int requested_length = cdb[4];
+	const int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
-
 
 	// At host startup, it will send a READ(6) command with a length of 1. We should
 	// respond by going into the status mode with a code of 0x02
@@ -207,8 +206,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
-			if (!m_tap.PendingPackets())
-			{
+			if (!m_tap.PendingPackets()) {
 				response->length = 0;
 				response->flags = read_data_flags_t::e_no_more_data;
 				return DAYNAPORT_READ_HEADER_SZ;
@@ -252,7 +250,7 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 {
 	CheckReady();
 
-	if (!m_bTapEnable){
+	if (!m_bTapEnable) {
 		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::MEDIUM_NOT_PRESENT);
 	}
 
@@ -279,22 +277,20 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, uint64_t)
 {
-	int data_format = cdb[5];
+	const int data_format = cdb[5];
 	int data_length = GetInt16(cdb, 3);
 
-	if (data_format == 0x00){
+	if (data_format == 0x00) {
 		m_tap.Send(buf.data(), data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length)
 	}
-	else if (data_format == 0x80){
+	else if (data_format == 0x80) {
 		// The data length is specified in the first 2 bytes of the payload
-		data_length=buf[1] + (buf[0] << 8);
+		data_length = buf[1] + (((int)buf[0] & 0xff) << 8);
 		m_tap.Send(&(buf.data()[4]), data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
-	else
-	{
-		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format)
+	else {
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
 
@@ -371,7 +367,7 @@ void SCSIDaynaPort::TestUnitReady()
 void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
-    uint32_t record = GetInt24(ctrl->cmd, 1) & 0x1fffff;
+    const uint32_t record = GetInt24(ctrl->cmd, 1) & 0x1fffff;
 	ctrl->blocks=1;
 
 	// If any commands have a bogus control value, they were probably not
@@ -397,7 +393,7 @@ void SCSIDaynaPort::Write6()
 	// Ensure a sufficient buffer size (because it is not transfer for each block)
 	controller->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
 
-	int data_format = ctrl->cmd[5];
+	const int data_format = ctrl->cmd[5];
 
 	if (data_format == 0x00) {
 		ctrl->length = GetInt16(ctrl->cmd, 3);

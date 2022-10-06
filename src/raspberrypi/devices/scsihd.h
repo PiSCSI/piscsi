@@ -17,10 +17,9 @@
 #pragma once
 
 #include "disk.h"
-#include "file_support.h"
 #include "filepath.h"
 
-class SCSIHD : public Disk, public FileSupport
+class SCSIHD : public Disk
 {
 	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
 
@@ -41,6 +40,8 @@ public:
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
+	using super = Disk;
 
 	scsi_defs::scsi_level scsi_level;
 };

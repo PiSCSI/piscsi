@@ -38,7 +38,7 @@ public:
 	const unordered_set<uint32_t>& GetSectorSizes(const string&) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
 	list<string> GetNetworkInterfaces() const;
-	unordered_map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
+	const unordered_map<string, PbDeviceType>& GetExtensionMapping() const { return extension_mapping; }
 
 private:
 
@@ -49,6 +49,8 @@ private:
 	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;
 
 	unordered_map<string, PbDeviceType> extension_mapping;
+
+	unordered_map<string, PbDeviceType> device_mapping;
 
 	unordered_set<uint32_t> empty_set;
 	unordered_map<string, string> empty_map;

@@ -16,12 +16,50 @@ using namespace rascsi_interface;
 
 TEST(ProtobufSerializerTest, SerializeMessage)
 {
-	PbResult message;
+	PbResult result;
 	ProtobufSerializer serializer;
 
-	int fd = open("/dev/null", O_WRONLY);
-	ASSERT_NE(-1, fd);
-	serializer.SerializeMessage(fd, message);
+	int fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Writing the message header must fail";
 	close(fd);
-	EXPECT_THROW(serializer.SerializeMessage(-1, message), io_exception);
+
+	fd = open("/dev/null", O_WRONLY);
+	EXPECT_NE(-1, fd);
+	serializer.SerializeMessage(fd, result);
+	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception) << "Writing a message must fail";
+	close(fd);
+}
+
+TEST(ProtobufSerializerTest, DeserializeMessage)
+{
+	PbResult result;
+	ProtobufSerializer serializer;
+	vector<byte> buf(1);
+
+	int fd = open("/dev/null", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Reading the message header must fail";
+	close(fd);
+
+	fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Reading a message must fail";
+	close(fd);
+}
+
+TEST(ProtobufSerializerTest, ReadBytes)
+{
+	ProtobufSerializer serializer;
+	vector<byte> buf(1);
+
+	int fd = open("/dev/null", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_EQ(0, serializer.ReadBytes(fd, buf));
+	close(fd);
+
+	fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_EQ(1, serializer.ReadBytes(fd, buf));
+	close(fd);
 }

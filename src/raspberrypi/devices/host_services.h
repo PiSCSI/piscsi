@@ -29,7 +29,6 @@ public:
 
 	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
-	void StartStopUnit();
 
 	bool SupportsFile() const override { return false; }
 
@@ -58,6 +57,7 @@ private:
 
 	const ControllerManager& controller_manager;
 
+	void StartStopUnit();
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 

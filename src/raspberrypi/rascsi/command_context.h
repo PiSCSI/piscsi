@@ -32,7 +32,7 @@ public:
 	CommandContext(const std::string& s = "", int f = -1) : locale(s), fd(f) {}
 	~CommandContext() = default;
 
-	void Cleanup() const;
+	void Cleanup();
 
 	const ProtobufSerializer& GetSerializer() const { return serializer; }
 	int GetFd() const { return fd; }

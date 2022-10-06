@@ -410,3 +410,46 @@ TEST(DiskTest, BlockCount)
 	disk.SetBlockCount(0x1234567887654321);
 	EXPECT_EQ(0x1234567887654321, disk.GetBlockCount());
 }
+
+TEST(DiskTest, Reserve)
+{
+	const int ID = 1;
+	const int LUN = 2;
+
+	Filepath path;
+	path.SetPath("path");
+	MockDisk disk;
+
+	disk.SetPath(path);
+	Filepath result;
+	disk.GetPath(result);
+	EXPECT_STREQ("path", result.GetPath());
+
+	int id;
+	int lun;
+	EXPECT_FALSE(Disk::GetIdsForReservedFile(path, id, lun));
+
+	disk.ReserveFile(path, ID, LUN);
+	EXPECT_TRUE(Disk::GetIdsForReservedFile(path, id, lun));
+	EXPECT_EQ(ID, id);
+	EXPECT_EQ(LUN, lun);
+
+	disk.UnreserveFile();
+	EXPECT_FALSE(Disk::GetIdsForReservedFile(path, id, lun));
+}
+
+TEST(DiskTest, UnreserveAll)
+{
+	const int ID = 2;
+	const int LUN = 31;
+
+	Filepath path;
+	path.SetPath("path");
+	MockDisk disk;
+
+	disk.ReserveFile(path, ID, LUN);
+	Disk::UnreserveAll();
+	int id;
+	int lun;
+	EXPECT_FALSE(Disk::GetIdsForReservedFile(path, id, lun));
+}

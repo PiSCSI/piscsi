@@ -11,7 +11,6 @@
 #include "protobuf_serializer.h"
 #include "rascsi_exceptions.h"
 #include <unistd.h>
-#include <sstream>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -45,10 +44,11 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
 	if (ReadBytes(fd, header_buf) < header_buf.size()) {
-		return;
+		throw io_exception("Invalid protobuf message header");
 	}
 
-	size_t size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16) + ((int)header_buf[1] << 8) + (int)header_buf[0];
+	const size_t size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16)
+			+ ((int)header_buf[1] << 8) + (int)header_buf[0];
 	if (size <= 0) {
 		throw io_exception("Invalid protobuf message header");
 	}
@@ -68,7 +68,7 @@ size_t ProtobufSerializer::ReadBytes(int fd, vector<byte>& buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {
-		ssize_t len = read(fd, &buf[offset], buf.size() - offset);
+		const ssize_t len = read(fd, &buf.data()[offset], buf.size() - offset);
 		if (len <= 0) {
 			return len;
 		}

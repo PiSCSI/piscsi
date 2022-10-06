@@ -145,7 +145,7 @@ void SCSIPrinter::Print()
 {
 	CheckReservation();
 
-	uint32_t length = GetInt24(ctrl->cmd, 2);
+	const uint32_t length = GetInt24(ctrl->cmd, 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
@@ -171,7 +171,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	}
 
 	// Make the file readable for the lp user
-	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH); //NOSONAR Granting permissions to "others" is required here
 
 	struct stat st;
 	fstat(fd, &st);
@@ -180,7 +180,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	fd = -1;
 
 	string cmd = GetParam("cmd");
-	size_t file_position = cmd.find("%f");
+	const size_t file_position = cmd.find("%f");
 	assert(file_position != string::npos);
 	cmd.replace(file_position, 2, filename);
 	cmd = "sudo -u lp " + cmd;
@@ -217,7 +217,7 @@ void SCSIPrinter::StopPrint()
 bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 {
 	if (fd == -1) {
-		strcpy(filename, TMP_FILE_PATTERN);
+		strcpy(filename, TMP_FILE_PATTERN); //NOSONAR Using strcpy is safe here
 		fd = mkstemp(filename);
 		if (fd == -1) {
 			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
@@ -229,7 +229,7 @@ bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
-	auto num_written = (uint32_t)write(fd, buf.data(), length);
+	const auto num_written = (uint32_t)write(fd, buf.data(), length);
 
 	return num_written == length;
 }

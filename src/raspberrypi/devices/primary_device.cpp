@@ -64,7 +64,7 @@ void PrimaryDevice::Inquiry()
 
 	vector<byte> buf = InquiryInternal();
 
-	size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
+	const size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
 
 	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
 	ctrl->length = (uint32_t)allocation_length;
@@ -87,7 +87,7 @@ void PrimaryDevice::ReportLuns()
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
+	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
 	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
@@ -129,7 +129,7 @@ void PrimaryDevice::RequestSense()
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
-	size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
+	const size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
 
     memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
     ctrl->length = (uint32_t)allocation_length;

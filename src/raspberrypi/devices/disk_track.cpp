@@ -68,7 +68,7 @@ bool DiskTrack::Load(const Filepath& path)
 	offset += dt.imgoffset;
 
 	// Calculate length (data size of this track)
-	int length = dt.sectors << dt.size;
+	const int length = dt.sectors << dt.size;
 
 	// Allocate buffer memory
 	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
@@ -85,7 +85,7 @@ bool DiskTrack::Load(const Filepath& path)
 	}
 
 	// Reallocate if the buffer length is different
-	if (dt.length != (DWORD)length) {
+	if (dt.length != (uint32_t)length) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
 			LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
@@ -167,7 +167,7 @@ bool DiskTrack::Save(const Filepath& path)
 	offset += dt.imgoffset;
 
 	// Calculate length per sector
-	int length = 1 << dt.size;
+	const int length = 1 << dt.size;
 
 	// Open file
 	Fileio fio;
@@ -265,8 +265,8 @@ bool DiskTrack::WriteSector(const vector<BYTE>& buf, int sec)
 	}
 
 	// Calculate offset and length
-	int offset = sec << dt.size;
-	int length = 1 << dt.size;
+	const int offset = sec << dt.size;
+	const int length = 1 << dt.size;
 
 	// Compare
 	assert(dt.buffer);

@@ -32,7 +32,7 @@ BUS::phase_t GetPhase(const data_capture *sample)
 	}
 
 	// Get target phase from bus signal line
-	DWORD mci = GetMsg(sample) ? 0x04 : 0x00;
+	uint32_t mci = GetMsg(sample) ? 0x04 : 0x00;
 	mci |= GetCd(sample) ? 0x02 : 0x00;
 	mci |= GetIo(sample) ? 0x01 : 0x00;
 	return BUS::GetPhase(mci);

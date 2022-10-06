@@ -198,8 +198,8 @@ void ScsiController::Command()
 		bus.SetCD(true);
 		bus.SetIO(false);
 
-		int actual_count = bus.CommandHandShake(GetBuffer().data());
-		int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
+		const int actual_count = bus.CommandHandShake(GetBuffer().data());
+		const int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -485,7 +485,7 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (const int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase
@@ -976,7 +976,7 @@ void ScsiController::ParseMessage()
 {
 	int i = 0;
 	while (i < scsi.msc) {
-		BYTE message_type = scsi.msb[i];
+		const BYTE message_type = scsi.msb[i];
 
 		if (message_type == 0x06) {
 			LOGTRACE("Received ABORT message")
@@ -1064,7 +1064,7 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
-	if (uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
+	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
 		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 	}
 	execstart = 0;

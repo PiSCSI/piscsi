@@ -76,7 +76,7 @@ string Device::GetPaddedName() const
 	ostringstream os;
 	os << left << setfill(' ') << setw(8) << vendor << setw(16) << product << setw(4) << revision;
 
-	string name = os.str();
+	const string name = os.str();
 	assert(name.length() == 28);
 
 	return name;

@@ -40,10 +40,10 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		return 0;
 	}
 
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
+	const bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
+	const int page = cdb[2] & 0x3f;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
 
@@ -63,7 +63,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
-			size_t off = result.size();
+			const size_t off = result.size();
 
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());

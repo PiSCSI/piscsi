@@ -90,7 +90,7 @@ void SCSICD::Open(const Filepath& path)
 	assert(GetBlockCount() > 0);
 
 	super::Open(path);
-	FileSupport::SetPath(path);
+	SetPath(path);
 
 	SetUpCache(path, 0, rawfile);
 
@@ -114,7 +114,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off_t size = fio.GetFileSize();
+	const off_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
@@ -160,10 +160,10 @@ void SCSICD::OpenIso(const Filepath& path)
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size / 0x930));
+		SetBlockCount((uint32_t)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -197,7 +197,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
 	assert(!tracks.size());
@@ -275,7 +275,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 	CheckReady();
 
 	// Search for the track
-	int index = SearchTrack((int)block);
+	const int index = SearchTrack((int)block);
 
 	// If invalid, out of range
 	if (index < 0) {
@@ -315,14 +315,14 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 	assert(tracks[0]);
 
 	// Get allocation length, clear buffer
-	int length = GetInt16(cdb, 7);
+	const int length = GetInt16(cdb, 7);
 	fill_n(buf.data(), length, 0);
 
 	// Get MSF Flag
-	bool msf = cdb[1] & 0x02;
+	const bool msf = cdb[1] & 0x02;
 
 	// Get and check the last track number
-	int last = tracks[tracks.size() - 1]->GetTrackNo();
+	const int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
 	if (cdb[6] > last && cdb[6] != 0xaa) {
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -363,7 +363,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 	}
 
 	// Number of track descriptors returned this time (number of loops)
-	int loop = last - tracks[index]->GetTrackNo() + 1;
+	const int loop = last - tracks[index]->GetTrackNo() + 1;
 	assert(loop >= 1);
 
 	// Create header
@@ -424,7 +424,7 @@ void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
 	// 75 and 75*60 get the remainder
 	uint32_t m = lba / (75 * 60);
 	uint32_t s = lba % (75 * 60);
-	uint32_t f = s % 75;
+	const uint32_t f = s % 75;
 	s /= 75;
 
 	// The base point is M=0, S=2, F=0
@@ -459,7 +459,7 @@ void SCSICD::ClearTrack()
 //	* Returns -1 if not found
 //
 //---------------------------------------------------------------------------
-int SCSICD::SearchTrack(DWORD lba) const
+int SCSICD::SearchTrack(uint32_t lba) const
 {
 	// Track loop
 	for (size_t i = 0; i < tracks.size(); i++) {

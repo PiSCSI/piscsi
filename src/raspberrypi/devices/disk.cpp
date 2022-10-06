@@ -14,9 +14,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "fileio.h"
-#include "file_support.h"
 #include "rascsi_exceptions.h"
 #include "dispatcher.h"
 #include "scsi_command_util.h"
@@ -24,6 +22,8 @@
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
+
+unordered_map<string, id_set> Disk::reserved_files;
 
 Disk::Disk(const string& type, int lun) : ModePageDevice(type, lun)
 {
@@ -271,8 +271,8 @@ void Disk::Verify16()
 
 void Disk::StartStopUnit()
 {
-	bool start = ctrl->cmd[4] & 0x01;
-	bool load = ctrl->cmd[4] & 0x02;
+	const bool start = ctrl->cmd[4] & 0x01;
+	const bool load = ctrl->cmd[4] & 0x02;
 
 	if (load) {
 		LOGTRACE(start ? "Loading medium" : "Ejecting medium")
@@ -322,7 +322,7 @@ void Disk::PreventAllowMediumRemoval()
 {
 	CheckReady();
 
-	bool lock = ctrl->cmd[4] & 0x01;
+	const bool lock = ctrl->cmd[4] & 0x01;
 
 	LOGTRACE(lock ? "Locking medium" : "Unlocking medium")
 
@@ -340,7 +340,7 @@ void Disk::SynchronizeCache()
 
 void Disk::ReadDefectData10()
 {
-	size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
+	const size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
 
 	// The defect list is empty
 	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
@@ -361,15 +361,13 @@ void Disk::MediumChanged()
 
 bool Disk::Eject(bool force)
 {
-	bool status = super::Eject(force);
+	const bool status = super::Eject(force);
 	if (status) {
 		FlushCache();
 		cache.reset();
 
 		// The image file for this drive is not in use anymore
-		if (auto file_support = dynamic_cast<FileSupport *>(this); file_support) {
-			file_support->UnreserveFile();
-		}
+		UnreserveFile();
 	}
 
 	return status;
@@ -378,7 +376,7 @@ bool Disk::Eject(bool force)
 int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -423,7 +421,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -805,12 +803,10 @@ void Disk::Release()
 
 void Disk::ValidateBlockAddress(access_mode mode) const
 {
-	uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
+	const uint64_t block = mode == RW16 ? GetInt64(ctrl->cmd, 2) : GetInt32(ctrl->cmd, 2);
 
-	uint64_t capacity = blocks;
-
-	if (block > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+	if (block > blocks) {
+		LOGTRACE("%s", ("Capacity of " + to_string(blocks) + " block(s) exceeded: Trying to access block "
 				+ to_string(block)).c_str())
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
@@ -906,6 +902,46 @@ bool Disk::SetConfiguredSectorSize(const DeviceFactory& device_factory, uint32_t
 	}
 
 	configured_sector_size = configured_size;
+
+	return true;
+}
+
+void Disk::ReserveFile(const Filepath& path, int id, int lun) const
+{
+	reserved_files[path.GetPath()] = make_pair(id, lun);
+}
+
+void Disk::UnreserveFile() const
+{
+	reserved_files.erase(diskpath.GetPath());
+}
+
+bool Disk::GetIdsForReservedFile(const Filepath& path, int& id, int& lun)
+{
+	if (const auto& it = reserved_files.find(path.GetPath()); it != reserved_files.end()) {
+		id = it->second.first;
+		lun = it->second.second;
+
+		return true;
+	}
+
+	return false;
+}
+
+void Disk::UnreserveAll()
+{
+	reserved_files.clear();
+}
+
+bool Disk::FileExists(const Filepath& filepath)
+{
+	try {
+		// Disk::Open closes the file in case it exists
+		Open(filepath);
+	}
+	catch(const file_not_found_exception&) {
+		return false;
+	}
 
 	return true;
 }
