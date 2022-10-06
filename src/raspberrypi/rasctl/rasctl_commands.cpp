@@ -130,7 +130,7 @@ void RasctlCommands::SendCommand()
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
 
-		server_addr.sin_port = htons(port);
+		server_addr.sin_port = htons(uint16_t(port));
     	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
     		throw io_exception("Can't connect to rascsi on host '" + hostname + "', port " + to_string(port)
     				+ ": " + strerror(errno));
@@ -360,9 +360,8 @@ bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
 	addrinfo hints = {};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-	addrinfo* result;
 
-	if (!getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
+	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
 		*addr = *(sockaddr_in *)(result->ai_addr);
 		freeaddrinfo(result);
 		return true;
