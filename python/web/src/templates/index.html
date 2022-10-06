@@ -14,8 +14,8 @@
 
 <p>
 <form action="/config/load" method="post">
-    <label for="name">{{ _("File name") }}</label>
-    <select name="name" id="name" required="" width="14">
+    <label for="config_load_name">{{ _("File name") }}</label>
+    <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
         {% for config in config_files|sort %}
         <option value="{{ config }}">
@@ -35,8 +35,8 @@
 
 <p>
 <form action="/config/save" method="post">
-    <label for="name">{{ _("File name") }}</label>
-    <input name="name" id="name" placeholder="default" size="20">
+    <label for="config_save_name">{{ _("File name") }}</label>
+    <input name="name" id="config_save_name" placeholder="default" size="20">
     .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
 </form>
@@ -69,8 +69,8 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
                     <input name="file_size" type="hidden" value="{{ device.size }}">
-                    <label for="name">{{ _("File name") }}</label>
-                    <select type="select" name="file_name" id="file_name">
+                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("File name") }}</label>
+                    <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
                     {% if f["name"].lower().endswith(cdrom_file_suffix) %}
@@ -283,22 +283,22 @@
                 <form action="/scsi/attach" method="post">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
-                    <label for="scsi_id">{{ _("ID") }}</label>
-                    <select name="scsi_id" id="scsi_id">
+                    <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
+                    <select name="scsi_id" id="image_list_scsi_id_{{ file["name"] }}">
                         {% for id in scsi_ids %}
                         <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
                             {{ id }}
                         </option>
                         {% endfor %}
                     </select>
-                    <label for="unit">{{ _("LUN") }}</label>
-                    <input name="unit" id="unit" type="number" value="0" min="0" max="31" step="1">
+                    <label for="image_list_unit_{{ file["name"] }}">{{ _("LUN") }}</label>
+                    <input name="unit" id="image_list_unit_{{ file["name"] }}" type="number" value="0" min="0" max="31" step="1">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file['detected_type_name'] }}
                     {% else %}
-                        <label for="type">{{ _("Type") }}</label>
-                        <select name="type" id="type">
+                        <label for="image_list_type_{{ file["name"] }}">{{ _("Type") }}</label>
+                        <select name="type" id="image_list_type_{{ file["name"] }}">
                         <option selected disabled value="">
                         {{ _("Unknown") }}
                         </option>
@@ -382,11 +382,11 @@
             <form action="/scsi/attach_device" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
-                <label for="{{ key }}">{{ key }}:</label>
+                <label for="{{ type }}_{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" id="{{ key }}" type="number" value="{{ value }}">
+                <input name="{{ key }}" id="{{ type }}_{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
-                <select name="{{ key }}" id="{{ key }}">
+                <select name="{{ key }}" id="{{ type }}_{{ key }}">
                 {% for if in netinfo["ifs"] %}
                     <option value="{{ if }}">
                         {{ if }}
@@ -394,12 +394,12 @@
                 {% endfor %}
                 </select>
                 {% else %}
-                <input name="{{ key }}" id="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
+                <input name="{{ key }}" id="{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
                 {% if type in REMOVABLE_DEVICE_TYPES %}
-                <label for="drive_name">{{ _("Masquerade as:") }}</label>
-                <select name="drive_name" id="drive_name">
+                <label for="{{ type }}_drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name" id="{{ type }}_drive_name">
                 <option value="">
                 {{ _("None") }}
                 </option>
@@ -426,16 +426,16 @@
                 {% endif %}
                 </select>
                 {% endif %}
-                <label for="scsi_id">{{ _("ID") }}</label>
-                <select name="scsi_id" id="scsi_id">
+                <label for="{{ type }}_scsi_id">{{ _("ID") }}</label>
+                <select name="scsi_id" id="{{ type }}_scsi_id">
                 {% for id in scsi_ids %}
                     <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
                         {{ id }}
                     </option>
                 {% endfor %}
                 </select>
-                <label for="unit">{{ _("LUN") }}</label>
-                <input name="unit" id="unit" type="number" value="0" min="0" max="31" step="1">
+                <label for="{{ type }}_unit">{{ _("LUN") }}</label>
+                <input name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
@@ -457,8 +457,8 @@
 
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
     <p>
-    <label for="destination">{{ _("Target directory:") }}</label>
-    <select name="destination" id="destination">
+    <label for="upload_destination">{{ _("Target directory:") }}</label>
+    <select name="destination" id="upload_destination">
         <option value="images">{{ env["base_dir"] }}</option>
         <option value="afp">{{ AFP_DIR }}</option>
     </select>
@@ -507,13 +507,13 @@
 </details>
 
 <form action="/files/download_url" method="post">
-    <label for="destination">{{ _("Target directory:") }}</label>
-    <select name="destination" id="destination">
+    <label for="download_destination">{{ _("Target directory:") }}</label>
+    <select name="destination" id="download_destination">
         <option value="images">{{ env["base_dir"] }}</option>
         <option value="afp">{{ AFP_DIR }}</option>
     </select>
-    <label for="url">{{ _("URL:") }}</label>
-    <input name="url" id="url" placeholder="{{ _("URL") }}" required="" type="url">
+    <label for="download_url">{{ _("URL:") }}</label>
+    <input name="url" id="download_url" placeholder="{{ _("URL") }}" required="" type="url">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 
@@ -531,10 +531,10 @@
 </details>
 
 <form action="/files/download_to_iso" method="post">
-    <label for="url">{{ _("URL:") }}</label>
-    <input name="url" id="url" placeholder="{{ _("URL") }}" required="" type="url">
-    <label for="type">{{ _("Type:") }}</label>
-    <select name="type" id="type">
+    <label for="iso_url">{{ _("URL:") }}</label>
+    <input name="url" id="iso_url" placeholder="{{ _("URL") }}" required="" type="url">
+    <label for="iso_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_type">
         <option value="-hfs">
             HFS
         </option>
@@ -554,8 +554,8 @@
             Rock Ridge
         </option>
     </select>
-    <label for="scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="scsi_id">
+    <label for="iso_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_scsi_id">
         {% for id in scsi_ids %}
         <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
             {{ id }}
@@ -577,20 +577,20 @@
 </details>
 
 <form action="/files/create" method="post">
-    <label for="file_name">{{ _("File Name:") }}</label>
-    <input name="file_name" id="file_name" placeholder="{{ _("File Name") }}" required="" type="text">
-    <label for="type">{{ _("Type:") }}</label>
-    <select name="type" id="type">
+    <label for="image_create_file_name">{{ _("File Name:") }}</label>
+    <input name="file_name" id="image_create_file_name" placeholder="{{ _("File Name") }}" required="" type="text">
+    <label for="image_create_type">{{ _("Type:") }}</label>
+    <select name="type" id="image_create_type">
         {% for key, value in image_suffixes_to_create.items() %}
         <option value="{{ key }}">
         {{ value }} [.{{ key }}]
         </option>
         {% endfor %}
     </select>
-    <label for="size">{{ _("Size:") }}</label>
-    <input name="size" id="size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
-    <label for="drive_name">{{ _("Masquerade as:") }}</label>
-    <select name="drive_name" id="drive_name">
+    <label for="image_create_size">{{ _("Size:") }}</label>
+    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
+    <select name="drive_name" id="image_create_drive_name">
     <option value="">
     {{ _("None") }}
     </option>
@@ -628,10 +628,10 @@
 </details>
 
 <form action="/logs/show" method="post">
-    <label for="lines">{{ _("Log Lines:") }}</label>
-    <input name="lines" id="lines" type="number" value="200" min="0" max="99999" step="100">
-    <label for="scope">{{ _("Scope:") }}</label>
-    <select name="scope" id="scope">
+    <label for="log_lines">{{ _("Log Lines:") }}</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">{{ _("Scope:") }}</label>
+    <select name="scope" id="log_scope">
         <option value="">
             {{ _("All logs") }}
         </option>
@@ -664,8 +664,8 @@
 </details>
 
 <form action="/logs/level" method="post">
-    <label for="level">{{ _("Log Level:") }}</label>
-    <select name="level" id="level">
+    <label for="log_level">{{ _("Log Level:") }}</label>
+    <select name="level" id="log_level">
     {% for level in log_levels %}
         <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
             {{ level }}

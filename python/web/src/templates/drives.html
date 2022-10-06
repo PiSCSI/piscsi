@@ -33,11 +33,11 @@
         <input type="hidden" name="revision" value="{{ hd.revision }}">
         <input type="hidden" name="blocks" value="{{ hd.blocks }}">
         <input type="hidden" name="block_size" value="{{ hd.block_size }}">
-        <label for="size">{{ _("Size:") }}</label>
-        <input type="number" name="size" id="size" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
+        <label for="size_{{ hd.name }}">{{ _("Size:") }}</label>
+        <input type="number" name="size" id="size_{{ hd.name }}" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
     <input type="hidden" name="file_type" value="{{ hd.file_type }}">
-    <label for="file_name">{{ _("Save as:") }}</label>
-    <input type="text" name="file_name" id="file_name" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
+    <label for="file_name_{{ hd.name }}">{{ _("Save as:") }}</label>
+    <input type="text" name="file_name" id="file_name_{{ hd.name }}" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
     <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>
@@ -77,8 +77,8 @@
         <input type="hidden" name="product" value="{{ cd.product }}">
         <input type="hidden" name="revision" value="{{ cd.revision }}">
         <input type="hidden" name="block_size" value="{{ cd.block_size }}">
-        <label for="file_name">{{ _("Create for:") }}</label>
-        <select type="select" name="file_name" id="file_name">
+        <label for="file_name_{{ cd.name }}">{{ _("Create for:") }}</label>
+        <select type="select" name="file_name" id="file_name_{{ cd.name }}">
             {% for file in files|sort(attribute='name') %}
         {% if file["name"].lower().endswith(cdrom_file_suffix) %}
         <option value="{{ file["name"] }}">{{ file["name"].replace(env["base_dir"], '') }}</option>
@@ -124,11 +124,11 @@
         <input type="hidden" name="revision" value="{{ rm.revision }}">
         <input type="hidden" name="blocks" value="{{ rm.blocks }}">
         <input type="hidden" name="block_size" value="{{ rm.block_size }}">
-        <label for="size">{{ _("Size:") }}</label>
-        <input type="number" name="size" id="size" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
+        <label for="size_{{ rm.name }}">{{ _("Size:") }}</label>
+        <input type="number" name="size" id="size_{{ rm.name }}" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
         <input type="hidden" name="file_type" value="{{ rm.file_type }}">
-        <label for="file_name">{{ _("Save as:") }}</label>
-        <input type="text" name="file_name" id="file_name" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
+        <label for="file_name_{{ rm.name }}">{{ _("Save as:") }}</label>
+        <input type="text" name="file_name" id="file_name_{{ rm.name }}" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
         <input type="submit" value="{{ _("Create") }}" />
     </form>
     </td>
