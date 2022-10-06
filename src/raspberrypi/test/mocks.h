@@ -56,7 +56,7 @@ public:
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
 	MockBus() = default;
-	~MockBus() override = default;
+	~MockBus() = default;
 };
 
 class MockPhaseHandler : public PhaseHandler
@@ -126,7 +126,7 @@ public:
 	explicit MockAbstractController(int target_id) : AbstractController(bus, target_id, 32) {
 		AllocateBuffer(512);
 	}
-	~MockAbstractController() override = default;
+	~MockAbstractController() = default;
 
 	MockBus bus;
 };
@@ -145,7 +145,7 @@ public:
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 
 	explicit MockScsiController(int target_id) : ScsiController(bus, target_id) {}
-	~MockScsiController() override = default;
+	~MockScsiController() = default;
 
 	MockBus bus;
 };
@@ -164,7 +164,7 @@ public:
 	MOCK_METHOD(int, GetId, (), (const));
 
 	explicit MockDevice(int lun) : Device("test", lun) {}
-	~MockDevice() override = default;
+	~MockDevice() = default;
 };
 
 class MockPrimaryDevice : public PrimaryDevice
@@ -182,7 +182,7 @@ public:
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
 	explicit MockPrimaryDevice(int lun) : PrimaryDevice("test", lun) {}
-	~MockPrimaryDevice() override = default;
+	~MockPrimaryDevice() = default;
 };
 
 class MockModePageDevice : public ModePageDevice
@@ -190,7 +190,7 @@ class MockModePageDevice : public ModePageDevice
 	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
 
 	explicit MockModePageDevice(int lun) : ModePageDevice("test", lun) {}
-	~MockModePageDevice() override = default;
+	~MockModePageDevice() = default;
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
@@ -228,7 +228,7 @@ public:
 	MOCK_METHOD(void, FlushCache, (), (override));
 
 	MockDisk() : Disk("test", 0) {}
-	~MockDisk() override = default;
+	~MockDisk() = default;
 };
 
 class MockSCSIHD : public SCSIHD
