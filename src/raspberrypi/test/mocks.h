@@ -111,6 +111,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
+	FRIEND_TEST(HostServicesTest, TestUnitReady);
 	FRIEND_TEST(HostServicesTest, StartStopUnit);
 	FRIEND_TEST(HostServicesTest, ModeSense6);
 	FRIEND_TEST(HostServicesTest, ModeSense10);

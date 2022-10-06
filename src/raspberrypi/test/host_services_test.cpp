@@ -14,6 +14,21 @@
 
 using namespace std;
 
+TEST(HostServicesTest, TestUnitReady)
+{
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+    MockAbstractController controller(0);
+	auto device = make_shared<MockHostServices>(0, controller_manager);
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(6);
+
+    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady));
+}
+
 TEST(HostServicesTest, StartStopUnit)
 {
 	MockBus bus;
