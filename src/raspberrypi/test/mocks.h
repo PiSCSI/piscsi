@@ -189,12 +189,14 @@ class MockModePageDevice : public ModePageDevice
 {
 	FRIEND_TEST(ModePageDeviceTest, AddModePages);
 
-	explicit MockModePageDevice(int lun) : ModePageDevice("test", lun) {}
-	~MockModePageDevice() override = default;
+public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
+
+	explicit MockModePageDevice() : ModePageDevice("test", 0) {}
+	~MockModePageDevice() override = default;
 
 	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0

@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "rascsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/mode_page_device.h"
 
 using namespace std;
@@ -18,8 +17,8 @@ TEST(ModePageDeviceTest, AddModePages)
 {
 	vector<int> cdb(6);
 	vector<BYTE> buf(512);
+	MockModePageDevice device;
 
-	MockModePageDevice device(0);
 	cdb[2] = 0x3f;
 
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, -1)) << "Negative maximum length must be rejected";
