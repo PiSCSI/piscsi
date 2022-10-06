@@ -24,10 +24,8 @@ class SCSIMO : public Disk, public FileSupport
 {
 public:
 
-	explicit SCSIMO(const unordered_set<uint32_t>&);
+	SCSIMO(int, const unordered_set<uint32_t>&);
 	~SCSIMO() override = default;
-	SCSIMO(SCSIMO&) = delete;
-	SCSIMO& operator=(const SCSIMO&) = delete;
 
 	void Open(const Filepath&) override;
 

@@ -13,11 +13,10 @@
 
 #include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
-#include "command_context.h"
-#include "localizer.h"
 #include <string>
 
-using namespace rascsi_interface; //NOSONAR Not relevant for rascsi
+using namespace std;
+using namespace rascsi_interface;
 
 namespace command_util
 {
@@ -27,10 +26,4 @@ namespace command_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
-	bool ReturnLocalizedError(const CommandContext&, LocalizationKey, const string& = "", const string& = "",
-			const string& = "");
-	bool ReturnLocalizedError(const CommandContext&, LocalizationKey, PbErrorCode, const string& = "",
-			const string& = "", const string& = "");
-	bool ReturnStatus(const CommandContext&, bool = true, const string& = "",
-			PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
 }

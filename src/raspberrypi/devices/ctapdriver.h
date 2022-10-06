@@ -19,7 +19,7 @@
 #include <string>
 #include <array>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class CTapDriver
 {
@@ -30,8 +30,8 @@ class CTapDriver
 
 	CTapDriver() = default;
 	~CTapDriver();
-	CTapDriver(CTapDriver&) = delete;
-	CTapDriver& operator=(const CTapDriver&) = delete;
+	CTapDriver(CTapDriver&) = default;
+	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
 
@@ -45,6 +45,8 @@ public:
 	bool Enable() const;		// Enable the ras0 interface
 	bool Disable() const;		// Disable the ras0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
+
+	static uint32_t Crc32(const BYTE *, int);
 
 private:
 	array<byte, 6> m_MacAddr;	// MAC Address

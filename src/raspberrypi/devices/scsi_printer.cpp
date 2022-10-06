@@ -51,7 +51,7 @@ using namespace scsi_defs;
 using namespace ras_util;
 using namespace scsi_command_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
+SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -149,8 +149,8 @@ void SCSIPrinter::Print()
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
-	if (length > controller->GetBufferSize()) {
-		LOGERROR("%s", string("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBufferSize()) +
+	if (length > controller->GetBuffer().size()) {
+		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected").c_str())
 
 		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);

@@ -19,13 +19,13 @@
 #include "config.h"
 #include "log.h"
 #include <array>
-#ifdef __linux
+#ifdef __linux__
 #include <sys/epoll.h>
 #endif
 
 using namespace std;
 
-#ifdef __linux
+#ifdef __linux__
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -1258,7 +1258,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 
 void GPIOBUS::DisableIRQ()
 {
-#ifdef __linux
+#ifdef __linux__
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];

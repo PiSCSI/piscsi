@@ -14,26 +14,12 @@
 #include "fileio.h"
 #include <libgen.h>
 
-Filepath::Filepath()
-{
-	Clear();
-}
-
 Filepath& Filepath::operator=(const Filepath& path)
 {
 	// Set path (split internally)
 	SetPath(path.GetPath());
 
 	return *this;
-}
-
-void Filepath::Clear()
-{
-	// Clear the path and each part
-	m_szPath[0] = '\0';
-	m_szDir[0] = '\0';
-	m_szFile[0] = '\0';
-	m_szExt[0] = '\0';
 }
 
 //---------------------------------------------------------------------------

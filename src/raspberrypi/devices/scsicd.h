@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI CD-ROM  ]
@@ -27,10 +27,8 @@ class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
 public:
 
-	explicit SCSICD(const unordered_set<uint32_t>&);
+	SCSICD(int, const unordered_set<uint32_t>&);
 	~SCSICD() override = default;
-	SCSICD(SCSICD&) = delete;
-	SCSICD& operator=(const SCSICD&) = delete;
 
 	bool Dispatch(scsi_command) override;
 

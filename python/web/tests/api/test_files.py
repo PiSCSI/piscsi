@@ -21,6 +21,7 @@ def test_create_file(http_client, list_files, delete_file):
             "file_name": file_prefix,
             "type": "hds",
             "size": 1,
+            "drive_name": "DEC RZ22",
         },
     )
 

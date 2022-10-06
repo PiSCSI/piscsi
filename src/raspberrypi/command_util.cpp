@@ -9,8 +9,7 @@
 
 #include "log.h"
 #include "rascsi_interface.pb.h"
-#include "localizer.h"
-#include "socket_connector.h"
+#include "protobuf_serializer.h"
 #include "command_util.h"
 #include <sstream>
 
@@ -85,52 +84,4 @@ void command_util::AddParam(PbDeviceDefinition& device, const string& key, strin
 		auto& map = *device.mutable_params();
 		map[key] = value;
 	}
-}
-
-bool command_util::ReturnLocalizedError(const CommandContext& context, LocalizationKey key,
-		const string& arg1, const string& arg2, const string& arg3)
-{
-	return ReturnLocalizedError(context, key, NO_ERROR_CODE, arg1, arg2, arg3);
-}
-
-bool command_util::ReturnLocalizedError(const CommandContext& context, LocalizationKey key,
-		PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
-{
-	// For the logfile always use English
-	LOGERROR("%s", context.localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
-
-	return ReturnStatus(context, false, context.localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code,
-			false);
-}
-
-bool command_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
-		PbErrorCode error_code, bool log)
-{
-	// Do not log twice if logging has already been done in the localized error handling above
-	if (log && !status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str())
-	}
-
-	if (context.fd == -1) {
-		if (!msg.empty()) {
-			if (status) {
-				FPRT(stderr, "Error: ");
-				FPRT(stderr, "%s", msg.c_str());
-				FPRT(stderr, "\n");
-			}
-			else {
-				FPRT(stdout, "%s", msg.c_str());
-				FPRT(stderr, "\n");
-			}
-		}
-	}
-	else {
-		PbResult result;
-		result.set_status(status);
-		result.set_error_code(error_code);
-		result.set_msg(msg);
-		context.connector.SerializeMessage(context.fd, result);
-	}
-
-	return status;
 }

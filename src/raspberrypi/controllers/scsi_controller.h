@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
@@ -54,10 +54,8 @@ public:
 	// Maximum number of logical units
 	static const int LUN_MAX = 32;
 
-	ScsiController(shared_ptr<BUS>, int);
+	ScsiController(BUS&, int);
 	~ScsiController() override = default;
-	ScsiController(ScsiController&) = delete;
-	ScsiController& operator=(const ScsiController&) = delete;
 
 	void Reset() override;
 

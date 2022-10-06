@@ -25,8 +25,8 @@ public:
 
 	Fileio() = default;
 	virtual ~Fileio();
-	Fileio(Fileio&) = delete;
-	Fileio& operator=(const Fileio&) = delete;
+	Fileio(Fileio&) = default;
+	Fileio& operator=(const Fileio&) = default;
 
 	bool Open(const char *fname, OpenMode mode);
 	bool Open(const Filepath& path, OpenMode mode);
