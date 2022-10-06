@@ -125,7 +125,7 @@ void RasctlCommands::SendCommand()
 
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		throw io_exception("Can't create socket");
+		cerr << "Can't create socket" << endl;
 	}
 
 	try {
