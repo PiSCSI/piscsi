@@ -32,9 +32,14 @@ TEST(ProtobufSerializerTest, DeserializeMessage)
 	ProtobufSerializer serializer;
 	vector<byte> buf(1);
 
-	int fd = open("/dev/zero", O_RDONLY);
+	int fd = open("/dev/null", O_RDONLY);
 	EXPECT_NE(-1, fd);
-	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Reading the message header must fail";
+	close(fd);
+
+	fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Reading a message must fail";
 	close(fd);
 }
 
