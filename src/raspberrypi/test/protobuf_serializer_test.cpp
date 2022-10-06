@@ -19,10 +19,15 @@ TEST(ProtobufSerializerTest, SerializeMessage)
 	PbResult result;
 	ProtobufSerializer serializer;
 
-	int fd = open("/dev/null", O_WRONLY);
+	int fd = open("/dev/zero", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Writing the message header must fail";
+	close(fd);
+
+	fd = open("/dev/null", O_WRONLY);
 	EXPECT_NE(-1, fd);
 	serializer.SerializeMessage(fd, result);
-	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception);
+	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception) << "Writing a message must fail";
 	close(fd);
 }
 
