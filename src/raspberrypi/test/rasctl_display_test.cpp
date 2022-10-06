@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// These tests only test key aspects of the expected output, because the output may change over time.
+//
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
@@ -99,10 +101,20 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 		type_properties->set_type(type);
 
 		if (type == SCHD) {
+			type_properties->mutable_properties()->set_supports_file(true);
 			type_properties->mutable_properties()->add_block_sizes(512);
 			type_properties->mutable_properties()->add_block_sizes(1024);
-			type_properties->mutable_properties()->set_supports_file(true);
 		}
+
+		if (type == SCMO) {
+			type_properties->mutable_properties()->set_supports_file(true);
+			type_properties->mutable_properties()->set_read_only(true);
+			type_properties->mutable_properties()->set_protectable(true);
+			type_properties->mutable_properties()->set_stoppable(true);
+			type_properties->mutable_properties()->set_removable(true);
+			type_properties->mutable_properties()->set_lockable(true);
+		}
+
 		if (type == SCLP) {
 			type_properties->mutable_properties()->set_supports_params(true);
 		}
