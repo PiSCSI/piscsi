@@ -48,6 +48,16 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 	RasctlDisplay display;
 	PbDeviceTypesInfo info;
 
+	// Start with 2 instead of 1. 1 was the removed SASI drive type.
+	int ordinal = 2;
+	while (PbDeviceType_IsValid(ordinal)) {
+		PbDeviceType type = UNDEFINED;
+		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
+		auto type_properties = info.add_properties();
+		type_properties->set_type(type);
+		ordinal++;
+	}
+
 	EXPECT_FALSE(display.DisplayDeviceTypesInfo(info).empty());
 }
 
