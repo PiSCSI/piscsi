@@ -132,8 +132,8 @@ void RasctlCommands::SendCommand()
 
 		server_addr.sin_port = htons(port);
     	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-    		throw io_exception("Can't connect to rascsi process on host '" + hostname + "', port "
-    				+ to_string(port) + ": " + strerror(errno));
+    		throw io_exception("Can't connect to rascsi on host '" + hostname + "', port " + to_string(port)
+    				+ ": " + strerror(errno));
     	}
 
     	if (write(fd, "RASCSI", 6) != 6) {
