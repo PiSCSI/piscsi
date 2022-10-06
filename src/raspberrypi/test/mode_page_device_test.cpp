@@ -29,3 +29,29 @@ TEST(ModePageDeviceTest, AddModePages)
 	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12), scsi_error_exception)
 		<< "Data were returned for non-existing mode page 0";
 }
+
+TEST(ModePageDeviceTest, ModeSense6)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<MockModePageDevice>();
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(6);
+
+    EXPECT_CALL(controller, DataIn()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense6));
+}
+
+TEST(ModePageDeviceTest, ModeSense10)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<MockModePageDevice>();
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(10);
+
+    EXPECT_CALL(controller, DataIn()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
+}
