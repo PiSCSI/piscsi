@@ -272,7 +272,8 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find(PbOperation_Name(NO_OPERATION)));
 
-	meta_data.set_server_side_name(PbOperation_Name(ATTACH));
+	meta_data.set_server_side_name("name");
+	meta_data.set_description("description");
 	(*info.mutable_operations())[0] = meta_data;
 	s = display.DisplayOperationInfo(info);
 	EXPECT_FALSE(s.empty());
