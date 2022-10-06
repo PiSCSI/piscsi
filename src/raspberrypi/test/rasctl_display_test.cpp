@@ -37,6 +37,16 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	device.mutable_properties()->set_lockable(true);
 	device.mutable_status()->set_locked(true);
 	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
+
+	device.set_block_size(1234);
+	string s = display.DisplayDeviceInfo(device);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("1234"));
+
+	device.set_block_count(4321);
+	s = display.DisplayDeviceInfo(device);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find(to_string(1234 *4321)));
 }
 
 TEST(RasctlDisplayTest, DisplayVersionInfo)
@@ -131,11 +141,17 @@ TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
 	string s = display.DisplayNetworkInterfaces(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_EQ(string::npos, s.find("eth0"));
+	EXPECT_EQ(string::npos, s.find("wlan0"));
 
 	info.mutable_name()->Add("eth0");
 	s = display.DisplayNetworkInterfaces(info);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find("eth0"));
+
+	info.mutable_name()->Add("wlan0");
+	s = display.DisplayNetworkInterfaces(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("eth0, wlan0"));
 }
 
 TEST(RasctlDisplayTest, DisplayImageFile)
