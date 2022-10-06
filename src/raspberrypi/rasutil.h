@@ -19,8 +19,8 @@ using namespace std;
 
 namespace ras_util
 {
-	void Banner(const string&);
 	bool GetAsInt(const string&, int&);
+	string Banner(const string&);
 	string ListDevices(const list<rascsi_interface::PbDevice>&);
 
 	void FixCpu(int);

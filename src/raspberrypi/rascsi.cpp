@@ -72,7 +72,7 @@ const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
 {
-	Banner("Reloaded");
+	cout << Banner("Reloaded");
 	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){

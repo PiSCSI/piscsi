@@ -25,3 +25,19 @@ TEST(RasUtilTest, GetAsInt)
 	EXPECT_TRUE(GetAsInt("1234", result));
 	EXPECT_EQ(1234, result);
 }
+
+TEST(RasUtilTest, Banner)
+{
+	EXPECT_FALSE(Banner("").empty());
+}
+
+TEST(RasUtilTest, ListDevices)
+{
+	list<PbDevice> devices;
+
+	EXPECT_FALSE(ListDevices(devices).empty());
+
+	PbDevice device;
+	devices.push_back(device);
+	EXPECT_FALSE(ListDevices(devices).empty());
+}

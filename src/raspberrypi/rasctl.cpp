@@ -32,7 +32,7 @@ using namespace protobuf_util;
 void Banner(int argc, char* argv[])
 {
 	if (argc < 2) {
-		Banner("Controller");
+		cout << Banner("Controller");
 
 		cout << "\nUsage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";

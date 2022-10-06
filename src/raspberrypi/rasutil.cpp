@@ -14,15 +14,6 @@
 using namespace std;
 using namespace rascsi_interface;
 
-void ras_util::Banner(const string& app)
-{
-	cout << "SCSI Target Emulator RaSCSI " << app << " version " << rascsi_get_version_string()
-			<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
-	cout << "Powered by XM6 TypeG Technology / ";
-	cout << "Copyright (C) 2016-2020 GIMONS\n";
-	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n";
-}
-
 bool ras_util::GetAsInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
@@ -41,6 +32,20 @@ bool ras_util::GetAsInt(const string& value, int& result)
 	}
 
 	return true;
+}
+
+
+string ras_util::Banner(const string& app)
+{
+	ostringstream s;
+
+	s << "SCSI Target Emulator RaSCSI " << app << " version " << rascsi_get_version_string()
+			<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
+	s << "Powered by XM6 TypeG Technology / ";
+	s << "Copyright (C) 2016-2020 GIMONS\n";
+	s << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n";
+
+	return s.str();
 }
 
 string ras_util::ListDevices(const list<PbDevice>& pb_devices)
