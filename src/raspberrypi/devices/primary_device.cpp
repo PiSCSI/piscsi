@@ -180,7 +180,7 @@ vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	buf[4] = (byte)0x1F;
 
 	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
 	return buf;
 }
