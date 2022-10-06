@@ -59,3 +59,26 @@ TEST(CommandUtil, ParseParameters)
 	TestSpecialDevice("printer");
 	TestSpecialDevice("services");
 }
+
+TEST(CommandUtil, SetPatternParams)
+{
+	PbCommand command1;
+	SetPatternParams(command1, "file");
+	EXPECT_EQ("", GetParam(command1, "folder_pattern"));
+	EXPECT_EQ("file", GetParam(command1, "file_pattern"));
+
+	PbCommand command2;
+	SetPatternParams(command2, ":file");
+	EXPECT_EQ("", GetParam(command2, "folder_pattern"));
+	EXPECT_EQ("file", GetParam(command2, "file_pattern"));
+
+	PbCommand command3;
+	SetPatternParams(command3, "folder:");
+	EXPECT_EQ("folder", GetParam(command3, "folder_pattern"));
+	EXPECT_EQ("", GetParam(command3, "file_pattern"));
+
+	PbCommand command4;
+	SetPatternParams(command4, "folder:file");
+	EXPECT_EQ("folder", GetParam(command4, "folder_pattern"));
+	EXPECT_EQ("file", GetParam(command4, "file_pattern"));
+}
