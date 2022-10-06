@@ -28,7 +28,7 @@ TEST(RasUtilTest, GetAsInt)
 
 TEST(RasUtilTest, Banner)
 {
-	EXPECT_FALSE(Banner("").empty());
+	EXPECT_FALSE(Banner("Test").empty());
 }
 
 TEST(RasUtilTest, ListDevices)
