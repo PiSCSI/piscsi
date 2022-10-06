@@ -51,6 +51,10 @@ center.logged_out {
   background-color: red;
 }
 
+input.lun {
+  width: 32px;
+}
+
 div.flash {
   margin-top: 5px;
   margin-bottom: 5px;

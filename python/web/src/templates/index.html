@@ -292,7 +292,7 @@
                         {% endfor %}
                     </select>
                     <label for="image_list_unit_{{ file["name"] }}">{{ _("LUN") }}</label>
-                    <input name="unit" id="image_list_unit_{{ file["name"] }}" type="number" value="0" min="0" max="31" step="1">
+                    <input class="lun" name="unit" id="image_list_unit_{{ file["name"] }}" type="number" value="0" min="0" max="31" step="1">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file['detected_type_name'] }}
@@ -435,7 +435,7 @@
                 {% endfor %}
                 </select>
                 <label for="{{ type }}_unit">{{ _("LUN") }}</label>
-                <input name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1">
+                <input class="lun" name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
