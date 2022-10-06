@@ -367,7 +367,7 @@ bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in* addr)
 	addrinfo* result;
 
 	if (!getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
-		*addr = *(sockaddr_in*)(result->ai_addr);
+		*addr = *(sockaddr_in *)(result->ai_addr);
 		freeaddrinfo(result);
 		return true;
 	}
