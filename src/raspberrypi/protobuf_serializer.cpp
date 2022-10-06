@@ -11,7 +11,6 @@
 #include "protobuf_serializer.h"
 #include "rascsi_exceptions.h"
 #include <unistd.h>
-#include <sstream>
 
 using namespace std;
 using namespace rascsi_interface;
