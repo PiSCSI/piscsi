@@ -26,7 +26,7 @@ TEST(ModePageDeviceTest, AddModePages)
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 0, 1)) << "Allocation length 1 must be rejected";
 
 	cdb[2] = 0x00;
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12), scsi_error_exception)
+	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12), scsi_exception)
 		<< "Data were returned for non-existing mode page 0";
 }
 
@@ -62,7 +62,7 @@ TEST(ModePageDeviceTest, ModeSelect)
 	vector<int> cmd;
 	vector<BYTE> buf;
 
-	EXPECT_THROW(device.ModeSelect(cmd, buf, 0), scsi_error_exception) << "Unexpected MODE SELECT default implementation";
+	EXPECT_THROW(device.ModeSelect(cmd, buf, 0), scsi_exception) << "Unexpected MODE SELECT default implementation";
 }
 
 TEST(ModePageDeviceTest, ModeSelect6)
@@ -78,7 +78,7 @@ TEST(ModePageDeviceTest, ModeSelect6)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
 
     cmd[1] = 0x01;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect6), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect6), scsi_exception)
     	<< "Saving parameters is not supported for most device types";
 }
 
@@ -95,6 +95,6 @@ TEST(ModePageDeviceTest, ModeSelect10)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
 
     cmd[1] = 0x01;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect10), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect10), scsi_exception)
     	<< "Saving parameters is not supported for most device types";
 }

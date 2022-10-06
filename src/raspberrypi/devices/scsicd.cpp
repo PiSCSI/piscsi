@@ -279,7 +279,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 
 	// If invalid, out of range
 	if (index < 0) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	assert(tracks[index]);
@@ -325,7 +325,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 	const int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
 	if (cdb[6] > last && cdb[6] != 0xaa) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Check start index
@@ -358,7 +358,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 			}
 
 			// Otherwise, error
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
@@ -407,11 +407,11 @@ void SCSICD::GetEventStatusNotification()
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported")
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

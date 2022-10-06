@@ -75,10 +75,10 @@ TEST(AbstractControllerTest, ProcessPhase)
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::reselection);
-	EXPECT_THROW(controller.ProcessPhase(), scsi_error_exception);
+	EXPECT_THROW(controller.ProcessPhase(), scsi_exception);
 
 	controller.SetPhase(BUS::phase_t::reserved);
-	EXPECT_THROW(controller.ProcessPhase(), scsi_error_exception);
+	EXPECT_THROW(controller.ProcessPhase(), scsi_exception);
 }
 
 TEST(AbstractControllerTest, DeviceLunLifeCycle)

@@ -22,7 +22,7 @@ TEST(ScsiCommandUtilTest, ModeSelect)
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 0), scsi_error_exception)
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 0), scsi_exception)
 		<< "Vendor-specific parameters are not supported";
 
 	// PF (standard parameter format)
@@ -31,17 +31,17 @@ TEST(ScsiCommandUtilTest, ModeSelect)
 	buf[9] = 0x00;
 	buf[10] = 0x02;
 	buf[11] = 0x00;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 256), scsi_error_exception)
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 256), scsi_exception)
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[LENGTH] = 0x00;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_exception)
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[LENGTH] = 0x03;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_error_exception)
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_exception)
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size

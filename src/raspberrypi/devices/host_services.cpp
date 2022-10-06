@@ -77,7 +77,7 @@ void HostServices::StartStopUnit()
 		controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	EnterStatusPhase();
@@ -87,7 +87,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
@@ -98,7 +98,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 
 	size += super::AddModePages(cdb, buf, size, length - size);
 	if (size > 255) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -115,7 +115,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
@@ -126,7 +126,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 
 	size += super::AddModePages(cdb, buf, size, length - size);
 	if (size > 65535) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes

@@ -79,7 +79,7 @@ BUS::phase_t ScsiController::Process(int id)
 	try {
 		ProcessPhase();
 	}
-	catch(const scsi_error_exception&) {
+	catch(const scsi_exception&) {
 		// Any exception should have been handled during the phase processing
 		assert(false);
 
@@ -267,10 +267,10 @@ void ScsiController::Execute()
 		if (!device->Dispatch(GetOpcode())) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
 
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
 	}
-	catch(const scsi_error_exception& e) { //NOSONAR This exception is handled properly
+	catch(const scsi_exception& e) { //NOSONAR This exception is handled properly
 		Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 		// Fall through
@@ -798,7 +798,7 @@ void ScsiController::FlushUnit()
 			try {
 				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
@@ -841,7 +841,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 			try {
 				ctrl.length = (dynamic_pointer_cast<Disk>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
 			}
-			catch(const scsi_error_exception&) {
+			catch(const scsi_exception&) {
 				// If there is an error, go to the status phase
 				return false;
 			}
@@ -881,7 +881,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return false;
 			}
@@ -919,7 +919,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				disk->Write(ctrl.cmd, GetBuffer(), ctrl.next - 1);
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 				// Write failed
@@ -936,7 +936,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				ctrl.length = disk->WriteCheck(ctrl.next - 1);
 			}
-			catch(const scsi_error_exception&) {
+			catch(const scsi_exception&) {
 				// Cannot write
 				return false;
 			}

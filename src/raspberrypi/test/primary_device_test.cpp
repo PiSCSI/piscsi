@@ -56,25 +56,25 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 	device->SetAttn(true);
 	device->SetReady(false);
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 
 	device->SetReset(false);
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 
 	device->SetReset(true);
 	device->SetAttn(false);
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 
 	device->SetReset(false);
 	device->SetAttn(true);
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 
 	device->SetAttn(false);
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 
 	device->SetReady(true);
 	EXPECT_CALL(controller, Status()).Times(1);
@@ -126,11 +126,11 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	cmd[1] = 0x01;
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_error_exception) << "EVPD bit is not supported";
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_exception) << "EVPD bit is not supported";
 
 	cmd[2] = 0x01;
 	EXPECT_CALL(controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_error_exception) << "PAGE CODE field is not supported";
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_exception) << "PAGE CODE field is not supported";
 
 	cmd[1] = 0x00;
 	cmd[2] = 0x00;
@@ -155,7 +155,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 	cmd[4] = 255;
 
 	device->SetReady(false);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdRequestSense), scsi_error_exception);
+	EXPECT_THROW(device->Dispatch(scsi_command::eCmdRequestSense), scsi_exception);
 
 	device->SetReady(true);
 	EXPECT_CALL(controller, DataIn()).Times(1);
@@ -206,7 +206,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	EXPECT_EQ(LUN2, buffer[23]) << "Wrong LUN2 number";
 
 	cmd[2] = 0x01;
-	EXPECT_THROW(device1->Dispatch(scsi_command::eCmdReportLuns), scsi_error_exception) << "Only SELECT REPORT mode 0 is supported";
+	EXPECT_THROW(device1->Dispatch(scsi_command::eCmdReportLuns), scsi_exception) << "Only SELECT REPORT mode 0 is supported";
 }
 
 TEST(PrimaryDeviceTest, UnknownCommand)

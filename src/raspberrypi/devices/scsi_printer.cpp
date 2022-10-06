@@ -153,7 +153,7 @@ void SCSIPrinter::Print()
 		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected").c_str())
 
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	ctrl->length = length;
@@ -167,7 +167,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	CheckReservation();
 
 	if (fd == -1) {
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	// Make the file readable for the lp user
@@ -194,7 +194,7 @@ void SCSIPrinter::SynchronizeBuffer()
 
 		unlink(filename);
 
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	unlink(filename);
@@ -248,7 +248,7 @@ void SCSIPrinter::CheckReservation()
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun())
 	}
 
-	throw scsi_error_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+	throw scsi_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			status::RESERVATION_CONFLICT);
 }
 

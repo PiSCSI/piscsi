@@ -88,7 +88,7 @@ TEST(HostServicesTest, StartStopUnit)
 
     // START
     cmd[4] = 0x01;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdStartStop), scsi_error_exception);
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
 }
 
 TEST(HostServicesTest, ModeSense6)
@@ -102,11 +102,11 @@ TEST(HostServicesTest, ModeSense6)
 
     vector<int>& cmd = controller.InitCmd(6);
 
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense6), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense6), scsi_exception)
     	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense6), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense6), scsi_exception)
     	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;
@@ -143,11 +143,11 @@ TEST(HostServicesTest, ModeSense10)
 
     vector<int>& cmd = controller.InitCmd(10);
 
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense10), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense10), scsi_exception)
     	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense10), scsi_error_exception)
+    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSense10), scsi_exception)
     	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;

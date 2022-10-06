@@ -59,7 +59,7 @@ void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<byte> buf = InquiryInternal();
@@ -84,7 +84,7 @@ void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
 	if (ctrl->cmd[2]) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
@@ -143,20 +143,20 @@ void PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetReset(false);
 		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
+		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
 		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Initialization with no error
@@ -189,7 +189,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
-		throw scsi_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Set 18 bytes including extended sense data
