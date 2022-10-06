@@ -49,6 +49,14 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	s = display.DisplayDeviceInfo(device);
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find(to_string(1234 *4321)));
+
+	device.mutable_properties()->set_supports_file(true);
+	PbImageFile *file = new PbImageFile();
+	file->set_name("filename");
+	device.set_allocated_file(file);
+	s = display.DisplayDeviceInfo(device);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("filename"));
 }
 
 TEST(RasctlDisplayTest, DisplayVersionInfo)
