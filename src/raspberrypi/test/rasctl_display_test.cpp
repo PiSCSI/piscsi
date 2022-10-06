@@ -170,7 +170,6 @@ TEST(RasctlDisplayTest, DisplayImageFilesInfo)
 	file->set_name("filename");
 	s = display.DisplayImageFilesInfo(info);
 	EXPECT_FALSE(s.empty());
-	cerr << s << endl;
 	EXPECT_NE(string::npos, s.find("filename"));
 }
 
