@@ -43,7 +43,12 @@ TEST(ProtobufSerializerTest, ReadBytes)
 	ProtobufSerializer serializer;
 	vector<byte> buf(1);
 
-	int fd = open("/dev/zero", O_RDONLY);
+	int fd = open("/dev/null", O_RDONLY);
+	EXPECT_NE(-1, fd);
+	EXPECT_EQ(0, serializer.ReadBytes(fd, buf));
+	close(fd);
+
+	fd = open("/dev/zero", O_RDONLY);
 	EXPECT_NE(-1, fd);
 	EXPECT_EQ(1, serializer.ReadBytes(fd, buf));
 	close(fd);
