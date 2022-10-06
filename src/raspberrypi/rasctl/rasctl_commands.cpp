@@ -179,7 +179,7 @@ void RasctlCommands::CommandDevicesInfo()
 {
 	SendCommand();
 
-	cout << rasctl_display.DisplayDevices(result.devices_info()) << flush;
+	cout << rasctl_display.DisplayDevicesInfo(result.devices_info()) << flush;
 }
 
 void RasctlCommands::CommandLogLevel(const string& log_level)

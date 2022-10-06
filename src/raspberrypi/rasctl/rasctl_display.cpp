@@ -17,7 +17,7 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
 
-string RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info) const
+string RasctlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
 {
 	ostringstream s;
 

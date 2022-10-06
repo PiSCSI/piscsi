@@ -11,12 +11,12 @@
 
 #include "rasctl/rasctl_display.h"
 
-TEST(RasctlDisplayTest, DisplayDevices)
+TEST(RasctlDisplayTest, DisplayDevicesInfo)
 {
 	RasctlDisplay display;
 	PbDevicesInfo info;
 
-	EXPECT_FALSE(display.DisplayDevices(info).empty());
+	EXPECT_FALSE(display.DisplayDevicesInfo(info).empty());
 }
 
 TEST(RasctlDisplayTest, DisplayDeviceInfo)

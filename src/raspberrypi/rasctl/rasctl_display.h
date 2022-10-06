@@ -23,7 +23,7 @@ public:
 	RasctlDisplay() = default;
 	~RasctlDisplay() = default;
 
-	string DisplayDevices(const PbDevicesInfo&) const;
+	string DisplayDevicesInfo(const PbDevicesInfo&) const;
 	string DisplayDeviceInfo(const PbDevice&) const;
 	string DisplayVersionInfo(const PbVersionInfo&) const;
 	string DisplayLogLevelInfo(const PbLogLevelInfo&) const;
