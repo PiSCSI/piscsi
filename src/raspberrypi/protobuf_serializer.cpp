@@ -45,7 +45,7 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 	// Read the header with the size of the protobuf data
 	vector<byte> header_buf(4);
 	if (ReadBytes(fd, header_buf) < header_buf.size()) {
-		return;
+		throw io_exception("Invalid protobuf message header");
 	}
 
 	const size_t size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16)
