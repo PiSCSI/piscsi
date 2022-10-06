@@ -156,6 +156,12 @@ def format_drive_properties(drive_properties):
     FORMAT_FILTER = "{:,.2f}"
 
     for device in drive_properties:
+        # Add fallback device names, since other code relies on this data for display
+        if not device["name"]:
+            if device["product"]:
+                device["name"] = device["product"]
+            else:
+                device["name"] = "Unknown Device"
         if device["device_type"] == "SCHD":
             device["secure_name"] = secure_filename(device["name"])
             device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
@@ -177,6 +183,40 @@ def format_drive_properties(drive_properties):
         "cd_conf": cd_conf,
         "rm_conf": rm_conf,
         "mo_conf": mo_conf,
+        }
+
+def get_properties_by_drive_name(drives, drive_name):
+    """
+    Takes (list) of (dict) drives, and (str) drive_name
+    Returns (dict) with the collection of drive properties that matches drive_name
+    """
+    drives.sort(key=lambda item: item.get("name"))
+
+    drive_props = None
+    prev_drive = {"name": ""}
+    for drive in drives:
+        # TODO: Make this check into an integration test
+        if "name" not in drive:
+            logging.warning(
+                "Device without a name exists in the drive properties database. This is a bug."
+                )
+            break
+        # TODO: Make this check into an integration test
+        if drive["name"] == prev_drive["name"]:
+            logging.warning(
+                "Device with duplicate name \"%s\" in drive properties database. This is a bug.",
+                drive["name"],
+                )
+        prev_drive = drive
+        if drive["name"] == drive_name:
+            drive_props = drive
+
+    return {
+        "file_type": drive_props["file_type"],
+        "vendor": drive_props["vendor"],
+        "product": drive_props["product"],
+        "revision": drive_props["revision"],
+        "block_size": drive_props["block_size"],
         }
 
 def auth_active(group):

@@ -52,10 +52,7 @@ def test_create_cdrom_properties_file(http_client):
     response = http_client.post(
         "/drive/cdrom",
         data={
-            "vendor": "TEST_AAA",
-            "product": "TEST_BBB",
-            "revision": "1.0A",
-            "block_size": 2048,
+            "drive_name": "Sony CDU-8012",
             "file_name": file_name,
         },
     )
@@ -77,12 +74,8 @@ def test_create_image_with_properties_file(http_client, delete_file):
     response = http_client.post(
         "/drive/create",
         data={
-            "vendor": "TEST_AAA",
-            "product": "TEST_BBB",
-            "revision": "1.0A",
-            "block_size": 512,
+            "drive_name": "Miniscribe M8425",
             "size": FILE_SIZE_1_MIB,
-            "file_type": "hds",
             "file_name": file_prefix,
         },
     )
