@@ -123,12 +123,13 @@ void RasctlCommands::SendCommand()
 		AddParam(command, "locale", locale);
 	}
 
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (fd < 0) {
-		cerr << "Can't create socket" << endl;
-	}
-
+	int fd = -1;
 	try {
+		fd = socket(AF_INET, SOCK_STREAM, 0);
+		if (fd < 0) {
+			throw io_exception("Can't create socket");
+		}
+
 		sockaddr_in server_addr = {};
 		if (!ResolveHostName(hostname, &server_addr)) {
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
