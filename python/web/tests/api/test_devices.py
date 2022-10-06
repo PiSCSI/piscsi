@@ -73,10 +73,10 @@ def test_attach_image(http_client, create_test_image, detach_devices):
                 },
             },
         ),
-        ("Host Bridge", {"type": "SCBR", "inet": "192.168.0.1/24"}),
-        ("Ethernet Adapter", {"type": "SCDP", "inet": "192.168.0.1/24"}),
+        ("Host Bridge", {"type": "SCBR", "param_inet": "192.168.0.1/24"}),
+        ("Ethernet Adapter", {"type": "SCDP", "param_inet": "192.168.0.1/24"}),
         ("Host Services", {"type": "SCHS"}),
-        ("Printer", {"type": "SCLP", "timeout": 60, "cmd": "lp -fart %f"}),
+        ("Printer", {"type": "SCLP", "param_timeout": 60, "param_cmd": "lp -fart %f"}),
     ],
 )
 def test_attach_device(http_client, detach_devices, device_name, device_config):
