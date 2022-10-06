@@ -38,7 +38,7 @@ summary.heading {
   margin: 3px;
 }
 
-.header {
+div.header {
   display: inline-block;
   width: 100%;
   color: white;
@@ -46,11 +46,11 @@ summary.heading {
   background-color: black;
 }
 
-#logged_in {
+center.logged_in {
   background-color: green;
 }
 
-#logged_out {
+center.logged_out {
   background-color: red;
 }
 
