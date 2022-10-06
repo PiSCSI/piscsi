@@ -274,7 +274,7 @@ class MockSCSIMO : public SCSIMO
 
 class MockHostServices : public HostServices
 {
-	FRIEND_TEST(ModePagesTest, HostServices_SetUpModePages);
+	FRIEND_TEST(HostServicesTest, SetUpModePages);
 
 	using HostServices::HostServices;
 };

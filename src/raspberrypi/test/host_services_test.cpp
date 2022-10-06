@@ -45,4 +45,16 @@ TEST(HostServicesTest, StartStopUnit)
     // START
     cmd[4] = 0x01;
     EXPECT_THROW(device->Dispatch(scsi_command::eCmdStartStop), scsi_error_exception);
-  }
+}
+
+TEST(HostServicesTest, SetUpModePages)
+{
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	MockHostServices device(0, controller_manager);
+	map<int, vector<byte>> mode_pages;
+
+	device.SetUpModePages(mode_pages, 0x3f, false);
+	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(10, mode_pages[32].size());
+}
