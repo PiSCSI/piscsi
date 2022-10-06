@@ -85,7 +85,7 @@ TEST(HostServicesTest, ModeSense6)
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense6));
-	const vector<BYTE>& buffer = controller.GetBuffer();
+	vector<BYTE>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[6]);
 	// Minor version 0
@@ -94,6 +94,13 @@ TEST(HostServicesTest, ModeSense6)
 	EXPECT_NE(0x00, buffer[9]);
 	// Day
 	EXPECT_NE(0x00, buffer[10]);
+
+    // ALLOCATION LENGTH
+    cmd[4] = 2;
+    EXPECT_CALL(controller, DataIn()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense6));
+	buffer = controller.GetBuffer();
+	EXPECT_EQ(0x02, buffer[0]);
 }
 
 TEST(HostServicesTest, ModeSense10)
@@ -119,7 +126,7 @@ TEST(HostServicesTest, ModeSense10)
     cmd[8] = 255;
     EXPECT_CALL(controller, DataIn()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
-	const vector<BYTE>& buffer = controller.GetBuffer();
+	vector<BYTE>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[10]);
 	// Minor version 0
@@ -128,6 +135,13 @@ TEST(HostServicesTest, ModeSense10)
 	EXPECT_NE(0x00, buffer[13]);
 	// Day
 	EXPECT_NE(0x00, buffer[14]);
+
+    // ALLOCATION LENGTH
+    cmd[8] = 2;
+    EXPECT_CALL(controller, DataIn()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
+	buffer = controller.GetBuffer();
+	EXPECT_EQ(0x02, buffer[1]);
 }
 
 TEST(HostServicesTest, SetUpModePages)
