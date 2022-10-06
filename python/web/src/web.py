@@ -91,6 +91,7 @@ def get_env_info():
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
+        "base_dir": server_info["image_dir"],
         "netatalk_configured": sys_cmd.running_proc("afpd"),
         "macproxy_configured": sys_cmd.running_proc("macproxy"),
     }
@@ -241,7 +242,6 @@ def index():
         devices=formatted_devices,
         files=extended_image_files,
         config_files=config_files,
-        base_dir=server_info["image_dir"],
         scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
@@ -299,9 +299,7 @@ def drive_list():
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        base_dir=server_info["image_dir"],
         drive_properties=drive_properties,
-        version=server_info["version"],
         cdrom_file_suffix=tuple(server_info["sccd"]),
         )
 

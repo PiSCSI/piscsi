@@ -81,7 +81,7 @@
         <select type="select" name="file_name" id="file_name">
             {% for file in files|sort(attribute='name') %}
         {% if file["name"].lower().endswith(cdrom_file_suffix) %}
-        <option value="{{ file["name"] }}">{{ file["name"].replace(base_dir, '') }}</option>
+        <option value="{{ file["name"] }}">{{ file["name"].replace(env["base_dir"], '') }}</option>
         {% endif %}
         {% endfor %}
         </select>
