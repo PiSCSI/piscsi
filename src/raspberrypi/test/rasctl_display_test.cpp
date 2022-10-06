@@ -264,6 +264,7 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_EQ(string::npos, s.find("default_value1"));
 	EXPECT_EQ(string::npos, s.find("default_key2"));
 	EXPECT_EQ(string::npos, s.find("default_value2"));
+	EXPECT_EQ(string::npos, s.find("description"));
 
 	PbOperationMetaData meta_data;
 	PbOperationParameter *param1 = meta_data.add_parameters();
@@ -272,6 +273,7 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	PbOperationParameter *param2 = meta_data.add_parameters();
 	param2->set_name("default_key2");
 	param2->set_default_value("default_value2");
+	param2->set_description("description");
 	(*info.mutable_operations())[0] = meta_data;
 	s = display.DisplayOperationInfo(info);
 	EXPECT_FALSE(s.empty());
@@ -285,4 +287,5 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_NE(string::npos, s.find("default_value1"));
 	EXPECT_NE(string::npos, s.find("default_key2"));
 	EXPECT_NE(string::npos, s.find("default_value2"));
+	EXPECT_NE(string::npos, s.find("description"));
 }
