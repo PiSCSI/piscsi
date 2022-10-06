@@ -361,21 +361,21 @@ def drive_create():
     """
     drive_name = request.form.get("drive_name")
     size = request.form.get("size")
-    file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
-    full_file_name = file_name + "." + file_type
 
-    # Creating the image file
-    process = file_cmd.create_new_image(file_name, file_type, size)
-    if not process["status"]:
-        return response(error=True, message=process["msg"])
-
-    # Creating the drive properties file
-    prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
     properties = get_properties_by_drive_name(
         APP.config["RASCSI_DRIVE_PROPERTIES"],
         drive_name
         )
+
+    # Creating the image file
+    process = file_cmd.create_new_image(file_name, properties["file_type"], size)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
+
+    # Creating the drive properties file
+    full_file_name = f"{file_name}.{properties['file_type']}"
+    prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
     process = file_cmd.write_drive_properties(prop_file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:

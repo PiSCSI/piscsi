@@ -212,6 +212,7 @@ def get_properties_by_drive_name(drives, drive_name):
             drive_props = drive
 
     return {
+        "file_type": drive_props["file_type"],
         "vendor": drive_props["vendor"],
         "product": drive_props["product"],
         "revision": drive_props["revision"],
