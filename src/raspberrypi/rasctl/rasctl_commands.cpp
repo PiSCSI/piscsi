@@ -123,26 +123,19 @@ void RasctlCommands::SendCommand()
 		AddParam(command, "locale", locale);
 	}
 
-	// Send command
-	int fd = -1;
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0) {
+		throw io_exception("Can't create socket");
+	}
+
 	try {
-    	const hostent *host = gethostbyname(hostname.c_str());
-    	if (!host) {
+		sockaddr_in server_addr = {};
+		if (!ResolveHostName(hostname, &server_addr)) {
     		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
 
-    	fd = socket(AF_INET, SOCK_STREAM, 0);
-    	if (fd < 0) {
-    		throw io_exception("Can't create socket");
-    	}
-
-    	sockaddr_in server = {};
-    	server.sin_family = AF_INET;
-    	server.sin_port = htons((uint16_t)port);
-    	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
-
-    	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
+		server_addr.sin_port = htons(port);
+    	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
     		throw io_exception("Can't connect to rascsi process on host '" + hostname + "', port "
     				+ to_string(port));
     	}
@@ -364,4 +357,20 @@ void RasctlCommands::CommandOperationInfo()
 	SendCommand();
 
 	rasctl_display.DisplayOperationInfo(result.operation_info());
+}
+
+bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in* addr)
+{
+	addrinfo hints = {};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	addrinfo* result;
+
+	if (!getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
+		*addr = *(sockaddr_in*)(result->ai_addr);
+		freeaddrinfo(result);
+		return true;
+	}
+
+	return false;
 }
