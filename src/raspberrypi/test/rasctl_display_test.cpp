@@ -97,7 +97,6 @@ TEST(RasctlDisplayTest, DisplayLogLevelInfo)
 
 	string s = display.DisplayLogLevelInfo(info);
 	EXPECT_FALSE(s.empty());
-	EXPECT_EQ(string::npos, s.find("test"));
 
 	info.add_log_levels("test");
 	s = display.DisplayLogLevelInfo(info);
@@ -156,8 +155,6 @@ TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
 
 	string s = display.DisplayReservedIdsInfo(info);
 	EXPECT_FALSE(s.empty());
-	EXPECT_EQ(string::npos, s.find("5"));
-	EXPECT_EQ(string::npos, s.find("5, 6"));
 
 	info.mutable_ids()->Add(5);
 	s = display.DisplayReservedIdsInfo(info);
@@ -177,8 +174,6 @@ TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
 
 	string s = display.DisplayNetworkInterfaces(info);
 	EXPECT_FALSE(s.empty());
-	EXPECT_EQ(string::npos, s.find("eth0"));
-	EXPECT_EQ(string::npos, s.find("wlan0"));
 
 	info.mutable_name()->Add("eth0");
 	s = display.DisplayNetworkInterfaces(info);
@@ -198,9 +193,6 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 
 	string s = display.DisplayImageFile(file);
 	EXPECT_FALSE(s.empty());
-	EXPECT_EQ(string::npos, s.find("filename"));
-	EXPECT_EQ(string::npos, s.find("read-only"));
-	EXPECT_EQ(string::npos, s.find("SCHD"));
 
 	file.set_name("filename");
 	s = display.DisplayImageFile(file);
@@ -260,11 +252,6 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 
 	string s = display.DisplayOperationInfo(info);
 	EXPECT_FALSE(s.empty());
-	EXPECT_EQ(string::npos, s.find("default_key1"));
-	EXPECT_EQ(string::npos, s.find("default_value1"));
-	EXPECT_EQ(string::npos, s.find("default_key2"));
-	EXPECT_EQ(string::npos, s.find("default_value2"));
-	EXPECT_EQ(string::npos, s.find("description"));
 
 	PbOperationMetaData meta_data;
 	PbOperationParameter *param1 = meta_data.add_parameters();
@@ -273,7 +260,11 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	PbOperationParameter *param2 = meta_data.add_parameters();
 	param2->set_name("default_key2");
 	param2->set_default_value("default_value2");
-	param2->set_description("description");
+	PbOperationParameter *param3 = meta_data.add_parameters();
+	param3->set_name("default_key3");
+	param3->set_default_value("default_value3");
+	param3->set_description("description");
+	param3->add_permitted_values("permitted_value");
 	(*info.mutable_operations())[0] = meta_data;
 	s = display.DisplayOperationInfo(info);
 	EXPECT_FALSE(s.empty());
@@ -287,5 +278,8 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_NE(string::npos, s.find("default_value1"));
 	EXPECT_NE(string::npos, s.find("default_key2"));
 	EXPECT_NE(string::npos, s.find("default_value2"));
+	EXPECT_NE(string::npos, s.find("default_key3"));
+	EXPECT_NE(string::npos, s.find("default_value3"));
 	EXPECT_NE(string::npos, s.find("description"));
+	EXPECT_NE(string::npos, s.find("permitted_value"));
 }
