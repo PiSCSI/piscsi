@@ -19,6 +19,9 @@ TEST(ProtobufSerializerTest, SerializeMessage)
 	PbResult message;
 	ProtobufSerializer serializer;
 
-	serializer.SerializeMessage(STDOUT_FILENO, message);
+	int fd = open("/dev/null", O_WRONLY);
+	ASSERT_NE(-1, fd);
+	serializer.SerializeMessage(fd, message);
+	close(fd);
 	EXPECT_THROW(serializer.SerializeMessage(-1, message), io_exception);
 }

@@ -23,10 +23,8 @@
 using namespace scsi_command_util;
 
 SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
-	: Disk(removable ? "SCRM" : "SCHD", lun)
+	: Disk(removable ? "SCRM" : "SCHD", lun), scsi_level(level)
 {
-	scsi_level = level;
-
 	SetSectorSizes(sector_sizes);
 }
 

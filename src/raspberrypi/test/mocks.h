@@ -18,9 +18,7 @@
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
-#include "protobuf_serializer.h"
-#include "command_context.h"
-#include "localizer.h"
+#include "rascsi/command_context.h"
 
 class MockBus final : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
@@ -273,11 +271,10 @@ class MockHostServices final : public HostServices
 
 class MockCommandContext : public CommandContext
 {
-	ProtobufSerializer s;
-	Localizer l;
-
 public:
 
-	MockCommandContext() : CommandContext(s, l, STDOUT_FILENO, "") {}
+	MockCommandContext() {
+		SetFd(open("/dev/null", O_WRONLY));
+	}
 	~MockCommandContext() = default;
 };

@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_interface.pb.h"
-#include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
+#include "rascsi_exceptions.h"
 #include <unistd.h>
 #include <sstream>
 

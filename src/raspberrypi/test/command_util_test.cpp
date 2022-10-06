@@ -59,10 +59,3 @@ TEST(CommandUtil, ParseParameters)
 	TestSpecialDevice("printer");
 	TestSpecialDevice("services");
 }
-
-TEST(CommandUtil, ReturnLocalizedError)
-{
-	MockCommandContext context;
-
-	EXPECT_FALSE(ReturnLocalizedError(context, LocalizationKey::ERROR_LOG_LEVEL));
-}

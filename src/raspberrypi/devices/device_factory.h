@@ -11,11 +11,10 @@
 
 #pragma once
 
+#include <string>
 #include <list>
-#include <vector>
 #include <unordered_set>
 #include <unordered_map>
-#include <string>
 #include "rascsi_interface.pb.h"
 
 using namespace std;
@@ -26,6 +25,8 @@ class PrimaryDevice;
 
 class DeviceFactory
 {
+	const string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
+
 public:
 
 	DeviceFactory();
@@ -41,13 +42,13 @@ public:
 
 private:
 
+	string GetExtension(const string&) const;
+
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
 	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;
 
 	unordered_map<string, PbDeviceType> extension_mapping;
-
-	string GetExtension(const string&) const;
 
 	unordered_set<uint32_t> empty_set;
 	unordered_map<string, string> empty_map;
