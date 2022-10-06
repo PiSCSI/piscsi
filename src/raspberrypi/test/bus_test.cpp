@@ -65,6 +65,21 @@ TEST(BusTest, GetPhase)
 	EXPECT_EQ(BUS::phase_t::status, bus.GetPhase());
 }
 
+TEST(BusTest, GetPhaseStrRaw)
+{
+	EXPECT_STREQ("busfree", BUS::GetPhaseStrRaw(BUS::phase_t::busfree));
+	EXPECT_STREQ("arbitration", BUS::GetPhaseStrRaw(BUS::phase_t::arbitration));
+	EXPECT_STREQ("selection", BUS::GetPhaseStrRaw(BUS::phase_t::selection));
+	EXPECT_STREQ("reselection", BUS::GetPhaseStrRaw(BUS::phase_t::reselection));
+	EXPECT_STREQ("command", BUS::GetPhaseStrRaw(BUS::phase_t::command));
+	EXPECT_STREQ("datain", BUS::GetPhaseStrRaw(BUS::phase_t::datain));
+	EXPECT_STREQ("dataout", BUS::GetPhaseStrRaw(BUS::phase_t::dataout));
+	EXPECT_STREQ("status", BUS::GetPhaseStrRaw(BUS::phase_t::status));
+	EXPECT_STREQ("msgin", BUS::GetPhaseStrRaw(BUS::phase_t::msgin));
+	EXPECT_STREQ("msgout", BUS::GetPhaseStrRaw(BUS::phase_t::msgout));
+	EXPECT_STREQ("reserved", BUS::GetPhaseStrRaw(BUS::phase_t::reserved));
+}
+
 TEST(BusTest, GetPinRaw)
 {
 	EXPECT_EQ(0, BUS::GetPinRaw(0, 0));
