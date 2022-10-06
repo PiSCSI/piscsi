@@ -22,8 +22,8 @@ TEST(ProtobufSerializerTest, SerializeMessage)
 	int fd = open("/dev/null", O_WRONLY);
 	EXPECT_NE(-1, fd);
 	serializer.SerializeMessage(fd, result);
-	close(fd);
 	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception);
+	close(fd);
 }
 
 TEST(ProtobufSerializerTest, DeserializeMessage)
