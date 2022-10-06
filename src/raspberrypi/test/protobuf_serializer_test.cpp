@@ -16,25 +16,25 @@ using namespace rascsi_interface;
 
 TEST(ProtobufSerializerTest, SerializeMessage)
 {
-	PbResult message;
+	PbResult result;
 	ProtobufSerializer serializer;
 
 	int fd = open("/dev/null", O_WRONLY);
 	EXPECT_NE(-1, fd);
-	serializer.SerializeMessage(fd, message);
+	serializer.SerializeMessage(fd, result);
 	close(fd);
-	EXPECT_THROW(serializer.SerializeMessage(-1, message), io_exception);
+	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception);
 }
 
 TEST(ProtobufSerializerTest, DeserializeMessage)
 {
-	PbResult message;
+	PbResult result;
 	ProtobufSerializer serializer;
 	vector<byte> buf(1);
 
 	int fd = open("/dev/null", O_WRONLY);
 	EXPECT_NE(-1, fd);
-	EXPECT_THROW(serializer.DeserializeMessage(fd, message), io_exception);
+	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception);
 	close(fd);
 }
 
