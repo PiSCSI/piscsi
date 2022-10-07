@@ -47,7 +47,6 @@
 <tbody>
 <tr>
     <th scope="col">{{ _("Name") }}</th>
-    <th scope="col">{{ _("Size (MiB)") }}</th>
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
@@ -60,7 +59,6 @@
         {{ cd.name }}
         {% endif %}
     </td>
-    <td align="center">{{ cd.size_mb }}</td>
     <td>{{ cd.description }}</td>
     <td>
     <form action="/drive/cdrom" method="post">
