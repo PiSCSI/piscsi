@@ -471,26 +471,24 @@ void SCSIDaynaPort::SetMcastAddr()
 void SCSIDaynaPort::EnableInterface()
 {
 	if (ctrl->cmd[5] & 0x80) {
-		if (m_tap.Enable()) {
-			LOGINFO("The DaynaPort interface has been ENABLED.")
-		}
-		else {
+		if (!m_tap.Enable()) {
 			LOGWARN("Unable to enable the DaynaPort Interface")
 
 			throw scsi_exception();
 		}
 
 		m_tap.Flush();
+
+		LOGINFO("The DaynaPort interface has been ENABLED")
 	}
 	else {
-		if (m_tap.Disable()) {
-			LOGINFO("The DaynaPort interface has been DISABLED.")
-		}
-		else{
+		if (!m_tap.Disable()) {
 			LOGWARN("Unable to disable the DaynaPort Interface")
 
 			throw scsi_exception();
 		}
+
+		LOGINFO("The DaynaPort interface has been DISABLED")
 	}
 
 	EnterStatusPhase();
