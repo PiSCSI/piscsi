@@ -40,7 +40,7 @@ TEST(CommandContext, Cleanup)
 
 TEST(CommandContext, ReturnLocalizedError)
 {
-	CommandContext context("", -1);
+	CommandContext context("en_US", -1);
 
 	EXPECT_FALSE(context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL));
 }
