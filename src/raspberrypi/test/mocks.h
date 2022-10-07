@@ -11,6 +11,7 @@
 
 #include <gmock/gmock.h>
 
+#include "test_shared.h"
 #include "controllers/scsi_controller.h"
 #include "devices/primary_device.h"
 #include "devices/scsihd.h"
@@ -82,6 +83,9 @@ public:
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
+			scsi_defs::scsi_level, const std::string&, int, bool);
+
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
@@ -112,9 +116,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(ScsiPrinterTest, TestUnitReady);
-	FRIEND_TEST(ScsiPrinterTest, Inquiry);
 	FRIEND_TEST(HostServicesTest, TestUnitReady);
-	FRIEND_TEST(HostServicesTest, Inquiry);
 	FRIEND_TEST(HostServicesTest, StartStopUnit);
 	FRIEND_TEST(HostServicesTest, ModeSense6);
 	FRIEND_TEST(HostServicesTest, ModeSense10);

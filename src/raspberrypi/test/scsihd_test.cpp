@@ -18,3 +18,9 @@ TEST(ScsiHdTest, FinalizeSetup)
 
 	EXPECT_THROW(disk.FinalizeSetup(filepath, 2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
 }
+
+TEST(ScsiHdTest, Inquiry)
+{
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, scsi_level::SCSI_2,
+			"RaSCSI                  ", 0x1f, false);
+}
