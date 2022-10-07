@@ -21,9 +21,6 @@
 //  following link:
 //    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
 //
-//  This does NOT include the file system functionality that is present
-//  in the Sharp X68000 host bridge.
-//
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
