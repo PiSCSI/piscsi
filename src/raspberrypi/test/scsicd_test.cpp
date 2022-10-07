@@ -19,9 +19,9 @@ TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD device(0, sector_sizes);
+	MockSCSICD cd(0, sector_sizes);
 
-	device.SetUpModePages(mode_pages, 0x3f, false);
+	cd.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(7, mode_pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(12, mode_pages[1].size());
 	EXPECT_EQ(24, mode_pages[3].size());

@@ -22,9 +22,9 @@ TEST(ScsiHdNecTest, Inquiry)
 TEST(ScsiHdNecTest, SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
-	MockSCSIHD_NEC disk(0);
+	MockSCSIHD_NEC hd(0);
 
-	disk.SetUpModePages(mode_pages, 0x3f, false);
+	hd.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(8, mode_pages[1].size());
 	EXPECT_EQ(24, mode_pages[3].size());
