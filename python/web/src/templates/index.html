@@ -507,7 +507,7 @@
         <option value="afp">{{ AFP_DIR }}</option>
     </select>
     <label for="download_url">{{ _("URL:") }}</label>
-    <input name="url" id="download_url" placeholder="{{ _("URL") }}" required="" type="url">
+    <input name="url" id="download_url" required="" type="url">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 
@@ -526,7 +526,7 @@
 
 <form action="/files/download_to_iso" method="post">
     <label for="iso_url">{{ _("URL:") }}</label>
-    <input name="url" id="iso_url" placeholder="{{ _("URL") }}" required="" type="url">
+    <input name="url" id="iso_url" required="" type="url">
     <label for="iso_type">{{ _("Type:") }}</label>
     <select name="type" id="iso_type">
         <option value="-hfs">
@@ -572,7 +572,7 @@
 
 <form action="/files/create" method="post">
     <label for="image_create_file_name">{{ _("File Name:") }}</label>
-    <input name="file_name" id="image_create_file_name" placeholder="{{ _("File Name") }}" required="" type="text">
+    <input name="file_name" id="image_create_file_name" required="" type="text">
     <label for="image_create_type">{{ _("Type:") }}</label>
     <select name="type" id="image_create_type">
         {% for key, value in image_suffixes_to_create.items() %}
