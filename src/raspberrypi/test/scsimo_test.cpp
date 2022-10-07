@@ -21,7 +21,6 @@ TEST(ScsiMoTest, SetUpModePages)
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIMO device(0, sector_sizes);
 
-	ON_CALL(device, IsReady()).WillByDefault(Return(true));
 	device.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(6, mode_pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(12, mode_pages[1].size());

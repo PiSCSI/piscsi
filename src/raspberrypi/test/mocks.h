@@ -265,8 +265,6 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 {
 	FRIEND_TEST(ScsiHdNecTest, SetUpModePages);
 
-	MOCK_METHOD(void, FlushCache, (), (override));
-
 	using SCSIHD_NEC::SCSIHD_NEC;
 };
 
@@ -280,8 +278,6 @@ class MockSCSICD : public SCSICD
 class MockSCSIMO : public SCSIMO
 {
 	FRIEND_TEST(ScsiMoTest, SetUpModePages);
-
-	MOCK_METHOD(bool, IsReady, (), ());
 
 	using SCSIMO::SCSIMO;
 };
