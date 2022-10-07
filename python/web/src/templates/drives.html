@@ -27,8 +27,6 @@
     <td>
     <form action="/drive/create" method="post">
         <input type="hidden" name="drive_name" value="{{ hd.name }}">
-        <label for="size_{{ hd.name }}">{{ _("Size:") }}</label>
-        <input type="number" name="size" id="size_{{ hd.name }}" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
         <label for="file_name_{{ hd.name }}">{{ _("Save as:") }}</label>
         <input type="text" name="file_name" id="file_name_{{ hd.name }}" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
     <input type="submit" value="{{ _("Create") }}" />
@@ -104,8 +102,6 @@
     <td>
     <form action="/drive/create" method="post">
         <input type="hidden" name="drive_name" value="{{ rm.name }}">
-        <label for="size_{{ rm.name }}">{{ _("Size:") }}</label>
-        <input type="number" name="size" id="size_{{ rm.name }}" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
         <label for="file_name_{{ rm.name }}">{{ _("Save as:") }}</label>
         <input type="text" name="file_name" id="file_name_{{ rm.name }}" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
         <input type="submit" value="{{ _("Create") }}" />

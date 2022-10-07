@@ -358,7 +358,6 @@ def drive_create():
     Creates the image and properties file pair
     """
     drive_name = request.form.get("drive_name")
-    size = request.form.get("size")
     file_name = request.form.get("file_name")
 
     properties = get_properties_by_drive_name(
@@ -367,7 +366,11 @@ def drive_create():
         )
 
     # Creating the image file
-    process = file_cmd.create_new_image(file_name, properties["file_type"], size)
+    process = file_cmd.create_new_image(
+        file_name,
+        properties["file_type"],
+        properties["size"],
+        )
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
