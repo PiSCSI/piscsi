@@ -42,7 +42,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
-TEST(ScsiDaynaportTest, RetrieveStatistics)
+TEST(ScsiDaynaportTest, TestRetrieveStats)
 {
 	NiceMock<MockAbstractController> controller(0);
 	auto daynaport = CreateDevice(SCDP, controller);
@@ -53,6 +53,36 @@ TEST(ScsiDaynaportTest, RetrieveStatistics)
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdRetrieveStats));
+}
+
+TEST(ScsiDaynaportTest, SetInterfaceMode)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = CreateDevice(SCDP, controller);
+
+	vector<int>& cmd = controller.InitCmd(6);
+
+	// Not implemented, do nothing
+	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMODE;
+	EXPECT_CALL(controller, Status()).Times(1);
+	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMAC;
+	EXPECT_CALL(controller, DataOut()).Times(1);
+	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode));
+
+	// Not implemented
+	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_STATS;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+
+	// Not implemented
+	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_ENABLE;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+
+	// Not implemented
+	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SET;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
 }
 
 TEST(ScsiDaynaportTest, SetMcastAddr)

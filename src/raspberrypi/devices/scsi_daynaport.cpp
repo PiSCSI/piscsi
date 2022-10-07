@@ -433,10 +433,12 @@ void SCSIDaynaPort::SetInterfaceMode()
 		case CMD_SCSILINK_ENABLE:
 		case CMD_SCSILINK_SET:
 			LOGWARN("%s Unsupported SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
+			throw scsi_exception();
 			break;
 
 		default:
 			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
+			throw scsi_exception();
 			break;
 	}
 }
