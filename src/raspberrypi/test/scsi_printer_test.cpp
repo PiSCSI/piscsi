@@ -67,3 +67,36 @@ TEST(ScsiPrinterTest, ReleaseUnit)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdRelease6));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
+
+TEST(ScsiPrinterTest, SendDiagnostic)
+{
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	NiceMock<MockAbstractController> controller(0);
+	auto device = make_shared<SCSIPrinter>(0);
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(6);
+
+    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdSendDiag));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
+}
+
+
+TEST(ScsiPrinterTest, StopPrint)
+{
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	NiceMock<MockAbstractController> controller(0);
+	auto device = make_shared<SCSIPrinter>(0);
+
+    controller.AddDevice(device);
+
+    controller.InitCmd(6);
+
+    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
+}
