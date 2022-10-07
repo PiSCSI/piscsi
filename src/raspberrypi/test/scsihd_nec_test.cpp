@@ -8,34 +8,28 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "rascsi_exceptions.h"
-#include "devices/scsihd.h"
+#include "controllers/controller_manager.h"
+#include "devices/scsihd_nec.h"
 
-TEST(ScsiHdTest, FinalizeSetup)
-{
-	MockSCSIHD_NEC disk(0);
-	Filepath filepath;
+using namespace std;
 
-	EXPECT_THROW(disk.FinalizeSetup(filepath, 2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
-}
-
-TEST(ScsiHdTest, Inquiry)
+TEST(ScsiHdNecTest, Inquiry)
 {
 	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, scsi_level::SCSI_2,
 			"RaSCSI                  ", 0x1f, false);
 }
 
-TEST(ScsiHdTest, SetUpModePages)
+TEST(ScsiHdNecTest, SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD device(0, sector_sizes, false);
+	MockSCSIHD_NEC disk(0);
 
-	device.SetUpModePages(mode_pages, 0x3f, false);
+	disk.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(12, mode_pages[1].size());
+	EXPECT_EQ(8, mode_pages[1].size());
 	EXPECT_EQ(24, mode_pages[3].size());
-	EXPECT_EQ(24, mode_pages[4].size());
+	EXPECT_EQ(20, mode_pages[4].size());
 	EXPECT_EQ(12, mode_pages[8].size());
 	EXPECT_EQ(30, mode_pages[48].size());
 }
+

@@ -255,7 +255,7 @@ public:
 class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
-	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
+	FRIEND_TEST(ScsiHdTest, SetUpModePages);
 	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
 
 	using SCSIHD::SCSIHD;
@@ -263,7 +263,7 @@ class MockSCSIHD : public SCSIHD
 
 class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
+	FRIEND_TEST(ScsiHdNecTest, SetUpModePages);
 
 	MOCK_METHOD(void, FlushCache, (), (override));
 
@@ -272,14 +272,14 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 
 class MockSCSICD : public SCSICD
 {
-	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
+	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 
 	using SCSICD::SCSICD;
 };
 
 class MockSCSIMO : public SCSIMO
 {
-	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
+	FRIEND_TEST(ScsiMoTest, SetUpModePages);
 
 	MOCK_METHOD(bool, IsReady, (), ());
 
