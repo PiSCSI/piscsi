@@ -105,7 +105,7 @@ bool RascsiImage::IsValidDstFilename(const string& filename) const
 
 bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
 {
-	string filename = GetParam(command, "file");
+	const string filename = GetParam(command, "file");
 	if (filename.empty()) {
 		return context.ReturnStatus(false, "Can't create image file: Missing image filename");
 	}
