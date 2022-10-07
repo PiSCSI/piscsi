@@ -25,8 +25,9 @@ TEST(ScsiPrinterTest, TestUnitReady)
 
     controller.InitCmd(6);
 
-    EXPECT_CALL(controller, DataIn()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
+    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(ScsiPrinterTest, Inquiry)

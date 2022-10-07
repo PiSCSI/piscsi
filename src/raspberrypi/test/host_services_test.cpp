@@ -25,8 +25,9 @@ TEST(HostServicesTest, TestUnitReady)
 
     controller.InitCmd(6);
 
-    EXPECT_CALL(controller, DataIn()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
+    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
 TEST(HostServicesTest, Inquiry)
@@ -50,18 +51,21 @@ TEST(HostServicesTest, StartStopUnit)
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI)).Times(1);
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // LOAD
     cmd[4] = 0x02;
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI)).Times(1);
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // UNLOAD
     cmd[4] = 0x03;
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI)).Times(1);
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // START
     cmd[4] = 0x01;
