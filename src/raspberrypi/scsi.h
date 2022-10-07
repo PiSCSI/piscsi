@@ -33,7 +33,7 @@ namespace scsi_defs {
 		COMMUNICATIONS = 9
 	};
 
-	// TODO Use a mapping of enum to struct with command byte count and enum name
+	// TODO Use a mapping of enum to structure with command byte count and enum name
 	enum class scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
