@@ -69,7 +69,7 @@
         <select type="select" name="file_name" id="file_name_{{ cd.name }}">
         {% for file in files|sort(attribute='name') %}
         {% if file["name"].lower().endswith(env['cd_suffixes']) %}
-        <option value="{{ file["name"] }}">{{ file["name"].replace(env["base_dir"], '') }}</option>
+        <option value="{{ file["name"] }}">{{ file["name"].replace(env["image_dir"], '') }}</option>
         {% endif %}
         {% endfor %}
         </select>

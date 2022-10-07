@@ -92,7 +92,7 @@ def get_env_info():
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
-        "base_dir": server_info["image_dir"],
+        "image_dir": server_info["image_dir"],
         "netatalk_configured": sys_cmd.running_proc("afpd"),
         "macproxy_configured": sys_cmd.running_proc("macproxy"),
         "cd_suffixes": tuple(server_info["sccd"]),
