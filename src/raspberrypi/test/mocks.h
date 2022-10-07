@@ -140,8 +140,7 @@ public:
 	}
 	~MockAbstractController() override = default;
 
-	// Make InitCmd() visible for the unit tests
-	vector<int>& InitCmd(int size) { return AbstractController::InitCmd(size); }
+	vector<int>& InitCmd(int size) { return AbstractController::InitCmd(size); } //NOSONAR Hides function on purpose
 
 	MockBus bus;
 };
