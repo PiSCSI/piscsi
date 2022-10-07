@@ -15,15 +15,17 @@
 
 using namespace std;
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, AbstractController& controller, int lun)
+shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, int lun)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 
-	auto device = device_factory.CreateDevice(controller_manager, type, lun, "");
+	auto device = device_factory.CreateDevice(*controller_manager, type, lun, "");
 
 	controller.AddDevice(device);
+
+	controller.InitCmd(16);
 
 	return device;
 }
@@ -31,13 +33,8 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, AbstractController& co
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, const string& ident,
 		int additional_length, bool removable)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
-	DeviceFactory device_factory;
     NiceMock<MockAbstractController> controller(0);
-	auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
-
-    controller.AddDevice(device);
+    auto device = CreateDevice(type, controller, 0);
 
     vector<int>& cmd = controller.InitCmd(6);
 

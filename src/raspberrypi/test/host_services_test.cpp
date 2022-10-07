@@ -16,14 +16,8 @@ using namespace std;
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto services = make_shared<MockHostServices>(0, controller_manager);
-
-    controller.AddDevice(services);
-
-    controller.InitCmd(6);
+	auto services = CreateDevice(SCHS, controller, 0);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
@@ -38,12 +32,8 @@ TEST(HostServicesTest, Inquiry)
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
-    MockAbstractController controller(0);
-	auto services = make_shared<MockHostServices>(0, controller_manager);
-
-    controller.AddDevice(services);
+	NiceMock<MockAbstractController> controller(0);
+	auto services = CreateDevice(SCHS, controller, 0);
 
     vector<int>& cmd = controller.InitCmd(6);
 
@@ -74,12 +64,8 @@ TEST(HostServicesTest, StartStopUnit)
 
 TEST(HostServicesTest, ModeSense6)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
-    MockAbstractController controller(0);
-	auto services = make_shared<MockHostServices>(1, controller_manager);
-
-    controller.AddDevice(services);
+	NiceMock<MockAbstractController> controller(0);
+	auto services = CreateDevice(SCHS, controller, 0);
 
     vector<int>& cmd = controller.InitCmd(6);
 
@@ -115,12 +101,8 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
-    MockAbstractController controller(0);
-	auto services = make_shared<MockHostServices>(1, controller_manager);
-
-    controller.AddDevice(services);
+	NiceMock<MockAbstractController> controller(0);
+	auto services = CreateDevice(SCHS, controller, 0);
 
     vector<int>& cmd = controller.InitCmd(10);
 

@@ -83,6 +83,7 @@ public:
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	friend shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, AbstractController&, int);
 	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
 			scsi_defs::scsi_level, const std::string&, int, bool);
 
@@ -149,6 +150,9 @@ public:
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
+
+	// Make InitCmd() visible for the unit tests
+	vector<int>& InitCmd(int size) { return AbstractController::InitCmd(size); }
 
 	MockBus bus;
 };
