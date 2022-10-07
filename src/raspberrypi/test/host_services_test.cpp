@@ -26,7 +26,7 @@ TEST(HostServicesTest, TestUnitReady)
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady));
+    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
