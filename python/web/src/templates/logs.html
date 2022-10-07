@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>{{ _("System Logs: %(scope)s %(lines)s lines", scope=scope, lines=lines) }}</h3>
+<h2>{{ _("System Logs: %(scope)s %(lines)s lines", scope=scope, lines=lines) }}</h2>
 <p><pre>{{ logs }}</pre></p>
 <p><a href="/">{{ _("Go to Home") }}</a></p>
 

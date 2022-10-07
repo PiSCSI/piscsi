@@ -75,6 +75,7 @@ def get_env_info():
     """
     Get information about the app/host environment
     """
+    server_info = ractl_cmd.get_server_info()
     ip_addr, host = sys_cmd.get_ip_and_host()
 
     if "username" in session:
@@ -89,6 +90,14 @@ def get_env_info():
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "locale": get_locale(),
+        "version": server_info["version"],
+        "image_dir": server_info["image_dir"],
+        "netatalk_configured": sys_cmd.running_proc("afpd"),
+        "macproxy_configured": sys_cmd.running_proc("macproxy"),
+        "cd_suffixes": tuple(server_info["sccd"]),
+        "rm_suffixes": tuple(server_info["scrm"]),
+        "mo_suffixes": tuple(server_info["scmo"]),
     }
 
 
@@ -233,35 +242,29 @@ def index():
     return response(
         template="index.html",
         locales=get_supported_locales(),
+        netinfo=ractl_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
-        netatalk_configured=sys_cmd.running_proc("afpd"),
-        macproxy_configured=sys_cmd.running_proc("macproxy"),
         devices=formatted_devices,
+        attached_images=attached_images,
         files=extended_image_files,
         config_files=config_files,
-        base_dir=server_info["image_dir"],
+        device_types=device_types,
         scan_depth=server_info["scan_depth"],
-        CFG_DIR=CFG_DIR,
-        AFP_DIR=AFP_DIR,
-        scsi_ids=scsi_ids,
-        attached_images=attached_images,
-        units=units,
-        reserved_scsi_ids=reserved_scsi_ids,
-        RESERVATIONS=RESERVATIONS,
-        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
-        netinfo=ractl_cmd.get_network_info(),
-        device_types=device_types,
+        scsi_ids=scsi_ids,
+        units=units,
+        reserved_scsi_ids=reserved_scsi_ids,
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
-        cdrom_file_suffix=tuple(server_info["sccd"]),
-        removable_file_suffix=tuple(server_info["scrm"]),
-        mo_file_suffix=tuple(server_info["scmo"]),
         drive_properties=drive_properties,
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        RESERVATIONS=RESERVATIONS,
+        CFG_DIR=CFG_DIR,
+        AFP_DIR=AFP_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
+        CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
         PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),
@@ -291,15 +294,10 @@ def drive_list():
             "mo_conf": [],
             }
 
-    server_info = ractl_cmd.get_server_info()
-
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        base_dir=server_info["image_dir"],
         drive_properties=drive_properties,
-        version=server_info["version"],
-        cdrom_file_suffix=tuple(server_info["sccd"]),
         )
 
 
@@ -469,7 +467,6 @@ def show_diskinfo():
             template="diskinfo.html",
             file_name=file_name,
             diskinfo=diskinfo,
-            version=server_info["version"],
             )
 
     return response(
@@ -493,7 +490,6 @@ def show_manpage():
             message=_("%(app)s is not a recognized RaSCSI app", app=app)
         )
 
-    server_info = ractl_cmd.get_server_info()
     file_path = f"{WEB_DIR}/../../../doc/{app}.1"
     html_to_strip = [
             "Content-type",
@@ -521,7 +517,6 @@ def show_manpage():
             template="manpage.html",
             app=app,
             manpage=formatted_manpage,
-            version=server_info["version"],
             )
 
     return response(
@@ -540,13 +535,11 @@ def show_logs():
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
-        server_info = ractl_cmd.get_server_info()
         return response(
             template="logs.html",
             scope=scope,
             lines=lines,
             logs=logs,
-            version=server_info["version"],
             )
 
     return response(
@@ -764,13 +757,11 @@ def device_info():
     """
     Displays detailed info for all attached devices
     """
-    server_info = ractl_cmd.get_server_info()
     process = ractl_cmd.list_devices()
     if process["status"]:
         return response(
             template="deviceinfo.html",
             devices=process["device_list"],
-            version=server_info["version"],
             )
 
     return response(error=True, message=_("No devices attached"))
