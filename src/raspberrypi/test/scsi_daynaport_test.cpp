@@ -19,11 +19,7 @@ TEST(ScsiDaynaportTest, Inquiry)
 TEST(ScsiDaynaportTest, Dispatch)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = make_shared<SCSIDaynaPort>(0);
-
-	controller.AddDevice(daynaport);
-
-	controller.InitCmd(10);
+	auto daynaport = CreateDevice(SCDP, controller, 0);
 
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSense6))
 		<< "Non-DaynaPort commands inherited from Disk must not be supported";
@@ -38,11 +34,7 @@ TEST(ScsiDaynaportTest, Dispatch)
 TEST(ScsiDaynaportTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = make_shared<SCSIDaynaPort>(0);
-
-    controller.AddDevice(daynaport);
-
-    controller.InitCmd(6);
+	auto daynaport = CreateDevice(SCDP, controller, 0);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
@@ -52,9 +44,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 TEST(ScsiDaynaportTest, RetrieveStatistics)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = make_shared<SCSIDaynaPort>(0);
-
-	controller.AddDevice(daynaport);
+	auto daynaport = CreateDevice(SCDP, controller, 0);
 
 	vector<int>& cmd = controller.InitCmd(6);
 
