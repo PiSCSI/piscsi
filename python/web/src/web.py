@@ -294,8 +294,6 @@ def drive_list():
             "mo_conf": [],
             }
 
-    server_info = ractl_cmd.get_server_info()
-
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],

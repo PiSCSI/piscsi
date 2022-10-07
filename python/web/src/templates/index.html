@@ -57,11 +57,11 @@
         {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
-            <td><center>{{ device.id }}</center></td>
+            <td align="center">{{ device.id }}</td>
             {% if units %}
-            <td><center>{{ device.unit }}</center></td>
+            <td align="center">{{ device.unit }}</td>
             {% endif %}
-            <td><center>{{ device.device_name }}</center></td>
+            <td align="center">{{ device.device_name }}</td>
             <td>
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
@@ -105,8 +105,7 @@
             {% endif %}
             {% endif %}
             </td>
-            <td>
-                <center>
+            <td align="center">
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.vendor }}
                 {% endif %}
@@ -114,10 +113,8 @@
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.revision }}
                 {% endif %}
-                </center>
             </td>
-            <td>
-                <center>
+            <td align="center">
                 {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
@@ -138,7 +135,6 @@
                     <input type="submit" value="{{ _("Reserve") }}">
                 </form>
                 {% endif %}
-                </center>
             </td>
             {% else %}
             <td class="inactive">{{ device.id }}</td>
@@ -260,13 +256,11 @@
             {% else %}
             <td>{{ file["name"] }}</td>
             {% endif %}
-            <td>
-                <center>
+            <td align="center">
                 <form action="/files/download" method="post">
                     <input name="file" type="hidden" value="{{ env["base_dir"] }}/{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
-                </center>
             </td>
             <td>
                 {% if file["name"] in attached_images %}

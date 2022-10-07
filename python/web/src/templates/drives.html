@@ -15,19 +15,18 @@
 </tr>
 {% for hd in drive_properties['hd_conf']|sort(attribute='name') %}
 <tr>
-    <td>
-        <center>
+    <td align="center">
         {% if hd.url != "" %}
         <a href="{{ hd.url }}">{{ hd.name }}</a>
         {% else %}
         {{ hd.name }}
         {% endif %}
-        </center>
     </td>
-    <td><center>{{ hd.size_mb }}</center></td>
+    <td align="center">{{ hd.size_mb }}</td>
     <td>{{ hd.description }}</td>
     <td>
     <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ hd.name }}">
         <label for="size_{{ hd.name }}">{{ _("Size:") }}</label>
         <input type="number" name="size" id="size_{{ hd.name }}" min="512" max="274877906944" step="512" value="{{ hd.size }}">{{ _("B") }}
         <label for="file_name_{{ hd.name }}">{{ _("Save as:") }}</label>
@@ -54,19 +53,18 @@
 </tr>
 {% for cd in drive_properties['cd_conf']|sort(attribute='name') %}
 <tr>
-    <td>
-        <center>
+    <td align="center">
         {% if cd.url != "" %}
         <a href="{{ cd.url }}">{{ cd.name }}</a>
         {% else %}
         {{ cd.name }}
         {% endif %}
-        </center>
     </td>
-    <td><center>{{ cd.size_mb }}</center></td>
+    <td align="center">{{ cd.size_mb }}</td>
     <td>{{ cd.description }}</td>
     <td>
     <form action="/drive/cdrom" method="post">
+        <input type="hidden" name="drive_name" value="{{ cd.name }}">
         <label for="file_name_{{ cd.name }}">{{ _("Create for:") }}</label>
         <select type="select" name="file_name" id="file_name_{{ cd.name }}">
         {% for file in files|sort(attribute='name') %}
@@ -96,19 +94,18 @@
 </tr>
 {% for rm in drive_properties['rm_conf']|sort(attribute='name') %}
 <tr>
-    <td>
-        <center>
+    <td align="center">
         {% if rm.url != "" %}
         <a href="{{ rm.url }}">{{ rm.name }}</a>
         {% else %}
         {{ rm.name }}
         {% endif %}
-        </center>
     </td>
-    <td><center>{{ rm.size_mb }}</center></td>
+    <td align="center">{{ rm.size_mb }}</td>
     <td>{{ rm.description }}</td>
     <td>
     <form action="/drive/create" method="post">
+        <input type="hidden" name="drive_name" value="{{ rm.name }}">
         <label for="size_{{ rm.name }}">{{ _("Size:") }}</label>
         <input type="number" name="size" id="size_{{ rm.name }}" min="512" max="274877906944" step="512" value="{{ rm.size }}">{{ _("B") }}
         <label for="file_name_{{ rm.name }}">{{ _("Save as:") }}</label>

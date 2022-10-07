@@ -43,11 +43,11 @@
     <div class="header">
         {% if env["auth_active"] %}
         {% if env["username"] %}
-        <center class="logged_in">
+        <div align="center" class="logged_in">
             {{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }} - <a href="/logout">{{ _("Log Out") }}</a>
-        </center>
+        </div>
         {% else %}
-        <center class="logged_out">
+        <div align="center" class="logged_out">
             <form method="POST" action="/login">
                 <div>{{ _("Log In to Use Web Interface") }}</div>
                 <label for="username">{{ _("Username") }}</label>
@@ -56,18 +56,18 @@
                 <input type="password" name="password" id="password">
                 <input type="submit" value="Login">
             </form>
-        </center>
+        </div>
         {% endif %}
         {% else %}
-        <center class="logged_out">
+        <div align="center" class="logged_out">
             {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
-        </center>
+        </div>
         {% endif %}
-        <center>
+        <div align="center">
             <a href="/">
                 <h1>{{ _("RaSCSI Reloaded Control Page") }}</h1>
             </a>
-        </center>
+        </div>
         <div>
             hostname: {{ env["host"] }} ip: {{ env["ip_addr"] }}
         </div>
@@ -84,35 +84,27 @@
     <div class="content">
         {% block content %}{% endblock content %}
     </div>
-    <div class="footer">
-        <center>
-            <tt>
-                {% if env["netatalk_configured"] == 1 %}
-                {{ _("The AppleShare server is running. No active connections.") }}
-                {% endif %}
-                {% if env["netatalk_configured"] == 2 %}
-                {{ _("%(value)d active AFP connection", value=(env["netatalk_configured"] - 1)) }}
-                {% elif env["netatalk_configured"] > 2 %}
-                {{ _("%(value)d active AFP connections", value=(env["netatalk_configured"] - 1)) }}
-                {% endif %}
-            </tt>
-        </center>
-        <center>
-            <tt>
-                {% if env["macproxy_configured"] %}
-                {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
-                {% endif %}
-            </tt>
-        </center>
-        <center>
-            <tt>
-                {{ _("RaSCSI Reloaded version: ") }}<b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
-            </tt>
-        </center>
-        <center>
-            <tt>
-                {{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}
-            </tt>
-        </center>
+    <div align="center" class="footer">
+        <div>
+            {% if env["netatalk_configured"] == 1 %}
+            {{ _("The AppleShare server is running. No active connections.") }}
+            {% endif %}
+            {% if env["netatalk_configured"] == 2 %}
+            {{ _("%(value)d active AFP connection", value=(env["netatalk_configured"] - 1)) }}
+            {% elif env["netatalk_configured"] > 2 %}
+            {{ _("%(value)d active AFP connections", value=(env["netatalk_configured"] - 1)) }}
+            {% endif %}
+        </div>
+        <div>
+            {% if env["macproxy_configured"] %}
+            {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
+            {% endif %}
+        </div>
+        <div>
+            {{ _("RaSCSI Reloaded version: ") }}<b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+        </div>
+        <div>
+            {{ _("Pi environment: ") }}{{ env["running_env"]["env"] }}
+        </div>
     </div>
 </body>

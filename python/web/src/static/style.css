@@ -43,11 +43,15 @@ div.header {
   background-color: black;
 }
 
-center.logged_in {
+div.footer {
+  font-family: monospace;
+}
+
+div.logged_in {
   background-color: green;
 }
 
-center.logged_out {
+div.logged_out {
   background-color: red;
 }
 
