@@ -58,7 +58,6 @@ public:
 	int WriteCheck(uint64_t block) override;
 
 	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
-	bool EnableInterface(const vector<int>&);
 
 	void TestUnitReady() override;
 	void Read6() override;

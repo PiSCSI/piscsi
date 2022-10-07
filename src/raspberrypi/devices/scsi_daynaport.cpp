@@ -320,44 +320,6 @@ int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, vector<BYTE>& buf) cons
 	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 4));
 }
 
-//---------------------------------------------------------------------------
-//
-//	Enable or Disable the interface
-//
-//  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
-//  Function: Enable (80) / disable (00) Ethernet interface
-//  Type:     No data transferred
-//  Notes:    After issuing an Enable, the initiator should avoid sending
-//            any subsequent commands to the device for approximately 0.5
-//            seconds
-//
-//---------------------------------------------------------------------------
-bool SCSIDaynaPort::EnableInterface(const vector<int>& cdb)
-{
-	bool result;
-	if (cdb[5] & 0x80) {
-		result = m_tap.Enable();
-		if (result) {
-			LOGINFO("The DaynaPort interface has been ENABLED.")
-		}
-		else{
-			LOGWARN("Unable to enable the DaynaPort Interface")
-		}
-		m_tap.Flush();
-	}
-	else {
-		result = m_tap.Disable();
-		if (result) {
-			LOGINFO("The DaynaPort interface has been DISABLED.")
-		}
-		else{
-			LOGWARN("Unable to disable the DaynaPort Interface")
-		}
-	}
-
-	return result;
-}
-
 void SCSIDaynaPort::TestUnitReady()
 {
 	// Always successful
@@ -494,10 +456,41 @@ void SCSIDaynaPort::SetMcastAddr()
 	EnterDataOutPhase();
 }
 
+//---------------------------------------------------------------------------
+//
+//	Enable or Disable the interface
+//
+//  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
+//  Function: Enable (80) / disable (00) Ethernet interface
+//  Type:     No data transferred
+//  Notes:    After issuing an Enable, the initiator should avoid sending
+//            any subsequent commands to the device for approximately 0.5
+//            seconds
+//
+//---------------------------------------------------------------------------
 void SCSIDaynaPort::EnableInterface()
 {
-	if (!EnableInterface(ctrl->cmd)) {
-		throw scsi_exception();
+	if (ctrl->cmd[5] & 0x80) {
+		if (m_tap.Enable()) {
+			LOGINFO("The DaynaPort interface has been ENABLED.")
+		}
+		else {
+			LOGWARN("Unable to enable the DaynaPort Interface")
+
+			throw scsi_exception();
+		}
+
+		m_tap.Flush();
+	}
+	else {
+		if (m_tap.Disable()) {
+			LOGINFO("The DaynaPort interface has been DISABLED.")
+		}
+		else{
+			LOGWARN("Unable to disable the DaynaPort Interface")
+
+			throw scsi_exception();
+		}
 	}
 
 	EnterStatusPhase();
