@@ -17,7 +17,7 @@ using namespace std;
 TEST(ScsiPrinterTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller, 0);
+	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdTestUnitReady));
@@ -33,7 +33,7 @@ TEST(ScsiPrinterTest, Inquiry)
 TEST(ScsiPrinterTest, ReserveUnit)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller, 0);
+	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdReserve6));
@@ -43,7 +43,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller, 0);
+	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdRelease6));
@@ -53,7 +53,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller, 0);
+	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdSendDiag));
@@ -64,7 +64,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 TEST(ScsiPrinterTest, StopPrint)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller, 0);
+	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdStartStop));

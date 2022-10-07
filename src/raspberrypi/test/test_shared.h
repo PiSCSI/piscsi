@@ -19,7 +19,7 @@ using namespace std;
 class PrimaryDevice;
 class MockAbstractController;
 
-shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, MockAbstractController&, int);
+shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, MockAbstractController&);
 
 void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, scsi_defs::scsi_level,
 		const string&, int, bool);

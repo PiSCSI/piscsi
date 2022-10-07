@@ -17,7 +17,7 @@ using namespace std;
 TEST(HostServicesTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto services = CreateDevice(SCHS, controller, 0);
+	auto services = CreateDevice(SCHS, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
@@ -33,7 +33,7 @@ TEST(HostServicesTest, Inquiry)
 TEST(HostServicesTest, StartStopUnit)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto services = CreateDevice(SCHS, controller, 0);
+	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.InitCmd(6);
 
@@ -65,7 +65,7 @@ TEST(HostServicesTest, StartStopUnit)
 TEST(HostServicesTest, ModeSense6)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto services = CreateDevice(SCHS, controller, 0);
+	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.InitCmd(6);
 
@@ -102,7 +102,7 @@ TEST(HostServicesTest, ModeSense6)
 TEST(HostServicesTest, ModeSense10)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto services = CreateDevice(SCHS, controller, 0);
+	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.InitCmd(10);
 

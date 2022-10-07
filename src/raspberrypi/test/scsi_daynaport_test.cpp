@@ -20,7 +20,7 @@ TEST(ScsiDaynaportTest, Inquiry)
 TEST(ScsiDaynaportTest, Dispatch)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = CreateDevice(SCDP, controller, 0);
+	auto daynaport = CreateDevice(SCDP, controller);
 
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSense6))
 		<< "Non-DaynaPort commands inherited from Disk must not be supported";
@@ -35,7 +35,7 @@ TEST(ScsiDaynaportTest, Dispatch)
 TEST(ScsiDaynaportTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = CreateDevice(SCDP, controller, 0);
+	auto daynaport = CreateDevice(SCDP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
     EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
@@ -45,7 +45,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 TEST(ScsiDaynaportTest, RetrieveStatistics)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = CreateDevice(SCDP, controller, 0);
+	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.InitCmd(6);
 
@@ -58,7 +58,7 @@ TEST(ScsiDaynaportTest, RetrieveStatistics)
 TEST(ScsiDaynaportTest, SetMcastAddr)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = CreateDevice(SCDP, controller, 0);
+	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.InitCmd(6);
 
@@ -72,7 +72,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 TEST(ScsiDaynaportTest, EnableInterface)
 {
 	NiceMock<MockAbstractController> controller(0);
-	auto daynaport = CreateDevice(SCDP, controller, 0);
+	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.InitCmd(6);
 
