@@ -74,8 +74,13 @@ TEST(ScsiDaynaportTest, EnableInterface)
 	NiceMock<MockAbstractController> controller(0);
 	auto daynaport = CreateDevice(SCDP, controller, 0);
 
-	controller.InitCmd(6);
+	vector<int>& cmd = controller.InitCmd(6);
 
+	// Enable
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdEnableInterface), scsi_exception);
+
+	// Disable
+	cmd[5] = 0x80;
 	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdEnableInterface), scsi_exception);
 }
 
