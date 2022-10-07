@@ -100,7 +100,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-void SCSICD::OpenCue(const Filepath& /*path*/) const
+void SCSICD::OpenCue(const Filepath&) const
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
