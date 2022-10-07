@@ -38,12 +38,8 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = make_shared<SCSIPrinter>(0);
-
-	controller.AddDevice(printer);
+	auto printer = CreateDevice(SCLP, controller, 0);
 
     controller.InitCmd(6);
 
@@ -73,7 +69,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto printer = make_shared<SCSIPrinter>(0);
+	shared_ptr<PrimaryDevice> printer = make_shared<SCSIPrinter>(0);
 
     controller.AddDevice(printer);
 

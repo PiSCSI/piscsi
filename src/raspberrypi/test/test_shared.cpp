@@ -15,6 +15,19 @@
 
 using namespace std;
 
+shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, AbstractController& controller, int lun)
+{
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	DeviceFactory device_factory;
+
+	auto device = device_factory.CreateDevice(controller_manager, type, lun, "");
+
+	controller.AddDevice(device);
+
+	return device;
+}
+
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, const string& ident,
 		int additional_length, bool removable)
 {
