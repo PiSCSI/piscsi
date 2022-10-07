@@ -340,9 +340,7 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("Before using a networking device, it is recommended to run easyinstall.sh from the command line to configure your Raspberry Pi.") }}
         </li>
-        <ul>
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% else %}
@@ -350,7 +348,6 @@
         {% endif %}
         <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
-        </ul>
         <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
