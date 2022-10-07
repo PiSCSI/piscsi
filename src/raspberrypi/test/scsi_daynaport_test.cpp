@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "rascsi_exceptions.h"
 #include "devices/scsi_daynaport.h"
 
 TEST(ScsiDaynaportTest, Inquiry)
@@ -52,6 +53,30 @@ TEST(ScsiDaynaportTest, RetrieveStatistics)
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn()).Times(1);
 	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdRetrieveStats));
+}
+
+TEST(ScsiDaynaportTest, SetMcastAddr)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = CreateDevice(SCDP, controller, 0);
+
+	vector<int>& cmd = controller.InitCmd(6);
+
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetMcastAddr), scsi_exception) << "Length of 0 is not supported";
+
+	cmd[4] = 1;
+    EXPECT_CALL(controller, DataOut()).Times(1);
+	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetMcastAddr));
+}
+
+TEST(ScsiDaynaportTest, EnableInterface)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = CreateDevice(SCDP, controller, 0);
+
+	controller.InitCmd(6);
+
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdEnableInterface), scsi_exception);
 }
 
 TEST(ScsiDaynaportTest, GetSendDelay)
