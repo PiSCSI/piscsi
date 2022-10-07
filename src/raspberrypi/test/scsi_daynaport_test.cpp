@@ -62,6 +62,9 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 
 	vector<int>& cmd = controller.InitCmd(6);
 
+	// Unknown interface command
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+
 	// Not implemented, do nothing
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMODE;
 	EXPECT_CALL(controller, Status()).Times(1);
