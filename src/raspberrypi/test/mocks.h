@@ -281,6 +281,8 @@ class MockSCSIMO : public SCSIMO
 {
 	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
 
+	MOCK_METHOD(bool, IsReady, (), ());
+
 	using SCSIMO::SCSIMO;
 };
 
