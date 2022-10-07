@@ -19,14 +19,14 @@ TEST(ScsiPrinterTest, TestUnitReady)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto device = make_shared<SCSIPrinter>(0);
+	auto printer = make_shared<SCSIPrinter>(0);
 
-    controller.AddDevice(device);
+    controller.AddDevice(printer);
 
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdTestUnitReady));
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdTestUnitReady));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -41,14 +41,14 @@ TEST(ScsiPrinterTest, ReserveUnit)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto device = make_shared<SCSIPrinter>(0);
+	auto printer = make_shared<SCSIPrinter>(0);
 
-	controller.AddDevice(device);
+	controller.AddDevice(printer);
 
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdReserve6));
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdReserve6));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -57,14 +57,14 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto device = make_shared<SCSIPrinter>(0);
+	auto printer = make_shared<SCSIPrinter>(0);
 
-	controller.AddDevice(device);
+	controller.AddDevice(printer);
 
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdRelease6));
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdRelease6));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -73,14 +73,14 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto device = make_shared<SCSIPrinter>(0);
+	auto printer = make_shared<SCSIPrinter>(0);
 
-    controller.AddDevice(device);
+    controller.AddDevice(printer);
 
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdSendDiag));
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdSendDiag));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -90,13 +90,13 @@ TEST(ScsiPrinterTest, StopPrint)
 	MockBus bus;
 	ControllerManager controller_manager(bus);
 	NiceMock<MockAbstractController> controller(0);
-	auto device = make_shared<SCSIPrinter>(0);
+	auto printer = make_shared<SCSIPrinter>(0);
 
-    controller.AddDevice(device);
+    controller.AddDevice(printer);
 
     controller.InitCmd(6);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdStartStop));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
