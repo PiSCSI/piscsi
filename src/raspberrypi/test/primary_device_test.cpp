@@ -216,7 +216,6 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 	controller.AddDevice(device);
 
-	controller.InitCmd(1);
 	EXPECT_FALSE(device->Dispatch((scsi_command)0xFF));
 }
 
