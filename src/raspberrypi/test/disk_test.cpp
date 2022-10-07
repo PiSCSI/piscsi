@@ -22,8 +22,6 @@ TEST(DiskTest, Dispatch)
 
 	controller.AddDevice(disk);
 
-	controller.InitCmd(6);
-
 	disk->MediumChanged();
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
 }
@@ -240,18 +238,24 @@ TEST(DiskTest, ReadWriteLong)
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
 }
 
-TEST(DiskTest, ReserveRelease)
+TEST(DiskTest, Reserve)
 {
 	MockAbstractController controller(0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
 
-	controller.InitCmd(6);
-
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReserve6));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
+}
+
+TEST(DiskTest, Release)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
 
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdRelease6));
@@ -318,14 +322,10 @@ TEST(DiskTest, SynchronizeCache)
 
 	controller.AddDevice(disk);
 
-	controller.InitCmd(10);
-
 	EXPECT_CALL(*disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdSynchronizeCache10));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
-
-	controller.InitCmd(16);
 
 	EXPECT_CALL(*disk, FlushCache()).Times(1);
 	EXPECT_CALL(controller, Status()).Times(1);
@@ -411,7 +411,7 @@ TEST(DiskTest, BlockCount)
 	EXPECT_EQ(0x1234567887654321, disk.GetBlockCount());
 }
 
-TEST(DiskTest, Reserve)
+TEST(DiskTest, GetIdsForReservedFile)
 {
 	const int ID = 1;
 	const int LUN = 2;
