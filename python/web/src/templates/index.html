@@ -209,7 +209,7 @@
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
                     <form action="/files/download" method="post">
-                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file['name'].replace(env["image_dir"], '') }}.{{ PROPERTIES_SUFFIX }}">
+                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file['name'].replace(env['image_dir'], '') }}.{{ PROPERTIES_SUFFIX }}">
                         <input type="submit" value="{{ _("Properties File") }} &#8595;">
                     </form>
                     </ul>
