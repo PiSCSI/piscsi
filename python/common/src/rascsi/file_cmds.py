@@ -270,15 +270,15 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def copy_file(self, file_dir, file_name, target_name):
+    def copy_file(self, file_dir, file_name, target_dir, target_name):
         """
         Takes:
          - (str) file_dir and (str) file_name for the file to copy from
-         - (str) target_name for the file to copy to in the same dir
+         - (str) target_name and (str) target_dir for the file to copy to
         Returns (dict) with (bool) status and (str) msg
         """
         file_path = f"{file_dir}/{file_name}"
-        target_path = f"{file_dir}/{target_name}"
+        target_path = f"{target_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
