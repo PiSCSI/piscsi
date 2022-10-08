@@ -21,6 +21,7 @@ class SysCmds:
         git contains the git hash of the checked out code
         env is the various system information where this app is running
         """
+        ERROR_FORMAT = "%s: %s"
         try:
             ra_git_version = (
                 subprocess.run(
@@ -32,8 +33,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(ERROR_FORMAT, error.cmd, error.stderr.decode("utf-8"))
             ra_git_version = ""
 
         try:
@@ -47,9 +47,8 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
-            pi_version = "Unknown"
+            logging.warning(ERROR_FORMAT, error.cmd, error.stderr.decode("utf-8"))
+            pi_version = _("Unknown")
 
         return {"git": ra_git_version, "env": pi_version}
 
