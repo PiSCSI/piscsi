@@ -1006,6 +1006,7 @@ def rename():
         process = file_cmd.rename_file(
             CFG_DIR,
             f"{file_name}.{PROPERTIES_SUFFIX}",
+            CFG_DIR,
             f"{new_file_name}.{PROPERTIES_SUFFIX}",
             )
         process = ReturnCodeMapper.add_msg(process)

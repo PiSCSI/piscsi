@@ -16,7 +16,13 @@ from shutil import copyfile
 import requests
 
 import rascsi_interface_pb2 as proto
-from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, ARCHIVE_FILE_SUFFIXES, RESERVATIONS
+from rascsi.common_settings import (
+    CFG_DIR,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
+    ARCHIVE_FILE_SUFFIXES,
+    RESERVATIONS,
+)
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
@@ -238,15 +244,15 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def rename_file(self, file_dir, file_name, target_name):
+    def rename_file(self, file_dir, file_name, target_dir, target_name):
         """
         Takes:
          - (str) file_dir and (str) file_name for the file to rename
-         - (str) target_name for the name to rename to in the same dir
+         - (str) target_name (str) target_dir for the name to rename
         Returns (dict) with (bool) status and (str) msg
         """
         file_path = f"{file_dir}/{file_name}"
-        target_path = f"{file_dir}/{target_name}"
+        target_path = f"{target_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
@@ -315,10 +321,13 @@ class FileCmds:
             properties_files_moved = []
             if move_properties_files_to_config:
                 for file in extract_result["extracted"]:
-                    if file.get("name").endswith(".properties"):
+                    logging.warning(file)
+                    if file.get("name").endswith(f".{PROPERTIES_SUFFIX}"):
                         if (self.rename_file(
-                                file["absolute_path"],
-                                f"{CFG_DIR}/{file['name']}"
+                                PurePath(file["absolute_path"]).parent,
+                                file["name"],
+                                CFG_DIR,
+                                file["name"],
                                 )):
                             properties_files_moved.append({
                                 "status": True,
@@ -396,7 +405,7 @@ class FileCmds:
                         "%s was successfully unzipped. Deleting the zipfile.",
                         tmp_full_path,
                         )
-                    self.delete_file(tmp_full_path)
+                    self.delete_file(tmp_dir, file_name)
 
         try:
             run(
@@ -462,9 +471,9 @@ class FileCmds:
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        file_name = f"{CFG_DIR}/{file_name}"
+        file_path = f"{CFG_DIR}/{file_name}"
         try:
-            with open(file_name, "w", encoding="ISO-8859-1") as json_file:
+            with open(file_path, "w", encoding="ISO-8859-1") as json_file:
                 version = self.ractl.get_server_info()["version"]
                 devices = self.ractl.list_devices()["device_list"]
                 for device in devices:
@@ -495,7 +504,7 @@ class FileCmds:
                     indent=4
                     )
             parameters = {
-                "target_path": file_name
+                "target_path": file_path
             }
             return {
                 "status": True,
@@ -504,11 +513,11 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(file_name)
+            self.delete_file(CFG_DIR, file_name)
             return {"status": False, "msg": str(error)}
         except:
             logging.error("Could not write to file: %s", file_name)
-            self.delete_file(file_name)
+            self.delete_file(CFG_DIR, file_name)
             parameters = {
                 "file_name": file_name
             }
@@ -617,11 +626,11 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(file_path)
+            self.delete_file(CFG_DIR, file_name)
             return {"status": False, "msg": str(error)}
         except:
             logging.error("Could not write to file: %s", file_path)
-            self.delete_file(file_path)
+            self.delete_file(CFG_DIR, file_name)
             parameters = {
                 "target_path": file_path
             }
