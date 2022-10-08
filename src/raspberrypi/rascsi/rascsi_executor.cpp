@@ -302,8 +302,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	string full_path;
-	if (disk != nullptr) {
-		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
+	if (device->SupportsFile()) {
+		// Only with removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
