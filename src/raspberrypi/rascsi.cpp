@@ -360,7 +360,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
-	cout << device_list;
+	cout << device_list << flush;
 
 	return true;
 }
