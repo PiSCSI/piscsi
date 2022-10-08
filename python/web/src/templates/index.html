@@ -6,7 +6,6 @@
         {{ _("Current RaSCSI Configuration") }}
     </summary>
     <ul>
-        <li>{{ _("Displays the currently attached devices for each available SCSI ID.") }}</li>
         <li>{{ _("Save and load device configurations, stored as json files in <tt>%(config_dir)s</tt>", config_dir=CFG_DIR) }}</li>
         <li>{{ _("To have a particular device configuration load when RaSCSI starts, save it as <em>default</em>.") }}</li>
     </ul>
@@ -175,7 +174,6 @@
         <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=env["image_dir"], scan_depth=scan_depth) }}</li>
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
-        <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
         <li>
             {{ _("Recognized image file types:") }}
             {% set comma = joiner(", ") %}
@@ -342,18 +340,14 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("Before using a networking device, it is recommended to run easyinstall.sh from the command line to configure your Raspberry Pi.") }}
         </li>
-        <ul>
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% else %}
         <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
-        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
         <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
-        </ul>
         <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
@@ -495,7 +489,6 @@
         {{ _("Download File from the Web") }}
     </summary>
     <ul>
-        <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
         <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
@@ -597,17 +590,6 @@
     <input type="submit" value="{{ _("Create") }}">
 </form>
 
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Create Named Drive") }}
-    </summary>
-    <ul>
-        <li>{{ _("Create pairs of images and properties files from a list of real-life drives.") }}</li>
-        <li>{{ _("This will make RaSCSI use certain vendor strings and block sizes that may improve compatibility with certain systems.") }}</li>
-    </ul>
-</details>
 <p><a href="/drive/list">{{ _("Create a named disk image that mimics real-life drives") }}</a></p>
 
 <hr/>
@@ -617,10 +599,11 @@
         {{ _("Logging") }}
     </summary>
     <ul>
-        <li>{{ _("Fetch a certain number of lines of system logs with the given scope.") }}</li>
+        <li>{{ _("The current dropdown selection indicates the active log level.") }}</li>
     </ul>
 </details>
 
+<div>
 <form action="/logs/show" method="post">
     <label for="log_lines">{{ _("Log Lines:") }}</label>
     <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
@@ -644,19 +627,9 @@
     </select>
     <input type="submit" value="{{ _("Show Logs") }}">
 </form>
+</div>
 
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Server Log Level") }}
-    </summary>
-    <ul>
-        <li>{{ _("Change the log level of the RaSCSI backend process.") }}</li>
-        <li>{{ _("The current dropdown selection indicates the active log level.") }}</li>
-    </ul>
-</details>
-
+<div>
 <form action="/logs/level" method="post">
     <label for="log_level">{{ _("Log Level:") }}</label>
     <select name="level" id="log_level">
@@ -668,6 +641,7 @@
     </select>
     <input type="submit" value="{{ _("Set Log Level") }}">
 </form>
+</div>
 
 <hr/>
 
@@ -699,7 +673,6 @@
         {{ _("Raspberry Pi Operations") }}
     </summary>
     <ul>
-        <li>{{ _("Reboot or shut down the Raspberry Pi that RaSCSI is running on.") }}</li>
         <li>{{ _("IMPORTANT: Always shut down the Pi before turning off the power. Failing to do so may lead to data loss.") }}</li>
     </ul>
 </details>
