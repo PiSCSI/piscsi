@@ -8,16 +8,15 @@
 //---------------------------------------------------------------------------
 
 #include "controllers/controller_manager.h"
-#include "devices/file_support.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
 
 using namespace rascsi_interface;
-using namespace command_util;
+using namespace protobuf_util;
 
 unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device& device) const
 {
@@ -29,7 +28,7 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 	properties->set_stoppable(device.IsStoppable());
 	properties->set_removable(device.IsRemovable());
 	properties->set_lockable(device.IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(&device) != nullptr);
+	properties->set_supports_file(device.SupportsFile());
 	properties->set_supports_params(device.SupportsParams());
 
 	PbDeviceType t = UNDEFINED;
@@ -53,7 +52,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
+	const auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(*device).release());
 } //NOSONAR The allocated memory is managed by protobuf
 
@@ -101,10 +100,10 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
     	pb_device.set_block_count(device.IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const auto file_support = dynamic_cast<const FileSupport *>(&device);
-	if (file_support) {
+    const auto disk = dynamic_cast<const Disk *>(&device);
+	if (disk != nullptr) {
 		Filepath filepath;
-		file_support->GetPath(filepath);
+		disk->GetPath(filepath);
 		auto image_file = make_unique<PbImageFile>().release();
 		GetImageFile(*image_file, default_folder, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
 		pb_device.set_allocated_file(image_file);
@@ -117,7 +116,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 		image_file.set_name(filename);
 		image_file.set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : default_folder + "/" + filename;
+		const string f = filename[0] == '/' ? filename : default_folder + "/" + filename;
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
@@ -209,7 +208,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 unique_ptr<PbReservedIdsInfo> RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids) const
 {
 	auto reserved_ids_info = make_unique<PbReservedIdsInfo>();
-	for (int id : ids) {
+	for (const int id : ids) {
 		reserved_ids_info->add_ids(id);
 	}
 
@@ -533,14 +532,14 @@ string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 		return "";
 	}
 
-	string filename = folder + "/" + dir->d_name;
+	const string filename = folder + "/" + dir->d_name;
 
 	struct stat st;
 
-	bool file_exists = !stat(filename.c_str(), &st);
+	const bool file_exists = !stat(filename.c_str(), &st);
 
 	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
-		LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str())
+		LOGWARN("File '%s' in image folder '%s' is empty", dir->d_name, folder.c_str())
 		return "";
 	}
 

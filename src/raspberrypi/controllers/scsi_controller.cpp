@@ -79,7 +79,7 @@ BUS::phase_t ScsiController::Process(int id)
 	try {
 		ProcessPhase();
 	}
-	catch(const scsi_error_exception&) {
+	catch(const scsi_exception&) {
 		// Any exception should have been handled during the phase processing
 		assert(false);
 
@@ -198,8 +198,8 @@ void ScsiController::Command()
 		bus.SetCD(true);
 		bus.SetIO(false);
 
-		int actual_count = bus.CommandHandShake(GetBuffer().data());
-		int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
+		const int actual_count = bus.CommandHandShake(GetBuffer().data());
+		const int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -267,10 +267,10 @@ void ScsiController::Execute()
 		if (!device->Dispatch(GetOpcode())) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
 
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
 	}
-	catch(const scsi_error_exception& e) { //NOSONAR This exception is handled properly
+	catch(const scsi_exception& e) { //NOSONAR This exception is handled properly
 		Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 		// Fall through
@@ -459,10 +459,9 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X",
-				(int)sense_key << 16, (int)asc << 8, (int)asc & 0xff)
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X", (int)sense_key, (int)asc)
 
-				// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
 	}
 
@@ -485,7 +484,7 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (const int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase
@@ -798,7 +797,7 @@ void ScsiController::FlushUnit()
 			try {
 				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return;
@@ -841,7 +840,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 			try {
 				ctrl.length = (dynamic_pointer_cast<Disk>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
 			}
-			catch(const scsi_error_exception&) {
+			catch(const scsi_exception&) {
 				// If there is an error, go to the status phase
 				return false;
 			}
@@ -881,7 +880,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 				return false;
 			}
@@ -919,7 +918,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				disk->Write(ctrl.cmd, GetBuffer(), ctrl.next - 1);
 			}
-			catch(const scsi_error_exception& e) {
+			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc(), e.get_status());
 
 				// Write failed
@@ -936,7 +935,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			try {
 				ctrl.length = disk->WriteCheck(ctrl.next - 1);
 			}
-			catch(const scsi_error_exception&) {
+			catch(const scsi_exception&) {
 				// Cannot write
 				return false;
 			}
@@ -976,7 +975,7 @@ void ScsiController::ParseMessage()
 {
 	int i = 0;
 	while (i < scsi.msc) {
-		BYTE message_type = scsi.msb[i];
+		const BYTE message_type = scsi.msb[i];
 
 		if (message_type == 0x06) {
 			LOGTRACE("Received ABORT message")
@@ -1064,7 +1063,7 @@ int ScsiController::GetEffectiveLun() const
 
 void ScsiController::Sleep()
 {
-	if (uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
+	if (const uint32_t time = SysTimer::GetTimerLow() - execstart; time < MIN_EXEC_TIME) {
 		SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 	}
 	execstart = 0;

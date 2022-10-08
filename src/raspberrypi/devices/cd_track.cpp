@@ -7,12 +7,13 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
 
 #include "cd_track.h"
+#include <cassert>
 
 void CDTrack::Init(int track, uint32_t first, uint32_t last)
 {

@@ -23,7 +23,7 @@ string rascsi_get_version_string()
 {
 	stringstream s;
 
-	s << setw(2) << setfill('0') << rascsi_major_version << '.' << setw(2) << setfill('0') << rascsi_minor_version;
+	s << setw(2) << setfill('0') << rascsi_major_version << '.' << rascsi_minor_version;
 
 	if (rascsi_patch_version < 0) {
 		s << " --DEVELOPMENT BUILD--";

@@ -77,7 +77,7 @@ void RascsiService::Execute() const
 	ras_util::FixCpu(2);
 
 	// Wait for the execution to start
-	timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
 	while (!running) {
 		nanosleep(&ts, nullptr);
 	}
@@ -109,7 +109,7 @@ PbCommand RascsiService::ReadCommand(CommandContext& context) const
 	// Wait for connection
 	sockaddr client = {};
 	socklen_t socklen = sizeof(client);
-	int fd = accept(service_socket, &client, &socklen);
+	const int fd = accept(service_socket, &client, &socklen);
 	if (fd == -1) {
 		throw io_exception("accept() failed");
 	}
@@ -118,7 +118,7 @@ PbCommand RascsiService::ReadCommand(CommandContext& context) const
 
 	// Read magic string
 	vector<byte> magic(6);
-	if (size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
+	if (const size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
 		bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 		throw io_exception("Invalid magic");
 	}

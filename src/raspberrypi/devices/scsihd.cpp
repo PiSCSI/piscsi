@@ -40,13 +40,13 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
 		// 10 GiB and more
-		if (capacity >= 1099511627776) {
-			capacity /= 1099511627776;
+		if (capacity >= 1'099'511'627'776) {
+			capacity /= 1'099'511'627'776;
 			unit = "GiB";
 		}
 		// 1 MiB and more
-		else if (capacity >= 1048576) {
-			capacity /= 1048576;
+		else if (capacity >= 1'048'576) {
+			capacity /= 1'048'576;
 			unit = "MiB";
 		}
 		else {
@@ -62,8 +62,8 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	SetProtectable(true);
 	SetProtected(false);
 
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	super::Open(path);
+	SetPath(path);
 
 	SetUpCache(path, image_offset);
 }
@@ -84,7 +84,7 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
 	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();

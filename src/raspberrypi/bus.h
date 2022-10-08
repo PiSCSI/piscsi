@@ -59,7 +59,7 @@ public:
 	static const char* GetPhaseStrRaw(phase_t current_phase);
 
 	// Extract as specific pin field from a raw data capture
-	static inline DWORD GetPinRaw(DWORD raw_data, DWORD pin_num)
+	static inline uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num)
 	{
 		return ((raw_data >> pin_num) & 1);
 	}

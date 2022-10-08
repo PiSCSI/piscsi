@@ -15,13 +15,13 @@
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/file_support.h"
+#include "devices/disk.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
+#include "rascsi_version.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
-#include "command_util.h"
-#include "rascsi_version.h"
+#include "protobuf_util.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi/rascsi_executor.h"
 #include "rascsi/rascsi_response.h"
@@ -43,7 +43,7 @@ using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace command_util;
+using namespace protobuf_util;
 
 //---------------------------------------------------------------------------
 //
@@ -61,7 +61,7 @@ static const char COMPONENT_SEPARATOR = ':';
 static volatile bool active;		// Processing flag
 RascsiService service;
 GPIOBUS bus;
-string current_log_level;			// Some versions of spdlog do not support get_log_level()
+string current_log_level = "info";	// Some versions of spdlog do not support get_log_level()
 string access_token;
 DeviceFactory device_factory;
 ControllerManager controller_manager(bus);
@@ -72,28 +72,23 @@ const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
 {
-	cout << "SCSI Target Emulator RaSCSI Reloaded version " << rascsi_get_version_string()
-			<< "  (" << __DATE__ << ' ' << __TIME__ << ')' << endl;
-	cout << "Powered by XM6 TypeG Technology / ";
-	cout << "Copyright (C) 2016-2020 GIMONS" << endl;
-	cout << "Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project" << endl;
-	cout << "Connect type: " << CONNECT_DESC << endl;
+	cout << Banner("Reloaded");
+	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
-		cout << endl;
-		cout << "Usage: " << argv[0] << " [-idn[:m] FILE] ..." << endl << endl;
-		cout << " n is SCSI device ID (0-7)." << endl;
-		cout << " m is the optional logical unit (LUN) (0-31)." << endl;
-		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\"." << endl << endl;
-		cout << " Image type is detected based on file extension if no explicit type is specified." << endl;
-		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)" << endl;
-		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)" << endl;
-		cout << "  hdr : SCSI HD image (Removable generic HD image)" << endl;
-		cout << "  hdn : SCSI HD image (NEC GENUINE)" << endl;
-		cout << "  hdi : SCSI HD image (Anex86 HD image)" << endl;
-		cout << "  nhd : SCSI HD image (T98Next HD image)" << endl;
-		cout << "  mos : SCSI MO image (MO image)" << endl;
-		cout << "  iso : SCSI CD image (ISO 9660 image)" << endl;
+		cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
+		cout << " n is SCSI device ID (0-7).\n";
+		cout << " m is the optional logical unit (LUN) (0-31).\n";
+		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
+		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
+		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
+		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)\n";
+		cout << "  hdr : SCSI HD image (Removable generic HD image)\n";
+		cout << "  hdn : SCSI HD image (NEC GENUINE)\n";
+		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
+		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
+		cout << "  mos : SCSI MO image (MO image)\n";
+		cout << "  iso : SCSI CD image (ISO 9660 image)\n" << flush;
 
 		exit(EXIT_SUCCESS);
 	}
@@ -185,7 +180,7 @@ void TerminationHandler(int signum)
 
 bool ProcessId(const string& id_spec, int& id, int& unit)
 {
-	if (size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
+	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
 		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
 			cerr << optarg << ": Invalid device ID (0-7)" << endl;
 			return false;
@@ -249,7 +244,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'F': {
-				if (string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
+				if (const string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -365,7 +360,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
-	cout << device_list << endl;
+	cout << device_list << flush;
 
 	return true;
 }
@@ -388,8 +383,8 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 	switch(command.operation()) {
 		case LOG_LEVEL: {
-			string log_level = GetParam(command, "level");
-			if (bool status = executor.SetLogLevel(log_level); !status) {
+			const string log_level = GetParam(command, "level");
+			if (const bool status = executor.SetLogLevel(log_level); !status) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
@@ -401,7 +396,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		case DEFAULT_FOLDER: {
-			if (string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
+			if (const string status = rascsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
 				context.ReturnStatus(false, status);
 			}
 			else {
@@ -457,7 +452,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
+				const bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
@@ -505,7 +500,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 		default: {
 			// Wait until we become idle
-			timespec ts = { .tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
 			while (active) {
 				nanosleep(&ts, nullptr);
 			}
@@ -537,10 +532,10 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	executor.SetLogLevel("info");
+	executor.SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
-	auto logger = stdout_color_mt("rascsi stdout logger");
+	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
 		return EPERM;
@@ -599,7 +594,7 @@ int main(int argc, char* argv[])
 #else
 		bus.Acquire();
 		if (!bus.GetSEL()) {
-			timespec ts = { .tv_sec = 0, .tv_nsec = 0};
+			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
 			nanosleep(&ts, nullptr);
 			continue;
 		}
@@ -608,8 +603,8 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus.GetBSY()) {
-			uint32_t now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+			const uint32_t now = SysTimer::GetTimerLow();
+			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
 				bus.Acquire();
 				if (!bus.GetBSY()) {
 					break;
@@ -625,7 +620,7 @@ int main(int argc, char* argv[])
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		BYTE id_data = bus.GetDAT();
+		const BYTE id_data = bus.GetDAT();
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 

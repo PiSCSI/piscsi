@@ -217,7 +217,7 @@ bool ParseArgument(int argc, char* argv[])
 bool WaitPhase(BUS::phase_t phase)
 {
 	// Timeout (3000ms)
-	uint32_t now = SysTimer::GetTimerLow();
+	const uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
@@ -246,21 +246,17 @@ void BusFree()
 //---------------------------------------------------------------------------
 bool Selection(int id)
 {
-	BYTE data;
-	int count;
-
 	// ID setting and SEL assert
-	data = 0;
-	data |= (1 << boardid);
+	BYTE data = 1 << boardid;
 	data |= (1 << id);
 	bus.SetDAT(data);
 	bus.SetSEL(true);
 
 	// wait for busy
-	count = 10000;
+	int count = 10000;
 	do {
 		// Wait 20 microseconds
-		timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
+		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
 		nanosleep(&ts, nullptr);
 		bus.Acquire();
 		if (bus.GetBSY()) {
@@ -282,15 +278,13 @@ bool Selection(int id)
 //---------------------------------------------------------------------------
 bool Command(BYTE *buf, int length)
 {
-	int count;
-
 	// Waiting for Phase
 	if (!WaitPhase(BUS::phase_t::command)) {
 		return false;
 	}
 
 	// Send Command
-	count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
+	const int count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
 	// Success if the transmission result is the same as the number
 	// of requests
@@ -665,7 +659,7 @@ exit:
 //	READ10
 //
 //---------------------------------------------------------------------------
-int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
 	array<BYTE, 256> cmd = {};
 
@@ -728,7 +722,7 @@ exit:
 //	WRITE10
 //
 //---------------------------------------------------------------------------
-int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
 	array<BYTE, 256> cmd = {};
 
@@ -794,13 +788,12 @@ exit:
 int main(int argc, char* argv[])
 {
 	int i;
-	int count;
 	char str[32];
-	DWORD bsiz;
-	DWORD bnum;
-	DWORD duni;
-	DWORD dsiz;
-	DWORD dnum;
+	uint32_t bsiz;
+	uint32_t bnum;
+	uint32_t duni;
+	uint32_t dsiz;
+	uint32_t dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
 	off_t size;
@@ -855,7 +848,7 @@ int main(int argc, char* argv[])
 	// Assert reset signal
 	bus.SetRST(true);
 	// Wait 1 ms
-	timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
 	nanosleep(&ts, nullptr);
 	bus.SetRST(false);
 
@@ -864,7 +857,7 @@ int main(int argc, char* argv[])
 	printf("BOARD ID                : %d\n", boardid);
 
 	// TEST UNIT READY
-	count = TestUnitReady(targetid);
+	int count = TestUnitReady(targetid);
 	if (count < 0) {
 		fprintf(stderr, "TEST UNIT READY ERROR %d\n", count);
 		goto cleanup_exit;

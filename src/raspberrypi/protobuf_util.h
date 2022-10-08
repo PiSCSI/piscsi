@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021-2022 Uwe Seimet
 //
-// Helper methods for serializing/deserializing protobuf messages
+// Helper methods for setting up/evaluating protobuf messages
 //
 //---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-namespace command_util
+namespace protobuf_util
 {
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	string GetParam(const PbCommand&, const string&);
@@ -26,4 +26,5 @@ namespace command_util
 	void AddParam(PbCommand&, const string&, string_view);
 	void AddParam(PbDevice&, const string&, string_view);
 	void AddParam(PbDeviceDefinition&, const string&, string_view);
+	void SetPatternParams(PbCommand&, string_view);
 }

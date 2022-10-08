@@ -21,8 +21,11 @@ TEST(ControllerManagerTest, LifeCycle)
 	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, -1, "services");
+	EXPECT_FALSE(controller_manager.AttachToScsiController(ID, device));
+
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
@@ -33,9 +36,9 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	controller = controller_manager.FindController(ID);
-	controller_manager.DeleteController(controller);
+	EXPECT_TRUE(controller_manager.DeleteController(controller));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 
 	controller_manager.DeleteAllControllers();
@@ -52,7 +55,7 @@ TEST(ControllerManagerTest, ResetAllControllers)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
 

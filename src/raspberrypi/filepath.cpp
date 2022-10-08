@@ -8,11 +8,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "filepath.h"
-#include "config.h"
-#include "fileio.h"
 #include <libgen.h>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 Filepath& Filepath::operator=(const Filepath& path)
 {
@@ -55,7 +55,7 @@ void Filepath::Split()
 	char *pDir = strdup(m_szPath);
 	const char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
-	char *pBaseName = basename(pBase);
+	const char *pBaseName = basename(pBase);
 	const char *pExtName = strrchr(pBaseName, '.');
 
 	// Transmit

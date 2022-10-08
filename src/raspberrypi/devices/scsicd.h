@@ -10,20 +10,16 @@
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM  ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "disk.h"
 #include "filepath.h"
 #include "cd_track.h"
-#include "file_support.h"
+#include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
-#include "interfaces/scsi_primary_commands.h"
 
-class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
+class SCSICD : public Disk, private ScsiMmcCommands
 {
 public:
 
@@ -68,7 +64,7 @@ private:
 
 	// Track management
 	void ClearTrack();						// Clear the track
-	int SearchTrack(DWORD lba) const;		// Track search
+	int SearchTrack(uint32_t lba) const;	// Track search
 	vector<unique_ptr<CDTrack>> tracks;		// Track opbject references
 	int dataindex = -1;						// Current data track
 	int audioindex = -1;					// Current audio track

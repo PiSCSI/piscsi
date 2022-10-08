@@ -11,6 +11,7 @@
 
 #include <gmock/gmock.h>
 
+#include "test_shared.h"
 #include "controllers/scsi_controller.h"
 #include "devices/primary_device.h"
 #include "devices/scsihd.h"
@@ -20,7 +21,9 @@
 #include "devices/host_services.h"
 #include "rascsi/command_context.h"
 
-class MockBus final : public BUS //NOSONAR Having many fields/methods cannot be avoided
+using namespace testing;
+
+class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
 public:
 
@@ -78,8 +81,12 @@ public:
 	using PhaseHandler::PhaseHandler;
 };
 
-class MockAbstractController final : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
+class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	friend shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, AbstractController&, int);
+	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
+			scsi_defs::scsi_level, const std::string&, int, bool);
+
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
@@ -93,6 +100,10 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, ReportLuns);
 	FRIEND_TEST(PrimaryDeviceTest, UnknownCommand);
+	FRIEND_TEST(ModePageDeviceTest, ModeSense6);
+	FRIEND_TEST(ModePageDeviceTest, ModeSense10);
+	FRIEND_TEST(ModePageDeviceTest, ModeSelect6);
+	FRIEND_TEST(ModePageDeviceTest, ModeSelect10);
 	FRIEND_TEST(DiskTest, Dispatch);
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
@@ -100,7 +111,8 @@ class MockAbstractController final : public AbstractController //NOSONAR Having 
 	FRIEND_TEST(DiskTest, Seek);
 	FRIEND_TEST(DiskTest, ReadCapacity);
 	FRIEND_TEST(DiskTest, ReadWriteLong);
-	FRIEND_TEST(DiskTest, ReserveRelease);
+	FRIEND_TEST(DiskTest, Reserve);
+	FRIEND_TEST(DiskTest, Release);
 	FRIEND_TEST(DiskTest, SendDiagnostic);
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
@@ -128,10 +140,12 @@ public:
 	}
 	~MockAbstractController() override = default;
 
+	vector<int>& InitCmd(int size) { return AbstractController::InitCmd(size); } //NOSONAR Hides function on purpose
+
 	MockBus bus;
 };
 
-class MockScsiController final : public ScsiController
+class MockScsiController : public ScsiController
 {
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
@@ -150,7 +164,7 @@ public:
 	MockBus bus;
 };
 
-class MockDevice final : public Device
+class MockDevice : public Device
 {
 	FRIEND_TEST(DeviceTest, Params);
 	FRIEND_TEST(DeviceTest, StatusCode);
@@ -167,7 +181,7 @@ public:
 	~MockDevice() override = default;
 };
 
-class MockPrimaryDevice final : public PrimaryDevice
+class MockPrimaryDevice : public PrimaryDevice
 {
 	FRIEND_TEST(PrimaryDeviceTest, PhaseChange);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
@@ -185,16 +199,18 @@ public:
 	~MockPrimaryDevice() override = default;
 };
 
-class MockModePageDevice final : public ModePageDevice
+class MockModePageDevice : public ModePageDevice
 {
-	FRIEND_TEST(ModePagesTest, ModePageDevice_AddModePages);
+	FRIEND_TEST(ModePageDeviceTest, AddModePages);
 
-	explicit MockModePageDevice(int lun) : ModePageDevice("test", lun) {}
-	~MockModePageDevice() override = default;
+public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
+
+	explicit MockModePageDevice() : ModePageDevice("test", 0) {}
+	~MockModePageDevice() override = default;
 
 	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
@@ -205,7 +221,7 @@ class MockModePageDevice final : public ModePageDevice
 	}
 };
 
-class MockDisk final : public Disk
+class MockDisk : public Disk
 {
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
@@ -220,6 +236,7 @@ class MockDisk final : public Disk
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
 	FRIEND_TEST(DiskTest, BlockCount);
+	FRIEND_TEST(DiskTest, GetIdsForReservedFile);
 
 public:
 
@@ -230,41 +247,39 @@ public:
 	~MockDisk() override = default;
 };
 
-class MockSCSIHD final : public SCSIHD
+class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
-	FRIEND_TEST(ModePagesTest, SCSIHD_SetUpModePages);
+	FRIEND_TEST(ScsiHdTest, SetUpModePages);
 	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
 
 	using SCSIHD::SCSIHD;
 };
 
-class MockSCSIHD_NEC final : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
+class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
-	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_SetUpModePages);
-
-	MOCK_METHOD(void, FlushCache, (), (override));
+	FRIEND_TEST(ScsiHdNecTest, SetUpModePages);
 
 	using SCSIHD_NEC::SCSIHD_NEC;
 };
 
-class MockSCSICD final : public SCSICD
+class MockSCSICD : public SCSICD
 {
-	FRIEND_TEST(ModePagesTest, SCSICD_SetUpModePages);
+	FRIEND_TEST(ScsiCdTest, SetUpModePages);
 
 	using SCSICD::SCSICD;
 };
 
-class MockSCSIMO final : public SCSIMO
+class MockSCSIMO : public SCSIMO
 {
-	FRIEND_TEST(ModePagesTest, SCSIMO_SetUpModePages);
+	FRIEND_TEST(ScsiMoTest, SetUpModePages);
 
 	using SCSIMO::SCSIMO;
 };
 
-class MockHostServices final : public HostServices
+class MockHostServices : public HostServices
 {
-	FRIEND_TEST(ModePagesTest, HostServices_SetUpModePages);
+	FRIEND_TEST(HostServicesTest, SetUpModePages);
 
 	using HostServices::HostServices;
 };

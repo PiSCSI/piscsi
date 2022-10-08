@@ -56,12 +56,17 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["hdr"] = SCRM;
 	extension_mapping["mos"] = SCMO;
 	extension_mapping["iso"] = SCCD;
+
+	device_mapping["bridge"] = SCBR;
+	device_mapping["daynaport"] = SCDP;
+	device_mapping["printer"] = SCLP;
+	device_mapping["services"] = SCHS;
 }
 
 string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
-	if (size_t separator = filename.rfind('.'); separator != string::npos) {
+	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -74,17 +79,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	if (const auto& it = extension_mapping.find(GetExtension(filename)); it != extension_mapping.end()) {
 		return it->second;
 	}
-	else if (filename == "bridge") {
-		return SCBR;
-	}
-	else if (filename == "daynaport") {
-		return SCDP;
-	}
-	else if (filename == "printer") {
-		return SCLP;
-	}
-	else if (filename == "services") {
-		return SCHS;
+
+	if (const auto& it = device_mapping.find(filename); it != device_mapping.end()) {
+		return it->second;
 	}
 
 	return UNDEFINED;
@@ -105,7 +102,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
-		if (string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
+		if (const string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
 			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
@@ -220,10 +217,10 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
 	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
-	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        ifreq ifr = {};
-	        strcpy(ifr.ifr_name, tmp->ifa_name);
+	        strncpy(ifr.ifr_name, tmp->ifa_name, IFNAMSIZ); //NOSONAR Using strncpy is safe here
 	        // Only list interfaces that are up
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
 	        	network_interfaces.emplace_back(tmp->ifa_name);

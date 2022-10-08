@@ -40,10 +40,10 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		return 0;
 	}
 
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
+	const bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
+	const int page = cdb[2] & 0x3f;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
 
@@ -53,7 +53,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page)
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Holds all mode page data
@@ -63,7 +63,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 	for (auto const& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
-			size_t off = result.size();
+			const size_t off = result.size();
 
 			// Page data
 			result.insert(result.end(), data.begin(), data.end());
@@ -110,7 +110,7 @@ void ModePageDevice::ModeSense10()
 
 void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) const
 {
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6()
@@ -132,7 +132,7 @@ int ModePageDevice::ModeSelectCheck(int length) const
 	// Error if save parameters are set for other types than SCHD, SCRM or SCMO
 	// TODO The assumption above is not correct, and this code should be located elsewhere
 	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	return length;

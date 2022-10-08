@@ -9,7 +9,6 @@
 
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
-#include "devices/file_support.h"
 #include "scsi_controller.h"
 #include "controller_manager.h"
 
@@ -20,15 +19,21 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 	auto controller = FindController(id);
 	if (controller == nullptr) {
 		controller = make_shared<ScsiController>(bus, id);
-		controllers[id] = controller;
+		if (controller->AddDevice(device)) {
+			controllers[id] = controller;
+
+			return true;
+		}
+
+		return false;
 	}
 
 	return controller->AddDevice(device);
 }
 
-void ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
+bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
 {
-	controllers.erase(controller->GetTargetId());
+	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
@@ -53,7 +58,7 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
 	for (const auto& [id, controller] : controllers) {
-		auto d = controller->GetDevices();
+		const auto& d = controller->GetDevices();
 		devices.insert(d.begin(), d.end());
 	}
 

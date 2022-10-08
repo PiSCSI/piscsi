@@ -59,8 +59,8 @@ void SCSIMO::Open(const Filepath& path)
 	SetProtectable(true);
 	SetProtected(false);
 
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	super::Open(path);
+	SetPath(path);
 
 	SetUpCache(path, 0);
 

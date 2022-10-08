@@ -30,7 +30,7 @@ class file_not_found_exception : public io_exception
 	using io_exception::io_exception;
 };
 
-class scsi_error_exception final : public std::exception
+class scsi_exception : public std::exception
 {
 	scsi_defs::sense_key sense_key;
 	scsi_defs::asc asc;
@@ -38,11 +38,11 @@ class scsi_error_exception final : public std::exception
 
 public:
 
-	scsi_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
+	scsi_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::ABORTED_COMMAND,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION)
 	: sense_key(sense_key), asc(asc), status(status) {}
-	~scsi_error_exception() override = default;
+	~scsi_exception() override = default;
 
 	scsi_defs::sense_key get_sense_key() const { return sense_key; }
 	scsi_defs::asc get_asc() const { return asc; }

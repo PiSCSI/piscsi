@@ -107,13 +107,13 @@ void SCSIBR::TestUnitReady()
 int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 {
 	// Type
-	int type = cdb[2];
+	const int type = cdb[2];
 
 	// Function number
-	int func = cdb[3];
+	const int func = cdb[3];
 
 	// Phase
-	int phase = cdb[9];
+	const int phase = cdb[9];
 
 	switch (type) {
 		case 1:		// Ethernet
@@ -195,16 +195,16 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	// Type
-	int type = cdb[2];
+	const int type = cdb[2];
 
 	// Function number
-	int func = cdb[3];
+	const int func = cdb[3];
 
 	// Phase
-	int phase = cdb[9];
+	const int phase = cdb[9];
 
 	// Get the number of lights
-	int len = GetInt24(cdb, 6);
+	const int len = GetInt24(cdb, 6);
 
 	switch (type) {
 		case 1:		// Ethernet
@@ -257,7 +257,7 @@ void SCSIBR::GetMessage10()
 
 	ctrl->length = GetMessage10(ctrl->cmd, controller->GetBuffer());
 	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	// Set next block
@@ -278,7 +278,7 @@ void SCSIBR::SendMessage10()
 {
 	ctrl->length = GetInt24(ctrl->cmd, 6);
 	if (ctrl->length <= 0) {
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
@@ -368,8 +368,8 @@ void SCSIBR::FS_InitDevice(vector<BYTE>& buf)
 void SCSIBR::FS_CheckDir(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const uint32_t nUnit = ntohl(*dp);
+	const int i = sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
 
@@ -384,8 +384,8 @@ void SCSIBR::FS_CheckDir(vector<BYTE>& buf)
 void SCSIBR::FS_MakeDir(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const uint32_t nUnit = ntohl(*dp);
+	const int i = sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
 
@@ -400,8 +400,8 @@ void SCSIBR::FS_MakeDir(vector<BYTE>& buf)
 void SCSIBR::FS_RemoveDir(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const uint32_t nUnit = ntohl(*dp);
+	const int i = sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
 
@@ -416,7 +416,7 @@ void SCSIBR::FS_RemoveDir(vector<BYTE>& buf)
 void SCSIBR::FS_Rename(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
@@ -435,8 +435,8 @@ void SCSIBR::FS_Rename(vector<BYTE>& buf)
 void SCSIBR::FS_Delete(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const uint32_t nUnit = ntohl(*dp);
+	const int i = sizeof(uint32_t);
 
 	const auto *pNamests = (Human68k::namests_t*)&(buf.data()[i]);
 
@@ -451,7 +451,7 @@ void SCSIBR::FS_Delete(vector<BYTE>& buf)
 void SCSIBR::FS_Attribute(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
@@ -471,11 +471,11 @@ void SCSIBR::FS_Attribute(vector<BYTE>& buf)
 void SCSIBR::FS_Files(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
@@ -512,11 +512,11 @@ void SCSIBR::FS_Files(vector<BYTE>& buf)
 void SCSIBR::FS_NFiles(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto files = (Human68k::files_t*)&(buf.data()[i]);
@@ -550,11 +550,11 @@ void SCSIBR::FS_NFiles(vector<BYTE>& buf)
 void SCSIBR::FS_Create(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
@@ -564,11 +564,11 @@ void SCSIBR::FS_Create(vector<BYTE>& buf)
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nAttribute = ntohl(*dp);
+	const uint32_t nAttribute = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto bp = (int*)&(buf.data()[i]);
-	uint32_t bForce = ntohl(*bp);
+	const uint32_t bForce = ntohl(*bp);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -599,11 +599,11 @@ void SCSIBR::FS_Create(vector<BYTE>& buf)
 void SCSIBR::FS_Open(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	const auto pNamests = (Human68k::namests_t*)&(buf.data()[i]);
@@ -640,11 +640,11 @@ void SCSIBR::FS_Open(vector<BYTE>& buf)
 void SCSIBR::FS_Close(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto pFcb = (Human68k::fcb_t*)&(buf.data()[i]);
@@ -678,14 +678,14 @@ void SCSIBR::FS_Close(vector<BYTE>& buf)
 void SCSIBR::FS_Read(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	auto pFcb = (Human68k::fcb_t*)&(buf.data()[i]);
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nSize = ntohl(*dp);
+	const uint32_t nSize = ntohl(*dp);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -718,14 +718,14 @@ void SCSIBR::FS_Read(vector<BYTE>& buf)
 void SCSIBR::FS_Write(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	auto pFcb = (Human68k::fcb_t*)&(buf.data()[i]);
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nSize = ntohl(*dp);
+	const uint32_t nSize = ntohl(*dp);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);
@@ -756,14 +756,14 @@ void SCSIBR::FS_Write(vector<BYTE>& buf)
 void SCSIBR::FS_Seek(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	auto pFcb = (Human68k::fcb_t*)&(buf.data()[i]);
 	i += sizeof(Human68k::fcb_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nMode = ntohl(*dp);
+	const uint32_t nMode = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto ip = (const int*)&(buf.data()[i]);
@@ -798,11 +798,11 @@ void SCSIBR::FS_Seek(vector<BYTE>& buf)
 void SCSIBR::FS_TimeStamp(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nKey = ntohl(*dp);
+	const uint32_t nKey = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto pFcb = (Human68k::fcb_t*)&(buf.data()[i]);
@@ -840,7 +840,7 @@ void SCSIBR::FS_TimeStamp(vector<BYTE>& buf)
 void SCSIBR::FS_GetCapacity(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	Human68k::capacity_t cap;
 	fsresult = fs.GetCapacity(nUnit, &cap);
@@ -862,8 +862,8 @@ void SCSIBR::FS_GetCapacity(vector<BYTE>& buf)
 void SCSIBR::FS_CtrlDrive(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
-	int i = sizeof(uint32_t);
+	const uint32_t nUnit = ntohl(*dp);
+	const int i = sizeof(uint32_t);
 
 	auto pCtrlDrive = (Human68k::ctrldrive_t*)&(buf.data()[i]);
 
@@ -881,7 +881,7 @@ void SCSIBR::FS_CtrlDrive(vector<BYTE>& buf)
 void SCSIBR::FS_GetDPB(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	Human68k::dpb_t dpb;
 	fsresult = fs.GetDPB(nUnit, &dpb);
@@ -905,11 +905,11 @@ void SCSIBR::FS_GetDPB(vector<BYTE>& buf)
 void SCSIBR::FS_DiskRead(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nSector = ntohl(*dp);
+	const uint32_t nSector = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
@@ -927,7 +927,7 @@ void SCSIBR::FS_DiskRead(vector<BYTE>& buf)
 void SCSIBR::FS_DiskWrite(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.DiskWrite(nUnit);
 }
@@ -940,18 +940,18 @@ void SCSIBR::FS_DiskWrite(vector<BYTE>& buf)
 void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 	int i = sizeof(uint32_t);
 
 	dp = (uint32_t*)&(buf.data()[i]);
-	uint32_t nFunction = ntohl(*dp);
+	const uint32_t nFunction = ntohl(*dp);
 	i += sizeof(uint32_t);
 
 	auto pIoctrl = (Human68k::ioctrl_t*)&(buf.data()[i]);
 
 	switch (nFunction) {
 		case 2:
-		case (DWORD)-2:
+		case (uint32_t)-2:
 			pIoctrl->param = htonl(pIoctrl->param);
 			break;
 		default:
@@ -965,7 +965,7 @@ void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 			pIoctrl->media = htons(pIoctrl->media);
 			break;
 		case 1:
-		case (DWORD)-3:
+		case (uint32_t)-3:
 			pIoctrl->param = htonl(pIoctrl->param);
 			break;
 		default:
@@ -986,7 +986,7 @@ void SCSIBR::FS_Ioctrl(vector<BYTE>& buf)
 void SCSIBR::FS_Flush(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.Flush(nUnit);
 }
@@ -999,7 +999,7 @@ void SCSIBR::FS_Flush(vector<BYTE>& buf)
 void SCSIBR::FS_CheckMedia(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.CheckMedia(nUnit);
 }
@@ -1012,7 +1012,7 @@ void SCSIBR::FS_CheckMedia(vector<BYTE>& buf)
 void SCSIBR::FS_Lock(vector<BYTE>& buf)
 {
 	auto dp = (uint32_t*)buf.data();
-	uint32_t nUnit = ntohl(*dp);
+	const uint32_t nUnit = ntohl(*dp);
 
 	fsresult = fs.Lock(nUnit);
 }

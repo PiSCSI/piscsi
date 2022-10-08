@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -12,6 +12,7 @@
 #include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
+#include <netdb.h>
 #include <string>
 
 using namespace rascsi_interface;
@@ -48,6 +49,8 @@ private:
 	void CommandMappingInfo();
 	void CommandOperationInfo();
 	void SendCommand();
+
+	static bool ResolveHostName(const string&, sockaddr_in *);
 
 	ProtobufSerializer serializer;
 	PbCommand command;

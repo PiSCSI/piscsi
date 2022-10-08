@@ -35,9 +35,9 @@ static const int _MAX_FNAME = 256;
 static volatile bool running; // Running flag
 GPIOBUS bus;			      // GPIO Bus
 
-DWORD buff_size = 1000000;
+uint32_t buff_size = 1000000;
 data_capture *data_buffer;
-DWORD data_idx = 0;
+uint32_t data_idx = 0;
 
 double ns_per_loop;
 
@@ -94,8 +94,7 @@ void parse_arguments(int argc, char *argv[])
     }
 
     /* Process any remaining command line arguments (not options). */
-    if (optind < argc)
-    {
+    if (optind < argc) {
         while (optind < argc)
             strncpy(file_base_name, argv[optind++], sizeof(file_base_name)-1);
     }
@@ -147,12 +146,10 @@ void print_help_text(int, char *argv[])
 //---------------------------------------------------------------------------
 void Banner(int, char *[])
 {
-    if (import_data)
-    {
+    if (import_data) {
         LOGINFO("Reading input file: %s", input_file_name)
     }
-    else
-    {
+    else {
         LOGINFO("Reading live data from the GPIO pins")
         LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
@@ -172,16 +169,13 @@ void Banner(int, char *[])
 bool Init()
 {
     // Interrupt handler settings
-    if (signal(SIGINT, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGINT, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGHUP, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGHUP, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGTERM, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGTERM, KillHandler) == SIG_ERR) {
         return false;
     }
 
@@ -249,8 +243,8 @@ void FixCpu(int cpu)
 #endif
 
 #ifdef DEBUG
-static DWORD high_bits = 0x0;
-static DWORD low_bits = 0xFFFFFFFF;
+static uint32_t high_bits = 0x0;
+static uint32_t low_bits = 0xFFFFFFFF;
 #endif
 
 //---------------------------------------------------------------------------
@@ -272,12 +266,12 @@ int main(int argc, char *argv[])
     parse_arguments(argc, argv);
 
 #ifdef DEBUG
-    DWORD prev_high = high_bits;
-    DWORD prev_low = low_bits;
+    uint32_t prev_high = high_bits;
+    uint32_t prev_low = low_bits;
 #endif
     ostringstream s;
-    DWORD prev_sample = 0xFFFFFFFF;
-    DWORD this_sample = 0;
+    uint32_t prev_sample = 0xFFFFFFFF;
+    uint32_t this_sample = 0;
     timeval start_time;
     timeval stop_time;
     uint64_t loop_count = 0;
@@ -312,8 +306,7 @@ int main(int argc, char *argv[])
 
     // Initialize
     int ret = 0;
-    if (!Init())
-    {
+    if (!Init()) {
         ret = EPERM;
         goto init_exit;
     }
