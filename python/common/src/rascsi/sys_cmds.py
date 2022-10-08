@@ -8,7 +8,7 @@ from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 
-ERROR_FORMAT = "%s: %s"
+ERROR_FORMAT = "[%s] %s"
 
 class SysCmds:
     """
@@ -47,8 +47,8 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning(ERROR_FORMAT, error.cmd, error.stderr.decode("utf-8"))
-            pi_version = _("Unknown")
+            logging.warning(ERROR_FORMAT, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            pi_version = "?"
 
         return {"git": ra_git_version, "env": pi_version}
 
