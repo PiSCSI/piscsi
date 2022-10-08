@@ -8,6 +8,7 @@ from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 
+ERROR_FORMAT = "%s: %s"
 
 class SysCmds:
     """
@@ -21,7 +22,6 @@ class SysCmds:
         git contains the git hash of the checked out code
         env is the various system information where this app is running
         """
-        ERROR_FORMAT = "%s: %s"
         try:
             ra_git_version = (
                 subprocess.run(
@@ -69,8 +69,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(ERROR_FORMAT, error.cmd, error.stderr.decode("utf-8"))
             processes = ""
 
         matching_processes = findall(daemon, processes)
@@ -92,8 +91,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(ERROR_FORMAT, error.cmd, error.stderr.decode("utf-8"))
             bridges = ""
 
         if "rascsi_bridge" in bridges:
