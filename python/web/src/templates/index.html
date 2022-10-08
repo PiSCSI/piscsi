@@ -256,7 +256,7 @@
             {% endif %}
             <td align="center">
                 <form action="/files/download" method="post">
-                    <input name="file" type="hidden" value="{{ env["image_dir"] }}/{{ file['name'] }}">
+                    <input name="file" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
             </td>

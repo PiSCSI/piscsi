@@ -22,7 +22,6 @@ from flask import (
     flash,
     url_for,
     redirect,
-    send_file,
     send_from_directory,
     make_response,
     session,
@@ -954,8 +953,9 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("file")
-    return send_file(image, as_attachment=True)
+    file_name = request.form.get("file")
+    server_info = ractl_cmd.get_server_info()
+    return send_from_directory(server_info["image_dir"], file_name, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
