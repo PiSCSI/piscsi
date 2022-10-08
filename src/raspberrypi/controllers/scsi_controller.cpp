@@ -625,6 +625,7 @@ void ScsiController::Receive()
 	}
 
 	// If result FALSE, move to status phase
+	// TODO Check whether we can raise scsi_exception here in order to simplify the error handling
 	if (!result) {
 		Error(sense_key::ABORTED_COMMAND);
 		return;
@@ -648,7 +649,8 @@ void ScsiController::Receive()
 			break;
 
 		case BUS::phase_t::dataout:
-			FlushUnit();
+			// Block-oriented data have been handled above
+			DataOutNonBlockOriented();
 
 			Status();
 			break;
@@ -769,47 +771,30 @@ bool ScsiController::XferOut(bool cont)
 	return false;
 }
 
-void ScsiController::FlushUnit()
+void ScsiController::DataOutNonBlockOriented()
 {
 	assert(IsDataOut());
 
-	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
-	if (disk == nullptr) {
-		return;
-	}
-
-	// WRITE system only
 	switch (GetOpcode()) {
-		case scsi_command::eCmdWrite6:
-		case scsi_command::eCmdWrite10:
-		case scsi_command::eCmdWrite16:
-		case scsi_command::eCmdWriteLong10:
-		case scsi_command::eCmdWriteLong16:
-		case scsi_command::eCmdVerify10:
-		case scsi_command::eCmdVerify16:
-			break;
-
 		case scsi_command::eCmdModeSelect6:
-		case scsi_command::eCmdModeSelect10:
-            // TODO What is this special handling of ModeSelect good for?
-            // Without it we would not need this method at all.
-            // ModeSelect is already handled in XferOutBlockOriented(). Why would it have to be handled once more?
-			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+		case scsi_command::eCmdModeSelect10: {
+				// TODO Try to get rid of this cast
+				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
+					device != nullptr) {
+					device->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+				}
+				else {
+					throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+				}
 			}
-			catch(const scsi_exception& e) {
-				LOGWARN("Error occured while processing Mode Select command %02X\n", (int)GetOpcode())
-				Error(e.get_sense_key(), e.get_asc(), e.get_status());
-				return;
-			}
-            break;
+			break;
 
 		case scsi_command::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 
 		default:
-			LOGWARN("Received an unexpected flush command $%02X\n", (int)GetOpcode())
+			LOGWARN("Unexpected Data Out phase for command $%02X", (int)GetOpcode())
 			break;
 	}
 }

@@ -103,7 +103,7 @@ private:
 	void ReceiveBytes();
 
 	void Execute();
-	void FlushUnit();
+	void DataOutNonBlockOriented();
 	void Receive();
 
 	void ProcessCommand();

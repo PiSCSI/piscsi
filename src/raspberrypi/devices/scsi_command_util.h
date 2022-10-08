@@ -22,6 +22,7 @@ namespace scsi_command_util
 	void EnrichFormatPage(map<int, vector<byte>>&, bool, int);
 	void AddAppleVendorModePage(map<int, vector<byte>>&, bool);
 
+	int GetInt16(const vector<BYTE>&, int);
 	int GetInt16(const vector<int>&, int);
 	int GetInt24(const vector<int>&, int);
 	uint32_t GetInt32(const vector<int>&, int);
