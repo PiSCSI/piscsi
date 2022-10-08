@@ -224,16 +224,13 @@ class RaCtlCmds:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
 
-        if "device_type" in kwargs.keys():
-            if kwargs["device_type"]:
-                devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
-        if "unit" in kwargs.keys():
-            if kwargs["unit"]:
-                devices.unit = kwargs["unit"]
-        if "params" in kwargs.keys():
-            if isinstance(kwargs["params"], dict):
-                for param in kwargs["params"]:
-                    devices.params[param] = kwargs["params"][param]
+        if "device_type" in kwargs and kwargs["device_type"]:
+            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+        if "unit" in kwargs and kwargs["unit"]:
+            devices.unit = kwargs["unit"]
+        if "params" in kwargs and isinstance(kwargs["params"], dict):
+            for param in kwargs["params"]:
+                devices.params[param] = kwargs["params"][param]
 
         # Handling the inserting of media into an attached removable type device
         device_type = kwargs.get("device_type", None)
@@ -260,18 +257,14 @@ class RaCtlCmds:
         # Handling attaching a new device
         else:
             command.operation = proto.PbOperation.ATTACH
-            if "vendor" in kwargs.keys():
-                if kwargs["vendor"]:
-                    devices.vendor = kwargs["vendor"]
-            if "product" in kwargs.keys():
-                if kwargs["product"]:
-                    devices.product = kwargs["product"]
-            if "revision" in kwargs.keys():
-                if kwargs["revision"]:
-                    devices.revision = kwargs["revision"]
-            if "block_size" in kwargs.keys():
-                if kwargs["block_size"]:
-                    devices.block_size = int(kwargs["block_size"])
+            if "vendor" in kwargs and kwargs["vendor"]:
+                devices.vendor = kwargs["vendor"]
+            if "product" in kwargs and kwargs["product"]:
+                devices.product = kwargs["product"]
+            if "revision" in kwargs and kwargs["revision"]:
+                devices.revision = kwargs["revision"]
+            if "block_size" in kwargs and kwargs["block_size"]:
+                devices.block_size = int(kwargs["block_size"])
 
         command.devices.append(devices)
 
