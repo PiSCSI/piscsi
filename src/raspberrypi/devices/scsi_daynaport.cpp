@@ -314,7 +314,7 @@ int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, vector<BYTE>& buf) cons
 {
 	memcpy(buf.data(), &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
-	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 4));
+	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 3));
 }
 
 void SCSIDaynaPort::TestUnitReady()
