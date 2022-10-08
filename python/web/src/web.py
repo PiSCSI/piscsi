@@ -441,7 +441,7 @@ def config_load():
         return response(error=True, message=process["msg"])
 
     if "delete" in request.form:
-        process = file_cmd.delete_file(f"{CFG_DIR}/{file_name}")
+        process = file_cmd.delete_file(CFG_DIR, file_name)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             return response(message=process["msg"])
@@ -974,9 +974,8 @@ def delete():
         (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
-        process = file_cmd.delete_file(prop_file_path)
+    if Path(f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}").is_file():
+        process = file_cmd.delete_file(CFG_DIR, f"{file_name}.{PROPERTIES_SUFFIX}")
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))
@@ -1003,10 +1002,12 @@ def rename():
         (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
-        process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
+    if Path(f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}").is_file():
+        process = file_cmd.rename_file(
+            CFG_DIR,
+            f"{file_name}.{PROPERTIES_SUFFIX}",
+            f"{new_file_name}.{PROPERTIES_SUFFIX}",
+            )
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))
@@ -1033,10 +1034,12 @@ def copy():
         (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
-        process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
+    if Path(f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}").is_file():
+        process = file_cmd.copy_file(
+            CFG_DIR,
+            f"{file_name}.{PROPERTIES_SUFFIX}",
+            f"{new_file_name}.{PROPERTIES_SUFFIX}",
+            )
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))

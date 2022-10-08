@@ -148,7 +148,7 @@ class FileCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        command.params["file"] = file_name + "." + file_type
+        command.params["file"] = f"{file_name}.{file_type}"
         command.params["size"] = str(size)
         command.params["read_only"] = "false"
 
@@ -214,14 +214,16 @@ class FileCmds:
         return {"status": result.status, "msg": result.msg}
 
     # noinspection PyMethodMayBeStatic
-    def delete_file(self, file_path):
+    def delete_file(self, file_dir, file_name):
         """
-        Takes (str) file_path with the full path to the file to delete
+        Takes (str) file_dir and (str) file name for the file to delete
         Returns (dict) with (bool) status and (str) msg
         """
+        file_path = f"{file_dir}/{file_name}"
         parameters = {
             "file_path": file_path
         }
+
         if os.path.exists(file_path):
             os.remove(file_path)
             return {
@@ -236,11 +238,15 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def rename_file(self, file_path, target_path):
+    def rename_file(self, file_dir, file_name, target_name):
         """
-        Takes (str) file_path and (str) target_path
+        Takes:
+         - (str) file_dir and (str) file_name for the file to rename
+         - (str) target_name for the name to rename to in the same dir
         Returns (dict) with (bool) status and (str) msg
         """
+        file_path = f"{file_dir}/{file_name}"
+        target_path = f"{file_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
@@ -258,11 +264,15 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def copy_file(self, file_path, target_path):
+    def copy_file(self, file_dir, file_name, target_name):
         """
-        Takes (str) file_path and (str) target_path
+        Takes:
+         - (str) file_dir and (str) file_name for the file to copy from
+         - (str) target_name for the file to copy to in the same dir
         Returns (dict) with (bool) status and (str) msg
         """
+        file_path = f"{file_dir}/{file_name}"
+        target_path = f"{file_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
