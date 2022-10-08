@@ -23,22 +23,17 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const vector<BYTE>& b
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 	}
 
-	bool has_valid_page_code = false;
-
-	// Mode Parameter header
-	int offset = 0;
-	if (length >= 12) {
-		// Check the block length
-		if (buf[9] != (BYTE)(sector_size >> 16) || buf[10] != (BYTE)(sector_size >> 8) ||
-				buf[11] != (BYTE)sector_size) {
-			// See below for details
-			LOGWARN("In order to change the sector size use the -b option when launching rascsi")
-			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
-		}
-
-		offset += 12;
-		length -= 12;
+	// Skip block descriptors
+	int offset;
+	if ((scsi_command)cdb[0] == scsi_command::eCmdModeSelect6) {
+		offset = 4 + buf[3];
 	}
+	else {
+		offset = 8 + GetInt16(cdb, 6);
+	}
+	length -= offset;
+
+	bool has_valid_page_code = false;
 
 	// Parsing the page
 	// TODO The length handling is wrong in case of length < size
