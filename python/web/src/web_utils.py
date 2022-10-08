@@ -217,6 +217,7 @@ def get_properties_by_drive_name(drives, drive_name):
         "product": drive_props["product"],
         "revision": drive_props["revision"],
         "block_size": drive_props["block_size"],
+        "size": drive_props["size"],
         }
 
 def auth_active(group):
