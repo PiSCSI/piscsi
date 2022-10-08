@@ -51,7 +51,7 @@ string ras_util::Banner(const string& app)
 string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 {
 	if (pb_devices.empty()) {
-		return "No devices currently attached.";
+		return "No devices currently attached.\n";
 	}
 
 	ostringstream s;
