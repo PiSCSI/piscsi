@@ -220,7 +220,7 @@ list<string> DeviceFactory::GetNetworkInterfaces() const
 	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        ifreq ifr = {};
-	        strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
+	        strncpy(ifr.ifr_name, tmp->ifa_name, IFNAMSIZ);
 	        // Only list interfaces that are up
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
 	        	network_interfaces.emplace_back(tmp->ifa_name);
