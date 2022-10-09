@@ -6,7 +6,7 @@ import os
 import logging
 import asyncio
 from functools import lru_cache
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
 from time import time
 from subprocess import run, CalledProcessError
@@ -223,18 +223,17 @@ class FileCmds:
         return {"status": result.status, "msg": result.msg}
 
     # noinspection PyMethodMayBeStatic
-    def delete_file(self, file_dir, file_name):
+    def delete_file(self, file_path):
         """
-        Takes (str) file_dir and (str) file name for the file to delete
+        Takes (Path) file_path for the file to delete
         Returns (dict) with (bool) status and (str) msg
         """
-        file_path = f"{file_dir}/{file_name}"
         parameters = {
             "file_path": file_path
         }
 
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if file_path.exists():
+            os.remove(file_path.as_posix())
             return {
                     "status": True,
                     "return_code": ReturnCodes.DELETEFILE_SUCCESS,
@@ -247,20 +246,18 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def rename_file(self, file_dir, file_name, target_dir, target_name):
+    def rename_file(self, file_path, target_path):
         """
         Takes:
-         - (str) file_dir and (str) file_name for the file to rename
-         - (str) target_name (str) target_dir for the name to rename
+         - (Path) file_path for the file to rename
+         - (Path) target_path for the name to rename
         Returns (dict) with (bool) status and (str) msg
         """
-        file_path = f"{file_dir}/{file_name}"
-        target_path = f"{target_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
-        if os.path.exists(PurePath(target_path).parent):
-            os.rename(file_path, target_path)
+        if Path(target_path.parent).exists:
+            os.rename(file_path.as_posix(), target_path.as_posix())
             return {
                 "status": True,
                 "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
@@ -273,20 +270,18 @@ class FileCmds:
             }
 
     # noinspection PyMethodMayBeStatic
-    def copy_file(self, file_dir, file_name, target_dir, target_name):
+    def copy_file(self, file_path, target_path):
         """
         Takes:
-         - (str) file_dir and (str) file_name for the file to copy from
-         - (str) target_name and (str) target_dir for the file to copy to
+         - (Path) file_path for the file to copy from
+         - (Path) target_path for the name to copy to
         Returns (dict) with (bool) status and (str) msg
         """
-        file_path = f"{file_dir}/{file_name}"
-        target_path = f"{target_dir}/{target_name}"
         parameters = {
             "target_path": target_path
         }
-        if os.path.exists(PurePath(target_path).parent):
-            copyfile(file_path, target_path)
+        if Path(target_path.parent).exists:
+            copyfile(file_path.as_posix(), target_path.as_posix())
             return {
                 "status": True,
                 "return_code": ReturnCodes.WRITEFILE_SUCCESS,
@@ -325,22 +320,21 @@ class FileCmds:
             if move_properties_files_to_config:
                 for file in extract_result["extracted"]:
                     if file.get("name").endswith(f".{PROPERTIES_SUFFIX}"):
+                        prop_path = Path(CFG_DIR) / file["name"]
                         if (self.rename_file(
-                                PurePath(file["absolute_path"]).parent,
-                                file["name"],
-                                CFG_DIR,
-                                file["name"],
+                                Path(file["absolute_path"]),
+                                prop_path,
                                 )):
                             properties_files_moved.append({
                                 "status": True,
                                 "name": file["path"],
-                                "path": f"{CFG_DIR}/{file['name']}",
+                                "path": prop_path.is_posix(),
                                 })
                         else:
                             properties_files_moved.append({
                                 "status": False,
                                 "name": file["path"],
-                                "path": f"{CFG_DIR}/{file['name']}",
+                                "path": prop_path.is_posix(),
                                 })
 
             return {
@@ -407,7 +401,7 @@ class FileCmds:
                         "%s was successfully unzipped. Deleting the zipfile.",
                         tmp_full_path,
                         )
-                    self.delete_file(tmp_dir, file_name)
+                    self.delete_file(Path(tmp_full_path))
 
         try:
             run(
@@ -514,11 +508,11 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(CFG_DIR, file_name)
+            self.delete_file(Path(file_path))
             return {"status": False, "msg": str(error)}
         except:
             logging.error(FILE_WRITE_ERROR, file_name)
-            self.delete_file(CFG_DIR, file_name)
+            self.delete_file(Path(file_path))
             raise
 
     def read_config(self, file_name):
@@ -613,11 +607,11 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(CFG_DIR, file_name)
+            self.delete_file(Path(file_path))
             return {"status": False, "msg": str(error)}
         except:
             logging.error(FILE_WRITE_ERROR, file_path)
-            self.delete_file(CFG_DIR, file_name)
+            self.delete_file(Path(file_path))
             raise
 
     # noinspection PyMethodMayBeStatic
