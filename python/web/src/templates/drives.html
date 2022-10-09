@@ -13,7 +13,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for hd in drive_properties['hd_conf']|sort(attribute='name') %}
+{% for hd in env['drive_properties']['hd_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if hd.url != "" %}
@@ -48,7 +48,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for cd in drive_properties['cd_conf']|sort(attribute='name') %}
+{% for cd in env['drive_properties']['cd_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if cd.url != "" %}
@@ -88,7 +88,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for rm in drive_properties['rm_conf']|sort(attribute='name') %}
+{% for rm in env['drive_properties']['rm_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if rm.url != "" %}

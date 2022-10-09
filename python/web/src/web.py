@@ -97,6 +97,7 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
+        "drive_properties": format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
     }
 
 
@@ -228,16 +229,6 @@ def index():
         server_info["sccd"]
         )
 
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
-
     return response(
         template="index.html",
         locales=get_supported_locales(),
@@ -256,7 +247,6 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
-        drive_properties=drive_properties,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
@@ -283,20 +273,10 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
 
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        drive_properties=drive_properties,
         )
 
 
@@ -1166,13 +1146,22 @@ if __name__ == "__main__":
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)
+
+    drive_properties = {
+        "hd_conf": [],
+        "cd_conf": [],
+        "rm_conf": [],
+        "mo_conf": [],
+        }
     if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
         process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
         if process["status"]:
             APP.config["RASCSI_DRIVE_PROPERTIES"] = process["conf"]
         else:
+            APP.config["RASCSI_DRIVE_PROPERTIES"] = drive_properties
             logging.error(process["msg"])
     else:
+        APP.config["RASCSI_DRIVE_PROPERTIES"] = drive_properties
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.basicConfig(stream=sys.stdout,
