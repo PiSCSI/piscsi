@@ -281,7 +281,7 @@ class FileCmds:
             "target_path": target_path
         }
         if target_path.parent.exists:
-            copyfile(file_path.as_posix(), target_path.as_posix())
+            copyfile(str(file_path), str(target_path))
             return {
                 "status": True,
                 "return_code": ReturnCodes.WRITEFILE_SUCCESS,
