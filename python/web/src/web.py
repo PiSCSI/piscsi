@@ -954,9 +954,9 @@ def delete():
         (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    if prop_path.is_file():
-        process = file_cmd.delete_file(prop_path)
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))
@@ -983,10 +983,10 @@ def rename():
         (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
-    if prop_path.is_file():
-        process = file_cmd.rename_file(prop_path, new_prop_path)
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))
@@ -1013,10 +1013,10 @@ def copy():
         (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
-    if prop_path.is_file():
-        process = file_cmd.copy_file(prop_path, new_prop_path)
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             response_messages.append((process["msg"], "success"))
