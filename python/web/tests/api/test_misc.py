@@ -42,7 +42,7 @@ def test_show_named_drive_presets(http_client):
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert "drive_properties" in response_data["data"]
+    assert "files" in response_data["data"]
 
 
 # route("/drive/cdrom", methods=["POST"])
