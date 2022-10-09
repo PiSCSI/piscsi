@@ -22,12 +22,15 @@ from rascsi.common_settings import (
     PROPERTIES_SUFFIX,
     ARCHIVE_FILE_SUFFIXES,
     RESERVATIONS,
+    SHELL_ERROR,
 )
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 from util import unarchiver
 
+FILE_READ_ERROR = "Unhandled exception when reading file: %s"
+FILE_WRITE_ERROR = "Unhandled exception when writing to file: %s"
 
 class FileCmds:
     """
@@ -420,8 +423,7 @@ class FileCmds:
                 check=True,
             )
         except CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
         parameters = {
@@ -516,16 +518,9 @@ class FileCmds:
             self.delete_file(CFG_DIR, file_name)
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not write to file: %s", file_name)
+            logging.error(FILE_WRITE_ERROR, file_name)
             self.delete_file(CFG_DIR, file_name)
-            parameters = {
-                "file_name": file_name
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
-                "parameters": parameters,
-                }
+            raise
 
     def read_config(self, file_name):
         """
@@ -596,15 +591,8 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not read file: %s", file_name)
-            parameters = {
-                "file_name": file_name
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.READCONFIG_COULD_NOT_READ,
-                "parameters": parameters
-                }
+            logging.error(FILE_READ_ERROR, file_name)
+            raise
 
     def write_drive_properties(self, file_name, conf):
         """
@@ -629,16 +617,9 @@ class FileCmds:
             self.delete_file(CFG_DIR, file_name)
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not write to file: %s", file_path)
+            logging.error(FILE_WRITE_ERROR, file_path)
             self.delete_file(CFG_DIR, file_name)
-            parameters = {
-                "target_path": file_path
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
-                "parameters": parameters,
-                }
+            raise
 
     # noinspection PyMethodMayBeStatic
     def read_drive_properties(self, file_path):
@@ -663,15 +644,8 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not read file: %s", file_path)
-            parameters = {
-                "file_path": file_path
-            }
-            return {
-                "status": False,
-                "return_codes": ReturnCodes.READDRIVEPROPS_COULD_NOT_READ,
-                "parameters": parameters,
-                }
+            logging.error(FILE_READ_ERROR, file_path)
+            raise
 
     # noinspection PyMethodMayBeStatic
     async def run_async(self, program, args):
