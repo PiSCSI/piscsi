@@ -256,7 +256,7 @@
             {% endif %}
             <td align="center">
                 <form action="/files/download" method="post">
-                    <input name="file" type="hidden" value="{{ env["image_dir"] }}/{{ file['name'] }}">
+                    <input name="file" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
             </td>
@@ -392,21 +392,21 @@
                 {{ _("None") }}
                 </option>
                 {% if type == "SCCD" %}
-                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["cd_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCRM" %}
-                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["rm_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCMO" %}
-                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["mo_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
@@ -581,7 +581,7 @@
     <option value="">
     {{ _("None") }}
     </option>
-    {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+    {% for drive in env["drive_properties"]["hd_conf"] | sort(attribute='name') %}
     <option value="{{ drive.name }}">
     {{ drive.name }}
     </option>

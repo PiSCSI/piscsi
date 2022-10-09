@@ -8,6 +8,7 @@ from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 
+from rascsi.common_settings import SHELL_ERROR
 
 class SysCmds:
     """
@@ -32,8 +33,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
             ra_git_version = ""
 
         try:
@@ -47,9 +47,8 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
-            pi_version = "Unknown"
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            pi_version = "?"
 
         return {"git": ra_git_version, "env": pi_version}
 
@@ -70,8 +69,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
             processes = ""
 
         matching_processes = findall(daemon, processes)
@@ -93,8 +91,7 @@ class SysCmds:
                 .strip()
             )
         except subprocess.CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
             bridges = ""
 
         if "rascsi_bridge" in bridges:

@@ -3,6 +3,7 @@ from conftest import STATUS_SUCCESS, STATUS_ERROR
 
 # route("/login", methods=["POST"])
 def test_login_with_valid_credentials(pytestconfig, http_client_unauthenticated):
+    # Note: This test depends on the rascsi group existing and 'username' a member the group
     response = http_client_unauthenticated.post(
         "/login",
         data={

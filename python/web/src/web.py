@@ -22,7 +22,6 @@ from flask import (
     flash,
     url_for,
     redirect,
-    send_file,
     send_from_directory,
     make_response,
     session,
@@ -98,6 +97,7 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
+        "drive_properties": format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
     }
 
 
@@ -229,16 +229,6 @@ def index():
         server_info["sccd"]
         )
 
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
-
     return response(
         template="index.html",
         locales=get_supported_locales(),
@@ -257,7 +247,6 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
-        drive_properties=drive_properties,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
@@ -284,20 +273,10 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
 
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        drive_properties=drive_properties,
         )
 
 
@@ -310,10 +289,9 @@ def login():
     password = request.form["password"]
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
 
-    if AUTH_GROUP in groups:
-        if authenticate(str(username), str(password)):
-            session["username"] = request.form["username"]
-            return response(env=get_env_info())
+    if AUTH_GROUP in groups and authenticate(str(username), str(password)):
+        session["username"] = request.form["username"]
+        return response(env=get_env_info())
 
     return response(error=True, status_code=401, message=_(
         "You must log in with valid credentials for a user in the '%(group)s' group",
@@ -442,7 +420,8 @@ def config_load():
         return response(error=True, message=process["msg"])
 
     if "delete" in request.form:
-        process = file_cmd.delete_file(f"{CFG_DIR}/{file_name}")
+        file_path = Path(CFG_DIR) / file_name
+        process = file_cmd.delete_file(file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             return response(message=process["msg"])
@@ -954,8 +933,9 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("file")
-    return send_file(image, as_attachment=True)
+    file_name = request.form.get("file")
+    server_info = ractl_cmd.get_server_info()
+    return send_from_directory(server_info["image_dir"], file_name, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -974,8 +954,8 @@ def delete():
         (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -1003,9 +983,9 @@ def rename():
         (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -1033,9 +1013,9 @@ def copy():
         (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -1171,8 +1151,10 @@ if __name__ == "__main__":
         if process["status"]:
             APP.config["RASCSI_DRIVE_PROPERTIES"] = process["conf"]
         else:
+            APP.config["RASCSI_DRIVE_PROPERTIES"] = []
             logging.error(process["msg"])
     else:
+        APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.basicConfig(stream=sys.stdout,

@@ -294,18 +294,7 @@ def upload_with_dropzonejs(image_dir):
     if current_chunk + 1 == total_chunks:
         # Validate the resulting file size after writing the last chunk
         if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error(
-                    "Finished transferring %s, "
-                    "but it has a size mismatch with the original file. "
-                    "Got %s but we expected %s.",
-                    file_object.filename,
-                    path.getsize(save_path),
-                    request.form['dztotalfilesize'],
-                    )
+            log.error("File size mismatch between the original file and transferred file.")
             return make_response(_("Transferred file corrupted!"), 500)
-
-        log.info("File %s has been uploaded successfully", file_object.filename)
-    log.debug("Chunk %s of %s for file %s completed.",
-              current_chunk + 1, total_chunks, file_object.filename)
 
     return make_response(_("File upload successful!"), 200)
