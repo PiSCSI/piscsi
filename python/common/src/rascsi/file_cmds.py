@@ -324,7 +324,6 @@ class FileCmds:
             properties_files_moved = []
             if move_properties_files_to_config:
                 for file in extract_result["extracted"]:
-                    logging.warning(file)
                     if file.get("name").endswith(f".{PROPERTIES_SUFFIX}"):
                         if (self.rename_file(
                                 PurePath(file["absolute_path"]).parent,
