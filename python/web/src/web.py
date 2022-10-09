@@ -1146,22 +1146,15 @@ if __name__ == "__main__":
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)
-
-    drive_properties = {
-        "hd_conf": [],
-        "cd_conf": [],
-        "rm_conf": [],
-        "mo_conf": [],
-        }
     if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
         process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
         if process["status"]:
             APP.config["RASCSI_DRIVE_PROPERTIES"] = process["conf"]
         else:
-            APP.config["RASCSI_DRIVE_PROPERTIES"] = drive_properties
+            APP.config["RASCSI_DRIVE_PROPERTIES"] = []
             logging.error(process["msg"])
     else:
-        APP.config["RASCSI_DRIVE_PROPERTIES"] = drive_properties
+        APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.basicConfig(stream=sys.stdout,
