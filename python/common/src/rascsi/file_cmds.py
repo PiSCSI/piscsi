@@ -233,7 +233,7 @@ class FileCmds:
         }
 
         if file_path.exists():
-            os.remove(file_path.as_posix())
+            file_path.unlink()
             return {
                     "status": True,
                     "return_code": ReturnCodes.DELETEFILE_SUCCESS,
@@ -256,8 +256,8 @@ class FileCmds:
         parameters = {
             "target_path": target_path
         }
-        if Path(target_path.parent).exists:
-            os.rename(file_path.as_posix(), target_path.as_posix())
+        if target_path.parent.exists:
+            file_path.rename(target_path)
             return {
                 "status": True,
                 "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
@@ -280,7 +280,7 @@ class FileCmds:
         parameters = {
             "target_path": target_path
         }
-        if Path(target_path.parent).exists:
+        if target_path.parent.exists:
             copyfile(file_path.as_posix(), target_path.as_posix())
             return {
                 "status": True,
@@ -328,13 +328,13 @@ class FileCmds:
                             properties_files_moved.append({
                                 "status": True,
                                 "name": file["path"],
-                                "path": prop_path.is_posix(),
+                                "path": str(prop_path),
                                 })
                         else:
                             properties_files_moved.append({
                                 "status": False,
                                 "name": file["path"],
-                                "path": prop_path.is_posix(),
+                                "path": str(prop_path),
                                 })
 
             return {
