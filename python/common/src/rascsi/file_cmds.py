@@ -681,5 +681,6 @@ class FileCmds:
         """
         try:
             return unarchiver.inspect_archive(file_path)
-        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
+        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError) as error:
+            logging.error(str(error))
             raise
