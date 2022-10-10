@@ -776,6 +776,16 @@ void ScsiController::DataOutNonBlockOriented()
 	assert(IsDataOut());
 
 	switch (GetOpcode()) {
+		// TODO Check why these cases are needed
+		case scsi_command::eCmdWrite6:
+		case scsi_command::eCmdWrite10:
+		case scsi_command::eCmdWrite16:
+		case scsi_command::eCmdWriteLong10:
+		case scsi_command::eCmdWriteLong16:
+		case scsi_command::eCmdVerify10:
+		case scsi_command::eCmdVerify16:
+			break;
+
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10: {
 				// TODO Try to get rid of this cast
