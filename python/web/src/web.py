@@ -579,16 +579,10 @@ def attach_device():
             if param:
                 params.update({item.replace(PARAM_PREFIX, ""): param})
 
-    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
-    error_msg = _("Please follow the instructions at %(url)s", url=error_url)
-
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
-            return response(error=True, message=[
-                (bridge_status["msg"], "error"),
-                (error_msg, "error")
-            ])
+            return response(error=True, message=bridge_status["msg"])
 
     kwargs = {
             "unit": int(unit),
