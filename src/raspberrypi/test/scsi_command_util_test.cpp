@@ -13,18 +13,20 @@
 
 using namespace scsi_command_util;
 
-TEST(ScsiCommandUtilTest, ModeSelect)
+TEST(ScsiCommandUtilTest, ModeSelect6)
 {
-	const int LENGTH = 12;
+	const int LENGTH = 26;
 
-	vector<int> cdb(16);
-	vector<BYTE> buf(255);
+	vector<int> cdb(6);
+	vector<BYTE> buf(LENGTH);
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
 	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 0), scsi_exception)
 		<< "Vendor-specific parameters are not supported";
 
+	cdb[0] = (int)scsi_command::eCmdModeSelect6;
+	cdb[0] = 0x15;
 	// PF (standard parameter format)
 	cdb[1] = 0x10;
 	// Request 512 bytes per sector
@@ -35,18 +37,61 @@ TEST(ScsiCommandUtilTest, ModeSelect)
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
-	buf[LENGTH] = 0x00;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_exception)
+	buf[12] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 512), scsi_exception)
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
-	buf[LENGTH] = 0x03;
-	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH + 2, 512), scsi_exception)
+	buf[12] = 0x03;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 512), scsi_exception)
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
-	buf[LENGTH + 12] = 0x02;
-	ModeSelect(cdb, buf, LENGTH + 2, 512);
+	buf[24] = 0x02;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH - 1, 512), scsi_exception)
+		<< "Not enough command parameters";
+
+	ModeSelect(cdb, buf, LENGTH, 512);
+}
+
+TEST(ScsiCommandUtilTest, ModeSelect10)
+{
+	const int LENGTH = 30;
+
+	vector<int> cdb(10);
+	vector<BYTE> buf(LENGTH);
+
+	// PF (vendor-specific parameter format)
+	cdb[1] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 0), scsi_exception)
+		<< "Vendor-specific parameters are not supported";
+
+	cdb[0] = (int)scsi_command::eCmdModeSelect10;
+	// PF (standard parameter format)
+	cdb[1] = 0x10;
+	// Request 512 bytes per sector
+	buf[13] = 0x00;
+	buf[14] = 0x02;
+	buf[15] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 256), scsi_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Page 0
+	buf[16] = 0x00;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 512), scsi_exception)
+		<< "Unsupported page 0 was not rejected";
+
+	// Page 3 (Format Device Page)
+	buf[16] = 0x03;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH, 512), scsi_exception)
+		<< "Requested sector size does not match current sector size";
+
+	// Match the requested to the current sector size
+	buf[28] = 0x02;
+	EXPECT_THROW(ModeSelect(cdb, buf, LENGTH - 1, 512), scsi_exception)
+		<< "Not enough command parameters";
+
+	ModeSelect(cdb, buf, LENGTH, 512);
 }
 
 TEST(ScsiCommandUtilTest, EnrichFormatPage)
@@ -85,6 +130,9 @@ TEST(ScsiCommandUtilTest, AddAppleVendorModePage)
 
 TEST(ScsiCommandUtilTest, GetInt16)
 {
+	vector<BYTE> b = { 0xfe, 0xdc };
+	EXPECT_EQ(0xfedc, GetInt16(b, 0));
+
 	vector<int> v = { 0x12, 0x34 };
 	EXPECT_EQ(0x1234, GetInt16(v, 0));
 }
