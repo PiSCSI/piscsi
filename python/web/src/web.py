@@ -360,7 +360,10 @@ def drive_create():
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
-    return response(message=_("Image file created: %(file_name)s", file_name=full_file_name))
+    return response(message=[
+        (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
+        (process["msg"], "success"),
+    ])
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
@@ -922,7 +925,10 @@ def create_file():
 
     return response(
         status_code=201,
-        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        message=[
+            (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
+            (process["msg"], "success"),
+            ],
         image=full_file_name,
         )
 
