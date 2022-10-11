@@ -580,7 +580,9 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 						to_string(id), to_string(lun));
 			}
 
-			disk->Open(filepath);
+			if (!disk->FileExists(filepath)) {
+                            return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, initial_filename);
+                        }
 		}
 	}
 	catch(const io_exception& e) {
