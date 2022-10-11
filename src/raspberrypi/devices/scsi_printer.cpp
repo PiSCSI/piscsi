@@ -60,6 +60,9 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
 	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
+
+	SetReady(true);
+	SetReset(false);
 }
 
 SCSIPrinter::~SCSIPrinter()
