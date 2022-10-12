@@ -164,6 +164,8 @@ string RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_typ
 		DisplayBlockSizes(s, properties);
 	}
 
+	s << '\n';
+
 	return s.str();
 }
 
