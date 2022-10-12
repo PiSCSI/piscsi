@@ -12,6 +12,7 @@ from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
 from shutil import copyfile
+from urllib.parse import quote
 
 import requests
 
@@ -31,6 +32,7 @@ from util import unarchiver
 
 FILE_READ_ERROR = "Unhandled exception when reading file: %s"
 FILE_WRITE_ERROR = "Unhandled exception when writing to file: %s"
+URL_SAFE = "/:?&"
 
 class FileCmds:
     """
@@ -103,7 +105,9 @@ class FileCmds:
         for file in result.image_files_info.image_files:
             # Add properties meta data for the image, if applicable
             if file.name in prop_files:
-                process = self.read_drive_properties(f"{CFG_DIR}/{file.name}.{PROPERTIES_SUFFIX}")
+                process = self.read_drive_properties(
+                    Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
+                    )
                 prop = process["conf"]
             else:
                 prop = False
@@ -377,7 +381,7 @@ class FileCmds:
         tmp_full_path = tmp_dir + file_name
         iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-        req_proc = self.download_to_dir(url, tmp_dir, file_name)
+        req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
 
         if not req_proc["status"]:
             return {"status": False, "msg": req_proc["msg"]}
@@ -438,7 +442,11 @@ class FileCmds:
         logging.info("Making a request to download %s", url)
 
         try:
-            with requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"}) as req:
+            with requests.get(
+                    quote(url, safe=URL_SAFE),
+                    stream=True,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    ) as req:
                 req.raise_for_status()
                 with open(f"{save_dir}/{file_name}", "wb") as download:
                     for chunk in req.iter_content(chunk_size=8192):
@@ -520,9 +528,9 @@ class FileCmds:
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        file_name = f"{CFG_DIR}/{file_name}"
+        file_path = Path(CFG_DIR) / file_name
         try:
-            with open(file_name, encoding="ISO-8859-1") as json_file:
+            with open(file_path, encoding="ISO-8859-1") as json_file:
                 config = load(json_file)
                 # If the config file format changes again in the future,
                 # introduce more sophisticated format detection logic here.
@@ -584,7 +592,7 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error(FILE_READ_ERROR, file_name)
+            logging.error(FILE_READ_ERROR, str(file_path))
             raise
 
     def write_drive_properties(self, file_name, conf):
@@ -593,12 +601,12 @@ class FileCmds:
         Takes file name base (str) and (list of dicts) conf as arguments
         Returns (dict) with (bool) status and (str) msg
         """
-        file_path = f"{CFG_DIR}/{file_name}"
+        file_path = Path(CFG_DIR) / file_name
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
             parameters = {
-                "target_path": file_path
+                "target_path": str(file_path)
             }
             return {
                 "status": True,
@@ -607,25 +615,25 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(Path(file_path))
+            self.delete_file(file_path)
             return {"status": False, "msg": str(error)}
         except:
-            logging.error(FILE_WRITE_ERROR, file_path)
-            self.delete_file(Path(file_path))
+            logging.error(FILE_WRITE_ERROR, str(file_path))
+            self.delete_file(file_path)
             raise
 
     # noinspection PyMethodMayBeStatic
     def read_drive_properties(self, file_path):
         """
         Reads drive properties from json formatted file.
-        Takes (str) file_path as argument.
+        Takes (Path) file_path as argument.
         Returns (dict) with (bool) status, (str) msg, (dict) conf
         """
         try:
             with open(file_path) as json_file:
                 conf = load(json_file)
                 parameters = {
-                    "file_path": file_path
+                    "file_path": str(file_path)
                 }
                 return {
                     "status": True,
@@ -637,7 +645,7 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error(FILE_READ_ERROR, file_path)
+            logging.error(FILE_READ_ERROR, str(file_path))
             raise
 
     # noinspection PyMethodMayBeStatic
@@ -673,5 +681,6 @@ class FileCmds:
         """
         try:
             return unarchiver.inspect_archive(file_path)
-        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
+        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError) as error:
+            logging.error(str(error))
             raise
