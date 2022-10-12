@@ -360,6 +360,7 @@ def drive_create():
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
+    # TODO: Refactor the return messages into one string
     return response(message=[
         (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
         (process["msg"], "success"),
@@ -585,6 +586,7 @@ def attach_device():
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
+            # TODO: Refactor the return messages into one string
             return response(error=True, message=[
                 (bridge_status["msg"], "error"),
                 (error_msg, "error")
@@ -676,6 +678,7 @@ def attach_image():
 
         return response(message=response_messages)
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
            file_name=file_name, id_number=scsi_id, unit_number=unit), "error"),
@@ -709,6 +712,7 @@ def detach():
         return response(message=_("Detached SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
            id_number=scsi_id, unit_number=unit), "error"),
@@ -730,6 +734,7 @@ def eject():
         return response(message=_("Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
            id_number=scsi_id, unit_number=unit), "error"),
@@ -767,6 +772,7 @@ def reserve_id():
         RESERVATIONS[int(scsi_id)] = memo
         return response(message=_("Reserved SCSI ID %(id_number)s", id_number=scsi_id))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id), "error"),
         (process["msg"], "error"),
@@ -787,6 +793,7 @@ def release_id():
         RESERVATIONS[int(scsi_id)] = ""
         return response(message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id), "error"),
         (process["msg"], "error"),
@@ -827,6 +834,7 @@ def download_to_iso():
     process = file_cmd.download_file_to_iso(url, *iso_args)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
+        # TODO: Refactor the return messages into one string
         return response(error=True, message=[
             (_("Failed to create CD-ROM image from %(url)s", url=url), "error"),
             (process["msg"], "error"),
@@ -845,6 +853,7 @@ def download_to_iso():
         response_messages.append((_("Attached to SCSI ID %(id_number)s", id_number=scsi_id), "success"))
         return response(message=response_messages)
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.", id_number=scsi_id), "error"),
         (process_attach["msg"], "error"),
@@ -869,6 +878,7 @@ def download_file():
     if process["status"]:
         return response(message=process["msg"])
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to download file from %(url)s", url=url), "error"),
         (process["msg"], "error"),
@@ -925,6 +935,7 @@ def create_file():
 
     return response(
         status_code=201,
+        # TODO: Refactor the return messages into one string
         message=[
             (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
             (process["msg"], "success"),

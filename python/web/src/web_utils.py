@@ -240,6 +240,7 @@ def is_bridge_configured(interface):
     Takes (str) interface of a network device being attached.
     Returns a (dict) with (bool) status and (str) msg
     """
+    # TODO: Reduce the nesting of these checks, and streamline how the results are notified
     status = True
     return_msg = ""
     sys_cmd = SysCmds()
