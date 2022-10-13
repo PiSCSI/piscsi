@@ -126,7 +126,7 @@ def test_save_load_and_delete_configs(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"Loaded configurations from: {CFG_DIR}/{config_json_file}"
+        f"Loaded configurations from: {config_json_file}"
     )
 
     # Confirm the application has returned to its initial state
