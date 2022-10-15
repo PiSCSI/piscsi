@@ -3,6 +3,7 @@ import requests
 import socket
 import os
 
+
 def pytest_addoption(parser):
     if os.getenv("PYTEST_USE_DOCKER_DEFAULTS"):
         default_base_url = "http://rascsi_web"

@@ -235,7 +235,9 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert file_name in list_files()
-    assert response_data["messages"][0]["message"] == f"{file_name} downloaded to {env['images_dir']}"
+    assert (
+        response_data["messages"][0]["message"] == f"{file_name} downloaded to {env['images_dir']}"
+    )
 
     # Cleanup
     delete_file(file_name)
