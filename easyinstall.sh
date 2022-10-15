@@ -833,18 +833,23 @@ function installNetatalk() {
     NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
+    IMAGES_SHARE_NAME="RaSCSI Images"
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
     tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
 
+    echo
+    echo "Important: $VIRTUAL_DRIVER_PATH will be shared on the network as $IMAGES_SHARE_NAME"
+    echo
+
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
 
     sudo systemctl stop afpd
-    echo "Making the RaSCSI images dir a shared Netatalk volume"
-    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
+    echo "Appended to AppleVolumes.default:"
+    echo "$VIRTUAL_DRIVER_PATH \"$IMAGES_SHARE_NAME\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
     sudo systemctl start afpd
 }
 
