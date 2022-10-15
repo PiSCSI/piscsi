@@ -88,7 +88,7 @@ bool StorageDevice::IsReadOnlyFile() const
 
 off_t StorageDevice::GetFileSize() const
 {
-	// filesystem::file_size cannot be used here because on 32 bit systems it cannot handled more than 2 GiB
+	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handled more than 2 GiB
 	if (struct stat st; !stat(filename.c_str(), &st)) {
 		return st.st_size;
 	}
