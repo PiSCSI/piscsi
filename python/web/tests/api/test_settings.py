@@ -1,7 +1,7 @@
 import pytest
 import uuid
 
-from conftest import CFG_DIR, STATUS_SUCCESS
+from conftest import STATUS_SUCCESS
 
 
 # route("/language", methods=["POST"])
@@ -74,7 +74,7 @@ def test_show_logs(http_client):
 
 # route("/config/save", methods=["POST"])
 # route("/config/load", methods=["POST"])
-def test_save_load_and_delete_configs(http_client):
+def test_save_load_and_delete_configs(env, http_client):
     config_name = str(uuid.uuid4())
     config_json_file = f"{config_name}.json"
     reserved_scsi_id = 0
@@ -96,7 +96,7 @@ def test_save_load_and_delete_configs(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"File created: {CFG_DIR}/{config_json_file}"
+        f"File created: {env['cfg_dir']}/{config_json_file}"
     )
 
     assert config_json_file in http_client.get("/").json()["data"]["config_files"]
@@ -146,7 +146,7 @@ def test_save_load_and_delete_configs(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"File deleted: {CFG_DIR}/{config_json_file}"
+        f"File deleted: {env['cfg_dir']}/{config_json_file}"
     )
 
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]

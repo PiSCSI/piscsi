@@ -5,10 +5,22 @@ import socket
 
 def pytest_addoption(parser):
     parser.addoption("--base_url", action="store", default="http://rascsi_web")
+    parser.addoption("--home_dir", action="store", default="/home/pi")
     parser.addoption("--httpserver_host", action="store", default=socket.gethostname())
     parser.addoption("--httpserver_listen_address", action="store", default="0.0.0.0")
     parser.addoption("--rascsi_username", action="store", default="pi")
     parser.addoption("--rascsi_password", action="store", default="rascsi")
+
+
+@pytest.fixture(scope="session")
+def env(pytestconfig):
+    home_dir = pytestconfig.getoption("home_dir")
+    return {
+        "home_dir": home_dir,
+        "cfg_dir": f"{home_dir}/.config/rascsi",
+        "images_dir": f"{home_dir}/images",
+        "afp_dir": f"{home_dir}/afpshare",
+    }
 
 
 @pytest.fixture(scope="session")

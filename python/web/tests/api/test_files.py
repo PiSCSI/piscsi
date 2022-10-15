@@ -3,7 +3,6 @@ import uuid
 import os
 
 from conftest import (
-    IMAGES_DIR,
     SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
@@ -210,7 +209,7 @@ def test_download_file(http_client, create_test_image):
 
 
 # route("/files/download_url", methods=["POST"])
-def test_download_url_to_dir(httpserver, http_client, list_files, delete_file):
+def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_file):
     file_name = str(uuid.uuid4())
     http_path = f"/images/{file_name}"
     url = httpserver.url_for(http_path)
@@ -236,7 +235,7 @@ def test_download_url_to_dir(httpserver, http_client, list_files, delete_file):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert file_name in list_files()
-    assert response_data["messages"][0]["message"] == f"{file_name} downloaded to {IMAGES_DIR}"
+    assert response_data["messages"][0]["message"] == f"{file_name} downloaded to {env['images_dir']}"
 
     # Cleanup
     delete_file(file_name)
@@ -244,6 +243,7 @@ def test_download_url_to_dir(httpserver, http_client, list_files, delete_file):
 
 # route("/files/download_to_iso", methods=["POST"])
 def test_download_url_to_iso(
+    env,
     httpserver,
     http_client,
     list_files,
@@ -283,7 +283,7 @@ def test_download_url_to_iso(
 
     m = response_data["messages"]
     assert m[0]["message"] == 'Created CD-ROM ISO image with arguments "-hfs"'
-    assert m[1]["message"] == f"Saved image as: {IMAGES_DIR}/{iso_file_name}"
+    assert m[1]["message"] == f"Saved image as: {env['images_dir']}/{iso_file_name}"
     assert m[2]["message"] == f"Attached to SCSI ID {SCSI_ID}"
 
     # Cleanup
