@@ -28,7 +28,6 @@
 #include "rascsi/rascsi_image.h"
 #include "rascsi/rascsi_service.h"
 #include "rasutil.h"
-#include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <netinet/in.h>
 #include <csignal>

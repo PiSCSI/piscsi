@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <pwd.h>
 #include "log.h"
-#include "spdlog/spdlog.h"
 #include "devices/disk.h"
 #include "protobuf_util.h"
 #include "command_context.h"

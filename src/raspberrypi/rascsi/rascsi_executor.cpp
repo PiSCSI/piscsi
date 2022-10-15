@@ -21,7 +21,6 @@
 #include "protobuf_util.h"
 #include "command_context.h"
 #include "rasutil.h"
-#include "spdlog/spdlog.h"
 #include "rascsi_executor.h"
 #include <sstream>
 

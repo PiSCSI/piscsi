@@ -11,7 +11,6 @@
 
 #include "os.h"
 #include "log.h"
-#include "spdlog/spdlog.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
