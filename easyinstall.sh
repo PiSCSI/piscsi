@@ -833,7 +833,6 @@ function installNetatalk() {
     NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
-    IMAGES_SHARE_NAME="RaSCSI Images"
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
@@ -853,7 +852,7 @@ function installNetatalk() {
 function shareImagesWithNetatalk() {
     sudo systemctl stop afpd
     echo "Appended to AppleVolumes.default:"
-    echo "$VIRTUAL_DRIVER_PATH \"$IMAGES_SHARE_NAME\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
+    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
     sudo systemctl start afpd
 }
 
