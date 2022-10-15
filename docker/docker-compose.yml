@@ -68,7 +68,4 @@ services:
     volumes:
       - ../python/web:/src:delegated
     working_dir: /src
-    command: [
-      "pytest",
-      "-v"
-    ]
+    entrypoint: "pytest"
