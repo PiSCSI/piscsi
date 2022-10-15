@@ -1,11 +1,16 @@
 import pytest
 import requests
 import socket
-
+import os
 
 def pytest_addoption(parser):
-    parser.addoption("--base_url", action="store", default="http://rascsi_web")
+    if os.getenv("PYTEST_USE_DOCKER_DEFAULTS"):
+        default_base_url = "http://rascsi_web"
+    else:
+        default_base_url = "http://localhost:8080"
+
     parser.addoption("--home_dir", action="store", default="/home/pi")
+    parser.addoption("--base_url", action="store", default=default_base_url)
     parser.addoption("--httpserver_host", action="store", default=socket.gethostname())
     parser.addoption("--httpserver_listen_address", action="store", default="0.0.0.0")
     parser.addoption("--rascsi_username", action="store", default="pi")
