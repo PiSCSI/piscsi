@@ -16,6 +16,7 @@
 class CommandContext;
 
 using namespace std;
+using namespace rascsi_interface;
 
 class RascsiService
 {
@@ -39,6 +40,8 @@ public:
 
 	bool IsRunning() const { return running; }
 	void SetRunning(bool b) const { running = b; }
+
+private:
 
 	void Execute() const;
 

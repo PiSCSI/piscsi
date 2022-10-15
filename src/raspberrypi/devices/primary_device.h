@@ -32,8 +32,12 @@ public:
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
+	virtual bool CheckReservation(int, scsi_command, bool);
+	virtual void DiscardReservation();
+
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
+	void Reset() override;
 
 	virtual void FlushCache() {
 		// Devices with a cache have to implement this method
@@ -45,6 +49,10 @@ protected:
 	virtual vector<byte> InquiryInternal() const = 0;
 	void CheckReady();
 
+	virtual void SendDiagnostic();
+	virtual void ReserveUnit();
+	virtual void ReleaseUnit();
+
 	void EnterStatusPhase() { controller->Status(); }
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
@@ -54,6 +62,8 @@ protected:
 
 private:
 
+	static const int NOT_RESERVED = -2;
+
 	void TestUnitReady() override;
 	void RequestSense() override;
 	void ReportLuns() override;
@@ -62,4 +72,6 @@ private:
 	vector<byte> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
+
+	int reserving_initiator = NOT_RESERVED;
 };

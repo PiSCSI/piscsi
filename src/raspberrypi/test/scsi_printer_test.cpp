@@ -19,7 +19,7 @@ TEST(ScsiPrinterTest, TestUnitReady)
 	NiceMock<MockAbstractController> controller(0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(controller, Status());
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdTestUnitReady));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
@@ -35,7 +35,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 	NiceMock<MockAbstractController> controller(0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(controller, Status());
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdReserve6));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
@@ -45,7 +45,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 	NiceMock<MockAbstractController> controller(0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(controller, Status());
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdRelease6));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
@@ -55,18 +55,42 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 	NiceMock<MockAbstractController> controller(0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(controller, Status());
     EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdSendDiag));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
+TEST(ScsiPrinterTest, Print)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto printer = CreateDevice(SCLP, controller);
+
+	vector<int>& cmd = controller.GetCmd();
+
+    EXPECT_CALL(controller, DataOut());
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdPrint));
+
+    cmd[3] = 0xff;
+    cmd[4] = 0xff;
+    EXPECT_THROW(printer->Dispatch(scsi_command::eCmdPrint), scsi_exception) << "Buffer overflow was not reported";
+}
 
 TEST(ScsiPrinterTest, StopPrint)
 {
 	NiceMock<MockAbstractController> controller(0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdStartStop));
+    EXPECT_CALL(controller, Status());
+    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdStopPrint));
     EXPECT_EQ(status::GOOD, controller.GetStatus());
+}
+
+TEST(ScsiPrinterTest, WriteByteSequence)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto printer = dynamic_pointer_cast<SCSIPrinter>(CreateDevice(SCLP, controller));
+
+	vector<BYTE> buf(1);
+	EXPECT_TRUE(printer->WriteByteSequence(buf, buf.size()));
+	printer->Cleanup();
 }

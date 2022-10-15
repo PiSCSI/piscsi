@@ -79,8 +79,10 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-void SCSIDaynaPort::Open(const Filepath& path)
+void SCSIDaynaPort::Open()
 {
+	Filepath path;
+	path.SetPath(GetFilename().c_str());
 	m_tap.OpenDump(path);
 }
 
@@ -433,12 +435,12 @@ void SCSIDaynaPort::SetInterfaceMode()
 		case CMD_SCSILINK_ENABLE:
 		case CMD_SCSILINK_SET:
 			LOGWARN("%s Unsupported SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			break;
 
 		default:
 			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			break;
 	}
 }
@@ -449,7 +451,7 @@ void SCSIDaynaPort::SetMcastAddr()
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, ctrl->cmd[2])
 
-		throw scsi_exception();
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	EnterDataOutPhase();
@@ -473,7 +475,7 @@ void SCSIDaynaPort::EnableInterface()
 		if (!m_tap.Enable()) {
 			LOGWARN("Unable to enable the DaynaPort Interface")
 
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
 		m_tap.Flush();
@@ -484,7 +486,7 @@ void SCSIDaynaPort::EnableInterface()
 		if (!m_tap.Disable()) {
 			LOGWARN("Unable to disable the DaynaPort Interface")
 
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
 		LOGINFO("The DaynaPort interface has been DISABLED")

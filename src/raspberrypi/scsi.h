@@ -44,6 +44,7 @@ namespace scsi_defs {
 		// DaynaPort specific command
 		eCmdRetrieveStats = 0x09,
 		eCmdWrite6 = 0x0A,
+		eCmdPrint = 0x0A,
 		eCmdSeek6 = 0x0B,
 		// DaynaPort specific command
 		eCmdSetIfaceMode = 0x0C,
@@ -58,6 +59,7 @@ namespace scsi_defs {
 		eCmdRelease6 = 0x17,
 		eCmdModeSense6 = 0x1A,
 		eCmdStartStop = 0x1B,
+		eCmdStopPrint = 0x1B,
 		eCmdSendDiag = 0x1D,
 		eCmdRemoval = 0x1E,
 		// ICD specific command
@@ -74,8 +76,6 @@ namespace scsi_defs {
 		eCmdReadToc = 0x43,
 		eCmdGetEventStatusNotification = 0x4A,
 		eCmdModeSelect10 = 0x55,
-		eCmdReserve10 = 0x56,
-		eCmdRelease10 = 0x57,
 		eCmdModeSense10 = 0x5A,
 		eCmdRead16 = 0x88,
 		eCmdWrite16 = 0x8A,
@@ -89,31 +89,17 @@ namespace scsi_defs {
 	enum class status : int {
 		GOOD = 0x00,
 		CHECK_CONDITION = 0x02,
-		CONDITION_MET = 0x04,
-		BUSY = 0x08,
-		INTERMEDIATE = 0x10,
-		INTERMEDIATE_CONDITION_MET = 0x14,
-		RESERVATION_CONFLICT = 0x18,
-		COMMAND_TERMINATED = 0x22,
-		QUEUE_FULL = 0x28
+		RESERVATION_CONFLICT = 0x18
 	};
 
 	enum class sense_key : int {
 		NO_SENSE = 0x00,
-		RECOVERED_ERROR = 0x01,
 		NOT_READY = 0x02,
 		MEDIUM_ERROR = 0x03,
-		HARDWARE_ERROR = 0x04,
 		ILLEGAL_REQUEST = 0x05,
 		UNIT_ATTENTION = 0x06,
 		DATA_PROTECT = 0x07,
-		BLANK_CHECK = 0x08,
-		VENDOR_SPECIFIC = 0x09,
-		COPY_ABORTED = 0x0a,
-		ABORTED_COMMAND = 0x0b,
-		VOLUME_OVERFLOW = 0x0d,
-		MISCOMPARE = 0x0e,
-		COMPLETED = 0x0f
+		ABORTED_COMMAND = 0x0b
 	};
 
 	enum class asc : int {

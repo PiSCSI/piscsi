@@ -23,42 +23,23 @@ using namespace scsi_command_util;
 
 const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
 
-//---------------------------------------------------------------------------
-//
-//	Extract words that are supposed to be little endian
-//
-//---------------------------------------------------------------------------
-static inline int getWordLE(const BYTE *b)
-{
-	return ((int)b[1] << 8) | (int)b[0];
-}
-
-//---------------------------------------------------------------------------
-//
-//	Extract longwords assumed to be little endian
-//
-//---------------------------------------------------------------------------
-static inline uint32_t getDwordLE(const BYTE *b)
-{
-	return ((uint32_t)(b[3]) << 24) | ((uint32_t)(b[2]) << 16) | ((uint32_t)(b[1]) << 8) | b[0];
-}
-
-void SCSIHD_NEC::Open(const Filepath& path)
+void SCSIHD_NEC::Open()
 {
 	assert(!IsReady());
 
 	// Open as read-only
+	Filepath path;
+	path.SetPath(GetFilename().c_str());
 	Fileio fio;
 	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open hard disk file");
 	}
 
-	// Get file size
-	off_t size = fio.GetFileSize();
+	off_t size = GetFileSize();
 
 	// NEC root sector
 	array<BYTE, 512> root_sector;
-	if (size >= (off_t)root_sector.size() && !fio.Read(root_sector.data(), root_sector.size())) {
+	if (size < (off_t)root_sector.size() || !fio.Read(root_sector.data(), root_sector.size())) {
 		fio.Close();
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
@@ -86,21 +67,21 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	// Anex86 HD image?
 	else if (!strcasecmp(ext, ".hdi")) {
-		image_offset = getDwordLE(&root_sector[8]);
-		image_size = getDwordLE(&root_sector[12]);
-		sector_size = getDwordLE(&root_sector[16]);
-		sectors = getDwordLE(&root_sector[20]);
-		heads = getDwordLE(&root_sector[24]);
-		cylinders = getDwordLE(&root_sector[28]);
+		image_offset = GetInt32LittleEndian(&root_sector[8]);
+		image_size = GetInt32LittleEndian(&root_sector[12]);
+		sector_size = GetInt32LittleEndian(&root_sector[16]);
+		sectors = GetInt32LittleEndian(&root_sector[20]);
+		heads = GetInt32LittleEndian(&root_sector[24]);
+		cylinders = GetInt32LittleEndian(&root_sector[28]);
 	}
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
 		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
-			image_offset = getDwordLE(&root_sector[0x110]);
-			cylinders = getDwordLE(&root_sector[0x114]);
-			heads = getWordLE(&root_sector[0x118]);
-			sectors = getWordLE(&root_sector[0x11a]);
-			sector_size = getWordLE(&root_sector[0x11c]);
+			image_offset = GetInt32LittleEndian(&root_sector[0x110]);
+			cylinders = GetInt32LittleEndian(&root_sector[0x114]);
+			heads = GetInt16LittleEndian(&root_sector[0x118]);
+			sectors = GetInt16LittleEndian(&root_sector[0x11a]);
+			sector_size = GetInt16LittleEndian(&root_sector[0x11c]);
 			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
 		}
 		else {
@@ -129,7 +110,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
-	FinalizeSetup(path, size, image_offset);
+	FinalizeSetup(size, image_offset);
 }
 
 vector<byte> SCSIHD_NEC::InquiryInternal() const
@@ -195,4 +176,14 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) co
 	}
 
 	pages[4] = buf;
+}
+
+int SCSIHD_NEC::GetInt16LittleEndian(const BYTE *buf)
+{
+	return ((int)buf[1] << 8) | buf[0];
+}
+
+int SCSIHD_NEC::GetInt32LittleEndian(const BYTE *buf)
+{
+	return ((int)buf[3] << 24) | ((int)buf[2] << 16) | ((int)buf[1] << 8) | buf[0];
 }

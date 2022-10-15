@@ -34,7 +34,7 @@ void Device::Reset()
 
 void Device::SetProtected(bool b)
 {
-	if (!read_only) {
+	if (protectable && !read_only) {
 		write_protected = b;
 	}
 }

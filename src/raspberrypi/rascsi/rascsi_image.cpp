@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <pwd.h>
 #include "log.h"
-#include "filepath.h"
 #include "spdlog/spdlog.h"
 #include "devices/disk.h"
 #include "protobuf_util.h"
@@ -87,20 +86,6 @@ string RascsiImage::SetDefaultFolder(const string& f)
 	LOGINFO("Default image folder set to '%s'", default_folder.c_str())
 
 	return "";
-}
-
-bool RascsiImage::IsValidSrcFilename(const string& filename) const
-{
-	// Source file must exist and must be a regular file or a symlink
-	struct stat st;
-	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
-}
-
-bool RascsiImage::IsValidDstFilename(const string& filename) const
-{
-	// Destination file must not yet exist
-	struct stat st;
-	return stat(filename.c_str(), &st);
 }
 
 bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
@@ -190,12 +175,9 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	const string full_filename = GetFullName(filename);
 
 	int id;
-	int unit;
-	Filepath filepath;
-	filepath.SetPath(full_filename.c_str());
-	if (Disk::GetIdsForReservedFile(filepath, id, unit)) {
+	if (int lun; StorageDevice::GetIdsForReservedFile(full_filename, id, lun)) {
 		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
-				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(unit));
+				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(lun));
 	}
 
 	if (remove(full_filename.c_str())) {
@@ -384,6 +366,20 @@ bool RascsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 	}
 
 	return true;
+}
+
+bool RascsiImage::IsValidSrcFilename(const string& filename)
+{
+	// Source file must exist and must be a regular file or a symlink
+	struct stat st;
+	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
+}
+
+bool RascsiImage::IsValidDstFilename(const string& filename)
+{
+	// Destination file must not yet exist
+	struct stat st;
+	return stat(filename.c_str(), &st);
 }
 
 string RascsiImage::GetHomeDir()

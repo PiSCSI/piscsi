@@ -13,6 +13,7 @@
 #include "rascsi_version.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
+#include "rascsi_exceptions.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl/rasctl_parser.h"
 #include "rasctl/rasctl_commands.h"
@@ -50,7 +51,7 @@ void Banner(int argc, char* argv[])
 		cout << "        HOST := rascsi host to connect to, default is 'localhost'\n";
 		cout << "        PORT := rascsi port to connect to, default is 6868\n";
 		cout << "        RESERVED_IDS := comma-separated list of IDs to reserve\n";
-		cout << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'\n";
+		cout << "        LOG_LEVEL := log level {trace|debug|info|warn|err|off}, default is 'info'\n";
 		cout << " If CMD is 'attach' or 'insert' the FILE parameter is required.\n";
 		cout << "Usage: " << argv[0] << " -l\n";
 		cout << "       Print device list.\n" << flush;
@@ -279,7 +280,7 @@ int main(int argc, char* argv[])
 
 			case 'X':
 				command.set_operation(SHUT_DOWN);
-				AddParam(command, "mode", "rascsi");
+				SetParam(command, "mode", "rascsi");
 				break;
 
 			case 'z':
@@ -296,19 +297,33 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	// Listing devices is a special case (rasctl backwards compatibility)
-	if (list) {
-		PbCommand command_list;
-		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port, token, locale);
-		rasctl_commands.CommandDevicesInfo();
-		exit(EXIT_SUCCESS);
+	SetParam(command, "token", token);
+	SetParam(command, "locale", locale);
+
+	RasctlCommands rasctl_commands(command, hostname, port);
+
+	bool status;
+	try {
+		// Listing devices is a special case (rasctl backwards compatibility)
+		if (list) {
+			command.clear_devices();
+			command.set_operation(DEVICES_INFO);
+
+			status = rasctl_commands.CommandDevicesInfo();
+		}
+		else {
+			ParseParameters(*device, param);
+
+			status = rasctl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
+		}
+	}
+    catch(const io_exception& e) {
+    	cerr << "Error: " << e.what() << endl;
+
+    	status = false;
+
+    	// Fall through
 	}
 
-	ParseParameters(*device, param);
-
-	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
-	rasctl_commands.Execute(log_level, default_folder, reserved_ids, image_params, filename);
-
-	exit(EXIT_SUCCESS);
+    return status ? EXIT_SUCCESS : EXIT_FAILURE;
 }

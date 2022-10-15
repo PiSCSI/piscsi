@@ -30,9 +30,9 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	// Old style parameters, for backwards compatibility only.
 	// Only one of these parameters will be used by rascsi, depending on the device type.
 	if (params.find(KEY_VALUE_SEPARATOR) == string::npos) {
-		AddParam(device, "file", params);
+		SetParam(device, "file", params);
 		if (params != "bridge" && params != "daynaport" && params != "printer" && params != "services") {
-			AddParam(device, "interfaces", params);
+			SetParam(device, "interfaces", params);
 		}
 
 		return;
@@ -44,7 +44,7 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 		if (!p.empty()) {
 			const size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
 			if (separator_pos != string::npos) {
-				AddParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
+				SetParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
 			}
 		}
 	}
@@ -62,7 +62,7 @@ string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& k
 	return it != device.params().end() ? it->second : "";
 }
 
-void protobuf_util::AddParam(PbCommand& command, const string& key, string_view value)
+void protobuf_util::SetParam(PbCommand& command, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *command.mutable_params();
@@ -70,7 +70,7 @@ void protobuf_util::AddParam(PbCommand& command, const string& key, string_view 
 	}
 }
 
-void protobuf_util::AddParam(PbDevice& device, const string& key, string_view value)
+void protobuf_util::SetParam(PbDevice& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -78,7 +78,7 @@ void protobuf_util::AddParam(PbDevice& device, const string& key, string_view va
 	}
 }
 
-void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, string_view value)
+void protobuf_util::SetParam(PbDeviceDefinition& device, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -98,6 +98,6 @@ void protobuf_util::SetPatternParams(PbCommand& command, string_view patterns)
 		file_pattern = patterns;
 	}
 
-	AddParam(command, "folder_pattern", folder_pattern);
-	AddParam(command, "file_pattern", file_pattern);
+	SetParam(command, "folder_pattern", folder_pattern);
+	SetParam(command, "file_pattern", file_pattern);
 }

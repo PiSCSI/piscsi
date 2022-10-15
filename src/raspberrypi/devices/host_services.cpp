@@ -96,18 +96,8 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
-	// Basic Information
-	int size = 4;
-
-	size += super::AddModePages(cdb, buf, size, length - size);
-	if (size > 255) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
-	}
+	// 4 bytes basic information
+	int size = AddModePages(cdb, buf, 4, length, 255);
 
 	buf[0] = (BYTE)size;
 
@@ -124,18 +114,8 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
-	// Basic Information
-	int size = 8;
-
-	size += super::AddModePages(cdb, buf, size, length - size);
-	if (size > 65535) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
-	}
+	// 8 bytes basic information
+	int size = AddModePages(cdb, buf, 8, length, 65535);
 
 	SetInt16(buf, 0, size);
 

@@ -14,9 +14,9 @@
 TEST(ScsiHdTest, FinalizeSetup)
 {
 	MockSCSIHD_NEC disk(0);
-	Filepath filepath;
 
-	EXPECT_THROW(disk.FinalizeSetup(filepath, 2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
+	disk.SetSectorSizeInBytes(512);
+	EXPECT_THROW(disk.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
 }
 
 TEST(ScsiHdTest, Inquiry)

@@ -29,7 +29,7 @@ using namespace spdlog;
 using namespace protobuf_util;
 using namespace ras_util;
 
-bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
+bool RascsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
 {
 	PrintCommand(command, pb_device, dryRun);
@@ -50,7 +50,7 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbDeviceDef
 
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 
-	if (!ValidationOperationAgainstDevice(context, device, operation)) {
+	if (!ValidateOperationAgainstDevice(context, device, operation)) {
 		return false;
 	}
 
@@ -131,24 +131,24 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	}
 
 	// Remember the list of reserved files, than run the dry run
-	const auto& reserved_files = Disk::GetReservedFiles();
+	const auto& reserved_files = StorageDevice::GetReservedFiles();
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(context, device, command, true)) {
+		if (!ProcessDeviceCmd(context, device, command, true)) {
 			// Dry run failed, restore the file list
-			Disk::SetReservedFiles(reserved_files);
+			StorageDevice::SetReservedFiles(reserved_files);
 			return false;
 		}
 	}
 
 	// Restore the list of reserved files before proceeding
-	Disk::SetReservedFiles(reserved_files);
+	StorageDevice::SetReservedFiles(reserved_files);
 
 	if (const string result = ValidateLunSetup(command); !result.empty()) {
 		return context.ReturnStatus(false, result);
 	}
 
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(context, device, command, false)) {
+		if (!ProcessDeviceCmd(context, device, command, false)) {
 			return false;
 		}
 	}
@@ -183,9 +183,6 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 	else if (log_level == "err") {
 		set_level(level::err);
 	}
-	else if (log_level == "critical") {
-		set_level(level::critical);
-	}
 	else if (log_level == "off") {
 		set_level(level::off);
 	}
@@ -218,7 +215,6 @@ bool RascsiExecutor::Stop(shared_ptr<PrimaryDevice> device, bool dryRun) const
 	if (!dryRun) {
 		LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun())
 
-		// STOP is idempotent
 		device->Stop();
 	}
 
@@ -244,7 +240,6 @@ bool RascsiExecutor::Protect(shared_ptr<PrimaryDevice> device, bool dryRun) cons
 		LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(),
 				device->GetLun())
 
-		// PROTECT is idempotent
 		device->SetProtected(true);
 	}
 
@@ -257,7 +252,6 @@ bool RascsiExecutor::Unprotect(shared_ptr<PrimaryDevice> device, bool dryRun) co
 		LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), device->GetId(),
 				device->GetLun())
 
-		// UNPROTECT is idempotent
 		device->SetProtected(false);
 	}
 
@@ -289,15 +283,15 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	// If no filename was provided the medium is considered removed
-	auto disk = dynamic_pointer_cast<Disk>(device);
-	device->SetRemoved(disk != nullptr ? filename.empty() : false);
+	// If no filename was provided the medium is considered not inserted
+	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
+	device->SetRemoved(storage_device != nullptr ? filename.empty() : false);
 
 	if (!SetProductData(context, pb_device, device)) {
 		return false;
 	}
 
-	if (!SetSectorSize(context, PbDeviceType_Name(type), device, pb_device.block_size())) {
+	if (!SetSectorSize(context, device, pb_device.block_size())) {
 		return false;
 	}
 
@@ -308,7 +302,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
-		if (!ValidateImageFile(context, device, filename, full_path)) {
+		if (!ValidateImageFile(context, storage_device, filename, full_path)) {
 			return false;
 		}
 	}
@@ -319,13 +313,9 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		device->SetProtected(pb_device.protected_());
 	}
 
-	// Stop the dry run here, before permanently modifying something
-	if (dryRun) {
-		return true;
-	}
-
 	unordered_map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->SupportsFile()) {
+		// Clients like rasctl might have sent both "file" and "interfaces"
 		params.erase("file");
 	}
 
@@ -334,13 +324,18 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
+	if (storage_device != nullptr) {
+		storage_device->ReserveFile(full_path, id, lun);
+	}
+
+	// Stop the dry run here, before actually attaching
+	if (dryRun) {
+		return true;
+	}
+
 	if (!controller_manager.AttachToScsiController(id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
-
-	Filepath filepath;
-	filepath.SetPath(full_path.c_str());
-	disk->ReserveFile(filepath, id, lun);
 
 	string msg = "Attached ";
 	if (device->IsReadOnly()) {
@@ -358,7 +353,12 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
-	if (!device->IsRemoved()) {
+	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
+	if (storage_device == nullptr) {
+		return false;
+	}
+
+	if (!storage_device->IsRemoved()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
@@ -371,35 +371,26 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME);
 	}
 
+	// Stop the dry run here, before modifying the device
 	if (dryRun) {
 		return true;
 	}
 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit())
+			filename.c_str(), storage_device->GetType().c_str(), pb_device.id(), pb_device.unit())
 
-	if (!SetSectorSize(context, device->GetType(), device, pb_device.block_size())) {
+	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
 		return false;
 	}
 
 	string full_path;
-	if (!ValidateImageFile(context, device, filename, full_path)) {
+	if (!ValidateImageFile(context, storage_device, filename, full_path)) {
 		return false;
 	}
 
-	Filepath filepath;
-	filepath.SetPath(full_path.c_str());
-	dynamic_pointer_cast<Disk>(device)->ReserveFile(filepath, device->GetId(), device->GetLun());
-
-	// Only non read-only devices support protect/unprotect.
-	// This operation must not be executed before Open() because Open() overrides some settings.
-	if (device->IsProtectable() && !device->IsReadOnly()) {
-		device->SetProtected(pb_device.protected_());
-	}
-
-	if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
-		disk->MediumChanged();
-	}
+	storage_device->SetProtected(pb_device.protected_());
+	storage_device->ReserveFile(full_path, storage_device->GetId(), storage_device->GetLun());
+	storage_device->MediumChanged();
 
 	return true;
 }
@@ -417,7 +408,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 	}
 
 	if (!dryRun) {
-		if (!controller->DeleteDevice(device)) {
+		if (!controller->RemoveDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
@@ -426,8 +417,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
-		if (auto disk = dynamic_pointer_cast<Disk>(device); disk != nullptr) {
-			disk->UnreserveFile();
+		if (auto storage_device = dynamic_pointer_cast<StorageDevice>(device); storage_device != nullptr) {
+			storage_device->UnreserveFile();
 		}
 
 		LOGINFO("%s", ("Detached " + device->GetType() + " device with ID " + to_string(device->GetId())
@@ -440,7 +431,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 void RascsiExecutor::DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	Disk::UnreserveAll();
+	StorageDevice::UnreserveAll();
 
 	LOGINFO("Detached all devices")
 }
@@ -546,50 +537,51 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<PrimaryDevice> device,
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<StorageDevice> storage_device,
 		const string& filename, string& full_path) const
 {
-	if (!device->SupportsFile()) {
-		return true;
-	}
-
-	auto disk = dynamic_pointer_cast<Disk>(device);
-	if (disk == nullptr || filename.empty()) {
+	if (filename.empty()) {
 		return true;
 	}
 
 	int id;
 	int lun;
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-
-	if (Disk::GetIdsForReservedFile(filepath, id, lun)) {
+	if (StorageDevice::GetIdsForReservedFile(filename, id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 				to_string(id), to_string(lun));
 	}
 
-	string initial_filename = filepath.GetPath();
+	string effective_filename = filename;
 
-	try {
-		if (!disk->FileExists(filepath)) {
-			// If the file does not exist search for it in the default image folder
-			filepath.SetPath((rascsi_image.GetDefaultFolder() + "/" + filename).c_str());
+	if (!StorageDevice::FileExists(filename)) {
+		// If the file does not exist search for it in the default image folder
+		effective_filename = rascsi_image.GetDefaultFolder() + "/" + filename;
 
-			if (Disk::GetIdsForReservedFile(filepath, id, lun)) {
-				return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-						to_string(id), to_string(lun));
-			}
+		if (StorageDevice::GetIdsForReservedFile(effective_filename, id, lun)) {
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+					to_string(id), to_string(lun));
+		}
 
-			if (!disk->FileExists(filepath)) {
-				return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, initial_filename);
-			}
+		if (!StorageDevice::FileExists(effective_filename)) {
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
 		}
 	}
-	catch(const io_exception& e) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, initial_filename);
+
+	storage_device->SetFilename(effective_filename);
+
+	if (storage_device->IsReadOnlyFile()) {
+		// Permanently write-protected
+		storage_device->SetReadOnly(true);
+		storage_device->SetProtectable(false);
+	}
+	else {
+		storage_device->SetReadOnly(false);
+		storage_device->SetProtectable(true);
 	}
 
-	full_path = filepath.GetPath();
+	storage_device->Open();
+
+	full_path = effective_filename;
 
 	return true;
 }
@@ -689,8 +681,7 @@ shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& con
 	return device;
 }
 
-bool RascsiExecutor::SetSectorSize(const CommandContext& context, const string& type,
-		shared_ptr<PrimaryDevice> device, int block_size) const
+bool RascsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<PrimaryDevice> device, int block_size) const
 {
 	if (block_size) {
 		auto disk = dynamic_pointer_cast<Disk>(device);
@@ -700,14 +691,14 @@ bool RascsiExecutor::SetSectorSize(const CommandContext& context, const string& 
 			}
 		}
 		else {
-			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, type);
+			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
 		}
 	}
 
 	return true;
 }
 
-bool RascsiExecutor::ValidationOperationAgainstDevice(const CommandContext& context,
+bool RascsiExecutor::ValidateOperationAgainstDevice(const CommandContext& context,
 		const shared_ptr<PrimaryDevice> device, const PbOperation& operation)
 {
 	const string& type = device->GetType();

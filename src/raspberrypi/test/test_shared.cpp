@@ -11,6 +11,8 @@
 #include "controllers/controller_manager.h"
 #include "rascsi_version.h"
 #include "test_shared.h"
+#include <unistd.h>
+#include <vector>
 #include <sstream>
 
 using namespace std;
@@ -25,8 +27,6 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 
 	controller.AddDevice(device);
 
-	controller.InitCmd(16);
-
 	return device;
 }
 
@@ -36,11 +36,11 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, c
     NiceMock<MockAbstractController> controller(0);
     auto device = CreateDevice(type, controller);
 
-    vector<int>& cmd = controller.InitCmd(6);
+    vector<int>& cmd = controller.GetCmd();
 
     // ALLOCATION LENGTH
     cmd[4] = 255;
-    EXPECT_CALL(controller, DataIn()).Times(1);
+    EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
 	const vector<BYTE>& buffer = controller.GetBuffer();
 	EXPECT_EQ((int)t, buffer[0]);
@@ -58,4 +58,28 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, c
 		product_data = ident;
 	}
 	EXPECT_TRUE(!memcmp(product_data.c_str(), &buffer[8], 28));
+}
+
+int OpenTempFile(string& file)
+{
+	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string
+
+	const int fd = mkstemp(filename);
+
+	file = filename;
+
+	return fd;
+}
+
+string CreateTempFile(int size)
+{
+	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string
+	vector<char> data(size);
+
+	const int fd = mkstemp(filename);
+	const size_t count = write(fd, data.data(), data.size());
+	close(fd);
+	EXPECT_EQ(count, data.size());
+
+	return filename;
 }

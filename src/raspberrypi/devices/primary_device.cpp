@@ -24,13 +24,23 @@ PrimaryDevice::PrimaryDevice(const string& type, int lun) : Device(type, lun)
 	dispatcher.Add(scsi_command::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
 	dispatcher.Add(scsi_command::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
-	// Optional commands used by all RaSCSI devices
+	// Optional commands supported by all RaSCSI devices
 	dispatcher.Add(scsi_command::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
+	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &PrimaryDevice::ReserveUnit);
+	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &PrimaryDevice::ReleaseUnit);
+	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &PrimaryDevice::SendDiagnostic);
 }
 
 bool PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	return dispatcher.Dispatch(this, cmd);
+}
+
+void PrimaryDevice::Reset()
+{
+	DiscardReservation();
+
+	Device::Reset();
 }
 
 int PrimaryDevice::GetId() const
@@ -137,6 +147,21 @@ void PrimaryDevice::RequestSense()
     EnterDataInPhase();
 }
 
+void PrimaryDevice::SendDiagnostic()
+{
+	// Do not support PF bit
+	if (ctrl->cmd[1] & 0x10) {
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	}
+
+	// Do not support parameter list
+	if ((ctrl->cmd[3] != 0) || (ctrl->cmd[4] != 0)) {
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	}
+
+	EnterStatusPhase();
+}
+
 void PrimaryDevice::CheckReady()
 {
 	// Not ready if reset
@@ -215,4 +240,62 @@ bool PrimaryDevice::WriteByteSequence(vector<BYTE>&, uint32_t)
 	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__)
 
 	return false;
+}
+
+void PrimaryDevice::ReserveUnit()
+{
+	reserving_initiator = controller->GetInitiatorId();
+
+	if (reserving_initiator != -1) {
+		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator)
+	}
+	else {
+		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun())
+	}
+
+	EnterStatusPhase();
+}
+
+void PrimaryDevice::ReleaseUnit()
+{
+	if (reserving_initiator != -1) {
+		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator)
+	}
+	else {
+		LOGTRACE("Released device ID %d, LUN %d reserved by unknown initiator", GetId(), GetLun())
+	}
+
+	DiscardReservation();
+
+	EnterStatusPhase();
+}
+
+bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool prevent_removal)
+{
+	if (reserving_initiator == NOT_RESERVED || reserving_initiator == initiator_id) {
+		return true;
+	}
+
+	// A reservation is valid for all commands except those excluded below
+	if (cmd == scsi_command::eCmdInquiry || cmd == scsi_command::eCmdRequestSense || cmd == scsi_command::eCmdRelease6) {
+		return true;
+	}
+	// PREVENT ALLOW MEDIUM REMOVAL is permitted if the prevent bit is 0
+	if (cmd == scsi_command::eCmdRemoval && !prevent_removal) {
+		return true;
+	}
+
+	if (initiator_id != -1) {
+		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", initiator_id, GetId(), GetLun())
+	}
+	else {
+		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun())
+	}
+
+	return false;
+}
+
+void PrimaryDevice::DiscardReservation()
+{
+	reserving_initiator = NOT_RESERVED;
 }

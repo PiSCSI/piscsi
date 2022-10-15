@@ -12,18 +12,10 @@
 //
 // How to print:
 //
-// 1. The client reserves the printer device with RESERVE UNIT (optional step, mandatory for
-// a multi-initiator environment).
-// 2. The client sends the data to be printed with one or several PRINT commands. Due to
-// https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
-// limited to 4096 bytes.
-// 3. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
+// 1. The client sends the data to be printed with one or several PRINT commands. The maximum
+// transfer size per PRINT command is currently limited to 4096 bytes.
+// 2. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
 // the print command for this printer (see below) to be called for the data not yet printed.
-// 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
-// multi-initiator environment).
-//
-// A client usually does not know whether it is running in a multi-initiator environment. This is why
-// always using a reservation is recommended.
 //
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
 // By default the data to be printed are sent to the printer unmodified, using "lp -oraw %f". This
@@ -36,30 +28,31 @@
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
-// SEND DIAGNOSTIC currently returns no data.
-//
+
+// TODO: Consider defining the print command from the client side with a custom MODE SELECT.
+// The corresponding MODE SENSE should return the current command.
 
 #include <sys/stat.h>
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "../rasutil.h"
 #include "dispatcher.h"
 #include "scsi_printer.h"
 
 using namespace std;
 using namespace scsi_defs;
-using namespace ras_util;
 using namespace scsi_command_util;
 
 SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdPrint, "Print", &SCSIPrinter::Print);
+	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.Add(scsi_command::eCmdStopPrint, "StopPrint", &SCSIPrinter::StopPrint);
+
+	// Required also in this class in order to fulfill the ScsiPrinterCommands interface contract
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
-	dispatcher.Add(scsi_command::eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
-	dispatcher.Add(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 
 	SetReady(true);
 	SetReset(false);
@@ -79,11 +72,6 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 		return false;
 	}
 
-	if (!GetAsInt(GetParam("timeout"), timeout) || timeout <= 0) {
-		LOGERROR("Reservation timeout value must be > 0")
-		return false;
-	}
-
 	return true;
 }
 
@@ -95,8 +83,7 @@ bool SCSIPrinter::Dispatch(scsi_command cmd)
 
 void SCSIPrinter::TestUnitReady()
 {
-	CheckReservation();
-
+	// The printer is always ready
 	EnterStatusPhase();
 }
 
@@ -105,49 +92,8 @@ vector<byte> SCSIPrinter::InquiryInternal() const
 	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
 
-void SCSIPrinter::ReserveUnit()
-{
-	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
-	if (reservation_time + timeout < time(nullptr)) {
-		DiscardReservation();
-	}
-
-	CheckReservation();
-
-	reserving_initiator = controller->GetInitiatorId();
-
-	if (reserving_initiator != -1) {
-		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator)
-	}
-	else {
-		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun())
-	}
-
-	Cleanup();
-
-	EnterStatusPhase();
-}
-
-void SCSIPrinter::ReleaseUnit()
-{
-	CheckReservation();
-
-	if (reserving_initiator != -1) {
-		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator)
-	}
-	else {
-		LOGTRACE("Released device ID %d, LUN %d reserved by unknown initiator", GetId(), GetLun())
-	}
-
-	DiscardReservation();
-
-	EnterStatusPhase();
-}
-
 void SCSIPrinter::Print()
 {
-	CheckReservation();
-
 	const uint32_t length = GetInt24(ctrl->cmd, 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
@@ -167,10 +113,10 @@ void SCSIPrinter::Print()
 
 void SCSIPrinter::SynchronizeBuffer()
 {
-	CheckReservation();
-
 	if (fd == -1) {
-		throw scsi_exception();
+		LOGWARN("Missing printer output file")
+
+		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
 
 	// Make the file readable for the lp user
@@ -197,7 +143,7 @@ void SCSIPrinter::SynchronizeBuffer()
 
 		unlink(filename);
 
-		throw scsi_exception();
+		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
 
 	unlink(filename);
@@ -205,15 +151,9 @@ void SCSIPrinter::SynchronizeBuffer()
 	EnterStatusPhase();
 }
 
-void SCSIPrinter::SendDiagnostic()
-{
-	// Both command implemntations are identical
-	TestUnitReady();
-}
-
 void SCSIPrinter::StopPrint()
 {
-	// Both command implemntations are identical
+	// Command implementations are identical
 	TestUnitReady();
 }
 
@@ -237,29 +177,11 @@ bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 	return num_written == length;
 }
 
-void SCSIPrinter::CheckReservation()
-{
-	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
-		reservation_time = time(nullptr);
-		return;
-	}
-
-	if (controller->GetInitiatorId() != -1) {
-		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", controller->GetInitiatorId(), GetId(), GetLun())
-	}
-	else {
-		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun())
-	}
-
-	throw scsi_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			status::RESERVATION_CONFLICT);
-}
-
 void SCSIPrinter::DiscardReservation()
 {
 	Cleanup();
 
-	reserving_initiator = NOT_RESERVED;
+	PrimaryDevice::DiscardReservation();
 }
 
 void SCSIPrinter::Cleanup()

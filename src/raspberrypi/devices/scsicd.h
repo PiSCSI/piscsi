@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "filepath.h"
 #include "cd_track.h"
 #include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
@@ -28,7 +27,7 @@ public:
 
 	bool Dispatch(scsi_command) override;
 
-	void Open(const Filepath& path) override;
+	void Open() override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
@@ -51,12 +50,11 @@ private:
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
 
 	// Open
-	void OpenCue(const Filepath& path) const;
-	void OpenIso(const Filepath& path);
-	void OpenPhysical(const Filepath& path);
+	void OpenCue() const;
+	void OpenIso();
+	void OpenPhysical();
 
 	void ReadToc() override;
-	void GetEventStatusNotification() override;
 
 	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion
 

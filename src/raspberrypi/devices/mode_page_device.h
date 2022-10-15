@@ -19,7 +19,7 @@ class ModePageDevice: public PrimaryDevice
 public:
 
 	ModePageDevice(const string&, int);
-	~ModePageDevice()override = default;
+	~ModePageDevice() override = default;
 
 	bool Dispatch(scsi_command) override;
 
@@ -27,7 +27,7 @@ public:
 
 protected:
 
-	int AddModePages(const vector<int>&, vector<BYTE>&, int, int) const;
+	int AddModePages(const vector<int>&, vector<BYTE>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
 private:

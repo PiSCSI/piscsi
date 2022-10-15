@@ -91,7 +91,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 
 	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
 		for (const auto& [key, value] : device.GetParams()) {
-			AddParam(pb_device, key, value);
+			SetParam(pb_device, key, value);
 		}
 	}
 
@@ -100,12 +100,10 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
     	pb_device.set_block_count(device.IsRemoved() ? 0: disk->GetBlockCount());
     }
 
-    const auto disk = dynamic_cast<const Disk *>(&device);
-	if (disk != nullptr) {
-		Filepath filepath;
-		disk->GetPath(filepath);
+    const auto storage_device = dynamic_cast<const StorageDevice *>(&device);
+	if (storage_device != nullptr) {
 		auto image_file = make_unique<PbImageFile>().release();
-		GetImageFile(*image_file, default_folder, device.IsRemovable() && !device.IsReady() ? "" : filepath.GetPath());
+		GetImageFile(*image_file, default_folder, device.IsReady() ? storage_device->GetFilename() : "");
 		pb_device.set_allocated_file(image_file);
 	}
 } //NOSONAR The allocated memory is managed by protobuf
@@ -355,7 +353,6 @@ unique_ptr<PbOperationInfo> RascsiResponse::GetOperationInfo(PbResult& result, i
 	AddOperationParameter(*operation, "interface", "Comma-separated prioritized network interface list").release();
 	AddOperationParameter(*operation, "inet", "IP address and netmask of the network bridge").release();
 	AddOperationParameter(*operation, "cmd", "Print command for the printer device").release();
-	AddOperationParameter(*operation, "timeout", "Reservation timeout for the printer device in seconds").release();
 	operation.release();
 
 	CreateOperation(*operation_info, DETACH, "Detach device, device-specific parameters are required").release();

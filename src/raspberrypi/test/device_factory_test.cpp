@@ -125,7 +125,7 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 	EXPECT_EQ(2, params.size());
 
 	params = device_factory.GetDefaultParams(SCLP);
-	EXPECT_EQ(2, params.size());
+	EXPECT_EQ(1, params.size());
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)

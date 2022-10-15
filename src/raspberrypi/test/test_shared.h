@@ -23,3 +23,7 @@ shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, MockAbstr
 
 void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, scsi_defs::scsi_level,
 		const string&, int, bool);
+
+int OpenTempFile(string&);
+int CreateTempFile();
+string CreateTempFile(int);

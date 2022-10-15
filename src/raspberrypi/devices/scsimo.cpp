@@ -33,20 +33,16 @@ SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCM
 	geometries[2048 * 310352] = make_pair(2048, 310352);
 }
 
-void SCSIMO::Open(const Filepath& path)
+void SCSIMO::Open()
 {
 	assert(!IsReady());
 
-	// Open as read-only
-	Fileio fio;
+	off_t size = GetFileSize();
 
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open MO file");
+	// 2 TiB is the current maximum
+	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
+		throw io_exception("File size must not exceed 2 TiB");
 	}
-
-	// Get file size
-	off_t size = fio.GetFileSize();
-	fio.Close();
 
 	// For some capacities there are hard-coded, well-defined sector sizes and block counts
 	if (!SetGeometryForCapacity(size)) {
@@ -55,14 +51,9 @@ void SCSIMO::Open(const Filepath& path)
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	SetReadOnly(false);
-	SetProtectable(true);
-	SetProtected(false);
+	super::ValidateFile(GetFilename());
 
-	super::Open(path);
-	SetPath(path);
-
-	SetUpCache(path, 0);
+	SetUpCache(0);
 
 	// Attention if ready
 	if (IsReady()) {

@@ -8,11 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_exceptions.h"
-#include "protobuf_serializer.h"
 #include "protobuf_util.h"
-#include "rasutil.h"
 #include "rasctl_commands.h"
-#include "rascsi_interface.pb.h"
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
@@ -25,236 +22,198 @@ using namespace protobuf_util;
 // Separator for the INQUIRY name components
 static const char COMPONENT_SEPARATOR = ':';
 
-RasctlCommands::RasctlCommands(const PbCommand& command, const string& hostname, int port, const string& token,
-		const string& locale)
-	: command(command), hostname(hostname), port(port), token(token), locale(locale)
-{
-}
-
-void RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
+bool RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
 		const string& image_params, const string& filename)
 {
 	switch(command.operation()) {
 		case LOG_LEVEL:
-			CommandLogLevel(log_level);
-			break;
+			return CommandLogLevel(log_level);
 
 		case DEFAULT_FOLDER:
-			CommandDefaultImageFolder(default_folder);
-			break;
+			return CommandDefaultImageFolder(default_folder);
 
 		case RESERVE_IDS:
-			CommandReserveIds(reserved_ids);
-			break;
+			return CommandReserveIds(reserved_ids);
 
 		case CREATE_IMAGE:
-			CommandCreateImage(image_params);
-			break;
+			return CommandCreateImage(image_params);
 
 		case DELETE_IMAGE:
-			CommandDeleteImage(image_params);
-			break;
+			return CommandDeleteImage(image_params);
 
 		case RENAME_IMAGE:
-			CommandRenameImage(image_params);
-			break;
+			return CommandRenameImage(image_params);
 
 		case COPY_IMAGE:
-			CommandCopyImage(image_params);
-			break;
+			return CommandCopyImage(image_params);
 
 		case DEVICES_INFO:
-			CommandDeviceInfo();
-			break;
+			return CommandDeviceInfo();
 
 		case DEVICE_TYPES_INFO:
-			CommandDeviceTypesInfo();
-			break;
+			return CommandDeviceTypesInfo();
 
 		case VERSION_INFO:
-			CommandVersionInfo();
-			break;
+			return CommandVersionInfo();
 
 		case SERVER_INFO:
-			CommandServerInfo();
-			break;
+			return CommandServerInfo();
 
 		case DEFAULT_IMAGE_FILES_INFO:
-			CommandDefaultImageFilesInfo();
-			break;
+			return CommandDefaultImageFilesInfo();
 
 		case IMAGE_FILE_INFO:
-			CommandImageFileInfo(filename);
-			break;
+			return CommandImageFileInfo(filename);
 
 		case NETWORK_INTERFACES_INFO:
-			CommandNetworkInterfacesInfo();
-			break;
+			return CommandNetworkInterfacesInfo();
 
 		case LOG_LEVEL_INFO:
-			CommandLogLevelInfo();
-			break;
+			return CommandLogLevelInfo();
 
 		case RESERVED_IDS_INFO:
-			CommandReservedIdsInfo();
-			break;
+			return CommandReservedIdsInfo();
 
 		case MAPPING_INFO:
-			CommandMappingInfo();
-			break;
+			return CommandMappingInfo();
 
 		case OPERATION_INFO:
-			CommandOperationInfo();
-			break;
+			return CommandOperationInfo();
 
 		default:
-			SendCommand();
-			break;
+			return SendCommand();
 	}
+
+    return false;
 }
 
-void RasctlCommands::SendCommand()
+bool RasctlCommands::SendCommand()
 {
-	AddParam(command, "token", token);
-	AddParam(command, "locale", locale);
+	sockaddr_in server_addr = {};
+	if (!ResolveHostName(hostname, &server_addr)) {
+		throw io_exception("Can't resolve hostname '" + hostname + "'");
+	}
 
-	int fd = -1;
-	try {
-		fd = socket(AF_INET, SOCK_STREAM, 0);
-		if (fd == -1) {
-			throw io_exception("Can't create socket: " + string(strerror(errno)));
-		}
+	const int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd == -1) {
+		throw io_exception("Can't create socket: " + string(strerror(errno)));
+	}
 
-		sockaddr_in server_addr = {};
-		if (!ResolveHostName(hostname, &server_addr)) {
-    		throw io_exception("Can't resolve hostname '" + hostname + "'");
-    	}
+	server_addr.sin_port = htons(uint16_t(port));
+	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+		close(fd);
 
-		server_addr.sin_port = htons(uint16_t(port));
-    	if (connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-    		throw io_exception("Can't connect to rascsi on host '" + hostname + "', port " + to_string(port)
-    				+ ": " + strerror(errno));
-    	}
+		throw io_exception("Can't connect to rascsi on host '" + hostname + "', port " + to_string(port)
+				+ ": " + strerror(errno));
+	}
 
-    	if (write(fd, "RASCSI", 6) != 6) {
-    		throw io_exception("Can't write magic");
-    	}
+	if (write(fd, "RASCSI", 6) != 6) {
+		close(fd);
 
-    	serializer.SerializeMessage(fd, command);
-    }
-    catch(const io_exception& e) {
-    	cerr << "Error: " << e.get_msg() << endl;
+		throw io_exception("Can't write magic");
+	}
 
-        if (fd != -1) {
-        	close(fd);
-        }
-
-        exit(fd == -1 ? ENOTCONN : EXIT_FAILURE);
-    }
-
-    // Receive result
-    try {
-    	serializer.DeserializeMessage(fd, result);
-
-    	if (!result.status()) {
-    		throw io_exception(result.msg());
-    	}
-    }
-    catch(const io_exception& e) {
-    	close(fd);
-
-    	cerr << "Error: " << e.get_msg() << endl;
-
-    	exit(EXIT_FAILURE);
-    }
+	serializer.SerializeMessage(fd, command);
+    serializer.DeserializeMessage(fd, result);
 
     close(fd);
+
+    if (!result.status()) {
+    	throw io_exception(result.msg());
+    }
 
 	if (!result.msg().empty()) {
 		cout << result.msg() << endl;
 	}
+
+	return true;
 }
 
-void RasctlCommands::CommandDevicesInfo()
+bool RasctlCommands::CommandDevicesInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayDevicesInfo(result.devices_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandLogLevel(const string& log_level)
+bool RasctlCommands::CommandLogLevel(const string& log_level)
 {
-	AddParam(command, "level", log_level);
+	SetParam(command, "level", log_level);
 
-	SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandReserveIds(const string& reserved_ids)
+bool RasctlCommands::CommandReserveIds(const string& reserved_ids)
 {
-	AddParam(command, "ids", reserved_ids);
+	SetParam(command, "ids", reserved_ids);
 
-    SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandCreateImage(const string& image_params)
+bool RasctlCommands::CommandCreateImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		AddParam(command, "file", string_view(image_params).substr(0, separator_pos));
-		AddParam(command, "size", string_view(image_params).substr(separator_pos + 1));
+		SetParam(command, "file", string_view(image_params).substr(0, separator_pos));
+		SetParam(command, "size", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
-		exit(EXIT_FAILURE);
+
+		return false;
 	}
 
-	AddParam(command, "read_only", "false");
+	SetParam(command, "read_only", "false");
 
-    SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandDeleteImage(const string& filename)
+bool RasctlCommands::CommandDeleteImage(const string& filename)
 {
-	AddParam(command, "file", filename);
+	SetParam(command, "file", filename);
 
-    SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandRenameImage(const string& image_params)
+bool RasctlCommands::CommandRenameImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
+		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
+		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
-		exit(EXIT_FAILURE);
+
+		return false;
 	}
 
-    SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandCopyImage(const string& image_params)
+bool RasctlCommands::CommandCopyImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		AddParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		AddParam(command, "to", string_view(image_params).substr(separator_pos + 1));
+		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
+		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
-		exit(EXIT_FAILURE);
+
+		return false;
 	}
 
-    SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandDefaultImageFolder(const string& folder)
+bool RasctlCommands::CommandDefaultImageFolder(const string& folder)
 {
-	AddParam(command, "folder", folder);
+	SetParam(command, "folder", folder);
 
-	SendCommand();
+	return SendCommand();
 }
 
-void RasctlCommands::CommandDeviceInfo()
+bool RasctlCommands::CommandDeviceInfo()
 {
 	SendCommand();
 
@@ -263,23 +222,29 @@ void RasctlCommands::CommandDeviceInfo()
 	}
 
 	cout << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandDeviceTypesInfo()
+bool RasctlCommands::CommandDeviceTypesInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayDeviceTypesInfo(result.device_types_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandVersionInfo()
+bool RasctlCommands::CommandVersionInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayVersionInfo(result.version_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandServerInfo()
+bool RasctlCommands::CommandServerInfo()
 {
 	SendCommand();
 
@@ -306,57 +271,73 @@ void RasctlCommands::CommandServerInfo()
 	}
 
 	cout << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandDefaultImageFilesInfo()
+bool RasctlCommands::CommandDefaultImageFilesInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayImageFilesInfo(result.image_files_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandImageFileInfo(const string& filename)
+bool RasctlCommands::CommandImageFileInfo(const string& filename)
 {
-	AddParam(command, "file", filename);
+	SetParam(command, "file", filename);
 
 	SendCommand();
 
 	cout << rasctl_display.DisplayImageFile(result.image_file_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandNetworkInterfacesInfo()
+bool RasctlCommands::CommandNetworkInterfacesInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayNetworkInterfaces(result.network_interfaces_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandLogLevelInfo()
+bool RasctlCommands::CommandLogLevelInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayLogLevelInfo(result.log_level_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandReservedIdsInfo()
+bool RasctlCommands::CommandReservedIdsInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayReservedIdsInfo(result.reserved_ids_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandMappingInfo()
+bool RasctlCommands::CommandMappingInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayMappingInfo(result.mapping_info()) << flush;
+
+	return true;
 }
 
-void RasctlCommands::CommandOperationInfo()
+bool RasctlCommands::CommandOperationInfo()
 {
 	SendCommand();
 
 	cout << rasctl_display.DisplayOperationInfo(result.operation_info()) << flush;
+
+	return true;
 }
 
 bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in *addr)

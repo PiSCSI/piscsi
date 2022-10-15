@@ -15,7 +15,6 @@
 #pragma once
 
 #include "disk.h"
-#include "filepath.h"
 
 using Geometry = pair<uint32_t, uint32_t>;
 
@@ -26,7 +25,7 @@ public:
 	SCSIMO(int, const unordered_set<uint32_t>&);
 	~SCSIMO() override = default;
 
-	void Open(const Filepath&) override;
+	void Open() override;
 
 	vector<byte> InquiryInternal() const override;
 	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;

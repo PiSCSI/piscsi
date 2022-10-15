@@ -9,6 +9,9 @@
 
 #include "mocks.h"
 #include "rasutil.h"
+#ifdef __linux__
+#include <sched.h>
+#endif
 
 using namespace ras_util;
 
@@ -55,3 +58,31 @@ TEST(RasUtilTest, ListDevices)
 	EXPECT_NE(string::npos, device_list.find("Host Services"));
 	EXPECT_NE(string::npos, device_list.find("SCSI Printer"));
 }
+
+#ifdef __linux__
+TEST(RasUtilTest, FixCpu)
+{
+	cpu_set_t mask;
+
+	FixCpu(0);
+	CPU_ZERO(&mask);
+	const int cpu = sched_getaffinity(0, sizeof(cpu_set_t), &mask);
+	const int cpus = CPU_COUNT(&mask);
+
+	FixCpu(cpus);
+	CPU_ZERO(&mask);
+	EXPECT_EQ(cpu, sched_getaffinity(0, sizeof(cpu_set_t), &mask));
+
+	FixCpu(cpus - 1);
+	CPU_ZERO(&mask);
+	EXPECT_EQ(cpus - 1, sched_getaffinity(0, sizeof(cpu_set_t), &mask));
+	FixCpu(0);
+
+	// Reset affinity
+	CPU_ZERO(&mask);
+	CPU_SET(cpu, &mask);
+	sched_setaffinity(0, sizeof(cpu_set_t), &mask);
+
+	EXPECT_EQ(0, cpu);
+}
+#endif

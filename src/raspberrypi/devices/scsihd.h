@@ -17,7 +17,6 @@
 #pragma once
 
 #include "disk.h"
-#include "filepath.h"
 
 class SCSIHD : public Disk
 {
@@ -28,9 +27,9 @@ public:
 	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSIHD() override = default;
 
-	void FinalizeSetup(const Filepath&, off_t, off_t = 0);
+	void FinalizeSetup(off_t, off_t = 0);
 
-	void Open(const Filepath&) override;
+	void Open() override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
@@ -40,6 +39,8 @@ public:
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
+	void SetProductData();
 
 	using super = Disk;
 

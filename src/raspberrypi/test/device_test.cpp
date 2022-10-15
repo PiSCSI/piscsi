@@ -17,6 +17,11 @@ TEST(DeviceTest, Properties)
 
 	MockDevice device(LUN);
 
+	EXPECT_FALSE(device.IsReadOnly());
+	device.SetReadOnly(true);
+	EXPECT_TRUE(device.IsReadOnly());
+	device.SetReadOnly(false);
+
 	EXPECT_FALSE(device.IsProtectable());
 	device.SetProtectable(true);
 	EXPECT_TRUE(device.IsProtectable());
@@ -24,10 +29,14 @@ TEST(DeviceTest, Properties)
 	EXPECT_FALSE(device.IsProtected());
 	device.SetProtected(true);
 	EXPECT_TRUE(device.IsProtected());
-
-	EXPECT_FALSE(device.IsReadOnly());
+	device.SetProtected(false);
+	device.SetProtectable(false);
 	device.SetReadOnly(true);
-	EXPECT_TRUE(device.IsReadOnly());
+	device.SetProtected(true);
+	EXPECT_FALSE(device.IsProtected()) << "Read-only or not protectable devices cannot be protected";
+	device.SetReadOnly(false);
+	device.SetProtected(true);
+	EXPECT_FALSE(device.IsProtected()) << "Read-only or not protectable devices cannot be protected";
 
 	EXPECT_FALSE(device.IsStoppable());
 	device.SetStoppable(true);

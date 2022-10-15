@@ -19,17 +19,14 @@
 #include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"
-#include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
-#include "mode_page_device.h"
+#include "storage_device.h"
 #include <string>
 #include <unordered_set>
 
 using namespace std;
 
-using id_set = pair<int, int>;
-
-class Disk : public ModePageDevice, private ScsiBlockCommands
+class Disk : public StorageDevice, private ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
@@ -44,16 +41,6 @@ class Disk : public ModePageDevice, private ScsiBlockCommands
 	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
 	uint32_t size_shift_count = 0;
 
-	// Total number of sectors
-	uint64_t blocks = 0;
-
-	bool is_medium_changed = false;
-
-	Filepath diskpath;
-
-	// The list of image files in use and the IDs and LUNs using these files
-	static unordered_map<string, id_set> reserved_files;
-
 public:
 
 	Disk(const string&, int);
@@ -61,7 +48,6 @@ public:
 
 	bool Dispatch(scsi_command) override;
 
-	void MediumChanged();
 	bool Eject(bool) override;
 
 	// Command helpers
@@ -73,45 +59,29 @@ public:
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
 	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
-	uint64_t GetBlockCount() const { return blocks; }
 	void FlushCache() override;
-
-	virtual void Open(const Filepath&);
-	void GetPath(Filepath& path) const { path = diskpath; }
-
-	void ReserveFile(const Filepath&, int, int) const;
-	void UnreserveFile() const;
-	static void UnreserveAll();
-	bool FileExists(const Filepath&);
-
-	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
-	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)	{ reserved_files = files_in_use; }
-	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
 
 private:
 
-	using super = ModePageDevice;
+	using super = StorageDevice;
 
 	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();
-	void SendDiagnostic();
 	void PreventAllowMediumRemoval();
 	void SynchronizeCache();
 	void ReadDefectData10();
-	virtual void Read6();
-	void Read10() override;
-	void Read16() override;
-	virtual void Write6();
-	void Write10() override;
-	void Write16() override;
-	void Verify10();
-	void Verify16();
+	virtual void Read6() { Read(RW6); }
+	void Read10() override { Read(RW10); }
+	void Read16() override { Read(RW16); }
+	virtual void Write6() { Write(RW6); }
+	void Write10() override { Write(RW10); }
+	void Write16() override { Write(RW16); }
+	void Verify10() { Verify(RW10); }
+	void Verify16() { Verify(RW16); }
 	void Seek();
 	void Seek10();
 	void ReadCapacity10() override;
 	void ReadCapacity16() override;
-	void Reserve();
-	void Release();
 	void Rezero();
 	void FormatUnit() override;
 	void ReassignBlocks();
@@ -131,8 +101,8 @@ private:
 
 protected:
 
-	void SetUpCache(const Filepath&, off_t, bool = false);
-	void ResizeCache(const Filepath&, bool);
+	void SetUpCache(off_t, bool = false);
+	void ResizeCache(const string&, bool);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
@@ -140,12 +110,11 @@ protected:
 	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
 	void AddCachePage(map<int, vector<byte>>&, bool) const;
 	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
+
 	unordered_set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const unordered_set<uint32_t>& sizes) { sector_sizes = sizes; }
 	void SetSectorSizeInBytes(uint32_t);
 	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
-	void SetBlockCount(uint64_t b) { blocks = b; }
-	void SetPath(const Filepath& path) { diskpath = path; }
 };

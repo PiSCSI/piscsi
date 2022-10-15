@@ -51,7 +51,7 @@ private:
 
 	int max_luns;
 
-	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "critical", "off" };
+	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;

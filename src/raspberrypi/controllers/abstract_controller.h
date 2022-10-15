@@ -41,7 +41,9 @@ public:
 	};
 
 	using ctrl_t = struct _ctrl_t {
-		vector<int> cmd;				// Command data, dynamically allocated per received command
+		// Command data, dynamically resized if required
+		vector<int> cmd = vector<int>(16);
+
 		scsi_defs::status status;		// Status data
 		int message;					// Message data
 
@@ -60,7 +62,6 @@ public:
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
 	virtual void Reset();
 	virtual int GetInitiatorId() const = 0;
-	virtual void SetByteTransfer(bool) = 0;
 
 	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
@@ -74,7 +75,7 @@ public:
 	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
 	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
 	bool AddDevice(shared_ptr<PrimaryDevice>);
-	bool DeleteDevice(const shared_ptr<PrimaryDevice>);
+	bool RemoveDevice(const shared_ptr<PrimaryDevice>);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
 
@@ -84,18 +85,23 @@ public:
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
 
+	bool IsByteTransfer() const { return is_byte_transfer; }
+	void SetByteTransfer(bool);
+
 protected:
 
-	scsi_defs::scsi_command GetOpcode() const { return (scsi_defs::scsi_command)ctrl.cmd[0]; }
+	scsi_defs::scsi_command GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
 
 	void ProcessPhase();
 
-	vector<int>& InitCmd(int size) { ctrl.cmd.resize(size); return ctrl.cmd; }
+	vector<int>& GetCmd() { return ctrl.cmd; }
+	void AllocateCmd(size_t);
 
-	bool HasValidLength() const  { return ctrl.length != 0; }
+	bool HasValidLength() const { return ctrl.length != 0; }
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
+	void SetLength(uint32_t l) { ctrl.length = l; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
 private:
@@ -106,7 +112,9 @@ private:
 
 	int max_luns;
 
-	ctrl_t ctrl = {};
+	bool is_byte_transfer = false;
+	uint32_t bytes_to_transfer = 0;
 
+	ctrl_t ctrl = {};
 	ctrl_t* GetCtrl() { return &ctrl; }
 };

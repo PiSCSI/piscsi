@@ -87,7 +87,7 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 		}
 
 		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
-				<< (filename.empty() ? "NO MEDIA" : filename)
+				<< (filename.empty() ? "NO MEDIUM" : filename)
 				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
 				<< '\n';
 	}
@@ -102,16 +102,16 @@ void ras_util::FixCpu(int cpu)
 {
 #ifdef __linux__
 	// Get the number of CPUs
-	cpu_set_t cpuset;
-	CPU_ZERO(&cpuset);
-	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-	int cpus = CPU_COUNT(&cpuset);
+	cpu_set_t mask;
+	CPU_ZERO(&mask);
+	sched_getaffinity(0, sizeof(cpu_set_t), &mask);
+	const int cpus = CPU_COUNT(&mask);
 
 	// Set the thread affinity
 	if (cpu < cpus) {
-		CPU_ZERO(&cpuset);
-		CPU_SET(cpu, &cpuset);
-		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
+		CPU_ZERO(&mask);
+		CPU_SET(cpu, &mask);
+		sched_setaffinity(0, sizeof(cpu_set_t), &mask);
 	}
 #endif
 }

@@ -45,7 +45,6 @@ DeviceFactory::DeviceFactory()
 	default_params[SCDP]["interface"] = network_interfaces;
 	default_params[SCDP]["inet"] = DEFAULT_IP;
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
-	default_params[SCLP]["timeout"] = "30";
 
 	extension_mapping["hd1"] = SCHD;
 	extension_mapping["hds"] = SCHD;
@@ -115,14 +114,12 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 			}
 		}
 		device->SetProtectable(true);
-		device->SetStoppable(true);
 		break;
 	}
 
 	case SCRM:
 		device = make_shared<SCSIHD>(lun, sector_sizes[SCRM], true);
 		device->SetProtectable(true);
-		device->SetStoppable(true);
 		device->SetRemovable(true);
 		device->SetLockable(true);
 		device->SetProduct("SCSI HD (REM.)");
@@ -131,7 +128,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	case SCMO:
 		device = make_shared<SCSIMO>(lun, sector_sizes[SCMO]);
 		device->SetProtectable(true);
-		device->SetStoppable(true);
 		device->SetRemovable(true);
 		device->SetLockable(true);
 		device->SetProduct("SCSI MO");
@@ -140,7 +136,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	case SCCD:
 		device = make_shared<SCSICD>(lun, sector_sizes[SCCD]);
 		device->SetReadOnly(true);
-		device->SetStoppable(true);
 		device->SetRemovable(true);
 		device->SetLockable(true);
 		device->SetProduct("SCSI CD-ROM");
@@ -150,6 +145,8 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
+		// TODO Remove when SCBR is not a subclass of Disk anymore
+		device->SetStoppable(false);
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
@@ -160,6 +157,8 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
+		// TODO Remove when SCDP is not a subclass of Disk anymore
+		device->SetStoppable(false);
 		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCDP]);
 		break;
