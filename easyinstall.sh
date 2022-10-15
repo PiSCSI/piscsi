@@ -841,7 +841,10 @@ function installNetatalk() {
     tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
 
     echo
-    echo "Important: $VIRTUAL_DRIVER_PATH will be shared on the network as $IMAGES_SHARE_NAME"
+    echo "WARNING: This script will overwrite any existing Netatalk configurations."
+    echo "If you have an existing Netatalk installation, press Ctrl-C to exit out and take backups of your configuration files first."
+    echo
+    echo "Important: After installation, $VIRTUAL_DRIVER_PATH will be shared on the network as $IMAGES_SHARE_NAME"
     echo
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
