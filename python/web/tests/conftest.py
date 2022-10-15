@@ -5,10 +5,7 @@ import os
 
 
 def pytest_addoption(parser):
-    if os.getenv("PYTEST_USE_DOCKER_DEFAULTS"):
-        default_base_url = "http://rascsi_web"
-    else:
-        default_base_url = "http://localhost:8080"
+    default_base_url = "http://rascsi_web" if os.getenv("DOCKER") else "http://localhost:8080"
 
     parser.addoption("--home_dir", action="store", default="/home/pi")
     parser.addoption("--base_url", action="store", default=default_base_url)
@@ -22,6 +19,7 @@ def pytest_addoption(parser):
 def env(pytestconfig):
     home_dir = pytestconfig.getoption("home_dir")
     return {
+        "is_docker": bool(os.getenv("DOCKER")),
         "home_dir": home_dir,
         "cfg_dir": f"{home_dir}/.config/rascsi",
         "images_dir": f"{home_dir}/images",
