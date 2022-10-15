@@ -1,13 +1,30 @@
 import pytest
 import requests
+import socket
+import os
 
 
 def pytest_addoption(parser):
-    parser.addoption("--base_url", action="store", default="http://localhost:8080")
-    parser.addoption("--httpserver_host", action="store", default="host.docker.internal")
-    parser.addoption("--httpserver_listen_address", action="store", default="127.0.0.1")
+    default_base_url = "http://rascsi_web" if os.getenv("DOCKER") else "http://localhost:8080"
+
+    parser.addoption("--home_dir", action="store", default="/home/pi")
+    parser.addoption("--base_url", action="store", default=default_base_url)
+    parser.addoption("--httpserver_host", action="store", default=socket.gethostname())
+    parser.addoption("--httpserver_listen_address", action="store", default="0.0.0.0")
     parser.addoption("--rascsi_username", action="store", default="pi")
     parser.addoption("--rascsi_password", action="store", default="rascsi")
+
+
+@pytest.fixture(scope="session")
+def env(pytestconfig):
+    home_dir = pytestconfig.getoption("home_dir")
+    return {
+        "is_docker": bool(os.getenv("DOCKER")),
+        "home_dir": home_dir,
+        "cfg_dir": f"{home_dir}/.config/rascsi",
+        "images_dir": f"{home_dir}/images",
+        "afp_dir": f"{home_dir}/afpshare",
+    }
 
 
 @pytest.fixture(scope="session")
@@ -17,8 +34,7 @@ def httpserver_listen_address(pytestconfig):
 
 @pytest.fixture(scope="function", autouse=True)
 def set_httpserver_hostname(pytestconfig, httpserver):
-    # The HTTP requests are made by Python from within the container so we need
-    # httpserver.url_for to generate URLs which point to the Docker host
+    # We need httpserver.url_for() to generate URLs pointing to the correct host
     httpserver.host = pytestconfig.getoption("httpserver_host")
 
 

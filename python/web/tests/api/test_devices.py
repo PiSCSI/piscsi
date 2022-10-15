@@ -81,7 +81,10 @@ def test_attach_image(http_client, create_test_image, detach_devices):
         ("Printer", {"type": "SCLP", "param_timeout": 60, "param_cmd": "lp -fart %f"}),
     ],
 )
-def test_attach_device(http_client, detach_devices, device_name, device_config):
+def test_attach_device(env, http_client, detach_devices, device_name, device_config):
+    if env["is_docker"] and device_name == "Host Bridge":
+        pytest.skip("Test not supported in Docker environment.")
+
     device_config["scsi_id"] = SCSI_ID
     device_config["unit"] = 0
 

@@ -1,7 +1,6 @@
 import uuid
 
 from conftest import (
-    CFG_DIR,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
 )
@@ -46,7 +45,7 @@ def test_show_named_drive_presets(http_client):
 
 
 # route("/drive/cdrom", methods=["POST"])
-def test_create_cdrom_properties_file(http_client):
+def test_create_cdrom_properties_file(env, http_client):
     file_name = f"{uuid.uuid4()}.iso"
 
     response = http_client.post(
@@ -62,7 +61,7 @@ def test_create_cdrom_properties_file(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"File created: {CFG_DIR}/{file_name}.properties"
+        f"File created: {env['cfg_dir']}/{file_name}.properties"
     )
 
 
@@ -88,6 +87,7 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
     # Cleanup
     delete_file(file_name)
+
 
 # route("/sys/manpage", methods=["POST"])
 def test_show_manpage(http_client):
