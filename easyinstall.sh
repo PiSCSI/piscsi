@@ -844,12 +844,13 @@ function installNetatalk() {
     echo "WARNING: This script will overwrite any existing Netatalk configurations."
     echo "If you have an existing Netatalk installation, press Ctrl-C to exit out and take backups of your configuration files first."
     echo
-    echo "Important: After installation, $VIRTUAL_DRIVER_PATH will be shared on the network as $IMAGES_SHARE_NAME"
-    echo
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+}
 
+# Appends the images dir as a shared Netatalk volume
+function shareImagesWithNetatalk() {
     sudo systemctl stop afpd
     echo "Appended to AppleVolumes.default:"
     echo "$VIRTUAL_DRIVER_PATH \"$IMAGES_SHARE_NAME\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
@@ -1315,6 +1316,11 @@ function runChoice() {
               showRaScsiCtrlBoardStatus
               echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
+          13)
+              installNetatalk
+              shareImagesWithNetatalk
+              echo "Installing AppleShare File Server - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1328,8 +1334,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
-       echo -n "Enter your choice (0-12) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
+       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1359,6 +1365,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo "EXPERIMENTAL FEATURES"
     echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
+    echo " 13) install AppleShare File Server (Netatalk) and share the images dir"
 }
 
 # parse arguments passed to the script
