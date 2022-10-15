@@ -86,7 +86,7 @@ def test_copy_file(http_client, create_test_image, list_files, delete_file):
 
 # route("/files/delete", methods=["POST"])
 def test_delete_file(http_client, create_test_image, list_files):
-    file_name = create_test_image()
+    file_name = create_test_image(auto_delete=False)
 
     response = http_client.post("/files/delete", data={"file_name": file_name})
 
