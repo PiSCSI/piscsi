@@ -118,6 +118,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
+		// filesystem::file_size cannot be used here because on 32 bit systems it cannot handled more than 2 GiB
 		if (struct stat st; !stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file.set_size(st.st_size);
 			return true;
