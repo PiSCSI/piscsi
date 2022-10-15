@@ -841,6 +841,11 @@ function installNetatalk() {
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+
+    sudo systemctl stop afpd
+    echo "Making the RaSCSI images dir a shared Netatalk volume"
+    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
+    sudo systemctl start afpd
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
