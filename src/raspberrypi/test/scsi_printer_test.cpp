@@ -30,26 +30,6 @@ TEST(ScsiPrinterTest, Inquiry)
 			"RaSCSI  SCSI PRINTER    ", 0x1f, false);
 }
 
-TEST(ScsiPrinterTest, ReserveUnit)
-{
-	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller);
-
-    EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdReserve6));
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
-}
-
-TEST(ScsiPrinterTest, ReleaseUnit)
-{
-	NiceMock<MockAbstractController> controller(0);
-	auto printer = CreateDevice(SCLP, controller);
-
-    EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdRelease6));
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
-}
-
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
 	NiceMock<MockAbstractController> controller(0);
