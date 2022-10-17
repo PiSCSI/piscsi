@@ -272,7 +272,7 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_FALSE(s.empty());
 	EXPECT_NE(string::npos, s.find(PbOperation_Name(NO_OPERATION)));
 
-	meta_data.set_server_side_name("name");
+	meta_data.set_server_side_name("server_side_name");
 	meta_data.set_description("description");
 	(*info.mutable_operations())[0] = meta_data;
 	s = display.DisplayOperationInfo(info);
@@ -285,4 +285,10 @@ TEST(RasctlDisplayTest, DisplayOperationInfo)
 	EXPECT_NE(string::npos, s.find("description3"));
 	EXPECT_NE(string::npos, s.find("permitted_value3_1"));
 	EXPECT_NE(string::npos, s.find("permitted_value3_2"));
+	EXPECT_EQ(string::npos, s.find("server_side_name"));
+
+	(*info.mutable_operations())[1234] = meta_data;
+	s = display.DisplayOperationInfo(info);
+	EXPECT_FALSE(s.empty());
+	EXPECT_NE(string::npos, s.find("server_side_name"));
 }
