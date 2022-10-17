@@ -772,14 +772,8 @@ bool ScsiController::XferOut(bool cont)
 	const uint32_t length = bytes_to_transfer;
 	SetByteTransfer(false);
 
-	if (auto device = GetDeviceForLun(GetEffectiveLun());
-		device != nullptr && GetOpcode() == scsi_command::eCmdWrite6) {
-		return device->WriteByteSequence(GetBuffer(), length);
-	}
-
-	LOGWARN("%s Received unexpected command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
-
-	return false;
+	auto device = GetDeviceForLun(GetEffectiveLun());
+	return device != nullptr ? device->WriteByteSequence(GetBuffer(), length) : false;
 }
 
 void ScsiController::DataOutNonBlockOriented()
