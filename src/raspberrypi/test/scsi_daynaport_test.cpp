@@ -55,6 +55,15 @@ TEST(ScsiDaynaportTest, Read)
 	EXPECT_EQ(0, daynaport->Read(cmd, buf, 0)) << "Trying to read the root sector must fail";
 }
 
+TEST(ScsiDaynaportTest, WriteCheck)
+{
+	vector<BYTE> buf(0);
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
+
+	EXPECT_THROW(daynaport->WriteCheck(0), scsi_exception);
+}
+
 TEST(ScsiDaynaportTest, WriteBytes)
 {
 	vector<BYTE> buf(0);
