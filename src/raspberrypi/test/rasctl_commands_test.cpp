@@ -99,7 +99,10 @@ TEST(RasctlCommandsTest, Execute)
 TEST(RasctlCommandsTest, CommandDevicesInfo)
 {
 	PbCommand command;
-	RasctlCommands commands(command, "localhost", 0);
 
-	EXPECT_THROW(commands.CommandDevicesInfo(), io_exception);
+	RasctlCommands commands1(command, "/invalid_host_name", 0);
+	EXPECT_THROW(commands1.CommandDevicesInfo(), io_exception);
+
+	RasctlCommands commands2(command, "localhost", 0);
+	EXPECT_THROW(commands2.CommandDevicesInfo(), io_exception);
 }
