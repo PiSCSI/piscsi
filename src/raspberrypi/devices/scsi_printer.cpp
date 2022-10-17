@@ -165,7 +165,7 @@ bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
-	return (uint32_t)write(fd, buf.data(), length) != length;
+	return (uint32_t)write(fd, buf.data(), length) == length;
 }
 
 void SCSIPrinter::DiscardReservation()
