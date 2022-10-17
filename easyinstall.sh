@@ -850,9 +850,20 @@ function installNetatalk() {
 
 # Appends the images dir as a shared Netatalk volume
 function shareImagesWithNetatalk() {
+    APPLEVOLUMES_PATH="/etc/netatalk/AppleVolumes.default"
+    if ! [ -f "$APPLEVOLUMES_PATH" ]; then
+        echo "Could not find $APPLEVOLUMES_PATH ... is Netatalk installed?"
+        exit 1
+    fi
+
+    if [ "$(grep -c "$VIRTUAL_DRIVER_PATH" "$APPLEVOLUMES_PATH")" -ge 1 ]; then
+        echo "The $VIRTUAL_DRIVER_PATH dir is already shared in $APPLEVOLUMES_PATH"
+        exit 0
+    fi
+
     sudo systemctl stop afpd
     echo "Appended to AppleVolumes.default:"
-    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "/etc/netatalk/AppleVolumes.default"
+    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
     sudo systemctl start afpd
 }
 
@@ -1316,9 +1327,8 @@ function runChoice() {
               echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
           13)
-              installNetatalk
               shareImagesWithNetatalk
-              echo "Installing AppleShare File Server - Complete!"
+              echo "Configuring AppleShare File Server - Complete!"
           ;;
           -h|--help|h|help)
               showMenu
@@ -1364,7 +1374,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo "EXPERIMENTAL FEATURES"
     echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 13) install AppleShare File Server (Netatalk) and share the images dir"
+    echo " 13) share the images dir over AppleShare (install Netatalk first)"
 }
 
 # parse arguments passed to the script
