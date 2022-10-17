@@ -14,6 +14,21 @@
 
 using namespace std;
 
+TEST(ScsiPrinterTest, Init)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto printer = CreateDevice(SCLP, controller);
+
+	unordered_map<string, string> params;
+	EXPECT_TRUE(printer->Init(params));
+
+	params["cmd"] = "missing_filename_specifier";
+	EXPECT_FALSE(printer->Init(params));
+
+	params["cmd"] = "%f";
+	EXPECT_TRUE(printer->Init(params));
+}
+
 TEST(ScsiPrinterTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
