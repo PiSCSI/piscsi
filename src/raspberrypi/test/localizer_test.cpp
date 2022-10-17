@@ -19,6 +19,14 @@ TEST(Localizer, Localize)
 	EXPECT_FALSE(message.empty());
 	EXPECT_EQ(string::npos, message.find("enum value"));
 
+	message = localizer.Localize(LocalizationKey::ERROR_AUTHENTICATION, "de_DE");
+	EXPECT_FALSE(message.empty());
+	EXPECT_EQ(string::npos, message.find("enum value"));
+
+	message = localizer.Localize(LocalizationKey::ERROR_AUTHENTICATION, "en");
+	EXPECT_FALSE(message.empty());
+	EXPECT_EQ(string::npos, message.find("enum value"));
+
 	message = localizer.Localize((LocalizationKey)1234, "");
 	EXPECT_FALSE(message.empty());
 	EXPECT_NE(string::npos, message.find("enum value"));
