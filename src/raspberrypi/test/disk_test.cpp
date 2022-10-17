@@ -10,9 +10,11 @@
 #include "mocks.h"
 #include "scsi.h"
 #include "devices/disk.h"
+#include "devices/scsi_command_util.h"
 #include "rascsi_exceptions.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
 TEST(DiskTest, Dispatch)
 {
@@ -275,7 +277,7 @@ TEST(DiskTest, Eject)
 
 TEST(DiskTest, ModeSense6)
 {
-	MockAbstractController controller(0);
+	NiceMock<MockAbstractController> controller(0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -286,17 +288,42 @@ TEST(DiskTest, ModeSense6)
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(0x08, controller.GetBuffer()[3]) << "Invalid block descriptor length";
+	EXPECT_EQ(0x08, controller.GetBuffer()[3]) << "Wrong block descriptor length";
 
 	cmd[1] = 0x08;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(0x00, controller.GetBuffer()[2]) << "Invalid device-specific parameter";
+	EXPECT_EQ(0x00, controller.GetBuffer()[2]) << "Wrong device-specific parameter";
 
 	disk->SetReadOnly(false);
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(0x80, controller.GetBuffer()[2]) << "Invalid device-specific parameter";
+	EXPECT_EQ(76, controller.GetBuffer()[0]) << "Invalid Wrong length";
+	EXPECT_EQ(0x80, controller.GetBuffer()[2]) << "Invalid Wrong-specific parameter";
+}
+
+TEST(DiskTest, ModeSense10)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	cmd[2] = 0x3f;
+	// ALLOCATION LENGTH
+	cmd[8] = 255;
+	cmd[1] = 0x08;
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	EXPECT_EQ(0x00, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
+
+	disk->SetReadOnly(false);
+	disk->SetProtectable(true);
+	disk->SetProtected(true);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	EXPECT_EQ(80, GetInt16(controller.GetBuffer(), 0)) << "Wrong data length";
+	EXPECT_EQ(0x80, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
 }
 
 TEST(DiskTest, SynchronizeCache)
