@@ -42,6 +42,53 @@ TEST(ScsiDaynaportTest, TestUnitReady)
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
+TEST(ScsiDaynaportTest, Read)
+{
+	vector<BYTE> buf(0);
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
+
+	vector<int>& cmd = controller.GetCmd();
+
+	// ALLOCATION LENGTH
+	cmd[4] = 1;
+	EXPECT_EQ(0, daynaport->Read(cmd, buf, 0));
+}
+
+TEST(ScsiDaynaportTest, WriteBytes)
+{
+	vector<BYTE> buf(0);
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
+
+	vector<int>& cmd = controller.GetCmd();
+
+	// Unknown data format
+	cmd[5] = 0xff;
+	EXPECT_TRUE(daynaport->WriteBytes(cmd, buf, 0));
+}
+
+TEST(ScsiDaynaportTest, Read6)
+{
+	vector<BYTE> buf(0);
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = CreateDevice(SCDP, controller);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	cmd[5] = 0xff;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdRead6), scsi_exception) << "Invalid data format";
+}
+
+TEST(ScsiDaynaportTest, Write6)
+{
+	vector<BYTE> buf(0);
+	NiceMock<MockAbstractController> controller(0);
+	auto daynaport = CreateDevice(SCDP, controller);
+
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Missing transfer length";
+}
+
 TEST(ScsiDaynaportTest, TestRetrieveStats)
 {
 	NiceMock<MockAbstractController> controller(0);
