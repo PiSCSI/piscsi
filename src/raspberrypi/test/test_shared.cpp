@@ -65,6 +65,7 @@ int OpenTempFile(string& file)
 	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string
 
 	const int fd = mkstemp(filename);
+	EXPECT_NE(-1, fd) << "Couldn't create temporary file '" << filename << "'";
 
 	file = filename;
 
@@ -77,9 +78,10 @@ string CreateTempFile(int size)
 	vector<char> data(size);
 
 	const int fd = mkstemp(filename);
+
 	const size_t count = write(fd, data.data(), data.size());
 	close(fd);
-	EXPECT_EQ(count, data.size());
+	EXPECT_EQ(count, data.size()) << "Couldn't create temporary file '" << string(filename) << "'";
 
 	return filename;
 }
