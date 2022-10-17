@@ -51,13 +51,9 @@ TEST(StorageDeviceTest, MediumChanged)
 {
 	MockStorageDevice device;
 
-	device.SetRemovable(true);
-	EXPECT_FALSE(device.IsMediumChanged());
-	device.MediumChanged();
-	EXPECT_TRUE(device.IsMediumChanged()) << "Medium change not reported";
-
 	device.SetMediumChanged(true);
 	EXPECT_TRUE(device.IsMediumChanged());
+
 	device.SetMediumChanged(false);
 	EXPECT_FALSE(device.IsMediumChanged());
 }
