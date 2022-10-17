@@ -287,7 +287,6 @@ TEST(DiskTest, StartStopUnit)
 	EXPECT_CALL(controller, Status());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
-	EXPECT_FALSE(disk->IsStopped());
 }
 
 TEST(DiskTest, PreventAllowMediumRemoval)
