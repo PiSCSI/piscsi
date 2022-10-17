@@ -29,9 +29,6 @@
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 
-// TODO: Consider defining the print command from the client side with a custom MODE SELECT.
-// The corresponding MODE SENSE should return the current command.
-
 #include <sys/stat.h>
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
