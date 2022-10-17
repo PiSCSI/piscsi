@@ -265,6 +265,14 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 	EXPECT_TRUE(disk->IsLocked());
 }
 
+TEST(DiskTest, Eject)
+{
+	MockDisk disk;
+
+	EXPECT_CALL(disk, FlushCache).Times(0);
+	EXPECT_FALSE(disk.Eject(false));
+}
+
 TEST(DiskTest, SynchronizeCache)
 {
 	MockAbstractController controller(0);
