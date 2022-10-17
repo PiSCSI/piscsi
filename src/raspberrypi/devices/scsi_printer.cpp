@@ -119,9 +119,6 @@ void SCSIPrinter::SynchronizeBuffer()
 		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
 
-	// Make the file readable for the lp user
-	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH); //NOSONAR Granting permissions to "others" is required here
-
 	struct stat st;
 	fstat(fd, &st);
 
