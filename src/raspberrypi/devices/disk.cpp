@@ -32,7 +32,6 @@ Disk::Disk(const string& type, int lun) : StorageDevice(type, lun)
 	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
 	dispatcher.Add(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
 	dispatcher.Add(scsi_command::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
 	dispatcher.Add(scsi_command::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	dispatcher.Add(scsi_command::eCmdRead10, "Read10", &Disk::Read10);
