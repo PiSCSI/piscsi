@@ -864,8 +864,8 @@ function shareImagesWithNetatalk() {
             sudo systemctl stop afpd
             sudo sed -i '\,^'"$VIRTUAL_DRIVER_PATH"',d' "$APPLEVOLUMES_PATH"
             echo "Sharing for $VIRTUAL_DRIVER_PATH disabled!"
-            exit 0
             sudo systemctl start afpd
+            exit 0
         fi
         exit 0
     fi
