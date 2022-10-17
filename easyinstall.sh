@@ -858,6 +858,15 @@ function shareImagesWithNetatalk() {
 
     if [ "$(grep -c "$VIRTUAL_DRIVER_PATH" "$APPLEVOLUMES_PATH")" -ge 1 ]; then
         echo "The $VIRTUAL_DRIVER_PATH dir is already shared in $APPLEVOLUMES_PATH"
+        echo "Do you want to turn off the sharing? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo systemctl stop afpd
+            sudo sed -i '\,^'"$VIRTUAL_DRIVER_PATH"',d' "$APPLEVOLUMES_PATH"
+            echo "Sharing for $VIRTUAL_DRIVER_PATH disabled!"
+            exit 0
+            sudo systemctl start afpd
+        fi
         exit 0
     fi
 
