@@ -19,14 +19,22 @@ TEST(ModePageDeviceTest, AddModePages)
 	vector<BYTE> buf(512);
 	MockModePageDevice device;
 
+	// Page 0
+	cdb[2] = 0x00;
+	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, 255), scsi_exception)
+		<< "Data were returned for non-existing mode page 0";
+
+	// All pages, non changeable
 	cdb[2] = 0x3f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
 	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception) << "Maximum size was ignored";
 
-	cdb[2] = 0x00;
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, 255), scsi_exception)
-		<< "Data were returned for non-existing mode page 0";
+	// All pages, changeable
+	cdb[2]= 0x7f;
+	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
+	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
+	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception) << "Maximum size was ignored";
 }
 
 TEST(ModePageDeviceTest, Page0)
