@@ -132,7 +132,6 @@ void SCSIPrinter::SynchronizeBuffer()
 	const size_t file_position = cmd.find("%f");
 	assert(file_position != string::npos);
 	cmd.replace(file_position, 2, filename);
-	cmd = "lp " + cmd;
 
 	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
 
