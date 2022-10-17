@@ -94,6 +94,8 @@ TEST(ScsiDaynaportTest, Write6)
 	cmd[5] = 0x80;
 	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
 
+	cmd[3] = 0;
+	cmd[4] = 0;
 	cmd[5] = 0xff;
 	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
 }
