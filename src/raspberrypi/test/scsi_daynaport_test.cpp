@@ -52,7 +52,7 @@ TEST(ScsiDaynaportTest, Read)
 
 	// ALLOCATION LENGTH
 	cmd[4] = 1;
-	EXPECT_EQ(0, daynaport->Read(cmd, buf, 0));
+	EXPECT_EQ(0, daynaport->Read(cmd, buf, 0)) << "Trying to read the root sector must fail";
 }
 
 TEST(ScsiDaynaportTest, WriteBytes)
@@ -70,7 +70,6 @@ TEST(ScsiDaynaportTest, WriteBytes)
 
 TEST(ScsiDaynaportTest, Read6)
 {
-	vector<BYTE> buf(0);
 	NiceMock<MockAbstractController> controller(0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
@@ -82,11 +81,21 @@ TEST(ScsiDaynaportTest, Read6)
 
 TEST(ScsiDaynaportTest, Write6)
 {
-	vector<BYTE> buf(0);
 	NiceMock<MockAbstractController> controller(0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Missing transfer length";
+	vector<int>& cmd = controller.GetCmd();
+
+	cmd[5] = 0x00;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
+
+	cmd[3] = -1;
+	cmd[4] = -8;
+	cmd[5] = 0x80;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
+
+	cmd[5] = 0xff;
+	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
 }
 
 TEST(ScsiDaynaportTest, TestRetrieveStats)
