@@ -241,6 +241,55 @@ TEST(DiskTest, ReadWriteLong)
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
 }
 
+TEST(DiskTest, StartStopUnit)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	// Stop/Unload
+	EXPECT_CALL(controller, Status());
+	EXPECT_CALL(*disk, FlushCache);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_TRUE(disk->IsStopped());
+
+	// Stop/Load
+	cmd[4] = 0x02;
+	disk->SetLocked(false);
+	ON_CALL(*disk, Eject).WillByDefault(Return(true));
+	EXPECT_CALL(controller, Status());
+	EXPECT_CALL(*disk, FlushCache);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	ON_CALL(*disk, Eject).WillByDefault(Return(false));
+	EXPECT_CALL(*disk, FlushCache);
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
+
+	disk->SetLocked(true);
+	ON_CALL(*disk, Eject).WillByDefault(Return(true));
+	EXPECT_CALL(*disk, FlushCache);
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
+
+	// Start/Unload
+	cmd[4] = 0x01;
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_FALSE(disk->IsStopped());
+
+	// Start/Load
+	cmd[4] = 0x03;
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_FALSE(disk->IsStopped());
+}
+
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	MockAbstractController controller(0);

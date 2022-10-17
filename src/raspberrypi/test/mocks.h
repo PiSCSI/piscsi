@@ -290,6 +290,7 @@ public:
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
+	MOCK_METHOD(bool, Eject, (bool), (override));
 
 	MockDisk() : Disk("test", 0) {}
 	~MockDisk() override = default;
