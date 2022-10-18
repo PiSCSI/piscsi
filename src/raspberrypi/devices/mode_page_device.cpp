@@ -120,14 +120,16 @@ void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) co
 
 void ModePageDevice::ModeSelect6()
 {
-	ctrl->length = ModeSelectCheck6();
+	ctrl->length = ModeSelectCheck(ctrl->cmd[4]);
 
 	EnterDataOutPhase();
 }
 
 void ModePageDevice::ModeSelect10()
 {
-	ctrl->length = ModeSelectCheck10();
+	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
+
+	ctrl->length = ModeSelectCheck((int)length);
 
 	EnterDataOutPhase();
 }
@@ -141,18 +143,4 @@ int ModePageDevice::ModeSelectCheck(int length) const
 	}
 
 	return length;
-}
-
-int ModePageDevice::ModeSelectCheck6() const
-{
-	// Receive the data specified by the parameter length
-	return ModeSelectCheck(ctrl->cmd[4]);
-}
-
-int ModePageDevice::ModeSelectCheck10() const
-{
-	// Receive the data specified by the parameter length
-	size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
-
-	return ModeSelectCheck((int)length);
 }

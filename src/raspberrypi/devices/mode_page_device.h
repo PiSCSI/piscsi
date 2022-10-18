@@ -45,6 +45,4 @@ private:
 	void ModeSelect10();
 
 	int ModeSelectCheck(int) const;
-	int ModeSelectCheck6() const;
-	int ModeSelectCheck10() const;
 };
