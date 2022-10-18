@@ -76,7 +76,10 @@ TEST(ModePageDeviceTest, ModeSelect)
 	vector<int> cmd;
 	vector<BYTE> buf;
 
-	EXPECT_THROW(device.ModeSelect(cmd, buf, 0), scsi_exception) << "Unexpected MODE SELECT default implementation";
+	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0), scsi_exception)
+		<< "Unexpected MODE SELECT default implementation";
+	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0), scsi_exception)
+		<< "Unexpected MODE SELECT default implementation";
 }
 
 TEST(ModePageDeviceTest, ModeSelect6)

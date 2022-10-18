@@ -92,9 +92,9 @@ vector<byte> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
+void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
-	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
 void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const

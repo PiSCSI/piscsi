@@ -13,7 +13,8 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length, int sector_size)
+void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length,
+		int sector_size)
 {
 	assert(length >= 0);
 
@@ -25,7 +26,7 @@ void scsi_command_util::ModeSelect(const vector<int>& cdb, const vector<BYTE>& b
 
 	// Skip block descriptors
 	int offset;
-	if ((scsi_command)cdb[0] == scsi_command::eCmdModeSelect10) {
+	if (cmd == scsi_command::eCmdModeSelect10) {
 		offset = 8 + GetInt16(buf, 6);
 	}
 	else {

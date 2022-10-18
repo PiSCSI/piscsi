@@ -91,9 +91,9 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
+void SCSIMO::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
-	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
 //---------------------------------------------------------------------------

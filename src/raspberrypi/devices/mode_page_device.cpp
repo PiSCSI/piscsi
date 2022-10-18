@@ -113,7 +113,7 @@ void ModePageDevice::ModeSense10()
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) const
+void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<BYTE>&, int) const
 {
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }

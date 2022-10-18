@@ -28,7 +28,7 @@ public:
 	void Open() override;
 
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<BYTE>&, int) const override;
 
 protected:
 

@@ -796,7 +796,7 @@ void ScsiController::DataOutNonBlockOriented()
 				// TODO Try to get rid of this cast
 				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
 					device != nullptr) {
-					device->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+					device->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
 				}
 				else {
 					throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
@@ -878,7 +878,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+				disk->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc());

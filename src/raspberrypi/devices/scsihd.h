@@ -33,7 +33,7 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<BYTE>&, int) const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
