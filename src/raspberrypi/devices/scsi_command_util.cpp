@@ -16,6 +16,7 @@ using namespace scsi_defs;
 void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length,
 		int sector_size)
 {
+	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
 	assert(length >= 0);
 
 	// PF
