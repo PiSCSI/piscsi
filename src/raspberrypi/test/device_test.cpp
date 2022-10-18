@@ -17,6 +17,18 @@ TEST(DeviceTest, Properties)
 
 	MockDevice device(LUN);
 
+	EXPECT_FALSE(device.IsReady());
+	device.SetReady(true);
+	EXPECT_TRUE(device.IsReady());
+
+	EXPECT_FALSE(device.IsReset());
+	device.SetReset(true);
+	EXPECT_TRUE(device.IsReset());
+
+	EXPECT_FALSE(device.IsAttn());
+	device.SetAttn(true);
+	EXPECT_TRUE(device.IsAttn());
+
 	EXPECT_FALSE(device.IsReadOnly());
 	device.SetReadOnly(true);
 	EXPECT_TRUE(device.IsReadOnly());

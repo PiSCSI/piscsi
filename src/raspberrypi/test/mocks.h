@@ -179,6 +179,7 @@ public:
 
 class MockDevice : public Device
 {
+	FRIEND_TEST(DeviceTest, Properties);
 	FRIEND_TEST(DeviceTest, Params);
 	FRIEND_TEST(DeviceTest, StatusCode);
 	FRIEND_TEST(DeviceTest, Reset);
@@ -190,8 +191,8 @@ public:
 
 	MOCK_METHOD(int, GetId, (), (const));
 
-	MockDevice(int lun) : Device(UNDEFINED, lun) {}
-	MockDevice(PbDeviceType type) : Device(type, 0) {}
+	explicit MockDevice(int lun) : Device(UNDEFINED, lun) {}
+	explicit MockDevice(PbDeviceType type) : Device(type, 0) {}
 	~MockDevice() override = default;
 };
 
