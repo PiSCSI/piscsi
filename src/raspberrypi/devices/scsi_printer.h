@@ -36,9 +36,9 @@ public:
 	void TestUnitReady() override;
 	void ReserveUnit() override { PrimaryDevice::ReserveUnit(); }
 	void ReleaseUnit() override { PrimaryDevice::ReleaseUnit(); }
+	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void Print() override;
 	void SynchronizeBuffer();
-	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void StopPrint();
 
 	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
