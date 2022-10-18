@@ -57,7 +57,7 @@ void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)
 
 	// 2 TiB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TiB");
+		throw io_exception("Drive capacity cannot exceed 2 TiB");
 	}
 
 	// For non-removable media drives set the default product name based on the drive capacity

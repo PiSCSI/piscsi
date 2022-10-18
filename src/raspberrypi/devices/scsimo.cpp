@@ -41,7 +41,7 @@ void SCSIMO::Open()
 
 	// 2 TiB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TiB");
+		throw io_exception("Drive capacity cannot exceed 2 TiB");
 	}
 
 	// For some capacities there are hard-coded, well-defined sector sizes and block counts
