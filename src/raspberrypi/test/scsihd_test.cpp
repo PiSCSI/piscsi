@@ -10,7 +10,6 @@
 #include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/scsihd.h"
-#include <iostream>
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
@@ -23,6 +22,18 @@ TEST(ScsiHdTest, FinalizeSetup)
 		<< "Unsupported drive capacity";
 
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
+
+	hd.SetBlockCount(1);
+	hd.FinalizeSetup(0, 0);
+	EXPECT_NE(string::npos, hd.GetProduct().find("1 KiB"));
+
+	hd.SetBlockCount(1'048'576 / 1024);
+	hd.FinalizeSetup(0, 0);
+	EXPECT_NE(string::npos, hd.GetProduct().find("1 MiB"));
+
+	hd.SetBlockCount(1'099'511'627'776 / 1024);
+	hd.FinalizeSetup(0, 0);
+	EXPECT_NE(string::npos, hd.GetProduct().find("1 GiB"));
 }
 
 TEST(ScsiHdTest, Inquiry)
