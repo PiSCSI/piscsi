@@ -27,6 +27,7 @@ public:
 
 protected:
 
+	virtual bool SupportsSaveParameters() const { return false; }
 	int AddModePages(const vector<int>&, vector<BYTE>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
@@ -45,5 +46,4 @@ private:
 	void ModeSelect10();
 
 	int SaveParametersCheck(int) const;
-	virtual bool SupportsSaveParameters() const { return false; }
 };

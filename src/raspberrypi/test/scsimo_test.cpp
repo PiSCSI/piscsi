@@ -15,6 +15,15 @@ TEST(ScsiMoTest, Inquiry)
 			"RaSCSI  SCSI MO         ", 0x1f, true);
 }
 
+TEST(ScsiMoTest, SupportsSaveParameters)
+{
+	map<int, vector<byte>> mode_pages;
+	const unordered_set<uint32_t> sector_sizes;
+	MockSCSIMO mo(0, sector_sizes);
+
+	EXPECT_TRUE(mo.SupportsSaveParameters());
+}
+
 TEST(ScsiMoTest, SetUpModePages)
 {
 	map<int, vector<byte>> mode_pages;

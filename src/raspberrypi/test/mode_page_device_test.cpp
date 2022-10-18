@@ -13,6 +13,13 @@
 
 using namespace std;
 
+TEST(ModePageDeviceTest, SupportsSaveParameters)
+{
+	MockModePageDevice device;
+
+	EXPECT_FALSE(device.SupportsSaveParameters());
+}
+
 TEST(ModePageDeviceTest, AddModePages)
 {
 	vector<int> cdb(6);

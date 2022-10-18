@@ -215,6 +215,7 @@ public:
 
 class MockModePageDevice : public ModePageDevice
 {
+	FRIEND_TEST(ModePageDeviceTest, SupportsSaveParameters);
 	FRIEND_TEST(ModePageDeviceTest, AddModePages);
 
 public:
@@ -302,6 +303,7 @@ public:
 class MockSCSIHD : public SCSIHD //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
+	FRIEND_TEST(ScsiHdTest, SupportsSaveParameters);
 	FRIEND_TEST(ScsiHdTest, FinalizeSetup);
 	FRIEND_TEST(ScsiHdTest, SetUpModePages);
 	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
@@ -327,6 +329,7 @@ class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in
 
 class MockSCSIMO : public SCSIMO //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
+	FRIEND_TEST(ScsiMoTest, SupportsSaveParameters);
 	FRIEND_TEST(ScsiMoTest, SetUpModePages);
 	FRIEND_TEST(ScsiMoTest, TestAddVendorPage);
 	FRIEND_TEST(ScsiMoTest, ModeSelect);

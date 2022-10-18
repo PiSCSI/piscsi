@@ -17,6 +17,15 @@ TEST(ScsiHdTest, Inquiry)
 			"RaSCSI                  ", 0x1f, false);
 }
 
+TEST(ScsiHdTest, SupportsSaveParameters)
+{
+	map<int, vector<byte>> mode_pages;
+	const unordered_set<uint32_t> sector_sizes;
+	MockSCSIHD hd(0, sector_sizes, false);
+
+	EXPECT_TRUE(hd.SupportsSaveParameters());
+}
+
 TEST(ScsiHdTest, FinalizeSetup)
 {
 	map<int, vector<byte>> mode_pages;
