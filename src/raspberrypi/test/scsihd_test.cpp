@@ -13,10 +13,10 @@
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	MockSCSIHD_NEC disk(0);
+	MockSCSIHD_NEC hd(0);
 
-	disk.SetSectorSizeInBytes(512);
-	EXPECT_THROW(disk.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
+	hd.SetSectorSizeInBytes(512);
+	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
 }
 
 TEST(ScsiHdTest, Inquiry)
@@ -31,6 +31,7 @@ TEST(ScsiHdTest, SetUpModePages)
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
+	hd.SetReady(false);
 	hd.SetUpModePages(mode_pages, 0x3f, false);
 	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
 	EXPECT_EQ(12, mode_pages[1].size());

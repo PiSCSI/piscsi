@@ -326,6 +326,7 @@ class MockSCSICD : public SCSICD //NOSONAR Ignore inheritance hierarchy depth in
 class MockSCSIMO : public SCSIMO //NOSONAR Ignore inheritance hierarchy depth in unit tests
 {
 	FRIEND_TEST(ScsiMoTest, SetUpModePages);
+	FRIEND_TEST(ScsiMoTest, TestAddVendorPage);
 
 	using SCSIMO::SCSIMO;
 };
