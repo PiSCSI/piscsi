@@ -833,16 +833,25 @@ function installNetatalk() {
     NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
+    NETATALK_CONFIG_PATH="/etc/netatalk"
+
+    if [ -d "$NETATALK_CONFIG_PATH" ]; then
+        echo
+        echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
+        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
     tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
-
-    echo
-    echo "WARNING: This script will overwrite any existing Netatalk configurations."
-    echo "If you have an existing Netatalk installation, press Ctrl-C to exit out and take backups of your configuration files first."
-    echo
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
