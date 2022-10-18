@@ -77,8 +77,8 @@ void SCSIHD_NEC::Open()
 
 pair<int, int> SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_sector, int size)
 {
-	int image_size;
-	int sector_size;
+	int image_size = 0;
+	int sector_size = 0;
 
 	// PC-9801-55 NEC genuine?
 	if (ext == ".hdn") {
