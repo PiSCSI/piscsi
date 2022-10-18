@@ -96,14 +96,30 @@ void SCSIMO::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<B
 	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
-//---------------------------------------------------------------------------
 //
-//	Vendor Unique Format Page 20h (MO)
+// Mode page code 20h - Vendor Unique Format Page
+// Format mode XXh type 0
+// Information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
+
+// Offset  description
+// 02h   format mode
+// 03h   type of format (0)
+// 04~07h  size of user band (total sectors?)
+// 08~09h  size of spare band (spare sectors?)
+// 0A~0Bh  number of bands
 //
-//---------------------------------------------------------------------------
+// Actual value of each 3.5 inches optical medium (grabbed by Fujitsu M2513EL)
+//
+//                      128M     230M    540M    640M
+// ---------------------------------------------------
+// Size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
+// Size of spare band   0400h    0401h   08CAh   08C4h
+// Number of bands      0001h    000Ah   0012h   000Bh
+//
+// Further information: http://r2089.blog36.fc2.com/blog-entry-177.html
+//
 void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	// Page code 20h
 	if (page != 0x20 && page != 0x3f) {
 		return;
 	}
@@ -116,29 +132,6 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 
 		return;
 	}
-
-	/*
-		mode page code 20h - Vendor Unique Format Page
-		format mode XXh type 0
-		information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
-
-		offset  description
-		  02h   format mode
-		  03h   type of format (0)
-		04~07h  size of user band (total sectors?)
-		08~09h  size of spare band (spare sectors?)
-		0A~0Bh  number of bands
-
-		actual value of each 3.5inches optical medium (grabbed by Fujitsu M2513EL)
-
-		                     128M     230M    540M    640M
-		---------------------------------------------------
-		size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
-		size of spare band   0400h    0401h   08CAh   08C4h
-		number of bands      0001h    000Ah   0012h   000Bh
-
-		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
-	*/
 
 	if (IsReady()) {
 		unsigned spare = 0;
