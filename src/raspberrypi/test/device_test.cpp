@@ -129,7 +129,7 @@ TEST(DeviceTest, Product)
 	device.SetProduct("1234567890123456");
 	EXPECT_EQ("1234567890123456", device.GetProduct());
 	device.SetProduct("xyz", false);
-	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI complient";
+	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI compliant";
 }
 
 TEST(DeviceTest, Revision)
