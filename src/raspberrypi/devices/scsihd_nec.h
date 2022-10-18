@@ -19,6 +19,7 @@
 #include "scsihd.h"
 #include <unordered_set>
 #include <map>
+#include <array>
 #include <vector>
 
 using namespace std;
@@ -46,6 +47,8 @@ protected:
 	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
+
+	void SetParameters(const string&, const array<BYTE, 512>&, int, int&, int&);
 
 	static int GetInt16LittleEndian(const BYTE *);
 	static int GetInt32LittleEndian(const BYTE *);

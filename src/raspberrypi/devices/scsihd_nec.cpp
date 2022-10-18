@@ -48,46 +48,10 @@ void SCSIHD_NEC::Open()
 	// Effective size must be a multiple of 512
 	size = (size / 512) * 512;
 
-	int image_size = 0;
-	int sector_size = 0;
-
 	// Determine parameters by extension
-
-	// PC-9801-55 NEC genuine?
-	if (const char *ext = path.GetFileExt(); !strcasecmp(ext, ".hdn")) {
-		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
-		image_offset = 0;
-		image_size = (int)size;
-		sector_size = 512;
-		sectors = 25;
-		heads = 8;
-		cylinders = (int)(size >> 9);
-		cylinders >>= 3;
-		cylinders /= 25;
-	}
-	// Anex86 HD image?
-	else if (!strcasecmp(ext, ".hdi")) {
-		image_offset = GetInt32LittleEndian(&root_sector[8]);
-		image_size = GetInt32LittleEndian(&root_sector[12]);
-		sector_size = GetInt32LittleEndian(&root_sector[16]);
-		sectors = GetInt32LittleEndian(&root_sector[20]);
-		heads = GetInt32LittleEndian(&root_sector[24]);
-		cylinders = GetInt32LittleEndian(&root_sector[28]);
-	}
-	// T98Next HD image?
-	else if (!strcasecmp(ext, ".nhd")) {
-		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
-			image_offset = GetInt32LittleEndian(&root_sector[0x110]);
-			cylinders = GetInt32LittleEndian(&root_sector[0x114]);
-			heads = GetInt16LittleEndian(&root_sector[0x118]);
-			sectors = GetInt16LittleEndian(&root_sector[0x11a]);
-			sector_size = GetInt16LittleEndian(&root_sector[0x11c]);
-			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
-		}
-		else {
-			throw io_exception("Invalid NEC image file format");
-		}
-	}
+	int image_size;
+	int sector_size;
+	SetParameters(path.GetFileExt(), root_sector, size, image_size, sector_size);
 
 	if (sector_size == 0) {
 		throw io_exception("Invalid NEC drive sector size");
@@ -111,6 +75,46 @@ void SCSIHD_NEC::Open()
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
 	FinalizeSetup(size, image_offset);
+}
+
+void SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_sector,
+		int size, int& image_size, int& sector_size)
+{
+	// PC-9801-55 NEC genuine?
+	if (ext == ".hdn") {
+		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
+		image_offset = 0;
+		image_size = size;
+		sector_size = 512;
+		sectors = 25;
+		heads = 8;
+		cylinders = size >> 9;
+		cylinders >>= 3;
+		cylinders /= 25;
+	}
+	// Anex86 HD image?
+	else if (ext == ".hdi") {
+		image_offset = GetInt32LittleEndian(&root_sector[8]);
+		image_size = GetInt32LittleEndian(&root_sector[12]);
+		sector_size = GetInt32LittleEndian(&root_sector[16]);
+		sectors = GetInt32LittleEndian(&root_sector[20]);
+		heads = GetInt32LittleEndian(&root_sector[24]);
+		cylinders = GetInt32LittleEndian(&root_sector[28]);
+	}
+	// T98Next HD image?
+	else if (ext == ".nhd") {
+		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
+			image_offset = GetInt32LittleEndian(&root_sector[0x110]);
+			cylinders = GetInt32LittleEndian(&root_sector[0x114]);
+			heads = GetInt16LittleEndian(&root_sector[0x118]);
+			sectors = GetInt16LittleEndian(&root_sector[0x11a]);
+			sector_size = GetInt16LittleEndian(&root_sector[0x11c]);
+			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
+		}
+		else {
+			throw io_exception("Invalid NEC image file format");
+		}
+	}
 }
 
 vector<byte> SCSIHD_NEC::InquiryInternal() const
