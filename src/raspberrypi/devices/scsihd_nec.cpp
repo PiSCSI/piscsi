@@ -75,8 +75,11 @@ void SCSIHD_NEC::Open()
 	FinalizeSetup(size, image_offset);
 }
 
-pair<int, int> SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_sector, int size)
+pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BYTE, 512>& root_sector, int size)
 {
+	string ext = extension;
+	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
 	int image_size = 0;
 	int sector_size = 0;
 
