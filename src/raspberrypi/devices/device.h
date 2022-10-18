@@ -79,6 +79,7 @@ protected:
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool b) { attn = b; }
 
+	void SetRemovable(bool b) { removable = b; }
 	void SetStoppable(bool b) { stoppable = b; }
 	void SetStopped(bool b) { stopped = b; }
 	void SetLockable(bool b) { lockable = b; }
@@ -110,7 +111,6 @@ public:
 	bool IsStoppable() const { return stoppable; }
 	bool IsStopped() const { return stopped; }
 	bool IsRemovable() const { return removable; }
-	void SetRemovable(bool b) { removable = b; }
 	bool IsRemoved() const { return removed; }
 	void SetRemoved(bool b) { removed = b; }
 	bool IsLockable() const { return lockable; }
