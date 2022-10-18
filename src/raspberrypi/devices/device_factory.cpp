@@ -86,7 +86,6 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	return UNDEFINED;
 }
 
-// ID -1 is used by rascsi to create a temporary device
 shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
 		int lun, const string& filename)
 {
