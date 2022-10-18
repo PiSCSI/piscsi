@@ -18,7 +18,7 @@ TEST(ScsiHdTest, FinalizeSetup)
 	MockSCSIHD hd(0, sector_sizes, false);
 
 	hd.SetSectorSizeInBytes(1024);
-	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception)
+	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 10000, 0), io_exception)
 		<< "Unsupported drive capacity";
 
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
