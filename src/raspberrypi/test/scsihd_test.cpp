@@ -11,6 +11,12 @@
 #include "rascsi_exceptions.h"
 #include "devices/scsihd.h"
 
+TEST(ScsiHdTest, Inquiry)
+{
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, scsi_level::SCSI_2,
+			"RaSCSI                  ", 0x1f, false);
+}
+
 TEST(ScsiHdTest, FinalizeSetup)
 {
 	map<int, vector<byte>> mode_pages;
@@ -46,7 +52,6 @@ TEST(ScsiHdTest, SetUpModePages)
 
 TEST(ScsiHdTest, ModeSelect)
 {
-	map<int, vector<byte>> mode_pages;
 	const unordered_set<uint32_t> sector_sizes = { 512 };
 	MockSCSIHD hd(0, sector_sizes, false);
 	vector<int> cmd(10);
@@ -69,10 +74,4 @@ TEST(ScsiHdTest, ModeSelect)
 	// 512 bytes per sector
 	buf[20] = 0x02;
 	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
-}
-
-TEST(ScsiHdTest, Inquiry)
-{
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, scsi_level::SCSI_2,
-			"RaSCSI                  ", 0x1f, false);
 }

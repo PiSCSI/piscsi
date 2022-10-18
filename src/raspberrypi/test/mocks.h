@@ -304,8 +304,8 @@ class MockSCSIHD : public SCSIHD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(DiskTest, ConfiguredSectorSize);
 	FRIEND_TEST(ScsiHdTest, FinalizeSetup);
 	FRIEND_TEST(ScsiHdTest, SetUpModePages);
-	FRIEND_TEST(ScsiHdTest, ModeSelect);
 	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
+	FRIEND_TEST(ScsiHdTest, ModeSelect);
 
 	using SCSIHD::SCSIHD;
 };
@@ -329,6 +329,7 @@ class MockSCSIMO : public SCSIMO //NOSONAR Ignore inheritance hierarchy depth in
 {
 	FRIEND_TEST(ScsiMoTest, SetUpModePages);
 	FRIEND_TEST(ScsiMoTest, TestAddVendorPage);
+	FRIEND_TEST(ScsiMoTest, ModeSelect);
 
 	using SCSIMO::SCSIMO;
 };

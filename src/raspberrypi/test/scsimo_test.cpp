@@ -104,3 +104,30 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(0, GetInt16(mode_page_32, 8));
 	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
 }
+
+TEST(ScsiMoTest, ModeSelect)
+{
+	const unordered_set<uint32_t> sector_sizes = { 1024, 2048 };
+	MockSCSIMO mo(0, sector_sizes);
+	vector<int> cmd(10);
+	vector<BYTE> buf(255);
+
+	mo.SetSectorSizeInBytes(2048);
+
+	// PF
+	cmd[1] = 0x10;
+	// Page 3 (Device Format Page)
+	buf[4] = 0x03;
+	// 2048 bytes per sector
+	buf[16] = 0x08;
+	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 255)) << "MODE SELECT(6) is supported";
+	buf[4] = 0;
+	buf[16] = 0;
+
+	// Page 3 (Device Format Page)
+	buf[8] = 0x03;
+	// 2048 bytes per sector
+	buf[20] = 0x08;
+	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
+}
+
