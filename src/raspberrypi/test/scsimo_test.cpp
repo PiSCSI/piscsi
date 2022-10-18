@@ -42,7 +42,7 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	mo.SetBlockCount(0x12345678);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";
-	const vector<byte>& mode_page_32 = mode_pages[32];
+	vector<byte>& mode_page_32 = mode_pages[32];
 	EXPECT_EQ(12, mode_page_32.size());
 	EXPECT_EQ(0, (int)mode_page_32[2])  << "Wrong format mode";
 	EXPECT_EQ(0, (int)mode_page_32[3])  << "Wrong format type";
@@ -50,4 +50,21 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(0x34, (int)mode_page_32[5]);
 	EXPECT_EQ(0x56, (int)mode_page_32[6]);
 	EXPECT_EQ(0x78, (int)mode_page_32[7]);
+	EXPECT_EQ(0x00, (int)mode_page_32[8]);
+	EXPECT_EQ(0x00, (int)mode_page_32[9]);
+	EXPECT_EQ(0x00, (int)mode_page_32[10]);
+	EXPECT_EQ(0x00, (int)mode_page_32[11]);
+
+	mo.SetBlockCount(248826);
+	mo.SetSectorSizeInBytes(512);
+	mo.SetUpModePages(mode_pages, 0x20, false);
+	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";
+	mode_page_32 = mode_pages[32];
+	EXPECT_EQ(12, mode_page_32.size());
+	EXPECT_EQ(0, (int)mode_page_32[2])  << "Wrong format mode";
+	EXPECT_EQ(0, (int)mode_page_32[3])  << "Wrong format type";
+	EXPECT_EQ(0x04, (int)mode_page_32[8]);
+	EXPECT_EQ(0x00, (int)mode_page_32[9]);
+	EXPECT_EQ(0x00, (int)mode_page_32[10]);
+	EXPECT_EQ(0x01, (int)mode_page_32[11]);
 }
