@@ -43,7 +43,7 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 public:
 
-	Disk(const string&, int);
+	Disk(PbDeviceType, int);
 	~Disk() override;
 
 	bool Dispatch(scsi_command) override;

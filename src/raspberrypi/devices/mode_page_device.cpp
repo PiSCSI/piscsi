@@ -20,7 +20,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-ModePageDevice::ModePageDevice(const string& type, int lun) : PrimaryDevice(type, lun)
+ModePageDevice::ModePageDevice(PbDeviceType type, int lun) : PrimaryDevice(type, lun)
 {
 	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
@@ -136,7 +136,7 @@ int ModePageDevice::ModeSelectCheck(int length) const
 {
 	// Error if save parameters are set for other types than SCHD, SCRM or SCMO
 	// TODO Remove the device type checks
-	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
+	if (GetType() != SCHD && GetType() != SCRM && GetType() != SCMO && (ctrl->cmd[1] & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

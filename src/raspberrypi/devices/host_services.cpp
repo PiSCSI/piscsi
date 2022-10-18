@@ -32,7 +32,7 @@ using namespace scsi_defs;
 using namespace scsi_command_util;
 
 HostServices::HostServices(int lun, const ControllerManager& manager)
-	: ModePageDevice("SCHS", lun), controller_manager(manager)
+	: ModePageDevice(SCHS, lun), controller_manager(manager)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);

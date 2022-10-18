@@ -9,16 +9,18 @@
 
 #pragma once
 
+#include "rascsi_interface.pb.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
+using namespace rascsi_interface;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
 	const string DEFAULT_VENDOR = "RaSCSI";
 
-	string type;
+	PbDeviceType type;
 
 	bool ready = false;
 	bool reset = false;
@@ -79,13 +81,14 @@ protected:
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	Device(const string&, int);
+	Device(PbDeviceType, int);
 
 public:
 
 	virtual ~Device() = default;
 
-	const string& GetType() const { return type; }
+	PbDeviceType GetType() const { return type; }
+	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();

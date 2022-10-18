@@ -19,7 +19,7 @@
 
 using namespace scsi_command_util;
 
-SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO", lun)
+SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO, lun)
 {
 	SetSectorSizes(sector_sizes);
 

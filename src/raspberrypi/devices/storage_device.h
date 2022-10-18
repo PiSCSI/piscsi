@@ -23,7 +23,7 @@ class StorageDevice : public ModePageDevice
 {
 public:
 
-	StorageDevice(const string&, int);
+	StorageDevice(PbDeviceType, int);
 	~StorageDevice() override = default;
 
 	virtual void Open() = 0;

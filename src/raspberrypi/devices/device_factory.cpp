@@ -190,14 +190,6 @@ const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(PbDeviceType type) 
 	return it != sector_sizes.end() ? it->second : empty_set;
 }
 
-const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type) const
-{
-	PbDeviceType t = UNDEFINED;
-	PbDeviceType_Parse(type, &t);
-
-	return GetSectorSizes(t);
-}
-
 const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceType type) const
 {
 	const auto& it = default_params.find(type);

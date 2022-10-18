@@ -24,7 +24,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD", lun)
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD, lun)
 {
 	SetSectorSizes(sector_sizes);
 

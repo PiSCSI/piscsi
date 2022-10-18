@@ -17,7 +17,7 @@ using namespace filesystem;
 
 unordered_map<string, id_set> StorageDevice::reserved_files;
 
-StorageDevice::StorageDevice(const string& type, int lun) : ModePageDevice(type, lun)
+StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, lun)
 {
 	SetStoppable(true);
 }
@@ -25,7 +25,7 @@ StorageDevice::StorageDevice(const string& type, int lun) : ModePageDevice(type,
 void StorageDevice::ValidateFile(const string& file)
 {
 	if (blocks == 0) {
-		throw io_exception(GetType() + " device has 0 blocks");
+		throw io_exception(string(GetTypeString()) + " device has 0 blocks");
 	}
 
 	// TODO Check for duplicate handling of these properties (-> rascsi_executor.cpp)

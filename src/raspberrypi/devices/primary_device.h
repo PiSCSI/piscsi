@@ -21,7 +21,7 @@ class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
 public:
 
-	PrimaryDevice(const string&, int);
+	PrimaryDevice(PbDeviceType, int);
 	~PrimaryDevice() override = default;
 
 	virtual bool Dispatch(scsi_command);

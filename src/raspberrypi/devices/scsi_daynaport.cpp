@@ -33,7 +33,7 @@ using namespace scsi_defs;
 using namespace scsi_command_util;
 
 // TODO Disk must not be the superclass
-SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk("SCDP", lun)
+SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);

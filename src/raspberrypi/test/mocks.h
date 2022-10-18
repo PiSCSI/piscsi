@@ -190,7 +190,8 @@ public:
 
 	MOCK_METHOD(int, GetId, (), (const));
 
-	explicit MockDevice(int lun) : Device("test", lun) {}
+	MockDevice(int lun) : Device(UNDEFINED, lun) {}
+	MockDevice(PbDeviceType type) : Device(type, 0) {}
 	~MockDevice() override = default;
 };
 
@@ -207,7 +208,7 @@ public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
-	explicit MockPrimaryDevice(int lun) : PrimaryDevice("test", lun) {}
+	explicit MockPrimaryDevice(int lun) : PrimaryDevice(UNDEFINED, lun) {}
 	~MockPrimaryDevice() override = default;
 };
 
@@ -221,7 +222,7 @@ public:
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
 
-	MockModePageDevice() : ModePageDevice("test", 0) {}
+	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
 
 	void SetUpModePages(map<int, vector<byte>>& pages, int page, bool) const override {
@@ -265,7 +266,7 @@ public:
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
-	MockStorageDevice() : StorageDevice("test", 0) {}
+	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}
 	~MockStorageDevice() override = default;
 };
 
@@ -292,7 +293,7 @@ public:
 	MOCK_METHOD(void, Open, (), (override));
 	MOCK_METHOD(bool, Eject, (bool), (override));
 
-	MockDisk() : Disk("test", 0) {}
+	MockDisk() : Disk(UNDEFINED, 0) {}
 	~MockDisk() override = default;
 };
 

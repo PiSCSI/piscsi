@@ -31,17 +31,14 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 	properties->set_supports_file(device.SupportsFile());
 	properties->set_supports_params(device.SupportsParams());
 
-	PbDeviceType t = UNDEFINED;
-	PbDeviceType_Parse(device.GetType(), &t);
-
 	if (device.SupportsParams()) {
-		for (const auto& [key, value] : device_factory.GetDefaultParams(t)) {
+		for (const auto& [key, value] : device_factory.GetDefaultParams(device.GetType())) {
 			auto& map = *properties->mutable_default_params();
 			map[key] = value;
 		}
 	}
 
-	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
+	for (const auto& block_size : device_factory.GetSectorSizes(device.GetType())) {
 		properties->add_block_sizes(block_size);
 	}
 
@@ -75,10 +72,7 @@ void RascsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
 	pb_device.set_vendor(device.GetVendor());
 	pb_device.set_product(device.GetProduct());
 	pb_device.set_revision(device.GetRevision());
-
-	PbDeviceType type = UNDEFINED;
-	PbDeviceType_Parse(device.GetType(), &type);
-	pb_device.set_type(type);
+	pb_device.set_type(device.GetType());
 
     pb_device.set_allocated_properties(GetDeviceProperties(device).release());
 

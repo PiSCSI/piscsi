@@ -39,7 +39,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
+SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdPrint, "Print", &SCSIPrinter::Print);

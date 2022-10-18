@@ -23,7 +23,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-Disk::Disk(const string& type, int lun) : StorageDevice(type, lun)
+Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
 {
 	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
