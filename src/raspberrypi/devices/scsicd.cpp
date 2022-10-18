@@ -82,10 +82,8 @@ void SCSICD::Open()
 
 		// If it starts with FILE, consider it as a CUE sheet
 		if (!strcasecmp(file.data(), "FILE")) {
-			// Open as CUE
-			OpenCue();
+			throw io_exception("Opening CUE CD-ROM files is not supported");
 		} else {
-			// Open as ISO
 			OpenIso();
 		}
 	}
@@ -104,11 +102,6 @@ void SCSICD::Open()
 	if (IsReady()) {
 		SetAttn(true);
 	}
-}
-
-void SCSICD::OpenCue() const
-{
-	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
 
 void SCSICD::OpenIso()

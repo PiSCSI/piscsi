@@ -49,8 +49,6 @@ private:
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
 
-	// Open
-	void OpenCue() const;
 	void OpenIso();
 	void OpenPhysical();
 
