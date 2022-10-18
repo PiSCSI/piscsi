@@ -227,11 +227,16 @@ TEST(DeviceTest, Eject)
 	device.SetReady(false);
 	device.SetRemovable(false);
 	EXPECT_FALSE(device.Eject(false));
+
 	device.SetReady(true);
 	EXPECT_FALSE(device.Eject(false));
+
 	device.SetRemovable(true);
 	device.SetLocked(true);
 	EXPECT_FALSE(device.Eject(false));
+	EXPECT_TRUE(device.Eject(true));
+
+	device.SetReady(true);
 	device.SetLocked(false);
 	EXPECT_TRUE(device.Eject(false));
 	EXPECT_FALSE(device.IsReady());
