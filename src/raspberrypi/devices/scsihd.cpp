@@ -50,9 +50,7 @@ void SCSIHD::SetProductData()
 		unit = "KiB";
 	}
 
-	stringstream product;
-	product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
-	SetProduct(product.str(), false);
+	SetProduct(DEFAULT_PRODUCT + string(" ") + to_string(capacity) + " " + unit, false);
 }
 
 void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)

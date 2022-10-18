@@ -10,13 +10,19 @@
 #include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/scsihd.h"
+#include <iostream>
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	MockSCSIHD_NEC hd(0);
+	map<int, vector<byte>> mode_pages;
+	const unordered_set<uint32_t> sector_sizes;
+	MockSCSIHD hd(0, sector_sizes, false);
 
-	hd.SetSectorSizeInBytes(512);
-	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception);
+	hd.SetSectorSizeInBytes(1024);
+	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + 1, 0), io_exception)
+		<< "Unsupported drive capacity";
+
+	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
 }
 
 TEST(ScsiHdTest, Inquiry)
