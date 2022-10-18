@@ -145,9 +145,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
-		// TODO Remove when SCBR is not a subclass of Disk anymore
-		device->SetStoppable(false);
-		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCBR]);
 		break;
 
@@ -157,9 +154,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
-		// TODO Remove when SCDP is not a subclass of Disk anymore
-		device->SetStoppable(false);
-		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCDP]);
 		break;
 
@@ -173,7 +167,6 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
-		device->SupportsParams(true);
 		device->SetDefaultParams(default_params[SCLP]);
 		break;
 

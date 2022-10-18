@@ -51,6 +51,7 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 
+	SupportsParams(true);
 	SetReady(true);
 	SetReset(false);
 }

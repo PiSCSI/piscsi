@@ -44,8 +44,11 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool lockable = false;
 	bool locked = false;
 
-	// Device can be created with parameters
+	// A device can be created with parameters
 	bool supports_params = false;
+
+	// A device can support an image file
+	bool supports_file = false;
 
 	// Immutable LUN
 	int lun;
@@ -126,8 +129,9 @@ public:
 	string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
-	virtual bool SupportsFile() const { return !supports_params; }
+	bool SupportsFile() const { return supports_file; }
 	void SupportsParams(bool b) { supports_params = b; }
+	void SupportsFile(bool b) { supports_file = b; }
 	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 

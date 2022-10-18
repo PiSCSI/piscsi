@@ -42,6 +42,12 @@ SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
 	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
 	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
 	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+
+	SupportsParams(true);
+	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
+	SetStoppable(false);
+	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
+	SupportsFile(false);
 }
 
 bool SCSIDaynaPort::Dispatch(scsi_command cmd)
