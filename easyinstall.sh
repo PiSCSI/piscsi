@@ -883,6 +883,11 @@ function shareImagesWithNetatalk() {
     echo "Appended to AppleVolumes.default:"
     echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
     sudo systemctl start afpd
+
+    echo
+    echo "WARNING: Do not inadvertently move or rename image files that are in use by RaSCSI."
+    echo "Doing so may lead to data loss."
+    echo
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -1392,7 +1397,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo "EXPERIMENTAL FEATURES"
     echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 13) share the images dir over AppleShare (install Netatalk first)"
+    echo " 13) share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
