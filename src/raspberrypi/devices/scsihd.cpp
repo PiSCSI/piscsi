@@ -27,10 +27,8 @@ SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool remova
 	SetSectorSizes(sector_sizes);
 }
 
-void SCSIHD::SetProductData()
+string SCSIHD::GetProductData() const
 {
-	// For non-removable media drives set the default product name based on the drive capacity
-
 	uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 	string unit;
 
@@ -49,7 +47,7 @@ void SCSIHD::SetProductData()
 		unit = "KiB";
 	}
 
-	SetProduct(DEFAULT_PRODUCT + " " + to_string(capacity) + " " + unit, false);
+	return DEFAULT_PRODUCT + " " + to_string(capacity) + " " + unit;
 }
 
 void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)
@@ -62,8 +60,9 @@ void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)
 		throw io_exception("File size must not exceed 2 TiB");
 	}
 
+	// For non-removable media drives set the default product name based on the drive capacity
 	if (!IsRemovable()) {
-		SetProductData();
+		SetProduct(GetProductData(), false);
 	}
 
 	super::ValidateFile(GetFilename());

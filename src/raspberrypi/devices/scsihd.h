@@ -43,7 +43,7 @@ private:
 
 	bool SupportsSaveParameters() const override { return true; }
 
-	void SetProductData();
+	string GetProductData() const;
 
 	using super = Disk;
 
