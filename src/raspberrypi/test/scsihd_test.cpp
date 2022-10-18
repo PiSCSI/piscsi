@@ -22,6 +22,9 @@ TEST(ScsiHdTest, FinalizeSetup)
 		<< "Unsupported drive capacity";
 
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
+
+	hd.SetBlockCount(1);
+	hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024);
 }
 
 TEST(ScsiHdTest, Inquiry)
