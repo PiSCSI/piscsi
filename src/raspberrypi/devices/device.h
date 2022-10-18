@@ -79,6 +79,11 @@ protected:
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool b) { attn = b; }
 
+	void SetStoppable(bool b) { stoppable = b; }
+	void SetStopped(bool b) { stopped = b; }
+	void SetLockable(bool b) { lockable = b; }
+	void SetLocked(bool b) { locked = b; }
+
 	int GetStatusCode() const { return status_code; }
 
 	string GetParam(const string&) const;
@@ -102,20 +107,14 @@ public:
 	void SetProtected(bool);
 	bool IsReadOnly() const { return read_only; }
 	void SetReadOnly(bool b) { read_only = b; }
-
 	bool IsStoppable() const { return stoppable; }
-	void SetStoppable(bool b) { stoppable = b; }
 	bool IsStopped() const { return stopped; }
-	void SetStopped(bool b) { stopped = b; }
 	bool IsRemovable() const { return removable; }
 	void SetRemovable(bool b) { removable = b; }
 	bool IsRemoved() const { return removed; }
 	void SetRemoved(bool b) { removed = b; }
-
 	bool IsLockable() const { return lockable; }
-	void SetLockable(bool b) { lockable = b; }
 	bool IsLocked() const { return locked; }
-	void SetLocked(bool b) { locked = b; }
 
 	virtual int GetId() const = 0;
 	int GetLun() const { return lun; }
