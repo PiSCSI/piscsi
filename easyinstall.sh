@@ -839,7 +839,7 @@ function installNetatalk() {
         echo
         echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
         echo "This installation process will overwrite existing Netatalk applications and configurations."
-        echo "No shared files will be deleted, but you may have to manually restore your settings after installation."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
         echo
         echo "Do you want to proceed with the installation? [y/N]"
         read -r REPLY
