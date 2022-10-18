@@ -54,9 +54,11 @@ void StorageDevice::ReserveFile(const string& file, int id, int lun) const
 	reserved_files[file] = make_pair(id, lun);
 }
 
-void StorageDevice::UnreserveFile() const
+void StorageDevice::UnreserveFile()
 {
 	reserved_files.erase(filename);
+
+	filename = "";
 }
 
 bool StorageDevice::GetIdsForReservedFile(const string& file, int& id, int& lun)

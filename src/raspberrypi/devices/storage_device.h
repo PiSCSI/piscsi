@@ -37,7 +37,7 @@ public:
 	uint64_t GetBlockCount() const { return blocks; }
 
 	void ReserveFile(const string&, int, int) const;
-	void UnreserveFile() const;
+	void UnreserveFile();
 	static void UnreserveAll();
 
 	static bool FileExists(const string&);

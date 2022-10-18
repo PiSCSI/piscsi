@@ -271,8 +271,6 @@ bool Disk::Eject(bool force)
 
 		// The image file for this drive is not in use anymore
 		UnreserveFile();
-
-		SetFilename("");
 	}
 
 	return status;
