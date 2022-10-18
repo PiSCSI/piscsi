@@ -346,8 +346,8 @@ TEST(DiskTest, ModeSense6)
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(76, controller.GetBuffer()[0]) << "Invalid Wrong length";
-	EXPECT_EQ(0x80, controller.GetBuffer()[2]) << "Invalid Wrong-specific parameter";
+	EXPECT_EQ(76, controller.GetBuffer()[0]) << "Wrong length";
+	EXPECT_EQ(0x80, controller.GetBuffer()[2]) << "Wrong device-specific parameter";
 }
 
 TEST(DiskTest, ModeSense10)
