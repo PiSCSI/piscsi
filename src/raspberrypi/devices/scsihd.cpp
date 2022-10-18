@@ -18,7 +18,6 @@
 #include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include <sstream>
 
 using namespace scsi_command_util;
 
@@ -50,7 +49,7 @@ void SCSIHD::SetProductData()
 		unit = "KiB";
 	}
 
-	SetProduct(DEFAULT_PRODUCT + string(" ") + to_string(capacity) + " " + unit, false);
+	SetProduct(DEFAULT_PRODUCT + " " + to_string(capacity) + " " + unit, false);
 }
 
 void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)

@@ -17,10 +17,11 @@
 #pragma once
 
 #include "disk.h"
+#include <string>
 
 class SCSIHD : public Disk
 {
-	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
+	const string DEFAULT_PRODUCT = "SCSI HD";
 
 public:
 
