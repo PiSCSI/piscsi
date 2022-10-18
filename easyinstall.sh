@@ -833,6 +833,20 @@ function installNetatalk() {
     NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
+    NETATALK_CONFIG_PATH="/etc/netatalk"
+
+    if [ -d "$NETATALK_CONFIG_PATH" ]; then
+        echo
+        echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
+        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
@@ -841,6 +855,39 @@ function installNetatalk() {
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+}
+
+# Appends the images dir as a shared Netatalk volume
+function shareImagesWithNetatalk() {
+    APPLEVOLUMES_PATH="/etc/netatalk/AppleVolumes.default"
+    if ! [ -f "$APPLEVOLUMES_PATH" ]; then
+        echo "Could not find $APPLEVOLUMES_PATH ... is Netatalk installed?"
+        exit 1
+    fi
+
+    if [ "$(grep -c "$VIRTUAL_DRIVER_PATH" "$APPLEVOLUMES_PATH")" -ge 1 ]; then
+        echo "The $VIRTUAL_DRIVER_PATH dir is already shared in $APPLEVOLUMES_PATH"
+        echo "Do you want to turn off the sharing? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo systemctl stop afpd
+            sudo sed -i '\,^'"$VIRTUAL_DRIVER_PATH"',d' "$APPLEVOLUMES_PATH"
+            echo "Sharing for $VIRTUAL_DRIVER_PATH disabled!"
+            sudo systemctl start afpd
+            exit 0
+        fi
+        exit 0
+    fi
+
+    sudo systemctl stop afpd
+    echo "Appended to AppleVolumes.default:"
+    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
+    sudo systemctl start afpd
+
+    echo
+    echo "WARNING: Do not inadvertently move or rename image files that are in use by RaSCSI."
+    echo "Doing so may lead to data loss."
+    echo
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -1302,6 +1349,10 @@ function runChoice() {
               showRaScsiCtrlBoardStatus
               echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
+          13)
+              shareImagesWithNetatalk
+              echo "Configuring AppleShare File Server - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1315,8 +1366,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
-       echo -n "Enter your choice (0-12) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
+       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1346,6 +1397,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo "EXPERIMENTAL FEATURES"
     echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
+    echo " 13) share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
