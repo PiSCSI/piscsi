@@ -29,6 +29,10 @@ SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD
 	SetSectorSizes(sector_sizes);
 
 	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+
+	SetReadOnly(true);
+	SetRemovable(true);
+	SetLockable(true);
 }
 
 bool SCSICD::Dispatch(scsi_command cmd)

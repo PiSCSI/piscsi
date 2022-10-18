@@ -113,31 +113,21 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 				device->SetProduct("FIREBALL");
 			}
 		}
-		device->SetProtectable(true);
 		break;
 	}
 
 	case SCRM:
 		device = make_shared<SCSIHD>(lun, sector_sizes[SCRM], true);
-		device->SetProtectable(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
 		device->SetProduct("SCSI HD (REM.)");
 		break;
 
 	case SCMO:
 		device = make_shared<SCSIMO>(lun, sector_sizes[SCMO]);
-		device->SetProtectable(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
 		device->SetProduct("SCSI MO");
 		break;
 
 	case SCCD:
 		device = make_shared<SCSICD>(lun, sector_sizes[SCCD]);
-		device->SetReadOnly(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
 		device->SetProduct("SCSI CD-ROM");
 		break;
 

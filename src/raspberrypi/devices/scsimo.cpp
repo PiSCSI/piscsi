@@ -31,6 +31,10 @@ SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO
 	geometries[512 * 1041500] = make_pair(512, 1041500);
 	// 640 MB, 20248 bytes per sector, 310352 sectors
 	geometries[2048 * 310352] = make_pair(2048, 310352);
+
+	SetProtectable(true);
+	SetRemovable(true);
+	SetLockable(true);
 }
 
 void SCSIMO::Open()

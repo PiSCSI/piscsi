@@ -25,6 +25,10 @@ SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool remova
 	: Disk(removable ? SCRM : SCHD, lun), scsi_level(level)
 {
 	SetSectorSizes(sector_sizes);
+
+	SetProtectable(true);
+	SetRemovable(removable);
+	SetLockable(removable);
 }
 
 string SCSIHD::GetProductData() const
