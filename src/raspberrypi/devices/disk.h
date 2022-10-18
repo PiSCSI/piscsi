@@ -99,8 +99,6 @@ private:
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 
-	bool SupportsSaveParameters() const override { return true; }
-
 protected:
 
 	void SetUpCache(off_t, bool = false);

@@ -40,6 +40,8 @@ public:
 
 private:
 
+	bool SupportsSaveParameters() const override { return true; }
+
 	void SetProductData();
 
 	using super = Disk;

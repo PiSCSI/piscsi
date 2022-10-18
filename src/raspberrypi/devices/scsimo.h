@@ -40,6 +40,8 @@ private:
 
 	using super = Disk;
 
+	bool SupportsSaveParameters() const override { return true; }
+
 	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 
 	bool SetGeometryForCapacity(uint64_t);
