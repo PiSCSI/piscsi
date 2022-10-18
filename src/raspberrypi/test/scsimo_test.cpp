@@ -46,38 +46,39 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(12, mode_page_32.size());
 	EXPECT_EQ(0, (int)mode_page_32[2])  << "Wrong format mode";
 	EXPECT_EQ(0, (int)mode_page_32[3])  << "Wrong format type";
-	EXPECT_EQ(0x12, (int)mode_page_32[4]);
-	EXPECT_EQ(0x34, (int)mode_page_32[5]);
-	EXPECT_EQ(0x56, (int)mode_page_32[6]);
-	EXPECT_EQ(0x78, (int)mode_page_32[7]);
-	EXPECT_EQ(0x00, (int)mode_page_32[8]);
-	EXPECT_EQ(0x00, (int)mode_page_32[9]);
-	EXPECT_EQ(0x00, (int)mode_page_32[10]);
-	EXPECT_EQ(0x00, (int)mode_page_32[11]);
+	EXPECT_EQ(0x12345678, GetInt32(mode_page_32, 4)) << "Wrong number of blocks";
+	EXPECT_EQ(0, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
 
 	mo.SetSectorSizeInBytes(512);
 	mo.SetBlockCount(248826);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	mode_page_32 = mode_pages[32];
-	EXPECT_EQ(0x04, (int)mode_page_32[8]);
-	EXPECT_EQ(0x00, (int)mode_page_32[9]);
-	EXPECT_EQ(0x00, (int)mode_page_32[10]);
-	EXPECT_EQ(0x01, (int)mode_page_32[11]);
+	EXPECT_EQ(1024, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(1, GetInt16(mode_page_32, 10));
 
 	mo.SetBlockCount(446325);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	mode_page_32 = mode_pages[32];
-	EXPECT_EQ(0x04, (int)mode_page_32[8]);
-	EXPECT_EQ(0x01, (int)mode_page_32[9]);
-	EXPECT_EQ(0x00, (int)mode_page_32[10]);
-	EXPECT_EQ(0x0a, (int)mode_page_32[11]);
+	EXPECT_EQ(1025, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(10, GetInt16(mode_page_32, 10));
 
 	mo.SetBlockCount(1041500);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	mode_page_32 = mode_pages[32];
-	EXPECT_EQ(0x08, (int)mode_page_32[8]);
-	EXPECT_EQ(0xca, (int)mode_page_32[9]);
-	EXPECT_EQ(0x00, (int)mode_page_32[10]);
-	EXPECT_EQ(0x12, (int)mode_page_32[11]);
+	EXPECT_EQ(2250, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(18, GetInt16(mode_page_32, 10));
 
+	mo.SetSectorSizeInBytes(2048);
+	mo.SetBlockCount(310352);
+	mo.SetUpModePages(mode_pages, 0x20, false);
+	mode_page_32 = mode_pages[32];
+	EXPECT_EQ(2244, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(11, GetInt16(mode_page_32, 10));
+
+	mo.SetBlockCount(605846);
+	mo.SetUpModePages(mode_pages, 0x20, false);
+	mode_page_32 = mode_pages[32];
+	EXPECT_EQ(4437, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(18, GetInt16(mode_page_32, 10));
 }

@@ -85,3 +85,19 @@ string CreateTempFile(int size)
 
 	return filename;
 }
+
+int GetInt16(const vector<byte>& buf, int offset)
+{
+	assert(buf.size() > (size_t)offset + 1);
+
+	return ((int)buf[offset] << 8) | (int)buf[offset + 1];
+}
+
+uint32_t GetInt32(const vector<byte>& buf, int offset)
+{
+	assert(buf.size() > (size_t)offset + 3);
+
+	return ((uint32_t)buf[offset] << 24) | ((uint32_t)buf[offset + 1] << 16) |
+		((uint32_t)buf[offset + 2] << 8) | (uint32_t)buf[offset + 3];
+}
+
