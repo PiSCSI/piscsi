@@ -49,7 +49,7 @@ void SCSIHD_NEC::Open()
 	size = (size / 512) * 512;
 
 	// Determine parameters by extension
-	const auto [image_size, sector_size] = SetParameters(path.GetFileExt(), root_sector, size);
+	const auto [image_size, sector_size] = SetParameters(path.GetFileExt(), root_sector, (int)size);
 
 	if (sector_size == 0) {
 		throw io_exception("Invalid NEC drive sector size");
