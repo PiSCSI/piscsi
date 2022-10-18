@@ -92,4 +92,12 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	mode_page_32 = mode_pages[32];
 	EXPECT_EQ(4437, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(18, GetInt16(mode_page_32, 10));
+
+	// Changeable page
+	mo.SetUpModePages(mode_pages, 0x20, true);
+	EXPECT_EQ(0, (int)mode_page_32[2]);
+	EXPECT_EQ(0, (int)mode_page_32[3]);
+	EXPECT_EQ(0, GetInt32(mode_page_32, 4));
+	EXPECT_EQ(0, GetInt16(mode_page_32, 8));
+	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
 }
