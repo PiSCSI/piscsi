@@ -48,7 +48,7 @@ protected:
 
 private:
 
-	void SetParameters(const string&, const array<BYTE, 512>&, int, int&, int&);
+	pair<int, int> SetParameters(const string&, const array<BYTE, 512>&, int);
 
 	static int GetInt16LittleEndian(const BYTE *);
 	static int GetInt32LittleEndian(const BYTE *);

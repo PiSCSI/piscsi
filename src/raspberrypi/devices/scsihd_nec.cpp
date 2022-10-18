@@ -49,9 +49,7 @@ void SCSIHD_NEC::Open()
 	size = (size / 512) * 512;
 
 	// Determine parameters by extension
-	int image_size;
-	int sector_size;
-	SetParameters(path.GetFileExt(), root_sector, size, image_size, sector_size);
+	const auto [image_size, sector_size] = SetParameters(path.GetFileExt(), root_sector, size);
 
 	if (sector_size == 0) {
 		throw io_exception("Invalid NEC drive sector size");
@@ -77,9 +75,11 @@ void SCSIHD_NEC::Open()
 	FinalizeSetup(size, image_offset);
 }
 
-void SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_sector,
-		int size, int& image_size, int& sector_size)
+pair<int, int> SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_sector, int size)
 {
+	int image_size;
+	int sector_size;
+
 	// PC-9801-55 NEC genuine?
 	if (ext == ".hdn") {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
@@ -115,6 +115,11 @@ void SCSIHD_NEC::SetParameters(const string& ext, const array<BYTE, 512>& root_s
 			throw io_exception("Invalid NEC image file format");
 		}
 	}
+	else {
+		assert(false);
+	}
+
+	return make_pair(image_size, sector_size);
 }
 
 vector<byte> SCSIHD_NEC::InquiryInternal() const
