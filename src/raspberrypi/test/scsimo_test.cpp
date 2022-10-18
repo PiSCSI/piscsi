@@ -39,6 +39,9 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	MockSCSIMO mo(0, sector_sizes);
 
 	mo.SetReady(true);
+	mo.SetUpModePages(mode_pages, 0x21, false);
+	EXPECT_TRUE(mode_pages.empty()) << "Unsupported vendor-specific page was returned";
+
 	mo.SetBlockCount(0x12345678);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	EXPECT_EQ(1, mode_pages.size()) << "Unexpected number of mode pages";
