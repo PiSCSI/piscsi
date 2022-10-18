@@ -245,12 +245,14 @@ TEST(DiskTest, StartStopUnit)
 {
 	MockAbstractController controller(0);
 	auto disk = make_shared<MockDisk>();
+	disk->SetRemovable(true);
 
 	controller.AddDevice(disk);
 
 	vector<int>& cmd = controller.GetCmd();
 
 	// Stop/Unload
+	disk->SetReady(true);
 	EXPECT_CALL(controller, Status());
 	EXPECT_CALL(*disk, FlushCache);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
@@ -259,20 +261,20 @@ TEST(DiskTest, StartStopUnit)
 
 	// Stop/Load
 	cmd[4] = 0x02;
+	disk->SetReady(true);
 	disk->SetLocked(false);
-	ON_CALL(*disk, Eject).WillByDefault(Return(true));
 	EXPECT_CALL(controller, Status());
 	EXPECT_CALL(*disk, FlushCache);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdStartStop));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
-	ON_CALL(*disk, Eject).WillByDefault(Return(false));
-	EXPECT_CALL(*disk, FlushCache);
+	disk->SetReady(false);
+	EXPECT_CALL(*disk, FlushCache).Times(0);
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
 
+	disk->SetReady(true);
 	disk->SetLocked(true);
-	ON_CALL(*disk, Eject).WillByDefault(Return(true));
-	EXPECT_CALL(*disk, FlushCache);
+	EXPECT_CALL(*disk, FlushCache).Times(0);
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
 
 	// Start/Unload
@@ -319,8 +321,29 @@ TEST(DiskTest, Eject)
 {
 	MockDisk disk;
 
+	disk.SetReady(false);
+	disk.SetRemovable(false);
+	disk.SetLocked(false);
 	EXPECT_CALL(disk, FlushCache).Times(0);
 	EXPECT_FALSE(disk.Eject(false));
+
+	disk.SetRemovable(true);
+	EXPECT_CALL(disk, FlushCache).Times(0);
+	EXPECT_FALSE(disk.Eject(false));
+
+	disk.SetReady(true);
+	disk.SetLocked(true);
+	EXPECT_CALL(disk, FlushCache).Times(0);
+	EXPECT_FALSE(disk.Eject(false));
+
+	disk.SetReady(true);
+	disk.SetLocked(false);
+	EXPECT_CALL(disk, FlushCache);
+	EXPECT_TRUE(disk.Eject(false));
+
+	disk.SetReady(true);
+	EXPECT_CALL(disk, FlushCache);
+	EXPECT_TRUE(disk.Eject(true));
 }
 
 TEST(DiskTest, ModeSense6)

@@ -212,8 +212,6 @@ void Disk::StartStopUnit()
 	}
 
 	if (!start) {
-		FlushCache();
-
 		// Look at the eject bit and eject if necessary
 		if (load) {
 			if (IsLocked()) {
@@ -225,6 +223,9 @@ void Disk::StartStopUnit()
 			if (!Eject(false)) {
 				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
 			}
+		}
+		else {
+			FlushCache();
 		}
 	}
 

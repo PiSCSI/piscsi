@@ -281,7 +281,9 @@ class MockDisk : public Disk
 	FRIEND_TEST(DiskTest, ReadWriteLong);
 	FRIEND_TEST(DiskTest, ReserveRelease);
 	FRIEND_TEST(DiskTest, SendDiagnostic);
+	FRIEND_TEST(DiskTest, StartStopUnit);
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
+	FRIEND_TEST(DiskTest, Eject);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
 	FRIEND_TEST(DiskTest, SectorSize);
@@ -292,7 +294,6 @@ public:
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(bool, Eject, (bool), (override));
 
 	MockDisk() : Disk(UNDEFINED, 0) {}
 	~MockDisk() override = default;
