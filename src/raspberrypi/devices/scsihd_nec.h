@@ -37,6 +37,8 @@ public:
 
 	void Open() override;
 
+protected:
+
 	vector<byte> InquiryInternal() const override;
 
 	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
