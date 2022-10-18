@@ -75,6 +75,8 @@ bool Disk::Dispatch(scsi_command cmd)
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
 {
+	assert(cache == nullptr);
+
 	Filepath path;
 	path.SetPath(GetFilename().c_str());
 	cache = make_unique<DiskCache>(path, size_shift_count, (uint32_t)GetBlockCount(), image_offset);
