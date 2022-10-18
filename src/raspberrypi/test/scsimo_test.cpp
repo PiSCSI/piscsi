@@ -51,6 +51,11 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
 
 	mo.SetSectorSizeInBytes(512);
+	mo.SetUpModePages(mode_pages, 0x20, false);
+	mode_page_32 = mode_pages[32];
+	EXPECT_EQ(0, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
+
 	mo.SetBlockCount(248826);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	mode_page_32 = mode_pages[32];
@@ -70,6 +75,12 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(18, GetInt16(mode_page_32, 10));
 
 	mo.SetSectorSizeInBytes(2048);
+	mo.SetBlockCount(0x12345678);
+	mo.SetUpModePages(mode_pages, 0x20, false);
+	mode_page_32 = mode_pages[32];
+	EXPECT_EQ(0, GetInt16(mode_page_32, 8)) << "Wrong number of spare blocks";
+	EXPECT_EQ(0, GetInt16(mode_page_32, 10));
+
 	mo.SetBlockCount(310352);
 	mo.SetUpModePages(mode_pages, 0x20, false);
 	mode_page_32 = mode_pages[32];
