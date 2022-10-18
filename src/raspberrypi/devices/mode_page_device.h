@@ -44,5 +44,6 @@ private:
 	void ModeSelect6();
 	void ModeSelect10();
 
-	int ModeSelectCheck(int) const;
+	int SaveParametersCheck(int) const;
+	virtual bool SupportsSaveParameters() const { return false; }
 };

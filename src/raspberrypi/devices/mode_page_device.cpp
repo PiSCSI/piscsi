@@ -120,7 +120,7 @@ void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) co
 
 void ModePageDevice::ModeSelect6()
 {
-	ctrl->length = ModeSelectCheck(ctrl->cmd[4]);
+	ctrl->length = SaveParametersCheck(ctrl->cmd[4]);
 
 	EnterDataOutPhase();
 }
@@ -129,16 +129,14 @@ void ModePageDevice::ModeSelect10()
 {
 	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
 
-	ctrl->length = ModeSelectCheck((int)length);
+	ctrl->length = SaveParametersCheck((int)length);
 
 	EnterDataOutPhase();
 }
 
-int ModePageDevice::ModeSelectCheck(int length) const
+int ModePageDevice::SaveParametersCheck(int length) const
 {
-	// Error if save parameters are set for other types than SCHD, SCRM or SCMO
-	// TODO Remove the device type checks
-	if (GetType() != SCHD && GetType() != SCRM && GetType() != SCMO && (ctrl->cmd[1] & 0x01)) {
+	if (!SupportsSaveParameters() && (ctrl->cmd[1] & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
