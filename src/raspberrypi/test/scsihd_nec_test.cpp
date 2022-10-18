@@ -50,4 +50,18 @@ TEST(ScsiHdNecTest, TestAddFormatPage)
 	hd.SetUpModePages(pages, 0x03, false);
 	page_3 = pages[3];
 	EXPECT_EQ(0x20, (int)page_3[20]);
+
+	hd.SetUpModePages(pages, 0x03, true);
+	EXPECT_EQ(0xffff, GetInt16(page_3, 12));
+}
+
+TEST(ScsiHdNecTest, TestAddDrivePage)
+{
+	map<int, vector<byte>> pages;
+	MockSCSIHD_NEC hd(0);
+
+	hd.SetBlockCount(0x1234);
+	hd.SetReady(true);
+	hd.SetUpModePages(pages, 0x04, false);
+	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
 }
