@@ -25,7 +25,6 @@ void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_de
 		const string&, int, bool);
 
 int OpenTempFile(string&);
-int CreateTempFile();
 string CreateTempFile(int);
 
 int GetInt16(const vector<byte>&, int);
