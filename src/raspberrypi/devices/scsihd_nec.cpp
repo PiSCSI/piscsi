@@ -32,7 +32,7 @@ void SCSIHD_NEC::Open()
 	path.SetPath(GetFilename().c_str());
 	Fileio fio;
 	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open hard disk file");
+		throw file_not_found_exception("Can't open hard disk file '" + GetFilename() + '"');
 	}
 
 	off_t size = GetFileSize();

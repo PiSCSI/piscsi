@@ -96,5 +96,5 @@ off_t StorageDevice::GetFileSize() const
 		return st.st_size;
 	}
 
-	throw io_exception("Can't get file size");
+	throw io_exception("Can't get size of '" + filename + "'");
 }
