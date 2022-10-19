@@ -52,6 +52,8 @@ private:
 	void OpenIso();
 	void OpenPhysical();
 
+	void CreateDataTrack();
+
 	void ReadToc() override;
 
 	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion

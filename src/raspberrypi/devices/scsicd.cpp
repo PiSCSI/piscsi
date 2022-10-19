@@ -165,15 +165,7 @@ void SCSICD::OpenIso()
 		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
-	// Create only one data track
-	assert(!tracks.size());
-	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, (int)GetBlockCount() - 1);
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	track->SetPath(false, path);
-	tracks.push_back(move(track));
-	dataindex = 0;
+	CreateDataTrack();
 }
 
 void SCSICD::OpenPhysical()
@@ -197,6 +189,11 @@ void SCSICD::OpenPhysical()
 	// Set the number of blocks
 	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
+	CreateDataTrack();
+}
+
+void SCSICD::CreateDataTrack()
+{
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
