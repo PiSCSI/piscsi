@@ -59,6 +59,16 @@ TEST(ModePageDeviceTest, Page0)
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 0, 1, 255));
 }
 
+TEST(ModePageDeviceTest, Dispatch)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<NiceMock<MockModePageDevice>>();
+
+    controller.AddDevice(device);
+
+    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdRead6)) << "Command is not supported by this class";
+}
+
 TEST(ModePageDeviceTest, ModeSense6)
 {
     MockAbstractController controller(0);
