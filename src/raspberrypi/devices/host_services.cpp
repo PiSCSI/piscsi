@@ -131,6 +131,8 @@ void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool 
 
 void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
+	vector<byte> buf(10);
+
 	if (!changeable) {
 		time_t t = time(nullptr);
 		tm localtime;
@@ -147,8 +149,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 		// Ignore leap second for simplicity
 		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
-		vector<byte> buf(10);
 		memcpy(&buf[2], &datetime, sizeof(datetime));
-		pages[32] = buf;
 	}
+
+	pages[32] = buf;
 }
