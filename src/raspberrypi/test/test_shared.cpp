@@ -17,7 +17,7 @@
 
 using namespace std;
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, string extension)
+shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -31,7 +31,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 }
 
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, const string& ident,
-		int additional_length, bool removable, string extension)
+		int additional_length, bool removable, const string& extension)
 {
     NiceMock<MockAbstractController> controller(0);
     auto device = CreateDevice(type, controller, extension);
