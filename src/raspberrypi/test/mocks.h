@@ -202,6 +202,7 @@ class MockPrimaryDevice : public PrimaryDevice
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
+	FRIEND_TEST(PrimaryDeviceTest, GetSetSendDelay);
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
 	FRIEND_TEST(RascsiExecutorTest, ValidateOperationAgainstDevice);
 

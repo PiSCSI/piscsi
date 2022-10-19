@@ -43,6 +43,10 @@ SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
 	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
 	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 
+	// The Daynaport needs to have a delay after the size/flags field of the read response.
+	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
+	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
+
 	SupportsParams(true);
 	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
 	SetStoppable(false);
@@ -499,12 +503,4 @@ void SCSIDaynaPort::EnableInterface()
 	}
 
 	EnterStatusPhase();
-}
-
-int SCSIDaynaPort::GetSendDelay() const
-{
-	// The Daynaport needs to have a delay after the size/flags field
-	// of the read response. In the MacOS driver, it looks like the
-	// driver is doing two "READ" system calls.
-	return DAYNAPORT_READ_HEADER_SZ;
 }

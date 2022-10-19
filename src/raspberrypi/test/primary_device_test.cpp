@@ -332,14 +332,16 @@ TEST(PrimaryDeviceTest, WriteByteSequence)
 	vector<BYTE> data;
 	MockPrimaryDevice device(0);
 
-	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device must not support writing byte sequences";
+	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device does not support writing byte sequences";
 }
 
-TEST(PrimaryDeviceTest, GetSendDelay)
+TEST(PrimaryDeviceTest, GetSetSendDelay)
 {
 	MockPrimaryDevice device(0);
 
-	EXPECT_EQ(-1, device.GetSendDelay());
+	EXPECT_EQ(-1, device.GetSendDelay()) << "Wrong default value";
+	device.SetSendDelay(1234);
+	EXPECT_EQ(1234, device.GetSendDelay());
 }
 
 TEST(PrimaryDeviceTest, Init)

@@ -30,7 +30,8 @@ public:
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
-	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
+
+	int GetSendDelay() const { return send_delay; }
 
 	virtual bool CheckReservation(int, scsi_command, bool);
 	virtual void DiscardReservation();
@@ -48,6 +49,8 @@ protected:
 	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<byte> InquiryInternal() const = 0;
 	void CheckReady();
+
+	void SetSendDelay(int s) { send_delay = s; }
 
 	virtual void SendDiagnostic();
 	virtual void ReserveUnit();
@@ -72,6 +75,8 @@ private:
 	vector<byte> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
+
+	int send_delay = BUS::SEND_NO_DELAY;
 
 	int reserving_initiator = NOT_RESERVED;
 };

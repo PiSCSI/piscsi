@@ -66,7 +66,6 @@ public:
 	void SetInterfaceMode();
 	void SetMcastAddr();
 	void EnableInterface();
-	int GetSendDelay() const override;
 
 	bool Dispatch(scsi_command) override;
 
