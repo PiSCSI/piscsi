@@ -24,6 +24,8 @@ TEST(DiskTest, Dispatch)
 
 	controller.AddDevice(disk);
 
+	EXPECT_FALSE(disk->Dispatch(scsi_command::eCmdIcd));
+
 	disk->SetRemovable(true);
 	disk->MediumChanged();
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
