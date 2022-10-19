@@ -317,6 +317,16 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 	EXPECT_FALSE(device->Dispatch((scsi_command)0xFF));
 }
 
+TEST(PrimaryDeviceTest, Dispatch)
+{
+    MockAbstractController controller(0);
+	auto device = make_shared<NiceMock<MockPrimaryDevice>>(0);
+
+    controller.AddDevice(device);
+
+    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
+}
+
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
 	vector<BYTE> data;

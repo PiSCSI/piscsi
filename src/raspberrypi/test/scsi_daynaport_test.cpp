@@ -21,6 +21,9 @@ TEST(ScsiDaynaportTest, Dispatch)
 	NiceMock<MockAbstractController> controller(0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
+	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
+
+	// TODO Remove tests below as soon as Daynaport does not inherit from Disk anymore
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSense6))
 		<< "Non-DaynaPort commands inherited from Disk must not be supported";
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSelect6))

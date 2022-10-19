@@ -14,6 +14,11 @@ TEST(ScsiCdTest, Inquiry)
 	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "RaSCSI  SCSI CD-ROM     ", 0x1f, true);
 }
 
+TEST(ScsiCdTest, Dispatch)
+{
+	TestDispatch(SCCD);
+}
+
 TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;

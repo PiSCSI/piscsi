@@ -60,6 +60,14 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
 	EXPECT_TRUE(!memcmp(product_data.c_str(), &buffer[8], 28));
 }
 
+void TestDispatch(PbDeviceType type)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto device = CreateDevice(type, controller);
+
+	EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
+}
+
 int OpenTempFile(string& file)
 {
 	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string

@@ -66,7 +66,7 @@ TEST(ModePageDeviceTest, Dispatch)
 
     controller.AddDevice(device);
 
-    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdRead6)) << "Command is not supported by this class";
+    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
 }
 
 TEST(ModePageDeviceTest, ModeSense6)

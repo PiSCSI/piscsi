@@ -29,6 +29,11 @@ TEST(ScsiPrinterTest, Init)
 	EXPECT_TRUE(printer->Init(params));
 }
 
+TEST(ScsiPrinterTest, Dispatch)
+{
+	TestDispatch(SCLP);
+}
+
 TEST(ScsiPrinterTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);

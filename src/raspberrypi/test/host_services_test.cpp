@@ -14,6 +14,11 @@
 
 using namespace std;
 
+TEST(HostServicesTest, Dispatch)
+{
+	TestDispatch(SCHS);
+}
+
 TEST(HostServicesTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(0);
