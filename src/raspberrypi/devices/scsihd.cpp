@@ -29,6 +29,8 @@ SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool remova
 	SetProtectable(true);
 	SetRemovable(removable);
 	SetLockable(removable);
+
+	SupportsSaveParameters(true);
 }
 
 string SCSIHD::GetProductData() const

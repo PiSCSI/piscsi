@@ -35,6 +35,8 @@ SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO
 	SetProtectable(true);
 	SetRemovable(true);
 	SetLockable(true);
+
+	SupportsSaveParameters(true);
 }
 
 void SCSIMO::Open()

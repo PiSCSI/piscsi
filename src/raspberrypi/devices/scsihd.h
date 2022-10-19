@@ -39,10 +39,6 @@ public:
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
-protected:
-
-	bool SupportsSaveParameters() const override { return true; }
-
 private:
 
 	string GetProductData() const;

@@ -32,7 +32,6 @@ public:
 
 protected:
 
-	bool SupportsSaveParameters() const override { return true; }
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;

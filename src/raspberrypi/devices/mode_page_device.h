@@ -27,7 +27,8 @@ public:
 
 protected:
 
-	virtual bool SupportsSaveParameters() const { return false; }
+	bool SupportsSaveParameters() const { return supports_save_parameters; }
+	void SupportsSaveParameters(bool b) { supports_save_parameters = b; }
 	int AddModePages(const vector<int>&, vector<BYTE>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 
@@ -36,6 +37,8 @@ private:
 	using super = PrimaryDevice;
 
 	Dispatcher<ModePageDevice> dispatcher;
+
+	bool supports_save_parameters = false;
 
 	virtual int ModeSense6(const vector<int>&, vector<BYTE>&) const = 0;
 	virtual int ModeSense10(const vector<int>&, vector<BYTE>&) const = 0;
