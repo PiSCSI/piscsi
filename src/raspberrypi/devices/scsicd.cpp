@@ -55,7 +55,7 @@ void SCSICD::Open()
 	path.SetPath(GetFilename().c_str());
 	Fileio fio;
 	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open CD-ROM file");
+		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
 	}
 
 	// Default sector size is 2048 bytes
@@ -181,7 +181,7 @@ void SCSICD::OpenPhysical()
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(GetFilename().c_str(), Fileio::OpenMode::ReadOnly)) {
-		throw io_exception("Can't open CD-ROM file");
+		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
 	}
 	fio.Close();
 
