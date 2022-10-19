@@ -17,6 +17,10 @@ TEST(ModePageDeviceTest, SupportsSaveParameters)
 {
 	MockModePageDevice device;
 
+	EXPECT_FALSE(device.SupportsSaveParameters()) << "Wrong default value";
+	device.SupportsSaveParameters(true);
+	EXPECT_TRUE(device.SupportsSaveParameters());
+	device.SupportsSaveParameters(false);
 	EXPECT_FALSE(device.SupportsSaveParameters());
 }
 
