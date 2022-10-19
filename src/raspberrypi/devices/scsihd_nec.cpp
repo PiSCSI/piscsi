@@ -80,8 +80,8 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 	string ext = extension;
 	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-	int image_size = 0;
-	int sector_size = 0;
+	int image_size;
+	int sector_size;
 
 	// PC-9801-55 NEC genuine?
 	if (ext == ".hdn") {
@@ -119,7 +119,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 		}
 	}
 	else {
-		assert(false);
+		throw io_exception("Invalid NEC image file extension");
 	}
 
 	return make_pair(image_size, sector_size);
