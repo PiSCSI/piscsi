@@ -13,8 +13,7 @@
 
 TEST(ScsiDaynaportTest, Inquiry)
 {
-	TestInquiry(SCDP, device_type::PROCESSOR, scsi_level::SCSI_2, scsi_level::SCSI_2,
-			"Dayna   SCSI/Link       1.4a", 0x20, false);
+	TestInquiry(SCDP, device_type::PROCESSOR, scsi_level::SCSI_2, "Dayna   SCSI/Link       1.4a", 0x20, false);
 }
 
 TEST(ScsiDaynaportTest, Dispatch)

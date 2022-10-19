@@ -41,8 +41,7 @@ TEST(ScsiPrinterTest, TestUnitReady)
 
 TEST(ScsiPrinterTest, Inquiry)
 {
-	TestInquiry(SCLP, device_type::PRINTER, scsi_level::SCSI_2, scsi_level::SCSI_2,
-			"RaSCSI  SCSI PRINTER    ", 0x1f, false);
+	TestInquiry(SCLP, device_type::PRINTER, scsi_level::SCSI_2,	"RaSCSI  SCSI PRINTER    ", 0x1f, false);
 }
 
 TEST(ScsiPrinterTest, ReserveUnit)

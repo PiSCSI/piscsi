@@ -13,8 +13,8 @@
 
 TEST(ScsiHdTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, scsi_level::SCSI_2,
-			"RaSCSI                  ", 0x1f, false);
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "RaSCSI                  ", 0x1f, false);
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "RaSCSI                  ", 0x1f, false, ".hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)

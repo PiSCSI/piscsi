@@ -30,8 +30,8 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 	return device;
 }
 
-void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, const string& ident,
-		int additional_length, bool removable, const string& extension)
+void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
+		bool removable, const string& extension)
 {
     NiceMock<MockAbstractController> controller(0);
     auto device = CreateDevice(type, controller, extension);
@@ -46,7 +46,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, scsi_level r, c
 	EXPECT_EQ((int)t, buffer[0]);
 	EXPECT_EQ(removable ? 0x80: 0x00, buffer[1]);
 	EXPECT_EQ((int)l, buffer[2]);
-	EXPECT_EQ((int)r, buffer[3]);
+	EXPECT_EQ((int)l > (int)scsi_level::SCSI_2 ? (int)scsi_level::SCSI_2 : (int)l, buffer[3]);
 	EXPECT_EQ(additional_length, buffer[4]);
 	string product_data;
 	if (ident.size() == 24) {

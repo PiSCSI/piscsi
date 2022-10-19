@@ -26,8 +26,7 @@ TEST(HostServicesTest, TestUnitReady)
 
 TEST(HostServicesTest, Inquiry)
 {
-	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, scsi_level::SCSI_2,
-			"RaSCSI  Host Services   ", 0x1f, false);
+	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, "RaSCSI  Host Services   ", 0x1f, false);
 }
 
 TEST(HostServicesTest, StartStopUnit)

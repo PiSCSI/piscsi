@@ -11,8 +11,7 @@
 
 TEST(ScsiCdTest, Inquiry)
 {
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, scsi_level::SCSI_2,
-			"RaSCSI  SCSI CD-ROM     ", 0x1f, true);
+	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "RaSCSI  SCSI CD-ROM     ", 0x1f, true);
 }
 
 TEST(ScsiCdTest, SetUpModePages)

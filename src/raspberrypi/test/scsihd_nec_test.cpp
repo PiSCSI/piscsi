@@ -15,8 +15,7 @@ using namespace std;
 
 TEST(ScsiHdNecTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, scsi_level::SCSI_1_CCS,
-                    "RaSCSI                  ", 0x1f, false, ".hdn");
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "RaSCSI                  ", 0x1f, false, ".hdn");
 }
 
 TEST(ScsiHdNecTest, SetUpModePages)
