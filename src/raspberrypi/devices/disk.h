@@ -105,11 +105,10 @@ protected:
 	void ResizeCache(const string&, bool);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
-	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
+	void AddErrorPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
 	void AddCachePage(map<int, vector<byte>>&, bool) const;
-	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
 
 	unordered_set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const unordered_set<uint32_t>& sizes) { sector_sizes = sizes; }

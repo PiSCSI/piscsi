@@ -491,11 +491,6 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 	pages[8] = buf;
 }
 
-void Disk::AddVendorPage(map<int, vector<byte>>&, int, bool) const
-{
-	// Nothing to add by default
-}
-
 int Disk::Read(const vector<int>&, vector<BYTE>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
