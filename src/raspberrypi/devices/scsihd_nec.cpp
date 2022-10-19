@@ -130,15 +130,6 @@ vector<byte> SCSIHD_NEC::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }
 
-void SCSIHD_NEC::AddErrorPage(map<int, vector<byte>>& pages, bool) const
-{
-	vector<byte> buf(8);
-
-	// The retry count is 0, and the limit time uses the default value inside the device.
-
-	pages[1] = buf;
-}
-
 void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	vector<byte> buf(24);

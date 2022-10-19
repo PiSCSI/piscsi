@@ -42,7 +42,6 @@ protected:
 
 	vector<byte> InquiryInternal() const override;
 
-	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 

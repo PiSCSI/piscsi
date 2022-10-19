@@ -25,7 +25,7 @@ TEST(ScsiHdNecTest, SetUpModePages)
 
 	hd.SetUpModePages(pages, 0x3f, false);
 	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(8, pages[1].size());
+	EXPECT_EQ(12, pages[1].size());
 	EXPECT_EQ(24, pages[3].size());
 	EXPECT_EQ(20, pages[4].size());
 	EXPECT_EQ(12, pages[8].size());
