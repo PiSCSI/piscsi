@@ -19,7 +19,7 @@ TEST(ScsiHdTest, Inquiry)
 
 TEST(ScsiHdTest, SupportsSaveParameters)
 {
-	map<int, vector<byte>> mode_pages;
+	map<int, vector<byte>> pages;
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
@@ -28,7 +28,7 @@ TEST(ScsiHdTest, SupportsSaveParameters)
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	map<int, vector<byte>> mode_pages;
+	map<int, vector<byte>> pages;
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
@@ -45,18 +45,18 @@ TEST(ScsiHdTest, FinalizeSetup)
 
 TEST(ScsiHdTest, SetUpModePages)
 {
-	map<int, vector<byte>> mode_pages;
+	map<int, vector<byte>> pages;
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
 	hd.SetReady(false);
-	hd.SetUpModePages(mode_pages, 0x3f, false);
-	EXPECT_EQ(5, mode_pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(12, mode_pages[1].size());
-	EXPECT_EQ(24, mode_pages[3].size());
-	EXPECT_EQ(24, mode_pages[4].size());
-	EXPECT_EQ(12, mode_pages[8].size());
-	EXPECT_EQ(30, mode_pages[48].size());
+	hd.SetUpModePages(pages, 0x3f, false);
+	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(12, pages[1].size());
+	EXPECT_EQ(24, pages[3].size());
+	EXPECT_EQ(24, pages[4].size());
+	EXPECT_EQ(12, pages[8].size());
+	EXPECT_EQ(30, pages[48].size());
 }
 
 TEST(ScsiHdTest, ModeSelect)
