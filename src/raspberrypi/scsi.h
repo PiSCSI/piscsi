@@ -62,7 +62,7 @@ namespace scsi_defs {
 		eCmdStopPrint = 0x1B,
 		eCmdSendDiag = 0x1D,
 		eCmdRemoval = 0x1E,
-		// ICD specific command
+		// ICD specific command, evaluated by the controller
 		eCmdIcd = 0x1F,
 		eCmdReadCapacity10 = 0x25,
 		eCmdRead10 = 0x28,
