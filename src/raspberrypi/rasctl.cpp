@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include <clocale>
 #include <iostream>
-#include <list>
 
 // Separator for the INQUIRY name components and for compound parameters
 static const char COMPONENT_SEPARATOR = ':';
