@@ -318,7 +318,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		params.erase("file");
 	}
 
-	if (!device->Init(params)) {
+	if (device->SupportsParams() && !device->Init(params)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
 				to_string(id), to_string(lun));
 	}
