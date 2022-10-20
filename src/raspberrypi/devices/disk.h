@@ -82,9 +82,7 @@ private:
 	void Seek10();
 	void ReadCapacity10() override;
 	void ReadCapacity16() override;
-	void Rezero();
 	void FormatUnit() override;
-	void ReassignBlocks();
 	void Seek6();
 	void Read(access_mode);
 	void Write(access_mode);

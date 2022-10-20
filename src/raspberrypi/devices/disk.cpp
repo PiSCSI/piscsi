@@ -25,9 +25,11 @@ using namespace scsi_command_util;
 
 Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
 {
-	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Rezero);
+	// REZERO implementation is identical with SEEK
+	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Seek);
 	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	dispatcher.Add(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	// REASSIGN BLOCKS implementation is identical with SEEK
+	dispatcher.Add(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::Seek);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
 	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
 	dispatcher.Add(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
@@ -96,11 +98,6 @@ void Disk::FlushCache()
 	}
 }
 
-void Disk::Rezero()
-{
-	Seek();
-}
-
 void Disk::FormatUnit()
 {
 	CheckReady();
@@ -111,11 +108,6 @@ void Disk::FormatUnit()
 	}
 
 	EnterStatusPhase();
-}
-
-void Disk::ReassignBlocks()
-{
-	Seek();
 }
 
 void Disk::Read(access_mode mode)
