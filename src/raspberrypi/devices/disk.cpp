@@ -23,7 +23,6 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-
 const unordered_map<uint32_t, uint32_t> Disk::shift_counts = { { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
 
 Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)

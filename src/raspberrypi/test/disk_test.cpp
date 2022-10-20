@@ -593,11 +593,13 @@ TEST(DiskTest, ModeSense6)
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
+	EXPECT_EQ(76, buf[0]) << "Wrong data length";
 	DiskTest_ValidateFormatPage(controller, 12);
 
 	// Cache page
 	cmd[2] = 8;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
+	EXPECT_EQ(76, buf[0]) << "Wrong data length";
 	DiskTest_ValidateCachePage(controller, 12);
 }
 
@@ -622,16 +624,43 @@ TEST(DiskTest, ModeSense10)
 	// No block descriptor
 	cmd[1] = 0x08;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	auto buf = controller.GetBuffer();
 	EXPECT_EQ(0x00, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
 
 	disk->SetReadOnly(false);
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
-	EXPECT_EQ(80, GetInt16(controller.GetBuffer(), 0)) << "Wrong data length";
-	EXPECT_EQ(0x80, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
+	buf = controller.GetBuffer();
+	EXPECT_EQ(80, GetInt16(buf, 0)) << "Wrong data length";
+	EXPECT_EQ(0x80, buf[3]) << "Wrong device-specific parameter";
 
-	// Return block descriptor
+	// Return short block descriptor
+	cmd[1] = 0x00;
+	disk->SetBlockCount(0x1234);
+	disk->SetSectorSizeInBytes(1024);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	buf = controller.GetBuffer();
+	EXPECT_EQ(0x00, buf[4]) << "Wrong LONGLBA field";
+	EXPECT_EQ(0x08, buf[7]) << "Wrong block descriptor length";
+	EXPECT_EQ(0x00, GetInt16(buf, 8));
+	EXPECT_EQ(0x1234, GetInt16(buf, 10));
+	EXPECT_EQ(0x00, GetInt16(buf, 12));
+	EXPECT_EQ(1024, GetInt16(buf, 14));
+
+	// Return long block descriptor
+	cmd[1] = 0x10;
+	disk->SetBlockCount((uint64_t)0xffffffff + 1);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	buf = controller.GetBuffer();
+	EXPECT_EQ(0x01, buf[4]) << "Wrong LONGLBA field";
+	EXPECT_EQ(0x10, buf[7]) << "Wrong block descriptor length";
+	EXPECT_EQ(0x00, GetInt16(buf, 8));
+	EXPECT_EQ(0x01, GetInt16(buf, 10));
+	EXPECT_EQ(0x00, GetInt16(buf, 12));
+	EXPECT_EQ(0x00, GetInt16(buf, 14));
+	EXPECT_EQ(0x00, GetInt16(buf, 20));
+	EXPECT_EQ(1024, GetInt16(buf, 22));
 	cmd[1] = 0x00;
 
 	// Format page
