@@ -374,8 +374,23 @@ TEST(DiskTest, ModeSense6)
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(76, controller.GetBuffer()[0]) << "Wrong data length";
-	EXPECT_EQ(0x80, controller.GetBuffer()[2]) << "Wrong device-specific parameter";
+	auto buf = controller.GetBuffer();
+	EXPECT_EQ(76, buf[0]) << "Wrong data length";
+	EXPECT_EQ(0x80, buf[2]) << "Wrong device-specific parameter";
+
+	// Format page
+	cmd[2] = 3;
+	disk->SetSectorSizeInBytes(1024);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
+	buf = controller.GetBuffer();
+	EXPECT_EQ(0x08, buf[7]) << "Wrong number of trackes in one zone";
+	EXPECT_EQ(25, GetInt16(buf, 14)) << "Wrong number of sectors per track";
+	EXPECT_EQ(1024, GetInt16(buf, 16)) << "Wrong number of bytes per sector";
+	EXPECT_EQ(1, GetInt16(buf, 18)) << "Wrong interleave";
+	EXPECT_EQ(11, GetInt16(buf, 20)) << "Wrong track skew factor";
+	EXPECT_EQ(20, GetInt16(buf, 22)) << "Wrong cylinder skew factor";
+	EXPECT_FALSE(buf[24] & 0x20) << "Wrong removable flag";
+	EXPECT_TRUE(buf[24] & 0x40) << "Wrong hard-sectored flag";
 }
 
 TEST(DiskTest, ModeSense10)
