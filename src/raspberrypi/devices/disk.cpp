@@ -23,6 +23,9 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+
+const unordered_map<uint32_t, uint32_t> Disk::shift_counts = { { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
+
 Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
 {
 	// REZERO implementation is identical with Seek
@@ -702,6 +705,12 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 	return true;
 }
 
+uint32_t Disk::CalculateShiftCount(uint32_t size_in_bytes)
+{
+	const auto& it = shift_counts.find(size_in_bytes);
+	return it != shift_counts.end() ? it->second : 0;
+}
+
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return size_shift_count ? 1 << size_shift_count : 0;
@@ -715,7 +724,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
 	}
 
-	size_shift_count = shift_counts[size_in_bytes];
+	size_shift_count = CalculateShiftCount(size_in_bytes);
 	assert(size_shift_count);
 }
 

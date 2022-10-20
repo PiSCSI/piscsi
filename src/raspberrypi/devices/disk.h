@@ -98,7 +98,7 @@ private:
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 
-	unordered_map<uint32_t, uint32_t> shift_counts = { { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
+	static const unordered_map<uint32_t, uint32_t> shift_counts;
 
 protected:
 
@@ -117,4 +117,5 @@ protected:
 	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
+	static uint32_t CalculateShiftCount(uint32_t);
 };
