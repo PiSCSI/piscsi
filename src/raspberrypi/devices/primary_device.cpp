@@ -270,7 +270,7 @@ void PrimaryDevice::ReleaseUnit()
 	EnterStatusPhase();
 }
 
-bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool prevent_removal)
+bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool prevent_removal) const
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == initiator_id) {
 		return true;

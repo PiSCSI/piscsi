@@ -33,7 +33,7 @@ public:
 
 	int GetSendDelay() const { return send_delay; }
 
-	bool CheckReservation(int, scsi_command, bool);
+	bool CheckReservation(int, scsi_command, bool) const;
 	void DiscardReservation();
 
 	// Override for device specific initializations
