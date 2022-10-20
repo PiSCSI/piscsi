@@ -178,6 +178,9 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	device->set_id(-1);
 	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 	device->set_id(0);
+	device->set_unit(1);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1)) << "LUN 0 is missing";
+	device->set_unit(0);
 	EXPECT_TRUE(executor->ProcessCmd(context, command1));
 
 	// The operations below must fail because of missing parameters.
