@@ -335,7 +335,7 @@ TEST(DiskTest, Verify16)
 	// Further testing requires filesystem access
 }
 
-TEST(DiskTest, ReadWriteLong10)
+TEST(DiskTest, ReadLong10)
 {
 	MockAbstractController controller(0);
 	auto disk = make_shared<MockDisk>();
@@ -347,25 +347,66 @@ TEST(DiskTest, ReadWriteLong10)
 	EXPECT_CALL(controller, Status());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadLong10));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
-	EXPECT_CALL(controller, Status());
-	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdWriteLong10));
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[2] = 1;
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadLong10), scsi_exception)
 		<< "READ LONG(10) must fail because the capacity is exceeded";
-	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWriteLong10), scsi_exception)
-		<< "WRITE LONG(10) must fail because the capacity is exceeded";
 	cmd[2] = 0;
 
 	cmd[7] = 1;
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadLong10), scsi_exception)
 		<< "READ LONG(10) must fail because it currently only supports 0 bytes transfer length";
+}
+
+TEST(DiskTest, ReadLong16)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	// READ LONG(16), not READ CAPACITY(16)
+	cmd[1] = 0x11;
+	cmd[2] = 1;
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_exception)
+		<< "READ LONG(16) must fail because the capacity is exceeded";
+	cmd[2] = 0;
+
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	cmd[13] = 1;
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_exception)
+		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
+}
+
+TEST(DiskTest, WriteLong10)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdWriteLong10));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	cmd[2] = 1;
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWriteLong10), scsi_exception)
+		<< "WRITE LONG(10) must fail because the capacity is exceeded";
+	cmd[2] = 0;
+
+	cmd[7] = 1;
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWriteLong10), scsi_exception)
 		<< "WRITE LONG(10) must fail because it currently only supports 0 bytes transfer length";
 }
 
-TEST(DiskTest, ReadWriteLong16)
+TEST(DiskTest, WriteLong16)
 {
 	MockAbstractController controller(0);
 	auto disk = make_shared<MockDisk>();
@@ -375,29 +416,15 @@ TEST(DiskTest, ReadWriteLong16)
 	vector<int>& cmd = controller.GetCmd();
 
 	cmd[2] = 1;
-	// READ LONG(16), not READ CAPACITY(16)
-	cmd[1] = 0x11;
-	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_exception)
-		<< "READ LONG(16) must fail because the capacity is exceeded";
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWriteLong16), scsi_exception)
 		<< "WRITE LONG(16) must fail because the capacity is exceeded";
 	cmd[2] = 0;
 
-	// READ LONG(16), not READ CAPACITY(16)
-	EXPECT_CALL(controller, Status());
-	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
-	cmd[1] = 0x00;
 	EXPECT_CALL(controller, Status());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdWriteLong16));
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[13] = 1;
-	// READ LONG(16), not READ CAPACITY(16)
-	cmd[1] = 0x11;
-	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16), scsi_exception)
-		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
-	cmd[1] = 0x00;
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWriteLong16), scsi_exception)
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
 }
