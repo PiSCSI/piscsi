@@ -87,7 +87,7 @@ TEST(DiskTest, ReassignBlocks)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
-TEST(DiskTest, Seek)
+TEST(DiskTest, Seek6)
 {
 	MockAbstractController controller(0);
 	auto disk = make_shared<MockDisk>();
@@ -98,25 +98,39 @@ TEST(DiskTest, Seek)
 
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdSeek6), scsi_exception)
 		<< "SEEK(6) must fail for a medium with 0 blocks";
-	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdSeek10), scsi_exception)
-		<< "SEEK(10) must fail for a medium with 0 blocks";
 
 	disk->SetBlockCount(1);
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdSeek6), scsi_exception)
 		<< "SEEK(6) must fail because drive is not ready";
+
+	disk->SetReady(true);
+
+	// Block count
+	cmd[4] = 1;
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdSeek6));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+}
+
+TEST(DiskTest, Seek10)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	vector<int>& cmd = controller.GetCmd();
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdSeek10), scsi_exception)
+		<< "SEEK(10) must fail for a medium with 0 blocks";
+
+	disk->SetBlockCount(1);
 	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdSeek10), scsi_exception)
 		<< "SEEK(10) must fail because drive is not ready";
 
 	disk->SetReady(true);
 
-	// Block count for SEEK(6)
-	cmd[4] = 1;
-	EXPECT_CALL(controller, Status());
-	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdSeek6));
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
-	cmd[4] = 0;
-
-	// Block count for SEEK(10)
+	// Block count
 	cmd[5] = 1;
 	EXPECT_CALL(controller, Status());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdSeek10));
