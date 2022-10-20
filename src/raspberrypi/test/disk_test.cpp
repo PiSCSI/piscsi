@@ -357,6 +357,9 @@ TEST(DiskTest, ModeSense6)
 
 	vector<int>& cmd = controller.GetCmd();
 
+	// Drive must be ready on order to return all data
+	disk->SetReady(true);
+
 	cmd[2] = 0x3f;
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
@@ -383,6 +386,9 @@ TEST(DiskTest, ModeSense10)
 	controller.AddDevice(disk);
 
 	vector<int>& cmd = controller.GetCmd();
+
+	// Drive must be ready on order to return all data
+	disk->SetReady(true);
 
 	cmd[2] = 0x3f;
 	// ALLOCATION LENGTH
