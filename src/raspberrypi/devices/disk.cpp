@@ -702,20 +702,6 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 	return true;
 }
 
-int Disk::CalculateShiftCount(uint32_t size_in_bytes)
-{
-	uint32_t count;
-	for (count = 9; count < 13; ++count) {
-		if ((1 << count) == size_in_bytes) {
-			break;
-		}
-	}
-
-	assert(count < 13);
-
-	return count;
-}
-
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return size_shift_count ? 1 << size_shift_count : 0;
@@ -729,7 +715,8 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
 	}
 
-	size_shift_count = CalculateShiftCount(size_in_bytes);
+	size_shift_count = shift_counts[size_in_bytes];
+	assert(size_shift_count);
 }
 
 uint32_t Disk::GetConfiguredSectorSize() const

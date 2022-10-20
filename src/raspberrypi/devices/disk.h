@@ -23,6 +23,7 @@
 #include "storage_device.h"
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
@@ -94,10 +95,10 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
-	static int CalculateShiftCount(uint32_t);
-
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
+
+	unordered_map<uint32_t, uint32_t> shift_counts = { { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
 
 protected:
 
