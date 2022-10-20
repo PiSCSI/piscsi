@@ -361,6 +361,14 @@ void DiskTest_ValidateFormatPage(AbstractController& controller, int offset)
 	EXPECT_TRUE(buf[offset + 20] & 0x40) << "Wrong hard-sectored flag";
 }
 
+void DiskTest_ValidateCachePage(AbstractController& controller, int offset)
+{
+	const auto& buf = controller.GetBuffer();
+	EXPECT_EQ(0xffff, GetInt16(buf, offset + 4)) << "Wrong pre-fetch transfer length";
+	EXPECT_EQ(0xffff, GetInt16(buf, offset + 8)) << "Wrong maximum pre-fetch";
+	EXPECT_EQ(0xffff, GetInt16(buf, offset + 10)) << "Wrong maximum pre-fetch ceiling";
+}
+
 TEST(DiskTest, ModeSense6)
 {
 	NiceMock<MockAbstractController> controller(0);
@@ -394,11 +402,17 @@ TEST(DiskTest, ModeSense6)
 
 	// Return block descriptor
 	cmd[1] = 0x00;
+
 	// Format page
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
 	DiskTest_ValidateFormatPage(controller, 12);
+
+	// Cache page
+	cmd[2] = 8;
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
+	DiskTest_ValidateCachePage(controller, 12);
 }
 
 TEST(DiskTest, ModeSense10)
@@ -433,11 +447,17 @@ TEST(DiskTest, ModeSense10)
 
 	// Return block descriptor
 	cmd[1] = 0x00;
+
 	// Format page
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
 	DiskTest_ValidateFormatPage(controller, 16);
+
+	// Cache page
+	cmd[2] = 8;
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	DiskTest_ValidateCachePage(controller, 16);
 }
 
 TEST(DiskTest, SynchronizeCache)
