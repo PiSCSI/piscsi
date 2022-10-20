@@ -711,9 +711,7 @@ int Disk::CalculateShiftCount(uint32_t size_in_bytes)
 		}
 	}
 
-	if (count == 13) {
-		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
-	}
+	assert(count < 13);
 
 	return count;
 }
