@@ -66,6 +66,9 @@ TEST(RascsiExecutorTest, ProcessDeviceCmd)
 	device2->SetReady(true);
 	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device2));
 
+	command.set_operation(ATTACH);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "ID and LUN already exist";
+
 	command.set_operation(START);
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
