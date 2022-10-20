@@ -201,6 +201,104 @@ TEST(DiskTest, ReadCapacity)
 	EXPECT_EQ(0x00, controller.GetBuffer()[11]);
 }
 
+TEST(DiskTest, Read6)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdRead6), scsi_exception)
+		<< "READ(6) must fail for a medium with 0 blocks";
+
+	// Further testing requires filesystem access
+}
+
+TEST(DiskTest, Read10)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdRead10), scsi_exception)
+		<< "READ(10) must fail for a medium with 0 blocks";
+
+	disk->SetBlockCount(1);
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdRead10));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	// Further testing requires filesystem access
+}
+
+TEST(DiskTest, Read16)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdRead16), scsi_exception)
+		<< "READ(16) must fail for a medium with 0 blocks";
+
+	disk->SetBlockCount(1);
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdRead16));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	// Further testing requires filesystem access
+}
+
+TEST(DiskTest, Write6)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWrite6), scsi_exception)
+		<< "WRIte(6) must fail for a medium with 0 blocks";
+
+	// Further testing requires filesystem access
+}
+
+TEST(DiskTest, Write10)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWrite10), scsi_exception)
+		<< "WRITE(10) must fail for a medium with 0 blocks";
+
+	disk->SetBlockCount(1);
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdWrite10));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	// Further testing requires filesystem access
+}
+
+TEST(DiskTest, Write16)
+{
+	MockAbstractController controller(0);
+	auto disk = make_shared<MockDisk>();
+
+	controller.AddDevice(disk);
+
+	EXPECT_THROW(disk->Dispatch(scsi_command::eCmdWrite16), scsi_exception)
+		<< "WRITE(16) must fail for a medium with 0 blocks";
+
+	disk->SetBlockCount(1);
+	EXPECT_CALL(controller, Status());
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdWrite16));
+	EXPECT_EQ(status::GOOD, controller.GetStatus());
+
+	// Further testing requires filesystem access
+}
+
 TEST(DiskTest, ReadWriteLong)
 {
 	MockAbstractController controller(0);
