@@ -168,6 +168,9 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	command1.set_operation(ATTACH);
 	auto device = command1.add_devices();
 	device->set_type(SCHS);
+	device->set_id(-1);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	device->set_id(0);
 	EXPECT_TRUE(executor->ProcessCmd(context, command1));
 
 	// The operations below must fail because of missing parameters.
