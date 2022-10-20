@@ -38,7 +38,6 @@ HostServices::HostServices(int lun, const ControllerManager& manager)
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 
 	SetReady(true);
-	SetReset(false);
 }
 
 bool HostServices::Dispatch(scsi_command cmd)

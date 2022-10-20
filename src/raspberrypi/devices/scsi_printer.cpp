@@ -53,7 +53,6 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 
 	SupportsParams(true);
 	SetReady(true);
-	SetReset(false);
 }
 
 SCSIPrinter::~SCSIPrinter()
