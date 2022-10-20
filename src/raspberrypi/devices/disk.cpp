@@ -25,10 +25,10 @@ using namespace scsi_command_util;
 
 Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
 {
-	// REZERO implementation is identical with SEEK
+	// REZERO implementation is identical with Seek
 	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Seek);
 	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	// REASSIGN BLOCKS implementation is identical with SEEK
+	// REASSIGN BLOCKS implementation is identical with Seek
 	dispatcher.Add(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::Seek);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
 	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
