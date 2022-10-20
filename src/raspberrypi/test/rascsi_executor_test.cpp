@@ -131,6 +131,34 @@ TEST(RascsiExecutorTest, ProcessDeviceCmd)
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
 }
 
+TEST(RascsiExecutorTest, ProcessCmd)
+{
+	MockBus bus;
+	DeviceFactory device_factory;
+	MockAbstractController controller(0);
+	ControllerManager controller_manager(bus);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbCommand command1;
+	PbCommand command2;
+	MockCommandContext context;
+
+	command1.set_operation(DETACH_ALL);
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(RESERVE_IDS);
+	SetParam(command1, "ids", "2,3");
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	const unordered_set<int> ids = executor->GetReservedIds();
+	EXPECT_EQ(2, ids.size());
+	EXPECT_NE(ids.end(), ids.find(2));
+	EXPECT_NE(ids.end(), ids.find(3));
+	command2.set_operation(RESERVE_IDS);
+	EXPECT_TRUE(executor->ProcessCmd(context, command2));
+	EXPECT_TRUE(executor->GetReservedIds().empty());
+}
+
 TEST(RascsiExecutorTest, SetLogLevel)
 {
 	MockBus bus;

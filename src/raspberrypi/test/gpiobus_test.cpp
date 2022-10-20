@@ -10,11 +10,11 @@
 #include <gtest/gtest.h>
 
 #include "hal/gpiobus.h"
-#include <set>
+#include <unordered_set>
 
 TEST(GpioBusTest, GetCommandByteCount)
 {
-	set<BYTE> opcodes;
+	unordered_set<BYTE> opcodes;
 
 	EXPECT_EQ(16, GPIOBUS::GetCommandByteCount(0x88));
 	opcodes.insert(0x88);
