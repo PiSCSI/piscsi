@@ -348,6 +348,19 @@ TEST(DiskTest, Eject)
 	EXPECT_TRUE(disk.Eject(true));
 }
 
+void DiskTest_ValidateFormatPage(AbstractController& controller, int offset)
+{
+	const auto& buf = controller.GetBuffer();
+	EXPECT_EQ(0x08, buf[offset + 3]) << "Wrong number of trackes in one zone";
+	EXPECT_EQ(25, GetInt16(buf, offset + 10)) << "Wrong number of sectors per track";
+	EXPECT_EQ(1024, GetInt16(buf, offset + 12)) << "Wrong number of bytes per sector";
+	EXPECT_EQ(1, GetInt16(buf, offset + 14)) << "Wrong interleave";
+	EXPECT_EQ(11, GetInt16(buf, offset + 16)) << "Wrong track skew factor";
+	EXPECT_EQ(20, GetInt16(buf, offset + 18)) << "Wrong cylinder skew factor";
+	EXPECT_FALSE(buf[offset + 20] & 0x20) << "Wrong removable flag";
+	EXPECT_TRUE(buf[offset + 20] & 0x40) << "Wrong hard-sectored flag";
+}
+
 TEST(DiskTest, ModeSense6)
 {
 	NiceMock<MockAbstractController> controller(0);
@@ -382,15 +395,7 @@ TEST(DiskTest, ModeSense6)
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	buf = controller.GetBuffer();
-	EXPECT_EQ(0x08, buf[7]) << "Wrong number of trackes in one zone";
-	EXPECT_EQ(25, GetInt16(buf, 14)) << "Wrong number of sectors per track";
-	EXPECT_EQ(1024, GetInt16(buf, 16)) << "Wrong number of bytes per sector";
-	EXPECT_EQ(1, GetInt16(buf, 18)) << "Wrong interleave";
-	EXPECT_EQ(11, GetInt16(buf, 20)) << "Wrong track skew factor";
-	EXPECT_EQ(20, GetInt16(buf, 22)) << "Wrong cylinder skew factor";
-	EXPECT_FALSE(buf[24] & 0x20) << "Wrong removable flag";
-	EXPECT_TRUE(buf[24] & 0x40) << "Wrong hard-sectored flag";
+	DiskTest_ValidateFormatPage(controller, 4);
 }
 
 TEST(DiskTest, ModeSense10)
@@ -418,6 +423,12 @@ TEST(DiskTest, ModeSense10)
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
 	EXPECT_EQ(80, GetInt16(controller.GetBuffer(), 0)) << "Wrong data length";
 	EXPECT_EQ(0x80, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
+
+	// Format page
+	cmd[2] = 3;
+	disk->SetSectorSizeInBytes(1024);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	DiskTest_ValidateFormatPage(controller, 8);
 }
 
 TEST(DiskTest, SynchronizeCache)
