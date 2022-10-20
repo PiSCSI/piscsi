@@ -24,7 +24,6 @@
 // applies any conversions on the file to be printed (%f) before passing it to the printing service.
 // 'enscript' is an example for a conversion tool.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
-// Note that the print command is not executed by root but with the permissions of the lp user.
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
