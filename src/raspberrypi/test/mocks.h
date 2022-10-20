@@ -300,7 +300,7 @@ public:
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
 
-	MockDisk() : Disk(UNDEFINED, 0) {}
+	MockDisk() : Disk(SCHD, 0) {}
 	~MockDisk() override = default;
 };
 

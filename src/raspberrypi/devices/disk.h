@@ -94,6 +94,8 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
+	static int CalculateShiftCount(uint32_t);
+
 	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
 	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 

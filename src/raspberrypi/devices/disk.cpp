@@ -702,6 +702,22 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 	return true;
 }
 
+int Disk::CalculateShiftCount(uint32_t size_in_bytes)
+{
+	int count;
+	for (count = 9; count < 13; ++count) {
+		if ((1 << count) == size_in_bytes) {
+			break;
+		}
+	}
+
+	if (count == 13) {
+		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
+	}
+
+	return count;
+}
+
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return size_shift_count ? 1 << size_shift_count : 0;
@@ -712,30 +728,10 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 	DeviceFactory device_factory;
 	if (const auto sizes = device_factory.GetSectorSizes(GetType());
 		!sizes.empty() && sizes.find(size_in_bytes) == sizes.end()) {
-		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " bytes");
+		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " byte(s)");
 	}
 
-	switch (size_in_bytes) {
-		case 512:
-			size_shift_count = 9;
-			break;
-
-		case 1024:
-			size_shift_count = 10;
-			break;
-
-		case 2048:
-			size_shift_count = 11;
-			break;
-
-		case 4096:
-			size_shift_count = 12;
-			break;
-
-		default:
-			throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " bytes");
-			break;
-	}
+	size_shift_count = CalculateShiftCount(size_in_bytes);
 }
 
 uint32_t Disk::GetConfiguredSectorSize() const
