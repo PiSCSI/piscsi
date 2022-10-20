@@ -14,7 +14,7 @@
 
 TEST(GpioBusTest, GetCommandByteCount)
 {
-	unordered_set<BYTE> opcodes;
+	unordered_set<int> opcodes;
 
 	EXPECT_EQ(16, GPIOBUS::GetCommandByteCount(0x88));
 	opcodes.insert(0x88);
