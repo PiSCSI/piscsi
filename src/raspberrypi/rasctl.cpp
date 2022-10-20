@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
 
 	RasctlParser parser;
 	PbCommand command;
-	list<PbDeviceDefinition> devices;
 	PbDeviceDefinition* device = command.add_devices();
 	device->set_id(-1);
 	const char *hostname = "localhost";
