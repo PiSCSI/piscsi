@@ -379,6 +379,7 @@ TEST(DiskTest, ModeSense6)
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
 	EXPECT_EQ(0x08, controller.GetBuffer()[3]) << "Wrong block descriptor length";
 
+	// No block descriptor
 	cmd[1] = 0x08;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
 	EXPECT_EQ(0x00, controller.GetBuffer()[2]) << "Wrong device-specific parameter";
@@ -391,11 +392,13 @@ TEST(DiskTest, ModeSense6)
 	EXPECT_EQ(76, buf[0]) << "Wrong data length";
 	EXPECT_EQ(0x80, buf[2]) << "Wrong device-specific parameter";
 
+	// Return block descriptor
+	cmd[1] = 0x00;
 	// Format page
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	DiskTest_ValidateFormatPage(controller, 4);
+	DiskTest_ValidateFormatPage(controller, 12);
 }
 
 TEST(DiskTest, ModeSense10)
@@ -413,6 +416,10 @@ TEST(DiskTest, ModeSense10)
 	cmd[2] = 0x3f;
 	// ALLOCATION LENGTH
 	cmd[8] = 255;
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	EXPECT_EQ(0x08, controller.GetBuffer()[7]) << "Wrong block descriptor length";
+
+	// No block descriptor
 	cmd[1] = 0x08;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
 	EXPECT_EQ(0x00, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
@@ -424,11 +431,13 @@ TEST(DiskTest, ModeSense10)
 	EXPECT_EQ(80, GetInt16(controller.GetBuffer(), 0)) << "Wrong data length";
 	EXPECT_EQ(0x80, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
 
+	// Return block descriptor
+	cmd[1] = 0x00;
 	// Format page
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
-	DiskTest_ValidateFormatPage(controller, 8);
+	DiskTest_ValidateFormatPage(controller, 16);
 }
 
 TEST(DiskTest, SynchronizeCache)
