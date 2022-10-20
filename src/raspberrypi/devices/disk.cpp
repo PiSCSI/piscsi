@@ -712,7 +712,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 	DeviceFactory device_factory;
 	if (const auto sizes = device_factory.GetSectorSizes(GetType());
 		!sizes.empty() && sizes.find(size_in_bytes) == sizes.end()) {
-		throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
+		throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " bytes");
 	}
 
 	switch (size_in_bytes) {
@@ -733,7 +733,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 			break;
 
 		default:
-			throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
+			throw io_exception("Invalid sector size of " + to_string(size_in_bytes) + " bytes");
 			break;
 	}
 }
