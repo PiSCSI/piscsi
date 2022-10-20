@@ -7,12 +7,16 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mocks.h"
+#include <gtest/gtest.h>
+
+#include "rascsi_interface.pb.h"
 #include "rasutil.h"
 #ifdef __linux__
 #include <sched.h>
 #endif
 
+using namespace std;
+using namespace rascsi_interface;
 using namespace ras_util;
 
 TEST(RasUtilTest, GetAsInt)
@@ -57,6 +61,14 @@ TEST(RasUtilTest, ListDevices)
 	EXPECT_NE(string::npos, device_list.find("DaynaPort SCSI/Link"));
 	EXPECT_NE(string::npos, device_list.find("Host Services"));
 	EXPECT_NE(string::npos, device_list.find("SCSI Printer"));
+}
+
+TEST(RasUtilTest, GetExtensionLowerCase)
+{
+	EXPECT_EQ("ext", GetExtensionLowerCase("file.ext"));
+	EXPECT_EQ("ext", GetExtensionLowerCase("FILE.EXT"));
+	EXPECT_EQ("ext", GetExtensionLowerCase(".ext"));
+	EXPECT_EQ("ext", GetExtensionLowerCase(".XYZ.EXT"));
 }
 
 #ifdef __linux__
