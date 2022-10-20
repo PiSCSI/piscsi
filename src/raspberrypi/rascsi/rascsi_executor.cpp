@@ -500,7 +500,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
     	}
     }
 
-    unordered_set<int> reserved;
+    set<int> reserved;
     for (const string& id_to_reserve : ids_to_reserve) {
     	int res_id;
  		if (!GetAsInt(id_to_reserve, res_id) || res_id > 7) {
@@ -514,12 +514,12 @@ string RascsiExecutor::SetReservedIds(string_view ids)
  		reserved.insert(res_id);
     }
 
-    reserved_ids = reserved;
+    reserved_ids = { reserved.begin(), reserved.end() };
 
     if (!reserved_ids.empty()) {
     	string s;
     	bool isFirst = true;
-    	for (auto const& reserved_id : reserved_ids) {
+    	for (auto const& reserved_id : reserved) {
     		if (!isFirst) {
     			s += ", ";
     		}
