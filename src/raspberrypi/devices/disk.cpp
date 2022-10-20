@@ -704,7 +704,7 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 
 int Disk::CalculateShiftCount(uint32_t size_in_bytes)
 {
-	int count;
+	uint32_t count;
 	for (count = 9; count < 13; ++count) {
 		if ((1 << count) == size_in_bytes) {
 			break;
