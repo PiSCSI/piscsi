@@ -710,7 +710,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 void Disk::SetSectorSizeInBytes(uint32_t size_in_bytes)
 {
 	DeviceFactory device_factory;
-	if (unordered_set<uint32_t> sizes = device_factory.GetSectorSizes(GetType());
+	if (const auto sizes = device_factory.GetSectorSizes(GetType());
 		!sizes.empty() && sizes.find(size_in_bytes) == sizes.end()) {
 		throw io_exception("Invalid block size of " + to_string(size_in_bytes) + " bytes");
 	}
