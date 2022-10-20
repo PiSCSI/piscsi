@@ -339,7 +339,7 @@ TEST(PrimaryDeviceTest, GetSetSendDelay)
 {
 	MockPrimaryDevice device(0);
 
-	EXPECT_EQ(-1, device.GetSendDelay()) << "Wrong default value";
+	EXPECT_EQ(-1, device.GetSendDelay()) << "Wrong delay default value";
 	device.SetSendDelay(1234);
 	EXPECT_EQ(1234, device.GetSendDelay());
 }
@@ -349,7 +349,7 @@ TEST(PrimaryDeviceTest, Init)
 	unordered_map<string, string> params;
 	MockPrimaryDevice device(0);
 
-	EXPECT_TRUE(device.Init(params)) << "Initialization of primary device must not fail";
+	EXPECT_FALSE(device.Init(params)) << "Initialization of primary device must fail";
 }
 
 TEST(PrimaryDeviceTest, FlushCache)

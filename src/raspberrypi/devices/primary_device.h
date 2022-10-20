@@ -36,8 +36,8 @@ public:
 	bool CheckReservation(int, scsi_command, bool);
 	void DiscardReservation();
 
-	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const unordered_map<string, string>&) { return true; };
+	// Override for device specific initializations
+	virtual bool Init(const unordered_map<string, string>&) { return false; };
 	void Reset() override;
 
 	virtual void FlushCache() {
