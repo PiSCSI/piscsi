@@ -166,7 +166,7 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	EXPECT_TRUE(executor->ProcessCmd(context, command1));
 
 	// The operation must fail because of a non-existing device.
-	// The respective functionality is tested elsewhere
+	// The respective functionality is tested in ProcessDeviceCmd.
 	command1.set_operation(DETACH);
 	command1.add_devices();
 	EXPECT_FALSE(executor->ProcessCmd(context, command1));
