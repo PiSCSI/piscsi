@@ -41,8 +41,6 @@ public:
 
 private:
 
-	string GetExtension(const string&) const;
-
 	unordered_map<PbDeviceType, unordered_set<uint32_t>> sector_sizes;
 
 	unordered_map<PbDeviceType, unordered_map<string, string>> default_params;

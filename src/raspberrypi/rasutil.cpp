@@ -97,6 +97,17 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 	return s.str();
 }
 
+string ras_util::GetExtensionLowerCase(const string& filename)
+{
+	string ext;
+	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
+		ext = filename.substr(separator + 1);
+	}
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+
+	return ext;
+}
+
 // Pin the thread to a specific CPU
 // TODO Check whether just using a single CPU really makes sense
 void ras_util::FixCpu(int cpu)

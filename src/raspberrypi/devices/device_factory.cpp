@@ -16,6 +16,7 @@
 #include "scsi_daynaport.h"
 #include "rascsi_exceptions.h"
 #include "host_services.h"
+#include "rasutil.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
@@ -24,6 +25,7 @@
 
 using namespace std;
 using namespace rascsi_interface;
+using namespace ras_util;
 
 DeviceFactory::DeviceFactory()
 {
@@ -62,20 +64,9 @@ DeviceFactory::DeviceFactory()
 	device_mapping["services"] = SCHS;
 }
 
-string DeviceFactory::GetExtension(const string& filename) const
-{
-	string ext;
-	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
-		ext = filename.substr(separator + 1);
-	}
-	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
-
-	return ext;
-}
-
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
-	if (const auto& it = extension_mapping.find(GetExtension(filename)); it != extension_mapping.end()) {
+	if (const auto& it = extension_mapping.find(GetExtensionLowerCase(filename)); it != extension_mapping.end()) {
 		return it->second;
 	}
 
@@ -100,7 +91,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	shared_ptr<PrimaryDevice> device;
 	switch (type) {
 	case SCHD: {
-		if (const string ext = GetExtension(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
+		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
 			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
