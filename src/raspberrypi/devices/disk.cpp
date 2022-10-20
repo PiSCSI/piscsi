@@ -369,7 +369,7 @@ void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeab
 		AddFormatPage(pages, changeable);
 	}
 
-	// Page code 4 (drive parameter)
+	// Page code 4 (rigid drive page)
 	if (page == 0x04 || page == 0x3f) {
 		AddDrivePage(pages, changeable);
 	}

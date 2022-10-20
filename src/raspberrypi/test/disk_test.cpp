@@ -547,6 +547,15 @@ void DiskTest_ValidateFormatPage(AbstractController& controller, int offset)
 	EXPECT_TRUE(buf[offset + 20] & 0x40) << "Wrong hard-sectored flag";
 }
 
+void DiskTest_ValidateDrivePage(AbstractController& controller, int offset)
+{
+	const auto& buf = controller.GetBuffer();
+	EXPECT_EQ(0x17, buf[offset + 2]);
+	EXPECT_EQ(0x4d3b, GetInt16(buf, offset + 3));
+	EXPECT_EQ(8, buf[offset + 5]) << "Wrong number of heads";
+	EXPECT_EQ(7200, GetInt16(buf, offset + 20)) << "Wrong medium rotation rate";
+}
+
 void DiskTest_ValidateCachePage(AbstractController& controller, int offset)
 {
 	const auto& buf = controller.GetBuffer();
@@ -582,8 +591,7 @@ TEST(DiskTest, ModeSense6)
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	auto buf = controller.GetBuffer();
-	EXPECT_EQ(76, buf[0]) << "Wrong data length";
+	const auto& buf = controller.GetBuffer();
 	EXPECT_EQ(0x80, buf[2]) << "Wrong device-specific parameter";
 
 	// Return block descriptor
@@ -593,13 +601,17 @@ TEST(DiskTest, ModeSense6)
 	cmd[2] = 3;
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(76, buf[0]) << "Wrong data length";
 	DiskTest_ValidateFormatPage(controller, 12);
+
+	// Rigid disk drive page
+	cmd[2] = 4;
+	disk->SetBlockCount(0x12345678);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
+	DiskTest_ValidateDrivePage(controller, 12);
 
 	// Cache page
 	cmd[2] = 8;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense6));
-	EXPECT_EQ(76, buf[0]) << "Wrong data length";
 	DiskTest_ValidateCachePage(controller, 12);
 }
 
@@ -624,7 +636,7 @@ TEST(DiskTest, ModeSense10)
 	// No block descriptor
 	cmd[1] = 0x08;
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
-	auto buf = controller.GetBuffer();
+	auto& buf = controller.GetBuffer();
 	EXPECT_EQ(0x00, controller.GetBuffer()[3]) << "Wrong device-specific parameter";
 
 	disk->SetReadOnly(false);
@@ -632,7 +644,6 @@ TEST(DiskTest, ModeSense10)
 	disk->SetProtected(true);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
 	buf = controller.GetBuffer();
-	EXPECT_EQ(80, GetInt16(buf, 0)) << "Wrong data length";
 	EXPECT_EQ(0x80, buf[3]) << "Wrong device-specific parameter";
 
 	// Return short block descriptor
@@ -668,6 +679,12 @@ TEST(DiskTest, ModeSense10)
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
 	DiskTest_ValidateFormatPage(controller, 16);
+
+	// Rigid disk drive page
+	cmd[2] = 4;
+	disk->SetBlockCount(0x12345678);
+	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdModeSense10));
+	DiskTest_ValidateDrivePage(controller, 16);
 
 	// Cache page
 	cmd[2] = 8;
