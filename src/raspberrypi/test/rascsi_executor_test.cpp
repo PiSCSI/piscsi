@@ -40,9 +40,13 @@ TEST(RascsiExecutorTest, ProcessDeviceCmd)
 
 	definition.set_id(8);
 	definition.set_unit(32);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID and LUN must fail";
+
+	definition.set_unit(LUN);
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID must fail";
 
 	definition.set_id(ID);
+	definition.set_unit(32);
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid LUN must fail";
 
 	definition.set_unit(LUN);
