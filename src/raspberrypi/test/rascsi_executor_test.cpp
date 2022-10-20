@@ -162,29 +162,29 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	EXPECT_FALSE(executor->ProcessCmd(context, command2));
 	EXPECT_TRUE(executor->GetReservedIds().empty());
 
+	command1.set_operation(NO_OPERATION);
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+
 	// The operations below must fail because of missing parameters.
 	// The respective functionality is tested in rascsi_image_test.cpp.
 
 	command1.set_operation(CREATE_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 
 	command1.set_operation(DELETE_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 
 	command1.set_operation(RENAME_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 
 	command1.set_operation(COPY_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 
 	command1.set_operation(PROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 
 	command1.set_operation(UNPROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
-
-	command1.set_operation(NO_OPERATION);
-	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 }
 
 TEST(RascsiExecutorTest, SetLogLevel)
