@@ -98,6 +98,7 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 }
 
 // Pin the thread to a specific CPU
+// TODO Check whether just using a single CPU really makes sense
 void ras_util::FixCpu(int cpu)
 {
 #ifdef __linux__
