@@ -42,7 +42,6 @@ public:
 	void StopPrint();
 
 	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
-	void DiscardReservation() override;
 
 private:
 

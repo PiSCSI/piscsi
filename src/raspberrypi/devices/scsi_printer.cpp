@@ -167,13 +167,6 @@ bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 	return (uint32_t)write(fd, buf.data(), length) == length;
 }
 
-void SCSIPrinter::DiscardReservation()
-{
-	Cleanup();
-
-	PrimaryDevice::DiscardReservation();
-}
-
 void SCSIPrinter::Cleanup()
 {
 	if (fd != -1) {

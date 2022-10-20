@@ -33,8 +33,8 @@ public:
 
 	int GetSendDelay() const { return send_delay; }
 
-	virtual bool CheckReservation(int, scsi_command, bool);
-	virtual void DiscardReservation();
+	bool CheckReservation(int, scsi_command, bool);
+	void DiscardReservation();
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
