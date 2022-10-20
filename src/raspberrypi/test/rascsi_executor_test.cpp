@@ -157,6 +157,10 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	command2.set_operation(RESERVE_IDS);
 	EXPECT_TRUE(executor->ProcessCmd(context, command2));
 	EXPECT_TRUE(executor->GetReservedIds().empty());
+
+	SetParam(command2, "ids", "-1");
+	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_TRUE(executor->GetReservedIds().empty());
 }
 
 TEST(RascsiExecutorTest, SetLogLevel)
