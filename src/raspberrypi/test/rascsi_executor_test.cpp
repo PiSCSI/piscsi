@@ -214,13 +214,13 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
-	EXPECT_FALSE(executor.SetLogLevel("xyz"));
-	EXPECT_TRUE(executor.SetLogLevel("off"));
-	EXPECT_TRUE(executor.SetLogLevel("err"));
-	EXPECT_TRUE(executor.SetLogLevel("warn"));
-	EXPECT_TRUE(executor.SetLogLevel("info"));
-	EXPECT_TRUE(executor.SetLogLevel("debug"));
 	EXPECT_TRUE(executor.SetLogLevel("trace"));
+	EXPECT_TRUE(executor.SetLogLevel("debug"));
+	EXPECT_TRUE(executor.SetLogLevel("info"));
+	EXPECT_TRUE(executor.SetLogLevel("warn"));
+	EXPECT_TRUE(executor.SetLogLevel("err"));
+	EXPECT_TRUE(executor.SetLogLevel("off"));
+	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
 TEST(RascsiExecutorTest, Attach)
