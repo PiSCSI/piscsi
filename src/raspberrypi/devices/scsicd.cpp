@@ -348,7 +348,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 			buf[2] = (BYTE)tracks[0]->GetTrackNo();
 			buf[3] = (BYTE)last;
 			buf[6] = 0xaa;
-			uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
+			const uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
 			if (msf) {
 				LBAtoMSF(lba, &buf[8]);
 			} else {
