@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "rascsi_exceptions.h"
 
 TEST(ScsiCdTest, Inquiry)
 {
