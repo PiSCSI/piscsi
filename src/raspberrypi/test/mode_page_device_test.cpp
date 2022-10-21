@@ -66,6 +66,8 @@ TEST(ModePageDeviceTest, AddVendorPage)
 
 	device.AddVendorPage(pages, 0x3f, false);
 	EXPECT_TRUE(pages.empty()) << "There must not be any default vendor page";
+	device.AddVendorPage(pages, 0x3f, true);
+	EXPECT_TRUE(pages.empty()) << "There must not be any default vendor page";
 }
 
 TEST(ModePageDeviceTest, Dispatch)
