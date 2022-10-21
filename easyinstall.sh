@@ -157,8 +157,18 @@ function installRaScsi() {
     cleanupOutdatedManPage "scsimon.1"
     cleanupOutdatedManPage "rasdump.1"
     cleanupOutdatedManPage "sasidump.1"
+
     # install
     sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+
+    # update launch parameters
+    if [[ -f $SECRET_FILE ]]; then
+        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/rascsi.service"
+        echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
+    else
+        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
+    fi
+    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 }
 
 function preparePythonCommon() {
@@ -280,7 +290,7 @@ function backupRaScsiService() {
     fi
 }
 
-# Offers the choice of enabling token-based authentication for RaSCSI
+# Offers the choice of enabling token-based authentication for RaSCSI, or disables it if enabled
 function configureTokenAuth() {
     if [[ -f "$HOME/.rascsi_secret" ]]; then
         sudo rm "$HOME/.rascsi_secret"
@@ -289,46 +299,34 @@ function configureTokenAuth() {
 
     if [[ -f $SECRET_FILE ]]; then
         sudo rm "$SECRET_FILE"
-        echo "Removed RaSCSI token file"
-    fi
-
-    if [[ $SKIP_TOKEN ]]; then
-        echo "Skipping RaSCSI token setup"
-        return 0
-    fi
-
-    if [[ -z $TOKEN ]]; then
-        echo ""
-        echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
+        echo "RaSCSI token file $SECRET_FILE already exists. Do you want to disable authentication? (y/N)"
         read REPLY
 
-        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-            return 0
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo sed -i 's@-P '"$SECRET_FILE"'@@' "$SYSTEMD_PATH/rascsi.service"
+            return
         fi
-
-        echo -n "Enter the password that you want to use: "
-        read -r TOKEN
     fi
+
+    echo -n "Enter the token password for protecting RaSCSI: "
+    read -r TOKEN
 
     echo "$TOKEN" > "$SECRET_FILE"
 
 	# Make the secret file owned and only readable by root
     sudo chown root:root "$SECRET_FILE"
     sudo chmod 600 "$SECRET_FILE"
+
+    sudo sed -i "s@^ExecStart.*@& -P $SECRET_FILE@" "$SYSTEMD_PATH/rascsi.service"
+
     echo ""
     echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
     echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
+    echo "If you have RaSCSI clients installed, please re-run the installation scripts, or update the systemd config manually."
 }
 
-# Modifies and installs the rascsi service
+# Enables and starts the rascsi service
 function enableRaScsiService() {
-    if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/rascsi.service"
-    else
-        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
-    fi
-    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
-
     sudo systemctl daemon-reload
     sudo systemctl restart rsyslog
     sudo systemctl enable rascsi # optional - start rascsi at boot
@@ -1148,6 +1146,13 @@ function enableWebInterfaceAuth {
 
     if [ $(getent group "$AUTH_GROUP") ]; then
         echo "The '$AUTH_GROUP' group already exists."
+        echo "Do you want to disable Web Interface authentication? (y/N)"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo groupdel "$AUTH_GROUP"
+            echo "The '$AUTH_GROUP' group has been deleted."
+            exit 0
+        fi
     else
         echo "Creating the '$AUTH_GROUP' group."
         sudo groupadd "$AUTH_GROUP"
@@ -1175,7 +1180,6 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
               installPackages
@@ -1196,7 +1200,6 @@ function runChoice() {
               cachePipPackages
               installRaScsiWebInterface
               installWebInterfaceService
-              enableWebInterfaceAuth
               showRaScsiScreenStatus
               showRaScsiCtrlBoardStatus
               showRaScsiStatus
@@ -1217,7 +1220,6 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              configureTokenAuth
               updateRaScsiGit
               installPackages
               stopRaScsiScreen
@@ -1306,7 +1308,6 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
-              configureTokenAuth
               updateRaScsiGit
               installPackagesStandalone
               stopRaScsi
@@ -1322,21 +1323,36 @@ function runChoice() {
               echo "- Add and modify systemd services"
               echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
-              echo "- Modify user groups and permissions"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
-              configureTokenAuth
               updateRaScsiGit
               installPackages
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
-              enableWebInterfaceAuth
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
           12)
+              echo "Enabling or disabling RaSCSI back-end authentication"
+              echo "This script will make the following changes to your system:"
+              echo "- Modify user groups and permissions"
+              sudoCheck
+              stopRaScsi
+              configureTokenAuth
+              enableRaScsiService
+              echo "Enabling or disabling RaSCSI back-end authentication - Complete!"
+          ;;
+          13)
+              echo "Enabling or disabling Web Interface authentication"
+              echo "This script will make the following changes to your system:"
+              echo "- Modify user groups and permissions"
+              sudoCheck
+              enableWebInterfaceAuth
+              echo "Enabling or disabling Web Interface authentication - Complete!"
+          ;;
+          14)
               echo "Installing / Updating RaSCSI Control Board UI"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1349,7 +1365,7 @@ function runChoice() {
               showRaScsiCtrlBoardStatus
               echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
-          13)
+          15)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
@@ -1366,7 +1382,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
        echo -n "Enter your choice (0-13) or CTRL-C to exit: "
        read -r choice
    done
@@ -1395,9 +1411,11 @@ function showMenu() {
     echo "ADVANCED OPTIONS"
     echo " 10) compile and install RaSCSI stand-alone"
     echo " 11) configure the RaSCSI Web Interface stand-alone"
+    echo " 12) enable or disable RaSCSI back-end authentication"
+    echo " 13) enable or disable RaSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 13) share the images dir over AppleShare (requires Netatalk)"
+    echo " 14) install or update RaSCSI Control Board UI (requires hardware)"
+    echo " 15) share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
@@ -1432,9 +1450,6 @@ while [ "$1" != "" ]; do
                 exit 1
             fi
             TOKEN=$VALUE
-            ;;
-        -s | --skip-token)
-            SKIP_TOKEN=1
             ;;
         -h | --headless)
             HEADLESS=1
