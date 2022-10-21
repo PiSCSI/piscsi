@@ -338,24 +338,24 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 
 		// AA if not found or internal error
 		if (!tracks[index]) {
-			if (cdb[6] == 0xaa) {
-				// Returns the final LBA+1 because it is AA
-				buf[0] = 0x00;
-				buf[1] = 0x0a;
-				buf[2] = (BYTE)tracks[0]->GetTrackNo();
-				buf[3] = (BYTE)last;
-				buf[6] = 0xaa;
-				uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
-				if (msf) {
-					LBAtoMSF(lba, &buf[8]);
-				} else {
-					SetInt16(buf, 10, lba);
-				}
-				return length;
+			if (cdb[6] != 0xaa) {
+				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 			}
 
-			// Otherwise, error
-			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			// Returns the final LBA+1 because it is AA
+			buf[0] = 0x00;
+			buf[1] = 0x0a;
+			buf[2] = (BYTE)tracks[0]->GetTrackNo();
+			buf[3] = (BYTE)last;
+			buf[6] = 0xaa;
+			uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
+			if (msf) {
+				LBAtoMSF(lba, &buf[8]);
+			} else {
+				SetInt16(buf, 10, lba);
+			}
+
+			return length;
 		}
 	}
 
