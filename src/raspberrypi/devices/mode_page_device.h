@@ -35,7 +35,6 @@ protected:
 		// Nothing to add by default
 	}
 
-
 private:
 
 	using super = PrimaryDevice;
