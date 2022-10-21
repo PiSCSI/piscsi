@@ -11,20 +11,24 @@
 
 #include "spdlog/spdlog.h"
 
-bool enable_logging;
+class Environment final : public ::testing::Environment
+{
+	spdlog::level::level_enum log_level;
+
+public:
+
+	explicit Environment(spdlog::level::level_enum level) : log_level(level) {}
+	~Environment() override = default;
+
+	void SetUp() override { spdlog::set_level(log_level); }
+};
 
 int main(int argc, char *[])
 {
-	// If any argument is provided log on trace level
-	enable_logging = argc > 1;
+	// If any argument is provided the log level is set to trace
+	testing::AddGlobalTestEnvironment(new Environment(argc > 1 ? spdlog::level::trace : spdlog::level::off));
 
 	testing::InitGoogleTest();
 
 	return RUN_ALL_TESTS();
-}
-
-void testing::Test::SetUp()
-{
-	// Re-configure logging before each test, because some tests change the log level
-	spdlog::set_level(enable_logging ? spdlog::level::trace : spdlog::level::off);
 }
