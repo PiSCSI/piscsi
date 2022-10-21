@@ -115,6 +115,21 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 		<< "Device must not be reserved anymore for unknown initiator";
 }
 
+TEST(PrimaryDeviceTest, DiscardReservation)
+{
+	NiceMock<MockAbstractController> controller(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
+
+	controller.AddDevice(device);
+
+	EXPECT_TRUE(device->Dispatch(scsi_command::eCmdReserve6));
+	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
+		<< "Device must be reserved for initiator ID 1";
+	device->DiscardReservation();
+	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
+		<< "Device must not be reserved anymore for initiator ID 1";
+}
+
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	MockAbstractController controller(0);
