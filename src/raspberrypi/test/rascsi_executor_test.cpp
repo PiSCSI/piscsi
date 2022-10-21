@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "spdlog/spdlog.h"
 #include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_util.h"
@@ -22,7 +23,17 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-TEST(RascsiExecutorTest, ProcessDeviceCmd)
+const extern bool enable_logging;
+
+// This test fixture is required in order to reset the log level changed by the log level tests
+class RascsiExecutorTest : public Test
+{
+	void TearDown() override {
+		spdlog::set_level(enable_logging ? spdlog::level::trace : spdlog::level::off);
+	}
+};
+
+TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 {
 	const int ID = 3;
 	const int LUN = 0;
@@ -138,7 +149,7 @@ TEST(RascsiExecutorTest, ProcessDeviceCmd)
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
 }
 
-TEST(RascsiExecutorTest, ProcessCmd)
+TEST_F(RascsiExecutorTest, ProcessCmd)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -205,7 +216,7 @@ TEST(RascsiExecutorTest, ProcessCmd)
 	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 }
 
-TEST(RascsiExecutorTest, SetLogLevel)
+TEST_F(RascsiExecutorTest, SetLogLevel)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -223,7 +234,7 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
-TEST(RascsiExecutorTest, Attach)
+TEST_F(RascsiExecutorTest, Attach)
 {
 	const int ID = 3;
 	const int LUN = 0;
@@ -308,7 +319,7 @@ TEST(RascsiExecutorTest, Attach)
 	controller_manager.DeleteAllControllers();
 }
 
-TEST(RascsiExecutorTest, Insert)
+TEST_F(RascsiExecutorTest, Insert)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -365,7 +376,7 @@ TEST(RascsiExecutorTest, Insert)
 	EXPECT_TRUE(result);
 }
 
-TEST(RascsiExecutorTest, Detach)
+TEST_F(RascsiExecutorTest, Detach)
 {
 	const int ID = 3;
 	const int LUN1 = 0;
@@ -394,7 +405,7 @@ TEST(RascsiExecutorTest, Detach)
 	EXPECT_FALSE(executor.Detach(context, d1, false));
 }
 
-TEST(RascsiExecutorTest, DetachAll)
+TEST_F(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
 
@@ -415,7 +426,7 @@ TEST(RascsiExecutorTest, DetachAll)
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 }
 
-TEST(RascsiExecutorTest, ShutDown)
+TEST_F(RascsiExecutorTest, ShutDown)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -432,7 +443,7 @@ TEST(RascsiExecutorTest, ShutDown)
 	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
 }
 
-TEST(RascsiExecutorTest, SetReservedIds)
+TEST_F(RascsiExecutorTest, SetReservedIds)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -473,7 +484,7 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_FALSE(error.empty());
 }
 
-TEST(RascsiExecutorTest, ValidateImageFile)
+TEST_F(RascsiExecutorTest, ValidateImageFile)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -492,7 +503,7 @@ TEST(RascsiExecutorTest, ValidateImageFile)
 	EXPECT_TRUE(full_path.empty());
 }
 
-TEST(RascsiExecutorTest, ValidateLunSetup)
+TEST_F(RascsiExecutorTest, ValidateLunSetup)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -517,7 +528,7 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	EXPECT_TRUE(error.empty());
 }
 
-TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
+TEST_F(RascsiExecutorTest, VerifyExistingIdAndLun)
 {
 	const int ID = 1;
 	const int LUN1 = 0;
@@ -538,7 +549,7 @@ TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
-TEST(RascsiExecutorTest, CreateDevice)
+TEST_F(RascsiExecutorTest, CreateDevice)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -557,7 +568,7 @@ TEST(RascsiExecutorTest, CreateDevice)
 	EXPECT_NE(nullptr, executor.CreateDevice(context, SCHS, 0, ""));
 }
 
-TEST(RascsiExecutorTest, SetSectorSize)
+TEST_F(RascsiExecutorTest, SetSectorSize)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -578,7 +589,7 @@ TEST(RascsiExecutorTest, SetSectorSize)
 	EXPECT_TRUE(executor.SetSectorSize(context, hd, 512));
 }
 
-TEST(RascsiExecutorTest, ValidateOperationAgainstDevice)
+TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -633,7 +644,7 @@ TEST(RascsiExecutorTest, ValidateOperationAgainstDevice)
 	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 }
 
-TEST(RascsiExecutorTest, ValidateIdAndLun)
+TEST_F(RascsiExecutorTest, ValidateIdAndLun)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -651,7 +662,7 @@ TEST(RascsiExecutorTest, ValidateIdAndLun)
 	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 31));
 }
 
-TEST(RascsiExecutorTest, SetProductData)
+TEST_F(RascsiExecutorTest, SetProductData)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
