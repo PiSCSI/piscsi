@@ -12,7 +12,7 @@
 #include "spdlog/spdlog.h"
 
 // Also used by the RascsiExecutor tests
-bool enable_logging;
+bool enable_logging; //NOSONAR Must be global in order to be shared with the tests
 
 class Environment final : public ::testing::Environment
 {
