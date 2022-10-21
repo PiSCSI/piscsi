@@ -59,6 +59,15 @@ TEST(ModePageDeviceTest, Page0)
 	EXPECT_EQ(1, device.AddModePages(cdb, buf, 0, 1, 255));
 }
 
+TEST(ModePageDeviceTest, AddVendorPage)
+{
+	map<int, vector<byte>> pages;
+	MockModePageDevice device;
+
+	device.AddVendorPage(pages, 0x3f, false);
+	EXPECT_TRUE(pages.empty()) << "There must not be any default vendor page";
+}
+
 TEST(ModePageDeviceTest, Dispatch)
 {
     MockAbstractController controller(0);

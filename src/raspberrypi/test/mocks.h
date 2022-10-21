@@ -230,6 +230,7 @@ class MockModePageDevice : public ModePageDevice
 {
 	FRIEND_TEST(ModePageDeviceTest, SupportsSaveParameters);
 	FRIEND_TEST(ModePageDeviceTest, AddModePages);
+	FRIEND_TEST(ModePageDeviceTest, AddVendorPage);
 
 public:
 
