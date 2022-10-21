@@ -35,3 +35,16 @@ TEST(ScsiCdTest, SetUpModePages)
 	EXPECT_EQ(16, pages[14].size());
 	EXPECT_EQ(30, pages[48].size());
 }
+
+TEST(ScsiCdTest, ReadToc)
+{
+	MockAbstractController controller(0);
+	const unordered_set<uint32_t> sector_sizes;
+	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
+
+	controller.AddDevice(cd);
+
+	EXPECT_THROW(cd->Dispatch(scsi_command::eCmdReadToc), scsi_exception) << "Drive is not ready";
+
+	// Further testing requires filesystem access
+}
