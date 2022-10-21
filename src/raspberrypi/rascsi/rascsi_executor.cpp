@@ -323,7 +323,8 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(id), to_string(lun));
 	}
 
-	if (storage_device != nullptr) {
+	// Remove SupportsFile as soon as Daynaport and bridge do not inherit from Disk anymore
+	if (storage_device != nullptr && storage_device->SupportsFile()) {
 		storage_device->ReserveFile(full_path, id, lun);
 	}
 

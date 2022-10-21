@@ -52,6 +52,9 @@ void StorageDevice::MediumChanged()
 
 void StorageDevice::ReserveFile(const string& file, int id, int lun) const
 {
+	assert(!file.empty());
+	assert(reserved_files.find(file) == reserved_files.end());
+
 	reserved_files[file] = make_pair(id, lun);
 }
 
