@@ -11,6 +11,7 @@
 
 #include "spdlog/spdlog.h"
 
+// Also used by the RascsiExecutor tests
 bool enable_logging;
 
 class Environment final : public ::testing::Environment
