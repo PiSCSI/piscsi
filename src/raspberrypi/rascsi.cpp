@@ -17,6 +17,7 @@
 #include "devices/device_factory.h"
 #include "devices/disk.h"
 #include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include "rascsi_exceptions.h"
@@ -96,8 +97,11 @@ void Banner(int argc, char* argv[])
 
 bool InitBus()
 {
+	// GPIOBUS creation
+	bus = GPIOBUS_Factory::Create();
+
 	// GPIO Initialization
-	if (!bus.Init()) {
+	if (!bus->Init()) {
 		return false;
 	}
 
@@ -602,11 +606,11 @@ int main(int argc, char* argv[])
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus.GetBSY()) {
+		if (bus->GetBSY()) {
 			const uint32_t now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-				bus.Acquire();
-				if (!bus.GetBSY()) {
+				bus->Acquire();
+				if (!bus->GetBSY()) {
 					break;
 				}
 			}
