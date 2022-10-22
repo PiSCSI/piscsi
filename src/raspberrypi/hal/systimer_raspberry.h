@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "systimer.h"
+#include <stdint.h>
 
 //===========================================================================
 //
@@ -23,7 +23,7 @@
 //===========================================================================
 class SysTimer_Raspberry : public PlatformSpecificTimer
 {
-public:
+  public:
     // Initialization
     void Init();
     // Get system timer low byte
@@ -35,7 +35,7 @@ public:
     // Sleep for N microseconds
     void SleepUsec(uint32_t usec);
 
-private:
+  private:
     // System timer address
     static volatile uint32_t *systaddr;
     // ARM timer address

@@ -123,25 +123,10 @@ using namespace std; // NOSONAR Not relevant for rascsi
 //
 //---------------------------------------------------------------------------
 
-#define ALL_SCSI_PINS \
-	((1 << PIN_DT0) | \
-	 (1 << PIN_DT1) | \
-	 (1 << PIN_DT2) | \
-	 (1 << PIN_DT3) | \
-	 (1 << PIN_DT4) | \
-	 (1 << PIN_DT5) | \
-	 (1 << PIN_DT6) | \
-	 (1 << PIN_DT7) | \
-	 (1 << PIN_DP) |  \
-	 (1 << PIN_ATN) | \
-	 (1 << PIN_RST) | \
-	 (1 << PIN_ACK) | \
-	 (1 << PIN_REQ) | \
-	 (1 << PIN_MSG) | \
-	 (1 << PIN_CD) |  \
-	 (1 << PIN_IO) |  \
-	 (1 << PIN_BSY) | \
-	 (1 << PIN_SEL))
+#define ALL_SCSI_PINS                                                                                      \
+    ((1 << PIN_DT0) | (1 << PIN_DT1) | (1 << PIN_DT2) | (1 << PIN_DT3) | (1 << PIN_DT4) | (1 << PIN_DT5) | \
+     (1 << PIN_DT6) | (1 << PIN_DT7) | (1 << PIN_DP) | (1 << PIN_ATN) | (1 << PIN_RST) | (1 << PIN_ACK) |  \
+     (1 << PIN_REQ) | (1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO) | (1 << PIN_BSY) | (1 << PIN_SEL))
 
 //---------------------------------------------------------------------------
 //
@@ -153,73 +138,67 @@ const static uint32_t IRPT_OFFSET = 0x0000B200;
 const static uint32_t ARMT_OFFSET = 0x0000B400;
 const static uint32_t PADS_OFFSET = 0x00100000;
 const static uint32_t GPIO_OFFSET = 0x00200000;
-const static uint32_t QA7_OFFSET = 0x01000000;
+const static uint32_t QA7_OFFSET  = 0x01000000;
 
-const static int GPIO_INPUT = 0;
-const static int GPIO_OUTPUT = 1;
-const static int GPIO_PULLNONE = 0;
-const static int GPIO_PULLDOWN = 1;
-const static int GPIO_PULLUP = 2;
-const static int GPIO_FSEL_0 = 0;
-const static int GPIO_FSEL_1 = 1;
-const static int GPIO_FSEL_2 = 2;
-const static int GPIO_FSEL_3 = 3;
-const static int GPIO_SET_0 = 7;
-const static int GPIO_CLR_0 = 10;
-const static int GPIO_LEV_0 = 13;
-const static int GPIO_EDS_0 = 16;
-const static int GPIO_REN_0 = 19;
-const static int GPIO_FEN_0 = 22;
-const static int GPIO_HEN_0 = 25;
-const static int GPIO_LEN_0 = 28;
-const static int GPIO_AREN_0 = 31;
-const static int GPIO_AFEN_0 = 34;
-const static int GPIO_PUD = 37;
-const static int GPIO_CLK_0 = 38;
+const static int GPIO_INPUT      = 0;
+const static int GPIO_OUTPUT     = 1;
+const static int GPIO_PULLNONE   = 0;
+const static int GPIO_PULLDOWN   = 1;
+const static int GPIO_PULLUP     = 2;
+const static int GPIO_FSEL_0     = 0;
+const static int GPIO_FSEL_1     = 1;
+const static int GPIO_FSEL_2     = 2;
+const static int GPIO_FSEL_3     = 3;
+const static int GPIO_SET_0      = 7;
+const static int GPIO_CLR_0      = 10;
+const static int GPIO_LEV_0      = 13;
+const static int GPIO_EDS_0      = 16;
+const static int GPIO_REN_0      = 19;
+const static int GPIO_FEN_0      = 22;
+const static int GPIO_HEN_0      = 25;
+const static int GPIO_LEN_0      = 28;
+const static int GPIO_AREN_0     = 31;
+const static int GPIO_AFEN_0     = 34;
+const static int GPIO_PUD        = 37;
+const static int GPIO_CLK_0      = 38;
 const static int GPIO_GPPINMUXSD = 52;
-const static int GPIO_PUPPDN0 = 57;
-const static int GPIO_PUPPDN1 = 58;
-const static int GPIO_PUPPDN3 = 59;
-const static int GPIO_PUPPDN4 = 60;
-const static int PAD_0_27 = 11;
-const static int SYST_CS = 0;
-const static int SYST_CLO = 1;
-const static int SYST_CHI = 2;
-const static int SYST_C0 = 3;
-const static int SYST_C1 = 4;
-const static int SYST_C2 = 5;
-const static int SYST_C3 = 6;
-const static int ARMT_LOAD = 0;
-const static int ARMT_VALUE = 1;
-const static int ARMT_CTRL = 2;
-const static int ARMT_CLRIRQ = 3;
-const static int ARMT_RAWIRQ = 4;
-const static int ARMT_MSKIRQ = 5;
-const static int ARMT_RELOAD = 6;
-const static int ARMT_PREDIV = 7;
-const static int ARMT_FREERUN = 8;
-const static int IRPT_PND_IRQ_B = 0;
-const static int IRPT_PND_IRQ_1 = 1;
-const static int IRPT_PND_IRQ_2 = 2;
-const static int IRPT_FIQ_CNTL = 3;
-const static int IRPT_ENB_IRQ_1 = 4;
-const static int IRPT_ENB_IRQ_2 = 5;
-const static int IRPT_ENB_IRQ_B = 6;
-const static int IRPT_DIS_IRQ_1 = 7;
-const static int IRPT_DIS_IRQ_2 = 8;
-const static int IRPT_DIS_IRQ_B = 9;
+const static int GPIO_PUPPDN0    = 57;
+const static int GPIO_PUPPDN1    = 58;
+const static int GPIO_PUPPDN3    = 59;
+const static int GPIO_PUPPDN4    = 60;
+const static int PAD_0_27        = 11;
+const static int SYST_CS         = 0;
+const static int SYST_CLO        = 1;
+const static int SYST_CHI        = 2;
+const static int SYST_C0         = 3;
+const static int SYST_C1         = 4;
+const static int SYST_C2         = 5;
+const static int SYST_C3         = 6;
+const static int ARMT_LOAD       = 0;
+const static int ARMT_VALUE      = 1;
+const static int ARMT_CTRL       = 2;
+const static int ARMT_CLRIRQ     = 3;
+const static int ARMT_RAWIRQ     = 4;
+const static int ARMT_MSKIRQ     = 5;
+const static int ARMT_RELOAD     = 6;
+const static int ARMT_PREDIV     = 7;
+const static int ARMT_FREERUN    = 8;
+const static int IRPT_PND_IRQ_B  = 0;
+const static int IRPT_PND_IRQ_1  = 1;
+const static int IRPT_PND_IRQ_2  = 2;
+const static int IRPT_FIQ_CNTL   = 3;
+const static int IRPT_ENB_IRQ_1  = 4;
+const static int IRPT_ENB_IRQ_2  = 5;
+const static int IRPT_ENB_IRQ_B  = 6;
+const static int IRPT_DIS_IRQ_1  = 7;
+const static int IRPT_DIS_IRQ_2  = 8;
+const static int IRPT_DIS_IRQ_B  = 9;
 const static int QA7_CORE0_TINTC = 16;
-const static int GPIO_IRQ = (32 + 20); // GPIO3
+const static int GPIO_IRQ        = (32 + 20); // GPIO3
 
-#define GPIO_INEDGE ((1 << PIN_BSY) | \
-					 (1 << PIN_SEL) | \
-					 (1 << PIN_ATN) | \
-					 (1 << PIN_ACK) | \
-					 (1 << PIN_RST))
+#define GPIO_INEDGE ((1 << PIN_BSY) | (1 << PIN_SEL) | (1 << PIN_ATN) | (1 << PIN_ACK) | (1 << PIN_RST))
 
-#define GPIO_MCI ((1 << PIN_MSG) | \
-				  (1 << PIN_CD) |  \
-				  (1 << PIN_IO))
+#define GPIO_MCI ((1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO))
 
 //---------------------------------------------------------------------------
 //
@@ -228,23 +207,23 @@ const static int GPIO_IRQ = (32 + 20); // GPIO3
 //---------------------------------------------------------------------------
 const static uint32_t ARM_GICD_BASE = 0xFF841000;
 const static uint32_t ARM_GICC_BASE = 0xFF842000;
-const static uint32_t ARM_GIC_END = 0xFF847FFF;
-const static int GICD_CTLR = 0x000;
-const static int GICD_IGROUPR0 = 0x020;
-const static int GICD_ISENABLER0 = 0x040;
-const static int GICD_ICENABLER0 = 0x060;
-const static int GICD_ISPENDR0 = 0x080;
-const static int GICD_ICPENDR0 = 0x0A0;
-const static int GICD_ISACTIVER0 = 0x0C0;
-const static int GICD_ICACTIVER0 = 0x0E0;
-const static int GICD_IPRIORITYR0 = 0x100;
-const static int GICD_ITARGETSR0 = 0x200;
-const static int GICD_ICFGR0 = 0x300;
-const static int GICD_SGIR = 0x3C0;
-const static int GICC_CTLR = 0x000;
-const static int GICC_PMR = 0x001;
-const static int GICC_IAR = 0x003;
-const static int GICC_EOIR = 0x004;
+const static uint32_t ARM_GIC_END   = 0xFF847FFF;
+const static int GICD_CTLR          = 0x000;
+const static int GICD_IGROUPR0      = 0x020;
+const static int GICD_ISENABLER0    = 0x040;
+const static int GICD_ICENABLER0    = 0x060;
+const static int GICD_ISPENDR0      = 0x080;
+const static int GICD_ICPENDR0      = 0x0A0;
+const static int GICD_ISACTIVER0    = 0x0C0;
+const static int GICD_ICACTIVER0    = 0x0E0;
+const static int GICD_IPRIORITYR0   = 0x100;
+const static int GICD_ITARGETSR0    = 0x200;
+const static int GICD_ICFGR0        = 0x300;
+const static int GICD_SGIR          = 0x3C0;
+const static int GICC_CTLR          = 0x000;
+const static int GICC_PMR           = 0x001;
+const static int GICC_IAR           = 0x003;
+const static int GICC_EOIR          = 0x004;
 
 //---------------------------------------------------------------------------
 //
@@ -252,7 +231,7 @@ const static int GICC_EOIR = 0x004;
 //
 //---------------------------------------------------------------------------
 const static int GIC_IRQLOCAL0 = (16 + 14);
-const static int GIC_GPIO_IRQ = (32 + 116); // GPIO3
+const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
 
 //---------------------------------------------------------------------------
 //
@@ -272,7 +251,7 @@ const static int GIC_GPIO_IRQ = (32 + 116); // GPIO3
 //---------------------------------------------------------------------------
 #define IN GPIO_INPUT
 #define OUT GPIO_OUTPUT
-const static int ON = 1;
+const static int ON  = 1;
 const static int OFF = 0;
 
 //---------------------------------------------------------------------------
@@ -282,11 +261,11 @@ const static int OFF = 0;
 //---------------------------------------------------------------------------
 class GPIOBUS : public BUS
 {
-public:
+  public:
     static GPIOBUS *create();
 
     // Basic Functions
-    GPIOBUS() = default;
+    GPIOBUS()           = default;
     ~GPIOBUS() override = default;
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
@@ -372,7 +351,7 @@ public:
     // Clear SEL signal event
 #endif // USE_SEL_EVENT_ENABLE
 
-protected:
+  protected:
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
@@ -444,7 +423,7 @@ protected:
     struct gpioevent_request selevreq = {}; // SEL signal event request
 
     int epfd; // epoll file descriptor
-#endif		  // USE_SEL_EVENT_ENABLE
+#endif        // USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table

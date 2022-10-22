@@ -10,16 +10,16 @@
 //
 //---------------------------------------------------------------------------
 
-#include <sys/mman.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
-#include "os.h"
 #include "hal/gpiobus.h"
-#include "hal/systimer.h"
-#include "hal/sbc_version.h"
 #include "config.h"
+#include "hal/sbc_version.h"
+#include "hal/systimer.h"
 #include "log.h"
+#include "os.h"
 #include <array>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
@@ -43,28 +43,28 @@
 //---------------------------------------------------------------------------
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
-const static int SCSI_DELAY_ARBITRATION_DELAY_NS = 2400;
-const static int SCSI_DELAY_ASSERTION_PERIOD_NS = 90;
-const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS = 800;
-const static int SCSI_DELAY_BUS_FREE_DELAY_NS = 800;
-const static int SCSI_DELAY_BUS_SET_DELAY_NS = 1800;
-const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS = 400;
-const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS = 10;
-const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS = 400;
-const static int SCSI_DELAY_DESKEW_DELAY_NS = 45;
-const static int SCSI_DELAY_DISCONNECTION_DELAY_US = 200;
-const static int SCSI_DELAY_HOLD_TIME_NS = 45;
-const static int SCSI_DELAY_NEGATION_PERIOD_NS = 90;
-const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S = 10;		 // (recommended)
-const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US = 250 * 1000; // (recommended)
-const static int SCSI_DELAY_RESET_HOLD_TIME_US = 25;
-const static int SCSI_DELAY_SELECTION_ABORT_TIME_US = 200;
-const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS = 250 * 1000; // (recommended)
-const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS = 30;
-const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS = 5;
-const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS = 20;
-const static int SCSI_DELAY_FAST_HOLD_TIME_NS = 10;
-const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS = 30;
+const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
+const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
+const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
+const static int SCSI_DELAY_BUS_FREE_DELAY_NS            = 800;
+const static int SCSI_DELAY_BUS_SET_DELAY_NS             = 1800;
+const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS          = 400;
+const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS          = 10;
+const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS        = 400;
+const static int SCSI_DELAY_DESKEW_DELAY_NS              = 45;
+const static int SCSI_DELAY_DISCONNECTION_DELAY_US       = 200;
+const static int SCSI_DELAY_HOLD_TIME_NS                 = 45;
+const static int SCSI_DELAY_NEGATION_PERIOD_NS           = 90;
+const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S = 10;         // (recommended)
+const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US   = 250 * 1000; // (recommended)
+const static int SCSI_DELAY_RESET_HOLD_TIME_US           = 25;
+const static int SCSI_DELAY_SELECTION_ABORT_TIME_US      = 200;
+const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS   = 250 * 1000; // (recommended)
+const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS     = 30;
+const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS     = 5;
+const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
+const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
+const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
@@ -669,7 +669,8 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
+                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
+                         (int)delay_after_bytes)
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -712,7 +713,8 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
-                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
+                LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US,
+                         (int)delay_after_bytes)
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -807,13 +809,9 @@ void GPIOBUS::ClearSelectEvent()
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS::SignalTable = {
-    PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3,
-    PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP,
-    PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK,
-    PIN_BSY, PIN_MSG, PIN_CD, PIN_IO, PIN_REQ,
-    -1
-};
+const array<int, 19> GPIOBUS::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
+                                             PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
+                                             PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
 
 //---------------------------------------------------------------------------
 //
@@ -824,22 +822,19 @@ void GPIOBUS::MakeTable(void)
 {
     GPIO_FUNCTION_TRACE
 
-    const array<int, 9> pintbl = {
-        PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
-        PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
-    };
+    const array<int, 9> pintbl = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP};
 
     array<bool, 256> tblParity;
 
     // Create parity table
     for (uint32_t i = 0; i < 0x100; i++) {
-        uint32_t bits = i;
+        uint32_t bits   = i;
         uint32_t parity = 0;
         for (int j = 0; j < 8; j++) {
             parity ^= bits & 1;
             bits >>= 1;
         }
-        parity = ~parity;
+        parity       = ~parity;
         tblParity[i] = parity & 1;
     }
 

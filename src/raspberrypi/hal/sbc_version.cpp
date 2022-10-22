@@ -11,21 +11,21 @@
 
 #include "sbc_version.h"
 #include "log.h"
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 SBC_Version::sbc_version_type SBC_Version::m_sbc_version = SBC_Version::sbc_unknown;
 
-const std::string SBC_Version::m_str_raspberry_pi_1 = "Raspberry Pi 1";
-const std::string SBC_Version::m_str_raspberry_pi_2_3 = "Raspberry Pi 2/3";
-const std::string SBC_Version::m_str_raspberry_pi_4 = "Raspberry Pi 4";
+const std::string SBC_Version::m_str_raspberry_pi_1    = "Raspberry Pi 1";
+const std::string SBC_Version::m_str_raspberry_pi_2_3  = "Raspberry Pi 2/3";
+const std::string SBC_Version::m_str_raspberry_pi_4    = "Raspberry Pi 4";
 const std::string SBC_Version::m_str_bananapi_m2_berry = "Banana Pi M2 Berry/Ultra";
-const std::string SBC_Version::m_str_bananapi_m2_zero = "Banana Pi M2 Zero";
-const std::string SBC_Version::m_str_bananapi_m2_plus = "Banana Pi BPI-M2-Plus H3";
-const std::string SBC_Version::m_str_bananapi_m3 = "Banana Pi M3";
-const std::string SBC_Version::m_str_bananapi_m4 = "Banana Pi M4";
-const std::string SBC_Version::m_str_unknown_sbc = "Unknown SBC";
+const std::string SBC_Version::m_str_bananapi_m2_zero  = "Banana Pi M2 Zero";
+const std::string SBC_Version::m_str_bananapi_m2_plus  = "Banana Pi BPI-M2-Plus H3";
+const std::string SBC_Version::m_str_bananapi_m3       = "Banana Pi M3";
+const std::string SBC_Version::m_str_bananapi_m4       = "Banana Pi M4";
+const std::string SBC_Version::m_str_unknown_sbc       = "Unknown SBC";
 
 // The strings in this table should align with the 'model' embedded
 // in the device tree. This can be aquired by running:
@@ -168,8 +168,7 @@ DWORD SBC_Version::GetDeviceTreeRanges(const char *filename, DWORD offset)
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
         if (BYTE buf[4]; fread(buf, 1, sizeof buf, fp) == sizeof buf) {
-            address =
-                buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
+            address = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
         }
         fclose(fp);
     }
@@ -197,8 +196,7 @@ DWORD SBC_Version::GetPeripheralAddress(void)
     size_t len = sizeof(buf);
     DWORD address;
 
-    if (sysctlbyname("hw.model", buf, &len, NULL, 0) ||
-            strstr(buf, "ARM1176JZ-S") != buf) {
+    if (sysctlbyname("hw.model", buf, &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf) {
         // Failed to get CPU model || Not BCM2835
         // use the address of BCM283[67]
         address = 0x3f000000;

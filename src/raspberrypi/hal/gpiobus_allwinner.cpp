@@ -12,12 +12,12 @@
 
 #include <sys/mman.h>
 
-#include "os.h"
+#include "config.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_allwinner.h"
 #include "hal/systimer.h"
-#include "config.h"
 #include "log.h"
+#include "os.h"
 // #include "wiringPi.h"
 
 extern int wiringPiMode;
@@ -336,7 +336,8 @@ BYTE GPIOBUS_Allwinner::GetDAT()
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
     return 0;
-    // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0), GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
+    // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0),
+    // GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
     // // TODO: This is crazy inefficient...
     // DWORD data =
     //     ((GetSignal(PIN_DT0) ? 0x01: 0x00)<< 0) |
@@ -375,9 +376,7 @@ void GPIOBUS_Allwinner::SetDAT(BYTE dat)
 //	Create work table
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Allwinner::MakeTable(void)
-{
-}
+void GPIOBUS_Allwinner::MakeTable(void) {}
 
 //---------------------------------------------------------------------------
 //

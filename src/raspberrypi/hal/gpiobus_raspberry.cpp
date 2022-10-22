@@ -12,16 +12,16 @@
 
 #include <sys/mman.h>
 
-#include "os.h"
+#include "config.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_raspberry.h"
 #include "hal/systimer.h"
-#include <sys/epoll.h>
-#include "config.h"
 #include "log.h"
+#include "os.h"
 #include <string.h>
-#include <sys/mman.h>
+#include <sys/epoll.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/time.h>
 
 #ifdef __linux__
@@ -65,8 +65,7 @@ uint32_t bcm_host_get_peripheral_address()
     size_t len = buf.size();
     DWORD address;
 
-    if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) ||
-            strstr(buf, "ARM1176JZ-S") != buf.data()) {
+    if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf.data()) {
         // Failed to get CPU model || Not BCM2835
         // use the address of BCM283[67]
         address = 0x3f000000;
@@ -151,8 +150,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     LOGTRACE("%s Mapping GIC Memory....", __PRETTY_FUNCTION__);
     // Map GIC memory
     if (rpitype == 4) {
-        map = mmap(NULL, 8192,
-                   PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
+        map = mmap(NULL, 8192, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
         if (map == MAP_FAILED) {
             close(fd);
             return false;
@@ -231,10 +229,10 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Event request setting
     LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, PIN_SEL);
     strcpy(selevreq.consumer_label, "RaSCSI");
-    selevreq.lineoffset = PIN_SEL;
+    selevreq.lineoffset  = PIN_SEL;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
-    selevreq.eventflags = GPIOEVENT_REQUEST_FALLING_EDGE;
+    selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
     LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_FALLING_EDGE", __PRETTY_FUNCTION__);
 #else
     selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
@@ -262,7 +260,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         return false;
     }
     memset(&ev, 0, sizeof(ev));
-    ev.events = EPOLLIN | EPOLLPRI;
+    ev.events  = EPOLLIN | EPOLLPRI;
     ev.data.fd = selevreq.fd;
     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 #else
@@ -287,12 +285,12 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         // Route all interupts to core 0
         for (i = 0; i < 8; i++) {
             gicd[GICD_ICENABLER0 + i] = 0xffffffff;
-            gicd[GICD_ICPENDR0 + i] = 0xffffffff;
+            gicd[GICD_ICPENDR0 + i]   = 0xffffffff;
             gicd[GICD_ICACTIVER0 + i] = 0xffffffff;
         }
         for (i = 0; i < 64; i++) {
             gicd[GICD_IPRIORITYR0 + i] = 0xa0a0a0a0;
-            gicd[GICD_ITARGETSR0 + i] = 0x01010101;
+            gicd[GICD_ITARGETSR0 + i]  = 0x01010101;
         }
 
         // Set all interrupts as level triggers
@@ -304,12 +302,11 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
         gicd[GICD_CTLR] = 1;
 
         // Enable CPU interface for core 0
-        gicc[GICC_PMR] = 0xf0;
+        gicc[GICC_PMR]  = 0xf0;
         gicc[GICC_CTLR] = 1;
 
         // Enable interrupts
-        gicd[GICD_ISENABLER0 + (GIC_GPIO_IRQ / 32)] =
-            1 << (GIC_GPIO_IRQ % 32);
+        gicd[GICD_ISENABLER0 + (GIC_GPIO_IRQ / 32)] = 1 << (GIC_GPIO_IRQ % 32);
     } else {
         // Enable interrupts
         irpctl[IRPT_ENB_IRQ_2] = (1 << (GPIO_IRQ % 32));
@@ -447,7 +444,7 @@ void GPIOBUS_Raspberry::Reset()
     }
 
     // Initialize all signals
-    signals = 0;
+    signals          = 0;
 #endif // ifdef __x86_64__ || __X86__
 }
 
@@ -460,15 +457,10 @@ BYTE GPIOBUS_Raspberry::GetDAT()
 {
     GPIO_FUNCTION_TRACE
     uint32_t data = Acquire();
-    data =
-        ((data >> (PIN_DT0 - 0)) & (1 << 0)) |
-        ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-        ((data >> (PIN_DT2 - 2)) & (1 << 2)) |
-        ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-        ((data >> (PIN_DT4 - 4)) & (1 << 4)) |
-        ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-        ((data >> (PIN_DT6 - 6)) & (1 << 6)) |
-        ((data >> (PIN_DT7 - 7)) & (1 << 7));
+    data          = ((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
+           ((data >> (PIN_DT2 - 2)) & (1 << 2)) | ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
+           ((data >> (PIN_DT4 - 4)) & (1 << 4)) | ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
+           ((data >> (PIN_DT6 - 6)) & (1 << 6)) | ((data >> (PIN_DT7 - 7)) & (1 << 7));
     return (BYTE)data;
 }
 
@@ -486,7 +478,7 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
     fsel &= tblDatMsk[0][dat];
     fsel |= tblDatSet[0][dat];
     if (fsel != gpfsel[0]) {
-        gpfsel[0] = fsel;
+        gpfsel[0]         = fsel;
         gpio[GPIO_FSEL_0] = fsel;
     }
 
@@ -494,7 +486,7 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
     fsel &= tblDatMsk[1][dat];
     fsel |= tblDatSet[1][dat];
     if (fsel != gpfsel[1]) {
-        gpfsel[1] = fsel;
+        gpfsel[1]         = fsel;
         gpio[GPIO_FSEL_1] = fsel;
     }
 
@@ -502,7 +494,7 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
     fsel &= tblDatMsk[2][dat];
     fsel |= tblDatSet[2][dat];
     if (fsel != gpfsel[2]) {
-        gpfsel[2] = fsel;
+        gpfsel[2]         = fsel;
         gpio[GPIO_FSEL_2] = fsel;
     }
 #else
@@ -520,22 +512,19 @@ void GPIOBUS_Raspberry::MakeTable(void)
 {
     GPIO_FUNCTION_TRACE
 
-    const array<int, 9> pintbl = {
-        PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
-        PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
-    };
+    const array<int, 9> pintbl = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP};
 
     array<bool, 256> tblParity;
 
     // Create parity table
     for (uint32_t i = 0; i < 0x100; i++) {
-        uint32_t bits = i;
+        uint32_t bits   = i;
         uint32_t parity = 0;
         for (int j = 0; j < 8; j++) {
             parity ^= bits & 1;
             bits >>= 1;
         }
-        parity = ~parity;
+        parity       = ~parity;
         tblParity[i] = parity & 1;
     }
 
@@ -630,14 +619,14 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     }
 #endif // SIGNAL_CONTROL_MODE
 
-    int index = pin / 10;
-    int shift = (pin % 10) * 3;
+    int index  = pin / 10;
+    int shift  = (pin % 10) * 3;
     DWORD data = gpfsel[index];
     data &= ~(0x7 << shift);
     if (mode == OUT) {
         data |= (1 << shift);
     }
-    gpio[index] = data;
+    gpio[index]   = data;
     gpfsel[index] = data;
 }
 
@@ -659,15 +648,15 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
-    int index = pin / 10;
-    int shift = (pin % 10) * 3;
+    int index  = pin / 10;
+    int shift  = (pin % 10) * 3;
     DWORD data = gpfsel[index];
     if (ast) {
         data |= (1 << shift);
     } else {
         data &= ~(0x7 << shift);
     }
-    gpio[index] = data;
+    gpio[index]   = data;
     gpfsel[index] = data;
 #elif SIGNAL_CONTROL_MODE == 1
     if (ast) {
@@ -722,20 +711,20 @@ void GPIOBUS_Raspberry::DisableIRQ()
 #ifdef __linux
     if (rpitype == 4) {
         // RPI4 is disabled by GICC
-        giccpmr = gicc[GICC_PMR];
+        giccpmr        = gicc[GICC_PMR];
         gicc[GICC_PMR] = 0;
     } else if (rpitype == 2) {
         // RPI2,3 disable core timer IRQ
-        tintcore = sched_getcpu() + QA7_CORE0_TINTC;
-        tintctl = qa7regs[tintcore];
+        tintcore          = sched_getcpu() + QA7_CORE0_TINTC;
+        tintctl           = qa7regs[tintcore];
         qa7regs[tintcore] = 0;
     } else {
         // Stop system timer interrupt with interrupt controller
-        irptenb = irpctl[IRPT_ENB_IRQ_1];
+        irptenb                = irpctl[IRPT_ENB_IRQ_1];
         irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
     }
 #else
-    (void)
+        (void)
     0;
 #endif
 }
@@ -767,8 +756,8 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
         return;
     }
 
-    int index = pin / 10;
-    DWORD mask = ~(0x7 << ((pin % 10) * 3));
+    int index   = pin / 10;
+    DWORD mask  = ~(0x7 << ((pin % 10) * 3));
     gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
 }
 
@@ -803,7 +792,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         }
 
         pin &= 0x1f;
-        int shift = (pin & 0xf) << 1;
+        int shift  = (pin & 0xf) << 1;
         DWORD bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
         bits &= ~(3 << shift);
         bits |= (pull << shift);
@@ -814,7 +803,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         SysTimer::SleepUsec(2);
         gpio[GPIO_CLK_0] = 0x1 << pin;
         SysTimer::SleepUsec(2);
-        gpio[GPIO_PUD] = 0;
+        gpio[GPIO_PUD]   = 0;
         gpio[GPIO_CLK_0] = 0;
     }
 }
@@ -845,7 +834,7 @@ void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::DrvConfig(DWORD drive)
 {
-    DWORD data = pads[PAD_0_27];
+    DWORD data     = pads[PAD_0_27];
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 

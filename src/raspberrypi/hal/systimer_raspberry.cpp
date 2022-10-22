@@ -12,13 +12,13 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer_raspberry.h"
-#include <sys/mman.h>
-#include <sys/ioctl.h>
 #include <memory>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 
-#include "os.h"
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
+#include "os.h"
 
 #include "config.h"
 #include "log.h"
@@ -27,7 +27,7 @@
 volatile uint32_t *SysTimer_Raspberry::systaddr = 0;
 // ARM timer address
 volatile uint32_t *SysTimer_Raspberry::armtaddr = 0;
-volatile uint32_t SysTimer_Raspberry::corefreq = 0;
+volatile uint32_t SysTimer_Raspberry::corefreq  = 0;
 
 //---------------------------------------------------------------------------
 //

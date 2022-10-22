@@ -21,7 +21,7 @@
 
 class PlatformSpecificTimer
 {
-public:
+  public:
     virtual void Init() = 0;
     // Get system timer low byte
     virtual uint32_t GetTimerLow() = 0;
@@ -40,7 +40,7 @@ public:
 //===========================================================================
 class SysTimer
 {
-public:
+  public:
     static void Init();
     // Get system timer low byte
     static uint32_t GetTimerLow();
@@ -51,7 +51,7 @@ public:
     // Sleep for N microseconds
     static void SleepUsec(uint32_t usec);
 
-private:
+  private:
     static bool initialized;
     static bool is_allwinnner;
     static bool is_raspberry;

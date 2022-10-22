@@ -19,6 +19,6 @@ using namespace std;
 
 class GPIOBUS_Factory
 {
-public:
+  public:
     static unique_ptr<GPIOBUS> Create();
 };

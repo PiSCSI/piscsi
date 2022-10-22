@@ -11,8 +11,8 @@
 
 #pragma once
 #include "os.h"
-#include <string>
 #include <map>
+#include <string>
 
 //===========================================================================
 //
@@ -21,7 +21,7 @@
 //===========================================================================
 class SBC_Version
 {
-public:
+  public:
     // Type of Single Board Computer
     enum sbc_version_type : uint8_t {
         sbc_unknown = 0,
@@ -46,7 +46,7 @@ public:
 
     static DWORD GetPeripheralAddress();
 
-private:
+  private:
     static sbc_version_type m_sbc_version;
 
     static const std::string m_str_raspberry_pi_1;

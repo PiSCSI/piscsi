@@ -10,9 +10,9 @@
 //---------------------------------------------------------------------------
 #pragma once
 
+#include "systimer.h"
 #include <stdint.h>
 #include <string>
-#include "systimer.h"
 
 //===========================================================================
 //
@@ -21,7 +21,7 @@
 //===========================================================================
 class SysTimer_AllWinner : public PlatformSpecificTimer
 {
-public:
+  public:
     // Initialization
     void Init() override;
     // Get system timer low byte
@@ -33,7 +33,7 @@ public:
     // Sleep for N microseconds
     void SleepUsec(uint32_t usec) override;
 
-private:
+  private:
     void enable_hs_timer();
     void disable_hs_timer();
 
@@ -70,15 +70,15 @@ private:
     static const uint32_t HS_TMR_INTERUPT_ENB = (1 << 0);
 
     /* Constants for the HS Timer Control Register (section 4.9.4.3) */
-    static const uint32_t HS_TMR_EN = (1 << 0);
-    static const uint32_t HS_TMR_RELOAD = (1 << 1);
-    static const uint32_t HS_TMR_CLK_PRE_SCALE_1 = (0 << 4);
-    static const uint32_t HS_TMR_CLK_PRE_SCALE_2 = (1 << 4);
-    static const uint32_t HS_TMR_CLK_PRE_SCALE_4 = (2 << 4);
-    static const uint32_t HS_TMR_CLK_PRE_SCALE_8 = (3 << 4);
+    static const uint32_t HS_TMR_EN               = (1 << 0);
+    static const uint32_t HS_TMR_RELOAD           = (1 << 1);
+    static const uint32_t HS_TMR_CLK_PRE_SCALE_1  = (0 << 4);
+    static const uint32_t HS_TMR_CLK_PRE_SCALE_2  = (1 << 4);
+    static const uint32_t HS_TMR_CLK_PRE_SCALE_4  = (2 << 4);
+    static const uint32_t HS_TMR_CLK_PRE_SCALE_8  = (3 << 4);
     static const uint32_t HS_TMR_CLK_PRE_SCALE_16 = (4 << 4);
-    static const uint32_t HS_TMR_MODE_SINGLE = (1 << 7);
-    static const uint32_t HS_TMR_TEST_MODE = (1 << 31);
+    static const uint32_t HS_TMR_MODE_SINGLE      = (1 << 7);
+    static const uint32_t HS_TMR_TEST_MODE        = (1 << 31);
 
     struct sun8i_hsitimer_registers *hsitimer_regs;
 
@@ -96,7 +96,7 @@ private:
 
     /* Bit associated with the HS Timer */
     static const uint32_t BUS_CLK_GATING_REG0_HSTMR = 19;
-    static const uint32_t BUS_SOFT_RST_REG0_HSTMR = 19;
+    static const uint32_t BUS_SOFT_RST_REG0_HSTMR   = 19;
 
     struct sun8i_sysbus_registers *sysbus_regs;
 };

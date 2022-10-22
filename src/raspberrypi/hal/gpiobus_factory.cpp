@@ -10,8 +10,8 @@
 
 #include <memory>
 
-#include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_allwinner.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_raspberry.h"
 #include "hal/sbc_version.h"
 #include "log.h"

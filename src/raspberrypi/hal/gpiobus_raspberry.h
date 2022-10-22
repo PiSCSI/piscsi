@@ -12,9 +12,9 @@
 #pragma once
 
 #include "config.h"
-#include "scsi.h"
 #include "hal/gpiobus.h"
 #include "log.h"
+#include "scsi.h"
 
 //---------------------------------------------------------------------------
 //
@@ -23,9 +23,9 @@
 //---------------------------------------------------------------------------
 class GPIOBUS_Raspberry final : public GPIOBUS
 {
-public:
+  public:
     // Basic Functions
-    GPIOBUS_Raspberry() = default;
+    GPIOBUS_Raspberry()  = default;
     ~GPIOBUS_Raspberry() = default;
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
@@ -46,7 +46,7 @@ public:
     // Get DAT signal
     void SetDAT(BYTE dat) override;
     // Set DAT signal
-protected:
+  protected:
     // SCSI I/O signal control
     void MakeTable();
     // Create work data
