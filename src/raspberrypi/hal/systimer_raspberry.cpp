@@ -55,6 +55,7 @@ void SysTimer_Raspberry::Init()
 		close(fd);
 		return;
 	}
+	close(fd);
 
 	// RPI Mailbox property interface
 	// Get max clock rate
