@@ -336,10 +336,16 @@ function enableRaScsiService() {
 
 # Modifies and installs the rascsi-web service
 function installWebInterfaceService() {
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
-    echo "$TOKEN"
+
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
 	# Make the service file readable by root only, to protect the token string
@@ -932,6 +938,12 @@ function installMacproxy {
 
 # updates configuration files and installs packages needed for the OLED screen script
 function installRaScsiScreen() {
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
     echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
     echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
     echo ""
@@ -960,16 +972,6 @@ function installRaScsiScreen() {
     else
         echo "Proceeding with 128x32 pixel resolution."
         SCREEN_HEIGHT="32"
-    fi
-
-    if [ -z "$TOKEN" ]; then
-        echo ""
-        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
-            read -r TOKEN
-        fi
     fi
 
     stopRaScsiScreen
@@ -1024,6 +1026,12 @@ function installRaScsiScreen() {
 
 # updates configuration files and installs packages needed for the CtrlBoard script
 function installRaScsiCtrlBoard() {
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
     echo "IMPORTANT: This configuration requires a RaSCSI Control Board connected to your RaSCSI board."
     echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/RaSCSI-Control-Board"
     echo ""
@@ -1038,16 +1046,6 @@ function installRaScsiCtrlBoard() {
     else
         echo "Proceeding with 180 degrees rotation."
         ROTATION="180"
-    fi
-
-    if [ -z "$TOKEN" ]; then
-        echo ""
-        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
-            read -r TOKEN
-        fi
     fi
 
     stopRaScsiCtrlBoard
