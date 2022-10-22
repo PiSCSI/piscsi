@@ -22,7 +22,7 @@ USER pi
 COPY --chown=pi:pi . .
 
 # Standalone RaSCSI web UI
-RUN ./easyinstall.sh --run_choice=11 --skip-token
+RUN ./easyinstall.sh --run_choice=11
 
 # Wired network bridge
 RUN ./easyinstall.sh --run_choice=6 --headless
