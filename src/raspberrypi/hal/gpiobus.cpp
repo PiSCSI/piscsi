@@ -79,7 +79,7 @@ using namespace std;
 // Nothing SBC hardware specific should be done in this function
 bool GPIOBUS::Init(mode_e mode)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	GPIO_FUNCTION_TRACE
 	// Save operation mode
 	actmode = mode;
 	return true;
@@ -122,6 +122,7 @@ void GPIOBUS::Cleanup()
 
 void GPIOBUS::Reset()
 {
+GPIO_FUNCTION_TRACE
 #if defined(__x86_64__) || defined(__X86__)
 	return;
 #else
@@ -208,16 +209,19 @@ void GPIOBUS::Reset()
 
 void GPIOBUS::SetENB(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
 
 bool GPIOBUS::GetBSY() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_BSY);
 }
 
 void GPIOBUS::SetBSY(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
 
@@ -252,11 +256,13 @@ void GPIOBUS::SetBSY(bool ast)
 
 bool GPIOBUS::GetSEL() const
 {
+	GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_SEL);
 }
 
 void GPIOBUS::SetSEL(bool ast)
 {
+	GPIO_FUNCTION_TRACE
 	if (actmode == mode_e::INITIATOR && ast) {
 		// Turn on ACTIVE signal
 		SetControl(PIN_ACT, ACT_ON);
@@ -268,66 +274,79 @@ void GPIOBUS::SetSEL(bool ast)
 
 bool GPIOBUS::GetATN() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_ATN);
 }
 
 void GPIOBUS::SetATN(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_ATN, ast);
 }
 
 bool GPIOBUS::GetACK() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_ACK);
 }
 
 void GPIOBUS::SetACK(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_ACK, ast);
 }
 
 bool GPIOBUS::GetACT() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_ACT);
 }
 
 void GPIOBUS::SetACT(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_ACT, ast);
 }
 
 bool GPIOBUS::GetRST() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_RST);
 }
 
 void GPIOBUS::SetRST(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_RST, ast);
 }
 
 bool GPIOBUS::GetMSG() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_MSG);
 }
 
 void GPIOBUS::SetMSG(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_MSG, ast);
 }
 
 bool GPIOBUS::GetCD() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_CD);
 }
 
 void GPIOBUS::SetCD(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_CD, ast);
 }
 
 bool GPIOBUS::GetIO()
 {
+GPIO_FUNCTION_TRACE
 	bool ast = GetSignal(PIN_IO);
 
 	if (actmode == mode_e::INITIATOR) {
@@ -362,6 +381,7 @@ bool GPIOBUS::GetIO()
 
 void GPIOBUS::SetIO(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_IO, ast);
 
 	if (actmode == mode_e::TARGET) {
@@ -395,16 +415,19 @@ void GPIOBUS::SetIO(bool ast)
 
 bool GPIOBUS::GetREQ() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_REQ);
 }
 
 void GPIOBUS::SetREQ(bool ast)
 {
+GPIO_FUNCTION_TRACE
 	SetSignal(PIN_REQ, ast);
 }
 
 bool GPIOBUS::GetDP() const
 {
+GPIO_FUNCTION_TRACE
 	return GetSignal(PIN_DP);
 }
 
@@ -415,6 +438,7 @@ bool GPIOBUS::GetDP() const
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
+GPIO_FUNCTION_TRACE
 	// Only works in TARGET mode
 	if (actmode != mode_e::TARGET) {
 		return 0;
@@ -537,6 +561,8 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 {
+GPIO_FUNCTION_TRACE
+
 	int i;
 
 	// Disable IRQs
@@ -637,6 +663,8 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 {
+	GPIO_FUNCTION_TRACE
+
 	int i;
 
 	// Disable IRQs
@@ -749,22 +777,20 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 //---------------------------------------------------------------------------
 bool GPIOBUS::PollSelectEvent()
 {
+	GPIO_FUNCTION_TRACE
 	errno = 0;
 
-	LOGTRACE("%s starting epoll_wait", __PRETTY_FUNCTION__)
 	if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
 		LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
-		LOGERROR("[%08X] %s", errno, strerror(errno))
+		LOGWARN("[%08X] %s", errno, strerror(errno))
 		return false;
 	}
-	LOGTRACE("%s epoll_wait completed", __PRETTY_FUNCTION__)
 
 	if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
 		LOGWARN("%s read failed", __PRETTY_FUNCTION__)
-		LOGERROR("[%08X] %s", errno, strerror(errno))
+		LOGWARN("[%08X] %s", errno, strerror(errno))
         	return false;
 	}
-	LOGTRACE("%s read completed", __PRETTY_FUNCTION__)
 
 	return true;
 }
@@ -776,7 +802,7 @@ bool GPIOBUS::PollSelectEvent()
 //---------------------------------------------------------------------------
 void GPIOBUS::ClearSelectEvent()
 {
-		LOGTRACE("%s", __PRETTY_FUNCTION__)
+	GPIO_FUNCTION_TRACE
 }
 #endif	// USE_SEL_EVENT_ENABLE
 
@@ -800,6 +826,8 @@ const array<int, 19> GPIOBUS::SignalTable = {
 //---------------------------------------------------------------------------
 void GPIOBUS::MakeTable(void)
 {
+	GPIO_FUNCTION_TRACE
+	
 	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
 		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
@@ -895,6 +923,8 @@ void GPIOBUS::MakeTable(void)
 //---------------------------------------------------------------------------
 bool GPIOBUS::WaitSignal(int pin, int ast)
 {
+	GPIO_FUNCTION_TRACE
+
 	// Get current time
 	uint32_t now = SysTimer::GetTimerLow();
 
@@ -926,6 +956,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 //---------------------------------------------------------------------------
 BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
+	GPIO_FUNCTION_TRACE
 	// Selection Phase
 	if (GetPinRaw(raw_data, PIN_SEL)) {
 		if(GetPinRaw(raw_data, PIN_IO)) {
@@ -953,6 +984,8 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::GetCommandByteCount(BYTE opcode) {
+	GPIO_FUNCTION_TRACE
+
 	if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E || opcode == 0x9F) {
 		return 16;
 	}

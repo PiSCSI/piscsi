@@ -32,6 +32,7 @@
 //---------------------------------------------------------------------------
 static uint32_t get_dt_ranges(const char *filename, DWORD offset)
 {
+	GPIO_FUNCTION_TRACE
 	uint32_t address = ~0;
 	if (FILE *fp = fopen(filename, "rb"); fp) {
 		fseek(fp, offset, SEEK_SET);
@@ -45,6 +46,7 @@ static uint32_t get_dt_ranges(const char *filename, DWORD offset)
 
 uint32_t bcm_host_get_peripheral_address()
 {
+	GPIO_FUNCTION_TRACE
 	uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
 	if (address == 0) {
 		address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
@@ -58,6 +60,7 @@ uint32_t bcm_host_get_peripheral_address()
 // Assume the Raspberry Pi series and estimate the address from CPU
 uint32_t bcm_host_get_peripheral_address()
 {
+	GPIO_FUNCTION_TRACE
 	array<char, 1024> buf;
 	size_t len = buf.size();
 	DWORD address;
@@ -78,6 +81,7 @@ uint32_t bcm_host_get_peripheral_address()
 
 bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
+	GPIO_FUNCTION_TRACE
 	GPIOBUS::Init(mode);
 
 #if defined(__x86_64__) || defined(__X86__)
@@ -88,8 +92,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #ifdef USE_SEL_EVENT_ENABLE
 	epoll_event ev = {};
 #endif
-
-	LOGTRACE("%s Get base addr....", __PRETTY_FUNCTION__);
 
 	// Get the base address
 	baseaddr = (uint32_t)bcm_host_get_peripheral_address();
@@ -321,7 +323,6 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
 	// Create work table
 
-	LOGTRACE("%s MakeTable....", __PRETTY_FUNCTION__);
 	MakeTable();
 
 	// Finally, enable ENABLE
@@ -335,6 +336,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
 void GPIOBUS_Raspberry::Cleanup()
 {
+	GPIO_FUNCTION_TRACE
 #if defined(__x86_64__) || defined(__X86__)
 	return;
 #else
@@ -369,6 +371,7 @@ void GPIOBUS_Raspberry::Cleanup()
 
 void GPIOBUS_Raspberry::Reset()
 {
+	GPIO_FUNCTION_TRACE
 #if defined(__x86_64__) || defined(__X86__)
 	return;
 #else
@@ -461,6 +464,7 @@ void GPIOBUS_Raspberry::Reset()
 //---------------------------------------------------------------------------
 BYTE GPIOBUS_Raspberry::GetDAT()
 {
+	GPIO_FUNCTION_TRACE
 	uint32_t data = Acquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
@@ -471,7 +475,6 @@ BYTE GPIOBUS_Raspberry::GetDAT()
 		((data >> (PIN_DT5 - 5)) & (1 << 5)) |
 		((data >> (PIN_DT6 - 6)) & (1 << 6)) |
 		((data >> (PIN_DT7 - 7)) & (1 << 7));
-
 	return (BYTE)data;
 }
 
@@ -482,6 +485,7 @@ BYTE GPIOBUS_Raspberry::GetDAT()
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetDAT(BYTE dat)
 {
+	GPIO_FUNCTION_TRACE
 	// Write to port
 #if SIGNAL_CONTROL_MODE == 0
 	DWORD fsel = gpfsel[0];
@@ -522,7 +526,7 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::MakeTable(void)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	GPIO_FUNCTION_TRACE
 
 	const array<int, 9> pintbl = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
@@ -723,6 +727,7 @@ bool GPIOBUS_Raspberry::WaitSignal(int pin, int ast)
 
 void GPIOBUS_Raspberry::DisableIRQ()
 {
+	GPIO_FUNCTION_TRACE
 #ifdef __linux
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
@@ -745,6 +750,7 @@ void GPIOBUS_Raspberry::DisableIRQ()
 
 void GPIOBUS_Raspberry::EnableIRQ()
 {
+	GPIO_FUNCTION_TRACE
 	if (rpitype == 4) {
 		// RPI4 enables interrupts via the GICC
 		gicc[GICC_PMR] = giccpmr;
@@ -852,6 +858,7 @@ void GPIOBUS_Raspberry::DrvConfig(DWORD drive)
 }
 
 uint32_t GPIOBUS_Raspberry::Acquire(){
+	GPIO_FUNCTION_TRACE;
 	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable
 		// to any real-world RaSCSI application
@@ -863,7 +870,6 @@ uint32_t GPIOBUS_Raspberry::Acquire(){
 		// Invert if negative logic (internal processing is unified to positive logic)
 		signals = ~signals;
 	#endif	// SIGNAL_CONTROL_MODE
-
 		return signals;
 	#endif // ifdef __x86_64__ || __X86__
 	}

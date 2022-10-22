@@ -41,6 +41,12 @@
 #error Invalid connection type or none specified
 #endif
 
+#ifdef ENABLE_GPIO_TRACE
+#define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
+#else
+#define GPIO_FUNCTION_TRACE
+#endif
+
 using namespace std; //NOSONAR Not relevant for rascsi
 
 //---------------------------------------------------------------------------
