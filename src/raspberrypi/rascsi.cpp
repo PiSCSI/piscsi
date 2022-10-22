@@ -18,6 +18,7 @@
 #include "devices/disk.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
+#include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include "rascsi_exceptions.h"
@@ -97,6 +98,7 @@ void Banner(int argc, char* argv[])
 
 bool InitBus()
 {
+	SBC_Version::Init();
 	// GPIOBUS creation
 	bus = GPIOBUS_Factory::Create();
 
