@@ -376,10 +376,10 @@ class FileCmds:
 
         file_name = PurePath(url).name
         tmp_ts = int(time())
-        tmp_dir = "/tmp/" + str(tmp_ts) + "/"
+        tmp_dir = Path("/tmp") / str(tmp_ts)
         os.mkdir(tmp_dir)
-        tmp_full_path = tmp_dir + file_name
-        iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
+        tmp_full_path = tmp_dir / file_name
+        iso_filename = Path(server_info['image_dir']) / f"{file_name}.iso"
 
         req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
 
@@ -387,25 +387,25 @@ class FileCmds:
             return {"status": False, "msg": req_proc["msg"]}
 
         if is_zipfile(tmp_full_path):
-            if "XtraStuf.mac" in str(ZipFile(tmp_full_path).namelist()):
+            if "XtraStuf.mac" in str(ZipFile(str(tmp_full_path)).namelist()):
                 logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
             else:
                 logging.info(
                     "%s is a zipfile! Will attempt to unzip and store the resulting files.",
-                    tmp_full_path,
+                    str(tmp_full_path),
                     )
                 unzip_proc = asyncio.run(self.run_async("unzip", [
                     "-d",
-                    tmp_dir,
+                    str(tmp_dir),
                     "-n",
-                    tmp_full_path,
+                    str(tmp_full_path),
                     ]))
                 if not unzip_proc["returncode"]:
                     logging.info(
                         "%s was successfully unzipped. Deleting the zipfile.",
-                        tmp_full_path,
+                        str(tmp_full_path),
                         )
-                    self.delete_file(Path(tmp_full_path))
+                    self.delete_file(tmp_full_path)
 
         try:
             run(
@@ -413,8 +413,8 @@ class FileCmds:
                     "genisoimage",
                     *iso_args,
                     "-o",
-                    iso_filename,
-                    tmp_dir,
+                    str(iso_filename),
+                    str(tmp_dir),
                 ],
                 capture_output=True,
                 check=True,
@@ -430,7 +430,7 @@ class FileCmds:
             "status": True,
             "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
             "parameters": parameters,
-            "file_name": iso_filename,
+            "file_name": str(iso_filename),
         }
 
     # noinspection PyMethodMayBeStatic
