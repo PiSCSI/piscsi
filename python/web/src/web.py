@@ -336,7 +336,7 @@ def drive_create():
     Creates the image and properties file pair
     """
     drive_name = request.form.get("drive_name")
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name")).name
 
     properties = get_properties_by_drive_name(
         APP.config["RASCSI_DRIVE_PROPERTIES"],
@@ -374,7 +374,7 @@ def drive_cdrom():
     Creates a properties file for a CD-ROM image
     """
     drive_name = request.form.get("drive_name")
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name")).name
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -396,8 +396,7 @@ def config_save():
     """
     Saves a config file to disk
     """
-    file_name = request.form.get("name") or "default"
-    file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
+    file_name = Path(request.form.get("name") + f".{CONFIG_FILE_SUFFIX}").name
 
     process = file_cmd.write_config(file_name)
     process = ReturnCodeMapper.add_msg(process)
@@ -413,7 +412,7 @@ def config_load():
     """
     Loads a config file from disk
     """
-    file_name = request.form.get("name")
+    file_name = Path(request.form.get("name")).name
 
     if "load" in request.form:
         process = file_cmd.read_config(file_name)

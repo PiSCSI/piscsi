@@ -35,7 +35,7 @@
 <p>
 <form action="/config/save" method="post">
     <label for="config_save_name">{{ _("File name") }}</label>
-    <input name="name" id="config_save_name" placeholder="default" size="20">
+    <input name="name" id="config_save_name" value="default" size="20">
     .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
 </form>
