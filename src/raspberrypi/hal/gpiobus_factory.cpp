@@ -20,14 +20,11 @@ using namespace std;
 
 unique_ptr<GPIOBUS> GPIOBUS_Factory::Create()
 {
-	if (SBC_Version::IsBananaPi())
-	{
-		LOGTRACE("Creating GPIOBUS_Allwinner")
-		return make_unique<GPIOBUS_Allwinner>();
-	}
-	else
-	{
-		LOGTRACE("Creating GPIOBUS_Raspberry")
-		return make_unique<GPIOBUS_Raspberry>();
-	}
+    if (SBC_Version::IsBananaPi()) {
+        LOGTRACE("Creating GPIOBUS_Allwinner")
+        return make_unique<GPIOBUS_Allwinner>();
+    } else {
+        LOGTRACE("Creating GPIOBUS_Raspberry")
+        return make_unique<GPIOBUS_Raspberry>();
+    }
 }

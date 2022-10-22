@@ -47,7 +47,7 @@
 #define GPIO_FUNCTION_TRACE
 #endif
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std; // NOSONAR Not relevant for rascsi
 
 //---------------------------------------------------------------------------
 //
@@ -124,92 +124,92 @@ using namespace std; //NOSONAR Not relevant for rascsi
 //---------------------------------------------------------------------------
 
 #define ALL_SCSI_PINS \
-    ((1<<PIN_DT0)|\
-    (1<<PIN_DT1)|\
-    (1<<PIN_DT2)|\
-    (1<<PIN_DT3)|\
-    (1<<PIN_DT4)|\
-    (1<<PIN_DT5)|\
-    (1<<PIN_DT6)|\
-    (1<<PIN_DT7)|\
-    (1<<PIN_DP)|\
-    (1<<PIN_ATN)|\
-    (1<<PIN_RST)|\
-    (1<<PIN_ACK)|\
-    (1<<PIN_REQ)|\
-    (1<<PIN_MSG)|\
-    (1<<PIN_CD)|\
-    (1<<PIN_IO)|\
-    (1<<PIN_BSY)|\
-    (1<<PIN_SEL))
+	((1 << PIN_DT0) | \
+	 (1 << PIN_DT1) | \
+	 (1 << PIN_DT2) | \
+	 (1 << PIN_DT3) | \
+	 (1 << PIN_DT4) | \
+	 (1 << PIN_DT5) | \
+	 (1 << PIN_DT6) | \
+	 (1 << PIN_DT7) | \
+	 (1 << PIN_DP) |  \
+	 (1 << PIN_ATN) | \
+	 (1 << PIN_RST) | \
+	 (1 << PIN_ACK) | \
+	 (1 << PIN_REQ) | \
+	 (1 << PIN_MSG) | \
+	 (1 << PIN_CD) |  \
+	 (1 << PIN_IO) |  \
+	 (1 << PIN_BSY) | \
+	 (1 << PIN_SEL))
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
-const static uint32_t SYST_OFFSET =		0x00003000;
-const static uint32_t IRPT_OFFSET =		0x0000B200;
-const static uint32_t ARMT_OFFSET =		0x0000B400;
-const static uint32_t PADS_OFFSET =		0x00100000;
-const static uint32_t GPIO_OFFSET =		0x00200000;
-const static uint32_t QA7_OFFSET =		0x01000000;
+const static uint32_t SYST_OFFSET = 0x00003000;
+const static uint32_t IRPT_OFFSET = 0x0000B200;
+const static uint32_t ARMT_OFFSET = 0x0000B400;
+const static uint32_t PADS_OFFSET = 0x00100000;
+const static uint32_t GPIO_OFFSET = 0x00200000;
+const static uint32_t QA7_OFFSET = 0x01000000;
 
-const static int GPIO_INPUT	=		0;
-const static int GPIO_OUTPUT =		1;
-const static int GPIO_PULLNONE =	0;
-const static int GPIO_PULLDOWN =	1;
-const static int GPIO_PULLUP =		2;
-const static int GPIO_FSEL_0 =		0;
-const static int GPIO_FSEL_1 =		1;
-const static int GPIO_FSEL_2 =		2;
-const static int GPIO_FSEL_3 =		3;
-const static int GPIO_SET_0 =		7;
-const static int GPIO_CLR_0 =		10;
-const static int GPIO_LEV_0 =		13;
-const static int GPIO_EDS_0 =		16;
-const static int GPIO_REN_0 =		19;
-const static int GPIO_FEN_0 =		22;
-const static int GPIO_HEN_0 =		25;
-const static int GPIO_LEN_0 =		28;
-const static int GPIO_AREN_0 =		31;
-const static int GPIO_AFEN_0 =		34;
-const static int GPIO_PUD =			37;
-const static int GPIO_CLK_0 =		38;
-const static int GPIO_GPPINMUXSD =	52;
-const static int GPIO_PUPPDN0 =		57;
-const static int GPIO_PUPPDN1 =		58;
-const static int GPIO_PUPPDN3 =		59;
-const static int GPIO_PUPPDN4 =		60;
-const static int PAD_0_27 =			11;
-const static int SYST_CS =			0;
-const static int SYST_CLO =			1;
-const static int SYST_CHI =			2;
-const static int SYST_C0 =			3;
-const static int SYST_C1 =			4;
-const static int SYST_C2 =			5;
-const static int SYST_C3 =			6;
-const static int ARMT_LOAD =		0;
-const static int ARMT_VALUE =		1;
-const static int ARMT_CTRL =		2;
-const static int ARMT_CLRIRQ =		3;
-const static int ARMT_RAWIRQ =		4;
-const static int ARMT_MSKIRQ =		5;
-const static int ARMT_RELOAD =		6;
-const static int ARMT_PREDIV =		7;
-const static int ARMT_FREERUN =		8;
-const static int IRPT_PND_IRQ_B =	0;
-const static int IRPT_PND_IRQ_1 =	1;
-const static int IRPT_PND_IRQ_2 =	2;
-const static int IRPT_FIQ_CNTL =	3;
-const static int IRPT_ENB_IRQ_1 =	4;
-const static int IRPT_ENB_IRQ_2 =	5;
-const static int IRPT_ENB_IRQ_B =	6;
-const static int IRPT_DIS_IRQ_1 =	7;
-const static int IRPT_DIS_IRQ_2 =	8;
-const static int IRPT_DIS_IRQ_B =	9;
-const static int QA7_CORE0_TINTC = 	16;
-const static int GPIO_IRQ =			(32 + 20);	// GPIO3
+const static int GPIO_INPUT = 0;
+const static int GPIO_OUTPUT = 1;
+const static int GPIO_PULLNONE = 0;
+const static int GPIO_PULLDOWN = 1;
+const static int GPIO_PULLUP = 2;
+const static int GPIO_FSEL_0 = 0;
+const static int GPIO_FSEL_1 = 1;
+const static int GPIO_FSEL_2 = 2;
+const static int GPIO_FSEL_3 = 3;
+const static int GPIO_SET_0 = 7;
+const static int GPIO_CLR_0 = 10;
+const static int GPIO_LEV_0 = 13;
+const static int GPIO_EDS_0 = 16;
+const static int GPIO_REN_0 = 19;
+const static int GPIO_FEN_0 = 22;
+const static int GPIO_HEN_0 = 25;
+const static int GPIO_LEN_0 = 28;
+const static int GPIO_AREN_0 = 31;
+const static int GPIO_AFEN_0 = 34;
+const static int GPIO_PUD = 37;
+const static int GPIO_CLK_0 = 38;
+const static int GPIO_GPPINMUXSD = 52;
+const static int GPIO_PUPPDN0 = 57;
+const static int GPIO_PUPPDN1 = 58;
+const static int GPIO_PUPPDN3 = 59;
+const static int GPIO_PUPPDN4 = 60;
+const static int PAD_0_27 = 11;
+const static int SYST_CS = 0;
+const static int SYST_CLO = 1;
+const static int SYST_CHI = 2;
+const static int SYST_C0 = 3;
+const static int SYST_C1 = 4;
+const static int SYST_C2 = 5;
+const static int SYST_C3 = 6;
+const static int ARMT_LOAD = 0;
+const static int ARMT_VALUE = 1;
+const static int ARMT_CTRL = 2;
+const static int ARMT_CLRIRQ = 3;
+const static int ARMT_RAWIRQ = 4;
+const static int ARMT_MSKIRQ = 5;
+const static int ARMT_RELOAD = 6;
+const static int ARMT_PREDIV = 7;
+const static int ARMT_FREERUN = 8;
+const static int IRPT_PND_IRQ_B = 0;
+const static int IRPT_PND_IRQ_1 = 1;
+const static int IRPT_PND_IRQ_2 = 2;
+const static int IRPT_FIQ_CNTL = 3;
+const static int IRPT_ENB_IRQ_1 = 4;
+const static int IRPT_ENB_IRQ_2 = 5;
+const static int IRPT_ENB_IRQ_B = 6;
+const static int IRPT_DIS_IRQ_1 = 7;
+const static int IRPT_DIS_IRQ_2 = 8;
+const static int IRPT_DIS_IRQ_B = 9;
+const static int QA7_CORE0_TINTC = 16;
+const static int GPIO_IRQ = (32 + 20); // GPIO3
 
 #define GPIO_INEDGE ((1 << PIN_BSY) | \
 					 (1 << PIN_SEL) | \
@@ -217,63 +217,63 @@ const static int GPIO_IRQ =			(32 + 20);	// GPIO3
 					 (1 << PIN_ACK) | \
 					 (1 << PIN_RST))
 
-#define GPIO_MCI	((1 << PIN_MSG) | \
-					 (1 << PIN_CD) | \
-					 (1 << PIN_IO))
+#define GPIO_MCI ((1 << PIN_MSG) | \
+				  (1 << PIN_CD) |  \
+				  (1 << PIN_IO))
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (GIC)
 //
 //---------------------------------------------------------------------------
-const static uint32_t ARM_GICD_BASE =	0xFF841000;
-const static uint32_t ARM_GICC_BASE =	0xFF842000;
-const static uint32_t ARM_GIC_END =		0xFF847FFF;
-const static int GICD_CTLR =		0x000;
-const static int GICD_IGROUPR0 =	0x020;
-const static int GICD_ISENABLER0 =	0x040;
-const static int GICD_ICENABLER0 =	0x060;
-const static int GICD_ISPENDR0 =	0x080;
-const static int GICD_ICPENDR0 =	0x0A0;
-const static int GICD_ISACTIVER0 =	0x0C0;
-const static int GICD_ICACTIVER0 =	0x0E0;
-const static int GICD_IPRIORITYR0 =	0x100;
-const static int GICD_ITARGETSR0 =	0x200;
-const static int GICD_ICFGR0 =		0x300;
-const static int GICD_SGIR =		0x3C0;
-const static int GICC_CTLR =		0x000;
-const static int GICC_PMR =			0x001;
-const static int GICC_IAR =			0x003;
-const static int GICC_EOIR =		0x004;
+const static uint32_t ARM_GICD_BASE = 0xFF841000;
+const static uint32_t ARM_GICC_BASE = 0xFF842000;
+const static uint32_t ARM_GIC_END = 0xFF847FFF;
+const static int GICD_CTLR = 0x000;
+const static int GICD_IGROUPR0 = 0x020;
+const static int GICD_ISENABLER0 = 0x040;
+const static int GICD_ICENABLER0 = 0x060;
+const static int GICD_ISPENDR0 = 0x080;
+const static int GICD_ICPENDR0 = 0x0A0;
+const static int GICD_ISACTIVER0 = 0x0C0;
+const static int GICD_ICACTIVER0 = 0x0E0;
+const static int GICD_IPRIORITYR0 = 0x100;
+const static int GICD_ITARGETSR0 = 0x200;
+const static int GICD_ICFGR0 = 0x300;
+const static int GICD_SGIR = 0x3C0;
+const static int GICC_CTLR = 0x000;
+const static int GICC_PMR = 0x001;
+const static int GICC_IAR = 0x003;
+const static int GICC_EOIR = 0x004;
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (GIC IRQ)
 //
 //---------------------------------------------------------------------------
-const static int GIC_IRQLOCAL0 =	(16 + 14);
-const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
+const static int GIC_IRQLOCAL0 = (16 + 14);
+const static int GIC_GPIO_IRQ = (32 + 116); // GPIO3
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (Control signals)
 //
 //---------------------------------------------------------------------------
-#define ACT_OFF	!ACT_ON
-#define ENB_OFF	!ENB_ON
-#define TAD_OUT	!TAD_IN
-#define IND_OUT	!IND_IN
-#define DTD_OUT	!DTD_IN
+#define ACT_OFF !ACT_ON
+#define ENB_OFF !ENB_ON
+#define TAD_OUT !TAD_IN
+#define IND_OUT !IND_IN
+#define DTD_OUT !DTD_IN
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
-#define IN		GPIO_INPUT
-#define OUT		GPIO_OUTPUT
-const static int ON =	1;
-const static int OFF =	0;
+#define IN GPIO_INPUT
+#define OUT GPIO_OUTPUT
+const static int ON = 1;
+const static int OFF = 0;
 
 //---------------------------------------------------------------------------
 //
@@ -283,182 +283,178 @@ const static int OFF =	0;
 class GPIOBUS : public BUS
 {
 public:
-	static GPIOBUS *create();
+    static GPIOBUS *create();
 
-	// Basic Functions
-	GPIOBUS()= default;
-	~GPIOBUS() override = default;
-										// Destructor
-	bool Init(mode_e mode = mode_e::TARGET) override;
-										// Initialization
-	void Reset() override;
-										// Reset
-	void Cleanup() override;
-										// Cleanup
+    // Basic Functions
+    GPIOBUS() = default;
+    ~GPIOBUS() override = default;
+    // Destructor
+    bool Init(mode_e mode = mode_e::TARGET) override;
+    // Initialization
+    void Reset() override;
+    // Reset
+    void Cleanup() override;
+    // Cleanup
 
-	virtual DWORD Acquire() = 0;
+    virtual DWORD Acquire() = 0;
 
-	void SetENB(bool ast);
-										// Set ENB signal
+    void SetENB(bool ast);
+    // Set ENB signal
 
-	bool GetBSY() const override;
-										// Get BSY signal
-	void SetBSY(bool ast) override;
-										// Set BSY signal
+    bool GetBSY() const override;
+    // Get BSY signal
+    void SetBSY(bool ast) override;
+    // Set BSY signal
 
-	bool GetSEL() const override;
-										// Get SEL signal
-	void SetSEL(bool ast) override;
-										// Set SEL signal
+    bool GetSEL() const override;
+    // Get SEL signal
+    void SetSEL(bool ast) override;
+    // Set SEL signal
 
-	bool GetATN() const override;
-										// Get ATN signal
-	void SetATN(bool ast) override;
-										// Set ATN signal
+    bool GetATN() const override;
+    // Get ATN signal
+    void SetATN(bool ast) override;
+    // Set ATN signal
 
-	bool GetACK() const override;
-										// Get ACK signal
-	void SetACK(bool ast) override;
-										// Set ACK signal
+    bool GetACK() const override;
+    // Get ACK signal
+    void SetACK(bool ast) override;
+    // Set ACK signal
 
-	bool GetACT() const;
-										// Get ACT signal
-	void SetACT(bool ast);
-										// Set ACT signal
+    bool GetACT() const;
+    // Get ACT signal
+    void SetACT(bool ast);
+    // Set ACT signal
 
-	bool GetRST() const override;
-										// Get RST signal
-	void SetRST(bool ast) override;
-										// Set RST signal
+    bool GetRST() const override;
+    // Get RST signal
+    void SetRST(bool ast) override;
+    // Set RST signal
 
-	bool GetMSG() const override;
-										// Get MSG signal
-	void SetMSG(bool ast) override;
-										// Set MSG signal
+    bool GetMSG() const override;
+    // Get MSG signal
+    void SetMSG(bool ast) override;
+    // Set MSG signal
 
-	bool GetCD() const override;
-										// Get CD signal
-	void SetCD(bool ast) override;
-										// Set CD signal
+    bool GetCD() const override;
+    // Get CD signal
+    void SetCD(bool ast) override;
+    // Set CD signal
 
-	bool GetIO() override;
-										// Get IO signal
-	void SetIO(bool ast) override;
-										// Set IO signal
+    bool GetIO() override;
+    // Get IO signal
+    void SetIO(bool ast) override;
+    // Set IO signal
 
-	bool GetREQ() const override;
-										// Get REQ signal
-	void SetREQ(bool ast) override;
-										// Set REQ signal
-	bool GetDP() const override;
-										// Get Data parity signal
-	int CommandHandShake(BYTE *buf) override;
-										// Command receive handshake
-	int ReceiveHandShake(BYTE *buf, int count) override;
-										// Data receive handshake
-	int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
-										// Data transmission handshake
+    bool GetREQ() const override;
+    // Get REQ signal
+    void SetREQ(bool ast) override;
+    // Set REQ signal
+    bool GetDP() const override;
+    // Get Data parity signal
+    int CommandHandShake(BYTE *buf) override;
+    // Command receive handshake
+    int ReceiveHandShake(BYTE *buf, int count) override;
+    // Data receive handshake
+    int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
+    // Data transmission handshake
 
-	static BUS::phase_t GetPhaseRaw(DWORD raw_data);
-										// Get the phase based on raw data
+    static BUS::phase_t GetPhaseRaw(DWORD raw_data);
+    // Get the phase based on raw data
 
-	static int GetCommandByteCount(BYTE opcode);
-
-	#ifdef USE_SEL_EVENT_ENABLE
-	// SEL signal interrupt
-	bool PollSelectEvent();
-										// SEL signal event polling
-	void ClearSelectEvent();
-										// Clear SEL signal event
-#endif	// USE_SEL_EVENT_ENABLE
-
-protected:
-	// SCSI I/O signal control
-	virtual void MakeTable() = 0;
-										// Create work data
-	virtual void SetControl(int pin, bool ast) = 0;
-										// Set Control Signal
-	virtual void SetMode(int pin, int mode) = 0;
-										// Set SCSI I/O mode
-	virtual bool GetSignal(int pin) const = 0;
-										// Set Control Signal
-	virtual void SetSignal(int pin, bool ast) = 0;
-										// Set SCSI I/O mode
-	virtual bool WaitSignal(int pin, int ast) = 0;
-										// Wait for a signal to change
-	// Interrupt control
-	virtual void DisableIRQ() = 0;
-										// IRQ Disabled
-	virtual void EnableIRQ() = 0;
-										// IRQ Enabled
-
-	//  GPIO pin functionality settings
-	virtual void PinConfig(int pin, int mode) = 0;
-	// GPIO pin direction setting
-	virtual void PullConfig(int pin, int mode) = 0;
-	// GPIO pin pull up/down resistor setting
-	virtual void PinSetSignal(int pin, bool ast) = 0;
-										// Set GPIO output signal
-	virtual void DrvConfig(DWORD drive) = 0;
-										// Set GPIO drive strength
-
-
-	mode_e actmode = mode_e::TARGET;	// Operation mode
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	uint32_t baseaddr = 0;				// Base address
-#endif
-
-	int rpitype = 0;					// Type of Raspberry Pi
-
-	volatile uint32_t *gpio = nullptr;	// GPIO register
-
-	volatile uint32_t *pads = nullptr;	// PADS register
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	volatile uint32_t *level = nullptr;	// GPIO input level
-#endif
-
-	volatile uint32_t *irpctl = nullptr;	// Interrupt control register
-
-	volatile uint32_t irptenb;			// Interrupt enabled state
-
-	volatile uint32_t *qa7regs = nullptr;	// QA7 register
-
-	volatile int tintcore;				// Interupt control target CPU.
-
-	volatile uint32_t tintctl;			// Interupt control
-
-	volatile uint32_t giccpmr;			// GICC priority setting
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
-#endif
-
-	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
-
-	array<uint32_t, 4> gpfsel;			// GPFSEL0-4 backup values
-
-	uint32_t signals = 0;				// All bus signals
+    static int GetCommandByteCount(BYTE opcode);
 
 #ifdef USE_SEL_EVENT_ENABLE
-	struct gpioevent_request selevreq = {};	// SEL signal event request
+    // SEL signal interrupt
+    bool PollSelectEvent();
+    // SEL signal event polling
+    void ClearSelectEvent();
+    // Clear SEL signal event
+#endif // USE_SEL_EVENT_ENABLE
 
-	int epfd;							// epoll file descriptor
-#endif	// USE_SEL_EVENT_ENABLE
+protected:
+    // SCSI I/O signal control
+    virtual void MakeTable() = 0;
+    // Create work data
+    virtual void SetControl(int pin, bool ast) = 0;
+    // Set Control Signal
+    virtual void SetMode(int pin, int mode) = 0;
+    // Set SCSI I/O mode
+    virtual bool GetSignal(int pin) const = 0;
+    // Set Control Signal
+    virtual void SetSignal(int pin, bool ast) = 0;
+    // Set SCSI I/O mode
+    virtual bool WaitSignal(int pin, int ast) = 0;
+    // Wait for a signal to change
+    // Interrupt control
+    virtual void DisableIRQ() = 0;
+    // IRQ Disabled
+    virtual void EnableIRQ() = 0;
+    // IRQ Enabled
 
-#if SIGNAL_CONTROL_MODE == 0
-	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
+    //  GPIO pin functionality settings
+    virtual void PinConfig(int pin, int mode) = 0;
+    // GPIO pin direction setting
+    virtual void PullConfig(int pin, int mode) = 0;
+    // GPIO pin pull up/down resistor setting
+    virtual void PinSetSignal(int pin, bool ast) = 0;
+    // Set GPIO output signal
+    virtual void DrvConfig(DWORD drive) = 0;
+    // Set GPIO drive strength
 
-	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
-#else
-	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
+    mode_e actmode = mode_e::TARGET; // Operation mode
 
-	array<uint32_t, 256> tblDatSet = {};	// Table setting table
+#if !defined(__x86_64__) && !defined(__X86__)
+    uint32_t baseaddr = 0; // Base address
 #endif
 
+    int rpitype = 0; // Type of Raspberry Pi
 
-	static const array<int, 19> SignalTable;	// signal table
-	
+    volatile uint32_t *gpio = nullptr; // GPIO register
+
+    volatile uint32_t *pads = nullptr; // PADS register
+
+#if !defined(__x86_64__) && !defined(__X86__)
+    volatile uint32_t *level = nullptr; // GPIO input level
+#endif
+
+    volatile uint32_t *irpctl = nullptr; // Interrupt control register
+
+    volatile uint32_t irptenb; // Interrupt enabled state
+
+    volatile uint32_t *qa7regs = nullptr; // QA7 register
+
+    volatile int tintcore; // Interupt control target CPU.
+
+    volatile uint32_t tintctl; // Interupt control
+
+    volatile uint32_t giccpmr; // GICC priority setting
+
+#if !defined(__x86_64__) && !defined(__X86__)
+    volatile uint32_t *gicd = nullptr; // GIC Interrupt distributor register
+#endif
+
+    volatile uint32_t *gicc = nullptr; // GIC CPU interface register
+
+    array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
+
+    uint32_t signals = 0; // All bus signals
+
+#ifdef USE_SEL_EVENT_ENABLE
+    struct gpioevent_request selevreq = {}; // SEL signal event request
+
+    int epfd; // epoll file descriptor
+#endif		  // USE_SEL_EVENT_ENABLE
+
+#if SIGNAL_CONTROL_MODE == 0
+    array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table
+
+    array<array<uint32_t, 256>, 3> tblDatSet; // Data setting table
+#else
+    array<uint32_t, 256> tblDatMsk = {}; // Data mask table
+
+    array<uint32_t, 256> tblDatSet = {}; // Table setting table
+#endif
+
+    static const array<int, 19> SignalTable; // signal table
 };
-
