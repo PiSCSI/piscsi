@@ -1429,8 +1429,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 12 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 12"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
