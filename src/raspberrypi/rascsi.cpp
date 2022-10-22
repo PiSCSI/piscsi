@@ -61,7 +61,7 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool active;		// Processing flag
 RascsiService service;
-GPIOBUS bus;
+shared_ptr<GPIOBUS> bus;
 string current_log_level = "info";	// Some versions of spdlog do not support get_log_level()
 string access_token;
 DeviceFactory device_factory;
@@ -106,7 +106,7 @@ bool InitBus()
 	}
 
 	// Bus Reset
-	bus.Reset();
+	bus->Reset();
 
 	return true;
 }
@@ -118,14 +118,14 @@ void Cleanup()
 	service.Cleanup();
 
 	// Clean up and discard the bus
-	bus.Cleanup();
+	bus->Cleanup();
 }
 
 void Reset()
 {
 	controller_manager.ResetAllControllers();
 
-	bus.Reset();
+	bus->Reset();
 }
 
 bool ReadAccessToken(const char *filename)
@@ -585,7 +585,7 @@ int main(int argc, char* argv[])
 	while (service.IsRunning()) {
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
-		if (!bus.PollSelectEvent()) {
+		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
@@ -594,10 +594,10 @@ int main(int argc, char* argv[])
 		}
 
 		// Get the bus
-		bus.Acquire();
+		bus->Acquire();
 #else
-		bus.Acquire();
-		if (!bus.GetSEL()) {
+		bus->Acquire();
+		if (!bus->GetSEL()) {
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
 			nanosleep(&ts, nullptr);
 			continue;
@@ -617,14 +617,14 @@ int main(int argc, char* argv[])
 		}
 
 		// Stop because the bus is busy or another device responded
-		if (bus.GetBSY() || !bus.GetSEL()) {
+		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
 
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		const BYTE id_data = bus.GetDAT();
+		const BYTE id_data = bus->GetDAT();
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 

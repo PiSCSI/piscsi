@@ -27,7 +27,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
+ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -52,17 +52,17 @@ void ScsiController::Reset()
 BUS::phase_t ScsiController::Process(int id)
 {
 	// Get bus information
-	bus.Acquire();
+	bus->Acquire();
 
 	// Check to see if the reset signal was asserted
-	if (bus.GetRST()) {
+	if (bus->GetRST()) {
 		LOGWARN("RESET signal received!")
 
 		// Reset the controller
 		Reset();
 
 		// Reset the bus
-		bus.Reset();
+		bus->Reset();
 
 		return GetPhase();
 	}
@@ -86,7 +86,7 @@ BUS::phase_t ScsiController::Process(int id)
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__)
 
 		Reset();
-		bus.Reset();
+		bus->Reset();
 
 		BusFree();
 	}
@@ -101,11 +101,11 @@ void ScsiController::BusFree()
 
 		SetPhase(BUS::phase_t::busfree);
 
-		bus.SetREQ(false);
-		bus.SetMSG(false);
-		bus.SetCD(false);
-		bus.SetIO(false);
-		bus.SetBSY(false);
+		bus->SetREQ(false);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(false);
+		bus->SetBSY(false);
 
 		// Initialize status and message
 		SetStatus(status::GOOD);
@@ -149,7 +149,7 @@ void ScsiController::BusFree()
 	}
 
 	// Move to selection phase
-	if (bus.GetSEL() && !bus.GetBSY()) {
+	if (bus->GetSEL() && !bus->GetBSY()) {
 		Selection();
 	}
 }
@@ -158,7 +158,7 @@ void ScsiController::Selection()
 {
 	if (!IsSelection()) {
 		// A different device controller was selected
-		if (int id = 1 << GetTargetId(); ((int)bus.GetDAT() & id) == 0) {
+		if (int id = 1 << GetTargetId(); ((int)bus->GetDAT() & id) == 0) {
 			return;
 		}
 
@@ -172,14 +172,14 @@ void ScsiController::Selection()
 		SetPhase(BUS::phase_t::selection);
 
 		// Raise BSY and respond
-		bus.SetBSY(true);
+		bus->SetBSY(true);
 		return;
 	}
 
 	// Selection completed
-	if (!bus.GetSEL() && bus.GetBSY()) {
+	if (!bus->GetSEL() && bus->GetBSY()) {
 		// Message out phase if ATN=1, otherwise command phase
-		if (bus.GetATN()) {
+		if (bus->GetATN()) {
 			MsgOut();
 		} else {
 			Command();
@@ -194,11 +194,11 @@ void ScsiController::Command()
 
 		SetPhase(BUS::phase_t::command);
 
-		bus.SetMSG(false);
-		bus.SetCD(true);
-		bus.SetIO(false);
+		bus->SetMSG(false);
+		bus->SetCD(true);
+		bus->SetIO(false);
 
-		const int actual_count = bus.CommandHandShake(GetBuffer().data());
+		const int actual_count = bus->CommandHandShake(GetBuffer().data());
 		const int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
@@ -301,9 +301,9 @@ void ScsiController::Status()
 		SetPhase(BUS::phase_t::status);
 
 		// Signal line operated by the target
-		bus.SetMSG(false);
-		bus.SetCD(true);
-		bus.SetIO(true);
+		bus->SetMSG(false);
+		bus->SetCD(true);
+		bus->SetIO(true);
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
@@ -324,9 +324,9 @@ void ScsiController::MsgIn()
 
 		SetPhase(BUS::phase_t::msgin);
 
-		bus.SetMSG(true);
-		bus.SetCD(true);
-		bus.SetIO(true);
+		bus->SetMSG(true);
+		bus->SetCD(true);
+		bus->SetIO(true);
 
 		// length, blocks are already set
 		assert(HasValidLength());
@@ -355,9 +355,9 @@ void ScsiController::MsgOut()
 
 		SetPhase(BUS::phase_t::msgout);
 
-		bus.SetMSG(true);
-		bus.SetCD(true);
-		bus.SetIO(false);
+		bus->SetMSG(true);
+		bus->SetCD(true);
+		bus->SetIO(false);
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
@@ -388,9 +388,9 @@ void ScsiController::DataIn()
 
 		SetPhase(BUS::phase_t::datain);
 
-		bus.SetMSG(false);
-		bus.SetCD(false);
-		bus.SetIO(true);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(true);
 
 		// length, blocks are already set
 		assert(ctrl.blocks > 0);
@@ -421,9 +421,9 @@ void ScsiController::DataOut()
 		SetPhase(BUS::phase_t::dataout);
 
 		// Signal line operated by the target
-		bus.SetMSG(false);
-		bus.SetCD(false);
-		bus.SetIO(false);
+		bus->SetMSG(false);
+		bus->SetCD(false);
+		bus->SetIO(false);
 
 		ResetOffset();
 		return;
@@ -435,12 +435,12 @@ void ScsiController::DataOut()
 void ScsiController::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
-	bus.Acquire();
+	bus->Acquire();
 
 	// Reset check
-	if (bus.GetRST()) {
+	if (bus->GetRST()) {
 		Reset();
-		bus.Reset();
+		bus->Reset();
 
 		return;
 	}
@@ -475,8 +475,8 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 void ScsiController::Send()
 {
-	assert(!bus.GetREQ());
-	assert(bus.GetIO());
+	assert(!bus->GetREQ());
+	assert(bus->GetIO());
 
 	if (HasValidLength()) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(GetOffset()) + ", length "
@@ -484,7 +484,7 @@ void ScsiController::Send()
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (const int len = bus.SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (const int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != (int)ctrl.length) {
 			// If you cannot send all, move to status phase
@@ -571,15 +571,15 @@ void ScsiController::Receive()
 	LOGTRACE("%s",__PRETTY_FUNCTION__)
 
 	// REQ is low
-	assert(!bus.GetREQ());
-	assert(!bus.GetIO());
+	assert(!bus->GetREQ());
+	assert(!bus->GetIO());
 
 	// Length != 0 if received
 	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (int len = bus.ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
+		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != (int)ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
 			Error(sense_key::ABORTED_COMMAND);
@@ -677,14 +677,14 @@ bool ScsiController::XferMsg(int msg)
 
 void ScsiController::ReceiveBytes()
 {
-	assert(!bus.GetREQ());
-	assert(!bus.GetIO());
+	assert(!bus->GetREQ());
+	assert(!bus->GetIO());
 
 	if (HasValidLength()) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
 
 		// If not able to receive all, move to status phase
-		if (uint32_t len = bus.ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
+		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
 				len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
 					__PRETTY_FUNCTION__, ctrl.length, len)
@@ -1032,7 +1032,7 @@ void ScsiController::ParseMessage()
 void ScsiController::ProcessMessage()
 {
 	// Continue message out phase as long as ATN keeps asserting
-	if (bus.GetATN()) {
+	if (bus->GetATN()) {
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
 		ctrl.length = 1;

@@ -27,27 +27,40 @@ bool SysTimer::initialized = false;
 bool SysTimer::is_allwinnner = false;
 bool SysTimer::is_raspberry = false;
 
-SysTimer& SysTimer::instance()
+std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
+
+void SysTimer::Init()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
-	static SysTimer_AllWinner allwinner_instance;
-	static SysTimer_Raspberry raspberry_instance;
 
 	if(!initialized){
 		if(SBC_Version::IsRaspberryPi()){
-			raspberry_instance.Init();
+			systimer_ptr = make_unique<SysTimer_Raspberry>();
 			is_raspberry = true;
+
 		}
 		else if(SBC_Version::IsBananaPi()){
-			allwinner_instance.Init();
+			systimer_ptr = make_unique<SysTimer_AllWinner>();
 			is_allwinnner = true;
 		}
+		systimer_ptr->Init();
 		initialized = true;
-	}
-	if(is_allwinnner){
-		return allwinner_instance;
-	}else{
-		return raspberry_instance;
 	}
 }
 
+	// Get system timer low byte
+	uint32_t SysTimer::GetTimerLow(){
+		return systimer_ptr->GetTimerLow();
+	}
+	// Get system timer high byte
+	uint32_t SysTimer::GetTimerHigh(){
+		return systimer_ptr->GetTimerHigh();
+	}
+	// Sleep for N nanoseconds
+	void SysTimer::SleepNsec(uint32_t nsec){
+		systimer_ptr->SleepNsec(nsec);
+	}
+	// Sleep for N microseconds
+	void SysTimer::SleepUsec(uint32_t usec){
+		systimer_ptr->SleepUsec(usec);
+	}

@@ -144,7 +144,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	// SysTimer::Init(
 	// 	(DWORD *)map + SYST_OFFSET / sizeof(DWORD),
 	// 	(DWORD *)map + ARMT_OFFSET / sizeof(DWORD));
-	SysTimer::instance().Init();
+	SysTimer::Init();
 
 	// Interrupt controller
 	irpctl = (DWORD *)map;
@@ -696,7 +696,7 @@ void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 bool GPIOBUS_Raspberry::WaitSignal(int pin, int ast)
 {
 	// Get current time
-	uint32_t now = SysTimer::instance().GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 
 	// Calculate timeout (3000ms)
 	uint32_t timeout = 3000 * 1000;
@@ -713,7 +713,7 @@ bool GPIOBUS_Raspberry::WaitSignal(int pin, int ast)
         if (((signals >> pin) ^ ~ast) & 1) {
 			return true;
 		}
-	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
+	} while ((SysTimer::GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
 	return false;
@@ -811,9 +811,9 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
 	} else {
 		pin &= 0x1f;
 		gpio[GPIO_PUD] = mode & 0x3;
-		SysTimer::instance().SleepUsec(2);
+		SysTimer::SleepUsec(2);
 		gpio[GPIO_CLK_0] = 0x1 << pin;
-		SysTimer::instance().SleepUsec(2);
+		SysTimer::SleepUsec(2);
 		gpio[GPIO_PUD] = 0;
 		gpio[GPIO_CLK_0] = 0;
 	}

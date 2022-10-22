@@ -428,7 +428,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	bool ret = WaitSignal(PIN_ACK, ON);
 
 	// Wait until the signal line stabilizes
-	SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 	// Get data
 	*buf = GetDAT();
@@ -465,7 +465,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
 		ret = WaitSignal(PIN_ACK, ON);
 
-		SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get the actual SCSI command
 		*buf = GetDAT();
@@ -499,7 +499,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		ret = WaitSignal(PIN_ACK, ON);
 
 		// Wait until the signal line stabilizes
-		SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get data
 		*buf = GetDAT();
@@ -550,7 +550,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			bool ret = WaitSignal(PIN_ACK, ON);
 
 			// Wait until the signal line stabilizes
-			SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -593,7 +593,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait until the signal line stabilizes
-			SysTimer::instance().SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -645,7 +645,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
-				SysTimer::instance().SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
 			// Set the DATA signals
@@ -688,7 +688,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
 				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes)
-				SysTimer::instance().SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 
 			// Set the DATA signals
@@ -893,7 +893,7 @@ void GPIOBUS::MakeTable(void)
 bool GPIOBUS::WaitSignal(int pin, int ast)
 {
 	// Get current time
-	uint32_t now = SysTimer::instance().GetTimerLow();
+	uint32_t now = SysTimer::GetTimerLow();
 
 	// Calculate timeout (3000ms)
 	uint32_t timeout = 3000 * 1000;
@@ -910,7 +910,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
         if (((signals >> pin) ^ ~ast) & 1) {
 			return true;
 		}
-	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
+	} while ((SysTimer::GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
 	return false;

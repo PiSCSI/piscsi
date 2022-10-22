@@ -21,7 +21,7 @@
 //	System timer
 //
 //===========================================================================
-class SysTimer_Raspberry : public SysTimer
+class SysTimer_Raspberry : public PlatformSpecificTimer
 {
 public:
 	// Initialization

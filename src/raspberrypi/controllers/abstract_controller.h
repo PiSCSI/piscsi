@@ -53,7 +53,7 @@ public:
 		uint32_t length;				// Transfer remaining length
 	};
 
-	AbstractController(BUS& bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
+	AbstractController(shared_ptr<BUS> bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
 	~AbstractController() override = default;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
@@ -102,7 +102,7 @@ private:
 
 	int target_id;
 
-	BUS& bus;
+	shared_ptr<BUS> bus;
 
 	int max_luns;
 

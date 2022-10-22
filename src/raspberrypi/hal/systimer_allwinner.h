@@ -19,7 +19,7 @@
 //	System timer
 //
 //===========================================================================
-class SysTimer_AllWinner : public SysTimer
+class SysTimer_AllWinner : public PlatformSpecificTimer
 {
 public:
 	// Initialization

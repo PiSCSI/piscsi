@@ -19,16 +19,11 @@
 #include "config.h"
 #include "scsi.h"
 
-//===========================================================================
-//
-//	System timer
-//
-//===========================================================================
-class SysTimer
+
+class PlatformSpecificTimer
 {
 public:
 	virtual void Init() = 0;
-
 	// Get system timer low byte
 	virtual uint32_t GetTimerLow() = 0;
 	// Get system timer high byte
@@ -37,14 +32,32 @@ public:
 	virtual void SleepNsec(uint32_t nsec) = 0;
 	// Sleep for N microseconds
 	virtual void SleepUsec(uint32_t usec) = 0;
-	// Get an instance of the SysTimer. Will automatically create/initialize
-	// the appropriate version if necessary.
-	static SysTimer &instance();
+};
 
-	typedef std::shared_ptr<SysTimer> systimer_ptr;
+
+//===========================================================================
+//
+//	System timer
+//
+//===========================================================================
+class SysTimer
+{
+public:
+	static void Init();
+	// Get system timer low byte
+	static uint32_t GetTimerLow();
+	// Get system timer high byte
+	static uint32_t GetTimerHigh();
+	// Sleep for N nanoseconds
+	static void SleepNsec(uint32_t nsec);
+	// Sleep for N microseconds
+	static void SleepUsec(uint32_t usec);
 
 private:
 	static bool initialized;
 	static bool is_allwinnner;
 	static bool is_raspberry;
+
+	static std::unique_ptr<PlatformSpecificTimer> systimer_ptr;
+
 };

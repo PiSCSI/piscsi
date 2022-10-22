@@ -34,7 +34,7 @@ static const int _MAX_FNAME = 256;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-GPIOBUS bus;			      // GPIO Bus
+unique_ptr<GPIOBUS> bus;			      // GPIO Bus
 
 uint32_t buff_size = 1000000;
 data_capture *data_buffer;
@@ -189,7 +189,7 @@ bool Init()
     }
 
     // Bus Reset
-    bus.Reset();
+    bus->Reset();
 
     // Other
     running = false;
@@ -211,13 +211,13 @@ void Cleanup()
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
     // Cleanup the Bus
-    bus.Cleanup();
+    bus->Cleanup();
 }
 
 void Reset()
 {
     // Reset the bus
-    bus.Reset();
+    bus->Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 
     // Start execution
     running = true;
-    bus.SetACT(false);
+    bus->SetACT(false);
 
     (void)gettimeofday(&start_time, nullptr);
 
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
     while (running)
     {
         // Work initialization
-        this_sample = (bus.Acquire() & ALL_SCSI_PINS);
+        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {
