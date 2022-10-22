@@ -439,18 +439,18 @@ def show_diskinfo():
     """
     Displays disk image info
     """
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name"))
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
 
     server_info = ractl_cmd.get_server_info()
     returncode, diskinfo = sys_cmd.get_diskinfo(
-            server_info["image_dir"] +
-            "/" +
-            file_name
+            Path(server_info["image_dir"]) / file_name
         )
     if returncode == 0:
         return response(
             template="diskinfo.html",
-            file_name=file_name,
+            file_name=str(file_name),
             diskinfo=diskinfo,
             )
 
@@ -910,13 +910,16 @@ def create_file():
     """
     Creates an empty image file in the images dir
     """
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name"))
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
 
-    full_file_name = file_name + "." + file_type
-    process = file_cmd.create_new_image(file_name, file_type, size)
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
+
+    full_file_name = f"{str(file_name)}.{file_type}"
+    process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -949,9 +952,11 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    file_name = request.form.get("file")
+    file_name = Path(request.form.get("file"))
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
     server_info = ractl_cmd.get_server_info()
-    return send_from_directory(server_info["image_dir"], file_name, as_attachment=True)
+    return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -960,17 +965,19 @@ def delete():
     """
     Deletes a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name"))
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
 
-    process = file_cmd.delete_image(file_name)
+    process = file_cmd.delete_image(str(file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
     response_messages = [
-        (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
+        (_("Image file deleted: %(file_name)s", file_name=str(file_name)), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
@@ -988,19 +995,23 @@ def rename():
     """
     Renames a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-    new_file_name = request.form.get("new_file_name")
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("new_file_name"))
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
+    if new_file_name.is_absolute() or ".." in str(new_file_name):
+        new_file_name = new_file_name.name
 
-    process = file_cmd.rename_image(file_name, new_file_name)
+    process = file_cmd.rename_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
     response_messages = [
-        (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
+        (_("Image file renamed to: %(file_name)s", file_name=str(new_file_name)), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{str(new_file_name)}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
@@ -1018,19 +1029,23 @@ def copy():
     """
     Creates a copy of a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-    new_file_name = request.form.get("copy_file_name")
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("copy_file_name"))
+    if file_name.is_absolute() or ".." in str(file_name):
+        file_name = file_name.name
+    if new_file_name.is_absolute() or ".." in str(new_file_name):
+        new_file_name = new_file_name.name
 
-    process = file_cmd.copy_image(file_name, new_file_name)
+    process = file_cmd.copy_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
     response_messages = [
-        (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
+        (_("Copy of image file saved as: %(file_name)s", file_name=str(new_file_name)), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{str(new_file_name)}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
@@ -1048,12 +1063,14 @@ def extract_image():
     """
     Extracts all or a subset of files in the specified archive
     """
-    archive_file = request.form.get("archive_file")
+    archive_file = Path(request.form.get("archive_file"))
     archive_members_raw = request.form.get("archive_members") or None
     archive_members = archive_members_raw.split("|") if archive_members_raw else None
+    if archive_file.is_absolute() or ".." in str(archive_file):
+        archive_file = archive_file.name
 
     extract_result = file_cmd.extract_image(
-        archive_file,
+        str(archive_file),
         archive_members
         )
 
