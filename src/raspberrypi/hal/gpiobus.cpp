@@ -79,6 +79,7 @@ using namespace std;
 // Nothing SBC hardware specific should be done in this function
 bool GPIOBUS::Init(mode_e mode)
 {
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	// Save operation mode
 	actmode = mode;
 	return true;
