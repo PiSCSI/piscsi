@@ -642,8 +642,8 @@ def attach_image():
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(drive_properties).is_file():
+    drive_properties = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if drive_properties.is_file():
         process = file_cmd.read_drive_properties(drive_properties)
         process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
