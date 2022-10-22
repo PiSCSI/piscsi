@@ -754,13 +754,15 @@ bool GPIOBUS::PollSelectEvent()
 	LOGTRACE("%s starting epoll_wait", __PRETTY_FUNCTION__)
 	if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
 		LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__)
+		LOGERROR("[%08X] %s", errno, strerror(errno))
 		return false;
 	}
 	LOGTRACE("%s epoll_wait completed", __PRETTY_FUNCTION__)
 
 	if (gpioevent_data gpev; read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
 		LOGWARN("%s read failed", __PRETTY_FUNCTION__)
-        return false;
+		LOGERROR("[%08X] %s", errno, strerror(errno))
+        	return false;
 	}
 	LOGTRACE("%s read completed", __PRETTY_FUNCTION__)
 

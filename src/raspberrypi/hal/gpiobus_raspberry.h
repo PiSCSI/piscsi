@@ -113,11 +113,6 @@ protected:
 
 	uint32_t signals = 0;				// All bus signals
 
-#ifdef USE_SEL_EVENT_ENABLE
-	struct gpioevent_request selevreq = {};	// SEL signal event request
-
-	int epfd;							// epoll file descriptor
-#endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
 	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
