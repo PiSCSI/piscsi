@@ -240,29 +240,28 @@ def is_bridge_configured(interface):
     Takes (str) interface of a network device being attached.
     Returns a (dict) with (bool) status and (str) msg
     """
-    # TODO: Reduce the nesting of these checks, and streamline how the results are notified
-    status = True
-    return_msg = ""
+    PATH_SYSCTL = "/etc/sysctl.conf"
+    PATH_IPTV4 = "/etc/iptables/rules.v4"
+    PATH_DHCPCD = "/etc/dhcpcd.conf"
+    PATH_BRIDGE = "/etc/network/interfaces.d/rascsi_bridge"
+    return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
+    to_configure = []
     sys_cmd = SysCmds()
     if interface.startswith("wlan"):
-        if not sys_cmd.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            status = False
-            return_msg = _("Configure IPv4 forwarding before using a wireless network device.")
-        elif not Path("/etc/iptables/rules.v4").is_file():
-            status = False
-            return_msg = _("Configure NAT before using a wireless network device.")
+        if not sys_cmd.introspect_file(PATH_SYSCTL, r"^net\.ipv4\.ip_forward=1$"):
+            to_configure.append("IPv4 forwarding")
+        if not Path(PATH_IPTV4).is_file():
+            to_configure.append("NAT")
     else:
-        if not sys_cmd.introspect_file(
-                "/etc/dhcpcd.conf",
-                r"^denyinterfaces " + interface + r"$",
-                ):
-            status = False
-            return_msg = _("Configure the network bridge before using a wired network device.")
-        elif not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            status = False
-            return_msg = _("Configure the network bridge before using a wired network device.")
+        if not sys_cmd.introspect_file(PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"):
+            to_configure.append(PATH_DHCPCD)
+        if not Path(PATH_BRIDGE).is_file():
+            to_configure.append(PATH_BRIDGE)
 
-    return {"status": status, "msg": return_msg + f" ({interface})"}
+    if to_configure:
+        return {"status": False, "msg": return_msg + ", ".join(to_configure)}
+
+    return {"status": True, "msg": ""}
 
 
 def upload_with_dropzonejs(image_dir):
