@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //  	[ SCSI Host Bridge for the Sharp X68000 ]
@@ -24,18 +24,16 @@
 #include <string>
 #include <array>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
-class SCSIBR final : public Disk
+class SCSIBR : public Disk
 {
 	static constexpr const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 public:
 
-	SCSIBR();
+	explicit SCSIBR(int);
 	~SCSIBR() override = default;
-	SCSIBR(SCSIBR&) = delete;
-	SCSIBR& operator=(const SCSIBR&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(scsi_command) override;
@@ -101,9 +99,9 @@ private:
 	void FS_Lock(vector<BYTE>&);					// $58 - get exclusive control
 
 	CFileSys fs;								// File system accessor
-	DWORD fsresult = 0;							// File system access result code
+	uint32_t fsresult = 0;						// File system access result code
 	array<BYTE, 0x800> fsout;					// File system access result buffer
-	DWORD fsoutlen = 0;							// File system access result buffer size
+	uint32_t fsoutlen = 0;						// File system access result buffer size
 	array<BYTE, 0x1000000> fsopt;				// File system access buffer
-	DWORD fsoptlen = 0;							// File system access buffer size
+	uint32_t fsoptlen = 0;						// File system access buffer size
 };

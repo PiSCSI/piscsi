@@ -2,9 +2,6 @@ import pytest
 import uuid
 import warnings
 
-CFG_DIR = "/home/pi/.config/rascsi"
-IMAGES_DIR = "/home/pi/images"
-AFP_DIR = "/home/pi/afpshare"
 SCSI_ID = 6
 FILE_SIZE_1_MIB = 1048576
 STATUS_SUCCESS = "success"

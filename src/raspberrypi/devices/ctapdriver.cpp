@@ -37,7 +37,7 @@ using namespace ras_util;
 //
 //---------------------------------------------------------------------------
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	ifreq ifr;
@@ -83,7 +83,7 @@ CTapDriver::~CTapDriver()
 }
 
 static bool ip_link(int fd, const char* ifname, bool up) {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	ifreq ifr;
@@ -126,7 +126,7 @@ static bool is_interface_up(string_view interface) {
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 {
-#ifndef __linux
+#ifndef __linux__
 	return false;
 #else
 	unordered_map<string, string> params = const_params;
@@ -158,7 +158,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 
 	LOGTRACE("Opened tap device %d", m_hTAP)
-	
+
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -177,7 +177,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	LOGTRACE("Return code from ioctl was %d", ret)
 
-	int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
+	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (ip_fd < 0) {
 		LOGERROR("Can't open ip socket: %s", strerror(errno))
 
@@ -185,7 +185,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return false;
 	}
 
-	int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	if (br_socket_fd < 0) {
 		LOGERROR("Can't open bridge socket: %s", strerror(errno))
 
@@ -245,7 +245,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		}
 		else {
 			string address = inet;
-			string netmask = "255.255.255.0";
+			string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
 			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
@@ -260,7 +260,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				}
 
 				// long long is required for compatibility with 32 bit platforms
-				auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
+				const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
 				netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
 						to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
 
@@ -391,18 +391,18 @@ void CTapDriver::OpenDump(const Filepath& path) {
 
 bool CTapDriver::Enable() const
 {
-	int fd = socket(PF_INET, SOCK_DGRAM, 0);
+	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__)
-	bool result = ip_link(fd, "ras0", true);
+	const bool result = ip_link(fd, "ras0", true);
 	close(fd);
 	return result;
 }
 
 bool CTapDriver::Disable() const
 {
-	int fd = socket(PF_INET, SOCK_DGRAM, 0);
+	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__)
-	bool result = ip_link(fd, "ras0", false);
+	const bool result = ip_link(fd, "ras0", false);
 	close(fd);
 	return result;
 }
@@ -447,12 +447,12 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t crc32(const BYTE *buf, int length) {
+uint32_t CTapDriver::Crc32(const BYTE *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];
       for (int j = 0; j < 8; j++) {
-         uint32_t mask = -(crc & 1);
+         const uint32_t mask = -((int)crc & 1);
          crc = (crc >> 1) ^ (0xEDB88320 & mask);
       }
    }
@@ -469,8 +469,8 @@ int CTapDriver::Receive(BYTE *buf)
 	}
 
 	// Receive
-	auto dwReceived = (DWORD)read(m_hTAP, buf, ETH_FRAME_LEN);
-	if (dwReceived == (DWORD)-1) {
+	auto dwReceived = (uint32_t)read(m_hTAP, buf, ETH_FRAME_LEN);
+	if (dwReceived == (uint32_t)-1) {
 		LOGWARN("%s Error occured while receiving a packet", __PRETTY_FUNCTION__)
 		return 0;
 	}
@@ -480,7 +480,7 @@ int CTapDriver::Receive(BYTE *buf)
 		// We need to add the Frame Check Status (FCS) CRC back onto the end of the packet.
 		// The Linux network subsystem removes it, since most software apps shouldn't ever
 		// need it.
-		int crc = crc32(buf, dwReceived);
+		const int crc = Crc32(buf, dwReceived);
 
 		buf[dwReceived + 0] = (BYTE)((crc >> 0) & 0xFF);
 		buf[dwReceived + 1] = (BYTE)((crc >> 8) & 0xFF);

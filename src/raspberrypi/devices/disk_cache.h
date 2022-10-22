@@ -19,7 +19,7 @@
 #include <array>
 #include <memory>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class DiskCache
 {
@@ -36,8 +36,6 @@ public:
 
 	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache() = default;
-	DiskCache(DiskCache&) = delete;
-	DiskCache& operator=(const DiskCache&) = delete;
 
 	void SetRawMode(bool b) { cd_raw = b; }		// CD-ROM raw mode setting
 

@@ -7,12 +7,12 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //
-//  Licensed under the BSD 3-Clause License. 
+//  Licensed under the BSD 3-Clause License.
 //  See LICENSE file in the project root folder.
 //
 //  [ Emulation of the DaynaPort SCSI Link Ethernet interface ]
 //
-//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's 
+//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's
 //  Tiny SCSI Emulator
 //    - SLINKCMD: http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/SLINKCMD.TXT
 //    - Tiny SCSI : https://hackaday.io/project/18974-tiny-scsi-emulator
@@ -41,14 +41,12 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort final : public Disk
+class SCSIDaynaPort : public Disk
 {
 public:
 
-	SCSIDaynaPort();
+	explicit SCSIDaynaPort(int);
 	~SCSIDaynaPort() override = default;
-	SCSIDaynaPort(SCSIDaynaPort&) = delete;
-	SCSIDaynaPort& operator=(const SCSIDaynaPort&) = delete;
 
 	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;
@@ -60,7 +58,6 @@ public:
 	int WriteCheck(uint64_t block) override;
 
 	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
-	bool EnableInterface(const vector<int>&);
 
 	void TestUnitReady() override;
 	void Read6() override;
@@ -90,9 +87,10 @@ public:
 	// The READ response has a header which consists of:
 	//   2 bytes - payload size
 	//   4 bytes - status flags
-	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
+	static const uint32_t DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
+
 	using super = Disk;
 
 	Dispatcher<SCSIDaynaPort> dispatcher;

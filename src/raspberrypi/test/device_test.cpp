@@ -7,31 +7,15 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/device.h"
 
-class TestDevice final : public Device
-{
-	FRIEND_TEST(DeviceTest, Params);
-	FRIEND_TEST(DeviceTest, StatusCode);
-	FRIEND_TEST(DeviceTest, Reset);
-	FRIEND_TEST(DeviceTest, Start);
-	FRIEND_TEST(DeviceTest, Stop);
-	FRIEND_TEST(DeviceTest, Eject);
-
-public:
-
-	TestDevice() : Device("test") {}
-	~TestDevice() override = default;
-};
-
 TEST(DeviceTest, Properties)
 {
-	const int ID = 4;
 	const int LUN = 5;
 
-	TestDevice device;
+	MockDevice device(LUN);
 
 	EXPECT_FALSE(device.IsProtectable());
 	device.SetProtectable(true);
@@ -69,31 +53,50 @@ TEST(DeviceTest, Properties)
 	device.SetLocked(true);
 	EXPECT_TRUE(device.IsLocked());
 
-	device.SetId(ID);
-	EXPECT_EQ(ID, device.GetId());
+	EXPECT_FALSE(device.SupportsParams());
+	EXPECT_TRUE(device.SupportsFile());
+	device.SupportsParams(true);
+	EXPECT_TRUE(device.SupportsParams());
+	EXPECT_FALSE(device.SupportsFile());
 
-	device.SetLun(LUN);
 	EXPECT_EQ(LUN, device.GetLun());
 }
 
-TEST(DeviceTest, ProductData)
+TEST(DeviceTest, Vendor)
 {
-	TestDevice device;
+	MockDevice device(0);
 
-	EXPECT_THROW(device.SetVendor(""), illegal_argument_exception);
-	EXPECT_THROW(device.SetVendor("123456789"), illegal_argument_exception);
+	EXPECT_THROW(device.SetVendor(""), invalid_argument);
+	EXPECT_THROW(device.SetVendor("123456789"), invalid_argument);
 	device.SetVendor("12345678");
 	EXPECT_EQ("12345678", device.GetVendor());
+}
 
-	EXPECT_THROW(device.SetProduct(""), illegal_argument_exception);
-	EXPECT_THROW(device.SetProduct("12345678901234567"), illegal_argument_exception);
+TEST(DeviceTest, Product)
+{
+	MockDevice device(0);
+
+	EXPECT_THROW(device.SetProduct(""), invalid_argument);
+	EXPECT_THROW(device.SetProduct("12345678901234567"), invalid_argument);
 	device.SetProduct("1234567890123456");
 	EXPECT_EQ("1234567890123456", device.GetProduct());
+	device.SetProduct("xyz", false);
+	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI complient";
+}
 
-	EXPECT_THROW(device.SetRevision(""), illegal_argument_exception);
-	EXPECT_THROW(device.SetRevision("12345"), illegal_argument_exception);
+TEST(DeviceTest, Revision)
+{
+	MockDevice device(0);
+
+	EXPECT_THROW(device.SetRevision(""), invalid_argument);
+	EXPECT_THROW(device.SetRevision("12345"), invalid_argument);
 	device.SetRevision("1234");
 	EXPECT_EQ("1234", device.GetRevision());
+}
+
+TEST(DeviceTest, GetPaddedName)
+{
+	MockDevice device(0);
 
 	device.SetVendor("V");
 	device.SetProduct("P");
@@ -104,7 +107,7 @@ TEST(DeviceTest, ProductData)
 
 TEST(DeviceTest, Params)
 {
-	TestDevice device;
+	MockDevice device(0);
 	unordered_map<string, string> params;
 	params["key"] = "value";
 
@@ -124,23 +127,15 @@ TEST(DeviceTest, Params)
 
 TEST(DeviceTest, StatusCode)
 {
-	TestDevice device;
+	MockDevice device(0);
 
 	device.SetStatusCode(123);
 	EXPECT_EQ(123, device.GetStatusCode());
 }
 
-TEST(DeviceTest, Init)
-{
-	TestDevice device;
-	unordered_map<string, string> params;
-
-	EXPECT_TRUE(device.Init(params));
-}
-
 TEST(DeviceTest, Reset)
 {
-	TestDevice device;
+	MockDevice device(0);
 
 	device.SetLocked(true);
 	device.SetAttn(true);
@@ -153,7 +148,7 @@ TEST(DeviceTest, Reset)
 
 TEST(DeviceTest, Start)
 {
-	TestDevice device;
+	MockDevice device(0);
 
 	device.SetStopped(true);
 	device.SetReady(false);
@@ -166,7 +161,7 @@ TEST(DeviceTest, Start)
 
 TEST(DeviceTest, Stop)
 {
-	TestDevice device;
+	MockDevice device(0);
 
 	device.SetReady(true);
 	device.SetAttn(true);
@@ -179,7 +174,7 @@ TEST(DeviceTest, Stop)
 
 TEST(DeviceTest, Eject)
 {
-	TestDevice device;
+	MockDevice device(0);
 
 	device.SetReady(false);
 	device.SetRemovable(false);

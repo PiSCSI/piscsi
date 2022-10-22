@@ -1,32 +1,31 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating\n\n
-rascsi(1)                   General Commands Manual                  rascsi(1)
+!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating
+
+
+rascsi(1)                                             General Commands Manual                                            rascsi(1)
 
 NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V |
-       -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F  IMAGE_FOLDER]  [-R  CUR‐
-       RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
-       [-i ID [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-u  UNIT]  [-x
-       CURRENT_NAME:NEW_NAME] [-z LOCALE]
+       rasctl  -e  | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V | -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F IM‐
+       AGE_FOLDER] [-R CURRENT_NAME:NEW_NAME] [-c CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST] [-i ID [-n NAME] [-p PORT] [-r RE‐
+       SERVED_IDS] [-t TYPE] [-u UNIT] [-x CURRENT_NAME:NEW_NAME] [-z LOCALE]
 
 DESCRIPTION
-       rasctl  Sends  commands to the rascsi process to make configuration ad‐
-       justments at runtime or to check the status of the devices.
+       rasctl  sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the de‐
+       vices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
        You do NOT need root privileges to use rasctl.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
-       first letter of the command/type is evaluated by the tool.
+       Note: The command and type arguments are case insensitive. Only the first letter of the command/type is  evaluated  by  the
+       tool.
 
 OPTIONS
        -C FILENAME:FILESIZE
-              Create an image file in the default image folder with the speci‐
-              fied name and size in bytes.
+              Create an image file in the default image folder with the specified name and size in bytes.
 
        -D     Detach all devices.
 
@@ -39,28 +38,22 @@ OPTIONS
        -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
-              Set the rascsi log level (trace, debug, info, warn, err,  criti‐
-              cal, off).
+              Set the rascsi log level (trace, debug, info, warn, err, critical, off).
 
        -h HOST
               The rascsi host to connect to, default is 'localhost'.
 
        -e     List all images files in the default image folder.
 
-       -N     Lists  all  available  network interfaces provided that they are
-              up.
+       -N     Lists all available network interfaces provided that they are up.
 
-       -O     Display the available rascsi server log levels and  the  current
-              log level.
+       -O     Display the available rascsi server log levels and the current log level.
 
-       -P     Prompt  for the access token in case rascsi requires authentica‐
-              tion.
+       -P     Prompt for the access token in case rascsi requires authentication.
 
-       -l     List all of the devices that are  currently  being  emulated  by
-              RaSCSI, as well as their current status.
+       -l     List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
 
-       -m     List  all  file  extensions  recognized by RaSCSI and the device
-              types they map to.
+       -m     List all file extensions recognized by RaSCSI and the device types they map to.
 
        -o     Display operation meta data information.
 
@@ -71,11 +64,9 @@ OPTIONS
               The rascsi port to connect to, default is 6868.
 
        -r RESERVED_IDS
-              Comma-separated list of IDs to reserve. Pass an  empty  list  in
-              order to not reserve anything.
+              Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
 
-       -s     Display  server-side settings like available images or supported
-              device types.
+       -s     Display server-side settings like available images or supported device types.
 
        -T     Display all device types and their properties.
 
@@ -101,28 +92,23 @@ OPTIONS
                  d(etach): Detach disk
                  i(nsert): Insert media (removable media devices only)
                  e(ject): Eject media (removable media devices only)
-                 p(rotect): Write protect the medium (not for  CD-ROMs,  which
-              are always read-only)
-                 u(nprotect): Remove write protection from the medium (not for
-              CD-ROMs, which are always read-only)
+                 p(rotect): Write protect the medium (not for CD-ROMs, which are always read-only)
+                 u(nprotect): Remove write protection from the medium (not for CD-ROMs, which are always read-only)
                  s(how): Display device information
 
               eject, protect and unprotect are idempotent.
 
        -b BLOCK_SIZE
-              The optional block size, either 512, 1024, 2048 or  4096  bytes.
-              The default size is 512 bytes.
+              The optional block size, either 512, 1024, 2048 or 4096 bytes. The default size is 512 bytes.
 
        -f FILE|PARAM
-              Device-specific: Either a path to a disk image file, or a param‐
-              eter for a non-disk device. See the rascsi(1) man page for  per‐
-              mitted file types.
+              Device-specific:  Either  a  path  to a disk image file, or a parameter for a non-disk device. See the rascsi(1) man
+              page for permitted file types.
 
        -t TYPE
-              Specifies  the device type. This type overrides the type derived
-              from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1)  man  page  for  the  available device types. For some
-              types there are shortcuts (only the first letter is required):
+              Specifies the device type. This type overrides the type derived from the file extension of the specified image.  See
+              the  rascsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is
+              required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
                  cd: CD-ROM
@@ -133,17 +119,13 @@ OPTIONS
                  services: Host services device
 
        -n VENDOR:PRODUCT:REVISION
-              The vendor, product and revision for the device, to be  returned
-              with the INQUIRY data. A complete set of name components must be
-              provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
-              to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically applied. Once set the name of  a  device  cannot  be
-              changed.
+              The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name compo‐
+              nents  must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks
+              to the maxium length is automatically applied. Once set the name of a device cannot be changed.
 
        -u UNIT
-              Unit  number (0-31). This will default to 0. This option is only
-              used when there are multiple SCSI devices on a shared SCSI  con‐
-              troller. (This is not common)
+              Unit number (0-31). This will default to 0. This option is only used when there  are  multiple  SCSI  devices  on  a
+              shared SCSI controller. (This is not common)
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.
@@ -156,14 +138,13 @@ EXAMPLES
           |  0 |   1 | SCHD | /home/pi/harddisk.hda
           +----+-----+------+-------------------------------------
 
-       Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with
-       the contents of the file system image "HDIIMAGE0.HDS".
+       Request  the  RaSCSI  process  to  attach  a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIM‐
+       AGE0.HDS".
           rasctl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       rascsi(1), scsimon(1), rasdump(1), sasidump(1)
+       rascsi(1), scsimon(1), rasdump(1)
 
-       Full          documentation          is          available          at:
-       <https://www.github.com/akuker/RASCSI/wiki/>
+       Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
 
-                                                                     rascsi(1)
+                                                                                                                         rascsi(1)

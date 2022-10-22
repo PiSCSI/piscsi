@@ -7,31 +7,59 @@
 //
 //---------------------------------------------------------------------------
 
-#include "testing.h"
+#include "mocks.h"
 #include "devices/device_factory.h"
 #include "controllers/controller_manager.h"
 
-TEST(ControllerManagerTest, ControllerManager)
+TEST(ControllerManagerTest, LifeCycle)
 {
 	const int ID = 4;
-	const int LUN = 6;
+	const int LUN1 = 2;
+	const int LUN2 = 3;
+
+	MockBus bus;
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
-	ControllerManager controller_manager;
 
-	auto device = device_factory.CreateDevice(UNDEFINED, "services", ID);
-	device->SetId(ID);
-	device->SetLun(LUN);
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, -1, "services");
+	EXPECT_FALSE(controller_manager.AttachToScsiController(ID, device));
 
-	controller_manager.CreateScsiController(nullptr, device);
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
+	auto controller = controller_manager.FindController(ID);
+	EXPECT_NE(nullptr, controller);
+	EXPECT_EQ(1, controller->GetLunCount());
 	EXPECT_NE(nullptr, controller_manager.IdentifyController(1 << ID));
 	EXPECT_EQ(nullptr, controller_manager.IdentifyController(0));
-	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager.FindController(0));
-	EXPECT_EQ(device, controller_manager.GetDeviceByIdAndLun(ID, LUN));
+	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
-	controller_manager.DeleteAllControllers();
-	device_factory.DeleteAllDevices();
+	device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
+	controller = controller_manager.FindController(ID);
+	EXPECT_TRUE(controller_manager.DeleteController(controller));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
-	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN));
+
+	controller_manager.DeleteAllControllers();
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
+	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
+}
+
+TEST(ControllerManagerTest, ResetAllControllers)
+{
+	const int ID = 2;
+
+	MockBus bus;
+	ControllerManager controller_manager(bus);
+	DeviceFactory device_factory;
+
+	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
+	auto controller = controller_manager.FindController(ID);
+	EXPECT_NE(nullptr, controller);
+
+	controller->SetStatus(status::BUSY);
+	controller_manager.ResetAllControllers();
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
 }

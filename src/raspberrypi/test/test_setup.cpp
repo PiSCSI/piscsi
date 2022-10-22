@@ -11,14 +11,14 @@
 
 #include "spdlog/spdlog.h"
 
-class Environment : public ::testing::Environment
+class Environment final : public ::testing::Environment
 {
 	spdlog::level::level_enum log_level;
 
 public:
 
 	explicit Environment(spdlog::level::level_enum level) : log_level(level) {}
-	~Environment() final = default;
+	~Environment() override = default;
 
 	void SetUp() override { spdlog::set_level(log_level); }
 };

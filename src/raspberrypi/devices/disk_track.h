@@ -16,9 +16,10 @@
 #pragma once
 
 #include "filepath.h"
+#include <cstdlib>
 #include <vector>
 
-using namespace std; //NOSONAR Not relevant for rascsi
+using namespace std;
 
 class DiskTrack
 {
@@ -26,7 +27,7 @@ class DiskTrack
 		int track;							// Track Number
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		int sectors;						// Number of sectors(<0x100)
-		DWORD length;						// Data buffer length
+		uint32_t length;					// Data buffer length
 		BYTE *buffer;						// Data buffer
 		bool init;							// Is it initilized?
 		bool changed;						// Changed flag

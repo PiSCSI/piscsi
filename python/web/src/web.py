@@ -22,7 +22,6 @@ from flask import (
     flash,
     url_for,
     redirect,
-    send_file,
     send_from_directory,
     make_response,
     session,
@@ -52,11 +51,13 @@ from web_utils import (
     get_device_name,
     map_image_file_descriptions,
     format_drive_properties,
+    get_properties_by_drive_name,
     auth_active,
     is_bridge_configured,
     upload_with_dropzonejs,
 )
 from settings import (
+    WEB_DIR,
     AFP_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
@@ -73,6 +74,7 @@ def get_env_info():
     """
     Get information about the app/host environment
     """
+    server_info = ractl_cmd.get_server_info()
     ip_addr, host = sys_cmd.get_ip_and_host()
 
     if "username" in session:
@@ -87,6 +89,15 @@ def get_env_info():
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "locale": get_locale(),
+        "version": server_info["version"],
+        "image_dir": server_info["image_dir"],
+        "netatalk_configured": sys_cmd.running_proc("afpd"),
+        "macproxy_configured": sys_cmd.running_proc("macproxy"),
+        "cd_suffixes": tuple(server_info["sccd"]),
+        "rm_suffixes": tuple(server_info["scrm"]),
+        "mo_suffixes": tuple(server_info["scmo"]),
+        "drive_properties": format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
     }
 
 
@@ -139,7 +150,7 @@ def get_locale():
         language = session["language"]
     except KeyError:
         language = ""
-        logging.warning("The default locale could not be detected. Falling back to English.")
+        logging.info("The default locale could not be detected. Falling back to English.")
     if language:
         return language
     # Hardcoded fallback to "en" when the user agent does not send an accept-language header
@@ -195,7 +206,7 @@ def index():
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
-    scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
     image_suffixes_to_create = map_image_file_descriptions(
@@ -218,49 +229,31 @@ def index():
         server_info["sccd"]
         )
 
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
-
     return response(
         template="index.html",
         locales=get_supported_locales(),
+        netinfo=ractl_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
-        netatalk_configured=sys_cmd.running_proc("afpd"),
-        macproxy_configured=sys_cmd.running_proc("macproxy"),
         devices=formatted_devices,
+        attached_images=attached_images,
         files=extended_image_files,
         config_files=config_files,
-        base_dir=server_info["image_dir"],
+        device_types=device_types,
         scan_depth=server_info["scan_depth"],
-        CFG_DIR=CFG_DIR,
-        AFP_DIR=AFP_DIR,
-        scsi_ids=scsi_ids,
-        recommended_id=recommended_id,
-        attached_images=attached_images,
-        units=units,
-        reserved_scsi_ids=reserved_scsi_ids,
-        RESERVATIONS=RESERVATIONS,
-        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
-        netinfo=ractl_cmd.get_network_info(),
-        device_types=device_types,
+        scsi_ids=scsi_ids,
+        units=units,
+        reserved_scsi_ids=reserved_scsi_ids,
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
-        cdrom_file_suffix=tuple(server_info["sccd"]),
-        removable_file_suffix=tuple(server_info["scrm"]),
-        mo_file_suffix=tuple(server_info["scmo"]),
-        drive_properties=drive_properties,
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        RESERVATIONS=RESERVATIONS,
+        CFG_DIR=CFG_DIR,
+        AFP_DIR=AFP_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
+        CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
         PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),
@@ -280,25 +273,10 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    try:
-        drive_properties = format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"])
-    except:
-        drive_properties = {
-            "hd_conf": [],
-            "cd_conf": [],
-            "rm_conf": [],
-            "mo_conf": [],
-            }
-
-    server_info = ractl_cmd.get_server_info()
 
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        base_dir=server_info["image_dir"],
-        drive_properties=drive_properties,
-        version=server_info["version"],
-        cdrom_file_suffix=tuple(server_info["sccd"]),
         )
 
 
@@ -311,10 +289,9 @@ def login():
     password = request.form["password"]
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
 
-    if AUTH_GROUP in groups:
-        if authenticate(str(username), str(password)):
-            session["username"] = request.form["username"]
-            return response(env=get_env_info())
+    if AUTH_GROUP in groups and authenticate(str(username), str(password)):
+        session["username"] = request.form["username"]
+        return response(env=get_env_info())
 
     return response(error=True, status_code=401, message=_(
         "You must log in with valid credentials for a user in the '%(group)s' group",
@@ -358,34 +335,36 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
-    size = request.form.get("size")
-    file_type = request.form.get("file_type")
+    drive_name = request.form.get("drive_name")
     file_name = request.form.get("file_name")
-    full_file_name = file_name + "." + file_type
+
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
 
     # Creating the image file
-    process = file_cmd.create_new_image(file_name, file_type, size)
+    process = file_cmd.create_new_image(
+        file_name,
+        properties["file_type"],
+        properties["size"],
+        )
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
     # Creating the drive properties file
-    prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
-    properties = {
-                "vendor": vendor,
-                "product": product,
-                "revision": revision,
-                "block_size": block_size,
-                }
+    full_file_name = f"{file_name}.{properties['file_type']}"
+    prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
     process = file_cmd.write_drive_properties(prop_file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
-    return response(message=_("Image file created: %(file_name)s", file_name=full_file_name))
+    # TODO: Refactor the return messages into one string
+    return response(message=[
+        (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
+        (process["msg"], "success"),
+    ])
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
@@ -394,20 +373,15 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
+    drive_name = request.form.get("drive_name")
     file_name = request.form.get("file_name")
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = {
-        "vendor": vendor,
-        "product": product,
-        "revision": revision,
-        "block_size": block_size,
-        }
+    properties = get_properties_by_drive_name(
+        APP.config["RASCSI_DRIVE_PROPERTIES"],
+        drive_name
+        )
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -450,7 +424,8 @@ def config_load():
         return response(error=True, message=process["msg"])
 
     if "delete" in request.form:
-        process = file_cmd.delete_file(f"{CFG_DIR}/{file_name}")
+        file_path = Path(CFG_DIR) / file_name
+        process = file_cmd.delete_file(file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             return response(message=process["msg"])
@@ -478,12 +453,61 @@ def show_diskinfo():
             template="diskinfo.html",
             file_name=file_name,
             diskinfo=diskinfo,
-            version=server_info["version"],
             )
 
     return response(
         error=True,
         message=_("An error occurred when getting disk info: %(error)s", error=diskinfo)
+    )
+
+
+@APP.route("/sys/manpage", methods=["GET"])
+def show_manpage():
+    """
+    Displays manpage
+    """
+    app_allowlist = ["rascsi", "rasctl", "rasdump", "scsimon"]
+
+    app = request.args.get("app", type = str)
+
+    if app not in app_allowlist:
+        return response(
+            error=True,
+            message=_("%(app)s is not a recognized RaSCSI app", app=app)
+        )
+
+    file_path = f"{WEB_DIR}/../../../doc/{app}.1"
+    html_to_strip = [
+            "Content-type",
+            "!DOCTYPE",
+            "<HTML>",
+            "<HEAD>",
+            "<BODY>",
+            "<H1>",
+        ]
+
+    returncode, manpage = sys_cmd.get_manpage(file_path)
+    if returncode == 0:
+        formatted_manpage = ""
+        for line in manpage.splitlines(True):
+            # Make URIs compatible with the Flask webapp
+            if "/?1+" in line:
+                line = line.replace("/?1+", "manpage?app=")
+            # Strip out useless hyperlink
+            elif "man2html" in line:
+                line = line.replace("<A HREF=\"/\">man2html</A>", "man2html")
+            if not any(ele in line for ele in html_to_strip):
+                formatted_manpage += line
+
+        return response(
+            template="manpage.html",
+            app=app,
+            manpage=formatted_manpage,
+            )
+
+    return response(
+        error=True,
+        message=_("An error occurred when accessing man page: %(error)s", error=manpage)
     )
 
 
@@ -497,13 +521,11 @@ def show_logs():
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
-        server_info = ractl_cmd.get_server_info()
         return response(
             template="logs.html",
             scope=scope,
             lines=lines,
             logs=logs,
-            version=server_info["version"],
             )
 
     return response(
@@ -533,35 +555,40 @@ def attach_device():
     """
     Attaches a peripheral device that doesn't take an image file as argument
     """
-    params = {}
+    scsi_id = request.form.get("scsi_id")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
+    drive_name = request.form.get("drive_name")
+
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
+
+    # Attempt to fetch the drive properties based on drive name
     drive_props = None
+    if drive_name:
+        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
+            if drive["name"] == drive_name:
+                drive_props = drive
+                break
+
+    # Collect device parameters into a dictionary
+    PARAM_PREFIX = "param_"
+    params = {}
     for item in request.form:
-        if item == "scsi_id":
-            scsi_id = request.form.get(item)
-        elif item == "unit":
-            unit = request.form.get(item)
-        elif item == "type":
-            device_type = request.form.get(item)
-        elif item == "drive_name":
-            drive_name = request.form.get(item)
-            for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
-                if drive["name"] == drive_name:
-                    drive_props = drive
-                    break
-        else:
+        if item.startswith(PARAM_PREFIX):
             param = request.form.get(item)
             if param:
-                params.update({item: param})
+                params.update({item.replace(PARAM_PREFIX, ""): param})
 
     error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)
 
     if "interface" in params.keys():
-        # Note: is_bridge_configured returns False if the bridge is configured
         bridge_status = is_bridge_configured(params["interface"])
-        if bridge_status:
+        if not bridge_status["status"]:
+            # TODO: Refactor the return messages into one string
             return response(error=True, message=[
-                (bridge_status, "error"),
+                (bridge_status["msg"], "error"),
                 (error_msg, "error")
             ])
 
@@ -600,6 +627,11 @@ def attach_image():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     device_type = request.form.get("type")
+
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
+    if not file_name:
+        return response(error=True, message=_("No image file to insert"))
 
     kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
@@ -646,6 +678,7 @@ def attach_image():
 
         return response(message=response_messages)
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
            file_name=file_name, id_number=scsi_id, unit_number=unit), "error"),
@@ -679,6 +712,7 @@ def detach():
         return response(message=_("Detached SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
            id_number=scsi_id, unit_number=unit), "error"),
@@ -700,6 +734,7 @@ def eject():
         return response(message=_("Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
            id_number=scsi_id, unit_number=unit), "error"),
@@ -712,13 +747,11 @@ def device_info():
     """
     Displays detailed info for all attached devices
     """
-    server_info = ractl_cmd.get_server_info()
     process = ractl_cmd.list_devices()
     if process["status"]:
         return response(
             template="deviceinfo.html",
             devices=process["device_list"],
-            version=server_info["version"],
             )
 
     return response(error=True, message=_("No devices attached"))
@@ -739,6 +772,7 @@ def reserve_id():
         RESERVATIONS[int(scsi_id)] = memo
         return response(message=_("Reserved SCSI ID %(id_number)s", id_number=scsi_id))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id), "error"),
         (process["msg"], "error"),
@@ -759,6 +793,7 @@ def release_id():
         RESERVATIONS[int(scsi_id)] = ""
         return response(message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id), "error"),
         (process["msg"], "error"),
@@ -799,6 +834,7 @@ def download_to_iso():
     process = file_cmd.download_file_to_iso(url, *iso_args)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
+        # TODO: Refactor the return messages into one string
         return response(error=True, message=[
             (_("Failed to create CD-ROM image from %(url)s", url=url), "error"),
             (process["msg"], "error"),
@@ -817,6 +853,7 @@ def download_to_iso():
         response_messages.append((_("Attached to SCSI ID %(id_number)s", id_number=scsi_id), "success"))
         return response(message=response_messages)
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.", id_number=scsi_id), "error"),
         (process_attach["msg"], "error"),
@@ -841,6 +878,7 @@ def download_file():
     if process["status"]:
         return response(message=process["msg"])
 
+    # TODO: Refactor the return messages into one string
     return response(error=True, message=[
         (_("Failed to download file from %(url)s", url=url), "error"),
         (process["msg"], "error"),
@@ -876,17 +914,34 @@ def create_file():
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
+    drive_name = request.form.get("drive_name")
+
     full_file_name = file_name + "." + file_type
-
     process = file_cmd.create_new_image(file_name, file_type, size)
-    if process["status"]:
-        return response(
-            status_code=201,
-            message=_("Image file created: %(file_name)s", file_name=full_file_name),
-            image=full_file_name,
-            )
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
-    return response(error=True, message=process["msg"])
+    # Creating the drive properties file, if one is chosen
+    if drive_name:
+        properties = get_properties_by_drive_name(
+            APP.config["RASCSI_DRIVE_PROPERTIES"],
+            drive_name
+            )
+        prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+        process = file_cmd.write_drive_properties(prop_file_name, properties)
+        process = ReturnCodeMapper.add_msg(process)
+        if not process["status"]:
+            return response(error=True, message=process["msg"])
+
+    return response(
+        status_code=201,
+        # TODO: Refactor the return messages into one string
+        message=[
+            (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
+            (process["msg"], "success"),
+            ],
+        image=full_file_name,
+        )
 
 
 @APP.route("/files/download", methods=["POST"])
@@ -895,8 +950,9 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("file")
-    return send_file(image, as_attachment=True)
+    file_name = request.form.get("file")
+    server_info = ractl_cmd.get_server_info()
+    return send_from_directory(server_info["image_dir"], file_name, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -915,8 +971,8 @@ def delete():
         (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -944,9 +1000,9 @@ def rename():
         (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -974,9 +1030,9 @@ def copy():
         (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
         process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
@@ -1112,8 +1168,10 @@ if __name__ == "__main__":
         if process["status"]:
             APP.config["RASCSI_DRIVE_PROPERTIES"] = process["conf"]
         else:
+            APP.config["RASCSI_DRIVE_PROPERTIES"] = []
             logging.error(process["msg"])
     else:
+        APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.basicConfig(stream=sys.stdout,

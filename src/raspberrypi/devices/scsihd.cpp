@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI hard disk ]
@@ -22,11 +22,9 @@
 
 using namespace scsi_command_util;
 
-SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
-	: Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
+	: Disk(removable ? "SCRM" : "SCHD", lun), scsi_level(level)
 {
-	scsi_level = level;
-
 	SetSectorSizes(sector_sizes);
 }
 
@@ -41,8 +39,14 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	if (!IsRemovable()) {
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (capacity >= 1048576) {
-			capacity /= 1048576;
+		// 10 GiB and more
+		if (capacity >= 1'099'511'627'776) {
+			capacity /= 1'099'511'627'776;
+			unit = "GiB";
+		}
+		// 1 MiB and more
+		else if (capacity >= 1'048'576) {
+			capacity /= 1'048'576;
 			unit = "MiB";
 		}
 		else {
@@ -58,8 +62,8 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 	SetProtectable(true);
 	SetProtected(false);
 
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	super::Open(path);
+	SetPath(path);
 
 	SetUpCache(path, image_offset);
 }
@@ -75,17 +79,17 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
-	file_size = (file_size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
-	FinalizeSetup(path, file_size);
+	FinalizeSetup(path, size);
 }
 
 vector<byte> SCSIHD::InquiryInternal() const

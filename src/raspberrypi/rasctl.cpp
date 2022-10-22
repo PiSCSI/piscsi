@@ -10,12 +10,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include <unistd.h>
 #include "rascsi_version.h"
-#include "command_util.h"
+#include "protobuf_util.h"
 #include "rasutil.h"
-#include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include "rasctl/rasctl_parser.h"
+#include "rasctl/rasctl_commands.h"
 #include <unistd.h>
 #include <clocale>
 #include <iostream>
@@ -27,125 +27,45 @@ static const char COMPONENT_SEPARATOR = ':';
 using namespace std;
 using namespace rascsi_interface;
 using namespace ras_util;
-using namespace command_util;
+using namespace protobuf_util;
 
-PbOperation ParseOperation(const string& operation)
+void Banner(int argc, char* argv[])
 {
-	switch (tolower(operation[0])) {
-		case 'a':
-			return ATTACH;
+	if (argc < 2) {
+		cout << Banner("Controller");
 
-		case 'd':
-			return DETACH;
+		cout << "\nUsage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
+		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
+		cout << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
+		cout <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
+		cout << "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n";
+		cout << " where  ID := {0-7}\n";
+		cout << "        UNIT := {0-31}, default is 0\n";
+		cout << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n";
+		cout << "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}\n";
+		cout << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block\n";
+		cout << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)\n";
+		cout << "        FILE|PARAM := image file path or device-specific parameter\n";
+		cout << "        IMAGE_FOLDER := default location for image files, default is '~/images'\n";
+		cout << "        HOST := rascsi host to connect to, default is 'localhost'\n";
+		cout << "        PORT := rascsi port to connect to, default is 6868\n";
+		cout << "        RESERVED_IDS := comma-separated list of IDs to reserve\n";
+		cout << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'\n";
+		cout << " If CMD is 'attach' or 'insert' the FILE parameter is required.\n";
+		cout << "Usage: " << argv[0] << " -l\n";
+		cout << "       Print device list.\n" << flush;
 
-		case 'i':
-			return INSERT;
-
-		case 'e':
-			return EJECT;
-
-		case 'p':
-			return PROTECT;
-
-		case 'u':
-			return UNPROTECT;
-
-		case 's':
-			return DEVICES_INFO;
-
-		default:
-			return NO_OPERATION;
+		exit(EXIT_SUCCESS);
 	}
-}
-
-PbDeviceType ParseType(const char *type)
-{
-	string t = type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
-
-	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
-		return parsed_type;
-	}
-
-	// Parse convenience device types (shortcuts)
-	switch (tolower(type[0])) {
-	case 'c':
-		return SCCD;
-
-	case 'b':
-		return SCBR;
-
-	case 'd':
-		return SCDP;
-
-	case 'h':
-		return SCHD;
-
-	case 'm':
-		return SCMO;
-
-	case 'r':
-		return SCRM;
-
-	case 'l':
-		return SCLP;
-
-	case 's':
-		return SCHS;
-
-	default:
-		return UNDEFINED;
-	}
-}
-
-void SetPatternParams(PbCommand& command, string_view patterns)
-{
-	string folder_pattern;
-	string file_pattern;
-	if (size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		folder_pattern = patterns.substr(0, separator_pos);
-		file_pattern = patterns.substr(separator_pos + 1);
-	}
-	else {
-		file_pattern = patterns;
-	}
-
-	AddParam(command, "folder_pattern", folder_pattern);
-	AddParam(command, "file_pattern", file_pattern);
 }
 
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	// Display help
-	if (argc < 2) {
-		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
-		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
-		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
-		cerr <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]" << endl;
-		cerr << " where  ID := {0-7}" << endl;
-		cerr << "        UNIT := {0-31}, default is 0" << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
-		cerr << "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
-		cerr << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block" << endl;
-		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
-		cerr << "        FILE|PARAM := image file path or device-specific parameter" << endl;
-		cerr << "        IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
-		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
-		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
-		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve" << endl;
-		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'" << endl;
-		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
-		cerr << "Usage: " << argv[0] << " -l" << endl;
-		cerr << "       Print device list." << endl;
+	Banner(argc, argv);
 
-		exit(EXIT_SUCCESS);
-	}
-
+	RasctlParser parser;
 	PbCommand command;
 	list<PbDeviceDefinition> devices;
 	PbDeviceDefinition* device = command.add_devices();
@@ -205,7 +125,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				command.set_operation(ParseOperation(optarg));
+				command.set_operation(parser.ParseOperation(optarg));
 				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
@@ -276,7 +196,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 't':
-				device->set_type(ParseType(optarg));
+				device->set_type(parser.ParseType(optarg));
 				if (device->type() == UNDEFINED) {
 					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);

@@ -7,8 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "abstract_controller.h"
+#include "rascsi_exceptions.h"
 #include "devices/primary_device.h"
+#include "abstract_controller.h"
 
 void AbstractController::AllocateBuffer(size_t size)
 {
@@ -17,7 +18,18 @@ void AbstractController::AllocateBuffer(size_t size)
 	}
 }
 
-PrimaryDevice *AbstractController::GetDeviceForLun(int lun) const {
+unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
+{
+	unordered_set<shared_ptr<PrimaryDevice>> devices;
+
+	for (const auto& [id, lun] : luns) {
+		devices.insert(lun);
+	}
+
+	return devices;
+}
+
+shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
 	const auto& it = luns.find(lun);
 	return it == luns.end() ? nullptr : it->second;
 }
@@ -26,7 +38,7 @@ void AbstractController::Reset()
 {
 	SetPhase(BUS::phase_t::busfree);
 
-	ctrl.status = 0x00;
+	ctrl.status = status::GOOD;
 	ctrl.message = 0x00;
 	ctrl.blocks = 0;
 	ctrl.next = 0;
@@ -75,18 +87,15 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			assert(false);
+			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()))
+			throw scsi_exception();
 			break;
 	}
 }
 
-bool AbstractController::AddDevice(PrimaryDevice *device)
+bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 {
-	if (device->GetLun() >= GetMaxLuns()) {
-		return false;
-	}
-
-	if (HasDeviceForLun(device->GetLun())) {
+	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || HasDeviceForLun(device->GetLun())) {
 		return false;
 	}
 
@@ -96,7 +105,7 @@ bool AbstractController::AddDevice(PrimaryDevice *device)
 	return true;
 }
 
-bool AbstractController::DeleteDevice(const PrimaryDevice *device)
+bool AbstractController::DeleteDevice(const shared_ptr<PrimaryDevice> device)
 {
 	return luns.erase(device->GetLun()) == 1;
 }

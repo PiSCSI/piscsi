@@ -1,7 +1,6 @@
 import uuid
 
 from conftest import (
-    CFG_DIR,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
 )
@@ -42,20 +41,17 @@ def test_show_named_drive_presets(http_client):
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert "drive_properties" in response_data["data"]
+    assert "files" in response_data["data"]
 
 
 # route("/drive/cdrom", methods=["POST"])
-def test_create_cdrom_properties_file(http_client):
+def test_create_cdrom_properties_file(env, http_client):
     file_name = f"{uuid.uuid4()}.iso"
 
     response = http_client.post(
         "/drive/cdrom",
         data={
-            "vendor": "TEST_AAA",
-            "product": "TEST_BBB",
-            "revision": "1.0A",
-            "block_size": 2048,
+            "drive_name": "Sony CDU-8012",
             "file_name": file_name,
         },
     )
@@ -65,7 +61,7 @@ def test_create_cdrom_properties_file(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == (
-        f"File created: {CFG_DIR}/{file_name}.properties"
+        f"File created: {env['cfg_dir']}/{file_name}.properties"
     )
 
 
@@ -77,12 +73,8 @@ def test_create_image_with_properties_file(http_client, delete_file):
     response = http_client.post(
         "/drive/create",
         data={
-            "vendor": "TEST_AAA",
-            "product": "TEST_BBB",
-            "revision": "1.0A",
-            "block_size": 512,
+            "drive_name": "Miniscribe M8425",
             "size": FILE_SIZE_1_MIB,
-            "file_type": "hds",
             "file_name": file_prefix,
         },
     )
@@ -95,3 +87,12 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
     # Cleanup
     delete_file(file_name)
+
+
+# route("/sys/manpage", methods=["POST"])
+def test_show_manpage(http_client):
+    response = http_client.get("/sys/manpage?app=rascsi")
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert "rascsi" in response_data["data"]["manpage"]

@@ -7,17 +7,16 @@
 //
 //---------------------------------------------------------------------------
 
-#include <cassert>
 #include "rascsi_version.h"
 #include "log.h"
-#include "rascsi_exceptions.h"
 #include "device.h"
+#include <cassert>
 #include <sstream>
 #include <iomanip>
 
 using namespace std;
 
-Device::Device(const string& t) : type(t)
+Device::Device(const string& type, int lun) : type(type), lun(lun)
 {
 	assert(type.length() == 4);
 
@@ -43,7 +42,7 @@ void Device::SetProtected(bool b)
 void Device::SetVendor(const string& v)
 {
 	if (v.empty() || v.length() > 8) {
-		throw illegal_argument_exception("Vendor '" + v + "' must be between 1 and 8 characters");
+		throw invalid_argument("Vendor '" + v + "' must be between 1 and 8 characters");
 	}
 
 	vendor = v;
@@ -52,10 +51,10 @@ void Device::SetVendor(const string& v)
 void Device::SetProduct(const string& p, bool force)
 {
 	if (p.empty() || p.length() > 16) {
-		throw illegal_argument_exception("Product '" + p + "' must be between 1 and 16 characters");
+		throw invalid_argument("Product '" + p + "' must be between 1 and 16 characters");
 	}
 
-	// Changing the device name is not SCSI compliant
+	// Changing vital product data is not SCSI compliant
 	if (!product.empty() && !force) {
 		return;
 	}
@@ -66,7 +65,7 @@ void Device::SetProduct(const string& p, bool force)
 void Device::SetRevision(const string& r)
 {
 	if (r.empty() || r.length() > 4) {
-		throw illegal_argument_exception("Revision '" + r + "' must be between 1 and 4 characters");
+		throw invalid_argument("Revision '" + r + "' must be between 1 and 4 characters");
 	}
 
 	revision = r;
@@ -74,13 +73,10 @@ void Device::SetRevision(const string& r)
 
 string Device::GetPaddedName() const
 {
-	string name = vendor;
-	name.append(8 - vendor.length(), ' ');
-	name += product;
-	name.append(16 - product.length(), ' ');
-	name += revision;
-	name.append(4 - revision.length(), ' ');
+	ostringstream os;
+	os << left << setfill(' ') << setw(8) << vendor << setw(16) << product << setw(4) << revision;
 
+	const string name = os.str();
 	assert(name.length() == 28);
 
 	return name;
@@ -105,15 +101,6 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
 		}
 	}
-}
-
-void Device::SetStatusCode(int s)
-{
-	if (s) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", s >> 16, (s >> 8 &0xff), s & 0xff)
-	}
-
-	status_code = s;
 }
 
 bool Device::Start()

@@ -5,7 +5,7 @@ scsimon \- Acts as a data capture tool for all traffic on the SCSI bus. Data is 
 .B scsimon
 .SH DESCRIPTION
 .B scsimon
-Monitors all of the traffic on the SCSI bus, using a RaSCSI device. The data is cached in memory while the tool is running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored. The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
+monitors all of the traffic on the SCSI bus, using a RaSCSI device. The data is cached in memory while the tool is running. A circular buffer is used so that only the most recent 1,000,000 transactions are stored. The tool will continue to run until the user presses CTRL-C, or the process receives a SIGINT signal.
 .PP
 The logged data is stored in a file called "log.vcd" in the current working directory from where scsimon was launched.
 
@@ -22,6 +22,6 @@ Launch scsimon to capture all SCSI traffic available to the RaSCSI hardware:
    scsimon
 
 .SH SEE ALSO
-rasctl(1), rascsi(1), rasdump(1), sasidump(1)
+rasctl(1), rascsi(1), rasdump(1)
  
 Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

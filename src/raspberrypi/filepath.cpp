@@ -8,16 +8,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "filepath.h"
-#include "config.h"
-#include "fileio.h"
 #include <libgen.h>
-
-Filepath::Filepath()
-{
-	Clear();
-}
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 Filepath& Filepath::operator=(const Filepath& path)
 {
@@ -25,15 +20,6 @@ Filepath& Filepath::operator=(const Filepath& path)
 	SetPath(path.GetPath());
 
 	return *this;
-}
-
-void Filepath::Clear()
-{
-	// Clear the path and each part
-	m_szPath[0] = '\0';
-	m_szDir[0] = '\0';
-	m_szFile[0] = '\0';
-	m_szExt[0] = '\0';
 }
 
 //---------------------------------------------------------------------------
@@ -69,7 +55,7 @@ void Filepath::Split()
 	char *pDir = strdup(m_szPath);
 	const char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
-	char *pBaseName = basename(pBase);
+	const char *pBaseName = basename(pBase);
 	const char *pExtName = strrchr(pBaseName, '.');
 
 	// Transmit

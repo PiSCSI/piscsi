@@ -1,52 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>{{ _("Detailed Info for Attached Devices") }}</h3>
+<h2>{{ _("Detailed Info for Attached Devices") }}</h2>
 {% for device in devices %}
 <p>
-<table border="black" cellpadding="3">
+<table border="black" cellpadding="3" summary="Detailed information for attached devices">
 <tr>
-    <td><i>{{ _("SCSI ID") }}</i></td>
+    <th scope="row">{{ _("SCSI ID") }}</th>
     <td>{{ device["id"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("LUN") }}</i></td>
+    <th scope="row">{{ _("LUN") }}</th>
     <td>{{ device["unit"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Type") }}</i></td>
+    <th scope="row">{{ _("Type") }}</th>
     <td>{{ device["device_type"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Status") }}</i></td>
+    <th scope="row">{{ _("Status") }}</th>
     <td>{{ device["status"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("File") }}</i></td>
+    <th scope="row">{{ _("File") }}</th>
     <td>{{ device["image"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Parameters") }}</i></td>
+    <th scope="row">{{ _("Parameters") }}</th>
     <td>{{ device["params"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Vendor") }}</i></td>
+    <th scope="row">{{ _("Vendor") }}</th>
     <td>{{ device["vendor"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Product") }}</i></td>
+    <th scope="row">{{ _("Product") }}</th>
     <td>{{ device["product"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Revision") }}</i></td>
+    <th scope="row">{{ _("Revision") }}</th>
     <td>{{ device["revision"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Block Size") }}</i></td>
+    <th scope="row">{{ _("Block Size") }}</th>
     <td>{{ device["block_size"] }}</td>
 </tr>
 <tr>
-    <td><i>{{ _("Image Size") }}</i></td>
+    <th scope="row">{{ _("Image Size") }}</th>
     <td>{{ device["size"] }}</td>
 </tr>
 </table>

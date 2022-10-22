@@ -34,11 +34,11 @@ static const int _MAX_FNAME = 256;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-unique_ptr<GPIOBUS> bus;      // GPIO Bus
+GPIOBUS bus;			      // GPIO Bus
 
-DWORD buff_size = 1000000;
+uint32_t buff_size = 1000000;
 data_capture *data_buffer;
-DWORD data_idx = 0;
+uint32_t data_idx = 0;
 
 double ns_per_loop;
 
@@ -95,8 +95,7 @@ void parse_arguments(int argc, char *argv[])
     }
 
     /* Process any remaining command line arguments (not options). */
-    if (optind < argc)
-    {
+    if (optind < argc) {
         while (optind < argc)
             strncpy(file_base_name, argv[optind++], sizeof(file_base_name)-1);
     }
@@ -148,12 +147,10 @@ void print_help_text(int, char *argv[])
 //---------------------------------------------------------------------------
 void Banner(int, char *[])
 {
-    if (import_data)
-    {
+    if (import_data) {
         LOGINFO("Reading input file: %s", input_file_name)
     }
-    else
-    {
+    else {
         LOGINFO("Reading live data from the GPIO pins")
         LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
@@ -173,16 +170,13 @@ void Banner(int, char *[])
 bool Init()
 {
     // Interrupt handler settings
-    if (signal(SIGINT, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGINT, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGHUP, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGHUP, KillHandler) == SIG_ERR) {
         return false;
     }
-    if (signal(SIGTERM, KillHandler) == SIG_ERR)
-    {
+    if (signal(SIGTERM, KillHandler) == SIG_ERR) {
         return false;
     }
 
@@ -195,7 +189,7 @@ bool Init()
     }
 
     // Bus Reset
-    bus->Reset();
+    bus.Reset();
 
     // Other
     running = false;
@@ -205,8 +199,7 @@ bool Init()
 
 void Cleanup()
 {
-    if (!import_data)
-    {
+    if (!import_data) {
         LOGINFO("Stopping data collection....")
     }
     LOGINFO(" ")
@@ -217,17 +210,14 @@ void Cleanup()
     LOGINFO("Generating %s...", html_file_name)
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
-    if (bus)
-    {
-        // Cleanup the Bus
-        bus->Cleanup();
-    }
+    // Cleanup the Bus
+    bus.Cleanup();
 }
 
 void Reset()
 {
     // Reset the bus
-    bus->Reset();
+    bus.Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -235,7 +225,7 @@ void Reset()
 //	Pin the thread to a specific CPU (Only applies to Linux)
 //
 //---------------------------------------------------------------------------
-#ifdef __linux
+#ifdef __linux__
 void FixCpu(int cpu)
 {
     // Get the number of CPUs
@@ -255,8 +245,8 @@ void FixCpu(int cpu)
 #endif
 
 #ifdef DEBUG
-static DWORD high_bits = 0x0;
-static DWORD low_bits = 0xFFFFFFFF;
+static uint32_t high_bits = 0x0;
+static uint32_t low_bits = 0xFFFFFFFF;
 #endif
 
 //---------------------------------------------------------------------------
@@ -278,12 +268,12 @@ int main(int argc, char *argv[])
     parse_arguments(argc, argv);
 
 #ifdef DEBUG
-    DWORD prev_high = high_bits;
-    DWORD prev_low = low_bits;
+    uint32_t prev_high = high_bits;
+    uint32_t prev_low = low_bits;
 #endif
     ostringstream s;
-    DWORD prev_sample = 0xFFFFFFFF;
-    DWORD this_sample = 0;
+    uint32_t prev_sample = 0xFFFFFFFF;
+    uint32_t this_sample = 0;
     timeval start_time;
     timeval stop_time;
     uint64_t loop_count = 0;
@@ -318,8 +308,7 @@ int main(int argc, char *argv[])
 
     // Initialize
     int ret = 0;
-    if (!Init())
-    {
+    if (!Init()) {
         ret = EPERM;
         goto init_exit;
     }
@@ -327,7 +316,7 @@ int main(int argc, char *argv[])
     // Reset
     Reset();
 
-#ifdef __linux
+#ifdef __linux__
     // Set the affinity to a specific processor core
     FixCpu(3);
 
@@ -339,7 +328,7 @@ int main(int argc, char *argv[])
 
     // Start execution
     running = true;
-    bus->SetACT(false);
+    bus.SetACT(false);
 
     (void)gettimeofday(&start_time, nullptr);
 
@@ -349,7 +338,7 @@ int main(int argc, char *argv[])
     while (running)
     {
         // Work initialization
-        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
+        this_sample = (bus.Acquire() & ALL_SCSI_PINS);
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {

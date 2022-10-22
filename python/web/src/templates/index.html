@@ -6,18 +6,19 @@
         {{ _("Current RaSCSI Configuration") }}
     </summary>
     <ul>
-        <li>{{ _("Displays the currently attached devices for each available SCSI ID.") }}</li>
-        <li>{{ _("Save and load device configurations, stored as json files in <tt>%(config_dir)s</tt>", config_dir=CFG_DIR) }}</tt></li>
+        <li>{{ _("Save and load device configurations, stored as json files in <tt>%(config_dir)s</tt>", config_dir=CFG_DIR) }}</li>
         <li>{{ _("To have a particular device configuration load when RaSCSI starts, save it as <em>default</em>.") }}</li>
     </ul>
 </details>
 
-<p><form action="/config/load" method="post">
-    <select name="name" required="" width="14">
+<p>
+<form action="/config/load" method="post">
+    <label for="config_load_name">{{ _("File name") }}</label>
+    <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
         {% for config in config_files|sort %}
         <option value="{{ config }}">
-            {{ config.replace(".json", '') }}
+            {{ config }}
         </option>
         {% endfor %}
         {% else %}
@@ -28,55 +29,59 @@
     </select>
     <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load configuration?") }}')">
     <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete configuration file?") }}')">
-</form></p>
+</form>
+</p>
 
-<p><form action="/config/save" method="post">
-    <input name="name" placeholder="default" size="20">
+<p>
+<form action="/config/save" method="post">
+    <label for="config_save_name">{{ _("File name") }}</label>
+    <input name="name" id="config_save_name" placeholder="default" size="20">
+    .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
-</form></p>
+</form>
+</p>
 
-<table border="black" cellpadding="3">
+<table border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
         <tr>
-            <td><b>{{ _("ID") }}</b></td>
+            <th scope="col">{{ _("ID") }}</th>
             {% if units %}
-            <td><b>{{ _("LUN") }}</b></td>
+            <th scope="col">{{ _("LUN") }}</th>
             {% endif %}
-            <td><b>{{ _("Type") }}</b></td>
-            <td><b>{{ _("Status") }}</b></td>
-            <td><b>{{ _("File") }}</b></td>
-            <td><b>{{ _("Product") }}</b></td>
-            <td><b>{{ _("Actions") }}</b></td>
+            <th scope="col">{{ _("Device") }}</th>
+            <th scope="col">{{ _("Parameters") }}</th>
+            <th scope="col">{{ _("Product") }}</th>
+            <th scope="col">{{ _("Actions") }}</th>
         </tr>
-        {% for device in devices %}
+        {% for device in devices | sort(attribute='id') %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
-            <td style="text-align:center">{{ device.id }}</td>
+            <td align="center">{{ device.id }}</td>
             {% if units %}
-            <td style="text-align:center">{{ device.unit }}</td>
+            <td align="center">{{ device.unit }}</td>
             {% endif %}
-            <td style="text-align:center">{{ device.device_type }}</td>
-            <td style="text-align:center">{{ device.status }}</td>
-            <td style="text-align:left">
+            <td align="center">{{ device.device_name }}</td>
+            <td>
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input name="type" type="hidden" value="{{ device.device_type }}">
                     <input name="file_size" type="hidden" value="{{ device.size }}">
-                    <select type="select" name="file_name">
+                    <label for="device_list_file_name_{{ device.id }}_{{ device.unit }}">{{ _("File name") }}</label>
+                    <select type="select" name="file_name" id="device_list_file_name_{{ device.id }}_{{ device.unit }}">
                     {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
-                    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
-                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% if f["name"].lower().endswith(env['cd_suffixes']) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                     {% endif %}
                     {% elif device.device_type == "SCRM" %}
-                    {% if f["name"].lower().endswith(removable_file_suffix) %}
-                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% if f["name"].lower().endswith(env['rm_suffixes']) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                     {% endif %}
                     {% elif device.device_type == "SCMO" %}
-                    {% if f["name"].lower().endswith(mo_file_suffix) %}
-                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% if f["name"].lower().endswith(env['mo_suffixes']) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
                     {% endif %}
                     {% endif %}
                     {% endfor %}
@@ -84,16 +89,32 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
+            {% if device.params %}
+            {% for key in device.params %}
+            {% if key == "interface" %}
+            ({{device.params[key]}})
+            {% elif key == "timeout" %}
+            ({{key}}:{{device.params[key]}})
+            {% else %}
+            {{device.params[key]}}
+            {% endif %}
+            {% endfor %}
+            {% elif device.file %}
             {{ device.file }}
             {% endif %}
-            </td>
-            {% if device.vendor == "RaSCSI" %}
-            <td style="text-align:center">{{ device.product }}</td>
-            {% else %}
-            <td style="text-align:center">{{ device.vendor }} {{ device.product }}</td>
             {% endif %}
-            <td style="text-align:center">
-            {% if device.device_type != "-" %}
+            </td>
+            <td align="center">
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.vendor }}
+                {% endif %}
+                {{ device.product }}
+                {% if device.vendor != "RaSCSI" %}
+                {{ device.revision }}
+                {% endif %}
+            </td>
+            <td align="center">
+                {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -106,20 +127,19 @@
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="{{ _("Detach") }}">
                 </form>
-            {% else %}
-            <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
+                {% else %}
+                <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('{{ _("Enter a memo for this reservation") }}'); if (memo === null) event.preventDefault(); document.getElementById('memo_{{ device.id }}').value = memo;">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="memo" id="memo_{{ device.id }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Reserve") }}">
                 </form>
-            {% endif %}
+                {% endif %}
             </td>
             {% else %}
             <td class="inactive">{{ device.id }}</td>
             {% if units %}
             <td class="inactive"></td>
             {% endif %}
-            <td class="inactive"></td>
             <td class="inactive">{{ _("Reserved ID") }}</td>
             <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
             <td class="inactive"></td>
@@ -135,20 +155,14 @@
     </tbody>
 </table>
 
-<table style="border: none;" cellpadding="3">
-    <tr style="border: none;">
-        <td style="border: none;">
-        <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
-            <input type="submit" value="{{ _("Detach All Devices") }}">
-        </form>
-        </td>
-        <td style="border: none;">
-        <form action="/scsi/info" method="post">
-            <input type="submit" value="{{ _("Show Device Info") }}">
-        </form>
-    </td>
-    </tr>
-</table>
+<p>
+    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+        <input type="submit" value="{{ _("Detach All Devices") }}">
+    </form>
+    <form action="/scsi/info" method="post">
+        <input type="submit" value="{{ _("Show Device Info") }}">
+    </form>
+</p>
 
 <hr/>
 
@@ -157,10 +171,9 @@
         {{ _("Image File Management") }}
     </summary>
     <ul>
-        <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=base_dir, scan_depth=scan_depth) }}</li>
-        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
+        <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=env["image_dir"], scan_depth=scan_depth) }}</li>
+        <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
-        <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
         <li>
             {{ _("Recognized image file types:") }}
             {% set comma = joiner(", ") %}
@@ -174,12 +187,12 @@
     </ul>
 </details>
 
-<table border="black" cellpadding="3">
+<table border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
-        <tr style="font-weight: bold;">
-            <td>{{ _("File") }}</td>
-            <td>{{ _("Size") }}</td>
-            <td>{{ _("Parameters and Actions") }}</td>
+        <tr>
+            <th scope="col">{{ _("File") }}</th>
+            <th scope="col">{{ _("Size") }}</th>
+            <th scope="col">{{ _("Actions") }}</th>
         </tr>
         {% for file in files|sort(attribute='name') %}
         <tr>
@@ -189,12 +202,12 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul style="list-style: none;">
+                    <ul class="inline_list">
                     {% for key in file["prop"] %}
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
                     <form action="/files/download" method="post">
-                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file['name'].replace(base_dir, '') }}.{{ PROPERTIES_SUFFIX }}">
+                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file['name'].replace(env['image_dir'], '') }}.{{ PROPERTIES_SUFFIX }}">
                         <input type="submit" value="{{ _("Properties File") }} &#8595;">
                     </form>
                     </ul>
@@ -206,7 +219,7 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul style="list-style: none;">
+                    <ul class="inline_list">
                         {% for member in file["archive_contents"] %}
                             {% if not member["is_properties_file"] %}
                                 <li>
@@ -220,7 +233,7 @@
                                                     <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
                                                 </form>
                                             </summary>
-                                            <ul style="list-style: none;">
+                                            <ul class="inline_list">
                                                 <li>{{ member["related_properties_file"] }}</li>
                                             </ul>
                                         </details>
@@ -241,9 +254,9 @@
             {% else %}
             <td>{{ file["name"] }}</td>
             {% endif %}
-            <td style="text-align:center">
+            <td align="center">
                 <form action="/files/download" method="post">
-                    <input name="file" type="hidden" value="{{ base_dir }}/{{ file['name'] }}">
+                    <input name="file" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
             </td>
@@ -262,23 +275,24 @@
                 <form action="/scsi/attach" method="post">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
-                    <label for="id">{{ _("ID") }}</label>
-                    <select name="scsi_id">
-                        {% for id in scsi_ids %}
-                        <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
+                    <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
+                    <select name="scsi_id" id="image_list_scsi_id_{{ file["name"] }}">
+                        {% for id in scsi_ids["valid_ids"] %}
+                        <option name="id" value="{{id}}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                             {{ id }}
                         </option>
                         {% endfor %}
                     </select>
-                    <label for="unit">{{ _("LUN") }}</label>
-                    <input name="unit" type="number" value="0" min="0" max="31" step="1">
+                    <label for="image_list_unit_{{ file["name"] }}">{{ _("LUN") }}</label>
+                    <input class="lun" name="unit" id="image_list_unit_{{ file["name"] }}" type="number" value="0" min="0" max="31" step="1" size="3">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file['detected_type_name'] }}
                     {% else %}
-                        <select name="type">
+                        <label for="image_list_type_{{ file["name"] }}">{{ _("Type") }}</label>
+                        <select name="type" id="image_list_type_{{ file["name"] }}">
                         <option selected disabled value="">
-                        {{ _("Select media type") }}
+                        {{ _("Unknown") }}
                         </option>
                         {% for key, value in device_types.items() %}
                         {% if key in DISK_DEVICE_TYPES %}
@@ -326,27 +340,23 @@
         {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
-        <li>{{ _("Before using a networking device, it is recommended to run easyinstall.sh from the command line to configure your Raspberry Pi.") }}
         </li>
-        <ul>
         {% if bridge_configured %}
         <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
-	{% else %}
+        {% else %}
         <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
-        <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
-        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
+        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
-        </ul>
-        <li>{{ _("Read more about <a href=\"%(url)s\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
+        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
 </details>
-<table border="black" cellpadding="3">
-    <tr style="font-weight: bold;">
-        <td>{{ _("Device") }}</td>
-        <td>{{ _("Code") }}</td>
-        <td>{{ _("Parameters and Actions") }}</td>
+<table border="black" cellpadding="3" summary="List of peripheral devices">
+    <tr>
+        <th scope="col">{{ _("Device") }}</th>
+        <th scope="col">{{ _("Key") }}</th>
+        <th scope="col">{{ _("Parameters and Actions") }}</th>
     </tr>
     {% for type in REMOVABLE_DEVICE_TYPES + PERIPHERAL_DEVICE_TYPES %}
     <tr>
@@ -360,11 +370,11 @@
             <form action="/scsi/attach_device" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
-                <label for="{{ key }}">{{ key }}:</label>
+                <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" value="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="number" value="{{ value }}">
                 {% elif key == "interface" %}
-                <select name="interface">
+                <select name="param_{{ key }}" id="param_{{ type }}_{{ key }}">
                 {% for if in netinfo["ifs"] %}
                     <option value="{{ if }}">
                         {{ if }}
@@ -372,31 +382,31 @@
                 {% endfor %}
                 </select>
                 {% else %}
-                <input name="{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
+                <input name="param_{{ key }}" id="param_{{ type }}_{{ key }}" type="text" size="{{ value|length }}" placeholder="{{ value }}">
                 {% endif %}
                 {% endfor %}
                 {% if type in REMOVABLE_DEVICE_TYPES %}
-                <label for="drive_name">{{ _("Masquerade as:") }}</label>
-                <select name="drive_name">
+                <label for="{{ type }}_drive_name">{{ _("Masquerade as:") }}</label>
+                <select name="drive_name" id="{{ type }}_drive_name">
                 <option value="">
                 {{ _("None") }}
                 </option>
                 {% if type == "SCCD" %}
-                {% for drive in drive_properties["cd_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["cd_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCRM" %}
-                {% for drive in drive_properties["rm_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["rm_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
                 {% endfor %}
                 {% endif %}
                 {% if type == "SCMO" %}
-                {% for drive in drive_properties["mo_conf"] | sort(attribute='name') %}
+                {% for drive in env["drive_properties"]["mo_conf"] | sort(attribute='name') %}
                 <option value="{{ drive.name }}">
                 {{ drive.name }}
                 </option>
@@ -404,16 +414,16 @@
                 {% endif %}
                 </select>
                 {% endif %}
-                <label for="scsi_id">{{ _("SCSI ID:") }}</label>
-                <select name="scsi_id">
-                {% for id in scsi_ids %}
-                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                <label for="{{ type }}_scsi_id">{{ _("ID") }}</label>
+                <select name="scsi_id" id="{{ type }}_scsi_id">
+                {% for id in scsi_ids["valid_ids"] %}
+                    <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
                         {{ id }}
                     </option>
                 {% endfor %}
                 </select>
-                <label for="unit">{{ _("LUN") }}</label>
-                <input name="unit" type="number" value="0" min="0" max="31" step="1">
+                <label for="{{ type }}_unit">{{ _("LUN") }}</label>
+                <input class="lun" name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
@@ -429,25 +439,20 @@
     <ul>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
-<table style="border: none;">
-    <tr style="border: none;">
-        <td style="border: none; vertical-align:top;">
-            <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
-                <p>
-                <label for="destination">{{ _("Target directory:") }}</label>
-                <select name="destination">
-                    <option value="images">{{ base_dir }}</option>
-                    <option value="afp">{{ AFP_DIR }}</option>
-                </select>
-                </p>
-            </form>
-        </td>
-    </tr>
-</table>
+<form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
+    <p>
+    <label for="upload_destination">{{ _("Target directory:") }}</label>
+    <select name="destination" id="upload_destination">
+        <option value="images">Images - {{ env["image_dir"] }}</option>
+        <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+    </select>
+    </p>
+</form>
+
 <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
@@ -484,27 +489,20 @@
         {{ _("Download File from the Web") }}
     </summary>
     <ul>
-        <li>{{ _("Choose the desination directory and download a file from the Web to your Raspberry Pi.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
     </ul>
 </details>
 
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/files/download_url" method="post">
-                <label for="destination">{{ _("Target directory:") }}</label>
-                <select name="destination">
-                    <option value="images">{{ base_dir }}</option>
-                    <option value="afp">{{ AFP_DIR }}</option>
-                </select>
-                <label for="url">{{ _("URL:") }}</label>
-                <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
-            </form>
-        </td>
-    </tr>
-</table>
+<form action="/files/download_url" method="post">
+    <label for="download_destination">{{ _("Target directory:") }}</label>
+    <select name="destination" id="download_destination">
+        <option value="images">Images - {{ env["image_dir"] }}</option>
+        <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+    </select>
+    <label for="download_url">{{ _("URL:") }}</label>
+    <input name="url" id="download_url" required="" type="url">
+    <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
+</form>
 
 <hr/>
 
@@ -518,46 +516,41 @@
         <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
     </ul>
 </details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <label for="scsi_id">{{ _("SCSI ID:") }}</label>
-            <form action="/files/download_to_iso" method="post">
-                <select name="scsi_id">
-                    {% for id in scsi_ids %}
-                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
-                        {{ id }}
-                    </option>
-                    {% endfor %}
-                </select>
-                <label for="url">{{ _("URL:") }}</label>
-                <input name="url" placeholder="{{ _("URL") }}" required="" type="url">
-                <label for="type">{{ _("Type:") }}</label>
-                <select name="type">
-                    <option value="-hfs">
-                        HFS
-                    </option>
-                    <option value="-iso-level 1">
-                        ISO-9660 Level 1
-                    </option>
-                    <option value="-iso-level 2">
-                        ISO-9660 Level 2
-                    </option>
-                    <option value="-iso-level 3">
-                        ISO-9660 Level 3
-                    </option>
-                    <option value="-J">
-                        Joliet
-                    </option>
-                    <option value="-r">
-                        Rock Ridge
-                    </option>
-                </select>
-                <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
-            </form>
-        </td>
-    </tr>
-</table>
+
+<form action="/files/download_to_iso" method="post">
+    <label for="iso_url">{{ _("URL:") }}</label>
+    <input name="url" id="iso_url" required="" type="url">
+    <label for="iso_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_type">
+        <option value="-hfs">
+            HFS
+        </option>
+        <option value="-iso-level 1">
+            ISO-9660 Level 1
+        </option>
+        <option value="-iso-level 2">
+            ISO-9660 Level 2
+        </option>
+        <option value="-iso-level 3">
+            ISO-9660 Level 3
+        </option>
+        <option value="-J">
+            Joliet
+        </option>
+        <option value="-r">
+            Rock Ridge
+        </option>
+    </select>
+    <label for="iso_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_scsi_id">
+        {% for id in scsi_ids["valid_ids"] %}
+        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
+            {{ id }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
+</form>
 
 <hr/>
 
@@ -566,46 +559,37 @@
         {{ _("Create Empty Disk Image File") }}
     </summary>
     <ul>
-        <li>{{ _("The Generic Hard Disk image type is recommended for most computer platforms.") }}</li>
-        <li>{{ _("The Apple image type improves compatibility with Apple Macintosh computers.") }}</li>
-        <li>{{ _("The NEC image type improves compatibility with NEC PC-98 computers.") }}</li>
-        <li>{{ _("The SCSI-1 image type makes RaSCSI behave like a legacy SCSI-1 device, which may improve compatibility with very old SCSI controllers.") }}</li>
-        <li>{{ _("The Removable Disk image type can be used with SCSI floppy drives, SyQuest drives, Zip drives, etc.") }}</li>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types#image-types") }}</li>
     </ul>
 </details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/files/create" method="post">
-                <label for="file_name">{{ _("File Name:") }}</label>
-                <input name="file_name" placeholder="{{ _("File Name") }}" required="" type="text">
-                <label for="type">{{ _("Type:") }}</label>
-                <select name="type">
-                    {% for key, value in image_suffixes_to_create.items() %}
-                    <option value="{{ key }}">
-                    {{ value }} [.{{ key }}]
-                    </option>
-                    {% endfor %}
-                </select>
-                <label for="size">{{ _("Size:") }}</label>
-                <input name="size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
-                <input type="submit" value="{{ _("Create") }}">
-            </form>
-        </td>
-    </tr>
-</table>
 
-<hr/>
+<form action="/files/create" method="post">
+    <label for="image_create_file_name">{{ _("File Name:") }}</label>
+    <input name="file_name" id="image_create_file_name" required="" type="text">
+    <label for="image_create_type">{{ _("Type:") }}</label>
+    <select name="type" id="image_create_type">
+        {% for key, value in image_suffixes_to_create.items() %}
+        <option value="{{ key }}">
+        {{ value }} [.{{ key }}]
+        </option>
+        {% endfor %}
+    </select>
+    <label for="image_create_size">{{ _("Size:") }}</label>
+    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
+    <select name="drive_name" id="image_create_drive_name">
+    <option value="">
+    {{ _("None") }}
+    </option>
+    {% for drive in env["drive_properties"]["hd_conf"] | sort(attribute='name') %}
+    <option value="{{ drive.name }}">
+    {{ drive.name }}
+    </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Create") }}">
+</form>
 
-<details>
-    <summary class="heading">
-        {{ _("Create Named Drive") }}
-    </summary>
-    <ul>
-        <li>{{ _("Create pairs of images and properties files from a list of real-life drives.") }}</li>
-        <li>{{ _("This will make RaSCSI use certain vendor strings and block sizes that may improve compatibility with certain systems.") }}</li>
-    </ul>
-</details>
 <p><a href="/drive/list">{{ _("Create a named disk image that mimics real-life drives") }}</a></p>
 
 <hr/>
@@ -615,67 +599,49 @@
         {{ _("Logging") }}
     </summary>
     <ul>
-        <li>{{ _("Fetch a certain number of lines of system logs with the given scope.") }}</li>
-    </ul>
-</details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/logs/show" method="post">
-                <label for="lines">{{ _("Log Lines:") }}</label>
-                <input name="lines" type="number" value="200" min="0" max="99999" step="100">
-                <label for="scope">{{ _("Scope:") }}</label>
-                <select name="scope">
-                    <option value="">
-                        {{ _("All logs") }}
-                    </option>
-                    <option value="rascsi">
-                        rascsi
-                    </option>
-                    <option value="rascsi-web">
-                        rascsi-web
-                    </option>
-                    <option value="rascsi-oled">
-                        rascsi-oled
-                    </option>
-                    <option value="rascsi-ctrlboard">
-                        rascsi-ctrlboard
-                    </option>
-                </select>
-                <input type="submit" value="{{ _("Show Logs") }}">
-            </form>
-        </td>
-    </tr>
-</table>
-
-<hr/>
-
-<details>
-    <summary class="heading">
-        {{ _("Server Log Level") }}
-    </summary>
-    <ul>
-        <li>{{ _("Change the log level of the RaSCSI backend process.") }}</li>
         <li>{{ _("The current dropdown selection indicates the active log level.") }}</li>
     </ul>
 </details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/logs/level" method="post">
-                <label for="level">{{ _("Log Level:") }}</label>
-                <select name="level">
-                {% for level in log_levels %}
-                    <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
-                        {{ level }}
-                    </option>
-                {% endfor %}
-                </select>
-                <input type="submit" value="{{ _("Set Log Level") }}">
-            </form>
-        </td>
-    </tr>
-</table>
+
+<div>
+<form action="/logs/show" method="post">
+    <label for="log_lines">{{ _("Log Lines:") }}</label>
+    <input name="lines" id="log_lines" type="number" value="200" min="0" max="99999" step="100">
+    <label for="log_scope">{{ _("Scope:") }}</label>
+    <select name="scope" id="log_scope">
+        <option value="">
+            {{ _("All logs") }}
+        </option>
+        <option value="rascsi">
+            rascsi
+        </option>
+        <option value="rascsi-web">
+            rascsi-web
+        </option>
+        <option value="rascsi-oled">
+            rascsi-oled
+        </option>
+        <option value="rascsi-ctrlboard">
+            rascsi-ctrlboard
+        </option>
+    </select>
+    <input type="submit" value="{{ _("Show Logs") }}">
+</form>
+</div>
+
+<div>
+<form action="/logs/level" method="post">
+    <label for="log_level">{{ _("Log Level:") }}</label>
+    <select name="level" id="log_level">
+    {% for level in log_levels %}
+        <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
+            {{ level }}
+        </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Set Log Level") }}">
+</form>
+</div>
 
 <hr/>
 
@@ -687,23 +653,18 @@
         <li>{{ _("Change the Web Interface language.") }}</li>
     </ul>
 </details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/language" method="post">
-                <label for="language">{{ _("Language:") }}</label>
-                <select name="locale">
-                {% for locale in locales %}
-                    <option value="{{ locale.language }}">
-                    {{ locale.language }} - {{ locale.display_name }}
-                    </option>
-                {% endfor %}
-                </select>
-                <input type="submit" value="{{ _("Change Language") }}">
-            </form>
-        </td>
-    </tr>
-</table>
+
+<form action="/language" method="post">
+    <label for="locale">{{ _("Language:") }}</label>
+    <select name="locale" id="locale">
+    {% for locale in locales %}
+        <option value="{{ locale.language }}">
+        {{ locale.language }} - {{ locale.display_name }}
+        </option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Change Language") }}">
+</form>
 
 <hr/>
 
@@ -712,39 +673,19 @@
         {{ _("Raspberry Pi Operations") }}
     </summary>
     <ul>
-        <li>{{ _("Reboot or shut down the Raspberry Pi that RaSCSI is running on.") }}</li>
         <li>{{ _("IMPORTANT: Always shut down the Pi before turning off the power. Failing to do so may lead to data loss.") }}</li>
     </ul>
 </details>
-<table style="border: none">
-    <tr style="border: none">
-        <td style="border: none; vertical-align:top;">
-            <form action="/pi/reboot" method="post" onclick="if (confirm('{{ _("Reboot the Raspberry Pi?") }}')) shutdownNotify('{{ _("Rebooting the Raspberry Pi...") }}'); else event.preventDefault();">
-                <input type="submit" value="{{ _("Reboot Raspberry Pi") }}">
-            </form>
-        </td>
-        <td style="border: none; vertical-align:top;">
-            <form action="/pi/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the Raspberry Pi?") }}')) shutdownNotify('{{ _("Shutting down the Raspberry Pi...") }}'); else event.preventDefault();">
-                <input type="submit" value="{{ _("Shut Down Raspberry Pi") }}">
-            </form>
-        </td>
-    </tr>
-</table>
 
-<center><tt>
-        {% if netatalk_configured == 1 %}
-        {{ _("The AppleShare server is running. No active connections.") }}
-        {% endif %}
-        {% if netatalk_configured == 2 %}
-        {{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}
-        {% elif netatalk_configured > 2 %}
-        {{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}
-        {% endif %}
-</center></tt>
-<center><tt>
-{% if macproxy_configured %}
-<center><tt>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}</tt></center>
-{% endif %}
-</center></tt>
+<form action="/pi/reboot" method="post" onclick="if (confirm('{{ _("Reboot the Raspberry Pi?") }}')) shutdownNotify('{{ _("Rebooting the Raspberry Pi...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Reboot Raspberry Pi") }}">
+</form>
+<form action="/pi/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the Raspberry Pi?") }}')) shutdownNotify('{{ _("Shutting down the Raspberry Pi...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Shut Down Raspberry Pi") }}">
+</form>
+
+<hr/>
+
+<a href="/sys/manpage?app=rascsi"><p>{{ _("Read the RaSCSI Manual") }}</p></a>
 
 {% endblock content %}

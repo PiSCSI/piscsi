@@ -7,7 +7,7 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI CD-ROM ]
@@ -24,7 +24,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD")
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD", lun)
 {
 	SetSectorSizes(sector_sizes);
 
@@ -90,12 +90,9 @@ void SCSICD::Open(const Filepath& path)
 	assert(GetBlockCount() > 0);
 
 	super::Open(path);
-	FileSupport::SetPath(path);
+	SetPath(path);
 
-	SetUpCache(path);
-
-	// Set RAW flag
-	cache->SetRawMode(rawfile);
+	SetUpCache(path, 0, rawfile);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -103,7 +100,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-void SCSICD::OpenCue(const Filepath& /*path*/) const
+void SCSICD::OpenCue(const Filepath&) const
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
@@ -117,8 +114,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off_t file_size = fio.GetFileSize();
-	if (file_size < 0x800) {
+	const off_t size = fio.GetFileSize();
+	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
@@ -157,16 +154,16 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	if (rawfile) {
 		// Size must be a multiple of 2536
-		if (file_size % 2536) {
+		if (size % 2536) {
 			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
-					+ to_string(file_size) + " bytes");
+					+ to_string(size) + " bytes");
 		}
 
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size / 0x930));
+		SetBlockCount((uint32_t)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(file_size >> GetSectorSizeShiftCount()));
+		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -200,7 +197,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
 	assert(!tracks.size());
@@ -278,11 +275,11 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 	CheckReady();
 
 	// Search for the track
-	int index = SearchTrack((int)block);
+	const int index = SearchTrack((int)block);
 
 	// If invalid, out of range
 	if (index < 0) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	assert(tracks[index]);
@@ -296,9 +293,9 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		tracks[index]->GetPath(path);
+
 		// Re-assign disk cache (no need to save)
-		cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
-		cache->SetRawMode(rawfile);
+		ResizeCache(path, rawfile);
 
 		// Reset data index
 		dataindex = index;
@@ -318,17 +315,17 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 	assert(tracks[0]);
 
 	// Get allocation length, clear buffer
-	int length = GetInt16(cdb, 7);
+	const int length = GetInt16(cdb, 7);
 	fill_n(buf.data(), length, 0);
 
 	// Get MSF Flag
-	bool msf = cdb[1] & 0x02;
+	const bool msf = cdb[1] & 0x02;
 
 	// Get and check the last track number
-	int last = tracks[tracks.size() - 1]->GetTrackNo();
+	const int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
 	if (cdb[6] > last && cdb[6] != 0xaa) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Check start index
@@ -361,12 +358,12 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 			}
 
 			// Otherwise, error
-			throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		}
 	}
 
 	// Number of track descriptors returned this time (number of loops)
-	int loop = last - tracks[index]->GetTrackNo() + 1;
+	const int loop = last - tracks[index]->GetTrackNo() + 1;
 	assert(loop >= 1);
 
 	// Create header
@@ -410,11 +407,11 @@ void SCSICD::GetEventStatusNotification()
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported")
-	throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
@@ -427,7 +424,7 @@ void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
 	// 75 and 75*60 get the remainder
 	uint32_t m = lba / (75 * 60);
 	uint32_t s = lba % (75 * 60);
-	uint32_t f = s % 75;
+	const uint32_t f = s % 75;
 	s /= 75;
 
 	// The base point is M=0, S=2, F=0
@@ -462,7 +459,7 @@ void SCSICD::ClearTrack()
 //	* Returns -1 if not found
 //
 //---------------------------------------------------------------------------
-int SCSICD::SearchTrack(DWORD lba) const
+int SCSICD::SearchTrack(uint32_t lba) const
 {
 	// Track loop
 	for (size_t i = 0; i < tracks.size(); i++) {

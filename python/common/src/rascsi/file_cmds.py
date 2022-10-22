@@ -6,22 +6,33 @@ import os
 import logging
 import asyncio
 from functools import lru_cache
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
 from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
 from shutil import copyfile
+from urllib.parse import quote
 
 import requests
 
 import rascsi_interface_pb2 as proto
-from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, ARCHIVE_FILE_SUFFIXES, RESERVATIONS
+from rascsi.common_settings import (
+    CFG_DIR,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
+    ARCHIVE_FILE_SUFFIXES,
+    RESERVATIONS,
+    SHELL_ERROR,
+)
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 from util import unarchiver
 
+FILE_READ_ERROR = "Unhandled exception when reading file: %s"
+FILE_WRITE_ERROR = "Unhandled exception when writing to file: %s"
+URL_SAFE = "/:?&"
 
 class FileCmds:
     """
@@ -94,7 +105,9 @@ class FileCmds:
         for file in result.image_files_info.image_files:
             # Add properties meta data for the image, if applicable
             if file.name in prop_files:
-                process = self.read_drive_properties(f"{CFG_DIR}/{file.name}.{PROPERTIES_SUFFIX}")
+                process = self.read_drive_properties(
+                    Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
+                    )
                 prop = process["conf"]
             else:
                 prop = False
@@ -148,7 +161,7 @@ class FileCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        command.params["file"] = file_name + "." + file_type
+        command.params["file"] = f"{file_name}.{file_type}"
         command.params["size"] = str(size)
         command.params["read_only"] = "false"
 
@@ -216,14 +229,15 @@ class FileCmds:
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
-        Takes (str) file_path with the full path to the file to delete
+        Takes (Path) file_path for the file to delete
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {
             "file_path": file_path
         }
-        if os.path.exists(file_path):
-            os.remove(file_path)
+
+        if file_path.exists():
+            file_path.unlink()
             return {
                     "status": True,
                     "return_code": ReturnCodes.DELETEFILE_SUCCESS,
@@ -238,14 +252,16 @@ class FileCmds:
     # noinspection PyMethodMayBeStatic
     def rename_file(self, file_path, target_path):
         """
-        Takes (str) file_path and (str) target_path
+        Takes:
+         - (Path) file_path for the file to rename
+         - (Path) target_path for the name to rename
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {
             "target_path": target_path
         }
-        if os.path.exists(PurePath(target_path).parent):
-            os.rename(file_path, target_path)
+        if target_path.parent.exists:
+            file_path.rename(target_path)
             return {
                 "status": True,
                 "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
@@ -260,14 +276,16 @@ class FileCmds:
     # noinspection PyMethodMayBeStatic
     def copy_file(self, file_path, target_path):
         """
-        Takes (str) file_path and (str) target_path
+        Takes:
+         - (Path) file_path for the file to copy from
+         - (Path) target_path for the name to copy to
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {
             "target_path": target_path
         }
-        if os.path.exists(PurePath(target_path).parent):
-            copyfile(file_path, target_path)
+        if target_path.parent.exists:
+            copyfile(str(file_path), str(target_path))
             return {
                 "status": True,
                 "return_code": ReturnCodes.WRITEFILE_SUCCESS,
@@ -305,21 +323,22 @@ class FileCmds:
             properties_files_moved = []
             if move_properties_files_to_config:
                 for file in extract_result["extracted"]:
-                    if file.get("name").endswith(".properties"):
+                    if file.get("name").endswith(f".{PROPERTIES_SUFFIX}"):
+                        prop_path = Path(CFG_DIR) / file["name"]
                         if (self.rename_file(
-                                file["absolute_path"],
-                                f"{CFG_DIR}/{file['name']}"
+                                Path(file["absolute_path"]),
+                                prop_path,
                                 )):
                             properties_files_moved.append({
                                 "status": True,
                                 "name": file["path"],
-                                "path": f"{CFG_DIR}/{file['name']}",
+                                "path": str(prop_path),
                                 })
                         else:
                             properties_files_moved.append({
                                 "status": False,
                                 "name": file["path"],
-                                "path": f"{CFG_DIR}/{file['name']}",
+                                "path": str(prop_path),
                                 })
 
             return {
@@ -362,7 +381,7 @@ class FileCmds:
         tmp_full_path = tmp_dir + file_name
         iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-        req_proc = self.download_to_dir(url, tmp_dir, file_name)
+        req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
 
         if not req_proc["status"]:
             return {"status": False, "msg": req_proc["msg"]}
@@ -386,7 +405,7 @@ class FileCmds:
                         "%s was successfully unzipped. Deleting the zipfile.",
                         tmp_full_path,
                         )
-                    self.delete_file(tmp_full_path)
+                    self.delete_file(Path(tmp_full_path))
 
         try:
             run(
@@ -401,8 +420,7 @@ class FileCmds:
                 check=True,
             )
         except CalledProcessError as error:
-            logging.warning("Executed shell command: %s", " ".join(error.cmd))
-            logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
         parameters = {
@@ -424,7 +442,11 @@ class FileCmds:
         logging.info("Making a request to download %s", url)
 
         try:
-            with requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"}) as req:
+            with requests.get(
+                    quote(url, safe=URL_SAFE),
+                    stream=True,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    ) as req:
                 req.raise_for_status()
                 with open(f"{save_dir}/{file_name}", "wb") as download:
                     for chunk in req.iter_content(chunk_size=8192):
@@ -452,9 +474,9 @@ class FileCmds:
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        file_name = f"{CFG_DIR}/{file_name}"
+        file_path = f"{CFG_DIR}/{file_name}"
         try:
-            with open(file_name, "w", encoding="ISO-8859-1") as json_file:
+            with open(file_path, "w", encoding="ISO-8859-1") as json_file:
                 version = self.ractl.get_server_info()["version"]
                 devices = self.ractl.list_devices()["device_list"]
                 for device in devices:
@@ -485,7 +507,7 @@ class FileCmds:
                     indent=4
                     )
             parameters = {
-                "target_path": file_name
+                "target_path": file_path
             }
             return {
                 "status": True,
@@ -494,28 +516,21 @@ class FileCmds:
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            self.delete_file(file_name)
+            self.delete_file(Path(file_path))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not write to file: %s", file_name)
-            self.delete_file(file_name)
-            parameters = {
-                "file_name": file_name
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
-                "parameters": parameters,
-                }
+            logging.error(FILE_WRITE_ERROR, file_name)
+            self.delete_file(Path(file_path))
+            raise
 
     def read_config(self, file_name):
         """
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        file_name = f"{CFG_DIR}/{file_name}"
+        file_path = Path(CFG_DIR) / file_name
         try:
-            with open(file_name, encoding="ISO-8859-1") as json_file:
+            with open(file_path, encoding="ISO-8859-1") as json_file:
                 config = load(json_file)
                 # If the config file format changes again in the future,
                 # introduce more sophisticated format detection logic here.
@@ -577,15 +592,8 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not read file: %s", file_name)
-            parameters = {
-                "file_name": file_name
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.READCONFIG_COULD_NOT_READ,
-                "parameters": parameters
-                }
+            logging.error(FILE_READ_ERROR, str(file_path))
+            raise
 
     def write_drive_properties(self, file_name, conf):
         """
@@ -593,12 +601,12 @@ class FileCmds:
         Takes file name base (str) and (list of dicts) conf as arguments
         Returns (dict) with (bool) status and (str) msg
         """
-        file_path = f"{CFG_DIR}/{file_name}"
+        file_path = Path(CFG_DIR) / file_name
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
             parameters = {
-                "target_path": file_path
+                "target_path": str(file_path)
             }
             return {
                 "status": True,
@@ -610,29 +618,22 @@ class FileCmds:
             self.delete_file(file_path)
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not write to file: %s", file_path)
+            logging.error(FILE_WRITE_ERROR, str(file_path))
             self.delete_file(file_path)
-            parameters = {
-                "target_path": file_path
-            }
-            return {
-                "status": False,
-                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
-                "parameters": parameters,
-                }
+            raise
 
     # noinspection PyMethodMayBeStatic
     def read_drive_properties(self, file_path):
         """
         Reads drive properties from json formatted file.
-        Takes (str) file_path as argument.
+        Takes (Path) file_path as argument.
         Returns (dict) with (bool) status, (str) msg, (dict) conf
         """
         try:
             with open(file_path) as json_file:
                 conf = load(json_file)
                 parameters = {
-                    "file_path": file_path
+                    "file_path": str(file_path)
                 }
                 return {
                     "status": True,
@@ -644,15 +645,8 @@ class FileCmds:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
-            logging.error("Could not read file: %s", file_path)
-            parameters = {
-                "file_path": file_path
-            }
-            return {
-                "status": False,
-                "return_codes": ReturnCodes.READDRIVEPROPS_COULD_NOT_READ,
-                "parameters": parameters,
-                }
+            logging.error(FILE_READ_ERROR, str(file_path))
+            raise
 
     # noinspection PyMethodMayBeStatic
     async def run_async(self, program, args):
@@ -687,5 +681,6 @@ class FileCmds:
         """
         try:
             return unarchiver.inspect_archive(file_path)
-        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
+        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError) as error:
+            logging.error(str(error))
             raise

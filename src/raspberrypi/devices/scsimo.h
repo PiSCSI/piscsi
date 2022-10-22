@@ -15,19 +15,16 @@
 #pragma once
 
 #include "disk.h"
-#include "file_support.h"
 #include "filepath.h"
 
 using Geometry = pair<uint32_t, uint32_t>;
 
-class SCSIMO : public Disk, public FileSupport
+class SCSIMO : public Disk
 {
 public:
 
-	explicit SCSIMO(const unordered_set<uint32_t>&);
+	SCSIMO(int, const unordered_set<uint32_t>&);
 	~SCSIMO() override = default;
-	SCSIMO(SCSIMO&) = delete;
-	SCSIMO& operator=(const SCSIMO&) = delete;
 
 	void Open(const Filepath&) override;
 
@@ -41,6 +38,8 @@ protected:
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
+	using super = Disk;
 
 	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 

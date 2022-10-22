@@ -14,8 +14,6 @@
 
 using TCHAR = char;
 
-class Fileio;
-
 static const int _MAX_EXT = 256;
 static const int _MAX_DIR = 256;
 static const int _MAX_PATH = 260;
@@ -30,15 +28,13 @@ static const int FILEPATH_MAX = _MAX_PATH;
 //===========================================================================
 class Filepath
 {
-
 public:
 
-	Filepath();
-	virtual ~Filepath() = default;
-	Filepath(Filepath&) = delete;
+	Filepath() = default;
+	~Filepath() = default;
+	Filepath(Filepath&) = default;
 	Filepath& operator=(const Filepath&);
 
-	void Clear();
 	void SetPath(const char *);		// File settings (user) for MBCS
 	const char *GetPath() const	{ return m_szPath; }	// Get path name
 	const char *GetFileExt() const;		// Get short name (LPCTSTR)
@@ -46,10 +42,10 @@ public:
 private:
 
 	void Split();						// Split the path
-	TCHAR m_szPath[_MAX_PATH];			// File path
-	TCHAR m_szDir[_MAX_DIR];			// Directory
-	TCHAR m_szFile[_MAX_FNAME];			// File
-	TCHAR m_szExt[_MAX_EXT];			// Extension
+	TCHAR m_szPath[_MAX_PATH] = {};		// File path
+	TCHAR m_szDir[_MAX_DIR] = {};		// Directory
+	TCHAR m_szFile[_MAX_FNAME] = {};	// File
+	TCHAR m_szExt[_MAX_EXT] = {};		// Extension
 
 	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];	// Short name (TCHAR)
 };

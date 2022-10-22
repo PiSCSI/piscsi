@@ -20,7 +20,7 @@
 #include "config.h"
 #include "log.h"
 #include <array>
-#ifdef __linux
+#ifdef __linux__
 #include <sys/epoll.h>
 #endif
 

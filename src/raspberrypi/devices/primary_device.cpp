@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(const string& id) : Device(id)
+PrimaryDevice::PrimaryDevice(const string& type, int lun) : Device(type, lun)
 {
 	// Mandatory SCSI primary commands
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
@@ -31,6 +31,15 @@ PrimaryDevice::PrimaryDevice(const string& id) : Device(id)
 bool PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	return dispatcher.Dispatch(this, cmd);
+}
+
+int PrimaryDevice::GetId() const
+{
+	if (controller == nullptr) {
+		LOGERROR("Device is missing its controller")
+	}
+
+	return controller != nullptr ? controller->GetTargetId() : -1;
 }
 
 void PrimaryDevice::SetController(AbstractController *c)
@@ -50,12 +59,12 @@ void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<byte> buf = InquiryInternal();
 
-	size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
+	const size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
 
 	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
 	ctrl->length = (uint32_t)allocation_length;
@@ -65,7 +74,7 @@ void PrimaryDevice::Inquiry()
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
-		controller->GetBuffer()[0] |= 0x7f;
+		controller->GetBuffer().data()[0] = 0x7f;
 	}
 
 	EnterDataInPhase();
@@ -75,13 +84,13 @@ void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
 	if (ctrl->cmd[2]) {
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
+	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
-	fill_n(buf.begin(), min(controller->GetBufferSize(), (size_t)allocation_length), 0);
+	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
@@ -115,12 +124,12 @@ void PrimaryDevice::RequestSense()
 		// Do not raise an exception here because the rest of the code must be executed
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 
-		controller->SetStatus(0);
+		controller->SetStatus(status::GOOD);
 	}
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
-	size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
+	const size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
 
     memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
     ctrl->length = (uint32_t)allocation_length;
@@ -134,20 +143,20 @@ void PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetReset(false);
 		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
+		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
 		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__)
-		throw scsi_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Initialization with no error
@@ -171,7 +180,7 @@ vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	buf[4] = (byte)0x1F;
 
 	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
 	return buf;
 }
@@ -180,7 +189,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
-		throw scsi_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Set 18 bytes including extended sense data
@@ -195,7 +204,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, controller->GetStatus(),
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (int)controller->GetStatus(),
 			(int)buf[2], (int)buf[12])
 
 	return buf;

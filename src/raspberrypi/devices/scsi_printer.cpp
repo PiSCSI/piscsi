@@ -51,7 +51,7 @@ using namespace scsi_defs;
 using namespace ras_util;
 using namespace scsi_command_util;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
+SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice("SCLP", lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -60,6 +60,9 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
+
+	SetReady(true);
+	SetReset(false);
 }
 
 SCSIPrinter::~SCSIPrinter()
@@ -145,15 +148,15 @@ void SCSIPrinter::Print()
 {
 	CheckReservation();
 
-	uint32_t length = GetInt24(ctrl->cmd, 2);
+	const uint32_t length = GetInt24(ctrl->cmd, 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
-	if (length > controller->GetBufferSize()) {
-		LOGERROR("%s", string("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBufferSize()) +
+	if (length > controller->GetBuffer().size()) {
+		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected").c_str())
 
-		throw scsi_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	ctrl->length = length;
@@ -167,11 +170,11 @@ void SCSIPrinter::SynchronizeBuffer()
 	CheckReservation();
 
 	if (fd == -1) {
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	// Make the file readable for the lp user
-	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH); //NOSONAR Granting permissions to "others" is required here
 
 	struct stat st;
 	fstat(fd, &st);
@@ -180,7 +183,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	fd = -1;
 
 	string cmd = GetParam("cmd");
-	size_t file_position = cmd.find("%f");
+	const size_t file_position = cmd.find("%f");
 	assert(file_position != string::npos);
 	cmd.replace(file_position, 2, filename);
 	cmd = "sudo -u lp " + cmd;
@@ -194,7 +197,7 @@ void SCSIPrinter::SynchronizeBuffer()
 
 		unlink(filename);
 
-		throw scsi_error_exception();
+		throw scsi_exception();
 	}
 
 	unlink(filename);
@@ -217,7 +220,7 @@ void SCSIPrinter::StopPrint()
 bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 {
 	if (fd == -1) {
-		strcpy(filename, TMP_FILE_PATTERN);
+		strcpy(filename, TMP_FILE_PATTERN); //NOSONAR Using strcpy is safe here
 		fd = mkstemp(filename);
 		if (fd == -1) {
 			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
@@ -229,7 +232,7 @@ bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
 
-	auto num_written = (uint32_t)write(fd, buf.data(), length);
+	const auto num_written = (uint32_t)write(fd, buf.data(), length);
 
 	return num_written == length;
 }
@@ -248,7 +251,7 @@ void SCSIPrinter::CheckReservation()
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun())
 	}
 
-	throw scsi_error_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+	throw scsi_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			status::RESERVATION_CONFLICT);
 }
 

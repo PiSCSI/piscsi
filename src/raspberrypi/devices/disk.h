@@ -25,11 +25,17 @@
 #include <string>
 #include <unordered_set>
 
-class Disk : public ModePageDevice, public ScsiBlockCommands
+using namespace std;
+
+using id_set = pair<int, int>;
+
+class Disk : public ModePageDevice, private ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
 	Dispatcher<Disk> dispatcher;
+
+	unique_ptr<DiskCache> cache;
 
 	// The supported configurable sector sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
@@ -43,12 +49,15 @@ class Disk : public ModePageDevice, public ScsiBlockCommands
 
 	bool is_medium_changed = false;
 
+	Filepath diskpath;
+
+	// The list of image files in use and the IDs and LUNs using these files
+	static unordered_map<string, id_set> reserved_files;
+
 public:
 
-	explicit Disk(const string&);
+	Disk(const string&, int);
 	~Disk() override;
-	Disk(Disk&) = delete;
-	Disk& operator=(const Disk&) = delete;
 
 	bool Dispatch(scsi_command) override;
 
@@ -66,6 +75,18 @@ public:
 	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
 	uint64_t GetBlockCount() const { return blocks; }
 	void FlushCache() override;
+
+	virtual void Open(const Filepath&);
+	void GetPath(Filepath& path) const { path = diskpath; }
+
+	void ReserveFile(const Filepath&, int, int) const;
+	void UnreserveFile() const;
+	static void UnreserveAll();
+	bool FileExists(const Filepath&);
+
+	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
+	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)	{ reserved_files = files_in_use; }
+	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
 
 private:
 
@@ -105,13 +126,13 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
-	int ModeSense6(const vector<int>&, vector<BYTE>&, int) const override;
-	int ModeSense10(const vector<int>&, vector<BYTE>&, int) const override;
+	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
+	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 
 protected:
 
-	virtual void Open(const Filepath&);
-	void SetUpCache(const Filepath&, off_t = 0);
+	void SetUpCache(const Filepath&, off_t, bool = false);
+	void ResizeCache(const Filepath&, bool);
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
@@ -126,6 +147,5 @@ protected:
 	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
 	uint32_t GetConfiguredSectorSize() const;
 	void SetBlockCount(uint64_t b) { blocks = b; }
-
-	unique_ptr<DiskCache> cache;
+	void SetPath(const Filepath& path) { diskpath = path; }
 };
