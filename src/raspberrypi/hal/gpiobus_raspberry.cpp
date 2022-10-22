@@ -24,7 +24,6 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-
 #ifdef __linux__
 //---------------------------------------------------------------------------
 //
@@ -51,9 +50,6 @@ uint32_t bcm_host_get_peripheral_address()
 		address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
 	}
 	address = (address == (uint32_t)~0) ? 0x20000000 : address;
-#if 0
-	LOGDEBUG("Peripheral address : 0x%lx\n", address);
-#endif
 	return address;
 }
 #endif // __linux__
@@ -180,10 +176,13 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
 
 #if SIGNAL_CONTROL_MODE == 0
+	LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
 	int pullmode = GPIO_PULLNONE;
 #elif SIGNAL_CONTROL_MODE == 1
+	LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
 	int pullmode = GPIO_PULLUP;
 #else
+	LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
 	int pullmode = GPIO_PULLDOWN;
 #endif
 
@@ -225,8 +224,8 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 #ifdef USE_SEL_EVENT_ENABLE
 	// GPIO chip open
 	LOGTRACE("%s GPIO chip open", __PRETTY_FUNCTION__);
-	fd = open("/dev/gpiochip0", 0);
-	if (fd == -1) {
+	int gpio_fd = open("/dev/gpiochip0", 0);
+	if (gpio_fd == -1) {
 		LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
 		return false;
 	}
@@ -238,21 +237,24 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
 	selevreq.eventflags = GPIOEVENT_REQUEST_FALLING_EDGE;
+	LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_FALLING_EDGE", __PRETTY_FUNCTION__);
 #else
 	selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
+	LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_RISING_EDGE", __PRETTY_FUNCTION__);
 #endif	// SIGNAL_CONTROL_MODE
 
 	// Get event request
-	if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
+	if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
+		LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd);
 		LOGERROR("Unable to register event request. Is RaSCSI already running?")
 		LOGERROR("[%08X] %s", errno, strerror(errno));
-		close(fd);
+		close(gpio_fd);
 		return false;
 	}
 
 	// Close GPIO chip file handle
 	LOGTRACE("%s Close GPIO chip file handle", __PRETTY_FUNCTION__);
-	close(fd);
+	close(gpio_fd);
 
 	// epoll initialization
 	LOGTRACE("%s epoll initialization", __PRETTY_FUNCTION__);

@@ -20,27 +20,14 @@ using namespace std;
 
 unique_ptr<GPIOBUS> GPIOBUS_Factory::Create()
 {
-	unique_ptr<GPIOBUS> return_object;
-
 	if (SBC_Version::IsBananaPi())
 	{
 		LOGTRACE("Creating GPIOBUS_Allwinner")
-		return_object = make_unique<GPIOBUS_Allwinner>();
+		return make_unique<GPIOBUS_Allwinner>();
 	}
 	else
 	{
 		LOGTRACE("Creating GPIOBUS_Raspberry")
-		return_object = make_unique<GPIOBUS_Raspberry>();
+		return make_unique<GPIOBUS_Raspberry>();
 	}
-	bool result = return_object->Init();
-	if (result)
-	{
-		LOGTRACE("%s Done with Init", __PRETTY_FUNCTION__);
-	}
-	else
-	{
-		LOGERROR("%s initialization failed. existing", __PRETTY_FUNCTION__);
-		exit(-1);
-	}
-	return return_object;
 }
