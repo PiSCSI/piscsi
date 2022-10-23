@@ -15,7 +15,7 @@
 #include <iostream>
 #include <sstream>
 
-SBC_Version::sbc_version_type SBC_Version::m_sbc_version = SBC_Version::sbc_unknown;
+SBC_Version::sbc_version_type SBC_Version::m_sbc_version = sbc_version_type::sbc_unknown;
 
 const std::string SBC_Version::m_str_raspberry_pi_1    = "Raspberry Pi 1";
 const std::string SBC_Version::m_str_raspberry_pi_2_3  = "Raspberry Pi 2/3";
@@ -36,17 +36,17 @@ const std::string SBC_Version::m_str_unknown_sbc       = "Unknown SBC";
 //         - Raspberry Pi 4 Model B Rev 1.4
 //         - Raspberry Pi 4 Model B Rev 1.3
 const std::map<std::string, SBC_Version::sbc_version_type> SBC_Version::m_proc_device_tree_mapping = {
-    {"Raspberry Pi 1 Model ", SBC_Version::sbc_raspberry_pi_1},
-    {"Raspberry Pi 2 Model ", SBC_Version::sbc_raspberry_pi_2_3},
-    {"Raspberry Pi 3 Model ", SBC_Version::sbc_raspberry_pi_2_3},
-    {"Raspberry Pi 4 Model ", SBC_Version::sbc_raspberry_pi_4},
-    {"Raspberry Pi 400 ", SBC_Version::sbc_raspberry_pi_4},
-    {"Raspberry Pi Zero W", SBC_Version::sbc_raspberry_pi_1},
-    {"Raspberry Pi Zero", SBC_Version::sbc_raspberry_pi_1},
-    {"Banana Pi BPI-M2-Zero ", SBC_Version::sbc_bananapi_m2_zero},
-    {"Banana Pi BPI-M2-Ultra ", SBC_Version::sbc_bananapi_m2_berry},
-    {"Banana Pi BPI-M2-Plus H3", SBC_Version::sbc_bananapi_m2_plus},
-    {"Banana Pi M2 Berry ", SBC_Version::sbc_bananapi_m2_berry},
+    {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
+    {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
+    {"Raspberry Pi 3 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
+    {"Raspberry Pi 4 Model ", sbc_version_type::sbc_raspberry_pi_4},
+    {"Raspberry Pi 400 ", sbc_version_type::sbc_raspberry_pi_4},
+    {"Raspberry Pi Zero W", sbc_version_type::sbc_raspberry_pi_1},
+    {"Raspberry Pi Zero", sbc_version_type::sbc_raspberry_pi_1},
+    {"Banana Pi BPI-M2-Zero ", sbc_version_type::sbc_bananapi_m2_zero},
+    {"Banana Pi BPI-M2-Ultra ", sbc_version_type::sbc_bananapi_m2_berry},
+    {"Banana Pi BPI-M2-Plus H3", sbc_version_type::sbc_bananapi_m2_plus},
+    {"Banana Pi M2 Berry ", sbc_version_type::sbc_bananapi_m2_berry},
     // sbc_bananapi_m3, TBD....
     // sbc_bananapi_m4,
 };
@@ -61,24 +61,24 @@ const std::string SBC_Version::m_device_tree_model_path = "/proc/device-tree/mod
 const std::string *SBC_Version::GetString()
 {
     switch (m_sbc_version) {
-    case sbc_raspberry_pi_1:
+    case sbc_version_type::sbc_raspberry_pi_1:
         return &m_str_raspberry_pi_1;
-    case sbc_raspberry_pi_2_3:
+    case sbc_version_type::sbc_raspberry_pi_2_3:
         return &m_str_raspberry_pi_2_3;
-    case sbc_raspberry_pi_4:
+    case sbc_version_type::sbc_raspberry_pi_4:
         return &m_str_raspberry_pi_4;
-    case sbc_bananapi_m2_berry:
+    case sbc_version_type::sbc_bananapi_m2_berry:
         return &m_str_bananapi_m2_berry;
-    case sbc_bananapi_m2_zero:
+    case sbc_version_type::sbc_bananapi_m2_zero:
         return &m_str_bananapi_m2_zero;
-    case sbc_bananapi_m2_plus:
+    case sbc_version_type::sbc_bananapi_m2_plus:
         return &m_str_bananapi_m2_plus;
-    case sbc_bananapi_m3:
+    case sbc_version_type::sbc_bananapi_m3:
         return &m_str_bananapi_m3;
-    case sbc_bananapi_m4:
+    case sbc_version_type::sbc_bananapi_m4:
         return &m_str_bananapi_m4;
     default:
-        LOGERROR("Unknown type of sbc detected: %d", m_sbc_version)
+        LOGERROR("Unknown type of sbc detected: %d", static_cast<int>(m_sbc_version))
         return &m_str_unknown_sbc;
     }
 }
@@ -96,14 +96,14 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     std::string device_tree_model;
 
     const std::ifstream input_stream(SBC_Version::m_device_tree_model_path);
 
     if (input_stream.fail()) {
         LOGERROR("Failed to open %s. Are you running as root?", SBC_Version::m_device_tree_model_path.c_str())
-        throw std::runtime_error("Failed to open /proc/device-tree/model");
+        throw std::invalid_argument("Failed to open /proc/device-tree/model");
     }
 
     std::stringstream str_buffer;
@@ -123,17 +123,17 @@ void SBC_Version::Init()
 
 bool SBC_Version::IsRaspberryPi()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     switch (m_sbc_version) {
-    case sbc_raspberry_pi_1:
-    case sbc_raspberry_pi_2_3:
-    case sbc_raspberry_pi_4:
+    case sbc_version_type::sbc_raspberry_pi_1:
+    case sbc_version_type::sbc_raspberry_pi_2_3:
+    case sbc_version_type::sbc_raspberry_pi_4:
         return true;
-    case sbc_bananapi_m2_berry:
-    case sbc_bananapi_m2_zero:
-    case sbc_bananapi_m2_plus:
-    case sbc_bananapi_m3:
-    case sbc_bananapi_m4:
+    case sbc_version_type::sbc_bananapi_m2_berry:
+    case sbc_version_type::sbc_bananapi_m2_zero:
+    case sbc_version_type::sbc_bananapi_m2_plus:
+    case sbc_version_type::sbc_bananapi_m3:
+    case sbc_version_type::sbc_bananapi_m4:
         return false;
     default:
         return false;
@@ -142,17 +142,17 @@ bool SBC_Version::IsRaspberryPi()
 
 bool SBC_Version::IsBananaPi()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     switch (m_sbc_version) {
-    case sbc_raspberry_pi_1:
-    case sbc_raspberry_pi_2_3:
-    case sbc_raspberry_pi_4:
+    case sbc_version_type::sbc_raspberry_pi_1:
+    case sbc_version_type::sbc_raspberry_pi_2_3:
+    case sbc_version_type::sbc_raspberry_pi_4:
         return false;
-    case sbc_bananapi_m2_berry:
-    case sbc_bananapi_m2_zero:
-    case sbc_bananapi_m2_plus:
-    case sbc_bananapi_m3:
-    case sbc_bananapi_m4:
+    case sbc_version_type::sbc_bananapi_m2_berry:
+    case sbc_version_type::sbc_bananapi_m2_zero:
+    case sbc_version_type::sbc_bananapi_m2_plus:
+    case sbc_version_type::sbc_bananapi_m3:
+    case sbc_version_type::sbc_bananapi_m4:
         return true;
     default:
         return false;
@@ -163,7 +163,7 @@ bool SBC_Version::IsBananaPi()
 //	(imported from bcm_host.c)
 DWORD SBC_Version::GetDeviceTreeRanges(const char *filename, DWORD offset)
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     DWORD address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);

@@ -23,7 +23,7 @@ class SBC_Version
 {
   public:
     // Type of Single Board Computer
-    enum sbc_version_type : uint8_t {
+    enum class sbc_version_type : uint8_t {
         sbc_unknown = 0,
         sbc_raspberry_pi_1,
         sbc_raspberry_pi_2_3,
