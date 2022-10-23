@@ -816,8 +816,10 @@ def download_to_iso():
     if process_attach["status"]:
         return response(
             message=_(
-                "CD-ROM image %(file_name)s created and attached to SCSI ID %(id_number)s",
+                "CD-ROM image %(file_name)s created with argument \"%(args)s\" "
+                "and attached to SCSI ID %(id_number)s",
                 file_name=process["file_name"],
+                args=" ".join(iso_args),
                 id_number=scsi_id,
             ),
         )
@@ -915,12 +917,14 @@ def create_file():
             message=_(
                 "Image file with properties created: %(file_name)s",
                 file_name=full_file_name,
-            )
+            ),
+            image=full_file_name,
         )
 
     return response(
         status_code=201,
-        message=_("Image file created: %(file_name)s", file_name=full_file_name)
+        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        image=full_file_name,
     )
 
 
