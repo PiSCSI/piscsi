@@ -389,6 +389,12 @@ class GPIOBUS : public BUS
 
     static const array<int, 19> SignalTable; // signal table
 
+#ifdef USE_SEL_EVENT_ENABLE
+    struct gpioevent_request selevreq = {}; // SEL signal event request
+
+    int epfd; // epoll file descriptor
+#endif        // USE_SEL_EVENT_ENABLE
+
   private:
     int rpitype = 0; // Type of Raspberry Pi
 
@@ -421,12 +427,6 @@ class GPIOBUS : public BUS
     array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
 
     uint32_t signals = 0; // All bus signals
-
-#ifdef USE_SEL_EVENT_ENABLE
-    struct gpioevent_request selevreq = {}; // SEL signal event request
-
-    int epfd; // epoll file descriptor
-#endif        // USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table
