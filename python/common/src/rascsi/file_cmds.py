@@ -392,7 +392,7 @@ class FileCmds:
             else:
                 logging.info(
                     "%s is a zipfile! Will attempt to unzip and store the resulting files.",
-                    str(tmp_full_path),
+                    tmp_full_path,
                     )
                 unzip_proc = asyncio.run(self.run_async("unzip", [
                     "-d",
@@ -403,7 +403,7 @@ class FileCmds:
                 if not unzip_proc["returncode"]:
                     logging.info(
                         "%s was successfully unzipped. Deleting the zipfile.",
-                        str(tmp_full_path),
+                        tmp_full_path,
                         )
                     tmp_full_path.unlink(True)
 
