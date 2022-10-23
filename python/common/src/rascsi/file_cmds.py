@@ -430,7 +430,7 @@ class FileCmds:
             "status": True,
             "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
             "parameters": parameters,
-            "file_name": str(iso_filename),
+            "file_name": iso_filename.name,
         }
 
     # noinspection PyMethodMayBeStatic
