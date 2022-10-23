@@ -599,7 +599,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
         }
     } else {
         // Get phase
-        DWORD phase = Acquire() & GPIO_MCI;
+        uint32_t phase = Acquire() & GPIO_MCI;
 
         for (i = 0; i < count; i++) {
             // Wait for the REQ signal to be asserted
@@ -709,7 +709,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
         WaitSignal(PIN_ACK, OFF);
     } else {
         // Get Phase
-        DWORD phase = Acquire() & GPIO_MCI;
+        uint32_t phase = Acquire() & GPIO_MCI;
 
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
@@ -944,7 +944,7 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 //	Generic Phase Acquisition (Doesn't read GPIO)
 //
 //---------------------------------------------------------------------------
-BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
+BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
 {
     GPIO_FUNCTION_TRACE
     // Selection Phase

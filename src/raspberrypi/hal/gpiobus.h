@@ -275,7 +275,7 @@ class GPIOBUS : public BUS
     void Cleanup() override;
     // Cleanup
 
-    DWORD Acquire() override = 0;
+    uint32_t Acquire() override = 0;
 
     void SetENB(bool ast);
     // Set ENB signal
@@ -338,7 +338,7 @@ class GPIOBUS : public BUS
     int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake
 
-    static BUS::phase_t GetPhaseRaw(DWORD raw_data);
+    static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
     // Get the phase based on raw data
 
     static int GetCommandByteCount(BYTE opcode);
@@ -378,7 +378,7 @@ class GPIOBUS : public BUS
     // GPIO pin pull up/down resistor setting
     virtual void PinSetSignal(int pin, bool ast) = 0;
     // Set GPIO output signal
-    virtual void DrvConfig(DWORD drive) = 0;
+    virtual void DrvConfig(uint32_t drive) = 0;
     // Set GPIO drive strength
 
     mode_e actmode = mode_e::TARGET; // Operation mode

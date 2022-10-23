@@ -30,7 +30,7 @@
 //	imported from bcm_host.c
 //
 //---------------------------------------------------------------------------
-static uint32_t get_dt_ranges(const char *filename, DWORD offset)
+static uint32_t get_dt_ranges(const char *filename, uint32_t offset)
 {
     GPIO_FUNCTION_TRACE
     uint32_t address = ~0;
@@ -63,7 +63,7 @@ uint32_t bcm_host_get_peripheral_address()
     GPIO_FUNCTION_TRACE
     array<char, 1024> buf;
     size_t len = buf.size();
-    DWORD address;
+    uint32_t address;
 
     if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf.data()) {
         // Failed to get CPU model || Not BCM2835
@@ -125,27 +125,27 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     }
 
     // GPIO
-    gpio = (DWORD *)map;
-    gpio += GPIO_OFFSET / sizeof(DWORD);
+    gpio = (uint32_t *)map;
+    gpio += GPIO_OFFSET / sizeof(uint32_t);
     level = &gpio[GPIO_LEV_0];
 
     // PADS
-    pads = (DWORD *)map;
-    pads += PADS_OFFSET / sizeof(DWORD);
+    pads = (uint32_t *)map;
+    pads += PADS_OFFSET / sizeof(uint32_t);
 
     // // System timer
     // SysTimer::Init(
-    // 	(DWORD *)map + SYST_OFFSET / sizeof(DWORD),
-    // 	(DWORD *)map + ARMT_OFFSET / sizeof(DWORD));
+    // 	(uint32_t *)map + SYST_OFFSET / sizeof(uint32_t),
+    // 	(uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t));
     SysTimer::Init();
 
     // Interrupt controller
-    irpctl = (DWORD *)map;
-    irpctl += IRPT_OFFSET / sizeof(DWORD);
+    irpctl = (uint32_t *)map;
+    irpctl += IRPT_OFFSET / sizeof(uint32_t);
 
     // Quad-A7 control
-    qa7regs = (DWORD *)map;
-    qa7regs += QA7_OFFSET / sizeof(DWORD);
+    qa7regs = (uint32_t *)map;
+    qa7regs += QA7_OFFSET / sizeof(uint32_t);
 
     LOGTRACE("%s Mapping GIC Memory....", __PRETTY_FUNCTION__);
     // Map GIC memory
@@ -155,9 +155,9 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
             close(fd);
             return false;
         }
-        gicd = (DWORD *)map;
-        gicc = (DWORD *)map;
-        gicc += (ARM_GICC_BASE - ARM_GICD_BASE) / sizeof(DWORD);
+        gicd = (uint32_t *)map;
+        gicc = (uint32_t *)map;
+        gicc += (ARM_GICC_BASE - ARM_GICD_BASE) / sizeof(uint32_t);
     } else {
         gicd = NULL;
         gicc = NULL;
@@ -474,7 +474,7 @@ void GPIOBUS_Raspberry::SetDAT(BYTE dat)
     GPIO_FUNCTION_TRACE
     // Write to port
 #if SIGNAL_CONTROL_MODE == 0
-    DWORD fsel = gpfsel[0];
+    uint32_t fsel = gpfsel[0];
     fsel &= tblDatMsk[0][dat];
     fsel |= tblDatSet[0][dat];
     if (fsel != gpfsel[0]) {
@@ -619,9 +619,9 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     }
 #endif // SIGNAL_CONTROL_MODE
 
-    int index  = pin / 10;
-    int shift  = (pin % 10) * 3;
-    DWORD data = gpfsel[index];
+    int index     = pin / 10;
+    int shift     = (pin % 10) * 3;
+    uint32_t data = gpfsel[index];
     data &= ~(0x7 << shift);
     if (mode == OUT) {
         data |= (1 << shift);
@@ -648,9 +648,9 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
-    int index  = pin / 10;
-    int shift  = (pin % 10) * 3;
-    DWORD data = gpfsel[index];
+    int index     = pin / 10;
+    int shift     = (pin % 10) * 3;
+    uint32_t data = gpfsel[index];
     if (ast) {
         data |= (1 << shift);
     } else {
@@ -756,9 +756,9 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
         return;
     }
 
-    int index   = pin / 10;
-    DWORD mask  = ~(0x7 << ((pin % 10) * 3));
-    gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
+    int index     = pin / 10;
+    uint32_t mask = ~(0x7 << ((pin % 10) * 3));
+    gpio[index]   = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
 }
 
 //---------------------------------------------------------------------------
@@ -768,7 +768,7 @@ void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
 {
-    DWORD pull;
+    uint32_t pull;
 
     // Check for invalid pin
     if (pin < 0) {
@@ -792,8 +792,8 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
         }
 
         pin &= 0x1f;
-        int shift  = (pin & 0xf) << 1;
-        DWORD bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
+        int shift     = (pin & 0xf) << 1;
+        uint32_t bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
         bits &= ~(3 << shift);
         bits |= (pull << shift);
         gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
@@ -832,9 +832,9 @@ void GPIOBUS_Raspberry::PinSetSignal(int pin, bool ast)
 //	Set the signal drive strength
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::DrvConfig(DWORD drive)
+void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
 {
-    DWORD data     = pads[PAD_0_27];
+    uint32_t data  = pads[PAD_0_27];
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 

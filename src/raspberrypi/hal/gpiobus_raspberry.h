@@ -73,7 +73,7 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
     // Set GPIO output signal
-    void DrvConfig(DWORD drive) override;
+    void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
 #if !defined(__x86_64__) && !defined(__X86__)
