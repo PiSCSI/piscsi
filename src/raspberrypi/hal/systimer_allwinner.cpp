@@ -27,12 +27,12 @@ const std::string SysTimer_AllWinner::dev_mem_filename = "/dev/mem";
 //---------------------------------------------------------------------------
 void SysTimer_AllWinner::Init()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
 
     int fd;
 
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
-        printf("I can't open /dev/mem. Are you running as root?\n");
+        LOGERROR("I can't open /dev/mem. Are you running as root?")
         exit(-1);
     }
 
@@ -40,14 +40,14 @@ void SysTimer_AllWinner::Init()
                                                             hs_timer_base_address);
 
     if (hsitimer_regs == MAP_FAILED) {
-        LOGERROR("Unable to map high speed timer registers. Are you running as root?");
+        LOGERROR("Unable to map high speed timer registers. Are you running as root?")
     }
 
     sysbus_regs = (struct sun8i_sysbus_registers *)mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
                                                         system_bus_base_address);
 
     if (sysbus_regs == MAP_FAILED) {
-        LOGERROR("Unable to map system bus registers. Are you running as root?");
+        LOGERROR("Unable to map system bus registers. Are you running as root?")
     }
 
     enable_hs_timer();
@@ -62,12 +62,12 @@ void SysTimer_AllWinner::enable_hs_timer()
     // the software reset bit should be set 0.
 
     LOGTRACE("%s [Before Enable] CLK GATE: %08X  SOFT RST: %08X", __PRETTY_FUNCTION__, sysbus_regs->bus_clk_gating_reg0,
-             sysbus_regs->bus_soft_rst_reg0);
+             sysbus_regs->bus_soft_rst_reg0)
 
     sysbus_regs->bus_clk_gating_reg0 = sysbus_regs->bus_clk_gating_reg0 | (1 << BUS_CLK_GATING_REG0_HSTMR);
     sysbus_regs->bus_soft_rst_reg0   = sysbus_regs->bus_soft_rst_reg0 | (1 << BUS_SOFT_RST_REG0_HSTMR);
     LOGTRACE("%s [After Enable] CLK GATE: %08X  SOFT RST: %08X", __PRETTY_FUNCTION__, sysbus_regs->bus_clk_gating_reg0,
-             sysbus_regs->bus_soft_rst_reg0);
+             sysbus_regs->bus_soft_rst_reg0)
 
     // Set interval value to the maximum value. (its a 52 bit register)
     hsitimer_regs->hs_tmr_intv_hi_reg = (1 << 20) - 1; //(0xFFFFF)
@@ -87,23 +87,23 @@ void SysTimer_AllWinner::enable_hs_timer()
 // eat up a little extra power if we leave it running.
 void SysTimer_AllWinner::disable_hs_timer()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
 
     LOGINFO("[Before Disable] CLK GATE: %08X  SOFT RST: %08X", sysbus_regs->bus_clk_gating_reg0,
-            sysbus_regs->bus_soft_rst_reg0);
+            sysbus_regs->bus_soft_rst_reg0)
 
     sysbus_regs->bus_clk_gating_reg0 = sysbus_regs->bus_clk_gating_reg0 & ~(1 << BUS_CLK_GATING_REG0_HSTMR);
     sysbus_regs->bus_soft_rst_reg0   = sysbus_regs->bus_soft_rst_reg0 & ~(1 << BUS_SOFT_RST_REG0_HSTMR);
 
     LOGINFO("[After Disable] CLK GATE: %08X  SOFT RST: %08X", sysbus_regs->bus_clk_gating_reg0,
-            sysbus_regs->bus_soft_rst_reg0);
+            sysbus_regs->bus_soft_rst_reg0)
 }
 
 DWORD SysTimer_AllWinner::GetTimerLow()
 {
     // RaSCSI expects the timer to count UP, but the Allwinner HS timer counts
     // down. So, we subtract the current timer value from UINT32_MAX
-    return (uint32_t)UINT32_MAX - (hsitimer_regs->hs_tmr_curnt_lo_reg / 200);
+    return UINT32_MAX - (hsitimer_regs->hs_tmr_curnt_lo_reg / 200);
 }
 
 DWORD SysTimer_AllWinner::GetTimerHigh()
@@ -125,11 +125,11 @@ void SysTimer_AllWinner::SleepNsec(DWORD nsec)
 
     // The HS timer receives a 200MHz clock input, which equates to
     // one clock tick every 5 ns.
-    uint32_t clockticks = (uint32_t)std::ceil(nsec / 5);
+    auto clockticks = (uint32_t)std::ceil(nsec / 5);
 
     DWORD enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;
 
-    LOGTRACE("%s entertime: %08X ns: %d clockticks: %d", __PRETTY_FUNCTION__, enter_time, nsec, clockticks);
+    LOGTRACE("%s entertime: %08X ns: %d clockticks: %d", __PRETTY_FUNCTION__, enter_time, nsec, clockticks)
     while ((enter_time - hsitimer_regs->hs_tmr_curnt_lo_reg) < clockticks)
         ;
 
@@ -143,7 +143,7 @@ void SysTimer_AllWinner::SleepNsec(DWORD nsec)
 //---------------------------------------------------------------------------
 void SysTimer_AllWinner::SleepUsec(DWORD usec)
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
 
     // If time is 0, don't do anything
     if (usec == 0) {
