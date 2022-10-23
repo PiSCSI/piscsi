@@ -138,10 +138,10 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
     }
     ~MockAbstractController() override = default;
 
-    vector<int> &InitCmd(int size)
+    vector<int> &InitCmd(int size) // NOSONAR Hides function on purpose
     {
         return AbstractController::InitCmd(size);
-    } // NOSONAR Hides function on purpose
+    }
 };
 
 class MockScsiController : public ScsiController

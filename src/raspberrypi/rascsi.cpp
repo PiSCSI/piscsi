@@ -68,8 +68,8 @@ string access_token;
 DeviceFactory device_factory;
 shared_ptr<ControllerManager> controller_manager;
 RascsiImage rascsi_image;
-shared_ptr<RascsiResponse> rascsi_response; //(device_factory, controller_manager, ScsiController::LUN_MAX);
-shared_ptr<RascsiExecutor> executor; //(rascsi_response, rascsi_image, device_factory, controller_manager);
+shared_ptr<RascsiResponse> rascsi_response;
+shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
