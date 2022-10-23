@@ -65,9 +65,12 @@ TEST(RasUtilTest, ListDevices)
 
 TEST(RasUtilTest, GetExtensionLowerCase)
 {
+	EXPECT_EQ("", GetExtensionLowerCase(""));
+	EXPECT_EQ("", GetExtensionLowerCase("."));
 	EXPECT_EQ("ext", GetExtensionLowerCase("file.ext"));
 	EXPECT_EQ("ext", GetExtensionLowerCase("FILE.EXT"));
 	EXPECT_EQ("ext", GetExtensionLowerCase(".ext"));
+	EXPECT_EQ("ext_long", GetExtensionLowerCase(".ext_long"));
 	EXPECT_EQ("ext", GetExtensionLowerCase(".XYZ.EXT"));
 }
 
