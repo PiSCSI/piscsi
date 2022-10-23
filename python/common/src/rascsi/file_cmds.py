@@ -377,7 +377,7 @@ class FileCmds:
         file_name = PurePath(url).name
         tmp_ts = int(time())
         tmp_dir = Path("/tmp") / str(tmp_ts)
-        os.mkdir(tmp_dir)
+        tmp_dir.mkdir()
         tmp_full_path = tmp_dir / file_name
         iso_filename = Path(server_info['image_dir']) / f"{file_name}.iso"
 
@@ -405,7 +405,7 @@ class FileCmds:
                         "%s was successfully unzipped. Deleting the zipfile.",
                         str(tmp_full_path),
                         )
-                    self.delete_file(tmp_full_path)
+                    tmp_full_path.unlink(True)
 
         try:
             run(
