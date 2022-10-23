@@ -911,7 +911,7 @@ def create_file():
     if file_name.is_absolute() or ".." in str(file_name):
         file_name = file_name.name
 
-    full_file_name = f"{str(file_name)}.{file_type}"
+    full_file_name = f"{file_name}.{file_type}"
     process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -970,7 +970,7 @@ def delete():
         (_("Image file deleted: %(file_name)s", file_name=str(file_name)), "success")]
 
     # Delete the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
@@ -1003,8 +1003,8 @@ def rename():
         (_("Image file renamed to: %(file_name)s", file_name=str(new_file_name)), "success")]
 
     # Rename the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = Path(CFG_DIR) / f"{str(new_file_name)}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
@@ -1037,8 +1037,8 @@ def copy():
         (_("Copy of image file saved as: %(file_name)s", file_name=str(new_file_name)), "success")]
 
     # Create a copy of the drive properties file, if it exists
-    prop_file_path = Path(CFG_DIR) / f"{str(file_name)}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = Path(CFG_DIR) / f"{str(new_file_name)}.{PROPERTIES_SUFFIX}"
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
     if prop_file_path.is_file():
         process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
