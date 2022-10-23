@@ -275,7 +275,7 @@ class GPIOBUS : public BUS
     void Cleanup() override;
     // Cleanup
 
-    virtual DWORD Acquire() = 0;
+    DWORD Acquire() override = 0;
 
     void SetENB(bool ast);
     // Set ENB signal
@@ -359,9 +359,9 @@ class GPIOBUS : public BUS
     // Set Control Signal
     virtual void SetMode(int pin, int mode) = 0;
     // Set SCSI I/O mode
-    virtual bool GetSignal(int pin) const = 0;
+    bool GetSignal(int pin) const override = 0;
     // Set Control Signal
-    virtual void SetSignal(int pin, bool ast) = 0;
+    void SetSignal(int pin, bool ast) override = 0;
     // Set SCSI I/O mode
     virtual bool WaitSignal(int pin, int ast) = 0;
     // Wait for a signal to change
@@ -387,6 +387,7 @@ class GPIOBUS : public BUS
     uint32_t baseaddr = 0; // Base address
 #endif
 
+  private:
     int rpitype = 0; // Type of Raspberry Pi
 
     volatile uint32_t *gpio = nullptr; // GPIO register
