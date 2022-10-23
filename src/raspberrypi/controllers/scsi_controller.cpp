@@ -45,8 +45,7 @@ void ScsiController::Reset()
 	scsi.msc = 0;
 	scsi.msb = {};
 
-	is_byte_transfer = false;
-	bytes_to_transfer = 0;
+	SetByteTransfer(false);
 }
 
 BUS::phase_t ScsiController::Process(int id)
@@ -81,8 +80,6 @@ BUS::phase_t ScsiController::Process(int id)
 	}
 	catch(const scsi_exception&) {
 		// Any exception should have been handled during the phase processing
-		assert(false);
-
 		LOGERROR("%s Unhandled SCSI error, resetting controller and bus and entering bus free phase", __PRETTY_FUNCTION__)
 
 		Reset();
@@ -116,15 +113,14 @@ void ScsiController::BusFree()
 
 		identified_lun = -1;
 
-		is_byte_transfer = false;
-		bytes_to_transfer = 0;
+		SetByteTransfer(false);
 
 		// When the bus is free RaSCSI or the Pi may be shut down.
 		// This code has to be executed in the bus free phase and thus has to be located in the controller.
 		switch(shutdown_mode) {
 		case rascsi_shutdown_mode::STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested")
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 
 		case rascsi_shutdown_mode::STOP_PI:
@@ -209,7 +205,7 @@ void ScsiController::Command()
 			return;
 		}
 
-		InitCmd(command_byte_count);
+		AllocateCmd(command_byte_count);
 
 		// Command data transfer
 		stringstream s;
@@ -219,7 +215,7 @@ void ScsiController::Command()
 		}
 		LOGTRACE("%s CDB=$%s",__PRETTY_FUNCTION__, s.str().c_str())
 
-		ctrl.length = 0;
+		SetLength(0);
 
 		Execute();
 	}
@@ -250,7 +246,13 @@ void ScsiController::Execute()
 		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			assert(HasDeviceForLun(0));
+			if (!HasDeviceForLun(0)) {
+				LOGERROR("No LUN 0 for device %d", GetTargetId())
+
+				GetBuffer().data()[0] = 0x7f;
+
+				return;
+			}
 
 			lun = 0;
 		}
@@ -263,17 +265,22 @@ void ScsiController::Execute()
 		device->SetStatusCode(0);
 	}
 
-	try {
-		if (!device->Dispatch(GetOpcode())) {
-			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
-
-			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
-		}
+	if (!device->CheckReservation(initiator_id, GetOpcode(), ctrl.cmd[4] & 0x01)) {
+		Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
 	}
-	catch(const scsi_exception& e) { //NOSONAR This exception is handled properly
-		Error(e.get_sense_key(), e.get_asc(), e.get_status());
+	else {
+		try {
+			if (!device->Dispatch(GetOpcode())) {
+				LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
 
-		// Fall through
+				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			}
+		}
+		catch(const scsi_exception& e) { //NOSONAR This exception is handled properly
+			Error(e.get_sense_key(), e.get_asc());
+
+			// Fall through
+		}
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
@@ -307,7 +314,7 @@ void ScsiController::Status()
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
-		ctrl.length = 1;
+		SetLength(1);
 		ctrl.blocks = 1;
 		GetBuffer()[0] = (BYTE)GetStatus();
 
@@ -328,14 +335,10 @@ void ScsiController::MsgIn()
 		bus.SetCD(true);
 		bus.SetIO(true);
 
-		// length, blocks are already set
-		assert(HasValidLength());
-		assert(ctrl.blocks > 0);
 		ResetOffset();
 		return;
 	}
 
-	LOGTRACE("%s Transitioning to Send()", __PRETTY_FUNCTION__)
 	Send();
 }
 
@@ -361,7 +364,7 @@ void ScsiController::MsgOut()
 
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
-		ctrl.length = 1;
+		SetLength(1);
 		ctrl.blocks = 1;
 
 		return;
@@ -392,8 +395,6 @@ void ScsiController::DataIn()
 		bus.SetCD(false);
 		bus.SetIO(true);
 
-		// length, blocks are already set
-		assert(ctrl.blocks > 0);
 		ResetOffset();
 
 		return;
@@ -453,7 +454,16 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun) || asc == asc::INVALID_LUN) {
-		assert(HasDeviceForLun(0));
+		if (!HasDeviceForLun(0)) {
+			LOGERROR("No LUN 0 for device %d", GetTargetId())
+
+			SetStatus(status);
+			ctrl.message = 0x00;
+
+			Status();
+
+			return;
+		}
 
 		lun = 0;
 	}
@@ -549,7 +559,7 @@ void ScsiController::Send()
 		// status phase
 		case BUS::phase_t::status:
 			// Message in phase
-			ctrl.length = 1;
+			SetLength(1);
 			ctrl.blocks = 1;
 			GetBuffer()[0] = (BYTE)ctrl.message;
 			MsgIn();
@@ -563,7 +573,7 @@ void ScsiController::Send()
 
 void ScsiController::Receive()
 {
-	if (is_byte_transfer) {
+	if (IsByteTransfer()) {
 		ReceiveBytes();
 		return;
 	}
@@ -755,20 +765,15 @@ bool ScsiController::XferOut(bool cont)
 {
 	assert(IsDataOut());
 
-	if (!is_byte_transfer) {
+	if (!IsByteTransfer()) {
 		return XferOutBlockOriented(cont);
 	}
 
-	is_byte_transfer = false;
+	const uint32_t length = bytes_to_transfer;
+	SetByteTransfer(false);
 
-	if (auto device = GetDeviceForLun(GetEffectiveLun());
-		device != nullptr && GetOpcode() == scsi_command::eCmdWrite6) {
-		return device->WriteByteSequence(GetBuffer(), bytes_to_transfer);
-	}
-
-	LOGWARN("%s Received unexpected command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
-
-	return false;
+	auto device = GetDeviceForLun(GetEffectiveLun());
+	return device != nullptr ? device->WriteByteSequence(GetBuffer(), length) : false;
 }
 
 void ScsiController::DataOutNonBlockOriented()
@@ -791,7 +796,7 @@ void ScsiController::DataOutNonBlockOriented()
 				// TODO Try to get rid of this cast
 				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
 					device != nullptr) {
-					device->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+					device->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
 				}
 				else {
 					throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
@@ -833,7 +838,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 		case scsi_command::eCmdRead16:
 			// Read from disk
 			try {
-				ctrl.length = (dynamic_pointer_cast<Disk>(GetDeviceForLun(lun)))->Read(ctrl.cmd, buf, ctrl.next);
+				SetLength(dynamic_pointer_cast<Disk>(GetDeviceForLun(lun))->Read(ctrl.cmd, buf, ctrl.next));
 			}
 			catch(const scsi_exception&) {
 				// If there is an error, go to the status phase
@@ -873,10 +878,10 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
 			try {
-				disk->ModeSelect(ctrl.cmd, GetBuffer(), GetOffset());
+				disk->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_exception& e) {
-				Error(e.get_sense_key(), e.get_asc(), e.get_status());
+				Error(e.get_sense_key(), e.get_asc());
 				return false;
 			}
 			break;
@@ -888,7 +893,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			// Special case Write function for brige
+			// Special case Write function for bridge
 			// TODO This class must not know about SCSIBR
 			if (auto bridge = dynamic_pointer_cast<SCSIBR>(disk); bridge) {
 				if (!bridge->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
@@ -914,7 +919,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				disk->Write(ctrl.cmd, GetBuffer(), ctrl.next - 1);
 			}
 			catch(const scsi_exception& e) {
-				Error(e.get_sense_key(), e.get_asc(), e.get_status());
+				Error(e.get_sense_key(), e.get_asc());
 
 				// Write failed
 				return false;
@@ -928,7 +933,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 			// Check the next block
 			try {
-				ctrl.length = disk->WriteCheck(ctrl.next - 1);
+				SetLength(disk->WriteCheck(ctrl.next - 1));
 			}
 			catch(const scsi_exception&) {
 				// Cannot write
@@ -981,6 +986,9 @@ void ScsiController::ParseMessage()
 		if (message_type == 0x0C) {
 			LOGTRACE("Received BUS DEVICE RESET message")
 			scsi.syncoffset = 0;
+			if (auto device = GetDeviceForLun(identified_lun); device != nullptr) {
+				device->DiscardReservation();
+			}
 			BusFree();
 			return;
 		}
@@ -995,7 +1003,7 @@ void ScsiController::ParseMessage()
 
 			// Check only when synchronous transfer is possible
 			if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
-				ctrl.length = 1;
+				SetLength(1);
 				ctrl.blocks = 1;
 				GetBuffer()[0] = 0x07;
 				MsgIn();
@@ -1013,7 +1021,7 @@ void ScsiController::ParseMessage()
 			}
 
 			// STDR response message generation
-			ctrl.length = 5;
+			SetLength(5);
 			ctrl.blocks = 1;
 			GetBuffer()[0] = 0x01;
 			GetBuffer()[1] = 0x03;
@@ -1035,7 +1043,7 @@ void ScsiController::ProcessMessage()
 	if (bus.GetATN()) {
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
-		ctrl.length = 1;
+		SetLength(1);
 		ctrl.blocks = 1;
 		return;
 	}

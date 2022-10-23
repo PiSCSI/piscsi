@@ -43,8 +43,6 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	DeviceFactory device_factory;
 	unordered_set<uint32_t> sector_sizes;
 
-	sector_sizes = device_factory.GetSectorSizes("SCHD");
-	EXPECT_EQ(4, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCHD);
 	EXPECT_EQ(4, sector_sizes.size());
 
@@ -53,8 +51,6 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
 	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
-	sector_sizes = device_factory.GetSectorSizes("SCRM");
-	EXPECT_EQ(4, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCRM);
 	EXPECT_EQ(4, sector_sizes.size());
 
@@ -63,8 +59,6 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
 	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
-	sector_sizes = device_factory.GetSectorSizes("SCMO");
-	EXPECT_EQ(4, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCMO);
 	EXPECT_EQ(4, sector_sizes.size());
 
@@ -73,8 +67,6 @@ TEST(DeviceFactoryTest, GetSectorSizes)
 	EXPECT_TRUE(sector_sizes.find(2048) != sector_sizes.end());
 	EXPECT_TRUE(sector_sizes.find(4096) != sector_sizes.end());
 
-	sector_sizes = device_factory.GetSectorSizes("SCCD");
-	EXPECT_EQ(2, sector_sizes.size());
 	sector_sizes = device_factory.GetSectorSizes(SCCD);
 	EXPECT_EQ(2, sector_sizes.size());
 
@@ -125,7 +117,7 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 	EXPECT_EQ(2, params.size());
 
 	params = device_factory.GetDefaultParams(SCLP);
-	EXPECT_EQ(2, params.size());
+	EXPECT_EQ(1, params.size());
 }
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
@@ -152,7 +144,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHD", device->GetType());
+	EXPECT_EQ(SCHD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_TRUE(device->IsProtectable());
@@ -172,18 +164,18 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hds");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHD", device->GetType());
+	EXPECT_EQ(SCHD, device->GetType());
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hdi");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHD", device->GetType());
+	EXPECT_EQ(SCHD, device->GetType());
 
 	device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.nhd");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHD", device->GetType());
+	EXPECT_EQ(SCHD, device->GetType());
 }
 
-void TestRemovableDrive(const string& type, const string& filename, const string& product)
+void TestRemovableDrive(PbDeviceType type, const string& filename, const string& product)
 {
 	MockBus bus;
 	DeviceFactory device_factory;
@@ -213,12 +205,12 @@ void TestRemovableDrive(const string& type, const string& filename, const string
 
 TEST(DeviceFactoryTest, SCRM_Device_Defaults)
 {
-	TestRemovableDrive("SCRM", "test.hdr", "SCSI HD (REM.)");
+	TestRemovableDrive(SCRM, "test.hdr", "SCSI HD (REM.)");
 }
 
 TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 {
-	TestRemovableDrive("SCMO", "test.mos", "SCSI MO");
+	TestRemovableDrive(SCMO, "test.mos", "SCSI MO");
 }
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
@@ -229,7 +221,7 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCCD", device->GetType());
+	EXPECT_EQ(SCCD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -256,7 +248,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCBR", device->GetType());
+	EXPECT_EQ(SCBR, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -283,7 +275,7 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCDP", device->GetType());
+	EXPECT_EQ(SCDP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -309,7 +301,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCHS", device->GetType());
+	EXPECT_EQ(SCHS, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_FALSE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());
@@ -336,7 +328,7 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
 	EXPECT_NE(nullptr, device);
-	EXPECT_EQ("SCLP", device->GetType());
+	EXPECT_EQ(SCLP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
 	EXPECT_TRUE(device->SupportsParams());
 	EXPECT_FALSE(device->IsProtectable());

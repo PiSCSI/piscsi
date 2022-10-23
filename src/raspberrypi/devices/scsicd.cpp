@@ -24,12 +24,15 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD", lun)
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD, lun)
 {
 	SetSectorSizes(sector_sizes);
 
 	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	dispatcher.Add(scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+
+	SetReadOnly(true);
+	SetRemovable(true);
+	SetLockable(true);
 }
 
 bool SCSICD::Dispatch(scsi_command cmd)
@@ -38,7 +41,7 @@ bool SCSICD::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-void SCSICD::Open(const Filepath& path)
+void SCSICD::Open()
 {
 	assert(!IsReady());
 
@@ -48,9 +51,11 @@ void SCSICD::Open(const Filepath& path)
 	ClearTrack();
 
 	// Open as read-only
+	Filepath path;
+	path.SetPath(GetFilename().c_str());
 	Fileio fio;
 	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open CD-ROM file");
+		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
 	}
 
 	// Default sector size is 2048 bytes
@@ -62,10 +67,9 @@ void SCSICD::Open(const Filepath& path)
 		fio.Close();
 
 		// Open physical CD
-		OpenPhysical(path);
+		OpenPhysical();
 	} else {
-		// Get file size
-		if (fio.GetFileSize() < 4) {
+		if (GetFileSize() < 4) {
 			fio.Close();
 			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}
@@ -78,21 +82,21 @@ void SCSICD::Open(const Filepath& path)
 
 		// If it starts with FILE, consider it as a CUE sheet
 		if (!strcasecmp(file.data(), "FILE")) {
-			// Open as CUE
-			OpenCue(path);
+			throw io_exception("Opening CUE CD-ROM files is not supported");
 		} else {
-			// Open as ISO
-			OpenIso(path);
+			OpenIso();
 		}
 	}
 
 	// Successful opening
 	assert(GetBlockCount() > 0);
 
-	super::Open(path);
-	SetPath(path);
+	super::ValidateFile(GetFilename());
 
-	SetUpCache(path, 0, rawfile);
+	SetUpCache(0, rawfile);
+
+	SetReadOnly(true);
+	SetProtectable(false);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -100,21 +104,16 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-void SCSICD::OpenCue(const Filepath&) const
-{
-	throw io_exception("Opening CUE CD-ROM files is not supported");
-}
-
-void SCSICD::OpenIso(const Filepath& path)
+void SCSICD::OpenIso()
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
+	if (!fio.Open(GetFilename().c_str(), Fileio::OpenMode::ReadOnly)) {
 		throw io_exception("Can't open ISO CD-ROM file");
 	}
 
 	// Get file size
-	const off_t size = fio.GetFileSize();
+	const off_t size = GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
@@ -166,32 +165,23 @@ void SCSICD::OpenIso(const Filepath& path)
 		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
-	// Create only one data track
-	assert(!tracks.size());
-	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, (int)GetBlockCount() - 1);
-	track->SetPath(false, path);
-	tracks.push_back(move(track));
-	dataindex = 0;
+	CreateDataTrack();
 }
 
-void SCSICD::OpenPhysical(const Filepath& path)
+void SCSICD::OpenPhysical()
 {
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw io_exception("Can't open CD-ROM file");
+	if (!fio.Open(GetFilename().c_str(), Fileio::OpenMode::ReadOnly)) {
+		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
 	}
+	fio.Close();
 
 	// Get size
-	off_t size = fio.GetFileSize();
+	off_t size = GetFileSize();
 	if (size < 0x800) {
-		fio.Close();
 		throw io_exception("CD-ROM file size must be at least 2048 bytes");
 	}
-
-	// Close
-	fio.Close();
 
 	// Effective size must be a multiple of 512
 	size = (size / 512) * 512;
@@ -199,10 +189,17 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Set the number of blocks
 	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
+	CreateDataTrack();
+}
+
+void SCSICD::CreateDataTrack()
+{
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
 	track->Init(1, 0, (int)GetBlockCount() - 1);
+	Filepath path;
+	path.SetPath(GetFilename().c_str());
 	track->SetPath(false, path);
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -295,7 +292,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 		tracks[index]->GetPath(path);
 
 		// Re-assign disk cache (no need to save)
-		ResizeCache(path, rawfile);
+		ResizeCache(path.GetPath(), rawfile);
 
 		// Reset data index
 		dataindex = index;
@@ -341,24 +338,24 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 
 		// AA if not found or internal error
 		if (!tracks[index]) {
-			if (cdb[6] == 0xaa) {
-				// Returns the final LBA+1 because it is AA
-				buf[0] = 0x00;
-				buf[1] = 0x0a;
-				buf[2] = (BYTE)tracks[0]->GetTrackNo();
-				buf[3] = (BYTE)last;
-				buf[6] = 0xaa;
-				uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
-				if (msf) {
-					LBAtoMSF(lba, &buf[8]);
-				} else {
-					SetInt16(buf, 10, lba);
-				}
-				return length;
+			if (cdb[6] != 0xaa) {
+				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 			}
 
-			// Otherwise, error
-			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+			// Returns the final LBA+1 because it is AA
+			buf[0] = 0x00;
+			buf[1] = 0x0a;
+			buf[2] = (BYTE)tracks[0]->GetTrackNo();
+			buf[3] = (BYTE)last;
+			buf[6] = 0xaa;
+			const uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
+			if (msf) {
+				LBAtoMSF(lba, &buf[8]);
+			} else {
+				SetInt16(buf, 10, lba);
+			}
+
+			return length;
 		}
 	}
 
@@ -401,17 +398,6 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 
 	// Always return only the allocation length
 	return length;
-}
-
-void SCSICD::GetEventStatusNotification()
-{
-	if (!(ctrl->cmd[1] & 0x01)) {
-		// Asynchronous notification is optional and not supported by rascsi
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	LOGTRACE("Received request for event polling, which is currently not supported")
-	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

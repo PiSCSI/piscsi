@@ -30,6 +30,10 @@ void RascsiService::Cleanup() const
 
 bool RascsiService::Init(const callback& cb, int port)
 {
+	if (port <= 0 || port > 65535) {
+		return false;
+	}
+
 	// Create socket for monitor
 	sockaddr_in server = {};
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
@@ -95,7 +99,7 @@ void RascsiService::Execute() const
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.get_msg().c_str())
+			LOGWARN("%s", e.what())
 
             // Fall through
 		}

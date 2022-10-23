@@ -195,13 +195,16 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 		}
 	}
 
-	if (it == localized_messages.end()) {
-		return "Missing default localization for enum value " + to_string((int)key);
-	}
+	assert (it != localized_messages.end());
 
 	auto messages = it->second;
-	string message = messages[key];
 
+	const auto& m = messages.find(key);
+	if (m == messages.end()) {
+		return "Missing localization for enum value " + to_string((int)key);
+	}
+
+	string message = m->second;
 	message = regex_replace(message, regex("%1"), arg1);
 	message = regex_replace(message, regex("%2"), arg2);
 	message = regex_replace(message, regex("%3"), arg3);

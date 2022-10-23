@@ -29,4 +29,3 @@ static const int LOGBUF_SIZE = 512;
 #define LOGINFO(...) SPDLOGWRAPPER(spdlog::level::info, __VA_ARGS__)
 #define LOGWARN(...) SPDLOGWRAPPER(spdlog::level::warn, __VA_ARGS__)
 #define LOGERROR(...) SPDLOGWRAPPER(spdlog::level::err, __VA_ARGS__)
-#define LOGCRITICAL(...) SPDLOGWRAPPER(spdlog::level::critical, __VA_ARGS__)

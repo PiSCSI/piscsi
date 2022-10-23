@@ -19,6 +19,8 @@
 #include "scsihd.h"
 #include <unordered_set>
 #include <map>
+#include <array>
+#include <vector>
 
 using namespace std;
 
@@ -27,22 +29,28 @@ using namespace std;
 //	SCSI hard disk (PC-9801-55 NEC genuine / Anex86 / T98Next)
 //
 //===========================================================================
-class SCSIHD_NEC : public SCSIHD
+class SCSIHD_NEC : public SCSIHD //NOSONAR The inheritance hierarchy depth is acceptable in this case
 {
 public:
 
 	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, sector_sizes, false) {}
 	~SCSIHD_NEC() override = default;
 
-	void Open(const Filepath&) override;
+	void Open() override;
+
+protected:
 
 	vector<byte> InquiryInternal() const override;
 
-	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
+
+	pair<int, int> SetParameters(const string&, const array<BYTE, 512>&, int);
+
+	static int GetInt16LittleEndian(const BYTE *);
+	static int GetInt32LittleEndian(const BYTE *);
 
 	static const unordered_set<uint32_t> sector_sizes;
 

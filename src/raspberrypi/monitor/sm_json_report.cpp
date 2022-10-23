@@ -10,7 +10,6 @@
 
 #include "sm_reports.h"
 #include "log.h"
-#include "spdlog/spdlog.h"
 #include "string.h"
 #include <iostream>
 #include <fstream>

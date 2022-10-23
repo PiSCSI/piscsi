@@ -15,11 +15,21 @@
 #include <memory>
 
 using namespace std;
+using namespace rascsi_interface;
 
 class PrimaryDevice;
 class MockAbstractController;
 
-shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, MockAbstractController&);
+shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, MockAbstractController&, const string& = "");
 
-void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, scsi_defs::scsi_level,
-		const string&, int, bool);
+void TestInquiry(PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, const string&,
+		int, bool, const string& = "");
+
+void TestDispatch(PbDeviceType);
+
+int OpenTempFile(string&);
+string CreateTempFile(int);
+
+int GetInt16(const vector<byte>&, int);
+uint32_t GetInt32(const vector<byte>&, int);
+

@@ -20,5 +20,4 @@ public:
 	virtual ~ScsiMmcCommands() = default;
 
 	virtual void ReadToc() = 0;
-	virtual void GetEventStatusNotification() = 0;
 };

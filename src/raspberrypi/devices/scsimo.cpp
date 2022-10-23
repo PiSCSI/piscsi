@@ -19,7 +19,7 @@
 
 using namespace scsi_command_util;
 
-SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCMO", lun)
+SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCMO, lun)
 {
 	SetSectorSizes(sector_sizes);
 
@@ -31,22 +31,24 @@ SCSIMO::SCSIMO(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk("SCM
 	geometries[512 * 1041500] = make_pair(512, 1041500);
 	// 640 MB, 20248 bytes per sector, 310352 sectors
 	geometries[2048 * 310352] = make_pair(2048, 310352);
+
+	SetProtectable(true);
+	SetRemovable(true);
+	SetLockable(true);
+
+	SupportsSaveParameters(true);
 }
 
-void SCSIMO::Open(const Filepath& path)
+void SCSIMO::Open()
 {
 	assert(!IsReady());
 
-	// Open as read-only
-	Fileio fio;
+	off_t size = GetFileSize();
 
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open MO file");
+	// 2 TiB is the current maximum
+	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
+		throw io_exception("Drive capacity cannot exceed 2 TiB");
 	}
-
-	// Get file size
-	off_t size = fio.GetFileSize();
-	fio.Close();
 
 	// For some capacities there are hard-coded, well-defined sector sizes and block counts
 	if (!SetGeometryForCapacity(size)) {
@@ -55,14 +57,9 @@ void SCSIMO::Open(const Filepath& path)
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	SetReadOnly(false);
-	SetProtectable(true);
-	SetProtected(false);
+	super::ValidateFile(GetFilename());
 
-	super::Open(path);
-	SetPath(path);
-
-	SetUpCache(path, 0);
+	SetUpCache(0);
 
 	// Attention if ready
 	if (IsReady()) {
@@ -100,19 +97,35 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 	// Do not report update blocks
 }
 
-void SCSIMO::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
+void SCSIMO::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
-	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
-//---------------------------------------------------------------------------
 //
-//	Vendor Unique Format Page 20h (MO)
+// Mode page code 20h - Vendor Unique Format Page
+// Format mode XXh type 0
+// Information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
+
+// Offset  description
+// 02h   format mode
+// 03h   type of format (0)
+// 04~07h  size of user band (total sectors?)
+// 08~09h  size of spare band (spare sectors?)
+// 0A~0Bh  number of bands
 //
-//---------------------------------------------------------------------------
+// Actual value of each 3.5 inches optical medium (grabbed by Fujitsu M2513EL)
+//
+//                      128M     230M    540M    640M
+// ---------------------------------------------------
+// Size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
+// Size of spare band   0400h    0401h   08CAh   08C4h
+// Number of bands      0001h    000Ah   0012h   000Bh
+//
+// Further information: http://r2089.blog36.fc2.com/blog-entry-177.html
+//
 void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	// Page code 20h
 	if (page != 0x20 && page != 0x3f) {
 		return;
 	}
@@ -125,29 +138,6 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 
 		return;
 	}
-
-	/*
-		mode page code 20h - Vendor Unique Format Page
-		format mode XXh type 0
-		information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
-
-		offset  description
-		  02h   format mode
-		  03h   type of format (0)
-		04~07h  size of user band (total sectors?)
-		08~09h  size of spare band (spare sectors?)
-		0A~0Bh  number of bands
-
-		actual value of each 3.5inches optical medium (grabbed by Fujitsu M2513EL)
-
-		                     128M     230M    540M    640M
-		---------------------------------------------------
-		size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
-		size of spare band   0400h    0401h   08CAh   08C4h
-		number of bands      0001h    000Ah   0012h   000Bh
-
-		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
-	*/
 
 	if (IsReady()) {
 		unsigned spare = 0;

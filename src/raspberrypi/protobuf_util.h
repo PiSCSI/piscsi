@@ -23,8 +23,8 @@ namespace protobuf_util
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	string GetParam(const PbCommand&, const string&);
 	string GetParam(const PbDeviceDefinition&, const string&);
-	void AddParam(PbCommand&, const string&, string_view);
-	void AddParam(PbDevice&, const string&, string_view);
-	void AddParam(PbDeviceDefinition&, const string&, string_view);
+	void SetParam(PbCommand&, const string&, string_view);
+	void SetParam(PbDevice&, const string&, string_view);
+	void SetParam(PbDeviceDefinition&, const string&, string_view);
 	void SetPatternParams(PbCommand&, string_view);
 }

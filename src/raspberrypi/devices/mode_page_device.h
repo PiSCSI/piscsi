@@ -18,23 +18,30 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string&, int);
-	~ModePageDevice()override = default;
+	ModePageDevice(PbDeviceType, int);
+	~ModePageDevice() override = default;
 
 	bool Dispatch(scsi_command) override;
 
-	virtual void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const;
+	virtual void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<BYTE>&, int) const;
 
 protected:
 
-	int AddModePages(const vector<int>&, vector<BYTE>&, int, int) const;
+	bool SupportsSaveParameters() const { return supports_save_parameters; }
+	void SupportsSaveParameters(bool b) { supports_save_parameters = b; }
+	int AddModePages(const vector<int>&, vector<BYTE>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
+	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const {
+		// Nothing to add by default
+	}
 
 private:
 
 	using super = PrimaryDevice;
 
 	Dispatcher<ModePageDevice> dispatcher;
+
+	bool supports_save_parameters = false;
 
 	virtual int ModeSense6(const vector<int>&, vector<BYTE>&) const = 0;
 	virtual int ModeSense10(const vector<int>&, vector<BYTE>&) const = 0;
@@ -44,7 +51,5 @@ private:
 	void ModeSelect6();
 	void ModeSelect10();
 
-	int ModeSelectCheck(int) const;
-	int ModeSelectCheck6() const;
-	int ModeSelectCheck10() const;
+	int SaveParametersCheck(int) const;
 };
