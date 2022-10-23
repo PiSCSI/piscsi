@@ -259,6 +259,7 @@ function updateRaScsiGit() {
     if [[ `git for-each-ref --format='%(upstream:short)' "$(git symbolic-ref -q HEAD)"` != "" ]]; then
         echo "Updating checked out git branch $GIT_REMOTE/$GIT_BRANCH"
         git pull --ff-only
+	git submodule update --recursive
     else
         echo "Detected a local git working branch; skipping the remote update step."
     fi
