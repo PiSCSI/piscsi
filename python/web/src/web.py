@@ -790,7 +790,7 @@ def shutdown():
 @login_required
 def download_to_iso():
     """
-    Downloads a file and creates a CD-ROM image with the specified file system and he file
+    Downloads a file and creates a CD-ROM image with the specified file system and the file
     """
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
