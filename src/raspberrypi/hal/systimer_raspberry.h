@@ -24,16 +24,20 @@
 class SysTimer_Raspberry : public PlatformSpecificTimer
 {
   public:
+    // Default constructor
+    SysTimer_Raspberry() = default;
+    // Default destructor
+    ~SysTimer_Raspberry() = default;
     // Initialization
-    void Init();
+    void Init() override;
     // Get system timer low byte
-    uint32_t GetTimerLow();
+    uint32_t GetTimerLow() override;
     // Get system timer high byte
-    uint32_t GetTimerHigh();
+    uint32_t GetTimerHigh() override;
     // Sleep for N nanoseconds
-    void SleepNsec(uint32_t nsec);
+    void SleepNsec(uint32_t nsec) override;
     // Sleep for N microseconds
-    void SleepUsec(uint32_t usec);
+    void SleepUsec(uint32_t usec) override;
 
   private:
     // System timer address

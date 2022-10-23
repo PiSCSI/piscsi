@@ -22,6 +22,11 @@
 class PlatformSpecificTimer
 {
   public:
+    // Default constructor
+    PlatformSpecificTimer() = default;
+    // Default destructor
+    ~PlatformSpecificTimer() = default;
+    // Initialization
     virtual void Init() = 0;
     // Get system timer low byte
     virtual uint32_t GetTimerLow() = 0;

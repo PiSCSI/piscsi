@@ -776,7 +776,7 @@ void GPIOBUS_Raspberry::PullConfig(int pin, int mode)
     }
 
     if (rpitype == 4) {
-        LOGTRACE("%s I'm a Pi 4", __PRETTY_FUNCTION__);
+        LOGTRACE("%s I'm a Pi 4", __PRETTY_FUNCTION__)
         switch (mode) {
         case GPIO_PULLNONE:
             pull = 0;

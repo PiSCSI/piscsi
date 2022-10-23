@@ -22,6 +22,10 @@
 class SysTimer_AllWinner : public PlatformSpecificTimer
 {
   public:
+    // Default constructor
+    SysTimer_AllWinner() = default;
+    // Default destructor
+    ~SysTimer_AllWinner() = default;
     // Initialization
     void Init() override;
     // Get system timer low byte
@@ -76,7 +80,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
     static const uint32_t HS_TMR_CLK_PRE_SCALE_2  = (1 << 4);
     static const uint32_t HS_TMR_CLK_PRE_SCALE_4  = (2 << 4);
     static const uint32_t HS_TMR_CLK_PRE_SCALE_8  = (3 << 4);
-    static const uint32_t HS_TMR_CLK_PRE_SCALE_16 = (4 << 4); //NOSONAR This matches the datasheet
+    static const uint32_t HS_TMR_CLK_PRE_SCALE_16 = (4 << 4); // NOSONAR This matches the datasheet
     static const uint32_t HS_TMR_MODE_SINGLE      = (1 << 7);
     static const uint32_t HS_TMR_TEST_MODE        = (1 << 31);
 
