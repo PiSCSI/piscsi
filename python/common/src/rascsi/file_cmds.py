@@ -2,9 +2,9 @@
 Module for methods reading from and writing to the file system
 """
 
-import os
 import logging
 import asyncio
+from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
@@ -54,14 +54,14 @@ class FileCmds:
         index 0 is (str) file name and index 1 is (int) size in bytes
         """
         files_list = []
-        for path, _dirs, files in os.walk(dir_path):
+        for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
             files = [f for f in files if f.lower().endswith(file_types)]
             files_list.extend(
                 [
                     (
                         file,
-                        os.path.getsize(os.path.join(path, file))
+                        path.getsize(path.join(file_path, file))
                     )
                     for file in files
                 ]
@@ -75,7 +75,7 @@ class FileCmds:
         Returns a (list) of (str) files_list
         """
         files_list = []
-        for _root, _dirs, files in os.walk(CFG_DIR):
+        for _root, _dirs, files in walk(CFG_DIR):
             for file in files:
                 if file.endswith("." + CONFIG_FILE_SUFFIX):
                     files_list.append(file)
