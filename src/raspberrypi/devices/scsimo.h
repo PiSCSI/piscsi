@@ -5,40 +5,46 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  	Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
-//  	See LICENSE file in the project root folder.
-//
-//  	[ SCSI Magneto-Optical Disk]
+//  Licensed under the BSD 3-Clause License.
+//  See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include "os.h"
 #include "disk.h"
 #include "filepath.h"
 
-class SCSIMO : public Disk, public FileSupport
+using Geometry = pair<uint32_t, uint32_t>;
+
+class SCSIMO : public Disk
 {
 public:
-	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
-	~SCSIMO() {}
 
-	void Open(const Filepath& path) override;
+	SCSIMO(int, const unordered_set<uint32_t>&);
+	~SCSIMO() override = default;
 
-	// Commands
-	vector<BYTE> Inquiry() const override;
-	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+	void Open(const Filepath&) override;
+
+	vector<byte> InquiryInternal() const override;
+	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
 
 protected:
 
-	// Internal processing
-	void SetDeviceParameters(BYTE *) override;
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
 
-	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
+	using super = Disk;
+
+	void AddOptionPage(map<int, vector<byte>>&, bool) const;
+
+	bool SetGeometryForCapacity(uint64_t);
+
+	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
+	unordered_map<uint64_t, Geometry> geometries;
 };

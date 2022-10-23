@@ -7,8 +7,8 @@
     "block_size": 512,
     "size": 52445184,
     "name": "DEC RZ22",
-    "file_type": "hds",
-    "description": "Page/Swap drive for satellite workstations",
+    "file_type": "hd1",
+    "description": "Page/Swap drive for satellite workstations (SCSI-1)",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
@@ -19,8 +19,8 @@
     "block_size": 512,
     "size": 104890368,
     "name": "DEC RZ23",
-    "file_type": "hds",
-    "description": "Smallest usable drive for OpenVMS/VAX",
+    "file_type": "hd1",
+    "description": "Smallest usable drive for OpenVMS/VAX (SCSI-1)",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
@@ -31,8 +31,8 @@
     "block_size": 512,
     "size": 209813504,
     "name": "DEC RZ24",
-    "file_type": "hds",
-    "description": "Smallest usable drive for OpenVMS/VAX + Motif",
+    "file_type": "hd1",
+    "description": "Smallest usable drive for OpenVMS/VAX + Motif (SCSI-1)",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
@@ -426,19 +426,19 @@
     "revision": "1.0k",
     "block_size": 2048,
     "size": null,
-    "name": "Apple CD 600e",
+    "name": "AppleCD 600e (Matsushita CR-8005)",
     "file_type": null,
-    "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
+    "description": "Emulates an Apple CD-ROM drive for use with Macintosh computers.",
     "url": ""
 },
 {
     "device_type": "SCCD",
     "vendor": null,
-    "product": null,
+    "product": "SCSI CD-ROM 512",
     "revision": null,
     "block_size": 512,
     "size": null,
-    "name": "Generic CD-ROM 512 block size",
+    "name": "Generic CD-ROM block size 512",
     "file_type": null,
     "description": "For use with host systems that expect the non-standard 512 byte block size for CD-ROM drives, such as Akai samplers.",
     "url": ""

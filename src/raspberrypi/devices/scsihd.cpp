@@ -7,31 +7,28 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
 //	[ SCSI hard disk ]
 //
 //---------------------------------------------------------------------------
+
 #include "scsihd.h"
 #include "fileio.h"
-#include "exceptions.h"
+#include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
 #include <sstream>
 
-#define DEFAULT_PRODUCT "SCSI HD"
+using namespace scsi_command_util;
 
-//===========================================================================
-//
-//	SCSI Hard Disk
-//
-//===========================================================================
-
-SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(int lun, const unordered_set<uint32_t>& sector_sizes, bool removable, scsi_defs::scsi_level level)
+	: Disk(removable ? "SCRM" : "SCHD", lun), scsi_level(level)
 {
 	SetSectorSizes(sector_sizes);
 }
 
-void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
+void SCSIHD::FinalizeSetup(const Filepath &path, off_t size, off_t image_offset)
 {
     // 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
@@ -42,13 +39,19 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	if (!IsRemovable()) {
 		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (capacity >= 1000000) {
-			capacity /= 1000000;
-			unit = "MB";
+		// 10 GiB and more
+		if (capacity >= 1'099'511'627'776) {
+			capacity /= 1'099'511'627'776;
+			unit = "GiB";
+		}
+		// 1 MiB and more
+		else if (capacity >= 1'048'576) {
+			capacity /= 1'048'576;
+			unit = "MiB";
 		}
 		else {
-			capacity /= 1000;
-			unit = "KB";
+			capacity /= 1024;
+			unit = "KiB";
 		}
 		stringstream product;
 		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
@@ -59,19 +62,10 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	SetProtectable(true);
 	SetProtected(false);
 
-	Disk::Open(path);
-	FileSupport::SetPath(path);
-}
+	super::Open(path);
+	SetPath(path);
 
-void SCSIHD::Reset()
-{
-	// Unlock and release attention
-	SetLocked(false);
-	SetAttn(false);
-
-	// No reset, clear code
-	SetReset(false);
-	SetStatusCode(STATUS_NOERROR);
+	SetUpCache(path, image_offset);
 }
 
 void SCSIHD::Open(const Filepath& path)
@@ -80,7 +74,7 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadOnly)) {
+	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
 		throw file_not_found_exception("Can't open SCSI hard disk file");
 	}
 
@@ -89,8 +83,8 @@ void SCSIHD::Open(const Filepath& path)
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
-	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
+	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
 	// Effective size must be a multiple of the sector size
 	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
@@ -98,102 +92,27 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD::Inquiry() const
+vector<byte> SCSIHD::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
+	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+void SCSIHD::ModeSelect(const vector<int>& cdb, const vector<BYTE>& buf, int length) const
 {
-	assert(length >= 0);
-
-	int size;
-
-	// PF
-	if (cdb[1] & 0x10) {
-		// Mode Parameter header
-		if (length >= 12) {
-			// Check the block length bytes
-			size = 1 << GetSectorSizeShiftCount();
-			if (buf[9] != (BYTE)(size >> 16) ||
-				buf[10] != (BYTE)(size >> 8) ||
-				buf[11] != (BYTE)size) {
-				// currently does not allow changing sector length
-				SetStatusCode(STATUS_INVALIDPRM);
-				return false;
-			}
-			buf += 12;
-			length -= 12;
-		}
-
-		// Parsing the page
-		while (length > 0) {
-			// Get page
-			BYTE page = buf[0];
-
-			switch (page) {
-				// format device
-				case 0x03:
-					// check the number of bytes in the physical sector
-					size = 1 << GetSectorSizeShiftCount();
-					if (buf[0xc] != (BYTE)(size >> 8) ||
-						buf[0xd] != (BYTE)size) {
-						// currently does not allow changing sector length
-						SetStatusCode(STATUS_INVALIDPRM);
-						return false;
-					}
-					break;
-
-                // CD-ROM Parameters
-				// TODO Move to scsicd.cpp
-                // According to the SONY CDU-541 manual, Page code 8 is supposed
-                // to set the Logical Block Adress Format, as well as the
-                // inactivity timer multiplier
-                case 0x08:
-                    // Debug code for Issue #2:
-                    //     https://github.com/akuker/RASCSI/issues/2
-                    LOGWARN("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
-                    for (int i = 0; i<length; i++)
-                    {
-                        printf("%02X ", buf[i]);
-                    }
-                    printf("\n");
-                    break;
-				// Other page
-				default:
-                    printf("Unknown Mode Select page code received: %02X\n",page);
-					break;
-			}
-
-			// Advance to the next page
-			size = buf[1] + 2;
-			length -= size;
-			buf += size;
-		}
-	}
-
-	// Do not generate an error for the time being (MINIX)
-	return true;
+	scsi_command_util::ModeSelect(cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Vendor special page to make drive Apple compatible
-//
-//---------------------------------------------------------------------------
-void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
+{
+	Disk::AddFormatPage(pages, changeable);
+
+	EnrichFormatPage(pages, changeable, 1 << GetSectorSizeShiftCount());
+}
+
+void SCSIHD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	// Page code 48
-	if (page != 0x30 && page != 0x3f) {
-		return;
+	if (page == 0x30 || page == 0x3f) {
+		AddAppleVendorModePage(pages, changeable);
 	}
-
-	vector<BYTE> buf(30);
-
-	// No changeable area
-	if (!changeable) {
-		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
-	}
-
-	pages[48] = buf;
 }

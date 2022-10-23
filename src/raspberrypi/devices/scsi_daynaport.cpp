@@ -7,125 +7,91 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //
-//  Licensed under the BSD 3-Clause License. 
+//  Licensed under the BSD 3-Clause License.
 //  See LICENSE file in the project root folder.
 //
 //  [ Emulation of the DaynaPort SCSI Link Ethernet interface ]
 //
-//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's 
+//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's
 //  Tiny SCSI Emulator
 //    - SLINKCMD: http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/SLINKCMD.TXT
 //    - Tiny SCSI : https://hackaday.io/project/18974-tiny-scsi-emulator
 //
-//  Additional documentation and clarification is available at the 
+//  Additional documentation and clarification is available at the
 //  following link:
 //    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
-//
-//  This does NOT include the file system functionality that is present
-//  in the Sharp X68000 host bridge.
 //
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
+#include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
-const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
-
-// TODO Disk should not be the superclass
-SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
+// TODO Disk must not be the superclass
+SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk("SCDP", lun)
 {
-	m_tap = NULL;
-	m_bTapEnable = false;
-
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	dispatcher.AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	dispatcher.AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	dispatcher.AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	dispatcher.AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.Add(scsi_command::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
-SCSIDaynaPort::~SCSIDaynaPort()
-{
-	// TAP driver release
-	if (m_tap) {
-		m_tap->Cleanup();
-		delete m_tap;
-	}
-}
-
-bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
+bool SCSIDaynaPort::Dispatch(scsi_command cmd)
 {
 	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
-	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
-			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
+	if (cmd == scsi_command::eCmdModeSense6 || cmd == scsi_command::eCmdModeSelect6 ||
+			cmd == scsi_command::eCmdModeSense10 || cmd == scsi_command::eCmdModeSelect10) {
 		return false;
 	}
 
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 
-#ifdef __linux__
-	m_tap = new CTapDriver();
-	m_bTapEnable = m_tap->Init(GetParams());
+	m_bTapEnable = m_tap.Init(GetParams());
 	if(!m_bTapEnable){
-		LOGERROR("Unable to open the TAP interface");
+		LOGERROR("Unable to open the TAP interface")
 
 // Not terminating on regular Linux PCs is helpful for testing
 #if !defined(__x86_64__) && !defined(__X86__)
-		return false;
+	return false;
 #endif
 	} else {
-		LOGDEBUG("Tap interface created");
+		LOGDEBUG("Tap interface created")
 	}
 
-	this->Reset();
+	Reset();
 	SetReady(true);
 	SetReset(false);
-
-	// Generate MAC Address
-	memset(m_mac_addr, 0x00, 6);
-
-	// if (m_bTapEnable) {
-	// 	tap->GetMacAddr(m_mac_addr);
-	// 	m_mac_addr[5]++;
-	// }
-	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
-	// TODO: Remove this hard-coded address
-	m_mac_addr[0]=0x00;
-	m_mac_addr[1]=0x80;
-	m_mac_addr[2]=0x19;
-	m_mac_addr[3]=0x10;
-	m_mac_addr[4]=0x98;
-	m_mac_addr[5]=0xE3;
-#endif	// linux
 
 	return true;
 }
 
 void SCSIDaynaPort::Open(const Filepath& path)
 {
-	m_tap->OpenDump(path);
+	m_tap.OpenDump(path);
 }
 
-vector<BYTE> SCSIDaynaPort::Inquiry() const
+vector<byte> SCSIDaynaPort::InquiryInternal() const
 {
-	vector<BYTE> buf = PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<byte> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
-	buf[4]++;
-	buf.push_back(0);
+	buf[4] = (byte)((int)buf[4] + 1);
+	buf.push_back((byte)0);
 
 	return buf;
 }
@@ -161,16 +127,15 @@ vector<BYTE> SCSIDaynaPort::Inquiry() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
+int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 {
 	int rx_packet_size = 0;
-	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
+	const auto response = (scsi_resp_read_t*)buf.data();
 
-	int requested_length = cdb[4];
-	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);
+	const int requested_length = cdb[4];
+	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
 
-
-	// At host startup, it will send a READ(6) command with a length of 1. We should 
+	// At host startup, it will send a READ(6) command with a length of 1. We should
 	// respond by going into the status mode with a code of 0x02
 	if (requested_length == 1) {
 		return 0;
@@ -178,6 +143,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Some of the packets we receive will not be for us. So, we'll keep pulling messages
 	// until the buffer is empty, or we've read X times. (X is just a made up number)
+	// TODO send_message_to_host is effctively always true
 	bool send_message_to_host;
 	int read_count = 0;
 	while (read_count < MAX_READ_RETRIES) {
@@ -185,21 +151,21 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 		// The first 2 bytes are reserved for the length of the packet
 		// The next 4 bytes are reserved for a flag field
-		//rx_packet_size = m_tap->Rx(response->data);
-		rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
+		//rx_packet_size = m_tap.Rx(response->data);
+		rx_packet_size = m_tap.Receive(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
 		if (rx_packet_size <= 0) {
-			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__);
+			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__)
 			response->length = 0;
-			response->flags = e_no_more_data;
+			response->flags = read_data_flags_t::e_no_more_data;
 			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
-		LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count);
+		LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count)
 
 		// This is a very basic filter to prevent unnecessary packets from
-		// being sent to the SCSI initiator. 
+		// being sent to the SCSI initiator.
 		send_message_to_host = false;
 
 	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
@@ -222,7 +188,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	///////	}
 		send_message_to_host = true;
 
-		// TODO: We should check to see if this message is in the multicast 
+		// TODO: We should check to see if this message is in the multicast
 		// configuration from SCSI command 0x0D
 
 		if (!send_message_to_host) {
@@ -233,14 +199,13 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 				(int)response->data[2],
 				(int)response->data[3],
 				(int)response->data[4],
-				(int)response->data[5]);
+				(int)response->data[5])
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
-			if (!m_tap->PendingPackets())
-			{
+			if (!m_tap.PendingPackets()) {
 				response->length = 0;
-				response->flags = e_no_more_data;
+				response->flags = read_data_flags_t::e_no_more_data;
 				return DAYNAPORT_READ_HEADER_SZ;
 			}
 		}
@@ -248,7 +213,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 			// TODO: Need to do some sort of size checking. The buffer can easily overflow, probably.
 
 			// response->length = rx_packet_size;
-			// if(m_tap->PendingPackets()){
+			// if(m_tap.PendingPackets()){
 			// 	response->flags = e_more_data_available;
 			// } else {
 			// 	response->flags = e_no_more_data;
@@ -262,52 +227,33 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 				// breaks because of this, the work-around has to be re-evaluated.
 				size = 64;
 			}
-			buf[0] = size >> 8;
-			buf[1] = size;
-
-			buf[2] = 0;
-			buf[3] = 0;
-			buf[4] = 0;
-			if(m_tap->PendingPackets()){
-				buf[5] = 0x10;
-			} else {
-				buf[5] = 0;
-			}
+			SetInt16(buf, 0, size);
+			SetInt32(buf, 2, m_tap.PendingPackets() ? 0x10 : 0x00);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
 			return size + DAYNAPORT_READ_HEADER_SZ;
 		}
-		// If we got to this point, there are still messages in the queue, so 
+		// If we got to this point, there are still messages in the queue, so
 		// we should loop back and get the next one.
 	} // end while
 
 	response->length = 0;
-	response->flags = e_no_more_data;
+	response->flags = read_data_flags_t::e_no_more_data;
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
-//---------------------------------------------------------------------------
-//
-// WRITE check
-//
-//---------------------------------------------------------------------------
-int SCSIDaynaPort::WriteCheck(DWORD block)
+int SCSIDaynaPort::WriteCheck(uint64_t)
 {
-	// Status check
-	if (!CheckReady()) {
-		return 0;
+	CheckReady();
+
+	if (!m_bTapEnable) {
+		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	if (!m_bTapEnable){
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
-	}
-
-	// Success
 	return 1;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //  Write
@@ -326,31 +272,28 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, uint64_t)
 {
-	BYTE data_format = cdb[5];
-	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
+	const int data_format = cdb[5];
+	int data_length = GetInt16(cdb, 3);
 
-	if (data_format == 0x00){
-		m_tap->Tx(buf, data_length);
-		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
+	if (data_format == 0x00) {
+		m_tap.Send(buf.data(), data_length);
+		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length)
 	}
-	else if (data_format == 0x80){
+	else if (data_format == 0x80) {
 		// The data length is specified in the first 2 bytes of the payload
-		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
-		m_tap->Tx(&buf[4], data_length);
-		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
-		return true;
+		data_length = buf[1] + (((int)buf[0] & 0xff) << 8);
+		m_tap.Send(&(buf.data()[4]), data_length);
+		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
-	else
-	{
-		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-		return true;
+	else {
+		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
+
+	return true;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //	RetrieveStats
@@ -367,159 +310,81 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 //              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
+int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, vector<BYTE>& buf) const
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	memcpy(buf.data(), &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
-	// memset(buffer,0,18);
-	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
-	// uint32_t frame_alignment_errors;
-	// uint32_t crc_errors;
-	// uint32_t frames_lost;
-	// // frame alignment errors
-	// frame_alignment_errors = htonl(0);
-	// memcpy(&(buffer[6]),&frame_alignment_errors,sizeof(frame_alignment_errors));
-	// // CRC errors
-	// crc_errors = htonl(0);
-	// memcpy(&(buffer[10]),&crc_errors,sizeof(crc_errors));
-	// // frames lost
-	// frames_lost = htonl(0);
-	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
-
-	int response_size = sizeof(m_scsi_link_stats);
-	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
-
-	if (response_size > allocation_length) {
-		response_size = allocation_length;
-	}
-
-	// Success
-	return response_size;
+	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 3));
 }
 
-//---------------------------------------------------------------------------
-//
-//	Enable or Disable the interface
-//
-//  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
-//  Function: Enable (80) / disable (00) Ethernet interface
-//  Type:     No data transferred
-//  Notes:    After issuing an Enable, the initiator should avoid sending
-//            any subsequent commands to the device for approximately 0.5
-//            seconds
-//
-//---------------------------------------------------------------------------
-bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
+void SCSIDaynaPort::TestUnitReady()
 {
-	bool result;
-	if (cdb[5] & 0x80) {
-		result = m_tap->Enable();
-		if (result) {
-			LOGINFO("The DaynaPort interface has been ENABLED.");
-		}
-		else{
-			LOGWARN("Unable to enable the DaynaPort Interface");
-		}
-		m_tap->Flush();
-	}
-	else {
-		result = m_tap->Disable();
-		if (result) {
-			LOGINFO("The DaynaPort interface has been DISABLED.");
-		}
-		else{
-			LOGWARN("Unable to disable the DaynaPort Interface");
-		}
-	}
-
-	return result;
+	// Always successful
+	EnterStatusPhase();
 }
 
-void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
-{
-	// TEST UNIT READY Success
-
-	controller->Status();
-}
-
-void SCSIDaynaPort::Read6(SASIDEV *controller)
+void SCSIDaynaPort::Read6()
 {
 	// Get record number and block number
-	uint32_t record = ctrl->cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl->cmd[2];
-	record <<= 8;
-	record |= ctrl->cmd[3];
+    const uint32_t record = GetInt24(ctrl->cmd, 1) & 0x1fffff;
 	ctrl->blocks=1;
 
 	// If any commands have a bogus control value, they were probably not
 	// generated by the DaynaPort driver so ignore them
 	if (ctrl->cmd[5] != 0xc0 && ctrl->cmd[5] != 0x80) {
-		LOGTRACE("%s Control value %d, (%04X), returning invalid CDB", __PRETTY_FUNCTION__, ctrl->cmd[5], ctrl->cmd[5]);
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		LOGTRACE("%s Control value %d, (%04X), returning invalid CDB", __PRETTY_FUNCTION__, ctrl->cmd[5], ctrl->cmd[5])
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, record, ctrl->blocks)
 
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
-	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+	ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), record);
+	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, ctrl->length)
 
 	// Set next block
 	ctrl->next = record + 1;
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
-void SCSIDaynaPort::Write6(SASIDEV *controller)
+void SCSIDaynaPort::Write6()
 {
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl->buffer);
-		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
-	}
+	// Ensure a sufficient buffer size (because it is not transfer for each block)
+	controller->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
 
-	DWORD data_format = ctrl->cmd[5];
+	const int data_format = ctrl->cmd[5];
 
-	if(data_format == 0x00) {
-		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8);
+	if (data_format == 0x00) {
+		ctrl->length = GetInt16(ctrl->cmd, 3);
 	}
 	else if (data_format == 0x80) {
-		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8) + 8;
+		ctrl->length = GetInt16(ctrl->cmd, 3) + 8;
 	}
 	else {
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
+		LOGWARN("%s Unknown data format $%02X", __PRETTY_FUNCTION__, data_format)
 	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format);
+	LOGTRACE("%s length: $%04X (%d) format: $%02X", __PRETTY_FUNCTION__, ctrl->length, ctrl->length, data_format)
 
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
+void SCSIDaynaPort::RetrieveStatistics()
 {
-	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
+	ctrl->length = RetrieveStats(ctrl->cmd, controller->GetBuffer());
 
 	// Set next block
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	controller->DataIn();
+	EnterDataInPhase();
 }
 
 //---------------------------------------------------------------------------
@@ -548,52 +413,84 @@ void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
 //             value.
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
+void SCSIDaynaPort::SetInterfaceMode()
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
-	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+	ctrl->length = RetrieveStats(ctrl->cmd, controller->GetBuffer());
 	switch(ctrl->cmd[5]){
-		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
+		case CMD_SCSILINK_SETMODE:
 			// TODO Not implemented, do nothing
-			controller->Status();
+			EnterStatusPhase();
 			break;
 
-		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
+		case CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
-			controller->DataOut();
+			EnterDataOutPhase();
+			break;
+
+		case CMD_SCSILINK_STATS:
+		case CMD_SCSILINK_ENABLE:
+		case CMD_SCSILINK_SET:
+			LOGWARN("%s Unsupported SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
+			throw scsi_exception();
 			break;
 
 		default:
-			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5]);
+			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
+			throw scsi_exception();
 			break;
 	}
 }
 
-void SCSIDaynaPort::SetMcastAddr(SASIDEV *controller)
+void SCSIDaynaPort::SetMcastAddr()
 {
-	ctrl->length = (DWORD)ctrl->cmd[4];
+	ctrl->length = ctrl->cmd[4];
 	if (ctrl->length == 0) {
-		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, ctrl->cmd[2])
 
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_exception();
 	}
 
-	controller->DataOut();
+	EnterDataOutPhase();
 }
 
-void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
+//---------------------------------------------------------------------------
+//
+//	Enable or Disable the interface
+//
+//  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
+//  Function: Enable (80) / disable (00) Ethernet interface
+//  Type:     No data transferred
+//  Notes:    After issuing an Enable, the initiator should avoid sending
+//            any subsequent commands to the device for approximately 0.5
+//            seconds
+//
+//---------------------------------------------------------------------------
+void SCSIDaynaPort::EnableInterface()
 {
-	bool status = EnableInterface(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
-		controller->Error();
-		return;
+	if (ctrl->cmd[5] & 0x80) {
+		if (!m_tap.Enable()) {
+			LOGWARN("Unable to enable the DaynaPort Interface")
+
+			throw scsi_exception();
+		}
+
+		m_tap.Flush();
+
+		LOGINFO("The DaynaPort interface has been ENABLED")
+	}
+	else {
+		if (!m_tap.Disable()) {
+			LOGWARN("Unable to disable the DaynaPort Interface")
+
+			throw scsi_exception();
+		}
+
+		LOGINFO("The DaynaPort interface has been DISABLED")
 	}
 
-	controller->Status();
+	EnterStatusPhase();
 }
 
 int SCSIDaynaPort::GetSendDelay() const

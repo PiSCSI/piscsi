@@ -5,126 +5,15 @@
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
 //
-//	[ SCSI Common Functionality ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
-#include "os.h"
 
-//===========================================================================
-//
-//	SASI/SCSI Bus
-//
-//===========================================================================
-class BUS
-{
-public:
-	// Operation modes definition
-	enum mode_e {
-		TARGET = 0,
-		INITIATOR = 1,
-		MONITOR = 2,
-	};
+// TODO Remove this include as soon as gpiobus.cpp/h is open for editing (adding the include there) again
+#include "bus.h"
 
-	//	Phase definitions
-	enum phase_t : BYTE {
-		busfree,
-		arbitration,
-		selection,
-		reselection,
-		command,
-		execute,						// Execute phase is an extension of the command phase
-		datain,
-		dataout,
-		status,
-		msgin,
-		msgout,
-		reserved						// Unused
-	};
-
-	BUS() {}
-	virtual ~BUS() {}
-
-	// Basic Functions
-	virtual BOOL Init(mode_e mode) = 0;
-	virtual void Reset() = 0;
-	virtual void Cleanup() = 0;
-	phase_t GetPhase();
-
-	static phase_t GetPhase(DWORD mci)
-	{
-		return phase_table[mci];
-	}
-
-	// Get the string phase name, based upon the raw data
-	static const char* GetPhaseStrRaw(phase_t current_phase);
-
-	// Extract as specific pin field from a raw data capture
-	static inline DWORD GetPinRaw(DWORD raw_data, DWORD pin_num)
-	{
-		return ((raw_data >> pin_num) & 1);
-	}
-
-	virtual bool GetBSY() = 0;
-	virtual void SetBSY(bool ast) = 0;
-
-	virtual BOOL GetSEL() = 0;
-	virtual void SetSEL(BOOL ast) = 0;
-
-	virtual BOOL GetATN() = 0;
-	virtual void SetATN(BOOL ast) = 0;
-
-	virtual BOOL GetACK() = 0;
-	virtual void SetACK(BOOL ast) = 0;
-
-	virtual BOOL GetRST() = 0;
-	virtual void SetRST(BOOL ast) = 0;
-
-	virtual BOOL GetMSG() = 0;
-	virtual void SetMSG(BOOL ast) = 0;
-
-	virtual BOOL GetCD() = 0;
-	virtual void SetCD(BOOL ast) = 0;
-
-	virtual BOOL GetIO() = 0;
-	virtual void SetIO(BOOL ast) = 0;
-
-	virtual BOOL GetREQ() = 0;
-	virtual void SetREQ(BOOL ast) = 0;
-
-	virtual BYTE GetDAT() = 0;
-	virtual void SetDAT(BYTE dat) = 0;
-	virtual BOOL GetDP() = 0;			// Get parity signal
-
-	virtual DWORD Aquire() = 0;
-	virtual int CommandHandShake(BYTE *buf, bool) = 0;
-	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
-	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
-
-	virtual BOOL GetSignal(int pin) = 0;
-										// Get SCSI input signal value
-	virtual void SetSignal(int pin, BOOL ast) = 0;
-										// Set SCSI output signal value
-	static const int SEND_NO_DELAY = -1;
-										// Passed into SendHandShake when we don't want to delay
-protected:
-	phase_t m_current_phase = phase_t::reserved;
-
-private:
-	static const phase_t phase_table[8];
-
-	static const char* phase_str_table[];
-};
-
-//===========================================================================
-//
-//	For Status byte codes, Sense Keys and Additional Sense Codes
-//  See https://www.t10.org/lists/1spc-lst.htm
-//
-//===========================================================================
 namespace scsi_defs {
-	enum scsi_level : int {
+	enum class scsi_level : int {
 		SCSI_1_CCS = 1,
 		SCSI_2 = 2,
 		SPC = 3,
@@ -135,7 +24,7 @@ namespace scsi_defs {
 		SPC_6 = 8
 	};
 
-	enum device_type : int {
+	enum class device_type : int {
 		DIRECT_ACCESS = 0,
 		PRINTER = 2,
 		PROCESSOR = 3,
@@ -144,7 +33,8 @@ namespace scsi_defs {
 		COMMUNICATIONS = 9
 	};
 
-	enum scsi_command : int {
+	// TODO Use a mapping of enum to structure with command byte count and enum name
+	enum class scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
@@ -196,7 +86,7 @@ namespace scsi_defs {
 		eCmdReportLuns = 0xA0
 	};
 
-	enum status : int {
+	enum class status : int {
 		GOOD = 0x00,
 		CHECK_CONDITION = 0x02,
 		CONDITION_MET = 0x04,
@@ -208,7 +98,7 @@ namespace scsi_defs {
 		QUEUE_FULL = 0x28
 	};
 
-	enum sense_key : int {
+	enum class sense_key : int {
 		NO_SENSE = 0x00,
 		RECOVERED_ERROR = 0x01,
 		NOT_READY = 0x02,
@@ -226,14 +116,19 @@ namespace scsi_defs {
 		COMPLETED = 0x0f
 	};
 
-	enum asc : int {
+	enum class asc : int {
 		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
+		WRITE_FAULT = 0x03,
+		READ_FAULT = 0x11,
 		INVALID_COMMAND_OPERATION_CODE = 0x20,
 		LBA_OUT_OF_RANGE = 0x21,
 		INVALID_FIELD_IN_CDB = 0x24,
 		INVALID_LUN = 0x25,
+		INVALID_FIELD_IN_PARAMETER_LIST = 0x26,
 		WRITE_PROTECTED = 0x27,
 		NOT_READY_TO_READY_CHANGE = 0x28,
-		MEDIUM_NOT_PRESENT = 0x3a
+		POWER_ON_OR_RESET = 0x29,
+		MEDIUM_NOT_PRESENT = 0x3a,
+		LOAD_OR_EJECT_FAILED = 0x53
 	};
 };

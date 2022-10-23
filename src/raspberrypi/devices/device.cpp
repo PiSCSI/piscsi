@@ -3,57 +3,26 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include <cassert>
 #include "rascsi_version.h"
-#include "os.h"
 #include "log.h"
-#include "exceptions.h"
 #include "device.h"
+#include <cassert>
+#include <sstream>
+#include <iomanip>
 
-unordered_set<Device *> Device::devices;
+using namespace std;
 
-Device::Device(const string& type)
+Device::Device(const string& type, int lun) : type(type), lun(lun)
 {
 	assert(type.length() == 4);
 
-	devices.insert(this);
-
-	this->type = type;
-
-	vendor = DEFAULT_VENDOR;
-	char rev[5];
-	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
-	revision = rev;
-
-	ready = false;
-	reset = false;
-	attn = false;
-	supported_luns = 32;
-	protectable = false;
-	write_protected = false;
-	read_only = false;
-	stoppable = false;
-	stopped = false;
-	removable = false;
-	removed = false;
-	lockable = false;
-	locked = false;
-	block_size_configurable = false;
-	supports_params = false;
-
-	id = 0;
-	lun = 0;
-
-	status_code = STATUS_NOERROR;
-}
-
-Device::~Device()
-{
-	devices.erase(this);
+	ostringstream os;
+	os << setw(2) << setfill('0') << rascsi_major_version << setw(2) << setfill('0') << rascsi_minor_version;
+	revision = os.str();
 }
 
 void Device::Reset()
@@ -63,86 +32,75 @@ void Device::Reset()
 	reset = false;
 }
 
-void Device::SetProtected(bool write_protected)
+void Device::SetProtected(bool b)
 {
 	if (!read_only) {
-		this->write_protected = write_protected;
+		write_protected = b;
 	}
 }
 
-void Device::SetVendor(const string& vendor)
+void Device::SetVendor(const string& v)
 {
-	if (vendor.empty() || vendor.length() > 8) {
-		throw illegal_argument_exception("Vendor '" + vendor + "' must be between 1 and 8 characters");
+	if (v.empty() || v.length() > 8) {
+		throw invalid_argument("Vendor '" + v + "' must be between 1 and 8 characters");
 	}
 
-	this->vendor = vendor;
+	vendor = v;
 }
 
-void Device::SetProduct(const string& product, bool force)
+void Device::SetProduct(const string& p, bool force)
 {
-	// Changing the device name is not SCSI compliant
-	if (!this->product.empty() && !force) {
+	if (p.empty() || p.length() > 16) {
+		throw invalid_argument("Product '" + p + "' must be between 1 and 16 characters");
+	}
+
+	// Changing vital product data is not SCSI compliant
+	if (!product.empty() && !force) {
 		return;
 	}
 
-	if (product.empty() || product.length() > 16) {
-		throw illegal_argument_exception("Product '" + product + "' must be between 1 and 16 characters");
-	}
-
-	this->product = product;
+	product = p;
 }
 
-void Device::SetRevision(const string& revision)
+void Device::SetRevision(const string& r)
 {
-	if (revision.empty() || revision.length() > 4) {
-		throw illegal_argument_exception("Revision '" + revision + "' must be between 1 and 4 characters");
+	if (r.empty() || r.length() > 4) {
+		throw invalid_argument("Revision '" + r + "' must be between 1 and 4 characters");
 	}
 
-	this->revision = revision;
+	revision = r;
 }
 
-const string Device::GetPaddedName() const
+string Device::GetPaddedName() const
 {
-	string name = vendor;
-	name.append(8 - vendor.length(), ' ');
-	name += product;
-	name.append(16 - product.length(), ' ');
-	name += revision;
-	name.append(4 - revision.length(), ' ');
+	ostringstream os;
+	os << left << setfill(' ') << setw(8) << vendor << setw(16) << product << setw(4) << revision;
 
+	const string name = os.str();
 	assert(name.length() == 28);
 
 	return name;
 }
 
-const string Device::GetParam(const string& key)
+string Device::GetParam(const string& key) const
 {
-	return params.find(key) != params.end() ? params[key] : "";
+	const auto& it = params.find(key);
+	return it == params.end() ? "" : it->second;
 }
 
-void Device::SetParams(const unordered_map<string, string>& params)
+void Device::SetParams(const unordered_map<string, string>& set_params)
 {
-	this->params = GetDefaultParams();
+	params = default_params;
 
-	for (const auto& param : params) {
+	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (this->params.find(param.first) != this->params.end()) {
-			this->params[param.first] = param.second;
+		if (params.find(key) != params.end()) {
+			params[key] = value;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
 		}
 	}
-}
-
-void Device::SetStatusCode(int status_code)
-{
-	if (status_code) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
-	}
-
-	this->status_code = status_code;
 }
 
 bool Device::Start()
@@ -161,6 +119,8 @@ void Device::Stop()
 	ready = false;
 	attn = false;
 	stopped = true;
+
+	status_code = 0;
 }
 
 bool Device::Eject(bool force)

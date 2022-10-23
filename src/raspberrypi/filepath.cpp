@@ -8,26 +8,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "filepath.h"
-#include "config.h"
-#include "fileio.h"
-
-//===========================================================================
-//
-//	File path
-//
-//===========================================================================
-
-Filepath::Filepath()
-{
-	// Clear
-	Clear();
-}
-
-Filepath::~Filepath()
-{
-}
+#include <libgen.h>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 Filepath& Filepath::operator=(const Filepath& path)
 {
@@ -37,16 +22,6 @@ Filepath& Filepath::operator=(const Filepath& path)
 	return *this;
 }
 
-void Filepath::Clear()
-{
-
-	// Clear the path and each part
-	m_szPath[0] = _T('\0');
-	m_szDir[0] = _T('\0');
-	m_szFile[0] = _T('\0');
-	m_szExt[0] = _T('\0');
-}
-
 //---------------------------------------------------------------------------
 //
 //	File settings (user) for MBCS
@@ -54,11 +29,11 @@ void Filepath::Clear()
 //---------------------------------------------------------------------------
 void Filepath::SetPath(const char *path)
 {
-	ASSERT(path);
-	ASSERT(strlen(path) < _MAX_PATH);
+	assert(path);
+	assert(strlen(path) < _MAX_PATH);
 
 	// Copy pathname
-	strcpy(m_szPath, (char *)path);
+	strcpy(m_szPath, path);
 
 	// Split
 	Split();
@@ -72,16 +47,16 @@ void Filepath::SetPath(const char *path)
 void Filepath::Split()
 {
 	// Initialize the parts
-	m_szDir[0] = _T('\0');
-	m_szFile[0] = _T('\0');
-	m_szExt[0] = _T('\0');
+	m_szDir[0] = '\0';
+	m_szFile[0] = '\0';
+	m_szExt[0] = '\0';
 
 	// Split
 	char *pDir = strdup(m_szPath);
-	char *pDirName = dirname(pDir);
+	const char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
-	char *pBaseName = basename(pBase);
-	char *pExtName = strrchr(pBaseName, '.');
+	const char *pBaseName = basename(pBase);
+	const char *pExtName = strrchr(pBaseName, '.');
 
 	// Transmit
 	if (pDirName) {
@@ -116,20 +91,6 @@ const char *Filepath::GetFileExt() const
 
 	// Return as LPCTSTR
 	return (const char *)FileExt;
-}
-
-BOOL Filepath::Save(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
-}
-
-BOOL Filepath::Load(Fileio *fio, int /*ver*/)
-{
-	ASSERT(fio);
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------

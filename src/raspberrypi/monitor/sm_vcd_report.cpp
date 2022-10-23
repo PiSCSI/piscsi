@@ -17,7 +17,7 @@
 #include <fstream>
 #include "data_sample.h"
 #include "sm_reports.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
 
 using namespace std;
 
@@ -40,10 +40,10 @@ const char SYMBOL_PIN_CD   = '*';
 const char SYMBOL_PIN_IO   = '(';
 const char SYMBOL_PIN_BSY  = ')';
 const char SYMBOL_PIN_SEL  = '-';
-const char SYMBOL_PIN_PHASE  = '=';
+const char SYMBOL_PIN_PHASE = '=';
 
 // We'll use position 0 in the prev_value array to store the previous phase
-#define PIN_PHASE 0
+const int PIN_PHASE = 0;
 
 //---------------------------------------------------------------------------
 //
@@ -54,14 +54,14 @@ static BYTE prev_value[32] = {0xFF};
 
 extern double ns_per_loop;
 
-static BOOL get_pin_value(DWORD data, int pin)
+static BYTE get_pin_value(uint32_t data, int pin)
 {
     return (data >> pin) & 1;
 }
 
-static BYTE get_data_field(DWORD data)
+static BYTE get_data_field(uint32_t data)
 {
-    DWORD data_out =
+    const uint32_t data_out =
         ((data >> (PIN_DT0 - 0)) & (1 << 7)) |
         ((data >> (PIN_DT1 - 1)) & (1 << 6)) |
         ((data >> (PIN_DT2 - 2)) & (1 << 5)) |
@@ -74,31 +74,28 @@ static BYTE get_data_field(DWORD data)
     return (BYTE)data_out;
 }
 
-static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if (prev_value[pin] != new_value)
-    {
-        prev_value[pin] = new_value;
+    const BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
+    if (prev_value[pin] != (int)new_value) {
+        prev_value[pin] = (int)new_value;
         fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }
 
-static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BOOL new_value = get_pin_value(data, pin);
-    if (prev_value[pin] != new_value)
-    {
+    const BYTE new_value = get_pin_value(data, pin);
+    if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << new_value << symbol << endl;
     }
 }
 
-static void vcd_output_if_changed_byte(ofstream& fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    BYTE new_value = get_data_field(data);
-    if (prev_value[pin] != new_value)
-    {
+	const BYTE new_value = get_data_field(data);
+    if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << "b"
             << fmt::format("{0:b}", get_pin_value(data, PIN_DT7))
@@ -113,20 +110,20 @@ static void vcd_output_if_changed_byte(ofstream& fp, DWORD data, int pin, char s
     }
 }
 
-void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
+void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
-    LOGTRACE("Creating Value Change Dump file (%s)", filename);
+    LOGTRACE("Creating Value Change Dump file (%s)", filename)
     ofstream vcd_ofstream;
     vcd_ofstream.open(filename, ios::out);
 
     // Get the current time
     time_t rawtime;
     time(&rawtime);
-    struct tm *timeinfo = localtime(&rawtime);
+    const struct tm *timeinfo = localtime(&rawtime);
     char timestamp[256];
     strftime(timestamp, sizeof(timestamp), "%d-%m-%Y %H-%M-%S", timeinfo);
 
-    vcd_ofstream 
+    vcd_ofstream
         << "$date" << endl
         << timestamp << endl
         << "$end" << endl
@@ -167,9 +164,8 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
         << "b00000000 " << SYMBOL_PIN_DAT << endl
         << "$end" << endl;
 
-    DWORD i = 0;
-    while (i < capture_count)
-    {
+    uint32_t i = 0;
+    while (i < capture_count) {
         vcd_ofstream << "#" << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop) << endl;
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);

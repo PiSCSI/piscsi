@@ -1,0 +1,32 @@
+# Exclude all by default
+/*
+
+# Paths to include
+!/docker/rascsi/rascsi_wrapper.sh
+!/docker/rascsi/cfilesystem.patch
+!/docker/rascsi-web/start.sh
+!/doc
+!/python
+!/src
+!/test
+!/easyinstall.sh
+!/LICENCE
+!/lido-driver.img
+!/README.md
+
+# From .gitignore
+venv
+*.pyc
+core
+**/.idea
+.DS_Store
+*.swp
+__pycache__
+current
+rascsi_interface_pb2.py
+src/raspberrypi/hfdisk/
+*~
+messages.pot
+messages.mo
+s.sh
+*-backups

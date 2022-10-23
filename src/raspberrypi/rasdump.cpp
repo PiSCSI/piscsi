@@ -10,18 +10,26 @@
 //---------------------------------------------------------------------------
 
 #include <cerrno>
+#include <csignal>
+#include <unistd.h>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
-#include "gpiobus.h"
+#include "hal/gpiobus.h"
+#include "hal/systimer.h"
 #include "rascsi_version.h"
+#include <cstring>
+#include <iostream>
+#include <array>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
 //	Constant Declaration
 //
 //---------------------------------------------------------------------------
-#define BUFSIZE 1024 * 64			// Buffer size of about 64KB
+static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
 
 //---------------------------------------------------------------------------
 //
@@ -48,7 +56,7 @@ void Cleanup();
 //	Signal processing
 //
 //---------------------------------------------------------------------------
-void KillHandler(int sig)
+void KillHandler(int)
 {
 	// Stop running
 	Cleanup();
@@ -64,7 +72,7 @@ bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
 	printf("version %s (%s, %s)\n",
-		rascsi_get_version_string(),
+		rascsi_get_version_string().c_str(),
 		__DATE__,
 		__TIME__);
 
@@ -99,7 +107,7 @@ bool Init()
 	}
 
 	// GPIO Initialization
-	if (!bus.Init(BUS::INITIATOR)) {
+	if (!bus.Init(BUS::mode_e::INITIATOR)) {
 		return false;
 	}
 
@@ -141,10 +149,7 @@ void Reset()
 bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
-	char *file;
-
-	// Initialization
-	file = NULL;
+	const char *file = nullptr;
 
 	// Argument Parsing
 	opterr = 0;
@@ -164,6 +169,9 @@ bool ParseArgument(int argc, char* argv[])
 
 			case 'r':
 				restore = true;
+				break;
+
+			default:
 				break;
 		}
 	}
@@ -208,12 +216,10 @@ bool ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 bool WaitPhase(BUS::phase_t phase)
 {
-	DWORD now;
-
 	// Timeout (3000ms)
-	now = SysTimer::GetTimerLow();
+	const uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-		bus.Aquire();
+		bus.Acquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
 			return true;
 		}
@@ -240,28 +246,26 @@ void BusFree()
 //---------------------------------------------------------------------------
 bool Selection(int id)
 {
-	BYTE data;
-	int count;
-
 	// ID setting and SEL assert
-	data = 0;
-	data |= (1 << boardid);
+	BYTE data = 1 << boardid;
 	data |= (1 << id);
 	bus.SetDAT(data);
-	bus.SetSEL(TRUE);
+	bus.SetSEL(true);
 
 	// wait for busy
-	count = 10000;
+	int count = 10000;
 	do {
-		usleep(20);
-		bus.Aquire();
+		// Wait 20 microseconds
+		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
+		nanosleep(&ts, nullptr);
+		bus.Acquire();
 		if (bus.GetBSY()) {
 			break;
 		}
 	} while (count--);
 
 	// SEL negate
-	bus.SetSEL(FALSE);
+	bus.SetSEL(false);
 
 	// Success if the target is busy
 	return bus.GetBSY();
@@ -274,17 +278,15 @@ bool Selection(int id)
 //---------------------------------------------------------------------------
 bool Command(BYTE *buf, int length)
 {
-	int count;
-
 	// Waiting for Phase
-	if (!WaitPhase(BUS::command)) {
+	if (!WaitPhase(BUS::phase_t::command)) {
 		return false;
 	}
 
 	// Send Command
-	count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
+	const int count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
-	// Success if the transmission result is the same as the number 
+	// Success if the transmission result is the same as the number
 	// of requests
 	if (count == length) {
 		return true;
@@ -302,7 +304,7 @@ bool Command(BYTE *buf, int length)
 int DataIn(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::datain)) {
+	if (!WaitPhase(BUS::phase_t::datain)) {
 		return -1;
 	}
 
@@ -318,7 +320,7 @@ int DataIn(BYTE *buf, int length)
 int DataOut(BYTE *buf, int length)
 {
 	// Wait for phase
-	if (!WaitPhase(BUS::dataout)) {
+	if (!WaitPhase(BUS::phase_t::dataout)) {
 		return -1;
 	}
 
@@ -336,7 +338,7 @@ int Status()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::status)) {
+	if (!WaitPhase(BUS::phase_t::status)) {
 		return -2;
 	}
 
@@ -359,7 +361,7 @@ int MessageIn()
 	BYTE buf[256];
 
 	// Wait for phase
-	if (!WaitPhase(BUS::msgin)) {
+	if (!WaitPhase(BUS::phase_t::msgin)) {
 		return -2;
 	}
 
@@ -379,7 +381,7 @@ int MessageIn()
 //---------------------------------------------------------------------------
 int TestUnitReady(int id)
 {
-	BYTE cmd[256];
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -391,9 +393,8 @@ int TestUnitReady(int id)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x00;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -424,12 +425,11 @@ exit:
 //---------------------------------------------------------------------------
 int RequestSense(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -438,10 +438,9 @@ int RequestSense(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x03;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -485,12 +484,11 @@ exit:
 //---------------------------------------------------------------------------
 int ModeSense(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -499,11 +497,10 @@ int ModeSense(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x1a;
 	cmd[2] = 0x3f;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -547,12 +544,11 @@ exit:
 //---------------------------------------------------------------------------
 int Inquiry(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -561,10 +557,9 @@ int Inquiry(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 6);
 	cmd[0] = 0x12;
 	cmd[4] = 0xff;
-	if (!Command(cmd, 6)) {
+	if (!Command(cmd.data(), 6)) {
 		result = -2;
 		goto exit;
 	}
@@ -608,12 +603,11 @@ exit:
 //---------------------------------------------------------------------------
 int ReadCapacity(int id, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -622,9 +616,8 @@ int ReadCapacity(int id, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x25;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -666,14 +659,13 @@ exit:
 //	READ10
 //
 //---------------------------------------------------------------------------
-int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -682,7 +674,6 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x28;
 	cmd[2] = (BYTE)(bstart >> 24);
 	cmd[3] = (BYTE)(bstart >> 16);
@@ -690,7 +681,7 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	cmd[5] = (BYTE)bstart;
 	cmd[7] = (BYTE)(blength >> 8);
 	cmd[8] = (BYTE)blength;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -731,14 +722,13 @@ exit:
 //	WRITE10
 //
 //---------------------------------------------------------------------------
-int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
+int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
 {
-	BYTE cmd[256];
-	int count;
+	array<BYTE, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
-	count = 0;
+	int count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -747,7 +737,6 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 	// COMMAND
-	memset(cmd, 0x00, 10);
 	cmd[0] = 0x2a;
 	cmd[2] = (BYTE)(bstart >> 24);
 	cmd[3] = (BYTE)(bstart >> 16);
@@ -755,7 +744,7 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	cmd[5] = (BYTE)bstart;
 	cmd[7] = (BYTE)(blength >> 8);
 	cmd[8] = (BYTE)blength;
-	if (!Command(cmd, 10)) {
+	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
 	}
@@ -799,13 +788,12 @@ exit:
 int main(int argc, char* argv[])
 {
 	int i;
-	int count;
 	char str[32];
-	DWORD bsiz;
-	DWORD bnum;
-	DWORD duni;
-	DWORD dsiz;
-	DWORD dnum;
+	uint32_t bsiz;
+	uint32_t bnum;
+	uint32_t duni;
+	uint32_t dsiz;
+	uint32_t dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
 	off_t size;
@@ -832,14 +820,19 @@ int main(int argc, char* argv[])
 		exit(EINVAL);
 	}
 
+#ifndef USE_SEL_EVENT_ENABLE
+	cerr << "Error: No RaSCSI hardware support" << endl;
+	exit(EXIT_FAILURE);
+#endif
+
 	// Reset the SCSI bus
 	Reset();
 
 	// File Open
 	if (restore) {
-		omode = Fileio::ReadOnly;
+		omode = Fileio::OpenMode::ReadOnly;
 	} else {
-		omode = Fileio::WriteOnly;
+		omode = Fileio::OpenMode::WriteOnly;
 	}
 	if (!fio.Open(hdsfile.GetPath(), omode)) {
 		fprintf(stderr, "Error : Can't open hds file\n");
@@ -853,16 +846,18 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// Assert reset signal
-	bus.SetRST(TRUE);
-	usleep(1000);
-	bus.SetRST(FALSE);
+	bus.SetRST(true);
+	// Wait 1 ms
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
+	nanosleep(&ts, nullptr);
+	bus.SetRST(false);
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);
 	printf("BOARD ID                : %d\n", boardid);
 
 	// TEST UNIT READY
-	count = TestUnitReady(targetid);
+	int count = TestUnitReady(targetid);
 	if (count < 0) {
 		fprintf(stderr, "TEST UNIT READY ERROR %d\n", count);
 		goto cleanup_exit;
@@ -952,16 +947,12 @@ int main(int argc, char* argv[])
 		fflush(stdout);
 
 		if (restore) {
-			if (fio.Read(buffer, dsiz)) {
-				if (Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-					continue;
-				}
+			if (fio.Read(buffer, dsiz) && Write10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
+				continue;
 			}
 		} else {
-			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0) {
-				if (fio.Write(buffer, dsiz)) {
-					continue;
-				}
+			if (Read10(targetid, i * duni, duni, dsiz, buffer) >= 0 && fio.Write(buffer, dsiz)) {
+				continue;
 			}
 		}
 

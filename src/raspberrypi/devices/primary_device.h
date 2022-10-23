@@ -11,44 +11,55 @@
 
 #pragma once
 
-#include "controllers/scsidev_ctrl.h"
 #include "interfaces/scsi_primary_commands.h"
+#include "controllers/abstract_controller.h"
 #include "device.h"
 #include "dispatcher.h"
 #include <string>
 
-using namespace std;
-
-class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
+class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
 public:
 
-	PrimaryDevice(const string&);
-	virtual ~PrimaryDevice() {}
+	PrimaryDevice(const string&, int);
+	~PrimaryDevice() override = default;
 
-	virtual bool Dispatch(SCSIDEV *);
+	virtual bool Dispatch(scsi_command);
 
-	void TestUnitReady(SASIDEV *);
-	void RequestSense(SASIDEV *);
-	virtual void Inquiry(SASIDEV *);
+	int GetId() const override;
 
-	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
-
-	bool CheckReady();
-	virtual vector<BYTE> Inquiry() const = 0;
-	virtual vector<BYTE> RequestSense(int);
-	virtual bool WriteBytes(BYTE *, uint32_t);
+	void SetController(AbstractController *);
+	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
 	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
+
+	// Override for device specific initializations, to be called after all device properties have been set
+	virtual bool Init(const unordered_map<string, string>&) { return true; };
+
+	virtual void FlushCache() {
+		// Devices with a cache have to implement this method
+	}
 
 protected:
 
-	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
+	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
+	virtual vector<byte> InquiryInternal() const = 0;
+	void CheckReady();
 
-	SASIDEV::ctrl_t *ctrl;
+	void EnterStatusPhase() { controller->Status(); }
+	void EnterDataInPhase() { controller->DataIn(); }
+	void EnterDataOutPhase() { controller->DataOut(); }
+
+	AbstractController *controller = nullptr;
+	AbstractController::ctrl_t *ctrl = nullptr;
 
 private:
 
-	Dispatcher<PrimaryDevice, SASIDEV> dispatcher;
+	void TestUnitReady() override;
+	void RequestSense() override;
+	void ReportLuns() override;
+	void Inquiry() override;
 
-	void ReportLuns(SASIDEV *);
+	vector<byte> HandleRequestSense() const;
+
+	Dispatcher<PrimaryDevice> dispatcher;
 };

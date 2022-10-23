@@ -35,7 +35,7 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-z\fR \fILOCALE\fR]
 .SH DESCRIPTION
 .B rasctl
-Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
+sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
 
 Either the -i or -l option should be specified at one time. Not both. 
 
@@ -136,7 +136,7 @@ Command is the operation being requested. Options are:
 eject, protect and unprotect are idempotent.
 .TP 
 .BR \-b\fI " " \fIBLOCK_SIZE
-The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default size is 512 bytes. For SASI drives 256 or 1024 bytes, default is 256 bytes.
+The optional block size, either 512, 1024, 2048 or 4096 bytes. The default size is 512 bytes.
 .TP
 .BR \-f\fI " " \fIFILE|PARAM
 Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the rascsi(1) man page for permitted file types.
@@ -174,6 +174,6 @@ Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the cont
    rasctl -i 0 -f HDIIMAGE0.HDS
 
 .SH SEE ALSO
-rascsi(1), scsimon(1), rasdump(1), sasidump(1)
+rascsi(1), scsimon(1), rasdump(1)
 
 Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

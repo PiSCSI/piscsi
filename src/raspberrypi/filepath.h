@@ -12,14 +12,13 @@
 
 #include "os.h"
 
-class Fileio;
+using TCHAR = char;
 
-//---------------------------------------------------------------------------
-//
-//	Constant definition
-//
-//---------------------------------------------------------------------------
-#define FILEPATH_MAX		_MAX_PATH
+static const int _MAX_EXT = 256;
+static const int _MAX_DIR = 256;
+static const int _MAX_PATH = 260;
+static const int _MAX_FNAME = 256;
+static const int FILEPATH_MAX = _MAX_PATH;
 
 //===========================================================================
 //
@@ -30,23 +29,23 @@ class Fileio;
 class Filepath
 {
 public:
-	Filepath();
-	virtual ~Filepath();
-	Filepath& operator=(const Filepath& path);
 
-	void Clear();
-	void SetPath(const char *path);		// File settings (user) for MBCS
+	Filepath() = default;
+	~Filepath() = default;
+	Filepath(Filepath&) = default;
+	Filepath& operator=(const Filepath&);
+
+	void SetPath(const char *);		// File settings (user) for MBCS
 	const char *GetPath() const	{ return m_szPath; }	// Get path name
 	const char *GetFileExt() const;		// Get short name (LPCTSTR)
-	BOOL Save(Fileio *fio, int ver);
-	BOOL Load(Fileio *fio, int ver);
 
 private:
+
 	void Split();						// Split the path
-	TCHAR m_szPath[_MAX_PATH];			// File path
-	TCHAR m_szDir[_MAX_DIR];			// Directory
-	TCHAR m_szFile[_MAX_FNAME];			// File
-	TCHAR m_szExt[_MAX_EXT];			// Extension
+	TCHAR m_szPath[_MAX_PATH] = {};		// File path
+	TCHAR m_szDir[_MAX_DIR] = {};		// Directory
+	TCHAR m_szFile[_MAX_FNAME] = {};	// File
+	TCHAR m_szExt[_MAX_EXT] = {};		// Extension
 
 	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];	// Short name (TCHAR)
 };

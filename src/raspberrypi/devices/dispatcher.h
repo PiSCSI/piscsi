@@ -12,51 +12,39 @@
 #pragma once
 
 #include "log.h"
-#include "scsi.h"
 #include <unordered_map>
-
-class SASIDEV;
-class SCSIDEV;
 
 using namespace std;
 using namespace scsi_defs;
 
-template<class T, class U>
+template<class T>
 class Dispatcher
 {
 public:
 
-	Dispatcher() {}
-	~Dispatcher()
+	Dispatcher() = default;
+	~Dispatcher() = default;
+
+	using operation = void (T::*)();
+	using command_t = struct _command_t {
+		const char *name;
+		operation execute;
+
+		_command_t(const char *_name, operation _execute) : name(_name), execute(_execute) { };
+	};
+	unordered_map<scsi_command, unique_ptr<command_t>> commands;
+
+	void Add(scsi_command opcode, const char *name, operation execute)
 	{
-		for (auto const& command : commands) {
-			delete command.second;
-		}
+		commands[opcode] = make_unique<command_t>(name, execute);
 	}
 
-	typedef struct _command_t {
-		const char* name;
-		void (T::*execute)(U *);
-
-		_command_t(const char* _name, void (T::*_execute)(U *)) : name(_name), execute(_execute) { };
-	} command_t;
-	unordered_map<scsi_command, command_t*> commands;
-
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(U *))
+	bool Dispatch(T *instance, scsi_command cmd)
 	{
-		commands[opcode] = new command_t(name, execute);
-	}
+		if (const auto& it = commands.find(cmd); it != commands.end()) {
+			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (int)cmd)
 
-	bool Dispatch(T *instance, U *controller)
-	{
-		SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
-		instance->SetCtrl(ctrl);
-
-		const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-		if (it != commands.end()) {
-			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-			(instance->*it->second->execute)(controller);
+			(instance->*it->second->execute)();
 
 			return true;
 		}

@@ -7,118 +7,65 @@
 //	Copyright (C) 2014-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License. 
+//	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM  ]
-//
 //---------------------------------------------------------------------------
+
 #pragma once
 
-#include "os.h"
-#include "disk.h"
 #include "filepath.h"
+#include "cd_track.h"
+#include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
-#include "interfaces/scsi_primary_commands.h"
 
-class SCSICD;
-
-//===========================================================================
-//
-//	CD-ROM Track
-//
-//===========================================================================
-class CDTrack
+class SCSICD : public Disk, private ScsiMmcCommands
 {
-private:
-
-	friend class SCSICD;
-
-	CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack() {}
-
 public:
 
-	void Init(int track, DWORD first, DWORD last);
+	SCSICD(int, const unordered_set<uint32_t>&);
+	~SCSICD() override = default;
 
-	// Properties
-	void SetPath(bool cdda, const Filepath& path);			// Set the path
-	void GetPath(Filepath& path) const;				// Get the path
-	void AddIndex(int index, DWORD lba);				// Add index
-	DWORD GetFirst() const;					// Get the start LBA
-	DWORD GetLast() const;						// Get the last LBA
-	DWORD GetBlocks() const;					// Get the number of blocks
-	int GetTrackNo() const;					// Get the track number
-	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
-	bool IsAudio() const;						// Is this an audio track?
-
-private:
-	SCSICD *cdrom;								// Parent device
-	bool valid;								// Valid track
-	int track_no;								// Track number
-	DWORD first_lba;							// First LBA
-	DWORD last_lba;								// Last LBA
-	bool audio;								// Audio track flag
-	bool raw;								// RAW data flag
-	Filepath imgpath;							// Image file path
-};
-
-//===========================================================================
-//
-//	SCSI CD-ROM
-//
-//===========================================================================
-class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
-{
-
-public:
-	enum {
-		TrackMax = 96							// Maximum number of tracks
-	};
-
-	SCSICD(const unordered_set<uint32_t>&);
-	~SCSICD();
-
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch(scsi_command) override;
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry() const override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	int ReadToc(const DWORD *cdb, BYTE *buf);
+	vector<byte> InquiryInternal() const override;
+	int Read(const vector<int>&, vector<BYTE>&, uint64_t) override;
 
 protected:
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
-	typedef Disk super;
 
-	Dispatcher<SCSICD, SASIDEV> dispatcher;
+	using super = Disk;
 
-	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
-	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
+	Dispatcher<SCSICD> dispatcher;
+
+	int ReadTocInternal(const vector<int>&, vector<BYTE>&);
+
+	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
+	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
 
 	// Open
-	void OpenCue(const Filepath& path);				// Open(CUE)
-	void OpenIso(const Filepath& path);				// Open(ISO)
-	void OpenPhysical(const Filepath& path);			// Open(Physical)
+	void OpenCue(const Filepath& path) const;
+	void OpenIso(const Filepath& path);
+	void OpenPhysical(const Filepath& path);
 
-	void ReadToc(SASIDEV *) override;
-	void GetEventStatusNotification(SASIDEV *) override;
+	void ReadToc() override;
+	void GetEventStatusNotification() override;
 
-	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion
 
-	bool rawfile;								// RAW flag
+	bool rawfile = false;					// RAW flag
 
 	// Track management
 	void ClearTrack();						// Clear the track
-	int SearchTrack(DWORD lba) const;				// Track search
-	CDTrack* track[TrackMax];						// Track opbject references
-	int tracks;								// Effective number of track objects
-	int dataindex;								// Current data track
-	int audioindex;								// Current audio track
-
-	int frame;								// Frame number
+	int SearchTrack(uint32_t lba) const;	// Track search
+	vector<unique_ptr<CDTrack>> tracks;		// Track opbject references
+	int dataindex = -1;						// Current data track
+	int audioindex = -1;					// Current audio track
 };

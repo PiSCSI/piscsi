@@ -9,37 +9,30 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
-#include <cstdio>
+#include <sstream>
+#include <iomanip>
 
 // The following should be updated for each release
 const int rascsi_major_version = 22; // Last two digits of year
-const int rascsi_minor_version = 8; // Month
+const int rascsi_minor_version = 10; // Month
 const int rascsi_patch_version = 1;  // Patch number - increment for each update
 
-static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + null character + "development build"
+using namespace std;
 
-//---------------------------------------------------------------------------
-//
-//	Get the RaSCSI version string
-//
-//---------------------------------------------------------------------------
-const char* rascsi_get_version_string()
+string rascsi_get_version_string()
 {
-    if(rascsi_patch_version < 0)
-    {
-        snprintf(rascsi_version_string, sizeof(rascsi_version_string),
-           "%02d.%02d --DEVELOPMENT BUILD--",
-            rascsi_major_version,
-            rascsi_minor_version);
+	stringstream s;
+
+	s << setw(2) << setfill('0') << rascsi_major_version << '.' << rascsi_minor_version;
+
+	if (rascsi_patch_version < 0) {
+		s << " --DEVELOPMENT BUILD--";
     }
-    else
-    {
-        snprintf(rascsi_version_string, sizeof(rascsi_version_string), "%02d.%02d.%d",
-            rascsi_major_version,
-            rascsi_minor_version, 
-            rascsi_patch_version);
+    else {
+		s << '.' << rascsi_patch_version;
     }
-    return rascsi_version_string;
+
+	return s.str();
 }
 
 

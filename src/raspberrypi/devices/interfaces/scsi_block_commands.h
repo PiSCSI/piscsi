@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // Interface for SCSI block commands (see https://www.t10.org/drafts.htm, SBC-5)
 //
@@ -11,23 +11,20 @@
 
 #pragma once
 
-#include "scsi_primary_commands.h"
-
-class SASIDEV;
-
-class ScsiBlockCommands : virtual public ScsiPrimaryCommands
+class ScsiBlockCommands
 {
+
 public:
 
-	ScsiBlockCommands() {}
-	virtual ~ScsiBlockCommands() {}
+	ScsiBlockCommands() = default;
+	virtual ~ScsiBlockCommands() = default;
 
 	// Mandatory commands
-	virtual void FormatUnit(SASIDEV *) = 0;
-	virtual void ReadCapacity10(SASIDEV *) = 0;
-	virtual void ReadCapacity16(SASIDEV *) = 0;
-	virtual void Read10(SASIDEV *) = 0;
-	virtual void Read16(SASIDEV *) = 0;
-	virtual void Write10(SASIDEV *) = 0;
-	virtual void Write16(SASIDEV *) = 0;
+	virtual void FormatUnit() = 0;
+	virtual void ReadCapacity10() = 0;
+	virtual void ReadCapacity16() = 0;
+	virtual void Read10() = 0;
+	virtual void Read16() = 0;
+	virtual void Write10() = 0;
+	virtual void Write16() = 0;
 };

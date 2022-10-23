@@ -8,7 +8,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include "os.h"
@@ -98,13 +97,13 @@ for (i = 0; i < coll.length; i++) {
 )";
 
 
-static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, DWORD capture_count)
+static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, uint32_t capture_count)
 {
     const data_capture *data;
     bool prev_data_valid = false;
     bool curr_data_valid;
-    DWORD selected_id = 0;
-    BUS::phase_t prev_phase = BUS::busfree;
+    uint32_t selected_id = 0;
+    BUS::phase_t prev_phase = BUS::phase_t::busfree;
     bool close_row = false;
     int data_space_count = 0;
     bool collapsible_div_active = false;
@@ -112,34 +111,26 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
 
     html_fp << "<table>" << endl;
 
-    for (DWORD idx = 0; idx < capture_count; idx++)
-    {
+    for (uint32_t idx = 0; idx < capture_count; idx++) {
         data = &data_capture_array[idx];
         curr_data_valid = GetAck(data) && GetReq(data);
         BUS::phase_t phase = GetPhase(data);
-        if (phase == BUS::selection && !GetBsy(data))
-        {
+        if (phase == BUS::phase_t::selection && !GetBsy(data)) {
             selected_id = GetData(data);
         }
-        if (prev_phase != phase)
-        {
-            if (close_row)
-            {
-                if (collapsible_div_active)
-                {
+        if (prev_phase != phase) {
+            if (close_row) {
+                if (collapsible_div_active) {
                     html_fp << "</code></div>";
                 }
-                else if (button_active)
-                {
+                else if (button_active) {
                     html_fp << "</code></button>";
                 }
                 html_fp <<  "</td>";
-                if (data_space_count < 1)
-                {
+                if (data_space_count < 1) {
                     html_fp << "<td>--</td>";
                 }
-                else
-                {
+                else {
                     html_fp << "<td>wc: " << std::dec << "(0x" << std::hex << data_space_count << ")</td>";
                 }
                 html_fp << "</tr>" << endl;
@@ -152,33 +143,27 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
             html_fp << "<td>" << std::hex << selected_id << "</td>";
             html_fp << "<td>";
         }
-        if (curr_data_valid && !prev_data_valid)
-        {
-            if (data_space_count == 0)
-            {
+        if (curr_data_valid && !prev_data_valid) {
+            if (data_space_count == 0) {
                 button_active = true;
                 html_fp << "<button type=\"button\" class=\"collapsible\"><code>";
             }
-            if ((data_space_count % 16) == 0)
-            {
+            if ((data_space_count % 16) == 0) {
                 html_fp << std::hex << data_space_count << ": ";
             }
 
             html_fp << fmt::format("{0:02X}", GetData(data));
 
             data_space_count++;
-            if ((data_space_count % 4) == 0)
-            {
+            if ((data_space_count % 4) == 0) {
                 html_fp <<  " ";
             }
-            if (data_space_count == 16)
-            {
+            if (data_space_count == 16) {
                 html_fp << "</code></button><div class=\"content\"><code>" << endl;
                 collapsible_div_active = true;
                 button_active = false;
             }
-            if (((data_space_count % 16) == 0) && (data_space_count > 17))
-            {
+            if (((data_space_count % 16) == 0) && (data_space_count > 17)) {
                 html_fp << "<br>" << endl;
             }
         }
@@ -187,9 +172,9 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
     }
 }
 
-void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
+void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
 {
-    LOGINFO("Creating HTML report file (%s)", filename);
+    LOGINFO("Creating HTML report file (%s)", filename)
 
     ofstream html_ofstream;
 

@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // Interface for SCSI printer commands (see SCSI-2 specification)
 //
@@ -11,20 +11,17 @@
 
 #pragma once
 
-#include "scsi_primary_commands.h"
-
-class SCSIDEV;
-
-class ScsiPrinterCommands : virtual public ScsiPrimaryCommands
+class ScsiPrinterCommands
 {
+
 public:
 
-	ScsiPrinterCommands() {}
-	virtual ~ScsiPrinterCommands() {}
+	ScsiPrinterCommands() = default;
+	virtual ~ScsiPrinterCommands() = default;
 
 	// Mandatory commands
-	virtual void Print(SCSIDEV *) = 0;
-	virtual void ReleaseUnit(SCSIDEV *) = 0;
-	virtual void ReserveUnit(SCSIDEV *) = 0;
-	virtual void SendDiagnostic(SCSIDEV *) = 0;
+	virtual void Print() = 0;
+	virtual void ReleaseUnit() = 0;
+	virtual void ReserveUnit() = 0;
+	virtual void SendDiagnostic() = 0;
 };

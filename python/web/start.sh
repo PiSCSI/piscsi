@@ -62,8 +62,7 @@ if ! test -e venv; then
     pip3 install wheel
     pip3 install -r requirements.txt
 
-    git rev-parse --is-inside-work-tree &> /dev/null
-    if [[ $? -eq 0 ]]; then
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
       git rev-parse HEAD > current
     fi
 fi
@@ -110,6 +109,9 @@ while [ "$1" != "" ]; do
     -l | --log-level)
         ARG_LOG_LEVEL="--log-level $VALUE"
         ;;
+    -d | --dev-mode)
+        ARG_DEV_MODE="--dev-mode"
+        ;;
     *)
         echo "ERROR: unknown parameter \"$PARAM\""
         exit 1
@@ -122,4 +124,10 @@ PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 echo "Starting web server for RaSCSI Web Interface..."
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
-python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL}
+
+if [[ $ARG_DEV_MODE ]]; then
+    watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+else
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+fi

@@ -3,13 +3,13 @@
 rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .SH SYNOPSIS
 .B rascsi
-[\fB\-F\f® \fIFOLDER\fR]
-[\fB\-L\f® \fILOG_LEVEL\fR]
-[\fB\-P\f® \fIACCESS_TOKEN_FILE\fR]
+[\fB\-F\fR \fIFOLDER\fR]
+[\fB\-L\fR \fILOG_LEVEL\fR]
+[\fB\-P\fR \fIACCESS_TOKEN_FILE\fR]
 [\fB\-R\fR \fISCAN_DEPTH\fR]
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
-[\fB\-p\f® \fIPORT\fR]
+[\fB\-p\fR \fIPORT\fR]
 [\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
@@ -18,22 +18,22 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-HDn[:u]\fR \fIFILE\fR]...
 .SH DESCRIPTION
 .B rascsi
-Emulates SCSI devices using the Raspberry Pi GPIO pins.
+emulates SCSI devices using the Raspberry Pi GPIO pins.
 .PP
-In the arguments to RaSCSI, one or more SCSI (-IDn[:u]) or SASI (-HDn[:u]) devices can be specified.
+In the arguments to RaSCSI, one or more SCSI (-IDn[:u]) devices can be specified.
 The number (n) after the ID or HD identifier specifies the ID number for that device. The optional number (u) specifies the LUN (logical unit) for that device. The default LUN is 0.
-For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for the "initiator" (the host computer). The LUN is limited from 0-31. Note that SASI is considered rare and only used on very early Sharp X68000 computers.
+For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for the "initiator" (the host computer). The LUN is limited from 0-31.
 .PP
 RaSCSI will determine the type of device based upon the file extension of the FILE argument.
-    hdf: SASI Hard Disk image (XM6 SASI HD image - typically only used with X68000)
+    hd1: SCSI Hard Disk image (generic, non-removable, SCSI-1)
     hds: SCSI Hard Disk image (generic, non-removable)
     hdr: SCSI Hard Disk image (generic, removable)
-    hdn: SCSI Hard Disk image (NEC GENUINE)
-    hdi: SCSI Hard Disk image (Anex86 HD image)
-    nhd: SCSI Hard Disk image (T98Next HD image)
-    hda: SCSI Hard Disk image (APPLE GENUINE - typically used with Mac SCSI emulation)
-    mos: SCSI Magneto-optical image (XM6 SCSI MO image - typically only used with X68000)
-    iso: SCSI CD-ROM image (ISO 9660 image)
+    hdn: SCSI Hard Disk image (NEC compatible - only used with PC-98 computers)
+    hdi: SCSI Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
+    nhd: SCSI Hard Disk image (T98Next proprietary - only used with PC-98 computers)
+    hda: SCSI Hard Disk image (Apple compatible - typically used with Macintosh computers)
+    mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
+    iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
   
 For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
     sudo rascsi -ID0 /path/to/drive/hdimage.hda
@@ -47,7 +47,7 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 .SH OPTIONS
 .TP
 .BR \-b\fI " " \fIBLOCK_SIZE
-The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default size is 512 bytes. For SASI drives 256 or 1024 bytes, default is 256 bytes.
+The optional block size, either 512, 1024, 2048 or 4096 bytes. Default size is 512 bytes.
 .TP
 .BR \-F\fI " " \fIFOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
@@ -85,13 +85,9 @@ Overrides the default locale for client-faces error messages. The client can ove
 n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
 .IP
 FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCBR and SCDP it is an optioinal prioritized list of network interfaces, an optional IP address and netmask, e.g. "interfaces=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
-.TP 
-.BR \-HD\fIn[:u] " " \fIFILE
-n is the SASI ID number (0-15). The effective SASI ID is calculated as n/2, the effective SASI LUN is calculated is the remainder of n/2. Alternatively the n:u syntax can be used, where ns is the SASI ID (0-7) and u the LUN (0-1).
 .IP
-FILE is the name of the image file to use for the SASI device.
+FILE is the name of the image file to use for the SCSI device.
 .IP
-Note: SASI usage is rare, and is typically limited to early Unix workstations and Sharp X68000 systems.
 
 .SH EXAMPLES
 Launch RaSCSI with no emulated drives attached:
@@ -103,13 +99,13 @@ Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
 Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
    rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
 
-To create an empty, 100MB HD image, use the following command:
+To create an empty, 100MiB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
 
 In case the fallocate command is available a much faster alternative to the dd command is:
    fallocate -l 104857600 /path/to/newimage.hda
 
 .SH SEE ALSO
-rasctl(1), scsimon(1), rasdump(1), sasidump(1)
+rasctl(1), scsimon(1), rasdump(1)
  
 Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

@@ -7,65 +7,53 @@
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) akuker
 //
-//	[ TAP Driver ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
 #include <pcap/pcap.h>
+#include <net/ethernet.h>
 #include "filepath.h"
 #include <unordered_map>
-#include <vector>
+#include <list>
 #include <string>
-
-#ifndef ETH_FRAME_LEN
-#define ETH_FRAME_LEN 1514
-#endif
+#include <array>
 
 using namespace std;
 
-//===========================================================================
-//
-//	Linux Tap Driver
-//
-//===========================================================================
 class CTapDriver
 {
-private:
-
-	friend class SCSIDaynaPort;
-	friend class SCSIBR;
-
-	CTapDriver();
-	~CTapDriver() {}
-
-	bool Init(const unordered_map<string, string>&);
+	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
 
 public:
 
-	void OpenDump(const Filepath& path);
-										// Capture packets
-	void Cleanup();						// Cleanup
-	void GetMacAddr(BYTE *mac);					// Get Mac Address
-	int Rx(BYTE *buf);						// Receive
-	int Tx(const BYTE *buf, int len);					// Send
-	bool PendingPackets();						// Check if there are IP packets available
-	bool Enable();						// Enable the ras0 interface
-	bool Disable();				// Disable the ras0 interface
+	CTapDriver() = default;
+	~CTapDriver();
+	CTapDriver(CTapDriver&) = default;
+	CTapDriver& operator=(const CTapDriver&) = default;
+
+	bool Init(const unordered_map<string, string>&);
+	void OpenDump(const Filepath& path);	// Capture packets
+	void GetMacAddr(BYTE *mac) const;
+	int Receive(BYTE *buf);
+	int Send(const BYTE *buf, int len);
+	bool PendingPackets() const;		// Check if there are IP packets available
+	bool Enable() const;		// Enable the ras0 interface
+	bool Disable() const;		// Disable the ras0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
+	static uint32_t Crc32(const BYTE *, int);
+
 private:
-	BYTE m_MacAddr[6];							// MAC Address
-	int m_hTAP;								// File handle
+	array<byte, 6> m_MacAddr;	// MAC Address
 
-	BYTE m_garbage_buffer[ETH_FRAME_LEN];
+	int m_hTAP = -1;			// File handle
 
-	pcap_t *m_pcap;
-	pcap_dumper_t *m_pcap_dumper;
+	pcap_t *m_pcap = nullptr;
+	pcap_dumper_t *m_pcap_dumper = nullptr;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
-	vector<string> interfaces;
+	list<string> interfaces;
 
 	string inet;
 };

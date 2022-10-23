@@ -7,14 +7,10 @@
 *.vcd
 *.json
 *.html
-rascsi
-scsimon
-rasctl
-sasidump
-rasdump
-scisparse
+rascsi.dat
 obj
 bin
+coverage
 /rascsi_interface.pb.cpp
 /rascsi_interface.pb.h
 .project

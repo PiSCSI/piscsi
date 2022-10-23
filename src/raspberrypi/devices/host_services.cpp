@@ -12,20 +12,7 @@
 //
 // Features of the host services device:
 //
-// 1. Vendor-specific mode page 0x20 returns the current date and time (realtime clock)
-//
-//  typedef struct {
-//    // Major and minor version of this data structure
-//    uint8_t major_version;
-//    uint8_t minor_version;
-//    // Current date and time, with daylight savings time adjustment applied
-//    uint8_t year; // year - 1900
-//    uint8_t month; // 0-11
-//    uint8_t day; // 1-31
-//    uint8_t hour; // 0-23
-//    uint8_t minute; // 0-59
-//    uint8_t second; // 0-59
-//  } mode_page_datetime;
+// 1. Vendor-specific mode page 0x20 returns the current date and time, see mode_page_datetime
 //
 // 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
 //   a) !start && !load (STOP): Shut down RaSCSI
@@ -33,159 +20,155 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "controllers/scsidev_ctrl.h"
-#include "disk.h"
+#include "controllers/controller_manager.h"
+#include "controllers/scsi_controller.h"
+#include "rascsi_exceptions.h"
+#include "scsi_command_util.h"
+#include "dispatcher.h"
 #include "host_services.h"
+#include <algorithm>
 
 using namespace scsi_defs;
+using namespace scsi_command_util;
 
-HostServices::HostServices() : ModePageDevice("SCHS")
+HostServices::HostServices(int lun, const ControllerManager& manager)
+	: ModePageDevice("SCHS", lun), controller_manager(manager)
 {
-	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
-	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
+	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+
+	SetReady(true);
+	SetReset(false);
 }
 
-bool HostServices::Dispatch(SCSIDEV *controller)
+bool HostServices::Dispatch(scsi_command cmd)
 {
 	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
+	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-void HostServices::TestUnitReady(SCSIDEV *controller)
+void HostServices::TestUnitReady()
 {
 	// Always successful
-	controller->Status();
+	EnterStatusPhase();
 }
 
-vector<BYTE> HostServices::Inquiry() const
+vector<byte> HostServices::InquiryInternal() const
 {
-	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit(SCSIDEV *controller)
+void HostServices::StartStopUnit()
 {
-	bool start = ctrl->cmd[4] & 0x01;
-	bool load = ctrl->cmd[4] & 0x02;
+	const bool start = ctrl->cmd[4] & 0x01;
+	const bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
 		// Flush any caches
-		for (Device *device : devices) {
-			Disk *disk = dynamic_cast<Disk *>(device);
-			if (disk) {
-				disk->FlushCache();
-			}
+		for (const auto& device : controller_manager.GetAllDevices()) {
+			device->FlushCache();
 		}
 
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
+			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
-
-		controller->Status();
-		return;
+	}
+	else if (load) {
+		controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
-
-			controller->Status();
-			return;
-		}
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
+int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	int length = (int)cdb[4];
-	memset(buf, 0, length);
+	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	fill_n(buf.begin(), length, 0);
 
-	// Basic information
+	// Basic Information
 	int size = 4;
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	size += super::AddModePages(cdb, buf, size, length - size);
+	if (size > 255) {
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
 		size = length;
 	}
 
-	buf[0] = size;
+	buf[0] = (BYTE)size;
 
 	return size;
 }
 
-int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
+int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	int length = (cdb[7] << 8) | cdb[8];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
+	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	fill_n(buf.begin(), length, 0);
 
-	// Basic information
+	// Basic Information
 	int size = 8;
 
-	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!pages_size) {
-		return 0;
+	size += super::AddModePages(cdb, buf, size, length - size);
+	if (size > 65535) {
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
 		size = length;
 	}
 
-	buf[0] = size >> 8;
-	buf[1] = size;
+	SetInt16(buf, 0, size);
 
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages, changeable);
 	}
 }
 
-void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
+void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
 	if (!changeable) {
-		vector<BYTE> buf(10);
+		time_t t = time(nullptr);
+		tm localtime;
+		localtime_r(&t, &localtime);
 
-		// Data structure version 1.0
-		buf[2] = 0x01;
-		buf[3] = 0x00;
-
-		std::time_t t = std::time(NULL);
-		std::tm tm = *std::localtime(&t);
-		buf[4] = tm.tm_year;
-		buf[5] = tm.tm_mon;
-		buf[6] = tm.tm_mday;
-		buf[7] = tm.tm_hour;
-		buf[8] = tm.tm_min;
+		mode_page_datetime datetime;
+		datetime.major_version = 0x01;
+		datetime.minor_version = 0x00;
+		datetime.year = (uint8_t)localtime.tm_year;
+		datetime.month = (uint8_t)localtime.tm_mon;
+		datetime.day = (uint8_t)localtime.tm_mday;
+		datetime.hour = (uint8_t)localtime.tm_hour;
+		datetime.minute = (uint8_t)localtime.tm_min;
 		// Ignore leap second for simplicity
-		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
+		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
+		vector<byte> buf(10);
+		memcpy(&buf[2], &datetime, sizeof(datetime));
 		pages[32] = buf;
 	}
 }

@@ -5,68 +5,190 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Unit tests based on GoogleTest and GoogleMock
-//
 //---------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#include "mocks.h"
+#include "rascsi_exceptions.h"
+#include "devices/device.h"
 
-#include "gpiobus.h"
-#include "../devices/scsihd.h"
-#include "../devices/device_factory.h"
-
-using namespace rascsi_interface;
-
-namespace DeviceTest
+TEST(DeviceTest, Properties)
 {
+	const int LUN = 5;
 
-class MockController : public SCSIDEV
-{
-	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
-	MOCK_METHOD(int, GetEffectiveLun, (), ());
-	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
-	MOCK_METHOD(int, GetInitiatorId, (), ());
-	MOCK_METHOD(void, SetUnit, (int), ());
-	MOCK_METHOD(void, Connect, (int, BUS *), ());
-	MOCK_METHOD(void, Status, (), ());
-	MOCK_METHOD(void, DataIn, (), ());
-	MOCK_METHOD(void, DataOut, (), ());
-	MOCK_METHOD(void, BusFree, (), ());
-	MOCK_METHOD(void, Selection, (), ());
-	MOCK_METHOD(void, Command, (), ());
-	MOCK_METHOD(void, MsgIn, (), ());
-	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, Send, (), (override));
-	MOCK_METHOD(bool, XferMsg, (int), ());
-	MOCK_METHOD(bool, XferIn, (BYTE *), ());
-	MOCK_METHOD(bool, XferOut, (bool), (override));
-	MOCK_METHOD(void, ReceiveBytes, (), ());
-	MOCK_METHOD(void, Execute, (), (override));
-	MOCK_METHOD(void, FlushUnit, (), ());
-	MOCK_METHOD(void, Receive, (), (override));
-	MOCK_METHOD(bool, HasUnit, (), (const override));
+	MockDevice device(LUN);
 
-	FRIEND_TEST(DeviceTest, TestUnitReady);
+	EXPECT_FALSE(device.IsProtectable());
+	device.SetProtectable(true);
+	EXPECT_TRUE(device.IsProtectable());
 
-	MockController() { }
-	~MockController() { }
-};
+	EXPECT_FALSE(device.IsProtected());
+	device.SetProtected(true);
+	EXPECT_TRUE(device.IsProtected());
 
-DeviceFactory& device_factory = DeviceFactory::instance();
+	EXPECT_FALSE(device.IsReadOnly());
+	device.SetReadOnly(true);
+	EXPECT_TRUE(device.IsReadOnly());
 
-TEST(DeviceTest, TestUnitReady)
-{
-	MockController controller;
-	Device *device = device_factory.CreateDevice(SCHD, "test");
+	EXPECT_FALSE(device.IsStoppable());
+	device.SetStoppable(true);
+	EXPECT_TRUE(device.IsStoppable());
 
-	controller.ctrl.cmd[0] = eCmdTestUnitReady;
+	EXPECT_FALSE(device.IsStopped());
+	device.SetStopped(true);
+	EXPECT_TRUE(device.IsStopped());
 
-	device->SetReady(false);
-	EXPECT_CALL(controller, Error);
-	EXPECT_TRUE(device->Dispatch(&controller));
+	EXPECT_FALSE(device.IsRemovable());
+	device.SetRemovable(true);
+	EXPECT_TRUE(device.IsRemovable());
 
-	// TODO Add tests for a device that is ready after the SASI code removal
+	EXPECT_FALSE(device.IsRemoved());
+	device.SetRemoved(true);
+	EXPECT_TRUE(device.IsRemoved());
+
+	EXPECT_FALSE(device.IsLockable());
+	device.SetLockable(true);
+	EXPECT_TRUE(device.IsLockable());
+
+	EXPECT_FALSE(device.IsLocked());
+	device.SetLocked(true);
+	EXPECT_TRUE(device.IsLocked());
+
+	EXPECT_FALSE(device.SupportsParams());
+	EXPECT_TRUE(device.SupportsFile());
+	device.SupportsParams(true);
+	EXPECT_TRUE(device.SupportsParams());
+	EXPECT_FALSE(device.SupportsFile());
+
+	EXPECT_EQ(LUN, device.GetLun());
 }
 
+TEST(DeviceTest, Vendor)
+{
+	MockDevice device(0);
+
+	EXPECT_THROW(device.SetVendor(""), invalid_argument);
+	EXPECT_THROW(device.SetVendor("123456789"), invalid_argument);
+	device.SetVendor("12345678");
+	EXPECT_EQ("12345678", device.GetVendor());
+}
+
+TEST(DeviceTest, Product)
+{
+	MockDevice device(0);
+
+	EXPECT_THROW(device.SetProduct(""), invalid_argument);
+	EXPECT_THROW(device.SetProduct("12345678901234567"), invalid_argument);
+	device.SetProduct("1234567890123456");
+	EXPECT_EQ("1234567890123456", device.GetProduct());
+	device.SetProduct("xyz", false);
+	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI complient";
+}
+
+TEST(DeviceTest, Revision)
+{
+	MockDevice device(0);
+
+	EXPECT_THROW(device.SetRevision(""), invalid_argument);
+	EXPECT_THROW(device.SetRevision("12345"), invalid_argument);
+	device.SetRevision("1234");
+	EXPECT_EQ("1234", device.GetRevision());
+}
+
+TEST(DeviceTest, GetPaddedName)
+{
+	MockDevice device(0);
+
+	device.SetVendor("V");
+	device.SetProduct("P");
+	device.SetRevision("R");
+
+	EXPECT_EQ("V       P               R   ", device.GetPaddedName());
+}
+
+TEST(DeviceTest, Params)
+{
+	MockDevice device(0);
+	unordered_map<string, string> params;
+	params["key"] = "value";
+
+	EXPECT_EQ("", device.GetParam("key"));
+
+	device.SetParams(params);
+	EXPECT_EQ("", device.GetParam("key"));
+
+	unordered_map<string, string> default_params;
+	default_params["key"] = "value";
+	device.SetDefaultParams(default_params);
+	EXPECT_EQ("", device.GetParam("key"));
+
+	device.SetParams(params);
+	EXPECT_EQ("value", device.GetParam("key"));
+}
+
+TEST(DeviceTest, StatusCode)
+{
+	MockDevice device(0);
+
+	device.SetStatusCode(123);
+	EXPECT_EQ(123, device.GetStatusCode());
+}
+
+TEST(DeviceTest, Reset)
+{
+	MockDevice device(0);
+
+	device.SetLocked(true);
+	device.SetAttn(true);
+	device.SetReset(true);
+	device.Reset();
+	EXPECT_FALSE(device.IsLocked());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_FALSE(device.IsReset());
+}
+
+TEST(DeviceTest, Start)
+{
+	MockDevice device(0);
+
+	device.SetStopped(true);
+	device.SetReady(false);
+	EXPECT_FALSE(device.Start());
+	EXPECT_TRUE(device.IsStopped());
+	device.SetReady(true);
+	EXPECT_TRUE(device.Start());
+	EXPECT_FALSE(device.IsStopped());
+}
+
+TEST(DeviceTest, Stop)
+{
+	MockDevice device(0);
+
+	device.SetReady(true);
+	device.SetAttn(true);
+	device.SetStopped(false);
+	device.Stop();
+	EXPECT_FALSE(device.IsReady());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_TRUE(device.IsStopped());
+}
+
+TEST(DeviceTest, Eject)
+{
+	MockDevice device(0);
+
+	device.SetReady(false);
+	device.SetRemovable(false);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetReady(true);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetRemovable(true);
+	device.SetLocked(true);
+	EXPECT_FALSE(device.Eject(false));
+	device.SetLocked(false);
+	EXPECT_TRUE(device.Eject(false));
+	EXPECT_FALSE(device.IsReady());
+	EXPECT_FALSE(device.IsAttn());
+	EXPECT_TRUE(device.IsRemoved());
+	EXPECT_FALSE(device.IsLocked());
+	EXPECT_TRUE(device.IsStopped());
 }

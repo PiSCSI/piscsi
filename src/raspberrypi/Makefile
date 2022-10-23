@@ -1,5 +1,8 @@
 .DEFAULT_GOAL: all
 
+# Depending on the GCC version the compilation flags differ
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+
 ## Optional build flags:
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
@@ -14,14 +17,12 @@ CXX = $(CROSS_COMPILE)g++
 ##              this is only used by developers.
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-	# Debug CFLAGS
-	CFLAGS += -O0 -g -Wall -DDEBUG
-	CXXFLAGS += -O0 -g -Wall -DDEBUG
+	# Debug compiler flags
+	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
 	BUILD_TYPE = Debug
 else
-	# Release CFLAGS
-	CFLAGS += -O3 -Wall -Werror -DNDEBUG
-	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
+	# Release compiler flags
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")
@@ -29,21 +30,15 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
-CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
-CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
 
-# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
-GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
-
 ifeq "$(GCCVERSION10)" "1"
-	CFLAGS += -DFMT_HEADER_ONLY
 	CXXFLAGS += -DFMT_HEADER_ONLY
 endif
-
 
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
@@ -55,14 +50,12 @@ endif
 CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
-CFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 
 RASCSI = rascsi
 RASCTL = rasctl
 RASDUMP = rasdump
-SASIDUMP = sasidump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
 
@@ -73,6 +66,8 @@ RSYSLOG_LOG  = /var/log/rascsi.log
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
+COVERAGE_DIR = ./coverage
+COVERAGE_FILE = rascsi.dat
 OS_FILES = ./os_integration
 
 OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
@@ -82,8 +77,7 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP) \
-	$(BINDIR)/$(SASIDUMP)
+	$(BINDIR)/$(RASDUMP)
 
 SRC_PROTOC = \
 	rascsi_interface.proto
@@ -91,80 +85,67 @@ SRC_PROTOC = \
 SRC_PROTOBUF = \
 	rascsi_interface.pb.cpp
 
-SRC_RASCSI_CORE = scsi.cpp \
-	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
+SRC_SHARED = \
 	rascsi_version.cpp \
-	rascsi_image.cpp \
-	rascsi_response.cpp \
 	rasutil.cpp \
 	protobuf_util.cpp \
-	localizer.cpp
+	protobuf_serializer.cpp
+
+SRC_RASCSI_CORE = \
+	bus.cpp \
+	filepath.cpp \
+	fileio.cpp
+SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
-SRC_RASCSI_CORE += $(SRC_PROTOBUF)
+SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI = rascsi.cpp
-SRC_RASCSI += $(SRC_RASCSI_CORE)
 
 SRC_SCSIMON = \
 	scsimon.cpp \
-	scsi.cpp \
-	gpiobus.cpp \
+	bus.cpp \
 	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
+SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
-SRC_RASCTL = \
-	rasctl.cpp\
-	rasctl_commands.cpp \
-	rasctl_display.cpp \
-	rascsi_version.cpp \
-	rasutil.cpp \
-	protobuf_util.cpp \
-	localizer.cpp
-SRC_RASCTL += $(SRC_PROTOBUF)
+SRC_RASCTL_CORE = $(shell find ./rasctl -name '*.cpp')
+
+SRC_RASCTL = rasctl.cpp
 
 SRC_RASDUMP = \
 	rasdump.cpp \
-	scsi.cpp \
-	gpiobus.cpp \
+	bus.cpp \
 	filepath.cpp \
 	fileio.cpp \
 	rascsi_version.cpp
-
-SRC_SASIDUMP = \
-	sasidump.cpp \
-	scsi.cpp \
-	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
-	rascsi_version.cpp
-
+SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
-SRC_RASCSI_TEST += $(SRC_RASCSI_CORE)
 
 
-vpath %.h ./ ./controllers ./devices ./monitor
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./rascsi ./rasctl
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
 
+OBJ_RASCSI_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_CORE:%.cpp=%.o)))
 OBJ_RASCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI:%.cpp=%.o)))
+OBJ_RASCTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL_CORE:%.cpp=%.o)))
 OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
-OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
+OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
+OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -183,41 +164,51 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   all      : Rebuild all of the executable files and re-generate 
 ##              the text versions of the manpages
 ##   docs     : Re-generate the text versions of the man pages
+##   test     : Build and run unit tests
+##   coverage : Build and run unit tests and create coverage SonarQube files.
+##   lcov     : Build and run unit tests and create coverage HTML files.
+##              Note that you have to run 'make clean' before switching
+##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs
+.PHONY: all ALL docs test coverage lcov
 all: $(BIN_ALL) docs
-ALL: all
 
 test: $(BINDIR)/$(RASCSI_TEST)
 	$(BINDIR)/$(RASCSI_TEST)
 
+coverage: CXXFLAGS += --coverage
+coverage: test
+
+lcov: CXXFLAGS += --coverage
+lcov: test
+	lcov -q -c -d . --include '*/raspberrypi/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
+	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
+
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
-$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs
+$(SRC_SHARED): $(SRC_PROTOBUF)
 
-$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
+$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs
+
+$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
 
-$(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SASIDUMP)
-
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgmock -lgtest -lgtest_main
+$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON)
 $(RASCSI)  : $(BINDIR)/$(RASCSI) 
 $(RASCTL)  : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
-$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 
 
@@ -225,7 +216,7 @@ $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
+	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
@@ -245,12 +236,10 @@ install: \
 	$(MAN_PAGE_DIR)/rasctl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
 	$(MAN_PAGE_DIR)/rasdump.1 \
-	$(MAN_PAGE_DIR)/sasidump.1 \
 	$(USR_LOCAL_BIN)/$(RASCTL) \
 	$(USR_LOCAL_BIN)/$(RASCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
 	$(USR_LOCAL_BIN)/$(RASDUMP) \
-	$(USR_LOCAL_BIN)/$(SASIDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)

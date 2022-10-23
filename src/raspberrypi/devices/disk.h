@@ -11,152 +11,141 @@
 //  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
-//	[ Disk ]
-//
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include "log.h"
 #include "scsi.h"
-#include "controllers/scsidev_ctrl.h"
-#include "device.h"
 #include "device_factory.h"
-#include "disk_track_cache.h"
-#include "file_support.h"
+#include "disk_track.h"
+#include "disk_cache.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
 #include <string>
 #include <unordered_set>
-#include <unordered_map>
 
 using namespace std;
 
-class Disk : public ModePageDevice, ScsiBlockCommands
+using id_set = pair<int, int>;
+
+class Disk : public ModePageDevice, private ScsiBlockCommands
 {
-private:
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
-	// The supported configurable block sizes, empty if not configurable
+	Dispatcher<Disk> dispatcher;
+
+	unique_ptr<DiskCache> cache;
+
+	// The supported configurable sector sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
-	uint32_t configured_sector_size;
+	uint32_t configured_sector_size = 0;
 
-	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
-	unordered_map<uint64_t, Geometry> geometries;
+	// Sector size shift count (9=512, 10=1024, 11=2048, 12=4096)
+	uint32_t size_shift_count = 0;
 
-	typedef struct {
-		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-		// TODO blocks should be a 64 bit value in order to support higher capacities
-		uint32_t blocks;						// Total number of sectors
-		DiskCache *dcache;						// Disk cache
-		off_t image_offset;						// Offset to actual data
-		bool is_medium_changed;
-	} disk_t;
+	// Total number of sectors
+	uint64_t blocks = 0;
 
-	Dispatcher<Disk, SASIDEV> dispatcher;
+	bool is_medium_changed = false;
+
+	Filepath diskpath;
+
+	// The list of image files in use and the IDs and LUNs using these files
+	static unordered_map<string, id_set> reserved_files;
 
 public:
-	Disk(const string&);
-	virtual ~Disk();
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	Disk(const string&, int);
+	~Disk() override;
+
+	bool Dispatch(scsi_command) override;
 
 	void MediumChanged();
-	void ReserveFile(const string&);
-
-	// Media Operations
-	virtual void Open(const Filepath& path);
-	void GetPath(Filepath& path) const;
 	bool Eject(bool) override;
 
-private:
-	friend class SASIDEV;
-
-	typedef ModePageDevice super;
-
-	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void StartStopUnit(SASIDEV *);
-	void SendDiagnostic(SASIDEV *);
-	void PreventAllowMediumRemoval(SASIDEV *);
-	void SynchronizeCache10(SASIDEV *);
-	void SynchronizeCache16(SASIDEV *);
-	void ReadDefectData10(SASIDEV *);
-	virtual void Read6(SASIDEV *);
-	void Read10(SASIDEV *) override;
-	void Read16(SASIDEV *) override;
-	virtual void Write6(SASIDEV *);
-	void Write10(SASIDEV *) override;
-	void Write16(SASIDEV *) override;
-	void ReadLong10(SASIDEV *);
-	void ReadLong16(SASIDEV *);
-	void WriteLong10(SASIDEV *);
-	void WriteLong16(SASIDEV *);
-	void Verify10(SASIDEV *);
-	void Verify16(SASIDEV *);
-	void Seek(SASIDEV *);
-	void Seek10(SASIDEV *);
-	virtual void ReadCapacity10(SASIDEV *) override;
-	void ReadCapacity16(SASIDEV *) override;
-	void Reserve(SASIDEV *);
-	void Release(SASIDEV *);
-
-public:
-
-	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void Rezero(SASIDEV *);
-	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *);
-	void Seek6(SASIDEV *);
-
 	// Command helpers
-	virtual int WriteCheck(DWORD block);
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);
-	bool StartStop(const DWORD *cdb);
-	bool SendDiag(const DWORD *cdb) const;
+	virtual int WriteCheck(uint64_t);
+	virtual void Write(const vector<int>&, const vector<BYTE>&, uint64_t);
 
-	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
+	virtual int Read(const vector<int>&, vector<BYTE>& , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
-	void SetSectorSizeInBytes(uint32_t, bool);
-	uint32_t GetSectorSizeShiftCount() const;
-	void SetSectorSizeShiftCount(uint32_t);
-	bool IsSectorSizeConfigurable() const;
-	unordered_set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const unordered_set<uint32_t>&);
-	uint32_t GetConfiguredSectorSize() const;
-	bool SetConfiguredSectorSize(uint32_t);
-	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
-	bool SetGeometryForCapacity(uint64_t);
-	uint64_t GetBlockCount() const;
-	void SetBlockCount(uint32_t);
-	void FlushCache();
+	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
+	bool SetConfiguredSectorSize(const DeviceFactory&, uint32_t);
+	uint64_t GetBlockCount() const { return blocks; }
+	void FlushCache() override;
+
+	virtual void Open(const Filepath&);
+	void GetPath(Filepath& path) const { path = diskpath; }
+
+	void ReserveFile(const Filepath&, int, int) const;
+	void UnreserveFile() const;
+	static void UnreserveAll();
+	bool FileExists(const Filepath&);
+
+	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
+	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)	{ reserved_files = files_in_use; }
+	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
+
+private:
+
+	using super = ModePageDevice;
+
+	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
+	void StartStopUnit();
+	void SendDiagnostic();
+	void PreventAllowMediumRemoval();
+	void SynchronizeCache();
+	void ReadDefectData10();
+	virtual void Read6();
+	void Read10() override;
+	void Read16() override;
+	virtual void Write6();
+	void Write10() override;
+	void Write16() override;
+	void Verify10();
+	void Verify16();
+	void Seek();
+	void Seek10();
+	void ReadCapacity10() override;
+	void ReadCapacity16() override;
+	void Reserve();
+	void Release();
+	void Rezero();
+	void FormatUnit() override;
+	void ReassignBlocks();
+	void Seek6();
+	void Read(access_mode);
+	void Write(access_mode);
+	void Verify(access_mode);
+	void ReadWriteLong10();
+	void ReadWriteLong16();
+	void ReadCapacity16_ReadLong16();
+
+	void ValidateBlockAddress(access_mode) const;
+	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
+
+	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
+	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
 
 protected:
 
-	int ModeSense6(const DWORD *cdb, BYTE *buf);
-	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
-	virtual void SetDeviceParameters(BYTE *);
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
-	void AddCachePage(map<int, vector<BYTE>>&, bool) const;
-	virtual void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
+	void SetUpCache(const Filepath&, off_t, bool = false);
+	void ResizeCache(const Filepath&, bool);
 
-	// Internal disk data
-	disk_t disk;
-
-private:
-
-	void Read(SASIDEV *, uint64_t);
-	void Write(SASIDEV *, uint64_t);
-	void Verify(SASIDEV *, uint64_t);
-	void ReadWriteLong10(SASIDEV *);
-	void ReadWriteLong16(SASIDEV *);
-	void ReadCapacity16_ReadLong16(SASIDEV *);
-	bool Format(const DWORD *cdb);
-
-	bool ValidateBlockAddress(SASIDEV *, access_mode);
-	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;
+	virtual void AddErrorPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddFormatPage(map<int, vector<byte>>&, bool) const;
+	virtual void AddDrivePage(map<int, vector<byte>>&, bool) const;
+	void AddCachePage(map<int, vector<byte>>&, bool) const;
+	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const;
+	unordered_set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const unordered_set<uint32_t>& sizes) { sector_sizes = sizes; }
+	void SetSectorSizeInBytes(uint32_t);
+	uint32_t GetSectorSizeShiftCount() const { return size_shift_count; }
+	void SetSectorSizeShiftCount(uint32_t count) { size_shift_count = count; }
+	uint32_t GetConfiguredSectorSize() const;
+	void SetBlockCount(uint64_t b) { blocks = b; }
+	void SetPath(const Filepath& path) { diskpath = path; }
 };

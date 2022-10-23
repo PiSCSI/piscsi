@@ -2,19 +2,7 @@ body {
   color: black;
   background-color: white;
   font-family: Arial, Helvetica, sans-serif;
-  text-decoration:none;
-}
-
-h1 {
-  color: white;
-  font-size:20px;
-  background-color:black;
-}
-
-h2 {
-  color: black;
-  font-size:16px;
-  margin: 0px;
+  text-decoration: none;
 }
 
 a {
@@ -27,90 +15,150 @@ form {
 
 table, tr, td {
   border: 1px solid black;
-  border-collapse:collapse;
+  border-collapse: collapse;
   margin: none;
 }
 
-.error {
+h1 {
   color: white;
-  font-size:20px;
-  background-color:red;
-  white-space: pre-line;
+  font-size: 20px;
 }
 
-.message {
-  color: white;
-  font-size:20px;
-  background-color:green;
-  white-space: pre-line;
-}
-
-td.inactive {
-  text-align:center;
-  background-color:tan;
+h2 {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 3px;
 }
 
 summary.heading {
   color: black;
   font-size: large;
   font-weight: bold;
-  margin: 0px;
+  margin: 3px;
+}
+
+div.header {
+  color: white;
+  background-color: black;
+}
+
+div.footer {
+  font-family: monospace;
+}
+
+div.logged_in {
+  background-color: green;
+}
+
+div.logged_out {
+  background-color: red;
+}
+
+input.lun {
+  width: 36px;
+}
+
+div.flash {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+div.flash div {
+  color: white;
+  font-size: 18px;
+  white-space: pre-line;
+  padding: 2px 5px;
+}
+
+div.flash div.success {
+  background-color: green;
+}
+
+div.flash div.warning {
+  background-color: orange;
+  color: black;
+}
+
+div.flash div.error {
+  background-color: red;
+}
+
+div.flash div.info {
+  background-color: #0d6efd;
+}
+
+td.inactive {
+  text-align: center;
+  background-color: tan;
+}
+
+ul.inline_list {
+  list-style: none;
 }
 
 .dropzone, .dropzone * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .dropzone {
-    position: relative;
+  position: relative;
+}
+
+.dropzone .dz-button {
+  position: relative;
+  background-color: white;
+  color: black;
+  border: 2px dashed blue;
+  padding: 12px 28px;
 }
 
 .dropzone .dz-preview {
-    position: relative;
-    display: inline-block;
-    width: 120px;
-    margin: .5em;
+  position: relative;
+  display: inline-block;
+  width: 120px;
+  margin: .5em;
 }
 
 .dropzone .dz-preview .dz-progress {
-    display: block;
-    height: 15px;
-    border: 1px solid #aaa;
+  display: block;
+  height: 15px;
+  border: 1px solid #aaa;
 }
 
 .dropzone .dz-preview .dz-progress .dz-upload {
-    display: block;
-    height: 100%;
-    width: 0;
-    background: green;
+  display: block;
+  height: 100%;
+  width: 0;
+  background: green;
 }
 
 .dropzone .dz-preview .dz-error-message {
-    color: red;
-    display: none;
+  color: red;
+  display: none;
 }
 
 .dropzone .dz-preview.dz-error .dz-error-message {
-    display: block;
+  display: block;
 }
 
 .dropzone .dz-preview.dz-error .dz-error-mark {
-    display: block;
-    filter: drop-shadow(0px 0px 2px red);
+  display: block;
+  filter: drop-shadow(0px 0px 2px red);
+  opacity: 0;
 }
 
 .dropzone .dz-preview.dz-success .dz-success-mark {
-    display: block;
-    filter: drop-shadow(0px 0px 2px green);
+  display: block;
+  filter: drop-shadow(0px 0px 2px green);
 }
 
 .dropzone .dz-preview .dz-error-mark, .dropzone .dz-preview .dz-success-mark {
-    position: absolute;
-    display: none;
-    left: 30px;
-    top: 30px;
-    width: 54px;
-    height: 58px;
-    left: 50%;
-    margin-left: -27px;
+  position: absolute;
+  display: none;
+  top: 30px;
+  width: 54px;
+  height: 58px;
+  left: 50%;
+  margin-left: -27px;
 }

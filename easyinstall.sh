@@ -63,6 +63,7 @@ LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
+SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
 
 set -e
 
@@ -82,7 +83,42 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 unar -y </dev/null
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+        build-essential \
+        git \
+        libspdlog-dev \
+        libpcap-dev \
+        libprotobuf-dev \
+        genisoimage \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        python3-setuptools \
+        python3-wheel \
+        nginx-light \
+        protobuf-compiler \
+        bridge-utils \
+        libev-dev \
+        libevdev2 \
+        unzip \
+        unar \
+        disktype \
+        libgmock-dev \
+        man2html
+}
+
+# install Debian packges for RaSCSI standalone
+function installPackagesStandalone() {
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+        build-essential \
+        libspdlog-dev \
+        libpcap-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
+        disktype \
+        libgmock-dev \
+        man2html
 }
 
 # cache the pip packages
@@ -246,32 +282,42 @@ function backupRaScsiService() {
 
 # Offers the choice of enabling token-based authentication for RaSCSI
 function configureTokenAuth() {
-    echo ""
-    echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
-    read REPLY
+    if [[ -f "$HOME/.rascsi_secret" ]]; then
+        sudo rm "$HOME/.rascsi_secret"
+        echo "Removed (legacy) RaSCSI token file"
+    fi
 
-    SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+    if [[ -f $SECRET_FILE ]]; then
+        sudo rm "$SECRET_FILE"
+        echo "Removed RaSCSI token file"
+    fi
 
-    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+    if [[ $SKIP_TOKEN ]]; then
+        echo "Skipping RaSCSI token setup"
+        return 0
+    fi
+
+    if [[ -z $TOKEN ]]; then
+        echo ""
+        echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
+        read REPLY
+
+        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
+            return 0
+        fi
+
         echo -n "Enter the password that you want to use: "
         read -r TOKEN
-        if [ -f "$HOME/.rascsi_secret" ]; then
-            sudo rm "$HOME/.rascsi_secret"
-            echo "Removed old RaSCSI token file"
-        fi
-        if [ -f "$SECRET_FILE" ]; then
-            sudo rm "$SECRET_FILE"
-            echo "Removed old RaSCSI token file"
-        fi
-        echo "$TOKEN" > "$SECRET_FILE"
+    fi
+
+    echo "$TOKEN" > "$SECRET_FILE"
 
 	# Make the secret file owned and only readable by root
-        sudo chown root:root "$SECRET_FILE"
-        sudo chmod 600 "$SECRET_FILE"
-        echo ""
-        echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
-        echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
-    fi
+    sudo chown root:root "$SECRET_FILE"
+    sudo chmod 600 "$SECRET_FILE"
+    echo ""
+    echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
+    echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
 }
 
 # Modifies and installs the rascsi service
@@ -523,7 +569,7 @@ function showMacproxyStatus() {
 }
 
 # Creates a drive image file with specific parameters
-function createDrive600MB() {
+function createDrive600M() {
     createDrive 600 "HD600"
 }
 
@@ -531,7 +577,7 @@ function createDrive600MB() {
 function createDriveCustom() {
     driveSize=-1
     until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
-        echo "What drive size would you like (in MB) (10-4000)"
+        echo "What drive size would you like (in MiB) (10-4000)"
         read driveSize
 
         echo "How would you like to name that drive?"
@@ -622,10 +668,10 @@ function createDrive() {
     driveSize=$1
     driveName=$2
     mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
+    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}M.hda"
 
     if [ ! -f "$drivePath" ]; then
-        echo "Creating a ${driveSize}MB Drive"
+        echo "Creating a ${driveSize}MiB Drive"
         truncate --size "${driveSize}m" "$drivePath"
 
         echo "Formatting drive with HFS"
@@ -647,23 +693,31 @@ function setupWiredNetworking() {
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
-    read REPLY
 
-    if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
-        echo "Available wired interfaces on this system:"
-        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
-        echo "Please type the wired interface you want to use and press Enter:"
-        read SELECTED
-        LAN_INTERFACE=$SELECTED
+    if [[ -z $HEADLESS ]]; then
+        echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
+        read REPLY
+
+        if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
+            echo "Available wired interfaces on this system:"
+            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+            echo "Please type the wired interface you want to use and press Enter:"
+            read SELECTED
+            LAN_INTERFACE=$SELECTED
+        fi
     fi
 
     if [ "$(grep -c "^denyinterfaces" /etc/dhcpcd.conf)" -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
-        echo "Press enter to continue or CTRL-C to exit"
-        read REPLY
+
+        if [[ -z $HEADLESS ]]; then
+            echo "Press enter to continue or CTRL-C to exit"
+            read REPLY
+        fi
+
         sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
+
     sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
@@ -676,6 +730,12 @@ function setupWiredNetworking() {
     echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
     echo "rasctl -i 6 -c attach -t scdp -f $LAN_INTERFACE"
     echo ""
+
+    if [[ $HEADLESS ]]; then
+        echo "Skipping reboot in headless mode"
+        return 0
+    fi
+
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
     read
@@ -773,6 +833,20 @@ function installNetatalk() {
     NETATALK_VERSION="2-220801"
     AFP_SHARE_PATH="$HOME/afpshare"
     AFP_SHARE_NAME="Pi File Server"
+    NETATALK_CONFIG_PATH="/etc/netatalk"
+
+    if [ -d "$NETATALK_CONFIG_PATH" ]; then
+        echo
+        echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
+        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
@@ -781,6 +855,39 @@ function installNetatalk() {
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+}
+
+# Appends the images dir as a shared Netatalk volume
+function shareImagesWithNetatalk() {
+    APPLEVOLUMES_PATH="/etc/netatalk/AppleVolumes.default"
+    if ! [ -f "$APPLEVOLUMES_PATH" ]; then
+        echo "Could not find $APPLEVOLUMES_PATH ... is Netatalk installed?"
+        exit 1
+    fi
+
+    if [ "$(grep -c "$VIRTUAL_DRIVER_PATH" "$APPLEVOLUMES_PATH")" -ge 1 ]; then
+        echo "The $VIRTUAL_DRIVER_PATH dir is already shared in $APPLEVOLUMES_PATH"
+        echo "Do you want to turn off the sharing? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo systemctl stop afpd
+            sudo sed -i '\,^'"$VIRTUAL_DRIVER_PATH"',d' "$APPLEVOLUMES_PATH"
+            echo "Sharing for $VIRTUAL_DRIVER_PATH disabled!"
+            sudo systemctl start afpd
+            exit 0
+        fi
+        exit 0
+    fi
+
+    sudo systemctl stop afpd
+    echo "Appended to AppleVolumes.default:"
+    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
+    sudo systemctl start afpd
+
+    echo
+    echo "WARNING: Do not inadvertently move or rename image files that are in use by RaSCSI."
+    echo "Doing so may lead to data loss."
+    echo
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -1146,9 +1253,9 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating an HFS formatted 600MB drive image with LIDO driver"
-              createDrive600MB
-              echo "Creating an HFS formatted 600MB drive image with LIDO driver - Complete!"
+              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver"
+              createDrive600M
+              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver - Complete!"
           ;;
           5)
               echo "Creating an HFS formatted drive image with LIDO driver"
@@ -1199,8 +1306,9 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
+              configureTokenAuth
               updateRaScsiGit
-              installPackages
+              installPackagesStandalone
               stopRaScsi
               compileRaScsi
               installRaScsi
@@ -1218,11 +1326,13 @@ function runChoice() {
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
+              configureTokenAuth
               updateRaScsiGit
               installPackages
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
+              enableWebInterfaceAuth
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
@@ -1239,6 +1349,10 @@ function runChoice() {
               showRaScsiCtrlBoardStatus
               echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
+          13)
+              shareImagesWithNetatalk
+              echo "Configuring AppleShare File Server - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1252,8 +1366,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
-       echo -n "Enter your choice (0-12) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
+       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1270,8 +1384,8 @@ function showMenu() {
     echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
     echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
     echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  4) 600MB drive (suggested size)"
-    echo "  5) custom drive size (up to 4000MB)"
+    echo "  4) 600 MiB drive (suggested size)"
+    echo "  5) custom drive size (up to 4000 MiB)"
     echo "NETWORK BRIDGE ASSISTANT"
     echo "  6) configure network bridge for Ethernet (DHCP)"
     echo "  7) configure network bridge for WiFi (static IP + NAT)" 
@@ -1283,6 +1397,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo "EXPERIMENTAL FEATURES"
     echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
+    echo " 13) share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
@@ -1291,24 +1406,41 @@ while [ "$1" != "" ]; do
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
         -c | --connect_type)
+            if ! [[ $VALUE =~ ^(FULLSPEC|STANDARD|AIBOM|GAMERNIUM)$ ]]; then
+                echo "ERROR: The connect type parameter must have a value of: FULLSPEC, STANDARD, AIBOM or GAMERNIUM"
+                exit 1
+            fi
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 12 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 12"
+                exit 1
+            fi
             RUN_CHOICE=$VALUE
             ;;
         -j | --cores)
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ ]]; then
+                echo "ERROR: The cores parameter must have a numeric value of at least 1"
+                exit 1
+            fi
             CORES=$VALUE
             ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
+        -t | --token)
+            if [[ -z $VALUE ]]; then
+                echo "ERROR: The token parameter cannot be empty"
+                exit 1
+            fi
+            TOKEN=$VALUE
             ;;
-    esac
-    case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+        -s | --skip-token)
+            SKIP_TOKEN=1
+            ;;
+        -h | --headless)
+            HEADLESS=1
             ;;
         *)
-            echo "ERROR: unknown option \"$VALUE\""
+            echo "ERROR: Unknown parameter \"$PARAM\""
             exit 1
             ;;
     esac

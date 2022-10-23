@@ -8,210 +8,114 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
-#include "filepath.h"
 #include "fileio.h"
-
-#include "config.h"
-
-//===========================================================================
-//
-//	File I/O
-//
-//===========================================================================
-
-Fileio::Fileio()
-{
-	// Initialize work
-	handle = -1;
-}
+#include <fcntl.h>
+#include <unistd.h>
+#include <cassert>
 
 Fileio::~Fileio()
 {
-	ASSERT(handle == -1);
-
 	// Safety measure for Release
 	Close();
 }
 
-BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
+bool Fileio::Open(const char *fname, OpenMode mode, bool directIO)
 {
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle < 0);
-
-	if (!Open(path, ReadOnly)) {
-		return FALSE;
-	}
-
-	if (!Read(buffer, size)) {
-		Close();
-		return FALSE;
-	}
-
-	Close();
-
-	return TRUE;
-}
-
-BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
-{
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle < 0);
-
-	if (!Open(path, WriteOnly)) {
-		return FALSE;
-	}
-
-	if (!Write(buffer, size)) {
-		Close();
-		return FALSE;
-	}
-
-	Close();
-
-	return TRUE;
-}
-
-BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
-{
-	mode_t omode;
-
-	ASSERT(fname);
-	ASSERT(handle < 0);
+	assert(fname);
+	assert(handle < 0);
 
 	// Always fail a read from a null array
-	if (fname[0] == _T('\0')) {
+	if (fname[0] == '\0') {
 		handle = -1;
-		return FALSE;
+		return false;
 	}
 
 	// Default mode
-	omode = directIO ? O_DIRECT : 0;
+	const mode_t omode = directIO ? O_DIRECT : 0;
 
 	switch (mode) {
-		case ReadOnly:
+		case OpenMode::ReadOnly:
 			handle = open(fname, O_RDONLY | omode);
 			break;
 
-		case WriteOnly:
+		case OpenMode::WriteOnly:
 			handle = open(fname, O_CREAT | O_WRONLY | O_TRUNC | omode, 0666);
 			break;
 
-		case ReadWrite:
-			// Make sure RW does not succeed when reading from CD-ROM
-			if (access(fname, 0x06) != 0) {
-				return FALSE;
-			}
+		case OpenMode::ReadWrite:
 			handle = open(fname, O_RDWR | omode);
 			break;
 
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 
 	// Evaluate results
-	if (handle == -1) {
-		return FALSE;
-	}
-
-	ASSERT(handle >= 0);
-	return TRUE;
+	return handle != -1;
 }
 
-BOOL Fileio::Open(const char *fname, OpenMode mode)
+bool Fileio::Open(const char *fname, OpenMode mode)
 {
-
-	return Open(fname, mode, FALSE);
+	return Open(fname, mode, false);
 }
 
-BOOL Fileio::Open(const Filepath& path, OpenMode mode)
+bool Fileio::Open(const Filepath& path, OpenMode mode)
 {
-
 	return Open(path.GetPath(), mode);
 }
 
-BOOL Fileio::OpenDIO(const char *fname, OpenMode mode)
+bool Fileio::OpenDIO(const char *fname, OpenMode mode)
 {
-
 	// Open with included O_DIRECT
-	if (!Open(fname, mode, TRUE)) {
+	if (!Open(fname, mode, true)) {
 		// Normal mode retry (tmpfs etc.)
-		return Open(fname, mode, FALSE);
+		return Open(fname, mode, false);
 	}
 
-	return TRUE;
+	return true;
 }
 
-BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
+bool Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 {
-
 	return OpenDIO(path.GetPath(), mode);
 }
 
-BOOL Fileio::Read(void *buffer, int size)
+bool Fileio::Read(BYTE *buffer, int size) const
 {
-	int count;
+	assert(buffer);
+	assert(size > 0);
+	assert(handle >= 0);
 
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle >= 0);
-
-	count = read(handle, buffer, size);
-	if (count != size) {
-		return FALSE;
-	}
-
-	return TRUE;
+	return read(handle, buffer, size) == size;
 }
 
-BOOL Fileio::Write(const void *buffer, int size)
+bool Fileio::Write(const BYTE *buffer, int size) const
 {
-	int count;
+	assert(buffer);
+	assert(size > 0);
+	assert(handle >= 0);
 
-	ASSERT(buffer);
-	ASSERT(size > 0);
-	ASSERT(handle >= 0);
-
-	count = write(handle, buffer, size);
-	if (count != size) {
-		return FALSE;
-	}
-
-	return TRUE;
+	return write(handle, buffer, size) == size;
 }
 
-BOOL Fileio::Seek(off_t offset, BOOL relative)
+bool Fileio::Seek(off_t offset) const
 {
-	ASSERT(handle >= 0);
-	ASSERT(offset >= 0);
+	assert(handle >= 0);
+	assert(offset >= 0);
 
-	// Add current position in case of relative seek
-	if (relative) {
-		offset += GetFilePos();
-	}
-
-	if (lseek(handle, offset, SEEK_SET) != offset) {
-		return FALSE;
-	}
-
-	return TRUE;
+	return lseek(handle, offset, SEEK_SET) == offset;
 }
 
-off_t Fileio::GetFileSize()
+off_t Fileio::GetFileSize() const
 {
-	off_t cur;
-	off_t end;
-
-	ASSERT(handle >= 0);
+	assert(handle >= 0);
 
 	// Get file position in 64bit
-	cur = GetFilePos();
+	const off_t cur = lseek(handle, 0, SEEK_CUR);
 
 	// Get file size in64bitで
-	end = lseek(handle, 0, SEEK_END);
+	const off_t end = lseek(handle, 0, SEEK_END);
 
 	// Return to start position
 	Seek(cur);
@@ -219,21 +123,8 @@ off_t Fileio::GetFileSize()
 	return end;
 }
 
-off_t Fileio::GetFilePos() const
-{
-	off_t pos;
-
-	ASSERT(handle >= 0);
-
-	// Get file position in 64bit
-	pos = lseek(handle, 0, SEEK_CUR);
-	return pos;
-
-}
-
 void Fileio::Close()
 {
-
 	if (handle != -1) {
 		close(handle);
 		handle = -1;

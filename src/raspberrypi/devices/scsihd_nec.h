@@ -7,15 +7,20 @@
 //	Copyright (C) 2014-2020 GIMONS
 //  	Copyright (C) akuker
 //
-//  	Licensed under the BSD 3-Clause License. 
+//  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
 //  	[ SCSI NEC "Genuine" Hard Disk]
 //
 //---------------------------------------------------------------------------
+
 #pragma once
 
 #include "scsihd.h"
+#include <unordered_set>
+#include <map>
+
+using namespace std;
 
 //===========================================================================
 //
@@ -25,21 +30,27 @@
 class SCSIHD_NEC : public SCSIHD
 {
 public:
-	SCSIHD_NEC(const unordered_set<uint32_t>&);
-	~SCSIHD_NEC() {}
 
-	void Open(const Filepath& path) override;
+	explicit SCSIHD_NEC(int lun) : SCSIHD(lun, sector_sizes, false) {}
+	~SCSIHD_NEC() override = default;
 
-	// Commands
-	vector<BYTE> Inquiry() const override;
+	void Open(const Filepath&) override;
 
-	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
-	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
+	vector<byte> InquiryInternal() const override;
+
+	void AddErrorPage(map<int, vector<byte>>&, bool) const override;
+	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
+	void AddDrivePage(map<int, vector<byte>>&, bool) const override;
 
 private:
+
+	static const unordered_set<uint32_t> sector_sizes;
+
+	// Image file offset (NEC only)
+	off_t image_offset = 0;
+
 	// Geometry data
-	int cylinders;
-	int heads;
-	int sectors;
+	int cylinders = 0;
+	int heads = 0;
+	int sectors = 0;
 };
