@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include "filepath.h"
+#include <string>
+
+using namespace std;
 
 class CDTrack final
 {
@@ -26,8 +28,8 @@ public:
 	void Init(int track, uint32_t first, uint32_t last);
 
 	// Properties
-	void SetPath(bool cdda, const Filepath& path);		// Set the path
-	void GetPath(Filepath& path) const;		// Get the path
+	void SetPath(bool, string_view);		// Set the path
+	string GetPath() const;					// Get the path
 	uint32_t GetFirst() const;				// Get the start LBA
 	uint32_t GetLast() const;				// Get the last LBA
 	uint32_t GetBlocks() const;				// Get the number of blocks
@@ -41,5 +43,6 @@ private:
 	uint32_t first_lba = 0;					// First LBA
 	uint32_t last_lba = 0;					// Last LBA
 	bool audio = false;						// Audio track flag
-	Filepath imgpath;						// Image file path
+
+	string imgpath;							// Image file path
 };

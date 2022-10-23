@@ -28,7 +28,6 @@ public:
 
 	virtual void Open() = 0;
 
-	void ValidateFile(const string&);
 	string GetFilename() const { return filename; }
 	void SetFilename(string_view f) { filename = f; }
 
@@ -45,9 +44,11 @@ public:
 
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& r) { reserved_files = r; }
-	static bool GetIdsForReservedFile(const string&, int&, int&);
+	static pair<int, int> GetIdsForReservedFile(const string&);
 
 protected:
+
+	void ValidateFile();
 
 	bool IsMediumChanged() const { return medium_changed; }
 	void SetMediumChanged(bool b) { medium_changed = b; }

@@ -47,14 +47,14 @@ protected:
 
 private:
 
-	pair<int, int> SetParameters(const string&, const array<BYTE, 512>&, int);
+	pair<int, int> SetParameters(const array<char, 512>&, int);
 
 	static int GetInt16LittleEndian(const BYTE *);
 	static int GetInt32LittleEndian(const BYTE *);
 
 	static const unordered_set<uint32_t> sector_sizes;
 
-	// Image file offset (NEC only)
+	// Image file offset
 	off_t image_offset = 0;
 
 	// Geometry data

@@ -14,7 +14,10 @@
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
+#include <filesystem>
 
+using namespace std;
+using namespace filesystem;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
@@ -112,7 +115,7 @@ bool RascsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
-		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handled more than 2 GiB
+		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
 		if (struct stat st; !stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file.set_size(st.st_size);
 			return true;
@@ -140,6 +143,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		return;
 	}
 
+	// C++ filesystem cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
 	const dirent *dir;
 	while ((dir = readdir(d))) {
 		string filename = GetNextImageFile(dir, folder);
@@ -526,10 +530,11 @@ string RascsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 
 	const string filename = folder + "/" + dir->d_name;
 
+	const bool file_exists = exists(path(filename));
+
+	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
 	struct stat st;
-
-	const bool file_exists = !stat(filename.c_str(), &st);
-
+	stat(filename.c_str(), &st);
 	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
 		LOGWARN("File '%s' in image folder '%s' is empty", dir->d_name, folder.c_str())
 		return "";

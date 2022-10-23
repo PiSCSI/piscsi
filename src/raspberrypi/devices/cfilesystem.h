@@ -13,6 +13,10 @@
 
 #pragma once
 
+using TCHAR = char;
+
+static const int FILEPATH_MAX = 260;
+
 //---------------------------------------------------------------------------
 //
 //	Status code definitions

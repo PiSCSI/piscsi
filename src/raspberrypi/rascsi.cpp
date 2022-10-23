@@ -100,7 +100,6 @@ bool InitBus()
 		return false;
 	}
 
-	// Bus Reset
 	bus.Reset();
 
 	return true;
@@ -112,7 +111,6 @@ void Cleanup()
 
 	service.Cleanup();
 
-	// Clean up and discard the bus
 	bus.Cleanup();
 }
 
@@ -136,7 +134,7 @@ bool ReadAccessToken(const char *filename)
 		return false;
 	}
 
-	ifstream token_file(filename, ifstream::in);
+	ifstream token_file(filename);
 	if (token_file.fail()) {
 		cerr << "Can't open access token file '" << optarg << "'" << endl;
 		return false;
@@ -144,18 +142,14 @@ bool ReadAccessToken(const char *filename)
 
 	getline(token_file, access_token);
 	if (token_file.fail()) {
-		token_file.close();
 		cerr << "Can't read access token file '" << optarg << "'" << endl;
 		return false;
 	}
 
 	if (access_token.empty()) {
-		token_file.close();
 		cerr << "Access token file '" << optarg << "' must not be empty" << endl;
 		return false;
 	}
-
-	token_file.close();
 
 	return true;
 }

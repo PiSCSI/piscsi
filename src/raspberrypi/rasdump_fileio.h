@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "filepath.h"
+#include "os.h"
 #include <cstdlib>
 
 class Fileio
@@ -29,9 +29,6 @@ public:
 	Fileio& operator=(const Fileio&) = default;
 
 	bool Open(const char *fname, OpenMode mode);
-	bool Open(const Filepath& path, OpenMode mode);
-	bool OpenDIO(const Filepath& path, OpenMode mode);
-	bool Seek(off_t offset) const;
 	bool Read(BYTE *buffer, int size) const;
 	bool Write(const BYTE *buffer, int size) const;
 	off_t GetFileSize() const;
@@ -40,7 +37,6 @@ public:
 private:
 
 	bool Open(const char *fname, OpenMode mode, bool directIO);
-	bool OpenDIO(const char *fname, OpenMode mode);
 
 	int handle = -1;
 };

@@ -14,6 +14,12 @@
 
 using namespace std;
 
+void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
+{
+	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(10, pages[32].size());
+}
+
 TEST(HostServicesTest, Dispatch)
 {
 	TestDispatch(SCHS);
@@ -147,7 +153,12 @@ TEST(HostServicesTest, SetUpModePages)
 	MockHostServices services(0, controller_manager);
 	map<int, vector<byte>> pages;
 
+	// Non changeable
 	services.SetUpModePages(pages, 0x3f, false);
-	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(10, pages[32].size());
+	HostServices_SetUpModePages(pages);
+
+	// Changeable
+	pages.clear();
+	services.SetUpModePages(pages, 0x3f, true);
+	HostServices_SetUpModePages(pages);
 }

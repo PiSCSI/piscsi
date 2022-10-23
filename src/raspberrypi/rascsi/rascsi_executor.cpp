@@ -544,11 +544,9 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		return true;
 	}
 
-	int id;
-	int lun;
-	if (StorageDevice::GetIdsForReservedFile(filename, id, lun)) {
+	if (const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile(filename); id1 != -1 || lun1 != -1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(id), to_string(lun));
+				to_string(id1), to_string(lun1));
 	}
 
 	string effective_filename = filename;
@@ -557,9 +555,9 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		// If the file does not exist search for it in the default image folder
 		effective_filename = rascsi_image.GetDefaultFolder() + "/" + filename;
 
-		if (StorageDevice::GetIdsForReservedFile(effective_filename, id, lun)) {
+		if (const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile(effective_filename); id2 != -1 || lun2 != -1) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-					to_string(id), to_string(lun));
+					to_string(id2), to_string(lun2));
 		}
 
 		if (!StorageDevice::FileExists(effective_filename)) {

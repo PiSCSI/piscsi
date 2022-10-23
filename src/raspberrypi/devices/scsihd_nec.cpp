@@ -14,11 +14,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsihd_nec.h"
-#include "fileio.h"
 #include "rascsi_exceptions.h"
+#include "rasutil.h"
 #include "scsi_command_util.h"
+#include "scsihd_nec.h"
+#include <fstream>
 
+using namespace ras_util;
 using namespace scsi_command_util;
 
 const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
@@ -27,64 +29,38 @@ void SCSIHD_NEC::Open()
 {
 	assert(!IsReady());
 
-	// Open as read-only
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	Fileio fio;
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open hard disk file '" + GetFilename() + '"');
-	}
-
 	off_t size = GetFileSize();
 
-	// NEC root sector
-	array<BYTE, 512> root_sector;
-	if (size < (off_t)root_sector.size() || !fio.Read(root_sector.data(), root_sector.size())) {
-		fio.Close();
+	array<char, 512> root_sector;
+	ifstream in(GetFilename(), ios::binary);
+	in.read(root_sector.data(), root_sector.size());
+	if (!in.good() || size < (off_t)root_sector.size()) {
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
-	fio.Close();
 
 	// Effective size must be a multiple of 512
 	size = (size / 512) * 512;
 
 	// Determine parameters by extension
-	const auto [image_size, sector_size] = SetParameters(path.GetFileExt(), root_sector, (int)size);
+	const auto [image_size, sector_size] = SetParameters(root_sector, (int)size);
 
-	if (sector_size == 0) {
-		throw io_exception("Invalid NEC drive sector size");
-	}
-
-	// Image size consistency check
-	if (image_offset + image_size > size || image_size % sector_size != 0) {
-		throw io_exception("Image size consistency check failed");
-	}
-
-	// Calculate sector size
-	for (size = 16; size > 0; --size) {
-		if ((1 << size) == sector_size)
-			break;
-	}
-	if (size <= 0 || size > 16) {
-		throw io_exception("Invalid NEC disk size");
-	}
 	SetSectorSizeShiftCount((uint32_t)size);
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
-	FinalizeSetup(size, image_offset);
+	FinalizeSetup(image_offset);
 }
 
-pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BYTE, 512>& root_sector, int size)
+pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 {
-	string ext = extension;
-	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+	array<BYTE, 512> root_sector = {};
+	memcpy(root_sector.data(), data.data(), root_sector.size());
 
 	int image_size;
 	int sector_size;
 
 	// PC-9801-55 NEC genuine?
-	if (ext == ".hdn") {
+	if (const string ext = GetExtensionLowerCase(GetFilename()); ext == "hdn") {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		image_offset = 0;
 		image_size = size;
@@ -96,7 +72,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 		cylinders /= 25;
 	}
 	// Anex86 HD image?
-	else if (ext == ".hdi") {
+	else if (ext == "hdi") {
 		image_offset = GetInt32LittleEndian(&root_sector[8]);
 		image_size = GetInt32LittleEndian(&root_sector[12]);
 		sector_size = GetInt32LittleEndian(&root_sector[16]);
@@ -105,7 +81,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 		cylinders = GetInt32LittleEndian(&root_sector[28]);
 	}
 	// T98Next HD image?
-	else if (ext == ".nhd") {
+	else if (ext == "nhd") {
 		if (!memcmp(root_sector.data(), "T98HDDIMAGE.R0\0", 15)) {
 			image_offset = GetInt32LittleEndian(&root_sector[0x110]);
 			cylinders = GetInt32LittleEndian(&root_sector[0x114]);
@@ -120,6 +96,19 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 	}
 	else {
 		throw io_exception("Invalid NEC image file extension");
+	}
+
+	if (sector_size == 0) {
+		throw io_exception("Invalid NEC sector size 0");
+	}
+
+	// Image size consistency check
+	if (image_offset + image_size > size) {
+		throw io_exception("NEC image offset/size consistency check failed");
+	}
+
+	if (CalculateShiftCount(sector_size) == 0) {
+		throw io_exception("Invalid NEC sector size of " + to_string(sector_size) + " byte(s)");
 	}
 
 	return make_pair(image_size, sector_size);

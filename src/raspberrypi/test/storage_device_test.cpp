@@ -10,7 +10,9 @@
 #include "mocks.h"
 #include "rascsi_exceptions.h"
 #include "devices/storage_device.h"
-#include <unistd.h>
+#include <filesystem>
+
+using namespace filesystem;
 
 TEST(StorageDeviceTest, Filename)
 {
@@ -25,26 +27,35 @@ TEST(StorageDeviceTest, ValidateFile)
 	MockStorageDevice device;
 
 	device.SetBlockCount(0);
-	EXPECT_THROW(device.ValidateFile("/non_existing_file"), io_exception);
+	device.SetFilename("/non_existing_file");
+	EXPECT_THROW(device.ValidateFile(), io_exception);
 
-	device.SetReadOnly(false);
-	device.SetProtectable(true);
 	device.SetBlockCount(1);
-	device.ValidateFile("/non_existing_file");
-	EXPECT_TRUE(device.IsReadOnly());
-	EXPECT_FALSE(device.IsProtectable());
-	EXPECT_FALSE(device.IsStopped());
-	EXPECT_FALSE(device.IsRemoved());
-	EXPECT_FALSE(device.IsLocked());
+	EXPECT_THROW(device.ValidateFile(), io_exception);
 
+	const path filename = CreateTempFile(1);
+	device.SetFilename(string(filename));
 	device.SetReadOnly(false);
 	device.SetProtectable(true);
-	device.ValidateFile("/dev/null");
+	device.ValidateFile();
 	EXPECT_FALSE(device.IsReadOnly());
 	EXPECT_TRUE(device.IsProtectable());
 	EXPECT_FALSE(device.IsStopped());
 	EXPECT_FALSE(device.IsRemoved());
 	EXPECT_FALSE(device.IsLocked());
+
+	permissions(filename, perms::owner_read);
+	device.SetReadOnly(false);
+	device.SetProtectable(true);
+	device.ValidateFile();
+	EXPECT_TRUE(device.IsReadOnly());
+	EXPECT_FALSE(device.IsProtectable());
+	EXPECT_FALSE(device.IsProtected());
+	EXPECT_FALSE(device.IsStopped());
+	EXPECT_FALSE(device.IsRemoved());
+	EXPECT_FALSE(device.IsLocked());
+
+	remove(filename);
 }
 
 TEST(StorageDeviceTest, MediumChanged)
@@ -62,21 +73,24 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 {
 	const int ID = 1;
 	const int LUN = 2;
+	StorageDevice::UnreserveAll();
 
 	MockStorageDevice device;
 	device.SetFilename("filename");
 
-	int id;
-	int lun;
-	EXPECT_FALSE(StorageDevice::GetIdsForReservedFile("filename", id, lun));
+	const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile("filename");
+	EXPECT_EQ(-1, id1);
+	EXPECT_EQ(-1, lun1);
 
 	device.ReserveFile("filename", ID, LUN);
-	EXPECT_TRUE(StorageDevice::GetIdsForReservedFile("filename", id, lun));
-	EXPECT_EQ(ID, id);
-	EXPECT_EQ(LUN, lun);
+	const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile("filename");
+	EXPECT_EQ(ID, id2);
+	EXPECT_EQ(LUN, lun2);
 
 	device.UnreserveFile();
-	EXPECT_FALSE(StorageDevice::GetIdsForReservedFile("filename", id, lun));
+	const auto [id3, lun3] = StorageDevice::GetIdsForReservedFile("filename");
+	EXPECT_EQ(-1, id3);
+	EXPECT_EQ(-1, lun3);
 }
 
 TEST(StorageDeviceTest, UnreserveAll)
@@ -85,9 +99,9 @@ TEST(StorageDeviceTest, UnreserveAll)
 	device.ReserveFile("filename", 2, 31);
 
 	StorageDevice::UnreserveAll();
-	int id;
-	int lun;
-	EXPECT_FALSE(StorageDevice::GetIdsForReservedFile("filename", id, lun));
+	const auto [id, lun] = StorageDevice::GetIdsForReservedFile("filename");
+	EXPECT_EQ(-1, id);
+	EXPECT_EQ(-1, lun);
 }
 
 TEST(StorageDeviceTest, GetSetReservedFiles)
@@ -128,10 +142,10 @@ TEST(StorageDeviceTest, GetFileSize)
 {
 	MockStorageDevice device;
 
-	const string filename = CreateTempFile(512);
-	device.SetFilename(filename);
+	const path filename = CreateTempFile(512);
+	device.SetFilename(filename.c_str());
 	const off_t size = device.GetFileSize();
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_EQ(512, size);
 
 	device.SetFilename("/non_existing_file");

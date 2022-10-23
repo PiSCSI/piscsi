@@ -5,17 +5,15 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
+//	Copyright (C) 2022 Uwe Seimet
 //	Copyright (C) akuker
 //
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI hard disk ]
-//
 //---------------------------------------------------------------------------
 
 #include "scsihd.h"
-#include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 
@@ -56,22 +54,14 @@ string SCSIHD::GetProductData() const
 	return DEFAULT_PRODUCT + " " + to_string(capacity) + " " + unit;
 }
 
-void SCSIHD::FinalizeSetup(off_t size, off_t image_offset)
+void SCSIHD::FinalizeSetup(off_t image_offset)
 {
-	// Effective size must be a multiple of the sector size
-	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
-
-	// 2 TiB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("Drive capacity cannot exceed 2 TiB");
-	}
+	super::ValidateFile();
 
 	// For non-removable media drives set the default product name based on the drive capacity
 	if (!IsRemovable()) {
 		SetProduct(GetProductData(), false);
 	}
-
-	super::ValidateFile(GetFilename());
 
 	SetUpCache(image_offset);
 }
@@ -86,7 +76,7 @@ void SCSIHD::Open()
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 
-	FinalizeSetup(size);
+	FinalizeSetup(0);
 }
 
 vector<byte> SCSIHD::InquiryInternal() const

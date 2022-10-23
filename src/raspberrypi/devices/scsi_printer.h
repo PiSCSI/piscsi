@@ -12,15 +12,17 @@
 
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
+#include <fstream>
 #include <string>
 #include <unordered_map>
 
+using namespace std;
+
 class SCSIPrinter : public PrimaryDevice, ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
 {
-	static constexpr const char *TMP_FILE_PATTERN = "/tmp/rascsi_sclp-XXXXXX"; //NOSONAR Using /tmp is safe
-	static const int TMP_FILENAME_LENGTH = string_view(TMP_FILE_PATTERN).size();
-
 	static const int NOT_RESERVED = -2;
+
+	static constexpr const char *PRINTER_FILE_PATTERN = "/rascsi_sclp-XXXXXX";
 
 public:
 
@@ -39,7 +41,6 @@ public:
 	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void Print() override;
 	void SynchronizeBuffer();
-	void StopPrint();
 
 	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
 
@@ -49,6 +50,9 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[TMP_FILENAME_LENGTH + 1]; //NOSONAR mkstemp() requires a modifiable string
-	int fd = -1;
+	string file_template;
+
+	string filename;
+
+	ofstream out;
 };

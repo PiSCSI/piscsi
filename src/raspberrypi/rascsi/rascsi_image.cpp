@@ -7,21 +7,20 @@
 //
 //---------------------------------------------------------------------------
 
-#include <unistd.h>
-#include <pwd.h>
 #include "log.h"
 #include "devices/disk.h"
 #include "protobuf_util.h"
 #include "command_context.h"
 #include "rascsi_image.h"
+#include <unistd.h>
+#include <pwd.h>
+#include <fstream>
 #include <string>
 #include <array>
 #include <filesystem>
-#ifdef __linux__
-#include <sys/sendfile.h>
-#endif
 
 using namespace std;
+using namespace filesystem;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
@@ -39,16 +38,20 @@ bool RascsiImage::CheckDepth(string_view filename) const
 bool RascsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
 	if (const size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
-		const string folder = filename.substr(0, filename_start);
+		const auto folder = path(filename.substr(0, filename_start));
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
-		if (struct stat st; stat(folder.c_str(), &st)) {
-			std::error_code error;
-			filesystem::create_directories(folder, error);
-			if (error) {
-				context.ReturnStatus(false, "Can't create image folder '" + folder + "': " + strerror(errno));
-				return false;
-			}
+		if (error_code error; exists(folder, error)) {
+			return true;
+		}
+
+		try {
+			create_directories(folder);
+
+			return ChangeOwner(context, folder, false);
+		}
+		catch(const filesystem_error& e) {
+			return context.ReturnStatus(false, "Can't create image folder '" + string(folder) + "': " + e.what());
 		}
 	}
 
@@ -63,9 +66,9 @@ string RascsiImage::SetDefaultFolder(const string& f)
 
 	string folder = f;
 
-	// If a relative path is specified the path is assumed to be relative to the user's home directory
+	// If a relative path is specified, the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
-		folder = GetHomeDir() + "/" + f;
+		folder = GetHomeDir() + "/" + folder;
 	}
 	else {
 		if (folder.find("/home/") != 0) {
@@ -73,13 +76,17 @@ string RascsiImage::SetDefaultFolder(const string& f)
 		}
 	}
 
-	struct stat info;
-	stat(folder.c_str(), &info);
-	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return "Folder '" + f + "' does not exist or is not accessible";
+	// Resolve a potential symlink
+	auto p = path(folder);
+	if (error_code error; is_symlink(p, error)) {
+		p = read_symlink(p);
 	}
 
-	default_folder = folder;
+	if (error_code error; !is_directory(p, error)) {
+		return "'" + string(p) + "' is not a valid folder";
+	}
+
+	default_folder = string(p);
 
 	LOGINFO("Default image folder set to '%s'", default_folder.c_str())
 
@@ -104,7 +111,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 
 	const string size = GetParam(command, "size");
 	if (size.empty()) {
-		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': Missing image size");
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': Missing file size");
 	}
 
 	off_t len;
@@ -125,38 +132,30 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return false;
 	}
 
-	const string permission = GetParam(command, "read_only");
-	// Since rascsi is running as root ensure that others can access the file
-	const int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	const bool read_only = GetParam(command, "read_only") == "true";
 
-	const int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
-	if (image_fd == -1) {
-		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
+	error_code error;
+	path file(full_filename);
+	try {
+		ofstream s(file);
+		s.close();
+
+		if (!ChangeOwner(context, file, read_only)) {
+			return false;
+		}
+
+		resize_file(file, len);
+	}
+	catch(const filesystem_error& e) {
+		remove(file, error);
+
+		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + e.what());
 	}
 
-#ifndef __linux__
-	close(image_fd);
-
-	unlink(full_filename.c_str());
-
-	return false;
-#else
-	if (fallocate(image_fd, 0, 0, len)) {
-		close(image_fd);
-
-		unlink(full_filename.c_str());
-
-		return context.ReturnStatus(false, "Can't allocate space for image file '" + full_filename + "': " + string(strerror(errno)));
-	}
-
-	close(image_fd);
-
-	LOGINFO("%s", string("Created " + string(permissions & S_IWUSR ? "": "read-only ") + "image file '" + full_filename +
+	LOGINFO("%s", string("Created " + string(read_only ? "read-only " : "") + "image file '" + full_filename +
 			"' with a size of " + to_string(len) + " bytes").c_str())
 
 	return context.ReturnStatus();
-#endif
 }
 
 bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
@@ -172,28 +171,35 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 
 	const string full_filename = GetFullName(filename);
 
-	int id;
-	if (int lun; StorageDevice::GetIdsForReservedFile(full_filename, id, lun)) {
+	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
+	if (id == -1 || lun == -1) {
 		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
-				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(lun));
+				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
-	if (remove(full_filename.c_str())) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "': " + string(strerror(errno)));
+	try {
+		remove(path(full_filename));
+	}
+	catch(const filesystem_error& e) {
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "': " + e.what());
 	}
 
 	// Delete empty subfolders
 	size_t last_slash = filename.rfind('/');
 	while (last_slash != string::npos) {
-		string folder = filename.substr(0, last_slash);
-		string full_folder = GetFullName(folder);
+		const string folder = filename.substr(0, last_slash);
+		const auto full_folder = path(GetFullName(folder));
 
 		if (error_code error; !filesystem::is_empty(full_folder, error) || error) {
 			break;
 		}
 
-		if (remove(full_folder.c_str())) {
-			return context.ReturnStatus(false, "Can't delete empty image folder '" + full_folder + "'");
+		try {
+			remove(full_folder);
+		}
+		catch(const filesystem_error& e) {
+			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder)
+					+ "': " + e.what());
 		}
 
 		last_slash = folder.rfind('/');
@@ -216,8 +222,11 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return false;
 	}
 
-	if (rename(from.c_str(), to.c_str())) {
-		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+	try {
+		rename(path(from), path(to));
+	}
+	catch(const filesystem_error& e) {
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': " + e.what());
 	}
 
 	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str())
@@ -233,69 +242,46 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 		return false;
 	}
 
-	struct stat st;
-    if (lstat(from.c_str(), &st)) {
-    	return context.ReturnStatus(false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
+	if (access(from.c_str(), R_OK)) {
+    	return context.ReturnStatus(false, "Can't read source image file '" + from + "'");
     }
 
 	if (!CreateImageFolder(context, to)) {
 		return false;
 	}
 
+	path f(from);
+	path t(to);
+
     // Symbolic links need a special handling
-	if ((st.st_mode & S_IFMT) == S_IFLNK) {
-		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
-	    	return context.ReturnStatus(false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
+	if (error_code error; is_symlink(f, error)) {
+		try {
+			copy_symlink(f, t);
+		}
+		catch(const filesystem_error& e) {
+	    	return context.ReturnStatus(false, "Can't copy image file symlink '" + from + "': " + e.what());
 		}
 
-		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str())
+		LOGINFO("Copied image file symlink '%s' to '%s'", from.c_str(), to.c_str())
 
 		return context.ReturnStatus();
 	}
 
-	const int fd_src = open(from.c_str(), O_RDONLY, 0);
-	if (fd_src == -1) {
-		return context.ReturnStatus(false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
+	try {
+		copy_file(f, t);
+
+		permissions(t, GetParam(command, "read_only") == "true" ?
+				perms::owner_read | perms::group_read | perms::others_read :
+				perms::owner_read | perms::group_read | perms::others_read |
+				perms::owner_write | perms::group_write);
 	}
-
-	const string permission = GetParam(command, "read_only");
-	// Since rascsi is running as root ensure that others can access the file
-	const int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	const int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
-	if (fd_dst == -1) {
-		close(fd_src);
-
-		return context.ReturnStatus(false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
+	catch(const filesystem_error& e) {
+        return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': " + e.what());
 	}
-
-#ifndef __linux__
-    close(fd_dst);
-    close(fd_src);
-
-	unlink(to.c_str());
-
-	LOGWARN("Copying image files is only supported under Linux")
-
-	return false;
-#else
-    if (sendfile(fd_dst, fd_src, nullptr, st.st_size) == -1) {
-        close(fd_dst);
-        close(fd_src);
-
-		unlink(to.c_str());
-
-        return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
-	}
-
-    close(fd_dst);
-    close(fd_src);
 
 	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
 
 	return context.ReturnStatus();
-#endif
 }
 
 bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
@@ -316,10 +302,15 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 
 	const bool protect = command.operation() == PROTECT_IMAGE;
 
-	if (const int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-		chmod(filename.c_str(), permissions) == -1) {
-		return context.ReturnStatus(false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
-				strerror(errno));
+	try {
+		permissions(path(filename), protect ?
+				perms::owner_read | perms::group_read | perms::others_read :
+				perms::owner_read | perms::group_read | perms::others_read |
+				perms::owner_write | perms::group_write);
+	}
+	catch(const filesystem_error& e) {
+		return context.ReturnStatus(false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" +
+				filename + "': " + e.what());
 	}
 
 	if (protect) {
@@ -369,23 +360,45 @@ bool RascsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 bool RascsiImage::IsValidSrcFilename(const string& filename)
 {
 	// Source file must exist and must be a regular file or a symlink
-	struct stat st;
-	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
+	path file(filename);
+	return is_regular_file(file) || is_symlink(file);
 }
 
 bool RascsiImage::IsValidDstFilename(const string& filename)
 {
 	// Destination file must not yet exist
-	struct stat st;
-	return stat(filename.c_str(), &st);
+	try {
+		return !exists(path(filename));
+	}
+	catch(const filesystem_error&) {
+		return true;
+	}
+}
+
+bool RascsiImage::ChangeOwner(const CommandContext& context, const path& filename, bool read_only)
+{
+	const auto [uid, gid] = GetUidAndGid();
+	if (chown(filename.c_str(), uid, gid)) {
+		// Remember the current error before the next filesystem operation
+		const int e = errno;
+
+		error_code error;
+		remove(filename, error);
+
+		return context.ReturnStatus(false, "Can't change ownership of '" + string(filename) + "': " + strerror(e));
+	}
+
+	permissions(filename, read_only ?
+			perms::owner_read | perms::group_read | perms::others_read :
+			perms::owner_read | perms::group_read | perms::others_read |
+			perms::owner_write | perms::group_write);
+
+	return true;
 }
 
 string RascsiImage::GetHomeDir()
 {
-	int uid = getuid();
-	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {
-		uid = stoi(sudo_user);
-	}
+	const auto [uid, gid] = GetUidAndGid();
 
 	passwd pwd = {};
 	passwd *p_pwd;
@@ -397,4 +410,23 @@ string RascsiImage::GetHomeDir()
 	else {
 		return "/home/pi";
 	}
+}
+
+pair<int, int> RascsiImage::GetUidAndGid()
+{
+	int uid = getuid();
+	if (const char *sudo_user = getenv("SUDO_UID"); sudo_user != nullptr) {
+		uid = stoi(sudo_user);
+	}
+
+	passwd pwd = {};
+	passwd *p_pwd;
+	array<char, 256> pwbuf;
+
+	int gid = -1;
+	if (!getpwuid_r(uid, &pwd, pwbuf.data(), pwbuf.size(), &p_pwd)) {
+		gid = pwd.pw_gid;
+	}
+
+	return make_pair(uid, gid);
 }

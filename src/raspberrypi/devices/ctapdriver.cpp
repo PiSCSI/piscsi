@@ -373,20 +373,20 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-void CTapDriver::OpenDump(const Filepath& path) {
+void CTapDriver::OpenDump(const string& path) {
 	if (m_pcap == nullptr) {
 		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
 	}
 	if (m_pcap_dumper != nullptr) {
 		pcap_dump_close(m_pcap_dumper);
 	}
-	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
+	m_pcap_dumper = pcap_dump_open(m_pcap, path.c_str());
 	if (m_pcap_dumper == nullptr) {
 		LOGERROR("Can't open pcap file: %s", pcap_geterr(m_pcap))
 		throw io_exception("Can't open pcap file");
 	}
 
-	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath())
+	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.c_str())
 }
 
 bool CTapDriver::Enable() const

@@ -52,7 +52,7 @@ TEST(RascsiImageTest, CreateImage)
 	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as invalid";
 
 	SetParam(command, "size", "513");
-	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as invalid";
+	EXPECT_FALSE(image.CreateImage(context, command)) << "Size must be reported as not a multiple of 512";
 
 	// Further tests would modify the filesystem
 }
@@ -68,6 +68,11 @@ TEST(RascsiImageTest, DeleteImage)
 	SetParam(command, "file", "/a/b/c/filename");
 	EXPECT_FALSE(image.DeleteImage(context, command)) << "Depth must be reported as invalid";
 
+	MockStorageDevice device;
+	device.ReserveFile("filename", 0, 0);
+	SetParam(command, "file", "filename");
+	EXPECT_FALSE(image.DeleteImage(context, command)) << "File must be reported as in use";
+
 	// Further testing would modify the filesystem
 }
 
@@ -77,16 +82,13 @@ TEST(RascsiImageTest, RenameImage)
 	PbCommand command;
 	RascsiImage image;
 
-	EXPECT_FALSE(image.RenameImage(context, command)) << "Filenames must be reported as missing";
-
-	SetParam(command, "to", "/a/b/c/filename_to");
-	EXPECT_FALSE(image.RenameImage(context, command)) << "Depth must be reported as invalid";
-
-	SetParam(command, "to", "filename_to");
 	EXPECT_FALSE(image.RenameImage(context, command)) << "Source filename must be reported as missing";
 
 	SetParam(command, "from", "/a/b/c/filename_from");
 	EXPECT_FALSE(image.RenameImage(context, command)) << "Depth must be reported as invalid";
+
+	SetParam(command, "from", "filename_from");
+	EXPECT_FALSE(image.RenameImage(context, command)) << "Source file must be reported as missing";
 
 	// Further testing would modify the filesystem
 }
@@ -97,16 +99,13 @@ TEST(RascsiImageTest, CopyImage)
 	PbCommand command;
 	RascsiImage image;
 
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Filenames must be reported as missing";
-
-	SetParam(command, "to", "/a/b/c/filename_to");
-	EXPECT_FALSE(image.CopyImage(context, command)) << "Depth must be reported as invalid";
-
-	SetParam(command, "to", "filename_to");
 	EXPECT_FALSE(image.CopyImage(context, command)) << "Source filename must be reported as missing";
 
 	SetParam(command, "from", "/a/b/c/filename_from");
 	EXPECT_FALSE(image.CopyImage(context, command)) << "Depth must be reported as invalid";
+
+	SetParam(command, "from", "filename_from");
+	EXPECT_FALSE(image.CopyImage(context, command)) << "Source file must be reported as missing";
 
 	// Further testing would modify the filesystem
 }

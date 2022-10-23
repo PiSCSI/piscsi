@@ -14,8 +14,10 @@
 #include <unistd.h>
 #include <vector>
 #include <sstream>
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 
 shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
 {
@@ -65,33 +67,31 @@ void TestDispatch(PbDeviceType type)
 	NiceMock<MockAbstractController> controller(0);
 	auto device = CreateDevice(type, controller);
 
-	EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
+    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
 }
 
-int OpenTempFile(string& file)
+pair<int, path> OpenTempFile()
 {
-	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string
+	const string filename = string(temp_directory_path()) + "/rascsi_test-XXXXXX"; //NOSONAR Publicly writable directory is fine here
+	vector<char> f(filename.begin(), filename.end());
+	f.push_back(0);
 
-	const int fd = mkstemp(filename);
-	EXPECT_NE(-1, fd) << "Couldn't create temporary file '" << filename << "'";
+	const int fd = mkstemp(f.data());
+	EXPECT_NE(-1, fd) << "Couldn't create temporary file '" << f.data() << "'";
 
-	file = filename;
-
-	return fd;
+	return make_pair(fd, path(f.data()));
 }
 
-string CreateTempFile(int size)
+path CreateTempFile(int size)
 {
-	char filename[] = "/tmp/rascsi_test-XXXXXX"; //NOSONAR mkstemp() requires a modifiable string
+	const auto [fd, filename] = OpenTempFile();
+
 	vector<char> data(size);
-
-	const int fd = mkstemp(filename);
-
 	const size_t count = write(fd, data.data(), data.size());
 	close(fd);
 	EXPECT_EQ(count, data.size()) << "Couldn't create temporary file '" << string(filename) << "'";
 
-	return filename;
+	return path(filename);
 }
 
 int GetInt16(const vector<byte>& buf, int offset)
@@ -106,6 +106,5 @@ uint32_t GetInt32(const vector<byte>& buf, int offset)
 	assert(buf.size() > (size_t)offset + 3);
 
 	return ((uint32_t)buf[offset] << 24) | ((uint32_t)buf[offset + 1] << 16) |
-		((uint32_t)buf[offset + 2] << 8) | (uint32_t)buf[offset + 3];
+			((uint32_t)buf[offset + 2] << 8) | (uint32_t)buf[offset + 3];
 }
-

@@ -13,8 +13,10 @@
 #include "rascsi_interface.pb.h"
 #include <string>
 #include <memory>
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 using namespace rascsi_interface;
 
 class PrimaryDevice;
@@ -27,9 +29,8 @@ void TestInquiry(PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, co
 
 void TestDispatch(PbDeviceType);
 
-int OpenTempFile(string&);
-string CreateTempFile(int);
+pair<int, path> OpenTempFile();
+path CreateTempFile(int);
 
 int GetInt16(const vector<byte>&, int);
 uint32_t GetInt32(const vector<byte>&, int);
-

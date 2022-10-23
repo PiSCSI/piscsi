@@ -9,6 +9,17 @@
 
 #include "mocks.h"
 
+void ScsiMo_SetUpModePages(map<int, vector<byte>>& pages)
+{
+	EXPECT_EQ(6, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(12, pages[1].size());
+	EXPECT_EQ(24, pages[3].size());
+	EXPECT_EQ(24, pages[4].size());
+	EXPECT_EQ(4, pages[6].size());
+	EXPECT_EQ(12, pages[8].size());
+	EXPECT_EQ(12, pages[32].size());
+}
+
 TEST(ScsiMoTest, Inquiry)
 {
 	TestInquiry(SCMO, device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, "RaSCSI  SCSI MO         ", 0x1f, true);
@@ -29,15 +40,14 @@ TEST(ScsiMoTest, SetUpModePages)
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIMO mo(0, sector_sizes);
 
-	mo.SetReady(false);
+	// Non changeable
 	mo.SetUpModePages(pages, 0x3f, false);
-	EXPECT_EQ(6, pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(12, pages[1].size());
-	EXPECT_EQ(24, pages[3].size());
-	EXPECT_EQ(24, pages[4].size());
-	EXPECT_EQ(4, pages[6].size());
-	EXPECT_EQ(12, pages[8].size());
-	EXPECT_EQ(12, pages[32].size());
+	ScsiMo_SetUpModePages(pages);
+
+	// Changeable
+	pages.clear();
+	mo.SetUpModePages(pages, 0x3f, true);
+	ScsiMo_SetUpModePages(pages);
 }
 
 TEST(ScsiMoTest, TestAddVendorPage)

@@ -91,9 +91,7 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 
 void SCSIDaynaPort::Open()
 {
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	m_tap.OpenDump(path);
+	m_tap.OpenDump(GetFilename().c_str());
 }
 
 vector<byte> SCSIDaynaPort::InquiryInternal() const
