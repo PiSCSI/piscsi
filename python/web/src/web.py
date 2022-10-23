@@ -1082,9 +1082,9 @@ def extract_image():
         for properties_file in extract_result["properties_files_moved"]:
             if properties_file["status"]:
                 logging.info(
-                        "Properties file %(file_name)s moved to %(directory)s",
-                        file_name=properties_file["name"],
-                        directory=CFG_DIR,
+                        "Properties file %s moved to %s",
+                        properties_file["name"],
+                        CFG_DIR,
                         )
             else:
                 logging.warning(
