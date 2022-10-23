@@ -287,7 +287,7 @@ def test_download_url_to_iso(
 
     http_path = f"/images/{test_file_name}"
     url = httpserver.url_for(http_path)
-    ISO_TYPE = "-hfs"
+    ISO_TYPE = "ISO-9660 Level 1"
 
     with open("tests/assets/test_image.hds", mode="rb") as file:
         test_file_data = file.read()
@@ -315,7 +315,7 @@ def test_download_url_to_iso(
 
     assert (
         response_data["messages"][0]["message"]
-        == f'CD-ROM image {iso_file_name} created with argument "{ISO_TYPE}" '
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
         f"and attached to SCSI ID {SCSI_ID}"
     )
 

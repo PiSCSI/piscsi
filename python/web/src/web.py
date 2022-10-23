@@ -794,7 +794,25 @@ def download_to_iso():
     """
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
-    iso_args = request.form.get("type").split()
+    iso_type = request.form.get("type")
+
+    if iso_type == "HFS":
+        iso_args = ["-hfs"]
+    elif iso_type == "ISO-9660 Level 1":
+        iso_args = ["-iso-level", "1"]
+    elif iso_type == "ISO-9660 Level 2":
+        iso_args = ["-iso-level", "2"]
+    elif iso_type == "ISO-9660 Level 3":
+        iso_args = ["-iso-level", "3"]
+    elif iso_type == "Joliet":
+        iso_args = ["-J"]
+    elif iso_type == "Rock Ridge":
+        iso_args = ["-r"]
+    else:
+        return response(
+            error=True,
+            message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type)
+        )
 
     process = file_cmd.download_file_to_iso(url, *iso_args)
     process = ReturnCodeMapper.add_msg(process)
@@ -816,10 +834,10 @@ def download_to_iso():
     if process_attach["status"]:
         return response(
             message=_(
-                "CD-ROM image %(file_name)s created with argument \"%(args)s\" "
+                "CD-ROM image %(file_name)s with type %(iso_type)s was created "
                 "and attached to SCSI ID %(id_number)s",
                 file_name=process["file_name"],
-                args=" ".join(iso_args),
+                iso_type=iso_type,
                 id_number=scsi_id,
             ),
         )
@@ -827,8 +845,10 @@ def download_to_iso():
     return response(
         error=True,
         message=_(
-            "CD-ROM image %(file_name)s was created, but could not be attached: %(error)s",
+            "CD-ROM image %(file_name)s with type %(iso_type)s was created "
+            "but could not be attached: %(error)s",
             file_name=process["file_name"],
+            iso_type=iso_type,
             error=process_attach["msg"],
         ),
     )
