@@ -55,8 +55,10 @@ def test_create_file_with_properties(http_client, list_files, delete_file):
     assert response.status_code == 201
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["data"]["image"] == file_name
-    assert response_data["messages"][0]["message"] == \
-            f"Image file with properties created: {file_name}"
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
     assert file_name in list_files()
 
     # Cleanup
@@ -312,9 +314,9 @@ def test_download_url_to_iso(
     assert iso_file_name in list_attached_images()
 
     assert (
-        response_data["messages"][0]["message"] == \
-            f"CD-ROM image {iso_file_name} created with argument \"{ISO_TYPE}\" "
-            f"and attached to SCSI ID {SCSI_ID}"
+        response_data["messages"][0]["message"]
+        == f'CD-ROM image {iso_file_name} created with argument "{ISO_TYPE}" '
+        f"and attached to SCSI ID {SCSI_ID}"
     )
 
     # Cleanup
