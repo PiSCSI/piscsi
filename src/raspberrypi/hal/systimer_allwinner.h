@@ -25,7 +25,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
     // Default constructor
     SysTimer_AllWinner() = default;
     // Default destructor
-    ~SysTimer_AllWinner() = default;
+    ~SysTimer_AllWinner() override = default;
     // Initialization
     void Init() override;
     // Get system timer low byte
@@ -90,10 +90,10 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
     static const uint32_t system_bus_base_address = 0x01C20000;
 
     struct sun8i_sysbus_registers {
-        uint32_t pad_00_5C[(0x60 / sizeof(uint32_t))];
+        uint32_t pad_00_5C[(0x60 / sizeof(uint32_t))]; //NOSONAR c-style array used for padding
         /* 0x0060 Bus Clock Gating Register 0 */
         uint32_t bus_clk_gating_reg0;
-        uint32_t pad_64_2C0[((0x2C0 - 0x64) / sizeof(uint32_t))];
+        uint32_t pad_64_2C0[((0x2C0 - 0x64) / sizeof(uint32_t))]; //NOSONAR c-style array used for padding
         /* 0x2C0 Bus Software Reset Register 0 */
         uint32_t bus_soft_rst_reg0;
     };

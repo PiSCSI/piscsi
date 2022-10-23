@@ -26,7 +26,7 @@ class GPIOBUS_Raspberry final : public GPIOBUS
   public:
     // Basic Functions
     GPIOBUS_Raspberry()  = default;
-    ~GPIOBUS_Raspberry() = default;
+    ~GPIOBUS_Raspberry() override = default;
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
     // Initialization

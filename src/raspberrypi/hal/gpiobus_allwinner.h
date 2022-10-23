@@ -26,7 +26,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
   public:
     // Basic Functions
     GPIOBUS_Allwinner()  = default;
-    ~GPIOBUS_Allwinner() = default;
+    ~GPIOBUS_Allwinner() override = default;
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
     // Initialization

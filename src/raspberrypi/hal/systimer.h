@@ -25,7 +25,7 @@ class PlatformSpecificTimer
     // Default constructor
     PlatformSpecificTimer() = default;
     // Default destructor
-    ~PlatformSpecificTimer() = default;
+    virtual ~PlatformSpecificTimer() = default;
     // Initialization
     virtual void Init() = 0;
     // Get system timer low byte

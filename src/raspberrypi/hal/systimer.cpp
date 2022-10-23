@@ -31,7 +31,7 @@ std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
 
 void SysTimer::Init()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
 
     if (!initialized) {
         if (SBC_Version::IsRaspberryPi()) {

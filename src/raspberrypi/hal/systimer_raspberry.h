@@ -27,7 +27,7 @@ class SysTimer_Raspberry : public PlatformSpecificTimer
     // Default constructor
     SysTimer_Raspberry() = default;
     // Default destructor
-    ~SysTimer_Raspberry() = default;
+    ~SysTimer_Raspberry() override = default;
     // Initialization
     void Init() override;
     // Get system timer low byte
