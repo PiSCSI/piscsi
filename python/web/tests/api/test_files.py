@@ -24,7 +24,6 @@ def test_create_file(http_client, list_files, delete_file):
     )
 
     response_data = response.json()
-    print(str(response_data))
 
     assert response.status_code == 201
     assert response_data["status"] == STATUS_SUCCESS
@@ -52,7 +51,6 @@ def test_create_file_with_properties(http_client, list_files, delete_file):
     )
 
     response_data = response.json()
-    print(str(response_data))
 
     assert response.status_code == 201
     assert response_data["status"] == STATUS_SUCCESS
