@@ -138,8 +138,8 @@ TEST(HostServicesTest, ModeSense10)
 
 TEST(HostServicesTest, SetUpModePages)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	MockHostServices services(0, controller_manager);
 	map<int, vector<byte>> mode_pages;
 

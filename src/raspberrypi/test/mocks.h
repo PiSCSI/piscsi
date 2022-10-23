@@ -142,7 +142,7 @@ public:
 
 	vector<int>& InitCmd(int size) { return AbstractController::InitCmd(size); } //NOSONAR Hides function on purpose
 
-	MockBus bus;
+	shared_ptr<MockBus> bus = make_shared<MockBus>();
 };
 
 class MockScsiController : public ScsiController
@@ -161,7 +161,7 @@ public:
 	explicit MockScsiController(int target_id) : ScsiController(bus, target_id) {}
 	~MockScsiController() override = default;
 
-	MockBus bus;
+	shared_ptr<MockBus> bus = make_shared<MockBus>();
 };
 
 class MockDevice : public Device

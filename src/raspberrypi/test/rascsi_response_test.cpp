@@ -17,8 +17,8 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	PbResult pb_operation_info_result;
@@ -29,8 +29,8 @@ TEST(RascsiResponseTest, Operation_Count)
 
 void TestNonDiskDevice(const string& name, int default_param_count)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 
@@ -73,8 +73,8 @@ TEST(RascsiResponseTest, GetDevice_HostServices)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	DeviceFactory device_factory;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	unordered_set<int> ids;

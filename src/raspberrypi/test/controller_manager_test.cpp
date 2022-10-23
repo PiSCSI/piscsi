@@ -17,8 +17,8 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN1 = 2;
 	const int LUN2 = 3;
 
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, -1, "services");
@@ -50,8 +50,8 @@ TEST(ControllerManagerTest, ResetAllControllers)
 {
 	const int ID = 2;
 
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	auto bus_ptr = make_shared<MockBus>();
+	ControllerManager controller_manager(bus_ptr);
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");

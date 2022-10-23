@@ -19,7 +19,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller_manager = make_shared<ControllerManager>(bus);
 
 	auto device = device_factory.CreateDevice(*controller_manager, type, 0, "");
 
