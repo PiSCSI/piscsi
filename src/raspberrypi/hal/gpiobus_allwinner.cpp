@@ -28,7 +28,7 @@ extern int wiringPiMode;
 
 bool GPIOBUS_Allwinner::Init(mode_e mode)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return false;
     //     GPIOBUS::Init(mode);
     //     wiringPiSetup();
@@ -127,8 +127,8 @@ bool GPIOBUS_Allwinner::Init(mode_e mode)
 
 void GPIOBUS_Allwinner::Cleanup()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 
     // #if defined(__x86_64__) || defined(__X86__)
     // 	return;
@@ -242,7 +242,7 @@ extern int physToGpio_BPI_M2P[64];
 // }
 void GPIOBUS_Allwinner::Reset()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // #if defined(__x86_64__) || defined(__X86__)
     //     return;
     // #else
@@ -334,7 +334,7 @@ void GPIOBUS_Allwinner::Reset()
 //---------------------------------------------------------------------------
 BYTE GPIOBUS_Allwinner::GetDAT()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return 0;
     // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0),
     // GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
@@ -359,7 +359,7 @@ BYTE GPIOBUS_Allwinner::GetDAT()
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::SetDAT(BYTE dat)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // // TODO: This is crazy inefficient...
     // SetSignal(PIN_DT0, dat & (1 << 0));
     // SetSignal(PIN_DT1, dat & (1 << 1));
@@ -397,7 +397,7 @@ void GPIOBUS_Allwinner::SetControl(int pin, bool ast)
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::SetMode(int pin, int mode)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // if(mode == GPIO_INPUT){
     //     pinMode(pin, INPUT);
 
@@ -413,7 +413,7 @@ void GPIOBUS_Allwinner::SetMode(int pin, int mode)
 //---------------------------------------------------------------------------
 bool GPIOBUS_Allwinner::GetSignal(int pin) const
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return false;
     // return (digitalRead(pin) != 0);
 }
@@ -425,7 +425,7 @@ bool GPIOBUS_Allwinner::GetSignal(int pin) const
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // digitalWrite(pin, ast);
 }
 
@@ -437,7 +437,7 @@ void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
 //---------------------------------------------------------------------------
 bool GPIOBUS_Allwinner::WaitSignal(int pin, int ast)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return false;
     // // Get current time
     // uint32_t now = SysTimer::instance().GetTimerLow();
@@ -465,12 +465,12 @@ bool GPIOBUS_Allwinner::WaitSignal(int pin, int ast)
 
 void GPIOBUS_Allwinner::DisableIRQ()
 {
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__);
+    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 void GPIOBUS_Allwinner::EnableIRQ()
 {
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__);
+    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 //---------------------------------------------------------------------------
@@ -482,7 +482,7 @@ void GPIOBUS_Allwinner::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::PinConfig(int pin, int mode)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // if(mode == GPIO_INPUT){
     //     pinMode(pin, INPUT);
 
@@ -498,7 +498,7 @@ void GPIOBUS_Allwinner::PinConfig(int pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::PullConfig(int pin, int mode)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // switch (mode)
     // {
     // case GPIO_PULLNONE:
@@ -523,7 +523,7 @@ void GPIOBUS_Allwinner::PullConfig(int pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS_Allwinner::PinSetSignal(int pin, bool ast)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
 //---------------------------------------------------------------------------
@@ -534,12 +534,12 @@ void GPIOBUS_Allwinner::PinSetSignal(int pin, bool ast)
 void GPIOBUS_Allwinner::DrvConfig(DWORD drive)
 {
     (void)drive;
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__);
+    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 uint32_t GPIOBUS_Allwinner::Acquire()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // Only used for development/debugging purposes. Isn't really applicable
     // to any real-world RaSCSI application
     return 0;

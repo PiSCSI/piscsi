@@ -387,6 +387,8 @@ class GPIOBUS : public BUS
     uint32_t baseaddr = 0; // Base address
 #endif
 
+    static const array<int, 19> SignalTable; // signal table
+
   private:
     int rpitype = 0; // Type of Raspberry Pi
 
@@ -435,6 +437,4 @@ class GPIOBUS : public BUS
 
     array<uint32_t, 256> tblDatSet = {}; // Table setting table
 #endif
-
-    static const array<int, 19> SignalTable; // signal table
 };
