@@ -39,6 +39,19 @@ def test_show_named_drive_presets(http_client):
     response = http_client.get("/drive/list")
     response_data = response.json()
 
+    prev_drive = {"name": ""}
+    for drive in (
+            response_data["data"]["drive_properties"]["hd_conf"] +
+            response_data["data"]["drive_properties"]["cd_conf"] +
+            response_data["data"]["drive_properties"]["rm_conf"] +
+            response_data["data"]["drive_properties"]["mo_conf"]
+            ):
+        # Test that the named drive has a name
+        assert drive["name"] != ""
+        # Test that "name" is unique for each named drive
+        assert drive["name"] != prev_drive["name"]
+        prev_drive = drive
+
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert "files" in response_data["data"]
