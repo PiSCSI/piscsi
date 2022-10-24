@@ -83,7 +83,8 @@ void Banner(int argc, char* argv[])
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
 		cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)\n";
 		cout << "  hdr : SCSI HD image (Removable generic HD image)\n";
-		cout << "  hdn : SCSI HD image (NEC GENUINE)\n";
+		cout << "  hda : SCSI HD image (Apple compatible image)\n";
+		cout << "  hdn : SCSI HD image (NEC compatible image)\n";
 		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
 		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
 		cout << "  mos : SCSI MO image (MO image)\n";
