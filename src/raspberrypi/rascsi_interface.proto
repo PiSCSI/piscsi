@@ -1,3 +1,12 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI Reloaded
+// for Raspberry Pi
+//
+// Copyright (C) 2021-2022 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
 //
 // Each rascsi message sent to the rascsi server is preceded by the magic string "RASCSI".
 // A message starts with a little endian 32 bit header which contains the protobuf message size.
@@ -44,7 +53,6 @@ enum PbOperation {
     //   "interface": A prioritized comma-separated list of interfaces to create a network bridge for
     //   "inet": The IP address and netmask for the network bridge
     //   "cmd": The command to be used for printing, with "%f" as file placeholder
-    //   "timeout": The timeout for printer reservations in seconds
     ATTACH = 1;
 
     // Detach a device and return the new device list (PbDevicesInfo)
@@ -76,8 +84,9 @@ enum PbOperation {
 
     // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
     // may return a lot of data. More specific other operations should be used instead.
-    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
-    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    // Parameters:
+    //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
 
     // Get rascsi server version (PbVersionInfo)
@@ -92,8 +101,8 @@ enum PbOperation {
 
     // Get information on available image files in the default image folder (PbImageFilesInfo)
     // Parameters:
-    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
-    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     DEFAULT_IMAGE_FILES_INFO = 14;
     
     // Get information on an image file (not necessarily in the default image folder).

@@ -1,15 +1,11 @@
 .DEFAULT_GOAL: all
 
-# Depending on the GCC version the compilation flags differ
-GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
-
 ## Optional build flags:
 ##   CROSS_COMPILE : Specify which compiler toolchain to use.
 ##                   To cross compile set this accordingly, e.g. to:
 ##                   arm-linux-gnueabihf-
 CROSS_COMPILE =
 
-CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 AR = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
@@ -32,6 +28,8 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
+# Depending on the GCC version the compilation flags differ
+GCCVERSION10 := $(shell expr `$(CXX) -dumpversion` \>= 10)
 
 CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
 
@@ -188,7 +186,7 @@ lcov: test
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
-$(SRC_SHARED): $(SRC_PROTOBUF)
+$(SRC_SHARED) $(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE): $(OBJ_PROTOBUF)
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs

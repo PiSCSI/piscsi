@@ -42,7 +42,7 @@ public:
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
 
-	bool ProcessCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
+	bool ProcessDeviceCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
 	bool ProcessCmd(const CommandContext&, const PbCommand&);
 	bool SetLogLevel(const string&) const;
 	bool Start(shared_ptr<PrimaryDevice>, bool) const;
@@ -56,14 +56,14 @@ public:
 	void DetachAll();
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
-	bool ValidateImageFile(const CommandContext&, shared_ptr<PrimaryDevice>, const string&, string&) const;
+	bool ValidateImageFile(const CommandContext&, shared_ptr<StorageDevice>, const string&, string&) const;
 	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
 	string ValidateLunSetup(const PbCommand&) const;
 	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
 	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
-	bool SetSectorSize(const CommandContext&, const string& type, shared_ptr<PrimaryDevice>, int) const;
+	bool SetSectorSize(const CommandContext&, shared_ptr<PrimaryDevice>, int) const;
 
-	static bool ValidationOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
+	static bool ValidateOperationAgainstDevice(const CommandContext&, const shared_ptr<PrimaryDevice>,
 			const PbOperation&);
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, shared_ptr<PrimaryDevice>);

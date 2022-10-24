@@ -67,11 +67,22 @@ public:
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
 
 	int GetInitiatorId() const override { return initiator_id; }
-	void SetByteTransfer(bool b) override { is_byte_transfer = b; }
 
+	// Phases
+	void BusFree() override;
+	void Selection() override;
+	void Command() override;
+	void MsgIn() override;
+	void MsgOut() override;
 	void Status() override;
 	void DataIn() override;
 	void DataOut() override;
+
+	// TODO Make non-virtual private as soon as SysTimer calls do not segfault anymore on a regular PC,
+	// e.g. by using ifdef __arm__. Currently the unit tests require this method to be public.
+	virtual void Execute();
+
+	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 private:
 
@@ -84,16 +95,6 @@ private:
 	// The LUN from the IDENTIFY message
 	int identified_lun = -1;
 
-	bool is_byte_transfer = false;
-	uint32_t bytes_to_transfer = 0;
-
-	// Phases
-	void BusFree() override;
-	void Selection() override;
-	void Command() override;
-	void MsgIn() override;
-	void MsgOut() override;
-
 	// Data transfer
 	void Send();
 	bool XferMsg(int);
@@ -102,15 +103,12 @@ private:
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
 
-	void Execute();
 	void DataOutNonBlockOriented();
 	void Receive();
 
 	void ProcessCommand();
 	void ParseMessage();
 	void ProcessMessage();
-
-	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 	void Sleep();
 

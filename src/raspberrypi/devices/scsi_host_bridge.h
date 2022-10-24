@@ -38,6 +38,9 @@ public:
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(scsi_command) override;
 
+	// TODO Remove as soon as SCSIBR is not a subclass of Disk anymore
+	void Open() override { super::ValidateFile(GetFilename()); }
+
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int GetMessage10(const vector<int>&, vector<BYTE>&);

@@ -30,20 +30,18 @@ public:
 	bool Dispatch(scsi_command) override;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void Cleanup();
 
 	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
-	void ReserveUnit() override;
-	void ReleaseUnit() override;
+	void ReserveUnit() override { PrimaryDevice::ReserveUnit(); }
+	void ReleaseUnit() override { PrimaryDevice::ReleaseUnit(); }
+	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void Print() override;
 	void SynchronizeBuffer();
-	void SendDiagnostic() override;
 	void StopPrint();
 
 	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
-	void CheckReservation();
-	void DiscardReservation();
-	void Cleanup();
 
 private:
 
@@ -53,9 +51,4 @@ private:
 
 	char filename[TMP_FILENAME_LENGTH + 1]; //NOSONAR mkstemp() requires a modifiable string
 	int fd = -1;
-
-	int reserving_initiator = NOT_RESERVED;
-
-	time_t reservation_time = 0;
-	int timeout = 0;
 };

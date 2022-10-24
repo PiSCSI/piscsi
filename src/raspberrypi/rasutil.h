@@ -23,5 +23,7 @@ namespace ras_util
 	string Banner(const string&);
 	string ListDevices(const list<rascsi_interface::PbDevice>&);
 
+	string GetExtensionLowerCase(const string&);
+
 	void FixCpu(int);
 }

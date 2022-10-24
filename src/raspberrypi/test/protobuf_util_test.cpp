@@ -25,17 +25,17 @@ void TestSpecialDevice(const string& name)
 TEST(CommandUtil, AddGetParam)
 {
 	PbCommand command;
-	AddParam(command, "key", "value");
+	SetParam(command, "key", "value");
 	EXPECT_EQ("value", GetParam(command, "key"));
 	EXPECT_EQ("", GetParam(command, "xyz"));
 
 	PbDeviceDefinition definition;
-	AddParam(definition, "key", "value");
+	SetParam(definition, "key", "value");
 	EXPECT_EQ("value", GetParam(definition, "key"));
 	EXPECT_EQ("", GetParam(definition, "xyz"));
 
 	PbDevice device;
-	AddParam(device, "key", "value");
+	SetParam(device, "key", "value");
 	const auto& it = device.params().find("key");
 	EXPECT_EQ("value", it->second);
 }

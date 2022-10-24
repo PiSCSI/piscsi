@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "rascsi/command_context.h"
 

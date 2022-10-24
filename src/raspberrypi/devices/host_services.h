@@ -30,8 +30,6 @@ public:
 	vector<byte> InquiryInternal() const override;
 	void TestUnitReady() override;
 
-	bool SupportsFile() const override { return false; }
-
 protected:
 
 	void SetUpModePages(map<int, vector<byte>>&, int, bool) const override;

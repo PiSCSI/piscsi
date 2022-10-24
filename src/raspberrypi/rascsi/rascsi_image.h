@@ -38,10 +38,10 @@ private:
 	bool CheckDepth(string_view) const;
 	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
 	bool CreateImageFolder(const CommandContext&, const string&) const;
-	bool IsValidSrcFilename(const string&) const;
-	bool IsValidDstFilename(const string&) const;
 	bool ValidateParams(const CommandContext&, const PbCommand&, const string&, string&, string&) const;
 
+	static bool IsValidSrcFilename(const string&);
+	static bool IsValidDstFilename(const string&);
 	static string GetHomeDir();
 
 	string default_folder;

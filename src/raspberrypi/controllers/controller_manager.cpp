@@ -17,18 +17,22 @@ using namespace std;
 bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice> device)
 {
 	auto controller = FindController(id);
-	if (controller == nullptr) {
+	if (controller != nullptr) {
+		return controller->AddDevice(device);
+	}
+
+	// If there is no LUN yet the first LUN must be LUN 0
+	if (device->GetLun() == 0) {
 		controller = make_shared<ScsiController>(bus, id);
+
 		if (controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;
 		}
-
-		return false;
 	}
 
-	return controller->AddDevice(device);
+	return false;
 }
 
 bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
@@ -79,7 +83,7 @@ void ControllerManager::ResetAllControllers() const
 
 shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const
 {
-	if (const auto controller = FindController(id); controller != nullptr) {
+	if (const auto& controller = FindController(id); controller != nullptr) {
 		return controller->GetDeviceForLun(lun);
 	}
 

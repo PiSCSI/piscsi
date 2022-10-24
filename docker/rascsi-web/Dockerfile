@@ -21,10 +21,13 @@ WORKDIR /home/pi/RASCSI
 USER pi
 COPY --chown=pi:pi . .
 
-# Standalone RaSCSI web UI
-RUN ./easyinstall.sh --run_choice=11 --skip-token
+# Install standalone RaSCSI web UI
+RUN ./easyinstall.sh --run_choice=11
 
-# Wired network bridge
+# Enable web UI authentication
+RUN ./easyinstall.sh --run_choice=13
+
+# Setup wired network bridge
 RUN ./easyinstall.sh --run_choice=6 --headless
 
 USER root

@@ -17,49 +17,129 @@ TEST(DeviceTest, Properties)
 
 	MockDevice device(LUN);
 
-	EXPECT_FALSE(device.IsProtectable());
-	device.SetProtectable(true);
-	EXPECT_TRUE(device.IsProtectable());
+	EXPECT_FALSE(device.IsReady()) << "Wrong default value";
+	device.SetReady(true);
+	EXPECT_TRUE(device.IsReady());
+	device.SetReady(false);
+	EXPECT_FALSE(device.IsReady());
 
-	EXPECT_FALSE(device.IsProtected());
-	device.SetProtected(true);
-	EXPECT_TRUE(device.IsProtected());
+	EXPECT_FALSE(device.IsReset()) << "Wrong default value";
+	device.SetReset(true);
+	EXPECT_TRUE(device.IsReset());
+	device.SetReset(false);
+	EXPECT_FALSE(device.IsReset());
 
-	EXPECT_FALSE(device.IsReadOnly());
+	EXPECT_FALSE(device.IsAttn()) << "Wrong default value";
+	device.SetAttn(true);
+	EXPECT_TRUE(device.IsAttn());
+	device.SetAttn(false);
+	EXPECT_FALSE(device.IsAttn());
+
+	EXPECT_FALSE(device.IsReadOnly()) << "Wrong default value";
 	device.SetReadOnly(true);
 	EXPECT_TRUE(device.IsReadOnly());
+	device.SetReadOnly(false);
+	EXPECT_FALSE(device.IsReadOnly());
 
-	EXPECT_FALSE(device.IsStoppable());
+	EXPECT_FALSE(device.IsProtectable()) << "Wrong default value";
+	device.SetProtectable(true);
+	EXPECT_TRUE(device.IsProtectable());
+	device.SetProtectable(false);
+	EXPECT_FALSE(device.IsProtectable());
+
+	EXPECT_FALSE(device.IsProtected()) << "Wrong default value";
+	device.SetProtected(true);
+	EXPECT_FALSE(device.IsProtected());
+	device.SetProtectable(true);
+	device.SetProtected(true);
+	EXPECT_TRUE(device.IsProtected());
+	device.SetProtected(false);
+	EXPECT_FALSE(device.IsProtected());
+
+	device.SetProtectable(false);
+	device.SetReadOnly(true);
+	device.SetProtected(true);
+	EXPECT_FALSE(device.IsProtected()) << "Read-only or not protectable devices cannot be protected";
+	device.SetReadOnly(false);
+	device.SetProtected(true);
+	EXPECT_FALSE(device.IsProtected()) << "Read-only or not protectable devices cannot be protected";
+
+	EXPECT_FALSE(device.IsStoppable()) << "Wrong default value";
 	device.SetStoppable(true);
 	EXPECT_TRUE(device.IsStoppable());
+	device.SetStoppable(false);
+	EXPECT_FALSE(device.IsStoppable());
 
-	EXPECT_FALSE(device.IsStopped());
+	EXPECT_FALSE(device.IsStopped()) << "Wrong default value";
 	device.SetStopped(true);
 	EXPECT_TRUE(device.IsStopped());
+	device.SetStopped(false);
+	EXPECT_FALSE(device.IsStopped());
 
-	EXPECT_FALSE(device.IsRemovable());
+	EXPECT_FALSE(device.IsRemovable()) << "Wrong default value";
 	device.SetRemovable(true);
 	EXPECT_TRUE(device.IsRemovable());
+	device.SetRemovable(false);
+	EXPECT_FALSE(device.IsRemovable());
 
-	EXPECT_FALSE(device.IsRemoved());
+	EXPECT_FALSE(device.IsRemoved()) << "Wrong default value";
 	device.SetRemoved(true);
 	EXPECT_TRUE(device.IsRemoved());
+	device.SetRemoved(false);
+	EXPECT_FALSE(device.IsRemoved());
 
-	EXPECT_FALSE(device.IsLockable());
+	EXPECT_FALSE(device.IsLockable()) << "Wrong default value";
 	device.SetLockable(true);
 	EXPECT_TRUE(device.IsLockable());
+	device.SetLockable(false);
+	EXPECT_FALSE(device.IsLockable());
 
-	EXPECT_FALSE(device.IsLocked());
+	EXPECT_FALSE(device.IsLocked()) << "Wrong default value";
 	device.SetLocked(true);
 	EXPECT_TRUE(device.IsLocked());
+	device.SetLocked(false);
+	EXPECT_FALSE(device.IsLocked());
 
-	EXPECT_FALSE(device.SupportsParams());
-	EXPECT_TRUE(device.SupportsFile());
+	EXPECT_FALSE(device.SupportsParams()) << "Wrong default value";
 	device.SupportsParams(true);
 	EXPECT_TRUE(device.SupportsParams());
+	device.SupportsParams(false);
+	EXPECT_FALSE(device.SupportsParams());
+
+	EXPECT_FALSE(device.SupportsFile()) << "Wrong default value";
+	device.SupportsFile(true);
+	EXPECT_TRUE(device.SupportsFile());
+	device.SupportsFile(false);
 	EXPECT_FALSE(device.SupportsFile());
 
 	EXPECT_EQ(LUN, device.GetLun());
+}
+
+TEST(DeviceTest, GetTypeString)
+{
+	MockDevice schd(SCHD);
+	EXPECT_STREQ("SCHD", schd.GetTypeString());
+
+	MockDevice scrm(SCRM);
+	EXPECT_STREQ("SCRM", scrm.GetTypeString());
+
+	MockDevice scmo(SCMO);
+	EXPECT_STREQ("SCMO", scmo.GetTypeString());
+
+	MockDevice sccd(SCCD);
+	EXPECT_STREQ("SCCD", sccd.GetTypeString());
+
+	MockDevice schs(SCHS);
+	EXPECT_STREQ("SCHS", schs.GetTypeString());
+
+	MockDevice scbr(SCBR);
+	EXPECT_STREQ("SCBR", scbr.GetTypeString());
+
+	MockDevice scdp(SCDP);
+	EXPECT_STREQ("SCDP", scdp.GetTypeString());
+
+	MockDevice sclp(SCLP);
+	EXPECT_STREQ("SCLP", sclp.GetTypeString());
 }
 
 TEST(DeviceTest, Vendor)
@@ -81,7 +161,7 @@ TEST(DeviceTest, Product)
 	device.SetProduct("1234567890123456");
 	EXPECT_EQ("1234567890123456", device.GetProduct());
 	device.SetProduct("xyz", false);
-	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI complient";
+	EXPECT_EQ("1234567890123456", device.GetProduct()) << "Changing vital product data is not SCSI compliant";
 }
 
 TEST(DeviceTest, Revision)
@@ -179,11 +259,16 @@ TEST(DeviceTest, Eject)
 	device.SetReady(false);
 	device.SetRemovable(false);
 	EXPECT_FALSE(device.Eject(false));
+
 	device.SetReady(true);
 	EXPECT_FALSE(device.Eject(false));
+
 	device.SetRemovable(true);
 	device.SetLocked(true);
 	EXPECT_FALSE(device.Eject(false));
+	EXPECT_TRUE(device.Eject(true));
+
+	device.SetReady(true);
 	device.SetLocked(false);
 	EXPECT_TRUE(device.Eject(false));
 	EXPECT_FALSE(device.IsReady());
