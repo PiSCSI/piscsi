@@ -8,11 +8,11 @@ from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
-from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
+from tempfile import TemporaryDirectory
 
 import requests
 
@@ -375,63 +375,61 @@ class FileCmds:
         server_info = self.ractl.get_server_info()
 
         file_name = PurePath(url).name
-        tmp_ts = int(time())
-        tmp_dir = Path("/tmp") / str(tmp_ts)
-        tmp_dir.mkdir()
-        tmp_full_path = tmp_dir / file_name
         iso_filename = Path(server_info['image_dir']) / f"{file_name}.iso"
 
-        req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
+        with TemporaryDirectory() as tmp_dir:
+            req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
+            logging.info("Downloaded %s to %s", file_name, tmp_dir)
+            if not req_proc["status"]:
+                return {"status": False, "msg": req_proc["msg"]}
 
-        if not req_proc["status"]:
-            return {"status": False, "msg": req_proc["msg"]}
-
-        if is_zipfile(tmp_full_path):
-            if "XtraStuf.mac" in str(ZipFile(str(tmp_full_path)).namelist()):
-                logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
-            else:
-                logging.info(
-                    "%s is a zipfile! Will attempt to unzip and store the resulting files.",
-                    tmp_full_path,
-                    )
-                unzip_proc = asyncio.run(self.run_async("unzip", [
-                    "-d",
-                    str(tmp_dir),
-                    "-n",
-                    str(tmp_full_path),
-                    ]))
-                if not unzip_proc["returncode"]:
+            tmp_full_path = Path(tmp_dir) / file_name
+            if is_zipfile(tmp_full_path):
+                if "XtraStuf.mac" in str(ZipFile(str(tmp_full_path)).namelist()):
+                    logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
+                else:
                     logging.info(
-                        "%s was successfully unzipped. Deleting the zipfile.",
+                        "%s is a zipfile! Will attempt to unzip and store the resulting files.",
                         tmp_full_path,
                         )
-                    tmp_full_path.unlink(True)
+                    unzip_proc = asyncio.run(self.run_async("unzip", [
+                        "-d",
+                        str(tmp_dir),
+                        "-n",
+                        str(tmp_full_path),
+                        ]))
+                    if not unzip_proc["returncode"]:
+                        logging.info(
+                            "%s was successfully unzipped. Deleting the zipfile.",
+                            tmp_full_path,
+                            )
+                        tmp_full_path.unlink(True)
 
-        try:
-            run(
-                [
-                    "genisoimage",
-                    *iso_args,
-                    "-o",
-                    str(iso_filename),
-                    str(tmp_dir),
-                ],
-                capture_output=True,
-                check=True,
-            )
-        except CalledProcessError as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            return {"status": False, "msg": error.stderr.decode("utf-8")}
+            try:
+                run(
+                    [
+                        "genisoimage",
+                        *iso_args,
+                        "-o",
+                        str(iso_filename),
+                        tmp_dir,
+                    ],
+                    capture_output=True,
+                    check=True,
+                )
+            except CalledProcessError as error:
+                logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+                return {"status": False, "msg": error.stderr.decode("utf-8")}
 
-        parameters = {
-            "value": " ".join(iso_args)
-        }
-        return {
-            "status": True,
-            "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
-            "parameters": parameters,
-            "file_name": iso_filename.name,
-        }
+            parameters = {
+                "value": " ".join(iso_args)
+            }
+            return {
+                "status": True,
+                "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
+                "parameters": parameters,
+                "file_name": iso_filename.name,
+            }
 
     # noinspection PyMethodMayBeStatic
     def download_to_dir(self, url, save_dir, file_name):
