@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI NEC "Genuine" Hard Disk]
+//	[ SCSI NEC Compatible Hard Disk]
 //
 //---------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const string& extension, const array<BY
 	int image_size;
 	int sector_size;
 
-	// PC-9801-55 NEC genuine?
+	// PC-9801-55 NEC compatible?
 	if (ext == ".hdn") {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		image_offset = 0;

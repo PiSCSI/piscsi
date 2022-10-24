@@ -10,7 +10,7 @@
 //  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
 //
-//  	[ SCSI NEC "Genuine" Hard Disk]
+//  	[ SCSI NEC Compatible Hard Disk]
 //
 //---------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ using namespace std;
 
 //===========================================================================
 //
-//	SCSI hard disk (PC-9801-55 NEC genuine / Anex86 / T98Next)
+//	SCSI hard disk (PC-9801-55 NEC compatible / Anex86 / T98Next)
 //
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD //NOSONAR The inheritance hierarchy depth is acceptable in this case
