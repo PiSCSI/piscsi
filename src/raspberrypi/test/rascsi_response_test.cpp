@@ -70,8 +70,7 @@ TEST(RascsiResponseTest, GetDevices)
 
 TEST(RascsiResponseTest, GetImageFile)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbImageFile image_file;
@@ -111,8 +110,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	const int LUN2 = 5;
 	const int LUN3 = 6;
 
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbCommand command;
@@ -160,8 +158,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 
 TEST(RascsiResponseTest, GetDeviceTypesInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;
@@ -173,8 +170,7 @@ TEST(RascsiResponseTest, GetDeviceTypesInfo)
 
 TEST(RascsiResponseTest, GetServerInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	const unordered_set<int> ids = { 1, 3 };
@@ -193,8 +189,7 @@ TEST(RascsiResponseTest, GetServerInfo)
 
 TEST(RascsiResponseTest, GetVersionInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;
@@ -208,8 +203,7 @@ TEST(RascsiResponseTest, GetVersionInfo)
 
 TEST(RascsiResponseTest, GetLogLevelInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;
@@ -222,8 +216,7 @@ TEST(RascsiResponseTest, GetLogLevelInfo)
 
 TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;
@@ -235,8 +228,7 @@ TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 
 TEST(RascsiResponseTest, GetMappingInfo)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;

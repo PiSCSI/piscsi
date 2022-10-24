@@ -150,15 +150,13 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(int target_id) : AbstractController(bus, target_id, 32) {
+	explicit MockAbstractController(shared_ptr<MockBus> bus, int target_id) : AbstractController(bus, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
 
 	// Permit access to all tests without the need for numerous FRIEND_TEST
 	vector<int>& GetCmd() { return AbstractController::GetCmd(); } //NOSONAR Hides function on purpose
-
-	MockBus bus;
 };
 
 class MockScsiController : public ScsiController
@@ -182,11 +180,10 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
-	explicit MockScsiController(int target_id) : ScsiController(bus, target_id) {}
-	MockScsiController() : ScsiController(bus, 0) {}
+	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
+	MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
 	~MockScsiController() override = default;
 
-	NiceMock<MockBus> bus;
 };
 
 class MockDevice : public Device

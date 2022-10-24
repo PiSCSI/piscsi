@@ -21,7 +21,7 @@ TEST(HostServicesTest, Dispatch)
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
     EXPECT_CALL(controller, Status());
@@ -36,7 +36,7 @@ TEST(HostServicesTest, Inquiry)
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.GetCmd();
@@ -68,7 +68,7 @@ TEST(HostServicesTest, StartStopUnit)
 
 TEST(HostServicesTest, ModeSense6)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.GetCmd();
@@ -105,7 +105,7 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
     vector<int>& cmd = controller.GetCmd();
@@ -142,8 +142,7 @@ TEST(HostServicesTest, ModeSense10)
 
 TEST(HostServicesTest, SetUpModePages)
 {
-	MockBus bus;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	MockHostServices services(0, controller_manager);
 	map<int, vector<byte>> pages;
 
