@@ -399,6 +399,7 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 {
 	auto controller = controller_manager.FindController(device->GetId());
 	if (controller == nullptr) {
+		assert(false);
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 	}
 
@@ -408,6 +409,9 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 	}
 
 	if (!dryRun) {
+		// Remember the ID before it gets invalid when removing the device
+		const int id = device->GetId();
+
 		if (!controller->RemoveDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
@@ -421,8 +425,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 			storage_device->UnreserveFile();
 		}
 
-		LOGINFO("%s", ("Detached " + string(device->GetTypeString()) + " device with ID "
-				+ to_string(device->GetId()) + ", unit " + to_string(device->GetLun())).c_str())
+		LOGINFO("%s", ("Detached " + string(device->GetTypeString()) + " device with ID " + to_string(id)
+				+ ", unit " + to_string(device->GetLun())).c_str())
 	}
 
 	return true;
