@@ -43,28 +43,28 @@
 //---------------------------------------------------------------------------
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
-const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
-const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
-const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
-const static int SCSI_DELAY_BUS_FREE_DELAY_NS            = 800;
-const static int SCSI_DELAY_BUS_SET_DELAY_NS             = 1800;
-const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS          = 400;
-const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS          = 10;
-const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS        = 400;
-const static int SCSI_DELAY_DESKEW_DELAY_NS              = 45;
-const static int SCSI_DELAY_DISCONNECTION_DELAY_US       = 200;
-const static int SCSI_DELAY_HOLD_TIME_NS                 = 45;
-const static int SCSI_DELAY_NEGATION_PERIOD_NS           = 90;
-const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S = 10;         // (recommended)
-const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US   = 250 * 1000; // (recommended)
-const static int SCSI_DELAY_RESET_HOLD_TIME_US           = 25;
-const static int SCSI_DELAY_SELECTION_ABORT_TIME_US      = 200;
-const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS   = 250 * 1000; // (recommended)
-const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS     = 30;
-const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS     = 5;
-const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
-const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
-const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
+[[maybe_unused]] const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
+[[maybe_unused]] const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
+[[maybe_unused]] const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
+[[maybe_unused]] const static int SCSI_DELAY_BUS_FREE_DELAY_NS            = 800;
+[[maybe_unused]] const static int SCSI_DELAY_BUS_SET_DELAY_NS             = 1800;
+[[maybe_unused]] const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS          = 400;
+[[maybe_unused]] const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS          = 10;
+[[maybe_unused]] const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS        = 400;
+[[maybe_unused]] const static int SCSI_DELAY_DESKEW_DELAY_NS              = 45;
+[[maybe_unused]] const static int SCSI_DELAY_DISCONNECTION_DELAY_US       = 200;
+[[maybe_unused]] const static int SCSI_DELAY_HOLD_TIME_NS                 = 45;
+[[maybe_unused]] const static int SCSI_DELAY_NEGATION_PERIOD_NS           = 90;
+[[maybe_unused]] const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S = 10;         // (recommended)
+[[maybe_unused]] const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US   = 250 * 1000; // (recommended)
+[[maybe_unused]] const static int SCSI_DELAY_RESET_HOLD_TIME_US           = 25;
+[[maybe_unused]] const static int SCSI_DELAY_SELECTION_ABORT_TIME_US      = 200;
+[[maybe_unused]] const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS   = 250 * 1000; // (recommended)
+[[maybe_unused]] const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS     = 30;
+[[maybe_unused]] const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS     = 5;
+[[maybe_unused]] const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
+[[maybe_unused]] const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
+[[maybe_unused]] const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the

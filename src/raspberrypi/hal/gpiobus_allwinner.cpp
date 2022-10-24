@@ -118,4 +118,3 @@ uint32_t GPIOBUS_Allwinner::Acquire()
 }
 
 #pragma GCC diagnostic pop
-#pragma GCC diagnostic pop
