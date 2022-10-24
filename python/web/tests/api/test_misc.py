@@ -83,7 +83,10 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
 
     # Cleanup
     delete_file(file_name)
