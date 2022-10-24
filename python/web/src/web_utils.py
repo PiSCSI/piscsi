@@ -264,6 +264,21 @@ def is_bridge_configured(interface):
     return {"status": True, "msg": ""}
 
 
+def is_safe_path(file_name):
+    """
+    Takes (Path) file_name with the path to a file on the file system
+    Returns True if the path is safe
+    Returns False if the path is either absolute, or tries to traverse the file system
+    """
+    if file_name.is_absolute() or ".." in str(file_name):
+        return {
+            "status": False,
+            "msg": _("%(file_name)s is not a valid path", file_name=file_name),
+        }
+
+    return {"status": True, "msg": ""}
+
+
 def upload_with_dropzonejs(image_dir):
     """
     Takes (str) image_dir which is the path to the image dir to store files.

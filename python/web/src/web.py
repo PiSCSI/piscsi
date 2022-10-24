@@ -54,6 +54,7 @@ from web_utils import (
     get_properties_by_drive_name,
     auth_active,
     is_bridge_configured,
+    is_safe_path,
     upload_with_dropzonejs,
 )
 from settings import (
@@ -438,9 +439,9 @@ def show_diskinfo():
     Displays disk image info
     """
     file_name = Path(request.form.get("file_name"))
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
-
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     server_info = ractl_cmd.get_server_info()
     returncode, diskinfo = sys_cmd.get_diskinfo(
             Path(server_info["image_dir"]) / file_name
@@ -912,9 +913,9 @@ def create_file():
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
 
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
-
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     full_file_name = f"{file_name}.{file_type}"
     process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
@@ -955,8 +956,9 @@ def download():
     Downloads a file from the Pi to the local computer
     """
     file_name = Path(request.form.get("file"))
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     server_info = ractl_cmd.get_server_info()
     return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
 
@@ -968,9 +970,9 @@ def delete():
     Deletes a specified file in the images dir
     """
     file_name = Path(request.form.get("file_name"))
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
-
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     process = file_cmd.delete_image(str(file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -1006,11 +1008,12 @@ def rename():
     """
     file_name = Path(request.form.get("file_name"))
     new_file_name = Path(request.form.get("new_file_name"))
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
-    if new_file_name.is_absolute() or ".." in str(new_file_name):
-        new_file_name = new_file_name.name
-
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     process = file_cmd.rename_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -1047,11 +1050,12 @@ def copy():
     """
     file_name = Path(request.form.get("file_name"))
     new_file_name = Path(request.form.get("copy_file_name"))
-    if file_name.is_absolute() or ".." in str(file_name):
-        file_name = file_name.name
-    if new_file_name.is_absolute() or ".." in str(new_file_name):
-        new_file_name = new_file_name.name
-
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     process = file_cmd.copy_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -1089,9 +1093,9 @@ def extract_image():
     archive_file = Path(request.form.get("archive_file"))
     archive_members_raw = request.form.get("archive_members") or None
     archive_members = archive_members_raw.split("|") if archive_members_raw else None
-    if archive_file.is_absolute() or ".." in str(archive_file):
-        archive_file = archive_file.name
-
+    safe_path = is_safe_path(archive_file)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     extract_result = file_cmd.extract_image(
         str(archive_file),
         archive_members
