@@ -139,25 +139,25 @@ void GPIOBUS_Allwinner::Cleanup()
 	close(selevreq.fd);
 #endif // USE_SEL_EVENT_ENABLE
 
-	// Set control signals
-	PinSetSignal(PIN_ENB, FALSE);
-	PinSetSignal(PIN_ACT, FALSE);
-	PinSetSignal(PIN_TAD, FALSE);
-	PinSetSignal(PIN_IND, FALSE);
-	PinSetSignal(PIN_DTD, FALSE);
-	PinConfig(PIN_ACT, GPIO_INPUT);
-	PinConfig(PIN_TAD, GPIO_INPUT);
-	PinConfig(PIN_IND, GPIO_INPUT);
-	PinConfig(PIN_DTD, GPIO_INPUT);
+	// // Set control signals
+	// PinSetSignal(PIN_ENB, FALSE);
+	// PinSetSignal(PIN_ACT, FALSE);
+	// PinSetSignal(PIN_TAD, FALSE);
+	// PinSetSignal(PIN_IND, FALSE);
+	// PinSetSignal(PIN_DTD, FALSE);
+	// PinConfig(PIN_ACT, GPIO_INPUT);
+	// PinConfig(PIN_TAD, GPIO_INPUT);
+	// PinConfig(PIN_IND, GPIO_INPUT);
+	// PinConfig(PIN_DTD, GPIO_INPUT);
 
-	// Initialize all signals
-	for (i = 0; SignalTable[i] >= 0; i++)
-	{
-		pin = SignalTable[i];
-		PinSetSignal(pin, FALSE);
-		PinConfig(pin, GPIO_INPUT);
-		PullConfig(pin, GPIO_PULLNONE);
-	}
+	// // Initialize all signals
+	// for (i = 0; SignalTable[i] >= 0; i++)
+	// {
+	// 	pin = SignalTable[i];
+	// 	PinSetSignal(pin, FALSE);
+	// 	PinConfig(pin, GPIO_INPUT);
+	// 	PullConfig(pin, GPIO_PULLNONE);
+	// }
 
 	// Set drive strength back to 8mA
 	DrvConfig(3);
@@ -183,7 +183,7 @@ void GPIOBUS_Allwinner::Reset()
 			break;
 		}
 
-        SetSignal(j, OFF);
+        SetSignal(j, RASCSI_PIN_OFF);
     }
 
 	if (actmode == mode_e::TARGET) {
@@ -191,59 +191,59 @@ void GPIOBUS_Allwinner::Reset()
 
         // Set target signal to input
         SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
+        SetMode(PIN_BSY, RASCSI_PIN_IN);
+        SetMode(PIN_MSG, RASCSI_PIN_IN);
+        SetMode(PIN_CD,  RASCSI_PIN_IN);
+        SetMode(PIN_REQ, RASCSI_PIN_IN);
+        SetMode(PIN_IO,  RASCSI_PIN_IN);
 
         // Set the initiator signal to input
         SetControl(PIN_IND, IND_IN);
-        SetMode(PIN_SEL, IN);
-        SetMode(PIN_ATN, IN);
-        SetMode(PIN_ACK, IN);
-        SetMode(PIN_RST, IN);
+        SetMode(PIN_SEL, RASCSI_PIN_IN);
+        SetMode(PIN_ATN, RASCSI_PIN_IN);
+        SetMode(PIN_ACK, RASCSI_PIN_IN);
+        SetMode(PIN_RST, RASCSI_PIN_IN);
 
         // Set data bus signals to input
         SetControl(PIN_DTD, DTD_IN);
-        SetMode(PIN_DT0, IN);
-        SetMode(PIN_DT1, IN);
-        SetMode(PIN_DT2, IN);
-        SetMode(PIN_DT3, IN);
-        SetMode(PIN_DT4, IN);
-        SetMode(PIN_DT5, IN);
-        SetMode(PIN_DT6, IN);
-        SetMode(PIN_DT7, IN);
-        SetMode(PIN_DP, IN);
+        SetMode(PIN_DT0, RASCSI_PIN_IN);
+        SetMode(PIN_DT1, RASCSI_PIN_IN);
+        SetMode(PIN_DT2, RASCSI_PIN_IN);
+        SetMode(PIN_DT3, RASCSI_PIN_IN);
+        SetMode(PIN_DT4, RASCSI_PIN_IN);
+        SetMode(PIN_DT5, RASCSI_PIN_IN);
+        SetMode(PIN_DT6, RASCSI_PIN_IN);
+        SetMode(PIN_DT7, RASCSI_PIN_IN);
+        SetMode(PIN_DP,  RASCSI_PIN_IN);
 	} else {
 		// Initiator mode
 
         // Set target signal to input
         SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
+        SetMode(PIN_BSY, RASCSI_PIN_IN);
+        SetMode(PIN_MSG, RASCSI_PIN_IN);
+        SetMode(PIN_CD,  RASCSI_PIN_IN);
+        SetMode(PIN_REQ, RASCSI_PIN_IN);
+        SetMode(PIN_IO,  RASCSI_PIN_IN);
 
         // Set the initiator signal to output
         SetControl(PIN_IND, IND_OUT);
-        SetMode(PIN_SEL, OUT);
-        SetMode(PIN_ATN, OUT);
-        SetMode(PIN_ACK, OUT);
-        SetMode(PIN_RST, OUT);
+        SetMode(PIN_SEL, RASCSI_PIN_OUT);
+        SetMode(PIN_ATN, RASCSI_PIN_OUT);
+        SetMode(PIN_ACK, RASCSI_PIN_OUT);
+        SetMode(PIN_RST, RASCSI_PIN_OUT);
 
         // Set the data bus signals to output
         SetControl(PIN_DTD, DTD_OUT);
-        SetMode(PIN_DT0, OUT);
-        SetMode(PIN_DT1, OUT);
-        SetMode(PIN_DT2, OUT);
-        SetMode(PIN_DT3, OUT);
-        SetMode(PIN_DT4, OUT);
-        SetMode(PIN_DT5, OUT);
-        SetMode(PIN_DT6, OUT);
-        SetMode(PIN_DT7, OUT);
-        SetMode(PIN_DP, OUT);
+        SetMode(PIN_DT0, RASCSI_PIN_OUT);
+        SetMode(PIN_DT1, RASCSI_PIN_OUT);
+        SetMode(PIN_DT2, RASCSI_PIN_OUT);
+        SetMode(PIN_DT3, RASCSI_PIN_OUT);
+        SetMode(PIN_DT4, RASCSI_PIN_OUT);
+        SetMode(PIN_DT5, RASCSI_PIN_OUT);
+        SetMode(PIN_DT6, RASCSI_PIN_OUT);
+        SetMode(PIN_DT7, RASCSI_PIN_OUT);
+        SetMode(PIN_DP,  RASCSI_PIN_OUT);
     }
 
     // Initialize all signals
