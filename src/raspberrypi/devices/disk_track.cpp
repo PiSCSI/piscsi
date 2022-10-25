@@ -15,8 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "fileio.h"
 #include "disk_track.h"
+#include <fstream>
 
 DiskTrack::~DiskTrack()
 {
@@ -46,7 +46,7 @@ void DiskTrack::Init(int track, int size, int sectors, bool raw, off_t imgoff)
 	dt.imgoffset = imgoff;
 }
 
-bool DiskTrack::Load(const Filepath& path)
+bool DiskTrack::Load(const string& path)
 {
 	// Not needed if already loaded
 	if (dt.init) {
@@ -97,24 +97,21 @@ bool DiskTrack::Load(const Filepath& path)
 	dt.changemap.resize(dt.sectors);
 	fill(dt.changemap.begin(), dt.changemap.end(), false);
 
-	// Read from File
-	Fileio fio;
-	if (!fio.OpenDIO(path, Fileio::OpenMode::ReadOnly)) {
+	ifstream in(path, ios::binary);
+	if (in.fail()) {
 		return false;
 	}
 
 	if (dt.raw) {
 		// Split Reading
 		for (int i = 0; i < dt.sectors; i++) {
-			// Seek
-			if (!fio.Seek(offset)) {
-				fio.Close();
+			in.seekg(offset);
+			if (in.fail()) {
 				return false;
 			}
 
-			// Read
-			if (!fio.Read(&dt.buffer[i << dt.size], 1 << dt.size)) {
-				fio.Close();
+			in.read((char *)&dt.buffer[i << dt.size], 1 << dt.size);
+			if (in.fail()) {
 				return false;
 			}
 
@@ -123,16 +120,15 @@ bool DiskTrack::Load(const Filepath& path)
 		}
 	} else {
 		// Continuous reading
-		if (!fio.Seek(offset)) {
-			fio.Close();
+		in.seekg(offset);
+		if (in.fail()) {
 			return false;
 		}
-		if (!fio.Read(dt.buffer, length)) {
-			fio.Close();
+		in.read((char *)dt.buffer, length);
+		if (in.fail()) {
 			return false;
 		}
 	}
-	fio.Close();
 
 	// Set a flag and end normally
 	dt.init = true;
@@ -140,7 +136,7 @@ bool DiskTrack::Load(const Filepath& path)
 	return true;
 }
 
-bool DiskTrack::Save(const Filepath& path)
+bool DiskTrack::Save(const string& path)
 {
 	// Not needed if not initialized
 	if (!dt.init) {
@@ -169,9 +165,8 @@ bool DiskTrack::Save(const Filepath& path)
 	// Calculate length per sector
 	const int length = 1 << dt.size;
 
-	// Open file
-	Fileio fio;
-	if (!fio.Open(path, Fileio::OpenMode::ReadWrite)) {
+	ofstream out(path, ios::in | ios::out | ios::binary);
+	if (out.fail()) {
 		return false;
 	}
 
@@ -183,9 +178,8 @@ bool DiskTrack::Save(const Filepath& path)
 			// Initialize write size
 			total = 0;
 
-			// Seek
-			if (!fio.Seek(offset + ((off_t)i << dt.size))) {
-				fio.Close();
+			out.seekp(offset + ((off_t)i << dt.size));
+			if (out.fail()) {
 				return false;
 			}
 
@@ -201,9 +195,8 @@ bool DiskTrack::Save(const Filepath& path)
 				total += length;
 			}
 
-			// Write
-			if (!fio.Write(&dt.buffer[i << dt.size], total)) {
-				fio.Close();
+			out.write((const char *)&dt.buffer[i << dt.size], total);
+			if (out.fail()) {
 				return false;
 			}
 
@@ -214,8 +207,6 @@ bool DiskTrack::Save(const Filepath& path)
 			i++;
 		}
 	}
-
-	fio.Close();
 
 	// Drop the change flag and exit
 	fill(dt.changemap.begin(), dt.changemap.end(), false);

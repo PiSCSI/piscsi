@@ -17,6 +17,7 @@
 // 2. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
 // the print command for this printer (see below) to be called for the data not yet printed.
 //
+// It is recommended to reserve the printer device before printing and to release it afterwards.
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
 // By default the data to be printed are sent to the printer unmodified, using "lp -oraw %f". This
 // requires that the client uses a printer driver compatible with the respective printer, or that the
@@ -33,8 +34,10 @@
 #include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "scsi_printer.h"
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
@@ -43,12 +46,17 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdPrint, "Print", &SCSIPrinter::Print);
 	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
-	dispatcher.Add(scsi_command::eCmdStopPrint, "StopPrint", &SCSIPrinter::StopPrint);
+	// STOP PRINT is identical with TEST UNIT READY, it just returns the status
+	dispatcher.Add(scsi_command::eCmdStopPrint, "StopPrint", &SCSIPrinter::TestUnitReady);
 
 	// Required also in this class in order to fulfill the ScsiPrinterCommands interface contract
 	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+
+	error_code error;
+	file_template = temp_directory_path(error); //NOSONAR Publicly writable directory is fine here
+	file_template += PRINTER_FILE_PATTERN;
 
 	SupportsParams(true);
 	SetReady(true);
@@ -109,70 +117,75 @@ void SCSIPrinter::Print()
 
 void SCSIPrinter::SynchronizeBuffer()
 {
-	if (fd == -1) {
-		LOGWARN("Missing printer output file")
+	if (!out.is_open()) {
+		LOGWARN("Nothing to print")
 
 		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
-
-	struct stat st;
-	fstat(fd, &st);
-
-	close(fd);
-	fd = -1;
 
 	string cmd = GetParam("cmd");
 	const size_t file_position = cmd.find("%f");
 	assert(file_position != string::npos);
 	cmd.replace(file_position, 2, filename);
 
-	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str())
+	error_code error;
+
+	LOGTRACE("Printing file '%s' with %s byte(s)", filename.c_str(), to_string(file_size(path(filename), error)).c_str())
 
 	LOGDEBUG("Executing '%s'", cmd.c_str())
 
 	if (system(cmd.c_str())) {
-		LOGERROR("Printing failed, the printing system might not be configured")
+		LOGERROR("Printing file '%s' failed, the printing system might not be configured", filename.c_str())
 
-		unlink(filename);
+		Cleanup();
 
 		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
 
-	unlink(filename);
+	Cleanup();
 
 	EnterStatusPhase();
 }
 
-void SCSIPrinter::StopPrint()
-{
-	// Command implementations are identical
-	TestUnitReady();
-}
-
 bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
 {
-	if (fd == -1) {
-		strcpy(filename, TMP_FILE_PATTERN); //NOSONAR Using strcpy is safe here
-		fd = mkstemp(filename);
+	if (!out.is_open()) {
+		vector<char> f(file_template.begin(), file_template.end());
+		f.push_back(0);
+
+		// There is no C++ API that generates a file with a unique name
+		const int fd = mkstemp(f.data());
 		if (fd == -1) {
-			LOGERROR("Can't create printer output file '%s': %s", filename, strerror(errno))
+			LOGERROR("Can't create printer output file for pattern '%s': %s", filename.c_str(), strerror(errno))
 			return false;
 		}
+		close(fd);
 
-		LOGTRACE("Created printer output file '%s'", filename)
+		filename = f.data();
+
+		out.open(filename, ios::binary);
+		if (out.fail()) {
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
+		}
+
+		LOGTRACE("Created printer output file '%s'", filename.c_str())
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename)
+	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename.c_str())
 
-	return (uint32_t)write(fd, buf.data(), length) == length;
+	out.write((const char*)buf.data(), length);
+
+	return !out.fail();
 }
 
 void SCSIPrinter::Cleanup()
 {
-	if (fd != -1) {
-		close(fd);
-		fd = -1;
+	if (out.is_open()) {
+		out.close();
 
-		unlink(filename);
+		error_code error;
+		remove(path(filename), error);
+
+		filename = "";
 	}
 }

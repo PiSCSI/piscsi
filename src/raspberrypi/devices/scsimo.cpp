@@ -12,7 +12,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsimo.h"
@@ -43,21 +42,14 @@ void SCSIMO::Open()
 {
 	assert(!IsReady());
 
-	off_t size = GetFileSize();
-
-	// 2 TiB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("Drive capacity cannot exceed 2 TiB");
-	}
-
 	// For some capacities there are hard-coded, well-defined sector sizes and block counts
-	if (!SetGeometryForCapacity(size)) {
+	if (const off_t size = GetFileSize(); !SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	super::ValidateFile(GetFilename());
+	super::ValidateFile();
 
 	SetUpCache(0);
 

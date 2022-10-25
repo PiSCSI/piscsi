@@ -11,15 +11,25 @@
 #include "rascsi_exceptions.h"
 #include "devices/scsihd.h"
 
+void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
+{
+	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
+	EXPECT_EQ(12, pages[1].size());
+	EXPECT_EQ(24, pages[3].size());
+	EXPECT_EQ(24, pages[4].size());
+	EXPECT_EQ(12, pages[8].size());
+	EXPECT_EQ(30, pages[48].size());
+}
+
 TEST(ScsiHdTest, Inquiry)
 {
 	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "RaSCSI                  ", 0x1f, false);
+
 	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "RaSCSI                  ", 0x1f, false, ".hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)
 {
-	map<int, vector<byte>> pages;
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
@@ -28,19 +38,42 @@ TEST(ScsiHdTest, SupportsSaveParameters)
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	map<int, vector<byte>> pages;
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
 	hd.SetSectorSizeInBytes(1024);
-	EXPECT_THROW(hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + hd.GetSectorSizeInBytes(), 0), io_exception)
-		<< "Unsupported drive capacity";
-
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
+}
 
-	hd.SetBlockCount(1);
-	hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024);
-	hd.FinalizeSetup(2LL * 1024 * 1024 * 1024 * 1024 + hd.GetSectorSizeInBytes() - 1);
+TEST(ScsiHdTest, GetProductData)
+{
+	const unordered_set<uint32_t> sector_sizes;
+	MockSCSIHD hd_kb(0, sector_sizes, false);
+	MockSCSIHD hd_mb(0, sector_sizes, false);
+	MockSCSIHD hd_gb(0, sector_sizes, false);
+
+	const path filename = CreateTempFile(1);
+	hd_kb.SetFilename(string(filename));
+	hd_kb.SetSectorSizeInBytes(1024);
+	hd_kb.SetBlockCount(1);
+	hd_kb.FinalizeSetup(0);
+	string s = hd_kb.GetProduct();
+	EXPECT_NE(string::npos, s.find("1 KiB"));
+
+	hd_mb.SetFilename(string(filename));
+	hd_mb.SetSectorSizeInBytes(1024);
+	hd_mb.SetBlockCount(1'048'576 / 1024);
+	hd_mb.FinalizeSetup(0);
+	s = hd_mb.GetProduct();
+	EXPECT_NE(string::npos, s.find("1 MiB"));
+
+	hd_gb.SetFilename(string(filename));
+	hd_gb.SetSectorSizeInBytes(1024);
+	hd_gb.SetBlockCount(1'099'511'627'776 / 1024);
+	hd_gb.FinalizeSetup(0);
+	s = hd_gb.GetProduct();
+	EXPECT_NE(string::npos, s.find("1 GiB"));
+	remove(filename);
 }
 
 TEST(ScsiHdTest, SetUpModePages)
@@ -49,14 +82,14 @@ TEST(ScsiHdTest, SetUpModePages)
 	const unordered_set<uint32_t> sector_sizes;
 	MockSCSIHD hd(0, sector_sizes, false);
 
-	hd.SetReady(false);
+	// Non changeable
 	hd.SetUpModePages(pages, 0x3f, false);
-	EXPECT_EQ(5, pages.size()) << "Unexpected number of mode pages";
-	EXPECT_EQ(12, pages[1].size());
-	EXPECT_EQ(24, pages[3].size());
-	EXPECT_EQ(24, pages[4].size());
-	EXPECT_EQ(12, pages[8].size());
-	EXPECT_EQ(30, pages[48].size());
+	ScsiHdTest_SetUpModePages(pages);
+
+	// Changeable
+	pages.clear();
+	hd.SetUpModePages(pages, 0x3f, true);
+	ScsiHdTest_SetUpModePages(pages);
 }
 
 TEST(ScsiHdTest, ModeSelect)

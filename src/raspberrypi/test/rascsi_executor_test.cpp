@@ -18,8 +18,9 @@
 #include "rascsi/rascsi_response.h"
 #include "rascsi/rascsi_image.h"
 #include "rascsi/rascsi_executor.h"
-#include <unistd.h>
+#include <filesystem>
 
+using namespace filesystem;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
@@ -279,39 +280,39 @@ TEST_F(RascsiExecutorTest, Attach)
 	SetParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with non-existing image file not rejected";
 
-	string filename = CreateTempFile(1);
-	SetParam(definition, "file", filename);
+	path filename = CreateTempFile(1);
+	SetParam(definition, "file", filename.c_str());
 	EXPECT_THROW(executor.Attach(context, definition, false), io_exception)	<< "Too small image file not rejected";
-	unlink(filename.c_str());
+	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename);
+	SetParam(definition, "file", filename.c_str());
 	bool result = executor.Attach(context, definition, false);
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_TRUE(result);
 	controller_manager.DeleteAllControllers();
 
 	filename = CreateTempFile(513);
-	SetParam(definition, "file", filename);
+	SetParam(definition, "file", filename.c_str());
 	result = executor.Attach(context, definition, false);
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_TRUE(result);
 
 	definition.set_type(PbDeviceType::SCCD);
 	definition.set_unit(LUN + 1);
 	filename = CreateTempFile(2048);
-	SetParam(definition, "file", filename);
+	SetParam(definition, "file", filename.c_str());
 	result = executor.Attach(context, definition, false);
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_TRUE(result);
 
 	definition.set_type(PbDeviceType::SCMO);
 	definition.set_unit(LUN + 2);
 	SetParam(definition, "read_only", "true");
 	filename = CreateTempFile(4096);
-	SetParam(definition, "file", filename);
+	SetParam(definition, "file", filename.c_str());
 	result = executor.Attach(context, definition, false);
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_TRUE(result);
 
 	controller_manager.DeleteAllControllers();
@@ -360,16 +361,16 @@ TEST_F(RascsiExecutorTest, Insert)
 	SetParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
-	string filename = CreateTempFile(1);
-	SetParam(definition, "file", filename);
+	path filename = CreateTempFile(1);
+	SetParam(definition, "file", filename.c_str());
 	EXPECT_THROW(executor.Insert(context, definition, device, false), io_exception)
 		<< "Too small image file not rejected";
-	unlink(filename.c_str());
+	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename);
+	SetParam(definition, "file", filename.c_str());
 	const bool result = executor.Insert(context, definition, device, false);
-	unlink(filename.c_str());
+	remove(filename);
 	EXPECT_TRUE(result);
 }
 

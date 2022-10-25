@@ -12,8 +12,10 @@
 #include "rascsi_interface.pb.h"
 #include "command_context.h"
 #include <string>
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 using namespace rascsi_interface;
 
 class RascsiImage
@@ -42,7 +44,9 @@ private:
 
 	static bool IsValidSrcFilename(const string&);
 	static bool IsValidDstFilename(const string&);
+	static bool ChangeOwner(const CommandContext&, const path&, bool);
 	static string GetHomeDir();
+	static pair<int, int> GetUidAndGid();
 
 	string default_folder;
 

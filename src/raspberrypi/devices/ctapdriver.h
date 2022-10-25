@@ -13,7 +13,6 @@
 
 #include <pcap/pcap.h>
 #include <net/ethernet.h>
-#include "filepath.h"
 #include <unordered_map>
 #include <list>
 #include <string>
@@ -33,7 +32,7 @@ public:
 	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
-	void OpenDump(const Filepath& path);	// Capture packets
+	void OpenDump(const string& path);	// Capture packets
 	void GetMacAddr(BYTE *mac) const;
 	int Receive(BYTE *buf);
 	int Send(const BYTE *buf, int len);

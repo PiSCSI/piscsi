@@ -13,8 +13,7 @@
 #include <csignal>
 #include <unistd.h>
 #include "os.h"
-#include "fileio.h"
-#include "filepath.h"
+#include "rasdump_fileio.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
@@ -40,7 +39,7 @@ static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
 unique_ptr<GPIOBUS> bus;      // GPIO Bus						// Bus
 int targetid;						// Target ID
 int boardid;						// Board ID (own ID)
-Filepath hdsfile;					// HDS file
+string hdsfile;						// HDS file
 bool restore;						// Restore flag
 BYTE buffer[BUFSIZE];					// Work Buffer
 int result;						// Result Code
@@ -207,7 +206,7 @@ bool ParseArgument(int argc, char* argv[])
 		return false;
 	}
 
-	hdsfile.SetPath(file);
+	hdsfile = file;
 
 	return true;
 }
@@ -837,7 +836,7 @@ int main(int argc, char* argv[])
 	} else {
 		omode = Fileio::OpenMode::WriteOnly;
 	}
-	if (!fio.Open(hdsfile.GetPath(), omode)) {
+	if (!fio.Open(hdsfile.c_str(), omode)) {
 		fprintf(stderr, "Error : Can't open hds file\n");
 
 		// Cleanup

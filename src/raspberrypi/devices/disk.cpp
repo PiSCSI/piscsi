@@ -14,7 +14,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "dispatcher.h"
 #include "scsi_command_util.h"
@@ -79,17 +78,13 @@ bool Disk::Dispatch(scsi_command cmd)
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
 {
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	cache = make_unique<DiskCache>(path, size_shift_count, (uint32_t)GetBlockCount(), image_offset);
+	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, (uint32_t)GetBlockCount(), image_offset);
 	cache->SetRawMode(raw);
 }
 
-void Disk::ResizeCache(const string& filename, bool raw)
+void Disk::ResizeCache(const string& path, bool raw)
 {
-	Filepath path;
-	path.SetPath(filename.c_str());
-	cache.reset(new DiskCache(path, GetSectorSizeShiftCount(), (uint32_t)GetBlockCount()));
+	cache.reset(new DiskCache(path, size_shift_count, (uint32_t)GetBlockCount()));
 	cache->SetRawMode(raw);
 }
 
@@ -501,8 +496,7 @@ int Disk::Read(const vector<int>&, vector<BYTE>& buf, uint64_t block)
 		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
-	//  Success
-	return 1 << size_shift_count;
+	return GetSectorSizeInBytes();
 }
 
 int Disk::WriteCheck(uint64_t block)
@@ -519,18 +513,14 @@ int Disk::WriteCheck(uint64_t block)
 		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
-	//  Success
-	return 1 << size_shift_count;
+	return GetSectorSizeInBytes();
 }
 
 void Disk::Write(const vector<int>&, const vector<BYTE>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
-	// Error if not ready
-	if (!IsReady()) {
-		throw scsi_exception(sense_key::NOT_READY);
-	}
+	CheckReady();
 
 	// Error if the total number of blocks is exceeded
 	if (block >= GetBlockCount()) {

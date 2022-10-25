@@ -397,6 +397,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
+	cerr << "AAA  " << device->GetId() << endl;
 	auto controller = controller_manager.FindController(device->GetId());
 	if (controller == nullptr) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
@@ -408,6 +409,9 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 	}
 
 	if (!dryRun) {
+		// Remember the ID before it gets invalid when removing the device
+		const int id = device->GetId();
+
 		if (!controller->RemoveDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
@@ -421,8 +425,8 @@ bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDev
 			storage_device->UnreserveFile();
 		}
 
-		LOGINFO("%s", ("Detached " + string(device->GetTypeString()) + " device with ID "
-				+ to_string(device->GetId()) + ", unit " + to_string(device->GetLun())).c_str())
+		LOGINFO("%s", ("Detached " + string(device->GetTypeString()) + " device with ID " + to_string(id)
+				+ ", unit " + to_string(device->GetLun())).c_str())
 	}
 
 	return true;
@@ -544,11 +548,9 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		return true;
 	}
 
-	int id;
-	int lun;
-	if (StorageDevice::GetIdsForReservedFile(filename, id, lun)) {
+	if (const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile(filename); id1 != -1 || lun1 != -1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(id), to_string(lun));
+				to_string(id1), to_string(lun1));
 	}
 
 	string effective_filename = filename;
@@ -557,9 +559,9 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		// If the file does not exist search for it in the default image folder
 		effective_filename = rascsi_image.GetDefaultFolder() + "/" + filename;
 
-		if (StorageDevice::GetIdsForReservedFile(effective_filename, id, lun)) {
+		if (const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile(effective_filename); id2 != -1 || lun2 != -1) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-					to_string(id), to_string(lun));
+					to_string(id2), to_string(lun2));
 		}
 
 		if (!StorageDevice::FileExists(effective_filename)) {

@@ -8,7 +8,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "fileio.h"
+#include "rasdump_fileio.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <cassert>
@@ -60,27 +60,6 @@ bool Fileio::Open(const char *fname, OpenMode mode)
 	return Open(fname, mode, false);
 }
 
-bool Fileio::Open(const Filepath& path, OpenMode mode)
-{
-	return Open(path.GetPath(), mode);
-}
-
-bool Fileio::OpenDIO(const char *fname, OpenMode mode)
-{
-	// Open with included O_DIRECT
-	if (!Open(fname, mode, true)) {
-		// Normal mode retry (tmpfs etc.)
-		return Open(fname, mode, false);
-	}
-
-	return true;
-}
-
-bool Fileio::OpenDIO(const Filepath& path, OpenMode mode)
-{
-	return OpenDIO(path.GetPath(), mode);
-}
-
 bool Fileio::Read(BYTE *buffer, int size) const
 {
 	assert(buffer);
@@ -99,14 +78,6 @@ bool Fileio::Write(const BYTE *buffer, int size) const
 	return write(handle, buffer, size) == size;
 }
 
-bool Fileio::Seek(off_t offset) const
-{
-	assert(handle >= 0);
-	assert(offset >= 0);
-
-	return lseek(handle, offset, SEEK_SET) == offset;
-}
-
 off_t Fileio::GetFileSize() const
 {
 	assert(handle >= 0);
@@ -118,7 +89,7 @@ off_t Fileio::GetFileSize() const
 	const off_t end = lseek(handle, 0, SEEK_END);
 
 	// Return to start position
-	Seek(cur);
+	lseek(handle, cur, SEEK_SET);
 
 	return end;
 }

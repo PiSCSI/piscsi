@@ -15,6 +15,8 @@
 #pragma once
 
 #include "disk.h"
+#include <vector>
+#include <map>
 
 using Geometry = pair<uint32_t, uint32_t>;
 

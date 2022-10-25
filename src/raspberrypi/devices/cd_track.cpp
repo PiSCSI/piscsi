@@ -30,7 +30,7 @@ void CDTrack::Init(int track, uint32_t first, uint32_t last)
 	last_lba = last;
 }
 
-void CDTrack::SetPath(bool cdda, const Filepath& path)
+void CDTrack::SetPath(bool cdda, string_view path)
 {
 	assert(valid);
 
@@ -41,12 +41,11 @@ void CDTrack::SetPath(bool cdda, const Filepath& path)
 	imgpath = path;
 }
 
-void CDTrack::GetPath(Filepath& path) const
+string CDTrack::GetPath() const
 {
 	assert(valid);
 
-	// Return the path (by reference)
-	path = imgpath;
+	return imgpath;
 }
 
 //---------------------------------------------------------------------------

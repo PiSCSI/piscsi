@@ -15,9 +15,10 @@
 
 #pragma once
 
-#include "filepath.h"
+#include "os.h"
 #include <cstdlib>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ class DiskTrack
 		BYTE *buffer;						// Data buffer
 		bool init;							// Is it initilized?
 		bool changed;						// Changed flag
-		std::vector<bool> changemap;		// Changed map
+		vector<bool> changemap;				// Changed map
 		bool raw;							// RAW mode flag
 		off_t imgoffset;					// Offset to actual data
 	} dt = {};
@@ -48,12 +49,12 @@ private:
 	friend class DiskCache;
 
 	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0);
-	bool Load(const Filepath& path);
-	bool Save(const Filepath& path);
+	bool Load(const string& path);
+	bool Save(const string& path);
 
 	// Read / Write
 	bool ReadSector(vector<BYTE>&, int) const;				// Sector Read
-	bool WriteSector(const vector<BYTE>& buf, int);				// Sector Write
+	bool WriteSector(const vector<BYTE>& buf, int);			// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };

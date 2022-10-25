@@ -104,6 +104,16 @@ TEST(ScsiPrinterTest, StopPrint)
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
+TEST(ScsiPrinterTest, SynchronizeBuffer)
+{
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto printer = CreateDevice(SCLP, controller);
+
+	EXPECT_THROW(printer->Dispatch(scsi_command::eCmdSynchronizeBuffer), scsi_exception) << "Nothing to print";
+
+	// Further testing would use the printing system
+}
+
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);

@@ -23,14 +23,22 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, 
 	SetStoppable(true);
 }
 
-void StorageDevice::ValidateFile(const string& file)
+void StorageDevice::ValidateFile()
 {
 	if (blocks == 0) {
 		throw io_exception(string(GetTypeString()) + " device has 0 blocks");
 	}
 
+	if (!exists(path(filename))) {
+		throw file_not_found_exception("Image file '" + filename + "' for " + GetTypeString() + " device does not exist");
+	}
+
+	if (GetFileSize() > 2LL * 1024 * 1024 * 1024 * 1024) {
+		throw io_exception("Drive capacity cannot exceed 2 TiB");
+	}
+
 	// TODO Check for duplicate handling of these properties (-> rascsi_executor.cpp)
-	if (access(file.c_str(), W_OK)) {
+	if (access(filename.c_str(), W_OK)) {
 		// Permanently write-protected
 		SetReadOnly(true);
 		SetProtectable(false);
@@ -65,16 +73,13 @@ void StorageDevice::UnreserveFile()
 	filename = "";
 }
 
-bool StorageDevice::GetIdsForReservedFile(const string& file, int& id, int& lun)
+pair<int, int> StorageDevice::GetIdsForReservedFile(const string& file)
 {
 	if (const auto& it = reserved_files.find(file); it != reserved_files.end()) {
-		id = it->second.first;
-		lun = it->second.second;
-
-		return true;
+		return make_pair(it->second.first, it->second.second);
 	}
 
-	return false;
+	return make_pair(-1, -1);
 }
 
 void StorageDevice::UnreserveAll()
@@ -94,7 +99,7 @@ bool StorageDevice::IsReadOnlyFile() const
 
 off_t StorageDevice::GetFileSize() const
 {
-	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handled more than 2 GiB
+	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
 	if (struct stat st; !stat(filename.c_str(), &st)) {
 		return st.st_size;
 	}

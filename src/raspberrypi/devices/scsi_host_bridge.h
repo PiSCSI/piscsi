@@ -39,7 +39,7 @@ public:
 	bool Dispatch(scsi_command) override;
 
 	// TODO Remove as soon as SCSIBR is not a subclass of Disk anymore
-	void Open() override { super::ValidateFile(GetFilename()); }
+	void Open() override { super::ValidateFile(); }
 
 	// Commands
 	vector<byte> InquiryInternal() const override;

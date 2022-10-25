@@ -14,12 +14,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include "fileio.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "dispatcher.h"
 #include "scsicd.h"
 #include <array>
+#include <fstream>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -50,48 +50,29 @@ void SCSICD::Open()
 	rawfile = false;
 	ClearTrack();
 
-	// Open as read-only
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	Fileio fio;
-	if (!fio.Open(path, Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
-	}
-
 	// Default sector size is 2048 bytes
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
-	// Close and transfer for physical CD access
-	if (path.GetPath()[0] == '\\') {
-		// Close
-		fio.Close();
-
-		// Open physical CD
+	if (GetFilename()[0] == '\\') {
 		OpenPhysical();
 	} else {
-		if (GetFileSize() < 4) {
-			fio.Close();
-			throw io_exception("CD-ROM file size must be at least 4 bytes");
+		// Judge whether it is a CUE sheet or an ISO file
+		array<char, 4> cue;
+		ifstream in(GetFilename(), ios::binary);
+		in.read(cue.data(), cue.size());
+		if (!in.good()) {
+			throw io_exception("Can't read header of CD-ROM file '" + GetFilename() + "'");
 		}
 
-		// Judge whether it is a CUE sheet or an ISO file
-		array<TCHAR, 5> file;
-		fio.Read((BYTE *)file.data(), 4);
-		file[4] = '\0';
-		fio.Close();
-
-		// If it starts with FILE, consider it as a CUE sheet
-		if (!strcasecmp(file.data(), "FILE")) {
-			throw io_exception("Opening CUE CD-ROM files is not supported");
+		// If it starts with FILE consider it a CUE sheet
+		if (!strncasecmp(cue.data(), "FILE", cue.size())) {
+			throw io_exception("CUE CD-ROM files are not supported");
 		} else {
 			OpenIso();
 		}
 	}
 
-	// Successful opening
-	assert(GetBlockCount() > 0);
-
-	super::ValidateFile(GetFilename());
+	super::ValidateFile();
 
 	SetUpCache(0, rawfile);
 
@@ -106,80 +87,56 @@ void SCSICD::Open()
 
 void SCSICD::OpenIso()
 {
-	// Open as read-only
-	Fileio fio;
-	if (!fio.Open(GetFilename().c_str(), Fileio::OpenMode::ReadOnly)) {
-		throw io_exception("Can't open ISO CD-ROM file");
-	}
-
-	// Get file size
 	const off_t size = GetFileSize();
-	if (size < 0x800) {
-		fio.Close();
+	if (size < 2048) {
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
 
-	// Read the first 12 bytes and close
-	array<BYTE, 12> header;
-	if (!fio.Read(header.data(), header.size())) {
-		fio.Close();
+	// Validate header
+	array<char, 16> header;
+	ifstream in(GetFilename(), ios::binary);
+	in.read(header.data(), header.size());
+	if (!in.good()) {
 		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
 
-	// Check if it is RAW format
-	array<BYTE, 12> sync;
-	sync.fill(0xff);
-	sync[0] = 0x00;
-	sync[11] = 0x00;
+	// Check if it is in RAW format
+	array<char, 12> sync = {};
+	// 00,FFx10,00 is presumed to be RAW format
+	fill_n(sync.begin() + 1, 10, 0xff);
 	rawfile = false;
-	if (memcmp(header.data(), sync.data(), sync.size()) == 0) {
-		// 00,FFx10,00, so it is presumed to be RAW format
-		if (!fio.Read(header.data(), 4)) {
-			fio.Close();
-			throw io_exception("Can't read header of raw ISO CD-ROM file");
-		}
 
+	if (memcmp(header.data(), sync.data(), sync.size()) == 0) {
 		// Supports MODE1/2048 or MODE1/2352 only
-		if (header[3] != 0x01) {
+		if (header[15] != 0x01) {
 			// Different mode
-			fio.Close();
 			throw io_exception("Illegal raw ISO CD-ROM file header");
 		}
 
 		// Set to RAW file
 		rawfile = true;
 	}
-	fio.Close();
 
 	if (rawfile) {
-		// Size must be a multiple of 2536
 		if (size % 2536) {
 			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
 					+ to_string(size) + " bytes");
 		}
 
-		// Set the number of blocks
-		SetBlockCount((uint32_t)(size / 0x930));
+		SetBlockCount((uint32_t)(size / 2352));
 	} else {
-		// Set the number of blocks
 		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
 	}
 
 	CreateDataTrack();
 }
 
+// TODO This code is only executed if the filename starts with a `\`, but fails to open files starting with `\`.
 void SCSICD::OpenPhysical()
 {
-	// Open as read-only
-	Fileio fio;
-	if (!fio.Open(GetFilename().c_str(), Fileio::OpenMode::ReadOnly)) {
-		throw file_not_found_exception("Can't open CD-ROM file '" + GetFilename() + "'");
-	}
-	fio.Close();
-
 	// Get size
 	off_t size = GetFileSize();
-	if (size < 0x800) {
+	if (size < 2048) {
 		throw io_exception("CD-ROM file size must be at least 2048 bytes");
 	}
 
@@ -198,9 +155,7 @@ void SCSICD::CreateDataTrack()
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
 	track->Init(1, 0, (int)GetBlockCount() - 1);
-	Filepath path;
-	path.SetPath(GetFilename().c_str());
-	track->SetPath(false, path);
+	track->SetPath(false, GetFilename());
 	tracks.push_back(move(track));
 	dataindex = 0;
 }
@@ -287,12 +242,8 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 		SetBlockCount(tracks[index]->GetBlocks());
 		assert(GetBlockCount() > 0);
 
-		// Recreate the disk cache
-		Filepath path;
-		tracks[index]->GetPath(path);
-
 		// Re-assign disk cache (no need to save)
-		ResizeCache(path.GetPath(), rawfile);
+		ResizeCache(tracks[index]->GetPath(), rawfile);
 
 		// Reset data index
 		dataindex = index;
