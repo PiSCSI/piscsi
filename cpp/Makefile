@@ -65,7 +65,7 @@ RSYSLOG_LOG  = /var/log/rascsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/local/man/man1
-DOC_DIR = ../../doc
+DOC_DIR = ../doc
 COVERAGE_DIR = ./coverage
 COVERAGE_FILE = rascsi.dat
 OS_FILES = ./os_integration
