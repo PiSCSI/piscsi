@@ -98,15 +98,16 @@ void Banner(int argc, char* argv[])
 
 bool InitBus()
 {
+#ifdef USE_SEL_EVENT_ENABLE
 	SBC_Version::Init();
+#endif
+
 	// GPIOBUS creation
 	bus = GPIOBUS_Factory::Create();
-
 
 	controller_manager = make_shared<ControllerManager>(bus);
 	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
 	executor  = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
-
 
 	// GPIO Initialization
 	if (!bus->Init()) {
