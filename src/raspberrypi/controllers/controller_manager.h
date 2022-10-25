@@ -23,13 +23,13 @@ class PrimaryDevice;
 
 class ControllerManager
 {
-	BUS& bus;
+	std::shared_ptr<BUS> bus;
 
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
 
 public:
 
-	explicit ControllerManager(BUS& bus) : bus(bus) {}
+	explicit ControllerManager(std::shared_ptr<BUS> bus) : bus(bus) {}
 	~ControllerManager() = default;
 
 	// Maximum number of controller devices

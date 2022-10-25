@@ -122,9 +122,9 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test");
 	EXPECT_EQ(nullptr, device1);
@@ -138,9 +138,9 @@ TEST(DeviceFactoryTest, UnknownDeviceType)
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
 	EXPECT_NE(nullptr, device);
@@ -177,9 +177,9 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 void TestRemovableDrive(PbDeviceType type, const string& filename, const string& product)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, filename);
 	EXPECT_NE(nullptr, device);
@@ -215,9 +215,9 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
 	EXPECT_NE(nullptr, device);
@@ -242,9 +242,9 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
 	EXPECT_NE(nullptr, device);
@@ -269,9 +269,9 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
 	EXPECT_NE(nullptr, device);
@@ -295,9 +295,9 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
 	EXPECT_NE(nullptr, device);
@@ -322,9 +322,9 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	MockBus bus;
+	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(bus_ptr);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
 	EXPECT_NE(nullptr, device);

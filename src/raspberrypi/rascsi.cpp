@@ -17,6 +17,8 @@
 #include "devices/device_factory.h"
 #include "devices/disk.h"
 #include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
+#include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include "rascsi_exceptions.h"
@@ -59,14 +61,14 @@ static const char COMPONENT_SEPARATOR = ':';
 //---------------------------------------------------------------------------
 static volatile bool active;		// Processing flag
 RascsiService service;
-GPIOBUS bus;
+shared_ptr<GPIOBUS> bus;
 string current_log_level = "info";	// Some versions of spdlog do not support get_log_level()
 string access_token;
 DeviceFactory device_factory;
-ControllerManager controller_manager(bus);
+shared_ptr<ControllerManager> controller_manager;
 RascsiImage rascsi_image;
-RascsiResponse rascsi_response(device_factory, controller_manager, ScsiController::LUN_MAX);
-RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+shared_ptr<RascsiResponse> rascsi_response;
+shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
 void Banner(int argc, char* argv[])
@@ -96,32 +98,42 @@ void Banner(int argc, char* argv[])
 
 bool InitBus()
 {
+	SBC_Version::Init();
+	// GPIOBUS creation
+	bus = GPIOBUS_Factory::Create();
+
+
+	controller_manager = make_shared<ControllerManager>(bus);
+	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
+	executor  = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
+
+
 	// GPIO Initialization
-	if (!bus.Init()) {
+	if (!bus->Init()) {
 		return false;
 	}
 
 	// Bus Reset
-	bus.Reset();
+	bus->Reset();
 
 	return true;
 }
 
 void Cleanup()
 {
-	executor.DetachAll();
+	executor->DetachAll();
 
 	service.Cleanup();
 
 	// Clean up and discard the bus
-	bus.Cleanup();
+	bus->Cleanup();
 }
 
 void Reset()
 {
-	controller_manager.ResetAllControllers();
+	controller_manager->ResetAllControllers();
 
-	bus.Reset();
+	bus->Reset();
 }
 
 bool ReadAccessToken(const char *filename)
@@ -282,7 +294,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'r': {
-					string error = executor.SetReservedIds(optarg);
+					string error = executor->SetReservedIds(optarg);
 					if (!error.empty()) {
 						cerr << error << endl;
 						return false;
@@ -343,20 +355,20 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		name = "";
 	}
 
-	if (!log_level.empty() && executor.SetLogLevel(log_level)) {
+	if (!log_level.empty() && executor->SetLogLevel(log_level)) {
 		current_log_level = log_level;
 	}
 
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	if (CommandContext context(locale); !executor.ProcessCmd(context, command)) {
+	if (CommandContext context(locale); !executor->ProcessCmd(context, command)) {
 		return false;
 	}
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info, rascsi_image.GetDefaultFolder());
+	rascsi_response->GetDevices(server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -384,7 +396,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 	switch(command.operation()) {
 		case LOG_LEVEL: {
 			const string log_level = GetParam(command, "level");
-			if (const bool status = executor.SetLogLevel(log_level); !status) {
+			if (const bool status = executor->SetLogLevel(log_level); !status) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
@@ -406,20 +418,20 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response.GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
+			rascsi_response->GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
-			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result).release());
+			result.set_allocated_device_types_info(rascsi_response->GetDeviceTypesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case SERVER_INFO: {
-			result.set_allocated_server_info(rascsi_response.GetServerInfo(
-					result, executor.GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
+			result.set_allocated_server_info(rascsi_response->GetServerInfo(
+					result, executor->GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
@@ -427,19 +439,19 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		case VERSION_INFO: {
-			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result).release());
+			result.set_allocated_version_info(rascsi_response->GetVersionInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
-			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level).release());
+			result.set_allocated_log_level_info(rascsi_response->GetLogLevelInfo(result, current_log_level).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEFAULT_IMAGE_FILES_INFO: {
-			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
+			result.set_allocated_image_files_info(rascsi_response->GetAvailableImages(result,
 					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
@@ -452,7 +464,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
+				const bool status = rascsi_response->GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
@@ -466,33 +478,33 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 		}
 
 		case NETWORK_INTERFACES_INFO: {
-			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result).release());
+			result.set_allocated_network_interfaces_info(rascsi_response->GetNetworkInterfacesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case MAPPING_INFO: {
-			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result).release());
+			result.set_allocated_mapping_info(rascsi_response->GetMappingInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case OPERATION_INFO: {
-			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
+			result.set_allocated_operation_info(rascsi_response->GetOperationInfo(result,
 					rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
-			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result,
-					executor.GetReservedIds()).release());
+			result.set_allocated_reserved_ids_info(rascsi_response->GetReservedIds(result,
+					executor->GetReservedIds()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case SHUT_DOWN: {
-			if (executor.ShutDown(context, GetParam(command, "mode"))) {
+			if (executor->ShutDown(context, GetParam(command, "mode"))) {
 				TerminationHandler(0);
 			}
 			break;
@@ -505,7 +517,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 				nanosleep(&ts, nullptr);
 			}
 
-			executor.ProcessCmd(context, command);
+			executor->ProcessCmd(context, command);
 			break;
 		}
 	}
@@ -532,7 +544,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	executor.SetLogLevel(current_log_level);
+	executor->SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("rascsi stdout logger");
@@ -581,7 +593,7 @@ int main(int argc, char* argv[])
 	while (service.IsRunning()) {
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
-		if (!bus.PollSelectEvent()) {
+		if (!bus->PollSelectEvent()) {
 			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
@@ -590,10 +602,10 @@ int main(int argc, char* argv[])
 		}
 
 		// Get the bus
-		bus.Acquire();
+		bus->Acquire();
 #else
-		bus.Acquire();
-		if (!bus.GetSEL()) {
+		bus->Acquire();
+		if (!bus->GetSEL()) {
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 0};
 			nanosleep(&ts, nullptr);
 			continue;
@@ -602,30 +614,30 @@ int main(int argc, char* argv[])
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus.GetBSY()) {
+		if (bus->GetBSY()) {
 			const uint32_t now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-				bus.Acquire();
-				if (!bus.GetBSY()) {
+				bus->Acquire();
+				if (!bus->GetBSY()) {
 					break;
 				}
 			}
 		}
 
 		// Stop because the bus is busy or another device responded
-		if (bus.GetBSY() || !bus.GetSEL()) {
+		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
 
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		const BYTE id_data = bus.GetDAT();
+		const BYTE id_data = bus->GetDAT();
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
 		// Identify the responsible controller
-		shared_ptr<AbstractController> controller = controller_manager.IdentifyController(id_data);
+		shared_ptr<AbstractController> controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
 

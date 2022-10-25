@@ -19,7 +19,7 @@ TEST(PrimaryDeviceTest, GetId)
 {
 	const int ID = 5;
 
-	MockAbstractController controller(ID);
+	MockAbstractController controller(make_shared<MockBus>(), ID);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
@@ -30,7 +30,7 @@ TEST(PrimaryDeviceTest, GetId)
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -47,7 +47,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 
 TEST(PrimaryDeviceTest, Reset)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -62,7 +62,7 @@ TEST(PrimaryDeviceTest, Reset)
 
 TEST(PrimaryDeviceTest, CheckReservation)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -92,7 +92,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -117,7 +117,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 TEST(PrimaryDeviceTest, DiscardReservation)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -132,7 +132,7 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -169,7 +169,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller->AddDevice(device);
@@ -231,7 +231,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -251,7 +251,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -281,7 +281,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN1 = 1;
 	const int LUN2 = 4;
 
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
 	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
 
@@ -324,7 +324,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, UnknownCommand)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -334,7 +334,7 @@ TEST(PrimaryDeviceTest, UnknownCommand)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<NiceMock<MockPrimaryDevice>>(0);
 
     controller.AddDevice(device);

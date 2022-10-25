@@ -72,7 +72,7 @@ TEST(ModePageDeviceTest, AddVendorPage)
 
 TEST(ModePageDeviceTest, Dispatch)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
 
     controller.AddDevice(device);
@@ -82,7 +82,7 @@ TEST(ModePageDeviceTest, Dispatch)
 
 TEST(ModePageDeviceTest, ModeSense6)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
 
     controller.AddDevice(device);
@@ -93,7 +93,7 @@ TEST(ModePageDeviceTest, ModeSense6)
 
 TEST(ModePageDeviceTest, ModeSense10)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
 
     controller.AddDevice(device);
@@ -116,7 +116,7 @@ TEST(ModePageDeviceTest, ModeSelect)
 
 TEST(ModePageDeviceTest, ModeSelect6)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockModePageDevice>();
 
     controller.AddDevice(device);
@@ -133,7 +133,7 @@ TEST(ModePageDeviceTest, ModeSelect6)
 
 TEST(ModePageDeviceTest, ModeSelect10)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockModePageDevice>();
 
     controller.AddDevice(device);
