@@ -9,16 +9,18 @@
 
 #pragma once
 
+#include "rascsi_interface.pb.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
+using namespace rascsi_interface;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
 	const string DEFAULT_VENDOR = "RaSCSI";
 
-	string type;
+	PbDeviceType type;
 
 	bool ready = false;
 	bool reset = false;
@@ -42,8 +44,11 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	bool lockable = false;
 	bool locked = false;
 
-	// Device can be created with parameters
+	// A device can be created with parameters
 	bool supports_params = false;
+
+	// A device can support an image file
+	bool supports_file = false;
 
 	// Immutable LUN
 	int lun;
@@ -74,18 +79,25 @@ protected:
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool b) { attn = b; }
 
+	void SetRemovable(bool b) { removable = b; }
+	void SetStoppable(bool b) { stoppable = b; }
+	void SetStopped(bool b) { stopped = b; }
+	void SetLockable(bool b) { lockable = b; }
+	void SetLocked(bool b) { locked = b; }
+
 	int GetStatusCode() const { return status_code; }
 
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
 
-	Device(const string&, int);
+	Device(PbDeviceType, int);
 
 public:
 
 	virtual ~Device() = default;
 
-	const string& GetType() const { return type; }
+	PbDeviceType GetType() const { return type; }
+	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();
@@ -96,20 +108,13 @@ public:
 	void SetProtected(bool);
 	bool IsReadOnly() const { return read_only; }
 	void SetReadOnly(bool b) { read_only = b; }
-
 	bool IsStoppable() const { return stoppable; }
-	void SetStoppable(bool b) { stoppable = b; }
 	bool IsStopped() const { return stopped; }
-	void SetStopped(bool b) { stopped = b; }
 	bool IsRemovable() const { return removable; }
-	void SetRemovable(bool b) { removable = b; }
 	bool IsRemoved() const { return removed; }
 	void SetRemoved(bool b) { removed = b; }
-
 	bool IsLockable() const { return lockable; }
-	void SetLockable(bool b) { lockable = b; }
 	bool IsLocked() const { return locked; }
-	void SetLocked(bool b) { locked = b; }
 
 	virtual int GetId() const = 0;
 	int GetLun() const { return lun; }
@@ -123,8 +128,9 @@ public:
 	string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
-	virtual bool SupportsFile() const { return !supports_params; }
+	bool SupportsFile() const { return supports_file; }
 	void SupportsParams(bool b) { supports_params = b; }
+	void SupportsFile(bool b) { supports_file = b; }
 	unordered_map<string, string> GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 

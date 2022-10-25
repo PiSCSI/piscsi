@@ -21,7 +21,7 @@ class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
 public:
 
-	PrimaryDevice(const string&, int);
+	PrimaryDevice(PbDeviceType, int);
 	~PrimaryDevice() override = default;
 
 	virtual bool Dispatch(scsi_command);
@@ -30,10 +30,15 @@ public:
 
 	void SetController(AbstractController *);
 	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
-	virtual int GetSendDelay() const { return BUS::SEND_NO_DELAY; }
 
-	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const unordered_map<string, string>&) { return true; };
+	int GetSendDelay() const { return send_delay; }
+
+	bool CheckReservation(int, scsi_command, bool) const;
+	void DiscardReservation();
+
+	// Override for device specific initializations
+	virtual bool Init(const unordered_map<string, string>&) { return false; };
+	void Reset() override;
 
 	virtual void FlushCache() {
 		// Devices with a cache have to implement this method
@@ -45,6 +50,12 @@ protected:
 	virtual vector<byte> InquiryInternal() const = 0;
 	void CheckReady();
 
+	void SetSendDelay(int s) { send_delay = s; }
+
+	virtual void SendDiagnostic();
+	virtual void ReserveUnit();
+	virtual void ReleaseUnit();
+
 	void EnterStatusPhase() { controller->Status(); }
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
@@ -54,6 +65,8 @@ protected:
 
 private:
 
+	static const int NOT_RESERVED = -2;
+
 	void TestUnitReady() override;
 	void RequestSense() override;
 	void ReportLuns() override;
@@ -62,4 +75,8 @@ private:
 	vector<byte> HandleRequestSense() const;
 
 	Dispatcher<PrimaryDevice> dispatcher;
+
+	int send_delay = BUS::SEND_NO_DELAY;
+
+	int reserving_initiator = NOT_RESERVED;
 };

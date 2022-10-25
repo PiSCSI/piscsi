@@ -33,7 +33,7 @@ using namespace scsi_defs;
 using namespace scsi_command_util;
 
 // TODO Disk must not be the superclass
-SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk("SCDP", lun)
+SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
@@ -42,6 +42,16 @@ SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk("SCDP", lun)
 	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
 	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
 	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+
+	// The Daynaport needs to have a delay after the size/flags field of the read response.
+	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
+	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
+
+	SupportsParams(true);
+	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
+	SetStoppable(false);
+	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
+	SupportsFile(false);
 }
 
 bool SCSIDaynaPort::Dispatch(scsi_command cmd)
@@ -79,8 +89,10 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-void SCSIDaynaPort::Open(const Filepath& path)
+void SCSIDaynaPort::Open()
 {
+	Filepath path;
+	path.SetPath(GetFilename().c_str());
 	m_tap.OpenDump(path);
 }
 
@@ -433,12 +445,12 @@ void SCSIDaynaPort::SetInterfaceMode()
 		case CMD_SCSILINK_ENABLE:
 		case CMD_SCSILINK_SET:
 			LOGWARN("%s Unsupported SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			break;
 
 		default:
 			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, ctrl->cmd[5])
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			break;
 	}
 }
@@ -449,7 +461,7 @@ void SCSIDaynaPort::SetMcastAddr()
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, ctrl->cmd[2])
 
-		throw scsi_exception();
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	EnterDataOutPhase();
@@ -473,7 +485,7 @@ void SCSIDaynaPort::EnableInterface()
 		if (!m_tap.Enable()) {
 			LOGWARN("Unable to enable the DaynaPort Interface")
 
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
 		m_tap.Flush();
@@ -484,19 +496,11 @@ void SCSIDaynaPort::EnableInterface()
 		if (!m_tap.Disable()) {
 			LOGWARN("Unable to disable the DaynaPort Interface")
 
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
 		LOGINFO("The DaynaPort interface has been DISABLED")
 	}
 
 	EnterStatusPhase();
-}
-
-int SCSIDaynaPort::GetSendDelay() const
-{
-	// The Daynaport needs to have a delay after the size/flags field
-	// of the read response. In the MacOS driver, it looks like the
-	// driver is doing two "READ" system calls.
-	return DAYNAPORT_READ_HEADER_SZ;
 }

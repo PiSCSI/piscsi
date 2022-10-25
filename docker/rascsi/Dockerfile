@@ -21,7 +21,7 @@ COPY --chown=pi:pi . .
 RUN patch -p0 < docker/rascsi/cfilesystem.patch
 
 # Install RaSCSI standalone
-RUN ./easyinstall.sh --run_choice=10 --cores=`nproc` --skip-token
+RUN ./easyinstall.sh --run_choice=10 --cores=`nproc`
 
 USER root
 WORKDIR /home/pi

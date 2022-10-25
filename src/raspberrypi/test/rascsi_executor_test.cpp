@@ -7,52 +7,219 @@
 //
 //---------------------------------------------------------------------------
 
+#include "spdlog/spdlog.h"
 #include "mocks.h"
+#include "rascsi_exceptions.h"
 #include "protobuf_util.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
+#include "rascsi_interface.pb.h"
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_response.h"
 #include "rascsi/rascsi_image.h"
 #include "rascsi/rascsi_executor.h"
+#include <unistd.h>
 
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-TEST(RascsiExecutorTest, ProcessCmd)
+const extern bool enable_logging;
+
+// This test fixture is required in order to reset the log level changed by the log level tests
+class RascsiExecutorTest : public Test
+{
+	void TearDown() override {
+		spdlog::set_level(enable_logging ? spdlog::level::trace : spdlog::level::off);
+	}
+};
+
+TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 {
 	const int ID = 3;
 	const int LUN = 0;
 
-	auto bus_ptr = make_shared<MockBus>();
+	shared_ptr<MockBus> bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
+	MockAbstractController controller(bus_ptr, ID);
 	ControllerManager controller_manager(bus_ptr);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
-	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
+	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	MockCommandContext context;
 
 	definition.set_id(8);
 	definition.set_unit(32);
-	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Invalid ID must fail";
-
-	definition.set_id(ID);
-	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Invalid LUN must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID and LUN must fail";
 
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Unknown operation must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID must fail";
+
+	definition.set_id(ID);
+	definition.set_unit(32);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid LUN must fail";
+
+	definition.set_unit(LUN);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Unknown operation must fail";
 
 	command.set_operation(ATTACH);
-	EXPECT_FALSE(executor.ProcessCmd(context, definition, command, true)) << "Operation for unknown device must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation for unknown device type must fail";
+
+	auto device1 = make_shared<MockPrimaryDevice>(LUN);
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device1));
+
+	definition.set_type(SCHS);
+	command.set_operation(INSERT);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation unsupported by device must fail";
+	controller_manager.DeleteAllControllers();
+	definition.set_type(SCRM);
+
+	auto device2 = make_shared<MockSCSIHD_NEC>(LUN);
+	device2->SetRemovable(true);
+	device2->SetProtectable(true);
+	device2->SetReady(true);
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device2));
+
+	command.set_operation(ATTACH);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "ID and LUN already exist";
+
+	command.set_operation(START);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(PROTECT);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(UNPROTECT);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(STOP);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(EJECT);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(INSERT);
+	SetParam(definition, "file", "filename");
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Non-existing file";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, false)) << "Non-existing file";
+
+	command.set_operation(DETACH);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device2));
+
+	command.set_operation(CHECK_AUTHENTICATION);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	command.set_operation(NO_OPERATION);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+
+	// The operations below are not related to a device
+
+	command.set_operation(DETACH_ALL);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(RESERVE_IDS);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(CREATE_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(DELETE_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(RENAME_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(COPY_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(PROTECT_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+
+	command.set_operation(UNPROTECT_IMAGE);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
 }
 
-TEST(RascsiExecutorTest, SetLogLevel)
+TEST_F(RascsiExecutorTest, ProcessCmd)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	shared_ptr<MockBus> bus_ptr;
 	DeviceFactory device_factory;
+	MockAbstractController controller(bus_ptr, 0);
 	ControllerManager controller_manager(bus_ptr);
+	RascsiImage rascsi_image;
+	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
+	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
+	PbCommand command1;
+	PbCommand command2;
+	MockCommandContext context;
+
+	command1.set_operation(DETACH_ALL);
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(RESERVE_IDS);
+	SetParam(command1, "ids", "2,3");
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+	const unordered_set<int> ids = executor->GetReservedIds();
+	EXPECT_EQ(2, ids.size());
+	EXPECT_NE(ids.end(), ids.find(2));
+	EXPECT_NE(ids.end(), ids.find(3));
+	command2.set_operation(RESERVE_IDS);
+	EXPECT_TRUE(executor->ProcessCmd(context, command2));
+	EXPECT_TRUE(executor->GetReservedIds().empty());
+
+	SetParam(command2, "ids", "-1");
+	EXPECT_FALSE(executor->ProcessCmd(context, command2));
+	EXPECT_TRUE(executor->GetReservedIds().empty());
+
+	command1.set_operation(NO_OPERATION);
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(ATTACH);
+	auto device = command1.add_devices();
+	device->set_type(SCHS);
+	device->set_id(-1);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+	device->set_id(0);
+	device->set_unit(1);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1)) << "LUN 0 is missing";
+	device->set_unit(0);
+	EXPECT_TRUE(executor->ProcessCmd(context, command1));
+
+	// The operations below must fail because of missing parameters.
+	// The respective functionality is tested in rascsi_image_test.cpp.
+
+	command1.set_operation(CREATE_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(DELETE_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(RENAME_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(COPY_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(PROTECT_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+
+	command1.set_operation(UNPROTECT_IMAGE);
+	EXPECT_FALSE(executor->ProcessCmd(context, command1));
+}
+
+TEST_F(RascsiExecutorTest, SetLogLevel)
+{
+	DeviceFactory device_factory;
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -62,19 +229,17 @@ TEST(RascsiExecutorTest, SetLogLevel)
 	EXPECT_TRUE(executor.SetLogLevel("info"));
 	EXPECT_TRUE(executor.SetLogLevel("warn"));
 	EXPECT_TRUE(executor.SetLogLevel("err"));
-	EXPECT_TRUE(executor.SetLogLevel("critical"));
 	EXPECT_TRUE(executor.SetLogLevel("off"));
 	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
-TEST(RascsiExecutorTest, Attach)
+TEST_F(RascsiExecutorTest, Attach)
 {
 	const int ID = 3;
 	const int LUN = 0;
 
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -101,26 +266,61 @@ TEST(RascsiExecutorTest, Attach)
 	definition.set_type(PbDeviceType::SCHD);
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive without sectors not rejected";
 
-	definition.set_block_size(1);
-	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with invalid sector size not rejeced";
+	definition.set_revision("invalid revision");
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with invalid revision not rejected";
+	definition.set_revision("1234");
 
-	definition.set_block_size(1024);
+	definition.set_block_size(1);
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with invalid sector size not rejected";
+
+	definition.set_block_size(512);
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive without image file not rejected";
 
-	AddParam(definition, "file", "/non_existing_file");
-	EXPECT_FALSE(executor.Attach(context, definition, false));
+	SetParam(definition, "file", "/non_existing_file");
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with non-existing image file not rejected";
 
-	AddParam(definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Empty image file not rejected";
+	string filename = CreateTempFile(1);
+	SetParam(definition, "file", filename);
+	EXPECT_THROW(executor.Attach(context, definition, false), io_exception)	<< "Too small image file not rejected";
+	unlink(filename.c_str());
 
-	// Further testing is not possible without a filesystem
+	filename = CreateTempFile(512);
+	SetParam(definition, "file", filename);
+	bool result = executor.Attach(context, definition, false);
+	unlink(filename.c_str());
+	EXPECT_TRUE(result);
+	controller_manager.DeleteAllControllers();
+
+	filename = CreateTempFile(513);
+	SetParam(definition, "file", filename);
+	result = executor.Attach(context, definition, false);
+	unlink(filename.c_str());
+	EXPECT_TRUE(result);
+
+	definition.set_type(PbDeviceType::SCCD);
+	definition.set_unit(LUN + 1);
+	filename = CreateTempFile(2048);
+	SetParam(definition, "file", filename);
+	result = executor.Attach(context, definition, false);
+	unlink(filename.c_str());
+	EXPECT_TRUE(result);
+
+	definition.set_type(PbDeviceType::SCMO);
+	definition.set_unit(LUN + 2);
+	SetParam(definition, "read_only", "true");
+	filename = CreateTempFile(4096);
+	SetParam(definition, "file", filename);
+	result = executor.Attach(context, definition, false);
+	unlink(filename.c_str());
+	EXPECT_TRUE(result);
+
+	controller_manager.DeleteAllControllers();
 }
 
-TEST(RascsiExecutorTest, Insert)
+TEST_F(RascsiExecutorTest, Insert)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -147,7 +347,7 @@ TEST(RascsiExecutorTest, Insert)
 
 	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Filename is missing";
 
-	AddParam(definition, "file", "filename");
+	SetParam(definition, "file", "filename");
 	EXPECT_TRUE(executor.Insert(context, definition, device, true)) << "Dry-run must not fail";
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
@@ -155,35 +355,41 @@ TEST(RascsiExecutorTest, Insert)
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
 	definition.set_block_size(0);
-	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Image file validation has to fail";
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Image file validation must fail";
 
-	AddParam(definition, "file", "/non_existing_file");
+	SetParam(definition, "file", "/non_existing_file");
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
-	AddParam(definition, "file", "/dev/zero");
-	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "File has 0 bytes";
+	string filename = CreateTempFile(1);
+	SetParam(definition, "file", filename);
+	EXPECT_THROW(executor.Insert(context, definition, device, false), io_exception)
+		<< "Too small image file not rejected";
+	unlink(filename.c_str());
 
-	// Further testing is not possible without a filesystem
+	filename = CreateTempFile(512);
+	SetParam(definition, "file", filename);
+	const bool result = executor.Insert(context, definition, device, false);
+	unlink(filename.c_str());
+	EXPECT_TRUE(result);
 }
 
-TEST(RascsiExecutorTest, Detach)
+TEST_F(RascsiExecutorTest, Detach)
 {
 	const int ID = 3;
 	const int LUN1 = 0;
 	const int LUN2 = 1;
 
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
-	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
-	controller_manager.AttachToScsiController(ID, device1);
-	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN2, "services");
-	controller_manager.AttachToScsiController(ID, device2);
+	auto device1 = device_factory.CreateDevice(controller_manager, SCHS, LUN1, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device1));
+	auto device2 = device_factory.CreateDevice(controller_manager, SCHS, LUN2, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device2));
 
 	auto d1 = controller_manager.GetDeviceByIdAndLun(ID, LUN1);
 	EXPECT_FALSE(executor.Detach(context, d1, false)) << "LUNs > 0 have to be detached first";
@@ -191,21 +397,22 @@ TEST(RascsiExecutorTest, Detach)
 	EXPECT_TRUE(executor.Detach(context, d2, false));
 	EXPECT_TRUE(executor.Detach(context, d1, false));
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
+
+	EXPECT_FALSE(executor.Detach(context, d1, false));
 }
 
-TEST(RascsiExecutorTest, DetachAll)
+TEST_F(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
 
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	auto device = device_factory.CreateDevice(controller_manager, SCHS, 0, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	EXPECT_NE(nullptr, controller_manager.FindController(ID));
 	EXPECT_FALSE(controller_manager.GetAllDevices().empty());
 
@@ -214,11 +421,10 @@ TEST(RascsiExecutorTest, DetachAll)
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 }
 
-TEST(RascsiExecutorTest, ShutDown)
+TEST_F(RascsiExecutorTest, ShutDown)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -231,11 +437,10 @@ TEST(RascsiExecutorTest, ShutDown)
 	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
 }
 
-TEST(RascsiExecutorTest, SetReservedIds)
+TEST_F(RascsiExecutorTest, SetReservedIds)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -266,28 +471,23 @@ TEST(RascsiExecutorTest, SetReservedIds)
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
 	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
 
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(5, device);
+	auto device = device_factory.CreateDevice(controller_manager, SCHS, 0, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(5, device));
 	error = executor.SetReservedIds("5");
 	EXPECT_FALSE(error.empty());
 }
 
-TEST(RascsiExecutorTest, ValidateImageFile)
+TEST_F(RascsiExecutorTest, ValidateImageFile)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
 	string full_path;
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
-	EXPECT_TRUE(full_path.empty());
-
-	device = device_factory.CreateDevice(controller_manager, SCHD, 0, "test");
+	auto device = dynamic_pointer_cast<StorageDevice>(device_factory.CreateDevice(controller_manager, SCHD, 0, "test"));
 	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
 	EXPECT_TRUE(full_path.empty());
 
@@ -295,11 +495,10 @@ TEST(RascsiExecutorTest, ValidateImageFile)
 	EXPECT_TRUE(full_path.empty());
 }
 
-TEST(RascsiExecutorTest, ValidateLunSetup)
+TEST_F(RascsiExecutorTest, ValidateLunSetup)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -314,38 +513,36 @@ TEST(RascsiExecutorTest, ValidateLunSetup)
 	error = executor.ValidateLunSetup(command);
 	EXPECT_FALSE(error.empty());
 
-	auto device2 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
-	controller_manager.AttachToScsiController(0, device2);
+	auto device2 = device_factory.CreateDevice(controller_manager, SCHS, 0, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(0, device2));
 	error = executor.ValidateLunSetup(command);
 	EXPECT_TRUE(error.empty());
 }
 
-TEST(RascsiExecutorTest, VerifyExistingIdAndLun)
+TEST_F(RascsiExecutorTest, VerifyExistingIdAndLun)
 {
 	const int ID = 1;
-	const int LUN1 = 2;
+	const int LUN1 = 0;
 	const int LUN2 = 3;
 
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
-	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, LUN1, "services");
-	controller_manager.AttachToScsiController(ID, device);
+	auto device = device_factory.CreateDevice(controller_manager, SCHS, LUN1, "");
+	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device));
 	EXPECT_TRUE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
-TEST(RascsiExecutorTest, CreateDevice)
+TEST_F(RascsiExecutorTest, CreateDevice)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -360,32 +557,30 @@ TEST(RascsiExecutorTest, CreateDevice)
 	EXPECT_NE(nullptr, executor.CreateDevice(context, SCHS, 0, ""));
 }
 
-TEST(RascsiExecutorTest, SetSectorSize)
+TEST_F(RascsiExecutorTest, SetSectorSize)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
 	MockCommandContext context;
 
 	unordered_set<uint32_t> sizes;
-	auto disk = make_shared<MockSCSIHD>(0, sizes, false);
-	EXPECT_FALSE(executor.SetSectorSize(context, "test", disk, 512));
+	auto hd = make_shared<MockSCSIHD>(0, sizes, false);
+	EXPECT_FALSE(executor.SetSectorSize(context, hd, 512));
 
 	sizes.insert(512);
-	disk = make_shared<MockSCSIHD>(0, sizes, false);
-	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 0));
-	EXPECT_FALSE(executor.SetSectorSize(context, "test", disk, 1));
-	EXPECT_TRUE(executor.SetSectorSize(context, "test", disk, 512));
+	hd = make_shared<MockSCSIHD>(0, sizes, false);
+	EXPECT_TRUE(executor.SetSectorSize(context, hd, 0));
+	EXPECT_FALSE(executor.SetSectorSize(context, hd, 1));
+	EXPECT_TRUE(executor.SetSectorSize(context, hd, 512));
 }
 
-TEST(RascsiExecutorTest, ValidationOperationAgainstDevice)
+TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -393,54 +588,53 @@ TEST(RascsiExecutorTest, ValidationOperationAgainstDevice)
 
 	auto device = make_shared<MockPrimaryDevice>(0);
 
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, ATTACH));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, DETACH));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, ATTACH));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, DETACH));
 
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, START));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, STOP));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, START));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, STOP));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 
 	device->SetStoppable(true);
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, STOP));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 
 	device->SetRemovable(true);
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 
 	device->SetProtectable(true);
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 
 	device->SetReady(true);
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, EJECT));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_TRUE(executor.ValidationOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
 }
 
-TEST(RascsiExecutorTest, ValidateIdAndLun)
+TEST_F(RascsiExecutorTest, ValidateIdAndLun)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -454,11 +648,10 @@ TEST(RascsiExecutorTest, ValidateIdAndLun)
 	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 31));
 }
 
-TEST(RascsiExecutorTest, SetProductData)
+TEST_F(RascsiExecutorTest, SetProductData)
 {
-	auto bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);

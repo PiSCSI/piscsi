@@ -20,7 +20,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-ModePageDevice::ModePageDevice(const string& type, int lun) : PrimaryDevice(type, lun)
+ModePageDevice::ModePageDevice(PbDeviceType type, int lun) : PrimaryDevice(type, lun)
 {
 	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
 	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
@@ -34,10 +34,11 @@ bool ModePageDevice::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int offset, int max_length) const
+int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int offset, int length, int max_size) const
 {
+	int max_length = length - offset;
 	if (max_length < 0) {
-		return 0;
+		return length;
 	}
 
 	const bool changeable = (cdb[2] & 0xc0) == 0x40;
@@ -87,11 +88,15 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		result[off + 1] = (byte)(page0.size() - 2);
 	}
 
-	// Do not return more than the requested number of bytes
-	size_t size = min((size_t)max_length, result.size());
+	if ((int)result.size() > max_size) {
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	}
+
+	auto size = (int)min((size_t)max_length, result.size());
 	memcpy(&buf.data()[offset], result.data(), size);
 
-	return (int)size;
+	// Do not return more than the requested number of bytes
+	return size + offset < length ? size + offset : length;
 }
 
 void ModePageDevice::ModeSense6()
@@ -108,46 +113,32 @@ void ModePageDevice::ModeSense10()
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(const vector<int>&, const vector<BYTE>&, int) const
+void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<BYTE>&, int) const
 {
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6()
 {
-	ctrl->length = ModeSelectCheck6();
+	ctrl->length = SaveParametersCheck(ctrl->cmd[4]);
 
 	EnterDataOutPhase();
 }
 
 void ModePageDevice::ModeSelect10()
 {
-	ctrl->length = ModeSelectCheck10();
+	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
+
+	ctrl->length = SaveParametersCheck((int)length);
 
 	EnterDataOutPhase();
 }
 
-int ModePageDevice::ModeSelectCheck(int length) const
+int ModePageDevice::SaveParametersCheck(int length) const
 {
-	// Error if save parameters are set for other types than SCHD, SCRM or SCMO
-	// TODO The assumption above is not correct, and this code should be located elsewhere
-	if (GetType() != "SCHD" && GetType() != "SCRM" && GetType() != "SCMO" && (ctrl->cmd[1] & 0x01)) {
+	if (!SupportsSaveParameters() && (ctrl->cmd[1] & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	return length;
-}
-
-int ModePageDevice::ModeSelectCheck6() const
-{
-	// Receive the data specified by the parameter length
-	return ModeSelectCheck(ctrl->cmd[4]);
-}
-
-int ModePageDevice::ModeSelectCheck10() const
-{
-	// Receive the data specified by the parameter length
-	size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
-
-	return ModeSelectCheck((int)length);
 }

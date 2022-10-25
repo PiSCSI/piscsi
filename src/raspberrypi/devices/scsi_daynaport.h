@@ -49,7 +49,7 @@ public:
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
-	void Open(const Filepath& path) override;
+	void Open() override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
@@ -66,7 +66,6 @@ public:
 	void SetInterfaceMode();
 	void SetMcastAddr();
 	void EnableInterface();
-	int GetSendDelay() const override;
 
 	bool Dispatch(scsi_command) override;
 

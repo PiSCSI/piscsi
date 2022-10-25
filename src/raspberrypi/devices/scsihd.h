@@ -17,29 +17,31 @@
 #pragma once
 
 #include "disk.h"
-#include "filepath.h"
+#include <string>
 
 class SCSIHD : public Disk
 {
-	static constexpr const char *DEFAULT_PRODUCT = "SCSI HD";
+	const string DEFAULT_PRODUCT = "SCSI HD";
 
 public:
 
 	SCSIHD(int, const unordered_set<uint32_t>&, bool, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSIHD() override = default;
 
-	void FinalizeSetup(const Filepath&, off_t, off_t = 0);
+	void FinalizeSetup(off_t, off_t = 0);
 
-	void Open(const Filepath&) override;
+	void Open() override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	void ModeSelect(const vector<int>&, const vector<BYTE>&, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<BYTE>&, int) const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
+
+	string GetProductData() const;
 
 	using super = Disk;
 

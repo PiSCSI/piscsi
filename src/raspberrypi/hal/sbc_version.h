@@ -35,6 +35,9 @@ class SBC_Version
         sbc_bananapi_m4,
     };
 
+    SBC_Version()  = delete;
+    ~SBC_Version() = delete;
+
     static void Init();
 
     static sbc_version_type GetSbcVersion();

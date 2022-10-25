@@ -12,52 +12,52 @@
 #include "protobuf_serializer.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl_display.h"
-#include <netdb.h>
 #include <string>
 
 using namespace rascsi_interface;
+
+struct sockaddr_in;
 
 class RasctlCommands
 {
 public:
 
-	RasctlCommands(const PbCommand&, const string&, int, const string&, const string&);
+	RasctlCommands(PbCommand& command, const string& hostname, int port)
+		: command(command), hostname(hostname), port(port) {}
 	~RasctlCommands() = default;
 
-	void Execute(const string&, const string&, const string&, const string&, const string&);
+	bool Execute(const string&, const string&, const string&, const string&, const string&);
 
-	void CommandDevicesInfo();
+	bool CommandDevicesInfo();
 
 private:
 
-	void CommandLogLevel(const string&);
-	void CommandReserveIds(const string&);
-	void CommandCreateImage(const string&);
-	void CommandDeleteImage(const string&);
-	void CommandRenameImage(const string&);
-	void CommandCopyImage(const string&);
-	void CommandDefaultImageFolder(const string&);
-	void CommandDeviceInfo();
-	void CommandDeviceTypesInfo();
-	void CommandVersionInfo();
-	void CommandServerInfo();
-	void CommandDefaultImageFilesInfo();
-	void CommandImageFileInfo(const string&);
-	void CommandNetworkInterfacesInfo();
-	void CommandLogLevelInfo();
-	void CommandReservedIdsInfo();
-	void CommandMappingInfo();
-	void CommandOperationInfo();
-	void SendCommand();
+	bool CommandLogLevel(const string&);
+	bool CommandReserveIds(const string&);
+	bool CommandCreateImage(const string&);
+	bool CommandDeleteImage(const string&);
+	bool CommandRenameImage(const string&);
+	bool CommandCopyImage(const string&);
+	bool CommandDefaultImageFolder(const string&);
+	bool CommandDeviceInfo();
+	bool CommandDeviceTypesInfo();
+	bool CommandVersionInfo();
+	bool CommandServerInfo();
+	bool CommandDefaultImageFilesInfo();
+	bool CommandImageFileInfo(const string&);
+	bool CommandNetworkInterfacesInfo();
+	bool CommandLogLevelInfo();
+	bool CommandReservedIdsInfo();
+	bool CommandMappingInfo();
+	bool CommandOperationInfo();
+	bool SendCommand();
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
 	ProtobufSerializer serializer;
-	PbCommand command;
+	PbCommand& command;
 	string hostname;
 	int port;
-	string token;
-	string locale;
 
 	PbResult result;
 

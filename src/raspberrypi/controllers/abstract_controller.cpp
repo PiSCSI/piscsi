@@ -11,11 +11,27 @@
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
 
+void AbstractController::AllocateCmd(size_t size)
+{
+	if (size > ctrl.cmd.size()) {
+		ctrl.cmd.resize(size);
+	}
+}
+
 void AbstractController::AllocateBuffer(size_t size)
 {
 	if (size > ctrl.buffer.size()) {
 		ctrl.buffer.resize(size);
 	}
+}
+
+void AbstractController::SetByteTransfer(bool b)
+{
+	 is_byte_transfer = b;
+
+	 if (!is_byte_transfer) {
+		 bytes_to_transfer = 0;
+	 }
 }
 
 unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
@@ -88,7 +104,7 @@ void AbstractController::ProcessPhase()
 
 		default:
 			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()))
-			throw scsi_exception();
+			throw scsi_exception(sense_key::ABORTED_COMMAND);
 			break;
 	}
 }
@@ -105,9 +121,16 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 	return true;
 }
 
-bool AbstractController::DeleteDevice(const shared_ptr<PrimaryDevice> device)
+bool AbstractController::RemoveDevice(const shared_ptr<PrimaryDevice> device)
 {
-	return luns.erase(device->GetLun()) == 1;
+	const size_t count = luns.erase(device->GetLun());
+	assert (count == 1);
+
+	if (count == 1) {
+		device->SetController(nullptr);
+	}
+
+	return count == 1;
 }
 
 bool AbstractController::HasDeviceForLun(int lun) const

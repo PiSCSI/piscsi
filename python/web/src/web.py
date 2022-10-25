@@ -54,6 +54,7 @@ from web_utils import (
     get_properties_by_drive_name,
     auth_active,
     is_bridge_configured,
+    is_safe_path,
     upload_with_dropzonejs,
 )
 from settings import (
@@ -336,7 +337,7 @@ def drive_create():
     Creates the image and properties file pair
     """
     drive_name = request.form.get("drive_name")
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name")).name
 
     properties = get_properties_by_drive_name(
         APP.config["RASCSI_DRIVE_PROPERTIES"],
@@ -360,11 +361,9 @@ def drive_create():
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
-    # TODO: Refactor the return messages into one string
-    return response(message=[
-        (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
-        (process["msg"], "success"),
-    ])
+    return response(message=
+        _("Image file with properties created: %(file_name)s", file_name=full_file_name)
+    )
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
@@ -374,7 +373,7 @@ def drive_cdrom():
     Creates a properties file for a CD-ROM image
     """
     drive_name = request.form.get("drive_name")
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name")).name
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -396,8 +395,7 @@ def config_save():
     """
     Saves a config file to disk
     """
-    file_name = request.form.get("name") or "default"
-    file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
+    file_name = Path(request.form.get("name") + f".{CONFIG_FILE_SUFFIX}").name
 
     process = file_cmd.write_config(file_name)
     process = ReturnCodeMapper.add_msg(process)
@@ -413,7 +411,7 @@ def config_load():
     """
     Loads a config file from disk
     """
-    file_name = request.form.get("name")
+    file_name = Path(request.form.get("name")).name
 
     if "load" in request.form:
         process = file_cmd.read_config(file_name)
@@ -440,18 +438,18 @@ def show_diskinfo():
     """
     Displays disk image info
     """
-    file_name = request.form.get("file_name")
-
+    file_name = Path(request.form.get("file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     server_info = ractl_cmd.get_server_info()
     returncode, diskinfo = sys_cmd.get_diskinfo(
-            server_info["image_dir"] +
-            "/" +
-            file_name
+            Path(server_info["image_dir"]) / file_name
         )
     if returncode == 0:
         return response(
             template="diskinfo.html",
-            file_name=file_name,
+            file_name=str(file_name),
             diskinfo=diskinfo,
             )
 
@@ -580,17 +578,10 @@ def attach_device():
             if param:
                 params.update({item.replace(PARAM_PREFIX, ""): param})
 
-    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
-    error_msg = _("Please follow the instructions at %(url)s", url=error_url)
-
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
-            # TODO: Refactor the return messages into one string
-            return response(error=True, message=[
-                (bridge_status["msg"], "error"),
-                (error_msg, "error")
-            ])
+            return response(error=True, message=bridge_status["msg"])
 
     kwargs = {
             "unit": int(unit),
@@ -642,8 +633,8 @@ def attach_image():
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(drive_properties).is_file():
+    drive_properties = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if drive_properties.is_file():
         process = file_cmd.read_drive_properties(drive_properties)
         process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
@@ -658,32 +649,26 @@ def attach_image():
     process = ractl_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        response_messages = [(_(
-            "Attached %(file_name)s as %(device_type)s to "
-            "SCSI ID %(id_number)s LUN %(unit_number)s",
-            file_name=file_name,
-            device_type=get_device_name(device_type),
-            id_number=scsi_id,
-            unit_number=unit,
-            ), "success")]
-
         if int(file_size) % int(expected_block_size):
-            response_messages.append((_(
-                "The image file size %(file_size)s bytes is not a multiple of "
-                "%(block_size)s. RaSCSI will ignore the trailing data. "
+            logging.warning(
+                "The image file size %s bytes is not a multiple of %s. "
+                "RaSCSI will ignore the trailing data. "
                 "The image may be corrupted, so proceed with caution.",
-                file_size=file_size,
-                block_size=expected_block_size,
-                ), "warning"))
+                file_size,
+                expected_block_size,
+                )
+        return response(
+            message=_(
+                "Attached %(file_name)s as %(device_type)s to "
+                "SCSI ID %(id_number)s LUN %(unit_number)s",
+                file_name=file_name,
+                device_type=get_device_name(device_type),
+                id_number=scsi_id,
+                unit_number=unit,
+                )
+            )
 
-        return response(message=response_messages)
-
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
-           file_name=file_name, id_number=scsi_id, unit_number=unit), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/detach_all", methods=["POST"])
@@ -712,12 +697,7 @@ def detach():
         return response(message=_("Detached SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
-           id_number=scsi_id, unit_number=unit), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/eject", methods=["POST"])
@@ -734,12 +714,7 @@ def eject():
         return response(message=_("Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
                                   id_number=scsi_id, unit_number=unit))
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
-           id_number=scsi_id, unit_number=unit), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/info", methods=["POST"])
@@ -772,11 +747,7 @@ def reserve_id():
         RESERVATIONS[int(scsi_id)] = memo
         return response(message=_("Reserved SCSI ID %(id_number)s", id_number=scsi_id))
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/release", methods=["POST"])
@@ -793,11 +764,7 @@ def release_id():
         RESERVATIONS[int(scsi_id)] = ""
         return response(message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/pi/reboot", methods=["POST"])
@@ -824,24 +791,40 @@ def shutdown():
 @login_required
 def download_to_iso():
     """
-    Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
+    Downloads a file and creates a CD-ROM image with the specified file system and the file
     """
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
-    iso_args = request.form.get("type").split()
-    response_messages = []
+    iso_type = request.form.get("type")
+
+    if iso_type == "HFS":
+        iso_args = ["-hfs"]
+    elif iso_type == "ISO-9660 Level 1":
+        iso_args = ["-iso-level", "1"]
+    elif iso_type == "ISO-9660 Level 2":
+        iso_args = ["-iso-level", "2"]
+    elif iso_type == "ISO-9660 Level 3":
+        iso_args = ["-iso-level", "3"]
+    elif iso_type == "Joliet":
+        iso_args = ["-J"]
+    elif iso_type == "Rock Ridge":
+        iso_args = ["-r"]
+    else:
+        return response(
+            error=True,
+            message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type)
+        )
 
     process = file_cmd.download_file_to_iso(url, *iso_args)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
-        # TODO: Refactor the return messages into one string
-        return response(error=True, message=[
-            (_("Failed to create CD-ROM image from %(url)s", url=url), "error"),
-            (process["msg"], "error"),
-        ])
-
-    response_messages.append((process["msg"], "success"))
-    response_messages.append((_("Saved image as: %(file_name)s", file_name=process['file_name']), "success"))
+        return response(
+            error=True,
+            message=_(
+                "The following error occurred when creating the CD-ROM image: %(error)s",
+                error=process["msg"],
+            ),
+        )
 
     process_attach = ractl_cmd.attach_device(
             scsi_id,
@@ -850,14 +833,26 @@ def download_to_iso():
             )
     process_attach = ReturnCodeMapper.add_msg(process_attach)
     if process_attach["status"]:
-        response_messages.append((_("Attached to SCSI ID %(id_number)s", id_number=scsi_id), "success"))
-        return response(message=response_messages)
+        return response(
+            message=_(
+                "CD-ROM image %(file_name)s with type %(iso_type)s was created "
+                "and attached to SCSI ID %(id_number)s",
+                file_name=process["file_name"],
+                iso_type=iso_type,
+                id_number=scsi_id,
+            ),
+        )
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.", id_number=scsi_id), "error"),
-        (process_attach["msg"], "error"),
-    ])
+    return response(
+        error=True,
+        message=_(
+            "CD-ROM image %(file_name)s with type %(iso_type)s was created "
+            "but could not be attached: %(error)s",
+            file_name=process["file_name"],
+            iso_type=iso_type,
+            error=process_attach["msg"],
+        ),
+    )
 
 
 @APP.route("/files/download_url", methods=["POST"])
@@ -878,11 +873,13 @@ def download_file():
     if process["status"]:
         return response(message=process["msg"])
 
-    # TODO: Refactor the return messages into one string
-    return response(error=True, message=[
-        (_("Failed to download file from %(url)s", url=url), "error"),
-        (process["msg"], "error"),
-    ])
+    return response(
+        error=True,
+        message=_(
+            "The following error occurred when downloading: %(error)s",
+            error=process["msg"],
+        ),
+    )
 
 
 @APP.route("/files/upload", methods=["POST"])
@@ -911,13 +908,16 @@ def create_file():
     """
     Creates an empty image file in the images dir
     """
-    file_name = request.form.get("file_name")
+    file_name = Path(request.form.get("file_name"))
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
 
-    full_file_name = file_name + "." + file_type
-    process = file_cmd.create_new_image(file_name, file_type, size)
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    full_file_name = f"{file_name}.{file_type}"
+    process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -933,15 +933,20 @@ def create_file():
         if not process["status"]:
             return response(error=True, message=process["msg"])
 
+        return response(
+            status_code=201,
+            message=_(
+                "Image file with properties created: %(file_name)s",
+                file_name=full_file_name,
+            ),
+            image=full_file_name,
+        )
+
     return response(
         status_code=201,
-        # TODO: Refactor the return messages into one string
-        message=[
-            (_("Image file created: %(file_name)s", file_name=full_file_name), "success"),
-            (process["msg"], "success"),
-            ],
+        message=_("Image file created: %(file_name)s", file_name=full_file_name),
         image=full_file_name,
-        )
+    )
 
 
 @APP.route("/files/download", methods=["POST"])
@@ -950,9 +955,12 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    file_name = request.form.get("file")
+    file_name = Path(request.form.get("file"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     server_info = ractl_cmd.get_server_info()
-    return send_from_directory(server_info["image_dir"], file_name, as_attachment=True)
+    return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -961,14 +969,13 @@ def delete():
     """
     Deletes a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-
-    process = file_cmd.delete_image(file_name)
+    file_name = Path(request.form.get("file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    process = file_cmd.delete_image(str(file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
-
-    response_messages = [
-        (_("Image file deleted: %(file_name)s", file_name=file_name), "success")]
 
     # Delete the drive properties file, if it exists
     prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -976,11 +983,21 @@ def delete():
         process = file_cmd.delete_file(prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            response_messages.append((process["msg"], "success"))
+            return response(
+                message=_(
+                    "Image file with properties deleted: %(file_name)s",
+                    file_name=str(file_name),
+                ),
+            )
         else:
-            response_messages.append((process["msg"], "error"))
+            return response(error=True, message=process["msg"])
 
-    return response(message=response_messages)
+    return response(
+        message=_(
+            "Image file deleted: %(file_name)s",
+            file_name=str(file_name),
+        ),
+    )
 
 
 @APP.route("/files/rename", methods=["POST"])
@@ -989,15 +1006,17 @@ def rename():
     """
     Renames a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-    new_file_name = request.form.get("new_file_name")
-
-    process = file_cmd.rename_image(file_name, new_file_name)
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("new_file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    process = file_cmd.rename_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
-
-    response_messages = [
-        (_("Image file renamed to: %(file_name)s", file_name=new_file_name), "success")]
 
     # Rename the drive properties file, if it exists
     prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -1006,11 +1025,21 @@ def rename():
         process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            response_messages.append((process["msg"], "success"))
+            return response(
+                message=_(
+                    "Image file with properties renamed to: %(file_name)s",
+                    file_name=str(new_file_name),
+                ),
+            )
         else:
-            response_messages.append((process["msg"], "error"))
+            return response(error=True, message=process["msg"])
 
-    return response(message=response_messages)
+    return response(
+        message=_(
+            "Image file renamed to: %(file_name)s",
+            file_name=str(new_file_name),
+        ),
+    )
 
 
 @APP.route("/files/copy", methods=["POST"])
@@ -1019,15 +1048,17 @@ def copy():
     """
     Creates a copy of a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-    new_file_name = request.form.get("copy_file_name")
-
-    process = file_cmd.copy_image(file_name, new_file_name)
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("copy_file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    process = file_cmd.copy_image(str(file_name), str(new_file_name))
     if not process["status"]:
         return response(error=True, message=process["msg"])
-
-    response_messages = [
-        (_("Copy of image file saved as: %(file_name)s", file_name=new_file_name), "success")]
 
     # Create a copy of the drive properties file, if it exists
     prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -1036,11 +1067,21 @@ def copy():
         process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            response_messages.append((process["msg"], "success"))
+            return response(
+                message=_(
+                    "Copy of image file with properties saved as: %(file_name)s",
+                    file_name=str(new_file_name),
+                ),
+            )
         else:
-            response_messages.append((process["msg"], "error"))
+            return response(error=True, message=process["msg"])
 
-    return response(message=response_messages)
+    return response(
+        message=_(
+            "Copy of image file saved as: %(file_name)s",
+            file_name=str(new_file_name),
+        ),
+    )
 
 
 @APP.route("/files/extract_image", methods=["POST"])
@@ -1049,31 +1090,34 @@ def extract_image():
     """
     Extracts all or a subset of files in the specified archive
     """
-    archive_file = request.form.get("archive_file")
+    archive_file = Path(request.form.get("archive_file"))
     archive_members_raw = request.form.get("archive_members") or None
     archive_members = archive_members_raw.split("|") if archive_members_raw else None
-
+    safe_path = is_safe_path(archive_file)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
     extract_result = file_cmd.extract_image(
-        archive_file,
+        str(archive_file),
         archive_members
         )
 
     if extract_result["return_code"] == ReturnCodes.EXTRACTIMAGE_SUCCESS:
-        response_messages = [(ReturnCodeMapper.add_msg(extract_result).get("msg"), "success")]
 
         for properties_file in extract_result["properties_files_moved"]:
             if properties_file["status"]:
-                response_messages.append((_("Properties file %(file)s moved to %(directory)s",
-                        file=properties_file['name'],
-                        directory=CFG_DIR
-                        ), "success"))
+                logging.info(
+                        "Properties file %s moved to %s",
+                        properties_file["name"],
+                        CFG_DIR,
+                        )
             else:
-                response_messages.append((_("Failed to move properties file %(file)s to %(directory)s",
-                        file=properties_file['name'],
-                        directory=CFG_DIR
-                        ), "error"))
+                logging.warning(
+                        "Failed to move properties file %s to %s",
+                        properties_file["name"],
+                        CFG_DIR,
+                        )
 
-        return response(message=response_messages)
+        return response(message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
 
     return response(error=True, message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
 

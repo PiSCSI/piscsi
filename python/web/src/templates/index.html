@@ -35,7 +35,7 @@
 <p>
 <form action="/config/save" method="post">
     <label for="config_save_name">{{ _("File name") }}</label>
-    <input name="name" id="config_save_name" placeholder="default" size="20">
+    <input name="name" id="config_save_name" value="default" size="20">
     .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
 </form>
@@ -522,22 +522,22 @@
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_type">{{ _("Type:") }}</label>
     <select name="type" id="iso_type">
-        <option value="-hfs">
+        <option value="HFS">
             HFS
         </option>
-        <option value="-iso-level 1">
+        <option value="ISO-9660 Level 1">
             ISO-9660 Level 1
         </option>
-        <option value="-iso-level 2">
+        <option value="ISO-9660 Level 2">
             ISO-9660 Level 2
         </option>
-        <option value="-iso-level 3">
+        <option value="ISO-9660 Level 3">
             ISO-9660 Level 3
         </option>
-        <option value="-J">
+        <option value="Joliet">
             Joliet
         </option>
-        <option value="-r">
+        <option value="Rock Ridge">
             Rock Ridge
         </option>
     </select>

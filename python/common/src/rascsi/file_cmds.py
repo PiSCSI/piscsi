@@ -2,17 +2,17 @@
 Module for methods reading from and writing to the file system
 """
 
-import os
 import logging
 import asyncio
+from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
-from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
+from tempfile import TemporaryDirectory
 
 import requests
 
@@ -54,14 +54,14 @@ class FileCmds:
         index 0 is (str) file name and index 1 is (int) size in bytes
         """
         files_list = []
-        for path, _dirs, files in os.walk(dir_path):
+        for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
             files = [f for f in files if f.lower().endswith(file_types)]
             files_list.extend(
                 [
                     (
                         file,
-                        os.path.getsize(os.path.join(path, file))
+                        path.getsize(path.join(file_path, file))
                     )
                     for file in files
                 ]
@@ -75,7 +75,7 @@ class FileCmds:
         Returns a (list) of (str) files_list
         """
         files_list = []
-        for _root, _dirs, files in os.walk(CFG_DIR):
+        for _root, _dirs, files in walk(CFG_DIR):
             for file in files:
                 if file.endswith("." + CONFIG_FILE_SUFFIX):
                     files_list.append(file)
@@ -375,63 +375,61 @@ class FileCmds:
         server_info = self.ractl.get_server_info()
 
         file_name = PurePath(url).name
-        tmp_ts = int(time())
-        tmp_dir = "/tmp/" + str(tmp_ts) + "/"
-        os.mkdir(tmp_dir)
-        tmp_full_path = tmp_dir + file_name
-        iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
+        iso_filename = Path(server_info['image_dir']) / f"{file_name}.iso"
 
-        req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
+        with TemporaryDirectory() as tmp_dir:
+            req_proc = self.download_to_dir(quote(url, safe=URL_SAFE), tmp_dir, file_name)
+            logging.info("Downloaded %s to %s", file_name, tmp_dir)
+            if not req_proc["status"]:
+                return {"status": False, "msg": req_proc["msg"]}
 
-        if not req_proc["status"]:
-            return {"status": False, "msg": req_proc["msg"]}
-
-        if is_zipfile(tmp_full_path):
-            if "XtraStuf.mac" in str(ZipFile(tmp_full_path).namelist()):
-                logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
-            else:
-                logging.info(
-                    "%s is a zipfile! Will attempt to unzip and store the resulting files.",
-                    tmp_full_path,
-                    )
-                unzip_proc = asyncio.run(self.run_async("unzip", [
-                    "-d",
-                    tmp_dir,
-                    "-n",
-                    tmp_full_path,
-                    ]))
-                if not unzip_proc["returncode"]:
+            tmp_full_path = Path(tmp_dir) / file_name
+            if is_zipfile(tmp_full_path):
+                if "XtraStuf.mac" in str(ZipFile(str(tmp_full_path)).namelist()):
+                    logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
+                else:
                     logging.info(
-                        "%s was successfully unzipped. Deleting the zipfile.",
+                        "%s is a zipfile! Will attempt to unzip and store the resulting files.",
                         tmp_full_path,
                         )
-                    self.delete_file(Path(tmp_full_path))
+                    unzip_proc = asyncio.run(self.run_async("unzip", [
+                        "-d",
+                        str(tmp_dir),
+                        "-n",
+                        str(tmp_full_path),
+                        ]))
+                    if not unzip_proc["returncode"]:
+                        logging.info(
+                            "%s was successfully unzipped. Deleting the zipfile.",
+                            tmp_full_path,
+                            )
+                        tmp_full_path.unlink(True)
 
-        try:
-            run(
-                [
-                    "genisoimage",
-                    *iso_args,
-                    "-o",
-                    iso_filename,
-                    tmp_dir,
-                ],
-                capture_output=True,
-                check=True,
-            )
-        except CalledProcessError as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            return {"status": False, "msg": error.stderr.decode("utf-8")}
+            try:
+                run(
+                    [
+                        "genisoimage",
+                        *iso_args,
+                        "-o",
+                        str(iso_filename),
+                        tmp_dir,
+                    ],
+                    capture_output=True,
+                    check=True,
+                )
+            except CalledProcessError as error:
+                logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+                return {"status": False, "msg": error.stderr.decode("utf-8")}
 
-        parameters = {
-            "value": " ".join(iso_args)
-        }
-        return {
-            "status": True,
-            "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
-            "parameters": parameters,
-            "file_name": iso_filename,
-        }
+            parameters = {
+                "value": " ".join(iso_args)
+            }
+            return {
+                "status": True,
+                "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
+                "parameters": parameters,
+                "file_name": iso_filename.name,
+            }
 
     # noinspection PyMethodMayBeStatic
     def download_to_dir(self, url, save_dir, file_name):

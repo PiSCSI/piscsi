@@ -32,13 +32,12 @@ using namespace scsi_defs;
 using namespace scsi_command_util;
 
 HostServices::HostServices(int lun, const ControllerManager& manager)
-	: ModePageDevice("SCHS", lun), controller_manager(manager)
+	: ModePageDevice(SCHS, lun), controller_manager(manager)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 
 	SetReady(true);
-	SetReset(false);
 }
 
 bool HostServices::Dispatch(scsi_command cmd)
@@ -96,18 +95,8 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
 	fill_n(buf.begin(), length, 0);
 
-	// Basic Information
-	int size = 4;
-
-	size += super::AddModePages(cdb, buf, size, length - size);
-	if (size > 255) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
-	}
+	// 4 bytes basic information
+	int size = AddModePages(cdb, buf, 4, length, 255);
 
 	buf[0] = (BYTE)size;
 
@@ -124,18 +113,8 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
 	fill_n(buf.begin(), length, 0);
 
-	// Basic Information
-	int size = 8;
-
-	size += super::AddModePages(cdb, buf, size, length - size);
-	if (size > 65535) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// Do not return more than ALLOCATION LENGTH bytes
-	if (size > length) {
-		size = length;
-	}
+	// 8 bytes basic information
+	int size = AddModePages(cdb, buf, 8, length, 65535);
 
 	SetInt16(buf, 0, size);
 
@@ -151,6 +130,8 @@ void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool 
 
 void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
+	vector<byte> buf(10);
+
 	if (!changeable) {
 		time_t t = time(nullptr);
 		tm localtime;
@@ -167,8 +148,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 		// Ignore leap second for simplicity
 		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
-		vector<byte> buf(10);
 		memcpy(&buf[2], &datetime, sizeof(datetime));
-		pages[32] = buf;
 	}
+
+	pages[32] = buf;
 }

@@ -16,10 +16,8 @@
 
 using namespace std;
 
-Device::Device(const string& type, int lun) : type(type), lun(lun)
+Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 {
-	assert(type.length() == 4);
-
 	ostringstream os;
 	os << setw(2) << setfill('0') << rascsi_major_version << setw(2) << setfill('0') << rascsi_minor_version;
 	revision = os.str();
@@ -34,7 +32,7 @@ void Device::Reset()
 
 void Device::SetProtected(bool b)
 {
-	if (!read_only) {
+	if (protectable && !read_only) {
 		write_protected = b;
 	}
 }
