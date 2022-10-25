@@ -110,9 +110,9 @@ struct Rascsi_Board_Type {
     const pi_physical_pin_e pin_sel; // SEL
 };
 
-extern const Rascsi_Board_Type board_type_aibom;
-extern const Rascsi_Board_Type board_type_fullspec;
-extern const Rascsi_Board_Type board_type_gamernium;
-extern const Rascsi_Board_Type board_type_standard;
+// extern const Rascsi_Board_Type board_type_aibom;
+// extern const Rascsi_Board_Type board_type_fullspec;
+// extern const Rascsi_Board_Type board_type_gamernium;
+// extern const Rascsi_Board_Type board_type_standard;
 
 } // namespace board_type

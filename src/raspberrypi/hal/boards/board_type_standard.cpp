@@ -14,7 +14,7 @@
 namespace board_type
 {
 // RaSCSI standard (SCSI logic, standard pin assignment)
-const Rascsi_Board_Type board_type_fullspec = {
+const Rascsi_Board_Type board_type_standard = {
 
     .connect_desc = "STANDARD", // Startup message
 
