@@ -249,10 +249,10 @@ const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
 //	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
-#define IN GPIO_INPUT
-#define OUT GPIO_OUTPUT
-const static int ON  = 1;
-const static int OFF = 0;
+#define RASCSI_PIN_IN GPIO_INPUT
+#define RASCSI_PIN_OUT GPIO_OUTPUT
+const static int RASCSI_PIN_ON  = 1;
+const static int RASCSI_PIN_OFF = 0;
 
 //---------------------------------------------------------------------------
 //

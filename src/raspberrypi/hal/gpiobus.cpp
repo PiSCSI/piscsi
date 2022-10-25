@@ -229,11 +229,11 @@ void GPIOBUS::SetBSY(bool ast)
             // Set Target signal to output
             SetControl(PIN_TAD, TAD_OUT);
 
-            SetMode(PIN_BSY, OUT);
-            SetMode(PIN_MSG, OUT);
-            SetMode(PIN_CD, OUT);
-            SetMode(PIN_REQ, OUT);
-            SetMode(PIN_IO, OUT);
+            SetMode(PIN_BSY, RASCSI_PIN_OUT);
+            SetMode(PIN_MSG, RASCSI_PIN_OUT);
+            SetMode(PIN_CD,  RASCSI_PIN_OUT);
+            SetMode(PIN_REQ, RASCSI_PIN_OUT);
+            SetMode(PIN_IO,  RASCSI_PIN_OUT);
         } else {
             // Turn off the ACTIVE signal
             SetControl(PIN_ACT, ACT_OFF);
@@ -241,11 +241,11 @@ void GPIOBUS::SetBSY(bool ast)
             // Set the target signal to input
             SetControl(PIN_TAD, TAD_IN);
 
-            SetMode(PIN_BSY, IN);
-            SetMode(PIN_MSG, IN);
-            SetMode(PIN_CD, IN);
-            SetMode(PIN_REQ, IN);
-            SetMode(PIN_IO, IN);
+            SetMode(PIN_BSY, RASCSI_PIN_IN);
+            SetMode(PIN_MSG, RASCSI_PIN_IN);
+            SetMode(PIN_CD,  RASCSI_PIN_IN);
+            SetMode(PIN_REQ, RASCSI_PIN_IN);
+            SetMode(PIN_IO,  RASCSI_PIN_IN);
         }
     }
 }
@@ -349,26 +349,26 @@ bool GPIOBUS::GetIO()
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(PIN_DTD, DTD_IN);
-            SetMode(PIN_DT0, IN);
-            SetMode(PIN_DT1, IN);
-            SetMode(PIN_DT2, IN);
-            SetMode(PIN_DT3, IN);
-            SetMode(PIN_DT4, IN);
-            SetMode(PIN_DT5, IN);
-            SetMode(PIN_DT6, IN);
-            SetMode(PIN_DT7, IN);
-            SetMode(PIN_DP, IN);
+            SetMode(PIN_DT0, RASCSI_PIN_IN);
+            SetMode(PIN_DT1, RASCSI_PIN_IN);
+            SetMode(PIN_DT2, RASCSI_PIN_IN);
+            SetMode(PIN_DT3, RASCSI_PIN_IN);
+            SetMode(PIN_DT4, RASCSI_PIN_IN);
+            SetMode(PIN_DT5, RASCSI_PIN_IN);
+            SetMode(PIN_DT6, RASCSI_PIN_IN);
+            SetMode(PIN_DT7, RASCSI_PIN_IN);
+            SetMode(PIN_DP,  RASCSI_PIN_IN);
         } else {
             SetControl(PIN_DTD, DTD_OUT);
-            SetMode(PIN_DT0, OUT);
-            SetMode(PIN_DT1, OUT);
-            SetMode(PIN_DT2, OUT);
-            SetMode(PIN_DT3, OUT);
-            SetMode(PIN_DT4, OUT);
-            SetMode(PIN_DT5, OUT);
-            SetMode(PIN_DT6, OUT);
-            SetMode(PIN_DT7, OUT);
-            SetMode(PIN_DP, OUT);
+            SetMode(PIN_DT0, RASCSI_PIN_OUT);
+            SetMode(PIN_DT1, RASCSI_PIN_OUT);
+            SetMode(PIN_DT2, RASCSI_PIN_OUT);
+            SetMode(PIN_DT3, RASCSI_PIN_OUT);
+            SetMode(PIN_DT4, RASCSI_PIN_OUT);
+            SetMode(PIN_DT5, RASCSI_PIN_OUT);
+            SetMode(PIN_DT6, RASCSI_PIN_OUT);
+            SetMode(PIN_DT7, RASCSI_PIN_OUT);
+            SetMode(PIN_DP,  RASCSI_PIN_OUT);
         }
     }
 
@@ -385,26 +385,26 @@ void GPIOBUS::SetIO(bool ast)
         if (ast) {
             SetControl(PIN_DTD, DTD_OUT);
             SetDAT(0);
-            SetMode(PIN_DT0, OUT);
-            SetMode(PIN_DT1, OUT);
-            SetMode(PIN_DT2, OUT);
-            SetMode(PIN_DT3, OUT);
-            SetMode(PIN_DT4, OUT);
-            SetMode(PIN_DT5, OUT);
-            SetMode(PIN_DT6, OUT);
-            SetMode(PIN_DT7, OUT);
-            SetMode(PIN_DP, OUT);
+            SetMode(PIN_DT0, RASCSI_PIN_OUT);
+            SetMode(PIN_DT1, RASCSI_PIN_OUT);
+            SetMode(PIN_DT2, RASCSI_PIN_OUT);
+            SetMode(PIN_DT3, RASCSI_PIN_OUT);
+            SetMode(PIN_DT4, RASCSI_PIN_OUT);
+            SetMode(PIN_DT5, RASCSI_PIN_OUT);
+            SetMode(PIN_DT6, RASCSI_PIN_OUT);
+            SetMode(PIN_DT7, RASCSI_PIN_OUT);
+            SetMode(PIN_DP,  RASCSI_PIN_OUT);
         } else {
             SetControl(PIN_DTD, DTD_IN);
-            SetMode(PIN_DT0, IN);
-            SetMode(PIN_DT1, IN);
-            SetMode(PIN_DT2, IN);
-            SetMode(PIN_DT3, IN);
-            SetMode(PIN_DT4, IN);
-            SetMode(PIN_DT5, IN);
-            SetMode(PIN_DT6, IN);
-            SetMode(PIN_DT7, IN);
-            SetMode(PIN_DP, IN);
+            SetMode(PIN_DT0, RASCSI_PIN_IN);
+            SetMode(PIN_DT1, RASCSI_PIN_IN);
+            SetMode(PIN_DT2, RASCSI_PIN_IN);
+            SetMode(PIN_DT3, RASCSI_PIN_IN);
+            SetMode(PIN_DT4, RASCSI_PIN_IN);
+            SetMode(PIN_DT5, RASCSI_PIN_IN);
+            SetMode(PIN_DT6, RASCSI_PIN_IN);
+            SetMode(PIN_DT7, RASCSI_PIN_IN);
+            SetMode(PIN_DP,  RASCSI_PIN_IN);
         }
     }
 }
@@ -443,10 +443,10 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     DisableIRQ();
 
     // Assert REQ signal
-    SetSignal(PIN_REQ, ON);
+    SetSignal(PIN_REQ, RASCSI_PIN_ON);
 
     // Wait for ACK signal
-    bool ret = WaitSignal(PIN_ACK, ON);
+    bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
 
     // Wait until the signal line stabilizes
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -455,7 +455,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     *buf = GetDAT();
 
     // Disable REQ signal
-    SetSignal(PIN_REQ, OFF);
+    SetSignal(PIN_REQ, RASCSI_PIN_OFF);
 
     // Timeout waiting for ACK assertion
     if (!ret) {
@@ -464,7 +464,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     }
 
     // Wait for ACK to clear
-    ret = WaitSignal(PIN_ACK, OFF);
+    ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
 
     // Timeout waiting for ACK to clear
     if (!ret) {
@@ -482,23 +482,23 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
     if (*buf == 0x1F) {
-        SetSignal(PIN_REQ, ON);
+        SetSignal(PIN_REQ, RASCSI_PIN_ON);
 
-        ret = WaitSignal(PIN_ACK, ON);
+        ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
 
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get the actual SCSI command
         *buf = GetDAT();
 
-        SetSignal(PIN_REQ, OFF);
+        SetSignal(PIN_REQ, RASCSI_PIN_OFF);
 
         if (!ret) {
             EnableIRQ();
             return 0;
         }
 
-        WaitSignal(PIN_ACK, OFF);
+        WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
 
         if (!ret) {
             EnableIRQ();
@@ -514,10 +514,10 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     int bytes_received;
     for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
         // Assert REQ signal
-        SetSignal(PIN_REQ, ON);
+        SetSignal(PIN_REQ, RASCSI_PIN_ON);
 
         // Wait for ACK signal
-        ret = WaitSignal(PIN_ACK, ON);
+        ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
 
         // Wait until the signal line stabilizes
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -526,7 +526,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
         *buf = GetDAT();
 
         // Clear the REQ signal
-        SetSignal(PIN_REQ, OFF);
+        SetSignal(PIN_REQ, RASCSI_PIN_OFF);
 
         // Check for timeout waiting for ACK assertion
         if (!ret) {
@@ -534,7 +534,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
         }
 
         // Wait for ACK to clear
-        ret = WaitSignal(PIN_ACK, OFF);
+        ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
 
         // Check for timeout waiting for ACK to clear
         if (!ret) {
@@ -567,10 +567,10 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             // Assert the REQ signal
-            SetSignal(PIN_REQ, ON);
+            SetSignal(PIN_REQ, RASCSI_PIN_ON);
 
             // Wait for ACK
-            bool ret = WaitSignal(PIN_ACK, ON);
+            bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
 
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -579,7 +579,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             *buf = GetDAT();
 
             // Clear the REQ signal
-            SetSignal(PIN_REQ, OFF);
+            SetSignal(PIN_REQ, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK signal
             if (!ret) {
@@ -587,7 +587,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             }
 
             // Wait for ACK to clear
-            ret = WaitSignal(PIN_ACK, OFF);
+            ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -603,7 +603,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 
         for (i = 0; i < count; i++) {
             // Wait for the REQ signal to be asserted
-            bool ret = WaitSignal(PIN_REQ, ON);
+            bool ret = WaitSignal(PIN_REQ, RASCSI_PIN_ON);
 
             // Check for timeout waiting for REQ signal
             if (!ret) {
@@ -622,13 +622,13 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             *buf = GetDAT();
 
             // Assert the ACK signal
-            SetSignal(PIN_ACK, ON);
+            SetSignal(PIN_ACK, RASCSI_PIN_ON);
 
             // Wait for REQ to clear
-            ret = WaitSignal(PIN_REQ, OFF);
+            ret = WaitSignal(PIN_REQ, RASCSI_PIN_OFF);
 
             // Clear the ACK signal
-            SetSignal(PIN_ACK, OFF);
+            SetSignal(PIN_ACK, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for REQ to clear
             if (!ret) {
@@ -678,7 +678,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             SetDAT(*buf);
 
             // Wait for ACK to clear
-            bool ret = WaitSignal(PIN_ACK, OFF);
+            bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -688,13 +688,13 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             // Already waiting for ACK to clear
 
             // Assert the REQ signal
-            SetSignal(PIN_REQ, ON);
+            SetSignal(PIN_REQ, RASCSI_PIN_ON);
 
             // Wait for ACK
-            ret = WaitSignal(PIN_ACK, ON);
+            ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
 
             // Clear REQ signal
-            SetSignal(PIN_REQ, OFF);
+            SetSignal(PIN_REQ, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -706,7 +706,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
         }
 
         // Wait for ACK to clear
-        WaitSignal(PIN_ACK, OFF);
+        WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
     } else {
         // Get Phase
         uint32_t phase = Acquire() & GPIO_MCI;
@@ -722,7 +722,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             SetDAT(*buf);
 
             // Wait for REQ to be asserted
-            bool ret = WaitSignal(PIN_REQ, ON);
+            bool ret = WaitSignal(PIN_REQ, RASCSI_PIN_ON);
 
             // Check for timeout waiting for REQ to be asserted
             if (!ret) {
@@ -737,13 +737,13 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             // Already waiting for REQ assertion
 
             // Assert the ACK signal
-            SetSignal(PIN_ACK, ON);
+            SetSignal(PIN_ACK, RASCSI_PIN_ON);
 
             // Wait for REQ to clear
-            ret = WaitSignal(PIN_REQ, OFF);
+            ret = WaitSignal(PIN_REQ, RASCSI_PIN_OFF);
 
             // Clear the ACK signal
-            SetSignal(PIN_ACK, OFF);
+            SetSignal(PIN_ACK, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for REQ to clear
             if (!ret) {

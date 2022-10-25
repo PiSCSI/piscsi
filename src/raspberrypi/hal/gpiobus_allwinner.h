@@ -11,8 +11,10 @@
 
 #pragma once
 
+#include <map>
 #include "config.h"
 #include "hal/gpiobus.h"
+#include "hal/board_type.h"
 #include "log.h"
 #include "scsi.h"
 
@@ -75,6 +77,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Set GPIO output signal
     void DrvConfig(DWORD drive) override;
     // Set GPIO drive strength
+
+    // Map the physical pin number to the logical GPIO number
+    const static std::map<board_type::pi_physical_pin_e, int> phys_to_gpio_map;
 
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address

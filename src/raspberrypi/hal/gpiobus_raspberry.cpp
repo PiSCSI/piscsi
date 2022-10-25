@@ -11,7 +11,8 @@
 //---------------------------------------------------------------------------
 
 #include <sys/mman.h>
-
+#include <map>
+#include "hal/board_type.h"
 #include "config.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_raspberry.h"
@@ -23,6 +24,39 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
+
+
+const std::map<board_type::pi_physical_pin_e, int> GPIOBUS_Raspberry::phys_to_gpio_map = 
+{
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_03, 2},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_05, 3},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_07, 4},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_08, 14},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_10, 15},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_11, 17},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_12, 18},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_13, 27},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_15, 22},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_16, 23},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_18, 24},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_19, 10},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_21, 9},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_22, 25},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_23, 11},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_24, 8},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_26, 7},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_27, 0},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_28, 1},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_29, 5},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_31, 6},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_32, 12},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_33, 13},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_35, 19},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_36, 16},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_37, 26},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_38, 20},
+    {board_type::pi_physical_pin_e::PI_PHYS_PIN_40, 21},
+};
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
@@ -614,7 +648,7 @@ void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 {
 #if SIGNAL_CONTROL_MODE == 0
-    if (mode == OUT) {
+    if (mode == RASCSI_PIN_OUT) {
         return;
     }
 #endif // SIGNAL_CONTROL_MODE
@@ -623,7 +657,7 @@ void GPIOBUS_Raspberry::SetMode(int pin, int mode)
     int shift     = (pin % 10) * 3;
     uint32_t data = gpfsel[index];
     data &= ~(0x7 << shift);
-    if (mode == OUT) {
+    if (mode == RASCSI_PIN_OUT) {
         data |= (1 << shift);
     }
     gpio[index]   = data;

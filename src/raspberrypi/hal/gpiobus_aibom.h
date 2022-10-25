@@ -22,11 +22,11 @@ const std::string CONNECT_DESC = "AIBOM PRODUCTS version"; // Startup message
 const static int SIGNAL_CONTROL_MODE = 2; // SCSI positive logic specification
 
 // Control signal output logic
-#define ACT_ON ON  // ACTIVE SIGNAL ON
-#define ENB_ON ON  // ENABLE SIGNAL ON
-#define IND_IN OFF // INITIATOR SIGNAL INPUT
-#define TAD_IN OFF // TARGET SIGNAL INPUT
-#define DTD_IN OFF // DATA SIGNAL INPUT
+#define ACT_ON RASCSI_PIN_ON  // ACTIVE SIGNAL ON
+#define ENB_ON RASCSI_PIN_ON  // ENABLE SIGNAL ON
+#define IND_IN RASCSI_PIN_OFF // INITIATOR SIGNAL INPUT
+#define TAD_IN RASCSI_PIN_OFF // TARGET SIGNAL INPUT
+#define DTD_IN RASCSI_PIN_OFF // DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
 const static int PIN_ACT = 4;  // ACTIVE

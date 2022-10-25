@@ -23,67 +23,67 @@ extern int wiringPiMode;
 bool GPIOBUS_Allwinner::Init(mode_e mode)
 {
     GPIOBUS::Init(mode);
-    wiringPiSetup();
-    wiringPiMode = WPI_MODE_GPIO;
+//     wiringPiSetup();
+//     wiringPiMode = WPI_MODE_GPIO;
 
 
-	LOGTRACE("%s Set Drive Strength", __PRETTY_FUNCTION__);
-	// Set Drive Strength to 16mA
-	DrvConfig(7);
+// 	LOGTRACE("%s Set Drive Strength", __PRETTY_FUNCTION__);
+// 	// Set Drive Strength to 16mA
+// 	DrvConfig(7);
 
-	// Set pull up/pull down
-	LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
+// 	// Set pull up/pull down
+// 	LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
 
-#if SIGNAL_CONTROL_MODE == 0
-	int pullmode = GPIO_PULLNONE;
-#elif SIGNAL_CONTROL_MODE == 1
-	int pullmode = GPIO_PULLUP;
-#else
-	int pullmode = GPIO_PULLDOWN;
-#endif
+// #if SIGNAL_CONTROL_MODE == 0
+// 	int pullmode = GPIO_PULLNONE;
+// #elif SIGNAL_CONTROL_MODE == 1
+// 	int pullmode = GPIO_PULLUP;
+// #else
+// 	int pullmode = GPIO_PULLDOWN;
+// #endif
 
-	// Initialize all signals
-	LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
+// 	// Initialize all signals
+// 	LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
-	for (int i = 0; SignalTable[i] >= 0; i++) {
-		int j = SignalTable[i];
-		PinSetSignal(j, OFF);
-		PinConfig(j, GPIO_INPUT);
-		PullConfig(j, pullmode);
-	}
+// 	for (int i = 0; SignalTable[i] >= 0; i++) {
+// 		int j = SignalTable[i];
+// 		PinSetSignal(j, OFF);
+// 		PinConfig(j, GPIO_INPUT);
+// 		PullConfig(j, pullmode);
+// 	}
 
-	// Set control signals
-	LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
-	PinSetSignal(PIN_ACT, OFF);
-	PinSetSignal(PIN_TAD, OFF);
-	PinSetSignal(PIN_IND, OFF);
-	PinSetSignal(PIN_DTD, OFF);
-	PinConfig(PIN_ACT, GPIO_OUTPUT);
-	PinConfig(PIN_TAD, GPIO_OUTPUT);
-	PinConfig(PIN_IND, GPIO_OUTPUT);
-	PinConfig(PIN_DTD, GPIO_OUTPUT);
+// 	// Set control signals
+// 	LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
+// 	PinSetSignal(PIN_ACT, OFF);
+// 	PinSetSignal(PIN_TAD, OFF);
+// 	PinSetSignal(PIN_IND, OFF);
+// 	PinSetSignal(PIN_DTD, OFF);
+// 	PinConfig(PIN_ACT, GPIO_OUTPUT);
+// 	PinConfig(PIN_TAD, GPIO_OUTPUT);
+// 	PinConfig(PIN_IND, GPIO_OUTPUT);
+// 	PinConfig(PIN_DTD, GPIO_OUTPUT);
 
-	// Set the ENABLE signal
-	// This is used to show that the application is running
-	PinSetSignal(PIN_ENB, ENB_OFF);
-	PinConfig(PIN_ENB, GPIO_OUTPUT);
+// 	// Set the ENABLE signal
+// 	// This is used to show that the application is running
+// 	PinSetSignal(PIN_ENB, ENB_OFF);
+// 	PinConfig(PIN_ENB, GPIO_OUTPUT);
 
 
 
-	// Create work table
+// 	// Create work table
 
-	LOGTRACE("%s MakeTable....", __PRETTY_FUNCTION__);
-	MakeTable();
+// 	LOGTRACE("%s MakeTable....", __PRETTY_FUNCTION__);
+// 	MakeTable();
 
-	// Finally, enable ENABLE
-	LOGTRACE("%s Finally, enable ENABLE....", __PRETTY_FUNCTION__);
-	// Show the user that this app is running
-	SetControl(PIN_ENB, ENB_ON);
+// 	// Finally, enable ENABLE
+// 	LOGTRACE("%s Finally, enable ENABLE....", __PRETTY_FUNCTION__);
+// 	// Show the user that this app is running
+// 	SetControl(PIN_ENB, ENB_ON);
 
-    // if(!SetupPollSelectEvent()){
-    //     LOGERROR("Failed to setup SELECT poll event");
-    //     return false;
-    // }
+//     // if(!SetupPollSelectEvent()){
+//     //     LOGERROR("Failed to setup SELECT poll event");
+//     //     return false;
+//     // }
 
 	return true;
 
@@ -254,32 +254,35 @@ void GPIOBUS_Allwinner::Reset()
 BYTE GPIOBUS_Allwinner::GetDAT()
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0), GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
-    // TODO: This is crazy inefficient...
-    DWORD data =
-        ((GetSignal(PIN_DT0) ? 0x01: 0x00)<< 0) |
-        ((GetSignal(PIN_DT1) ? 0x01: 0x00)<< 1) |
-        ((GetSignal(PIN_DT2) ? 0x01: 0x00)<< 2) |
-        ((GetSignal(PIN_DT3) ? 0x01: 0x00)<< 3) |
-        ((GetSignal(PIN_DT4) ? 0x01: 0x00)<< 0) |
-        ((GetSignal(PIN_DT5) ? 0x01: 0x00)<< 5) |
-        ((GetSignal(PIN_DT6) ? 0x01: 0x00)<< 6) |
-        ((GetSignal(PIN_DT7) ? 0x01: 0x00)<< 7);
+    // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0), GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
+    // // TODO: This is crazy inefficient...
+    // DWORD data =
+    //     ((GetSignal(PIN_DT0) ? 0x01: 0x00)<< 0) |
+    //     ((GetSignal(PIN_DT1) ? 0x01: 0x00)<< 1) |
+    //     ((GetSignal(PIN_DT2) ? 0x01: 0x00)<< 2) |
+    //     ((GetSignal(PIN_DT3) ? 0x01: 0x00)<< 3) |
+    //     ((GetSignal(PIN_DT4) ? 0x01: 0x00)<< 0) |
+    //     ((GetSignal(PIN_DT5) ? 0x01: 0x00)<< 5) |
+    //     ((GetSignal(PIN_DT6) ? 0x01: 0x00)<< 6) |
+    //     ((GetSignal(PIN_DT7) ? 0x01: 0x00)<< 7);
 
-    return (BYTE)data;
+    // return (BYTE)data;
+    return 0;
 }
 
 void GPIOBUS_Allwinner::SetDAT(BYTE dat)
 {
     // TODO: This is crazy inefficient...
-    SetSignal(PIN_DT0, dat & (1 << 0));
-    SetSignal(PIN_DT1, dat & (1 << 1));
-    SetSignal(PIN_DT2, dat & (1 << 2));
-    SetSignal(PIN_DT3, dat & (1 << 3));
-    SetSignal(PIN_DT4, dat & (1 << 4));
-    SetSignal(PIN_DT5, dat & (1 << 5));
-    SetSignal(PIN_DT6, dat & (1 << 6));
-    SetSignal(PIN_DT7, dat & (1 << 7));
+    // SetSignal(PIN_DT0, dat & (1 << 0));
+    // SetSignal(PIN_DT1, dat & (1 << 1));
+    // SetSignal(PIN_DT2, dat & (1 << 2));
+    // SetSignal(PIN_DT3, dat & (1 << 3));
+    // SetSignal(PIN_DT4, dat & (1 << 4));
+    // SetSignal(PIN_DT5, dat & (1 << 5));
+    // SetSignal(PIN_DT6, dat & (1 << 6));
+    // SetSignal(PIN_DT7, dat & (1 << 7));
+        LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+
 }
 
 void GPIOBUS_Allwinner::MakeTable(void)
@@ -289,31 +292,34 @@ void GPIOBUS_Allwinner::MakeTable(void)
 
 void GPIOBUS_Allwinner::SetControl(int pin, bool ast)
 {
-    GPIOBUS_Allwinner::SetSignal(pin, ast);
+    // GPIOBUS_Allwinner::SetSignal(pin, ast);
+        LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+
 }
 
 void GPIOBUS_Allwinner::SetMode(int pin, int mode)
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    if(mode == GPIO_INPUT){
-        pinMode(pin, INPUT);
+    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+    // if(mode == GPIO_INPUT){
+    //     pinMode(pin, INPUT);
 
-    }else{
-        pinMode(pin, OUTPUT);
-    }
+    // }else{
+    //     pinMode(pin, OUTPUT);
+    // }
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
 bool GPIOBUS_Allwinner::GetSignal(int pin) const
 {
-    //LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    //return false;
-    return (digitalRead(pin) != 0);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+    return false;
+    // return (digitalRead(pin) != 0);
 }
 
 void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
 {
-    //LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    digitalWrite(pin, ast);
+    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+    // digitalWrite(pin, ast);
 }
 
 
@@ -325,26 +331,29 @@ void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
 //---------------------------------------------------------------------------
 bool GPIOBUS_Allwinner::WaitSignal(int pin, int ast)
 {
-	// Get current time
-	uint32_t now = SysTimer::instance().GetTimerLow();
+        LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
-	// Calculate timeout (3000ms)
-	uint32_t timeout = 3000 * 1000;
+// {
+// 	// Get current time
+// 	uint32_t now = SysTimer::instance().GetTimerLow();
+
+// 	// Calculate timeout (3000ms)
+// 	uint32_t timeout = 3000 * 1000;
 
 
-	// end immediately if the signal has changed
-	do {
-		// Immediately upon receiving a reset
-		Acquire();
-		if (GetRST()) {
-			return false;
-		}
+// 	// end immediately if the signal has changed
+// 	do {
+// 		// Immediately upon receiving a reset
+// 		Acquire();
+// 		if (GetRST()) {
+// 			return false;
+// 		}
 
-		// Check for the signal edge
-        if (((signals >> pin) ^ ~ast) & 1) {
-			return true;
-		}
-	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
+// 		// Check for the signal edge
+//         if (((signals >> pin) ^ ~ast) & 1) {
+// 			return true;
+// 		}
+// 	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
 	return false;
@@ -363,39 +372,43 @@ void GPIOBUS_Allwinner::EnableIRQ()
 
 void GPIOBUS_Allwinner::PinConfig(int pin, int mode)
 {
-    if(mode == GPIO_INPUT){
-        pinMode(pin, INPUT);
+        LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
-    }else{
-        pinMode(pin, OUTPUT);
-    }
+    // if(mode == GPIO_INPUT){
+    //     pinMode(pin, INPUT);
+
+    // }else{
+    //     pinMode(pin, OUTPUT);
+    // }
 }
 
 
 void GPIOBUS_Allwinner::PullConfig(int pin, int mode)
 {
 
-        switch (mode)
-		{
-		case GPIO_PULLNONE:
-            pullUpDnControl(pin,PUD_OFF);
-			break;
-		case GPIO_PULLUP:
-            pullUpDnControl(pin,PUD_UP);
-				break;
-		case GPIO_PULLDOWN:
-			pullUpDnControl(pin,PUD_DOWN);
-			break;
-		default:
-            LOGERROR("%s INVALID PIN MODE", __PRETTY_FUNCTION__);
-			return;
-		}
+        // switch (mode)
+		// {
+		// case GPIO_PULLNONE:
+        //     pullUpDnControl(pin,PUD_OFF);
+		// 	break;
+		// case GPIO_PULLUP:
+        //     pullUpDnControl(pin,PUD_UP);
+		// 		break;
+		// case GPIO_PULLDOWN:
+		// 	pullUpDnControl(pin,PUD_DOWN);
+		// 	break;
+		// default:
+        //     LOGERROR("%s INVALID PIN MODE", __PRETTY_FUNCTION__);
+		// 	return;
+		// }
+    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 
 void GPIOBUS_Allwinner::PinSetSignal(int pin, bool ast)
 {
-    digitalWrite(pin, ast);
+    // digitalWrite(pin, ast);
+    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 void GPIOBUS_Allwinner::DrvConfig(DWORD drive)
