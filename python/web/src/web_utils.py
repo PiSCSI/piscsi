@@ -153,7 +153,6 @@ def format_drive_properties(drive_properties):
     cd_conf = []
     rm_conf = []
     mo_conf = []
-    FORMAT_FILTER = "{:,.2f}"
 
     for device in drive_properties:
         # Fallback for when the properties data is corrupted, to avoid crashing the web app.
@@ -164,9 +163,7 @@ def format_drive_properties(drive_properties):
         device["secure_name"] = secure_filename(device["name"])
 
         if device.get("size"):
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
-        else:
-            device["size_mb"] = _("N/A")
+            device["size_mb"] = f'{device["size"] / 1024 / 1024:,.2f}'
 
         if device["device_type"] == "SCHD":
             hd_conf.append(device)

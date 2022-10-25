@@ -41,11 +41,11 @@ def test_show_named_drive_presets(http_client):
 
     prev_drive = {"name": ""}
     for drive in (
-            response_data["data"]["drive_properties"]["hd_conf"] +
-            response_data["data"]["drive_properties"]["cd_conf"] +
-            response_data["data"]["drive_properties"]["rm_conf"] +
-            response_data["data"]["drive_properties"]["mo_conf"]
-            ):
+        response_data["data"]["drive_properties"]["hd_conf"]
+        + response_data["data"]["drive_properties"]["cd_conf"]
+        + response_data["data"]["drive_properties"]["rm_conf"]
+        + response_data["data"]["drive_properties"]["mo_conf"]
+    ):
         # Test that the named drive has a name
         assert drive["name"] != ""
         # Test that "name" is unique for each named drive
