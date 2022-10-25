@@ -319,12 +319,11 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (device->SupportsParams() && !device->Init(params)) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(type),
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(device->GetType()),
 				to_string(id), to_string(lun));
 	}
 
-	// Remove SupportsFile as soon as Daynaport and bridge do not inherit from Disk anymore
-	if (storage_device != nullptr && storage_device->SupportsFile()) {
+	if (storage_device != nullptr) {
 		storage_device->ReserveFile(full_path, id, lun);
 	}
 

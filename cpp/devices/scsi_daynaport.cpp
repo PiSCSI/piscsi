@@ -32,8 +32,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-// TODO Disk must not be the superclass
-SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
+SCSIDaynaPort::SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun)
 {
 	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
@@ -48,20 +47,10 @@ SCSIDaynaPort::SCSIDaynaPort(int lun) : Disk(SCDP, lun)
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	SupportsParams(true);
-	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
-	SetStoppable(false);
-	// TODO Remove as soon as SCDP is not a subclass of Disk anymore
-	SupportsFile(false);
 }
 
 bool SCSIDaynaPort::Dispatch(scsi_command cmd)
 {
-	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
-	if (cmd == scsi_command::eCmdModeSense6 || cmd == scsi_command::eCmdModeSelect6 ||
-			cmd == scsi_command::eCmdModeSense10 || cmd == scsi_command::eCmdModeSelect10) {
-		return false;
-	}
-
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
@@ -87,11 +76,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetReset(false);
 
 	return true;
-}
-
-void SCSIDaynaPort::Open()
-{
-	m_tap.OpenDump(GetFilename().c_str());
 }
 
 vector<byte> SCSIDaynaPort::InquiryInternal() const
@@ -145,8 +129,8 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 	const int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length)
 
-	// At host startup, it will send a READ(6) command with a length of 1. We should
-	// respond by going into the status mode with a code of 0x02
+	// At startup the host may send a READ(6) command with a sector count of 1 to read the root sector.
+	// We should respond by going into the status mode with a code of 0x02.
 	if (requested_length == 1) {
 		return 0;
 	}
@@ -502,3 +486,4 @@ void SCSIDaynaPort::EnableInterface()
 
 	EnterStatusPhase();
 }
+

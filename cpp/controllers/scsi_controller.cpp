@@ -16,6 +16,8 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
+#include "devices/mode_page_device.h"
+#include "devices/disk.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "scsi_controller.h"
@@ -197,6 +199,7 @@ void ScsiController::Command()
 		bus->SetIO(false);
 
 		const int actual_count = bus->CommandHandShake(GetBuffer().data());
+		// TODO Try to move GetCommandByteCount() to BUS, so that the controller does not need to know GPIOBUS
 		const int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
@@ -795,7 +798,6 @@ void ScsiController::DataOutNonBlockOriented()
 
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10: {
-				// TODO Try to get rid of this cast
 				if (auto device = dynamic_pointer_cast<ModePageDevice>(GetDeviceForLun(GetEffectiveLun()));
 					device != nullptr) {
 					device->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());

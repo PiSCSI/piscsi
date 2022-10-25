@@ -9,9 +9,6 @@
 
 #pragma once
 
-// TODO Remove this include as soon as gpiobus.cpp/h is open for editing (adding the include there) again
-#include "bus.h"
-
 namespace scsi_defs {
 	enum class scsi_level : int {
 		SCSI_1_CCS = 1,

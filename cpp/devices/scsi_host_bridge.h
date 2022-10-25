@@ -18,7 +18,7 @@
 #pragma once
 
 #include "os.h"
-#include "disk.h"
+#include "primary_device.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include <string>
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-class SCSIBR : public Disk
+class SCSIBR : public PrimaryDevice
 {
 	static constexpr const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
@@ -38,9 +38,6 @@ public:
 	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(scsi_command) override;
 
-	// TODO Remove as soon as SCSIBR is not a subclass of Disk anymore
-	void Open() override { super::ValidateFile(); }
-
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int GetMessage10(const vector<int>&, vector<BYTE>&);
@@ -51,7 +48,7 @@ public:
 
 private:
 
-	using super = Disk;
+	using super = PrimaryDevice;
 
 	Dispatcher<SCSIBR> dispatcher;
 

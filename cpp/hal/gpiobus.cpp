@@ -981,7 +981,7 @@ int GPIOBUS::GetCommandByteCount(BYTE opcode)
         return 16;
     } else if (opcode == 0xA0) {
         return 12;
-    } else if (opcode == 0x05 || (opcode >= 0x20 && opcode <= 0x7D)) {
+    } else if (opcode >= 0x20 && opcode <= 0x7D) {
         return 10;
     } else {
         return 6;

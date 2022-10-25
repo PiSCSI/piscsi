@@ -27,7 +27,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIBR::SCSIBR(int lun) : Disk(SCBR, lun)
+SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
 {
 	// Create host file system
 	fs.Reset();
@@ -37,10 +37,6 @@ SCSIBR::SCSIBR(int lun) : Disk(SCBR, lun)
 	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 
 	SupportsParams(true);
-	// TODO Remove as soon as SCBR is not a subclass of Disk anymore
-	SetStoppable(false);
-	// TODO Remove as soon as SCBR is not a subclass of Disk anymore
-	SupportsFile(false);
 }
 
 bool SCSIBR::Init(const unordered_map<string, string>& params)
