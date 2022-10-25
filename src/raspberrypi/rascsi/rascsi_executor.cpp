@@ -397,9 +397,9 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
 {
+	cerr << "AAA  " << device->GetId() << endl;
 	auto controller = controller_manager.FindController(device->GetId());
 	if (controller == nullptr) {
-		assert(false);
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 	}
 
