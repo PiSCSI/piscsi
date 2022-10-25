@@ -23,7 +23,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller_manager = make_shared<ControllerManager>(bus);
 
 	auto device = device_factory.CreateDevice(*controller_manager, type, 0, extension);
 
@@ -35,7 +35,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
 		bool removable, const string& extension)
 {
-    NiceMock<MockAbstractController> controller(0);
+    NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
     auto device = CreateDevice(type, controller, extension);
 
     vector<int>& cmd = controller.GetCmd();
@@ -64,7 +64,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
 
 void TestDispatch(PbDeviceType type)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto device = CreateDevice(type, controller);
 
     EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";

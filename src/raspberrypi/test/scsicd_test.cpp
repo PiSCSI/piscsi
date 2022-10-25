@@ -117,7 +117,7 @@ TEST(ScsiCdTest, Open)
 
 TEST(ScsiCdTest, ReadToc)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	const unordered_set<uint32_t> sector_sizes;
 	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
 

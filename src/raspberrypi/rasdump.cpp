@@ -15,6 +15,7 @@
 #include "os.h"
 #include "rasdump_fileio.h"
 #include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include <cstring>
@@ -35,7 +36,7 @@ static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
 //	Variable Declaration
 //
 //---------------------------------------------------------------------------
-GPIOBUS bus;						// Bus
+unique_ptr<GPIOBUS> bus;      // GPIO Bus						// Bus
 int targetid;						// Target ID
 int boardid;						// Board ID (own ID)
 string hdsfile;						// HDS file
@@ -105,8 +106,10 @@ bool Init()
 		return false;
 	}
 
+	bus = GPIOBUS_Factory::Create();
+
 	// GPIO Initialization
-	if (!bus.Init(BUS::mode_e::INITIATOR)) {
+	if (!bus->Init(BUS::mode_e::INITIATOR)) {
 		return false;
 	}
 
@@ -126,7 +129,7 @@ bool Init()
 void Cleanup()
 {
 	// Cleanup the bus
-	bus.Cleanup();
+	bus->Cleanup();
 }
 
 //---------------------------------------------------------------------------
@@ -137,7 +140,7 @@ void Cleanup()
 void Reset()
 {
 	// Reset the bus signal line
-	bus.Reset();
+	bus->Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -218,8 +221,8 @@ bool WaitPhase(BUS::phase_t phase)
 	// Timeout (3000ms)
 	const uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-		bus.Acquire();
-		if (bus.GetREQ() && bus.GetPhase() == phase) {
+		bus->Acquire();
+		if (bus->GetREQ() && bus->GetPhase() == phase) {
 			return true;
 		}
 	}
@@ -235,7 +238,7 @@ bool WaitPhase(BUS::phase_t phase)
 void BusFree()
 {
 	// Bus Reset
-	bus.Reset();
+	bus->Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -248,8 +251,8 @@ bool Selection(int id)
 	// ID setting and SEL assert
 	BYTE data = 1 << boardid;
 	data |= (1 << id);
-	bus.SetDAT(data);
-	bus.SetSEL(true);
+	bus->SetDAT(data);
+	bus->SetSEL(true);
 
 	// wait for busy
 	int count = 10000;
@@ -257,17 +260,17 @@ bool Selection(int id)
 		// Wait 20 microseconds
 		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
 		nanosleep(&ts, nullptr);
-		bus.Acquire();
-		if (bus.GetBSY()) {
+		bus->Acquire();
+		if (bus->GetBSY()) {
 			break;
 		}
 	} while (count--);
 
 	// SEL negate
-	bus.SetSEL(false);
+	bus->SetSEL(false);
 
 	// Success if the target is busy
-	return bus.GetBSY();
+	return bus->GetBSY();
 }
 
 //---------------------------------------------------------------------------
@@ -283,7 +286,7 @@ bool Command(BYTE *buf, int length)
 	}
 
 	// Send Command
-	const int count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
+	const int count = bus->SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
 	// Success if the transmission result is the same as the number
 	// of requests
@@ -308,7 +311,7 @@ int DataIn(BYTE *buf, int length)
 	}
 
 	// Data reception
-	return bus.ReceiveHandShake(buf, length);
+	return bus->ReceiveHandShake(buf, length);
 }
 
 //---------------------------------------------------------------------------
@@ -324,7 +327,7 @@ int DataOut(BYTE *buf, int length)
 	}
 
 	// Data transmission
-	return bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
+	return bus->SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 }
 
 //---------------------------------------------------------------------------
@@ -342,7 +345,7 @@ int Status()
 	}
 
 	// Data reception
-	if (bus.ReceiveHandShake(buf, 1) == 1) {
+	if (bus->ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
@@ -365,7 +368,7 @@ int MessageIn()
 	}
 
 	// Data reception
-	if (bus.ReceiveHandShake(buf, 1) == 1) {
+	if (bus->ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
@@ -845,11 +848,11 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// Assert reset signal
-	bus.SetRST(true);
+	bus->SetRST(true);
 	// Wait 1 ms
 	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
 	nanosleep(&ts, nullptr);
-	bus.SetRST(false);
+	bus->SetRST(false);
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);

@@ -16,7 +16,7 @@ using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
 	unordered_map<string, string> params;
@@ -36,7 +36,7 @@ TEST(ScsiPrinterTest, Dispatch)
 
 TEST(ScsiPrinterTest, TestUnitReady)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status());
@@ -51,7 +51,7 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
@@ -61,7 +61,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
@@ -71,7 +71,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
@@ -81,7 +81,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 
 TEST(ScsiPrinterTest, Print)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -96,7 +96,7 @@ TEST(ScsiPrinterTest, Print)
 
 TEST(ScsiPrinterTest, StopPrint)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status());
@@ -116,7 +116,7 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = dynamic_pointer_cast<SCSIPrinter>(CreateDevice(SCLP, controller));
 
 	vector<BYTE> buf(1);

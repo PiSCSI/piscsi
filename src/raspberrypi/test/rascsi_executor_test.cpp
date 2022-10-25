@@ -39,10 +39,10 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 	const int ID = 3;
 	const int LUN = 0;
 
-	MockBus bus;
+	shared_ptr<MockBus> bus_ptr = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	MockAbstractController controller(ID);
-	ControllerManager controller_manager(bus);
+	MockAbstractController controller(bus_ptr, ID);
+	ControllerManager controller_manager(bus_ptr);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -152,10 +152,10 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 
 TEST_F(RascsiExecutorTest, ProcessCmd)
 {
-	MockBus bus;
+	shared_ptr<MockBus> bus_ptr;
 	DeviceFactory device_factory;
-	MockAbstractController controller(0);
-	ControllerManager controller_manager(bus);
+	MockAbstractController controller(bus_ptr, 0);
+	ControllerManager controller_manager(bus_ptr);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -219,9 +219,8 @@ TEST_F(RascsiExecutorTest, ProcessCmd)
 
 TEST_F(RascsiExecutorTest, SetLogLevel)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -240,9 +239,8 @@ TEST_F(RascsiExecutorTest, Attach)
 	const int ID = 3;
 	const int LUN = 0;
 
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -322,9 +320,8 @@ TEST_F(RascsiExecutorTest, Attach)
 
 TEST_F(RascsiExecutorTest, Insert)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -383,9 +380,8 @@ TEST_F(RascsiExecutorTest, Detach)
 	const int LUN1 = 0;
 	const int LUN2 = 1;
 
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -410,9 +406,8 @@ TEST_F(RascsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
 
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -429,9 +424,8 @@ TEST_F(RascsiExecutorTest, DetachAll)
 
 TEST_F(RascsiExecutorTest, ShutDown)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -446,9 +440,8 @@ TEST_F(RascsiExecutorTest, ShutDown)
 
 TEST_F(RascsiExecutorTest, SetReservedIds)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -487,9 +480,8 @@ TEST_F(RascsiExecutorTest, SetReservedIds)
 
 TEST_F(RascsiExecutorTest, ValidateImageFile)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -506,9 +498,8 @@ TEST_F(RascsiExecutorTest, ValidateImageFile)
 
 TEST_F(RascsiExecutorTest, ValidateLunSetup)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -535,9 +526,8 @@ TEST_F(RascsiExecutorTest, VerifyExistingIdAndLun)
 	const int LUN1 = 0;
 	const int LUN2 = 3;
 
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -552,9 +542,8 @@ TEST_F(RascsiExecutorTest, VerifyExistingIdAndLun)
 
 TEST_F(RascsiExecutorTest, CreateDevice)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -571,9 +560,8 @@ TEST_F(RascsiExecutorTest, CreateDevice)
 
 TEST_F(RascsiExecutorTest, SetSectorSize)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -592,9 +580,8 @@ TEST_F(RascsiExecutorTest, SetSectorSize)
 
 TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -647,9 +634,8 @@ TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 
 TEST_F(RascsiExecutorTest, ValidateIdAndLun)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -665,9 +651,8 @@ TEST_F(RascsiExecutorTest, ValidateIdAndLun)
 
 TEST_F(RascsiExecutorTest, SetProductData)
 {
-	MockBus bus;
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
+	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	RascsiExecutor executor(rascsi_response, rascsi_image, device_factory, controller_manager);

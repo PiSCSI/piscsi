@@ -16,7 +16,7 @@ using namespace scsi_defs;
 
 TEST(AbstractControllerTest, AllocateCmd)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	EXPECT_EQ(16, controller.GetCmd().size());
 	controller.AllocateCmd(1234);
@@ -25,7 +25,7 @@ TEST(AbstractControllerTest, AllocateCmd)
 
 TEST(AbstractControllerTest, AllocateBuffer)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.AllocateBuffer(1);
 	EXPECT_LE(1, controller.GetBuffer().size());
@@ -35,7 +35,7 @@ TEST(AbstractControllerTest, AllocateBuffer)
 
 TEST(AbstractControllerTest, Reset)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
@@ -50,7 +50,7 @@ TEST(AbstractControllerTest, Reset)
 
 TEST(AbstractControllerTest, ByteTransfer)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.SetByteTransfer(false);
 	EXPECT_FALSE(controller.IsByteTransfer());
@@ -60,14 +60,14 @@ TEST(AbstractControllerTest, ByteTransfer)
 
 TEST(AbstractControllerTest, GetMaxLuns)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	EXPECT_EQ(32, controller.GetMaxLuns());
 }
 
 TEST(AbstractControllerTest, Status)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.SetStatus(status::RESERVATION_CONFLICT);
 	EXPECT_EQ(status::RESERVATION_CONFLICT, controller.GetStatus());
@@ -75,7 +75,7 @@ TEST(AbstractControllerTest, Status)
 
 TEST(AbstractControllerTest, ProcessPhase)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.SetPhase(BUS::phase_t::selection);
 	EXPECT_CALL(controller, Selection());
@@ -121,7 +121,8 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int ID = 1;
 	const int LUN = 4;
 
-	MockAbstractController controller(ID);
+	MockAbstractController controller(make_shared<MockBus>(), ID);
+
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	auto device2 = make_shared<MockPrimaryDevice>(32);
 	auto device3 = make_shared<MockPrimaryDevice>(-1);
@@ -146,7 +147,7 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 	const int INITIATOR_ID = 7;
 	const int UNKNOWN_INITIATOR_ID = -1;
 
-	MockAbstractController controller(ID);
+	MockAbstractController controller(make_shared<MockBus>(), ID);
 
 	EXPECT_EQ(INITIATOR_ID, controller.ExtractInitiatorId((1 << INITIATOR_ID) | ( 1 << ID)));
 	EXPECT_EQ(UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
@@ -154,7 +155,7 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 
 TEST(AbstractControllerTest, GetOpcode)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	vector<int>& cmd = controller.GetCmd();
 
@@ -166,7 +167,7 @@ TEST(AbstractControllerTest, GetLun)
 {
 	const int LUN = 3;
 
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	vector<int>& cmd = controller.GetCmd();
 
@@ -176,7 +177,7 @@ TEST(AbstractControllerTest, GetLun)
 
 TEST(AbstractControllerTest, SetLength)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	EXPECT_FALSE(controller.HasValidLength());
 
@@ -187,7 +188,7 @@ TEST(AbstractControllerTest, SetLength)
 
 TEST(AbstractControllerTest, UpdateOffsetAndLength)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	EXPECT_FALSE(controller.HasValidLength());
 
@@ -197,7 +198,7 @@ TEST(AbstractControllerTest, UpdateOffsetAndLength)
 
 TEST(AbstractControllerTest, Offset)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.ResetOffset();
 	EXPECT_EQ(0, controller.GetOffset());

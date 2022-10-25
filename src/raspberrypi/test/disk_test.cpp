@@ -18,7 +18,7 @@ using namespace scsi_command_util;
 
 TEST(DiskTest, Dispatch)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	const unordered_set<uint32_t> sector_sizes;
 	auto disk = make_shared<MockDisk>();
 
@@ -33,7 +33,7 @@ TEST(DiskTest, Dispatch)
 
 TEST(DiskTest, Rezero)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -50,7 +50,7 @@ TEST(DiskTest, Rezero)
 
 TEST(DiskTest, FormatUnit)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -72,7 +72,7 @@ TEST(DiskTest, FormatUnit)
 
 TEST(DiskTest, ReassignBlocks)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -89,7 +89,7 @@ TEST(DiskTest, ReassignBlocks)
 
 TEST(DiskTest, Seek6)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -114,7 +114,7 @@ TEST(DiskTest, Seek6)
 
 TEST(DiskTest, Seek10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -139,7 +139,7 @@ TEST(DiskTest, Seek10)
 
 TEST(DiskTest, ReadCapacity)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -203,7 +203,7 @@ TEST(DiskTest, ReadCapacity)
 
 TEST(DiskTest, Read6)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -216,7 +216,7 @@ TEST(DiskTest, Read6)
 
 TEST(DiskTest, Read10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -234,7 +234,7 @@ TEST(DiskTest, Read10)
 
 TEST(DiskTest, Read16)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -252,7 +252,7 @@ TEST(DiskTest, Read16)
 
 TEST(DiskTest, Write6)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -265,7 +265,7 @@ TEST(DiskTest, Write6)
 
 TEST(DiskTest, Write10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -283,7 +283,7 @@ TEST(DiskTest, Write10)
 
 TEST(DiskTest, Write16)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -301,7 +301,7 @@ TEST(DiskTest, Write16)
 
 TEST(DiskTest, Verify10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -319,7 +319,7 @@ TEST(DiskTest, Verify10)
 
 TEST(DiskTest, Verify16)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -337,7 +337,7 @@ TEST(DiskTest, Verify16)
 
 TEST(DiskTest, ReadLong10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -360,7 +360,7 @@ TEST(DiskTest, ReadLong10)
 
 TEST(DiskTest, ReadLong16)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -385,7 +385,7 @@ TEST(DiskTest, ReadLong16)
 
 TEST(DiskTest, WriteLong10)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -408,7 +408,7 @@ TEST(DiskTest, WriteLong10)
 
 TEST(DiskTest, WriteLong16)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -431,7 +431,7 @@ TEST(DiskTest, WriteLong16)
 
 TEST(DiskTest, StartStopUnit)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 	disk->SetRemovable(true);
 
@@ -481,7 +481,7 @@ TEST(DiskTest, StartStopUnit)
 
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -566,7 +566,7 @@ void DiskTest_ValidateCachePage(AbstractController& controller, int offset)
 
 TEST(DiskTest, ModeSense6)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -617,7 +617,7 @@ TEST(DiskTest, ModeSense6)
 
 TEST(DiskTest, ModeSense10)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -694,7 +694,7 @@ TEST(DiskTest, ModeSense10)
 
 TEST(DiskTest, SynchronizeCache)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);
@@ -712,7 +712,7 @@ TEST(DiskTest, SynchronizeCache)
 
 TEST(DiskTest, ReadDefectData)
 {
-	MockAbstractController controller(0);
+	MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto disk = make_shared<MockDisk>();
 
 	controller.AddDevice(disk);

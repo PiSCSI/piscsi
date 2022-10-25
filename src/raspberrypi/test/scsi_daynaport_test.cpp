@@ -18,7 +18,7 @@ TEST(ScsiDaynaportTest, Inquiry)
 
 TEST(ScsiDaynaportTest, Dispatch)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
@@ -36,7 +36,7 @@ TEST(ScsiDaynaportTest, Dispatch)
 
 TEST(ScsiDaynaportTest, TestUnitReady)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
     EXPECT_CALL(controller, Status());
@@ -47,7 +47,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 TEST(ScsiDaynaportTest, Read)
 {
 	vector<BYTE> buf(0);
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
 	vector<int>& cmd = controller.GetCmd();
@@ -60,7 +60,7 @@ TEST(ScsiDaynaportTest, Read)
 TEST(ScsiDaynaportTest, WriteCheck)
 {
 	vector<BYTE> buf(0);
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
 	EXPECT_THROW(daynaport->WriteCheck(0), scsi_exception);
@@ -69,7 +69,7 @@ TEST(ScsiDaynaportTest, WriteCheck)
 TEST(ScsiDaynaportTest, WriteBytes)
 {
 	vector<BYTE> buf(0);
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
 	vector<int>& cmd = controller.GetCmd();
@@ -81,7 +81,7 @@ TEST(ScsiDaynaportTest, WriteBytes)
 
 TEST(ScsiDaynaportTest, Read6)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -92,7 +92,7 @@ TEST(ScsiDaynaportTest, Read6)
 
 TEST(ScsiDaynaportTest, Write6)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -113,7 +113,7 @@ TEST(ScsiDaynaportTest, Write6)
 
 TEST(ScsiDaynaportTest, TestRetrieveStats)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -126,7 +126,7 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 
 TEST(ScsiDaynaportTest, SetInterfaceMode)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -159,7 +159,7 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 
 TEST(ScsiDaynaportTest, SetMcastAddr)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();
@@ -173,7 +173,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 
 TEST(ScsiDaynaportTest, EnableInterface)
 {
-	NiceMock<MockAbstractController> controller(0);
+	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	vector<int>& cmd = controller.GetCmd();

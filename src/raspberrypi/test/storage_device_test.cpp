@@ -154,7 +154,7 @@ TEST(StorageDeviceTest, GetFileSize)
 
 TEST(StorageDeviceTest, Dispatch)
 {
-    MockAbstractController controller(0);
+    MockAbstractController controller(make_shared<MockBus>(), 0);
 	auto device = make_shared<NiceMock<MockStorageDevice>>();
 
     controller.AddDevice(device);

@@ -20,7 +20,6 @@ def test_create_file(http_client, list_files, delete_file):
             "file_name": file_prefix,
             "type": "hds",
             "size": 1,
-            "drive_name": "DEC RZ22",
         },
     )
 
@@ -30,6 +29,36 @@ def test_create_file(http_client, list_files, delete_file):
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["data"]["image"] == file_name
     assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert file_name in list_files()
+
+    # Cleanup
+    delete_file(file_name)
+
+
+# route("/files/create", methods=["POST"])
+def test_create_file_with_properties(http_client, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hds"
+
+    response = http_client.post(
+        "/files/create",
+        data={
+            "file_name": file_prefix,
+            "type": "hds",
+            "size": 1,
+            "drive_name": "DEC RZ22",
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 201
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["data"]["image"] == file_name
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
     assert file_name in list_files()
 
     # Cleanup
@@ -258,6 +287,7 @@ def test_download_url_to_iso(
 
     http_path = f"/images/{test_file_name}"
     url = httpserver.url_for(http_path)
+    ISO_TYPE = "ISO-9660 Level 1"
 
     with open("tests/assets/test_image.hds", mode="rb") as file:
         test_file_data = file.read()
@@ -271,7 +301,7 @@ def test_download_url_to_iso(
         "/files/download_to_iso",
         data={
             "scsi_id": SCSI_ID,
-            "type": "-hfs",
+            "type": ISO_TYPE,
             "url": url,
         },
     )
@@ -283,10 +313,11 @@ def test_download_url_to_iso(
     assert iso_file_name in list_files()
     assert iso_file_name in list_attached_images()
 
-    m = response_data["messages"]
-    assert m[0]["message"] == 'Created CD-ROM ISO image with arguments "-hfs"'
-    assert m[1]["message"] == f"Saved image as: {env['images_dir']}/{iso_file_name}"
-    assert m[2]["message"] == f"Attached to SCSI ID {SCSI_ID}"
+    assert (
+        response_data["messages"][0]["message"]
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
+        f"and attached to SCSI ID {SCSI_ID}"
+    )
 
     # Cleanup
     detach_devices()

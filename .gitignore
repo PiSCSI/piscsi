@@ -13,6 +13,9 @@ messages.pot
 messages.mo
 report.xml
 
+# Intermediate files from astyle
+*.orig
+
 docker/docker-compose.override.yml
 /docker/volumes/images/*
 !/docker/volumes/images/.gitkeep
