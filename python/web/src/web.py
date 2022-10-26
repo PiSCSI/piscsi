@@ -98,7 +98,6 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
-        "drive_properties": format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
     }
 
 
@@ -249,6 +248,7 @@ def index():
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
@@ -278,6 +278,7 @@ def drive_list():
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
+        drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
         )
 
 

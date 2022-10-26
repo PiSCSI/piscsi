@@ -153,29 +153,25 @@ def format_drive_properties(drive_properties):
     cd_conf = []
     rm_conf = []
     mo_conf = []
-    FORMAT_FILTER = "{:,.2f}"
 
     for device in drive_properties:
-        # Add fallback device names, since other code relies on this data for display
-        if not device["name"]:
-            if device["product"]:
-                device["name"] = device["product"]
-            else:
-                device["name"] = "Unknown Device"
+        # Fallback for when the properties data is corrupted, to avoid crashing the web app.
+        # The integration tests will catch this scenario, but relies on the web app not crashing.
+        if not device.get("name"):
+            device["name"] = ""
+
+        device["secure_name"] = secure_filename(device["name"])
+
+        if device.get("size"):
+            device["size_mb"] = f'{device["size"] / 1024 / 1024:,.2f}'
+
         if device["device_type"] == "SCHD":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             hd_conf.append(device)
         elif device["device_type"] == "SCCD":
-            device["size_mb"] = _("N/A")
             cd_conf.append(device)
         elif device["device_type"] == "SCRM":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
         elif device["device_type"] == "SCMO":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             mo_conf.append(device)
 
     return {
@@ -193,21 +189,7 @@ def get_properties_by_drive_name(drives, drive_name):
     drives.sort(key=lambda item: item.get("name"))
 
     drive_props = None
-    prev_drive = {"name": ""}
     for drive in drives:
-        # TODO: Make this check into an integration test
-        if "name" not in drive:
-            logging.warning(
-                "Device without a name exists in the drive properties database. This is a bug."
-                )
-            break
-        # TODO: Make this check into an integration test
-        if drive["name"] == prev_drive["name"]:
-            logging.warning(
-                "Device with duplicate name \"%s\" in drive properties database. This is a bug.",
-                drive["name"],
-                )
-        prev_drive = drive
         if drive["name"] == drive_name:
             drive_props = drive
 

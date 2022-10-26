@@ -34,11 +34,11 @@ jobs:
 
     - name: make standard
       run: make all -j6 CONNECT_TYPE=STANDARD CROSS_COMPILE=arm-linux-gnueabihf-
-      working-directory: ./src/raspberrypi
+      working-directory: ./cpp
  
     - name: make fullspec
       run: make all -j6 CONNECT_TYPE=FULLSPEC CROSS_COMPILE=arm-linux-gnueabihf-
-      working-directory: ./src/raspberrypi
+      working-directory: ./cpp
 
     # We need to tar the binary outputs to retain the executable
     # file permission. Currently, actions/upload-artifact only
@@ -46,11 +46,11 @@ jobs:
     # This is workaround for https://github.com/actions/upload-artifact/issues/38
     - name: tar binary outputs
       run: tar -czvf rascsi.tar.gz ./bin
-      working-directory: ./src/raspberrypi
+      working-directory: ./cpp
 
     - name: upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: arm-binaries
-        path: ./src/raspberrypi/rascsi.tar.gz
+        path: ./cpp/rascsi.tar.gz
 

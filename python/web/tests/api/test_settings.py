@@ -31,7 +31,7 @@ def test_set_language(http_client, locale, confirm_message):
 
 
 # route("/logs/level", methods=["POST"])
-@pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "critical", "off"])
+@pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "off"])
 def test_set_log_level(http_client, level):
     response = http_client.post(
         "/logs/level",

@@ -48,6 +48,7 @@ echo -e $logo
 
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
+CPP_PATH="$BASE/cpp"
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEB_INSTALL_PATH="$BASE/python/web"
@@ -132,7 +133,7 @@ function cachePipPackages(){
 
 # compile the RaSCSI binaries
 function compileRaScsi() {
-    cd "$BASE/src/raspberrypi" || exit 1
+    cd "$CPP_PATH" || exit 1
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
     make clean </dev/null
@@ -185,7 +186,7 @@ function preparePythonCommon() {
         echo "Deleting old Python protobuf library $PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto
+    protoc -I="$CPP_PATH" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
@@ -727,7 +728,7 @@ function setupWiredNetworking() {
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$CPP_PATH"'/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
     echo "Modified /etc/network/interfaces.d/rascsi_bridge"
 
     echo "Configuration completed!"
