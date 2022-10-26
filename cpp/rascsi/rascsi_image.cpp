@@ -169,9 +169,9 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	const string full_filename = GetFullName(filename);
+	const string full_filename = path(GetFullName(filename));
 
-	if (!exists(full_filename)) {
+	if (!exists(path(full_filename))) {
 		return context.ReturnStatus(false, "Image file '" + full_filename + "' does not exist");
 	}
 
