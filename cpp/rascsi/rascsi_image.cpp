@@ -172,7 +172,7 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	const string full_filename = GetFullName(filename);
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
-	if (id == -1 || lun == -1) {
+	if (id != -1 && lun != -1) {
 		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
