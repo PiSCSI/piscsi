@@ -217,7 +217,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
 	if (id != -1 || lun != -1) {
-		return context.ReturnStatus(false, "Can't rename image file '" + from +
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
