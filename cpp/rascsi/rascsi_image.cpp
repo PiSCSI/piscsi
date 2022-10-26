@@ -171,17 +171,18 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 
 	const string full_filename = GetFullName(filename);
 
+	if (!exists(full_filename)) {
+		return context.ReturnStatus(false, "Image file '" + full_filename + "' does not exist");
+	}
+
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
 	if (id != -1 && lun != -1) {
 		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
-	try {
-		remove(path(full_filename));
-	}
-	catch(const filesystem_error& e) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "': " + e.what());
+	if (error_code error; !remove(path(full_filename), error)) {
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "'");
 	}
 
 	// Delete empty subfolders
