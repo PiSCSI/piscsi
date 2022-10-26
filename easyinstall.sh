@@ -596,11 +596,13 @@ function createDriveCustom() {
 # Clone, compile and install 'hfdisk', partition tool
 function installHfdisk() {
     if [ ! -x $HFDISK_BIN ]; then
-        git clone git://www.codesrc.com/git/hfdisk.git
+        git clone https://github.com/bfranske/hfdisk.git
         cd hfdisk || exit 1
         make
 
         sudo cp hfdisk /usr/bin/hfdisk
+
+        echo "Installed hfdisk into /usr/bin"
     fi
 }
 
