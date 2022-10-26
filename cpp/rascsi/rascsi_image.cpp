@@ -169,20 +169,20 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	const string full_filename = GetFullName(filename);
+	const auto full_filename = path(GetFullName(filename));
 
-	if (!exists(path(full_filename))) {
-		return context.ReturnStatus(false, "Image file '" + full_filename + "' does not exist");
+	if (!exists(full_filename)) {
+		return context.ReturnStatus(false, "Image file '" + string(full_filename) + "' does not exist");
 	}
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
 	if (id != -1 || lun != -1) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
+		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
-	if (error_code error; !remove(path(full_filename), error)) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "'");
+	if (error_code error; !remove(full_filename, error)) {
+		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) + "'");
 	}
 
 	// Delete empty subfolders
