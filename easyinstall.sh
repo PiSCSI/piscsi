@@ -593,98 +593,14 @@ function createDriveCustom() {
     createDrive "$driveSize" "$driveName"
 }
 
-# Creates an HFS file system
-function formatDrive() {
-    diskPath="$1"
-    volumeName="$2"
-
-    if [ ! -x $HFS_FORMAT ]; then
-        # Install hfsutils to have hformat to format HFS
-        sudo apt-get install hfsutils --assume-yes </dev/null
-    fi
-
+# Clone, compile and install 'hfdisk', partition tool
+function installHfdisk() {
     if [ ! -x $HFDISK_BIN ]; then
-        # Clone, compile and install 'hfdisk', partition tool
         git clone git://www.codesrc.com/git/hfdisk.git
         cd hfdisk || exit 1
         make
 
         sudo cp hfdisk /usr/bin/hfdisk
-    fi
-
-    # Inject hfdisk commands to create Drive with correct partitions
-    # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-    # i                         initialize partition map
-    # continue with default first block
-    # C                         Create 1st partition with type specified next) 
-    # continue with default
-    # 32                        32 blocks (required for HFS+)
-    # Driver_Partition          Partition Name
-    # Apple_Driver              Partition Type  (available types: Apple_Driver, Apple_Driver43, Apple_Free, Apple_HFS...)
-    # C                         Create 2nd partition with type specified next
-    # continue with default first block
-    # continue with default block size (rest of the disk)
-    # ${volumeName}             Partition name provided by user
-    # Apple_HFS                 Partition Type
-    # w                         Write partition map to disk
-    # y                         Confirm partition table
-    # p                         Print partition map
-    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
-    partitionOk=$?
-
-    if [ $partitionOk -eq 0 ]; then
-        if [ ! -f "$LIDO_DRIVER" ];then
-            echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
-            return 1
-        fi
-
-        # Burn Lido driver to the disk
-        dd if="$LIDO_DRIVER" of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
-
-        driverInstalled=$?
-        if [ $driverInstalled -eq 0 ]; then
-            # Format the partition with HFS file system
-            $HFS_FORMAT -l "${volumeName}" "$diskPath" 1
-            hfsFormattedOk=$?
-            if [ $hfsFormattedOk -eq 0 ]; then
-                echo "Disk created with success."
-            else
-                echo "Unable to format HFS partition."
-                return 4
-            fi
-        else
-            echo "Unable to install Lido Driver."
-            return 3
-        fi
-    else
-        echo "Unable to create the partition."
-        return 2
-    fi
-}
-
-# Creates an image file
-function createDrive() {
-    if [ $# -ne 2 ]; then
-        echo "To create a Drive, volume size and volume name must be provided"
-        echo "$ createDrive 600 \"RaSCSI Drive\""
-        echo "Drive wasn't created."
-        return
-    fi
-
-    driveSize=$1
-    driveName=$2
-    mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}M.hda"
-
-    if [ ! -f "$drivePath" ]; then
-        echo "Creating a ${driveSize}MiB Drive"
-        truncate --size "${driveSize}m" "$drivePath"
-
-        echo "Formatting drive with HFS"
-        formatDrive "$drivePath" "$driveName"
-
-    else
-        echo "Error: drive already exists"
     fi
 }
 
@@ -1183,6 +1099,7 @@ function runChoice() {
               stopOldWebInterface
               updateRaScsiGit
               installPackages
+              installHfdisk
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1222,6 +1139,7 @@ function runChoice() {
               createCfgDir
               updateRaScsiGit
               installPackages
+              installHfdisk
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1255,16 +1173,19 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver"
-              createDrive600M
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver - Complete!"
+              echo "Installing / Updating RaSCSI Control Board UI"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Stop and disable the RaSCSI OLED service if it is running"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
+              sudoCheck
+              preparePythonCommon
+              installRaScsiCtrlBoard
+              showRaScsiCtrlBoardStatus
+              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
           5)
-              echo "Creating an HFS formatted drive image with LIDO driver"
-              createDriveCustom
-              echo "Creating an HFS formatted drive image with LIDO driver - Complete!"
-          ;;
-          6)
               echo "Configuring wired network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
@@ -1274,7 +1195,7 @@ function runChoice() {
               setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
-          7)
+          6)
               echo "Configuring wifi network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1285,11 +1206,11 @@ function runChoice() {
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
-          8)
+          7)
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
-          9)
+          8)
               echo "Installing Web Proxy Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1299,7 +1220,7 @@ function runChoice() {
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
-          10)
+          9)
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1316,7 +1237,7 @@ function runChoice() {
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
               echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
           ;;
-          11)
+          10)
               echo "Configuring RaSCSI Web Interface stand-alone"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1328,13 +1249,14 @@ function runChoice() {
               createCfgDir
               updateRaScsiGit
               installPackages
+              installHfdisk
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
-          12)
+          11)
               echo "Enabling or disabling RaSCSI back-end authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1344,7 +1266,7 @@ function runChoice() {
               enableRaScsiService
               echo "Enabling or disabling RaSCSI back-end authentication - Complete!"
           ;;
-          13)
+          12)
               echo "Enabling or disabling Web Interface authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1352,20 +1274,7 @@ function runChoice() {
               enableWebInterfaceAuth
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
-          14)
-              echo "Installing / Updating RaSCSI Control Board UI"
-              echo "This script will make the following changes to your system:"
-              echo "- Install additional packages with apt-get"
-              echo "- Add and modify systemd services"
-              echo "- Stop and disable the RaSCSI OLED service if it is running"
-              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
-              sudoCheck
-              preparePythonCommon
-              installRaScsiCtrlBoard
-              showRaScsiCtrlBoardStatus
-              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
-          ;;
-          15)
+          13)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
@@ -1398,24 +1307,20 @@ function showMenu() {
     echo "  1) install or update RaSCSI Service + Web Interface"
     echo "  2) install or update RaSCSI Service"
     echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
-    echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
-    echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  4) 600 MiB drive (suggested size)"
-    echo "  5) custom drive size (up to 4000 MiB)"
+    echo "  4) install or update RaSCSI Control Board UI (requires hardware)"
     echo "NETWORK BRIDGE ASSISTANT"
-    echo "  6) configure network bridge for Ethernet (DHCP)"
-    echo "  7) configure network bridge for WiFi (static IP + NAT)" 
+    echo "  5) configure network bridge for Ethernet (DHCP)"
+    echo "  6) configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
-    echo "  8) install AppleShare File Server (Netatalk)"
-    echo "  9) install Web Proxy Server (Macproxy)"
+    echo "  7) install AppleShare File Server (Netatalk)"
+    echo "  8) install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) compile and install RaSCSI stand-alone"
-    echo " 11) configure the RaSCSI Web Interface stand-alone"
-    echo " 12) enable or disable RaSCSI back-end authentication"
-    echo " 13) enable or disable RaSCSI Web Interface authentication"
+    echo "  9) compile and install RaSCSI stand-alone"
+    echo " 10) configure the RaSCSI Web Interface stand-alone"
+    echo " 11) enable or disable RaSCSI back-end authentication"
+    echo " 12) enable or disable RaSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 14) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 15) share the images dir over AppleShare (requires Netatalk)"
+    echo " 13) share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
@@ -1431,8 +1336,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 13 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 13"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
