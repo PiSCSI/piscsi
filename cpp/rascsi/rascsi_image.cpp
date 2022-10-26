@@ -169,19 +169,20 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	const string full_filename = GetFullName(filename);
+	const auto full_filename = path(GetFullName(filename));
+
+	if (!exists(full_filename)) {
+		return context.ReturnStatus(false, "Image file '" + string(full_filename) + "' does not exist");
+	}
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
-	if (id == -1 || lun == -1) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename +
+	if (id != -1 || lun != -1) {
+		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
-	try {
-		remove(path(full_filename));
-	}
-	catch(const filesystem_error& e) {
-		return context.ReturnStatus(false, "Can't delete image file '" + full_filename + "': " + e.what());
+	if (error_code error; !remove(full_filename, error)) {
+		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) + "'");
 	}
 
 	// Delete empty subfolders
@@ -194,12 +195,8 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 			break;
 		}
 
-		try {
-			remove(full_folder);
-		}
-		catch(const filesystem_error& e) {
-			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder)
-					+ "': " + e.what());
+		if (error_code error; !remove(full_folder)) {
+			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder) +  "'");
 		}
 
 		last_slash = folder.rfind('/');
@@ -216,6 +213,12 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 	string to;
 	if (!ValidateParams(context, command, "rename/move", from, to)) {
 		return false;
+	}
+
+	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
+	if (id != -1 || lun != -1) {
+		return context.ReturnStatus(false, "Can't rename/move image file '" + from +
+				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
 	if (!CreateImageFolder(context, to)) {
