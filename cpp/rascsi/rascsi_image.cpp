@@ -195,12 +195,8 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 			break;
 		}
 
-		try {
-			remove(full_folder);
-		}
-		catch(const filesystem_error& e) {
-			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder)
-					+ "': " + e.what());
+		if (error_code error; !remove(full_folder)) {
+			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder) +  "'");
 		}
 
 		last_slash = folder.rfind('/');
