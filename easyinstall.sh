@@ -106,7 +106,8 @@ function installPackages() {
         unar \
         disktype \
         libgmock-dev \
-        man2html
+        man2html \
+        hfsutils
 }
 
 # install Debian packges for RaSCSI standalone
