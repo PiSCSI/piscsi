@@ -13,6 +13,7 @@
 #include "scsi.h"
 #include <array>
 #include <unordered_map>
+#include "hal/board_type.h"
 
 using namespace std;
 
@@ -45,7 +46,8 @@ public:
 	virtual ~BUS() = default;
 
 	// Basic Functions
-	virtual bool Init(mode_e mode) = 0;
+	virtual bool Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type ) = 0;
+
 	virtual void Reset() = 0;
 	virtual void Cleanup() = 0;
 	phase_t GetPhase();
@@ -100,9 +102,9 @@ public:
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
 
-	virtual bool GetSignal(int pin) const = 0;
+	virtual bool GetSignal(board_type::pi_physical_pin_e pin) const = 0;
 										// Get SCSI input signal value
-	virtual void SetSignal(int pin, bool ast) = 0;
+	virtual void SetSignal(board_type::pi_physical_pin_e pin, bool ast) = 0;
 										// Set SCSI output signal value
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay

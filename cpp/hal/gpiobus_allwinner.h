@@ -30,7 +30,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     GPIOBUS_Allwinner()  = default;
     ~GPIOBUS_Allwinner() override = default;
     // Destructor
-    bool Init(mode_e mode = mode_e::TARGET) override;
+    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e 
+                rascsi_type = board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
+
     // Initialization
     void Reset() override;
     // Reset
@@ -52,15 +54,15 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data
-    void SetControl(int pin, bool ast) override;
+    void SetControl(board_type::pi_physical_pin_e pin, bool ast) override;
     // Set Control Signal
-    void SetMode(int pin, int mode) override;
+    void SetMode(board_type::pi_physical_pin_e pin, int mode) override;
     // Set SCSI I/O mode
-    bool GetSignal(int pin) const override;
+    bool GetSignal(board_type::pi_physical_pin_e pin) const override;
     // Get SCSI input signal value
-    void SetSignal(int pin, bool ast) override;
+    void SetSignal(board_type::pi_physical_pin_e pin, bool ast) override;
     // Set SCSI output signal value
-    bool WaitSignal(int pin, int ast) override;
+    bool WaitSignal(board_type::pi_physical_pin_e pin, int ast) override;
     // Wait for a signal to change
     // Interrupt control
     void DisableIRQ() override;
@@ -69,11 +71,11 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    void PinConfig(int pin, int mode) override;
+    void PinConfig(board_type::pi_physical_pin_e pin, int mode) override;
     // GPIO pin direction setting
-    void PullConfig(int pin, int mode) override;
+    void PullConfig(board_type::pi_physical_pin_e pin, int mode) override;
     // GPIO pin pull up/down resistor setting
-    void PinSetSignal(int pin, bool ast) override;
+    void PinSetSignal(board_type::pi_physical_pin_e pin, bool ast) override;
     // Set GPIO output signal
     void DrvConfig(DWORD drive) override;
     // Set GPIO drive strength

@@ -15,7 +15,7 @@ namespace board_type
 {
 
 // RaSCSI Adapter Aibom version
-const Rascsi_Board_Type board_type_aibom = {
+const Rascsi_Board_Type board_definition_aibom = {
 
     .connect_desc = "AIBOM PRODUCTS version", // Startup message
 

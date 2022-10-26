@@ -74,11 +74,50 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 using namespace std;
 
 // Nothing SBC hardware specific should be done in this function
-bool GPIOBUS::Init(mode_e mode)
+bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
 {
     GPIO_FUNCTION_TRACE
+
+    // Figure out what type of board is connected.
+    switch (rascsi_type) {
+    case board_type::rascsi_board_type_e::BOARD_TYPE_AIBOM:
+        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_aibom);
+        break;
+    case board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC:
+        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_fullspec);
+        break;
+    case board_type::rascsi_board_type_e::BOARD_TYPE_GAMERNIUM:
+        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_gamernium);
+        break;
+    case board_type::rascsi_board_type_e::BOARD_TYPE_STANDARD:
+        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_standard);
+        break;
+    }
+    board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_aibom);
+
     // Save operation mode
     actmode = mode;
+
+    SignalTable[0] = board->pin_dt0;
+    SignalTable[1] = board->pin_dt1;
+    SignalTable[2] = board->pin_dt2;
+    SignalTable[3] = board->pin_dt3;
+    SignalTable[4] = board->pin_dt4;
+    SignalTable[5] = board->pin_dt5;
+    SignalTable[6] = board->pin_dt6;
+    SignalTable[7] = board->pin_dt7;
+    SignalTable[8] = board->pin_dp;
+    SignalTable[9] = board->pin_sel;
+    SignalTable[10] = board->pin_atn;
+    SignalTable[11] = board->pin_rst;
+    SignalTable[12] = board->pin_ack;
+    SignalTable[13] = board->pin_bsy;
+    SignalTable[14] = board->pin_msg;
+    SignalTable[15] = board->pin_cd;
+    SignalTable[16] = board->pin_io;
+    SignalTable[17] = board->pin_req;
+    SignalTable[18] = board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE;
+
     return true;
 }
 
@@ -93,19 +132,19 @@ void GPIOBUS::Cleanup()
 #endif // USE_SEL_EVENT_ENABLE
 
     // Set control signals
-    PinSetSignal(PIN_ENB, RASCSI_PIN_OFF);
-    PinSetSignal(PIN_ACT, RASCSI_PIN_OFF);
-    PinSetSignal(PIN_TAD, RASCSI_PIN_OFF);
-    PinSetSignal(PIN_IND, RASCSI_PIN_OFF);
-    PinSetSignal(PIN_DTD, RASCSI_PIN_OFF);
-    PinConfig(PIN_ACT, GPIO_INPUT);
-    PinConfig(PIN_TAD, GPIO_INPUT);
-    PinConfig(PIN_IND, GPIO_INPUT);
-    PinConfig(PIN_DTD, GPIO_INPUT);
+    PinSetSignal(board->pin_enb, RASCSI_PIN_OFF);
+    PinSetSignal(board->pin_act, RASCSI_PIN_OFF);
+    PinSetSignal(board->pin_tad, RASCSI_PIN_OFF);
+    PinSetSignal(board->pin_ind, RASCSI_PIN_OFF);
+    PinSetSignal(board->pin_dtd, RASCSI_PIN_OFF);
+    PinConfig(board->pin_act, GPIO_INPUT);
+    PinConfig(board->pin_tad, GPIO_INPUT);
+    PinConfig(board->pin_ind, GPIO_INPUT);
+    PinConfig(board->pin_dtd, GPIO_INPUT);
 
     // Initialize all signals
-    for (int i = 0; SignalTable[i] >= 0; i++) {
-        int pin = SignalTable[i];
+    for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
+        board_type::pi_physical_pin_e pin = SignalTable[i];
         PinSetSignal(pin, RASCSI_PIN_OFF);
         PinConfig(pin, GPIO_INPUT);
         PullConfig(pin, GPIO_PULLNONE);
@@ -123,15 +162,15 @@ void GPIOBUS::Reset()
     return;
 #else
     int i;
-    int j;
+    board_type::pi_physical_pin_e j;
 
     // Turn off active signal
-    SetControl(PIN_ACT, ACT_OFF);
+    SetControl(board->pin_act, ACT_OFF);
 
     // Set all signals to off
     for (i = 0;; i++) {
         j = SignalTable[i];
-        if (j < 0) {
+        if (j == board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
             break;
         }
 
@@ -142,60 +181,60 @@ void GPIOBUS::Reset()
         // Target mode
 
         // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, RASCSI_PIN_IN);
-        SetMode(PIN_MSG, RASCSI_PIN_IN);
-        SetMode(PIN_CD,  RASCSI_PIN_IN);
-        SetMode(PIN_REQ, RASCSI_PIN_IN);
-        SetMode(PIN_IO,  RASCSI_PIN_IN);
+        SetControl(board->pin_tad, TAD_IN);
+        SetMode(board->pin_bsy, RASCSI_PIN_IN);
+        SetMode(board->pin_msg, RASCSI_PIN_IN);
+        SetMode(board->pin_cd, RASCSI_PIN_IN);
+        SetMode(board->pin_req, RASCSI_PIN_IN);
+        SetMode(board->pin_io, RASCSI_PIN_IN);
 
         // Set the initiator signal to input
-        SetControl(PIN_IND, IND_IN);
-        SetMode(PIN_SEL, RASCSI_PIN_IN);
-        SetMode(PIN_ATN, RASCSI_PIN_IN);
-        SetMode(PIN_ACK, RASCSI_PIN_IN);
-        SetMode(PIN_RST, RASCSI_PIN_IN);
+        SetControl(board->pin_ind, IND_IN);
+        SetMode(board->pin_sel, RASCSI_PIN_IN);
+        SetMode(board->pin_atn, RASCSI_PIN_IN);
+        SetMode(board->pin_ack, RASCSI_PIN_IN);
+        SetMode(board->pin_rst, RASCSI_PIN_IN);
 
         // Set data bus signals to input
-        SetControl(PIN_DTD, DTD_IN);
-        SetMode(PIN_DT0, RASCSI_PIN_IN);
-        SetMode(PIN_DT1, RASCSI_PIN_IN);
-        SetMode(PIN_DT2, RASCSI_PIN_IN);
-        SetMode(PIN_DT3, RASCSI_PIN_IN);
-        SetMode(PIN_DT4, RASCSI_PIN_IN);
-        SetMode(PIN_DT5, RASCSI_PIN_IN);
-        SetMode(PIN_DT6, RASCSI_PIN_IN);
-        SetMode(PIN_DT7, RASCSI_PIN_IN);
-        SetMode(PIN_DP,  RASCSI_PIN_IN);
+        SetControl(board->pin_dtd, DTD_IN);
+        SetMode(board->pin_dt0, RASCSI_PIN_IN);
+        SetMode(board->pin_dt1, RASCSI_PIN_IN);
+        SetMode(board->pin_dt2, RASCSI_PIN_IN);
+        SetMode(board->pin_dt3, RASCSI_PIN_IN);
+        SetMode(board->pin_dt4, RASCSI_PIN_IN);
+        SetMode(board->pin_dt5, RASCSI_PIN_IN);
+        SetMode(board->pin_dt6, RASCSI_PIN_IN);
+        SetMode(board->pin_dt7, RASCSI_PIN_IN);
+        SetMode(board->pin_dp, RASCSI_PIN_IN);
     } else {
         // Initiator mode
 
         // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, RASCSI_PIN_IN);
-        SetMode(PIN_MSG, RASCSI_PIN_IN);
-        SetMode(PIN_CD,  RASCSI_PIN_IN);
-        SetMode(PIN_REQ, RASCSI_PIN_IN);
-        SetMode(PIN_IO,  RASCSI_PIN_IN);
+        SetControl(board->pin_tad, TAD_IN);
+        SetMode(board->pin_bsy, RASCSI_PIN_IN);
+        SetMode(board->pin_msg, RASCSI_PIN_IN);
+        SetMode(board->pin_cd, RASCSI_PIN_IN);
+        SetMode(board->pin_req, RASCSI_PIN_IN);
+        SetMode(board->pin_io, RASCSI_PIN_IN);
 
         // Set the initiator signal to output
-        SetControl(PIN_IND, IND_OUT);
-        SetMode(PIN_SEL, RASCSI_PIN_OUT);
-        SetMode(PIN_ATN, RASCSI_PIN_OUT);
-        SetMode(PIN_ACK, RASCSI_PIN_OUT);
-        SetMode(PIN_RST, RASCSI_PIN_OUT);
+        SetControl(board->pin_ind, IND_OUT);
+        SetMode(board->pin_sel, RASCSI_PIN_OUT);
+        SetMode(board->pin_atn, RASCSI_PIN_OUT);
+        SetMode(board->pin_ack, RASCSI_PIN_OUT);
+        SetMode(board->pin_rst, RASCSI_PIN_OUT);
 
         // Set the data bus signals to output
-        SetControl(PIN_DTD, DTD_OUT);
-        SetMode(PIN_DT0, RASCSI_PIN_OUT);
-        SetMode(PIN_DT1, RASCSI_PIN_OUT);
-        SetMode(PIN_DT2, RASCSI_PIN_OUT);
-        SetMode(PIN_DT3, RASCSI_PIN_OUT);
-        SetMode(PIN_DT4, RASCSI_PIN_OUT);
-        SetMode(PIN_DT5, RASCSI_PIN_OUT);
-        SetMode(PIN_DT6, RASCSI_PIN_OUT);
-        SetMode(PIN_DT7, RASCSI_PIN_OUT);
-        SetMode(PIN_DP,  RASCSI_PIN_OUT);
+        SetControl(board->pin_dtd, DTD_OUT);
+        SetMode(board->pin_dt0, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt1, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt2, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt3, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt4, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt5, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt6, RASCSI_PIN_OUT);
+        SetMode(board->pin_dt7, RASCSI_PIN_OUT);
+        SetMode(board->pin_dp, RASCSI_PIN_OUT);
     }
 
     // Initialize all signals
@@ -206,46 +245,46 @@ void GPIOBUS::Reset()
 void GPIOBUS::SetENB(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
+    PinSetSignal(board->pin_enb, ast ? ENB_ON : ENB_OFF);
 }
 
 bool GPIOBUS::GetBSY() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_BSY);
+    return GetSignal(board->pin_bsy);
 }
 
 void GPIOBUS::SetBSY(bool ast)
 {
     GPIO_FUNCTION_TRACE
     // Set BSY signal
-    SetSignal(PIN_BSY, ast);
+    SetSignal(board->pin_bsy, ast);
 
     if (actmode == mode_e::TARGET) {
         if (ast) {
             // Turn on ACTIVE signal
-            SetControl(PIN_ACT, ACT_ON);
+            SetControl(board->pin_act, ACT_ON);
 
             // Set Target signal to output
-            SetControl(PIN_TAD, TAD_OUT);
+            SetControl(board->pin_tad, TAD_OUT);
 
-            SetMode(PIN_BSY, RASCSI_PIN_OUT);
-            SetMode(PIN_MSG, RASCSI_PIN_OUT);
-            SetMode(PIN_CD,  RASCSI_PIN_OUT);
-            SetMode(PIN_REQ, RASCSI_PIN_OUT);
-            SetMode(PIN_IO,  RASCSI_PIN_OUT);
+            SetMode(board->pin_bsy, RASCSI_PIN_OUT);
+            SetMode(board->pin_msg, RASCSI_PIN_OUT);
+            SetMode(board->pin_cd, RASCSI_PIN_OUT);
+            SetMode(board->pin_req, RASCSI_PIN_OUT);
+            SetMode(board->pin_io, RASCSI_PIN_OUT);
         } else {
             // Turn off the ACTIVE signal
-            SetControl(PIN_ACT, ACT_OFF);
+            SetControl(board->pin_act, ACT_OFF);
 
             // Set the target signal to input
-            SetControl(PIN_TAD, TAD_IN);
+            SetControl(board->pin_tad, TAD_IN);
 
-            SetMode(PIN_BSY, RASCSI_PIN_IN);
-            SetMode(PIN_MSG, RASCSI_PIN_IN);
-            SetMode(PIN_CD,  RASCSI_PIN_IN);
-            SetMode(PIN_REQ, RASCSI_PIN_IN);
-            SetMode(PIN_IO,  RASCSI_PIN_IN);
+            SetMode(board->pin_bsy, RASCSI_PIN_IN);
+            SetMode(board->pin_msg, RASCSI_PIN_IN);
+            SetMode(board->pin_cd, RASCSI_PIN_IN);
+            SetMode(board->pin_req, RASCSI_PIN_IN);
+            SetMode(board->pin_io, RASCSI_PIN_IN);
         }
     }
 }
@@ -253,7 +292,7 @@ void GPIOBUS::SetBSY(bool ast)
 bool GPIOBUS::GetSEL() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_SEL);
+    return GetSignal(board->pin_sel);
 }
 
 void GPIOBUS::SetSEL(bool ast)
@@ -261,114 +300,114 @@ void GPIOBUS::SetSEL(bool ast)
     GPIO_FUNCTION_TRACE
     if (actmode == mode_e::INITIATOR && ast) {
         // Turn on ACTIVE signal
-        SetControl(PIN_ACT, ACT_ON);
+        SetControl(board->pin_act, ACT_ON);
     }
 
     // Set SEL signal
-    SetSignal(PIN_SEL, ast);
+    SetSignal(board->pin_sel, ast);
 }
 
 bool GPIOBUS::GetATN() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_ATN);
+    return GetSignal(board->pin_atn);
 }
 
 void GPIOBUS::SetATN(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_ATN, ast);
+    SetSignal(board->pin_atn, ast);
 }
 
 bool GPIOBUS::GetACK() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_ACK);
+    return GetSignal(board->pin_ack);
 }
 
 void GPIOBUS::SetACK(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_ACK, ast);
+    SetSignal(board->pin_ack, ast);
 }
 
 bool GPIOBUS::GetACT() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_ACT);
+    return GetSignal(board->pin_act);
 }
 
 void GPIOBUS::SetACT(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_ACT, ast);
+    SetSignal(board->pin_act, ast);
 }
 
 bool GPIOBUS::GetRST() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_RST);
+    return GetSignal(board->pin_rst);
 }
 
 void GPIOBUS::SetRST(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_RST, ast);
+    SetSignal(board->pin_rst, ast);
 }
 
 bool GPIOBUS::GetMSG() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_MSG);
+    return GetSignal(board->pin_msg);
 }
 
 void GPIOBUS::SetMSG(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_MSG, ast);
+    SetSignal(board->pin_msg, ast);
 }
 
 bool GPIOBUS::GetCD() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_CD);
+    return GetSignal(board->pin_cd);
 }
 
 void GPIOBUS::SetCD(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_CD, ast);
+    SetSignal(board->pin_cd, ast);
 }
 
 bool GPIOBUS::GetIO()
 {
     GPIO_FUNCTION_TRACE
-    bool ast = GetSignal(PIN_IO);
+    bool ast = GetSignal(board->pin_io);
 
     if (actmode == mode_e::INITIATOR) {
         // Change the data input/output direction by IO signal
         if (ast) {
-            SetControl(PIN_DTD, DTD_IN);
-            SetMode(PIN_DT0, RASCSI_PIN_IN);
-            SetMode(PIN_DT1, RASCSI_PIN_IN);
-            SetMode(PIN_DT2, RASCSI_PIN_IN);
-            SetMode(PIN_DT3, RASCSI_PIN_IN);
-            SetMode(PIN_DT4, RASCSI_PIN_IN);
-            SetMode(PIN_DT5, RASCSI_PIN_IN);
-            SetMode(PIN_DT6, RASCSI_PIN_IN);
-            SetMode(PIN_DT7, RASCSI_PIN_IN);
-            SetMode(PIN_DP,  RASCSI_PIN_IN);
+            SetControl(board->pin_dtd, DTD_IN);
+            SetMode(board->pin_dt0, RASCSI_PIN_IN);
+            SetMode(board->pin_dt1, RASCSI_PIN_IN);
+            SetMode(board->pin_dt2, RASCSI_PIN_IN);
+            SetMode(board->pin_dt3, RASCSI_PIN_IN);
+            SetMode(board->pin_dt4, RASCSI_PIN_IN);
+            SetMode(board->pin_dt5, RASCSI_PIN_IN);
+            SetMode(board->pin_dt6, RASCSI_PIN_IN);
+            SetMode(board->pin_dt7, RASCSI_PIN_IN);
+            SetMode(board->pin_dp, RASCSI_PIN_IN);
         } else {
-            SetControl(PIN_DTD, DTD_OUT);
-            SetMode(PIN_DT0, RASCSI_PIN_OUT);
-            SetMode(PIN_DT1, RASCSI_PIN_OUT);
-            SetMode(PIN_DT2, RASCSI_PIN_OUT);
-            SetMode(PIN_DT3, RASCSI_PIN_OUT);
-            SetMode(PIN_DT4, RASCSI_PIN_OUT);
-            SetMode(PIN_DT5, RASCSI_PIN_OUT);
-            SetMode(PIN_DT6, RASCSI_PIN_OUT);
-            SetMode(PIN_DT7, RASCSI_PIN_OUT);
-            SetMode(PIN_DP,  RASCSI_PIN_OUT);
+            SetControl(board->pin_dtd, DTD_OUT);
+            SetMode(board->pin_dt0, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt1, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt2, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt3, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt4, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt5, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt6, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt7, RASCSI_PIN_OUT);
+            SetMode(board->pin_dp, RASCSI_PIN_OUT);
         }
     }
 
@@ -378,33 +417,33 @@ bool GPIOBUS::GetIO()
 void GPIOBUS::SetIO(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_IO, ast);
+    SetSignal(board->pin_io, ast);
 
     if (actmode == mode_e::TARGET) {
         // Change the data input/output direction by IO signal
         if (ast) {
-            SetControl(PIN_DTD, DTD_OUT);
+            SetControl(board->pin_dtd, DTD_OUT);
             SetDAT(0);
-            SetMode(PIN_DT0, RASCSI_PIN_OUT);
-            SetMode(PIN_DT1, RASCSI_PIN_OUT);
-            SetMode(PIN_DT2, RASCSI_PIN_OUT);
-            SetMode(PIN_DT3, RASCSI_PIN_OUT);
-            SetMode(PIN_DT4, RASCSI_PIN_OUT);
-            SetMode(PIN_DT5, RASCSI_PIN_OUT);
-            SetMode(PIN_DT6, RASCSI_PIN_OUT);
-            SetMode(PIN_DT7, RASCSI_PIN_OUT);
-            SetMode(PIN_DP,  RASCSI_PIN_OUT);
+            SetMode(board->pin_dt0, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt1, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt2, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt3, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt4, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt5, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt6, RASCSI_PIN_OUT);
+            SetMode(board->pin_dt7, RASCSI_PIN_OUT);
+            SetMode(board->pin_dp, RASCSI_PIN_OUT);
         } else {
-            SetControl(PIN_DTD, DTD_IN);
-            SetMode(PIN_DT0, RASCSI_PIN_IN);
-            SetMode(PIN_DT1, RASCSI_PIN_IN);
-            SetMode(PIN_DT2, RASCSI_PIN_IN);
-            SetMode(PIN_DT3, RASCSI_PIN_IN);
-            SetMode(PIN_DT4, RASCSI_PIN_IN);
-            SetMode(PIN_DT5, RASCSI_PIN_IN);
-            SetMode(PIN_DT6, RASCSI_PIN_IN);
-            SetMode(PIN_DT7, RASCSI_PIN_IN);
-            SetMode(PIN_DP,  RASCSI_PIN_IN);
+            SetControl(board->pin_dtd, DTD_IN);
+            SetMode(board->pin_dt0, RASCSI_PIN_IN);
+            SetMode(board->pin_dt1, RASCSI_PIN_IN);
+            SetMode(board->pin_dt2, RASCSI_PIN_IN);
+            SetMode(board->pin_dt3, RASCSI_PIN_IN);
+            SetMode(board->pin_dt4, RASCSI_PIN_IN);
+            SetMode(board->pin_dt5, RASCSI_PIN_IN);
+            SetMode(board->pin_dt6, RASCSI_PIN_IN);
+            SetMode(board->pin_dt7, RASCSI_PIN_IN);
+            SetMode(board->pin_dp, RASCSI_PIN_IN);
         }
     }
 }
@@ -412,19 +451,19 @@ void GPIOBUS::SetIO(bool ast)
 bool GPIOBUS::GetREQ() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_REQ);
+    return GetSignal(board->pin_req);
 }
 
 void GPIOBUS::SetREQ(bool ast)
 {
     GPIO_FUNCTION_TRACE
-    SetSignal(PIN_REQ, ast);
+    SetSignal(board->pin_req, ast);
 }
 
 bool GPIOBUS::GetDP() const
 {
     GPIO_FUNCTION_TRACE
-    return GetSignal(PIN_DP);
+    return GetSignal(board->pin_dp);
 }
 
 //---------------------------------------------------------------------------
@@ -443,10 +482,10 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     DisableIRQ();
 
     // Assert REQ signal
-    SetSignal(PIN_REQ, RASCSI_PIN_ON);
+    SetSignal(board->pin_req, RASCSI_PIN_ON);
 
     // Wait for ACK signal
-    bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
+    bool ret = WaitSignal(board->pin_ack, RASCSI_PIN_ON);
 
     // Wait until the signal line stabilizes
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -455,7 +494,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     *buf = GetDAT();
 
     // Disable REQ signal
-    SetSignal(PIN_REQ, RASCSI_PIN_OFF);
+    SetSignal(board->pin_req, RASCSI_PIN_OFF);
 
     // Timeout waiting for ACK assertion
     if (!ret) {
@@ -464,7 +503,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     }
 
     // Wait for ACK to clear
-    ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+    ret = WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
 
     // Timeout waiting for ACK to clear
     if (!ret) {
@@ -482,23 +521,23 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
     if (*buf == 0x1F) {
-        SetSignal(PIN_REQ, RASCSI_PIN_ON);
+        SetSignal(board->pin_req, RASCSI_PIN_ON);
 
-        ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
+        ret = WaitSignal(board->pin_ack, RASCSI_PIN_ON);
 
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get the actual SCSI command
         *buf = GetDAT();
 
-        SetSignal(PIN_REQ, RASCSI_PIN_OFF);
+        SetSignal(board->pin_req, RASCSI_PIN_OFF);
 
         if (!ret) {
             EnableIRQ();
             return 0;
         }
 
-        WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+        WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
 
         if (!ret) {
             EnableIRQ();
@@ -514,10 +553,10 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
     int bytes_received;
     for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
         // Assert REQ signal
-        SetSignal(PIN_REQ, RASCSI_PIN_ON);
+        SetSignal(board->pin_req, RASCSI_PIN_ON);
 
         // Wait for ACK signal
-        ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
+        ret = WaitSignal(board->pin_ack, RASCSI_PIN_ON);
 
         // Wait until the signal line stabilizes
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -526,7 +565,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
         *buf = GetDAT();
 
         // Clear the REQ signal
-        SetSignal(PIN_REQ, RASCSI_PIN_OFF);
+        SetSignal(board->pin_req, RASCSI_PIN_OFF);
 
         // Check for timeout waiting for ACK assertion
         if (!ret) {
@@ -534,7 +573,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
         }
 
         // Wait for ACK to clear
-        ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+        ret = WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
 
         // Check for timeout waiting for ACK to clear
         if (!ret) {
@@ -567,10 +606,10 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
     if (actmode == mode_e::TARGET) {
         for (i = 0; i < count; i++) {
             // Assert the REQ signal
-            SetSignal(PIN_REQ, RASCSI_PIN_ON);
+            SetSignal(board->pin_req, RASCSI_PIN_ON);
 
             // Wait for ACK
-            bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
+            bool ret = WaitSignal(board->pin_ack, RASCSI_PIN_ON);
 
             // Wait until the signal line stabilizes
             SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -579,7 +618,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             *buf = GetDAT();
 
             // Clear the REQ signal
-            SetSignal(PIN_REQ, RASCSI_PIN_OFF);
+            SetSignal(board->pin_req, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK signal
             if (!ret) {
@@ -587,7 +626,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             }
 
             // Wait for ACK to clear
-            ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+            ret = WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -603,7 +642,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 
         for (i = 0; i < count; i++) {
             // Wait for the REQ signal to be asserted
-            bool ret = WaitSignal(PIN_REQ, RASCSI_PIN_ON);
+            bool ret = WaitSignal(board->pin_req, RASCSI_PIN_ON);
 
             // Check for timeout waiting for REQ signal
             if (!ret) {
@@ -622,13 +661,13 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             *buf = GetDAT();
 
             // Assert the ACK signal
-            SetSignal(PIN_ACK, RASCSI_PIN_ON);
+            SetSignal(board->pin_ack, RASCSI_PIN_ON);
 
             // Wait for REQ to clear
-            ret = WaitSignal(PIN_REQ, RASCSI_PIN_OFF);
+            ret = WaitSignal(board->pin_req, RASCSI_PIN_OFF);
 
             // Clear the ACK signal
-            SetSignal(PIN_ACK, RASCSI_PIN_OFF);
+            SetSignal(board->pin_ack, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for REQ to clear
             if (!ret) {
@@ -678,7 +717,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             SetDAT(*buf);
 
             // Wait for ACK to clear
-            bool ret = WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+            bool ret = WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -688,13 +727,13 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             // Already waiting for ACK to clear
 
             // Assert the REQ signal
-            SetSignal(PIN_REQ, RASCSI_PIN_ON);
+            SetSignal(board->pin_req, RASCSI_PIN_ON);
 
             // Wait for ACK
-            ret = WaitSignal(PIN_ACK, RASCSI_PIN_ON);
+            ret = WaitSignal(board->pin_ack, RASCSI_PIN_ON);
 
             // Clear REQ signal
-            SetSignal(PIN_REQ, RASCSI_PIN_OFF);
+            SetSignal(board->pin_req, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for ACK to clear
             if (!ret) {
@@ -706,7 +745,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
         }
 
         // Wait for ACK to clear
-        WaitSignal(PIN_ACK, RASCSI_PIN_OFF);
+        WaitSignal(board->pin_ack, RASCSI_PIN_OFF);
     } else {
         // Get Phase
         uint32_t phase = Acquire() & GPIO_MCI;
@@ -722,7 +761,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             SetDAT(*buf);
 
             // Wait for REQ to be asserted
-            bool ret = WaitSignal(PIN_REQ, RASCSI_PIN_ON);
+            bool ret = WaitSignal(board->pin_req, RASCSI_PIN_ON);
 
             // Check for timeout waiting for REQ to be asserted
             if (!ret) {
@@ -737,13 +776,13 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             // Already waiting for REQ assertion
 
             // Assert the ACK signal
-            SetSignal(PIN_ACK, RASCSI_PIN_ON);
+            SetSignal(board->pin_ack, RASCSI_PIN_ON);
 
             // Wait for REQ to clear
-            ret = WaitSignal(PIN_REQ, RASCSI_PIN_OFF);
+            ret = WaitSignal(board->pin_req, RASCSI_PIN_OFF);
 
             // Clear the ACK signal
-            SetSignal(PIN_ACK, RASCSI_PIN_OFF);
+            SetSignal(board->pin_ack, RASCSI_PIN_OFF);
 
             // Check for timeout waiting for REQ to clear
             if (!ret) {
@@ -809,9 +848,7 @@ void GPIOBUS::ClearSelectEvent()
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS::SignalTable = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6,
-                                             PIN_DT7, PIN_DP,  PIN_SEL, PIN_ATN, PIN_RST, PIN_ACK, PIN_BSY,
-                                             PIN_MSG, PIN_CD,  PIN_IO,  PIN_REQ, -1};
+array<board_type::pi_physical_pin_e, 19> GPIOBUS::SignalTable;
 
 //---------------------------------------------------------------------------
 //
@@ -822,7 +859,7 @@ void GPIOBUS::MakeTable(void)
 {
     GPIO_FUNCTION_TRACE
 
-    const array<int, 9> pintbl = {PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP};
+    [[maybe_unused]] const array<board_type::pi_physical_pin_e, 9> pintbl = {board->pin_dt0, board->pin_dt1, board->pin_dt2, board->pin_dt3, board->pin_dt4, board->pin_dt5, board->pin_dt6, board->pin_dt7, board->pin_dp};
 
     array<bool, 256> tblParity;
 
@@ -856,22 +893,23 @@ void GPIOBUS::MakeTable(void)
             bits |= (1 << 8);
         }
 
-        // Bit check
-        for (int j = 0; j < 9; j++) {
-            // Index and shift amount calculation
-            int index = pintbl[j] / 10;
-            int shift = (pintbl[j] % 10) * 3;
+        // TODO: THIS NEEDS TO BE MOVED DOWN TO THE BOARD_SPECIFIC REGION
+        // // Bit check
+        // for (int j = 0; j < 9; j++) {
+        //     // Index and shift amount calculation
+        //     int index = pintbl[j] / 10;
+        //     int shift = (pintbl[j] % 10) * 3;
 
-            // Mask data
-            tblDatMsk[index][i] &= ~(0x7 << shift);
+        //     // Mask data
+        //     tblDatMsk[index][i] &= ~(0x7 << shift);
 
-            // Setting data
-            if (bits & 1) {
-                tblDatSet[index][i] |= (1 << shift);
-            }
+        //     // Setting data
+        //     if (bits & 1) {
+        //         tblDatSet[index][i] |= (1 << shift);
+        //     }
 
-            bits >>= 1;
-        }
+        //     bits >>= 1;
+        // }
     }
 #else
     for (uint32_t i = 0; i < 0x100; i++) {
@@ -911,7 +949,7 @@ void GPIOBUS::MakeTable(void)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::WaitSignal(int pin, int ast)
+bool GPIOBUS::WaitSignal(board_type::pi_physical_pin_e pin, int ast)
 {
     GPIO_FUNCTION_TRACE
 
@@ -930,9 +968,15 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
         }
 
         // Check for the signal edge
-        if (((signals >> pin) ^ ~ast) & 1) {
+        LOGWARN("THIS WONT WORK. NEEDS TO BE UPDATED");
+        
+        if ((GetSignal(pin) ^ ~ast) & 1) {
             return true;
         }
+
+        // if (((signals >> pin) ^ ~ast) & 1) {
+        //     return true;
+        // }
     } while ((SysTimer::GetTimerLow() - now) < timeout);
 
     // We timed out waiting for the signal
@@ -947,25 +991,43 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
 {
     GPIO_FUNCTION_TRACE
-    // Selection Phase
-    if (GetPinRaw(raw_data, PIN_SEL)) {
-        if (GetPinRaw(raw_data, PIN_IO)) {
-            return BUS::phase_t::reselection;
-        } else {
-            return BUS::phase_t::selection;
-        }
-    }
+    (void)raw_data;
+    // // Selection Phase
+    // if (GetPinRaw(raw_data, board->pin_sel)) {
+    //     if (GetPinRaw(raw_data, board->pin_io)) {
+    //         return BUS::phase_t::reselection;
+    //     } else {
+    //         return BUS::phase_t::selection;
+    //     }
+    // }
 
-    // Bus busy phase
-    if (!GetPinRaw(raw_data, PIN_BSY)) {
-        return BUS::phase_t::busfree;
-    }
+    // // Bus busy phase
+    // if (!GetPinRaw(raw_data, board->pin_bsy)) {
+    //     return BUS::phase_t::busfree;
+    // }
 
-    // Get target phase from bus signal line
-    int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
-    mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
-    mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
-    return GetPhase(mci);
+
+    LOGWARN("NOT IMPLEMENTED YET");
+    return BUS::phase_t::busfree;
+//     // Selection Phase
+//     if (GetSignal(board->pin_sel)) {
+//         if (GetSignal(board->pin_io)) {
+//             return BUS::phase_t::reselection;
+//         } else {
+//             return BUS::phase_t::selection;
+//         }
+//     }
+
+//     // Bus busy phase
+//     if (!GetPinRaw(raw_data, board->pin_bsy)) {
+//         return BUS::phase_t::busfree;
+//     }
+
+//     // Get target phase from bus signal line
+//     int mci = GetPinRaw(raw_data, board->pin_msg) ? 0x04 : 0x00;
+//     mci |= GetPinRaw(raw_data, board->pin_cd) ? 0x02 : 0x00;
+//     mci |= GetPinRaw(raw_data, board->pin_io) ? 0x01 : 0x00;
+//     return GetPhase(mci);
 }
 
 //---------------------------------------------------------------------------

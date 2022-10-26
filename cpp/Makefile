@@ -100,7 +100,6 @@ SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
-SRC_RASCSI_CORE += $(shell find ./hal/boards -name '*.cpp')
 
 SRC_RASCSI = rascsi.cpp
 

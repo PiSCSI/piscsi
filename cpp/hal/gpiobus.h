@@ -11,9 +11,11 @@
 
 #pragma once
 
+#include "hal/board_type.h"
 #include "config.h"
 #include "scsi.h"
 #include <array>
+#include <memory>
 
 #ifdef __linux__
 #include <linux/gpio.h>
@@ -268,7 +270,8 @@ class GPIOBUS : public BUS
     GPIOBUS()           = default;
     ~GPIOBUS() override = default;
     // Destructor
-    bool Init(mode_e mode = mode_e::TARGET) override;
+    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e 
+                rascsi_type = board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
     // Initialization
     void Reset() override;
     // Reset
@@ -355,15 +358,15 @@ class GPIOBUS : public BUS
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
-    virtual void SetControl(int pin, bool ast) = 0;
+    virtual void SetControl(board_type::pi_physical_pin_e pin, bool ast) = 0;
     // Set Control Signal
-    virtual void SetMode(int pin, int mode) = 0;
+    virtual void SetMode(board_type::pi_physical_pin_e pin, int mode) = 0;
     // Set SCSI I/O mode
-    bool GetSignal(int pin) const override = 0;
+    bool GetSignal(board_type::pi_physical_pin_e pin) const override = 0;
     // Set Control Signal
-    void SetSignal(int pin, bool ast) override = 0;
+    void SetSignal(board_type::pi_physical_pin_e pin, bool ast) override = 0;
     // Set SCSI I/O mode
-    virtual bool WaitSignal(int pin, int ast) = 0;
+    virtual bool WaitSignal(board_type::pi_physical_pin_e pin, int ast) = 0;
     // Wait for a signal to change
     // Interrupt control
     virtual void DisableIRQ() = 0;
@@ -372,22 +375,24 @@ class GPIOBUS : public BUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    virtual void PinConfig(int pin, int mode) = 0;
+    virtual void PinConfig(board_type::pi_physical_pin_e pin, int mode) = 0;
     // GPIO pin direction setting
-    virtual void PullConfig(int pin, int mode) = 0;
+    virtual void PullConfig(board_type::pi_physical_pin_e pin, int mode) = 0;
     // GPIO pin pull up/down resistor setting
-    virtual void PinSetSignal(int pin, bool ast) = 0;
+    virtual void PinSetSignal(board_type::pi_physical_pin_e pin, bool ast) = 0;
     // Set GPIO output signal
     virtual void DrvConfig(uint32_t drive) = 0;
     // Set GPIO drive strength
 
     mode_e actmode = mode_e::TARGET; // Operation mode
 
+    shared_ptr<board_type::Rascsi_Board_Type> board;
+
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
 #endif
 
-    static const array<int, 19> SignalTable; // signal table
+    static array<board_type::pi_physical_pin_e, 19> SignalTable; // signal table
 
 #ifdef USE_SEL_EVENT_ENABLE
     struct gpioevent_request selevreq = {}; // SEL signal event request

@@ -69,7 +69,7 @@ enum class active_high_low_e : int {
     ACTIVE_LOW  = 0, // Equivalent of "OFF" in old code
 };
 
-struct Rascsi_Board_Type {
+struct Rascsi_Board_Struct {
   public:
     const std::string connect_desc;
 
@@ -110,9 +110,19 @@ struct Rascsi_Board_Type {
     const pi_physical_pin_e pin_sel; // SEL
 };
 
-// extern const Rascsi_Board_Type board_type_aibom;
-// extern const Rascsi_Board_Type board_type_fullspec;
-// extern const Rascsi_Board_Type board_type_gamernium;
-// extern const Rascsi_Board_Type board_type_standard;
+typedef struct Rascsi_Board_Struct Rascsi_Board_Type;
+
+// Operation modes definition
+enum class rascsi_board_type_e {
+    BOARD_TYPE_AIBOM,
+    BOARD_TYPE_FULLSPEC,
+    BOARD_TYPE_GAMERNIUM,
+    BOARD_TYPE_STANDARD,
+};
+
+extern const Rascsi_Board_Type board_definition_aibom;
+extern const Rascsi_Board_Type board_definition_fullspec;
+extern const Rascsi_Board_Type board_definition_gamernium;
+extern const Rascsi_Board_Type board_definition_standard;
 
 } // namespace board_type

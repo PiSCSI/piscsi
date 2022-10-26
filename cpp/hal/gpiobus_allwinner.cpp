@@ -20,9 +20,9 @@ extern int wiringPiMode;
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-bool GPIOBUS_Allwinner::Init(mode_e mode)
+bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
 {
-    GPIOBUS::Init(mode);
+    GPIOBUS::Init(mode, rascsi_type);
 //     wiringPiSetup();
 //     wiringPiMode = WPI_MODE_GPIO;
 
@@ -167,88 +167,88 @@ void GPIOBUS_Allwinner::Cleanup()
 
 void GPIOBUS_Allwinner::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
+// #if defined(__x86_64__) || defined(__X86__)
     return;
-#else
-    int i;
-    int j;
+// #else
+//     int i;
+//     int j;
 
-    // Turn off active signal
-    SetControl(PIN_ACT, ACT_OFF);
+//     // Turn off active signal
+//     SetControl(PIN_ACT, ACT_OFF);
 
-	// Set all signals to off
-	for (i = 0;; i++) {
-		j = SignalTable[i];
-		if (j < 0) {
-			break;
-		}
+// 	// Set all signals to off
+// 	for (i = 0;; i++) {
+// 		j = SignalTable[i];
+// 		if (j < 0) {
+// 			break;
+// 		}
 
-        SetSignal(j, RASCSI_PIN_OFF);
-    }
+//         SetSignal(j, RASCSI_PIN_OFF);
+//     }
 
-	if (actmode == mode_e::TARGET) {
-		// Target mode
+// 	if (actmode == mode_e::TARGET) {
+// 		// Target mode
 
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, RASCSI_PIN_IN);
-        SetMode(PIN_MSG, RASCSI_PIN_IN);
-        SetMode(PIN_CD,  RASCSI_PIN_IN);
-        SetMode(PIN_REQ, RASCSI_PIN_IN);
-        SetMode(PIN_IO,  RASCSI_PIN_IN);
+//         // Set target signal to input
+//         SetControl(PIN_TAD, TAD_IN);
+//         SetMode(PIN_BSY, RASCSI_PIN_IN);
+//         SetMode(PIN_MSG, RASCSI_PIN_IN);
+//         SetMode(PIN_CD,  RASCSI_PIN_IN);
+//         SetMode(PIN_REQ, RASCSI_PIN_IN);
+//         SetMode(PIN_IO,  RASCSI_PIN_IN);
 
-        // Set the initiator signal to input
-        SetControl(PIN_IND, IND_IN);
-        SetMode(PIN_SEL, RASCSI_PIN_IN);
-        SetMode(PIN_ATN, RASCSI_PIN_IN);
-        SetMode(PIN_ACK, RASCSI_PIN_IN);
-        SetMode(PIN_RST, RASCSI_PIN_IN);
+//         // Set the initiator signal to input
+//         SetControl(PIN_IND, IND_IN);
+//         SetMode(PIN_SEL, RASCSI_PIN_IN);
+//         SetMode(PIN_ATN, RASCSI_PIN_IN);
+//         SetMode(PIN_ACK, RASCSI_PIN_IN);
+//         SetMode(PIN_RST, RASCSI_PIN_IN);
 
-        // Set data bus signals to input
-        SetControl(PIN_DTD, DTD_IN);
-        SetMode(PIN_DT0, RASCSI_PIN_IN);
-        SetMode(PIN_DT1, RASCSI_PIN_IN);
-        SetMode(PIN_DT2, RASCSI_PIN_IN);
-        SetMode(PIN_DT3, RASCSI_PIN_IN);
-        SetMode(PIN_DT4, RASCSI_PIN_IN);
-        SetMode(PIN_DT5, RASCSI_PIN_IN);
-        SetMode(PIN_DT6, RASCSI_PIN_IN);
-        SetMode(PIN_DT7, RASCSI_PIN_IN);
-        SetMode(PIN_DP,  RASCSI_PIN_IN);
-	} else {
-		// Initiator mode
+//         // Set data bus signals to input
+//         SetControl(PIN_DTD, DTD_IN);
+//         SetMode(PIN_DT0, RASCSI_PIN_IN);
+//         SetMode(PIN_DT1, RASCSI_PIN_IN);
+//         SetMode(PIN_DT2, RASCSI_PIN_IN);
+//         SetMode(PIN_DT3, RASCSI_PIN_IN);
+//         SetMode(PIN_DT4, RASCSI_PIN_IN);
+//         SetMode(PIN_DT5, RASCSI_PIN_IN);
+//         SetMode(PIN_DT6, RASCSI_PIN_IN);
+//         SetMode(PIN_DT7, RASCSI_PIN_IN);
+//         SetMode(PIN_DP,  RASCSI_PIN_IN);
+// 	} else {
+// 		// Initiator mode
 
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, RASCSI_PIN_IN);
-        SetMode(PIN_MSG, RASCSI_PIN_IN);
-        SetMode(PIN_CD,  RASCSI_PIN_IN);
-        SetMode(PIN_REQ, RASCSI_PIN_IN);
-        SetMode(PIN_IO,  RASCSI_PIN_IN);
+//         // Set target signal to input
+//         SetControl(PIN_TAD, TAD_IN);
+//         SetMode(PIN_BSY, RASCSI_PIN_IN);
+//         SetMode(PIN_MSG, RASCSI_PIN_IN);
+//         SetMode(PIN_CD,  RASCSI_PIN_IN);
+//         SetMode(PIN_REQ, RASCSI_PIN_IN);
+//         SetMode(PIN_IO,  RASCSI_PIN_IN);
 
-        // Set the initiator signal to output
-        SetControl(PIN_IND, IND_OUT);
-        SetMode(PIN_SEL, RASCSI_PIN_OUT);
-        SetMode(PIN_ATN, RASCSI_PIN_OUT);
-        SetMode(PIN_ACK, RASCSI_PIN_OUT);
-        SetMode(PIN_RST, RASCSI_PIN_OUT);
+//         // Set the initiator signal to output
+//         SetControl(PIN_IND, IND_OUT);
+//         SetMode(PIN_SEL, RASCSI_PIN_OUT);
+//         SetMode(PIN_ATN, RASCSI_PIN_OUT);
+//         SetMode(PIN_ACK, RASCSI_PIN_OUT);
+//         SetMode(PIN_RST, RASCSI_PIN_OUT);
 
-        // Set the data bus signals to output
-        SetControl(PIN_DTD, DTD_OUT);
-        SetMode(PIN_DT0, RASCSI_PIN_OUT);
-        SetMode(PIN_DT1, RASCSI_PIN_OUT);
-        SetMode(PIN_DT2, RASCSI_PIN_OUT);
-        SetMode(PIN_DT3, RASCSI_PIN_OUT);
-        SetMode(PIN_DT4, RASCSI_PIN_OUT);
-        SetMode(PIN_DT5, RASCSI_PIN_OUT);
-        SetMode(PIN_DT6, RASCSI_PIN_OUT);
-        SetMode(PIN_DT7, RASCSI_PIN_OUT);
-        SetMode(PIN_DP,  RASCSI_PIN_OUT);
-    }
+//         // Set the data bus signals to output
+//         SetControl(PIN_DTD, DTD_OUT);
+//         SetMode(PIN_DT0, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT1, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT2, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT3, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT4, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT5, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT6, RASCSI_PIN_OUT);
+//         SetMode(PIN_DT7, RASCSI_PIN_OUT);
+//         SetMode(PIN_DP,  RASCSI_PIN_OUT);
+//     }
 
-    // Initialize all signals
-    signals = 0;
-#endif // ifdef __x86_64__ || __X86__
+//     // Initialize all signals
+//     signals = 0;
+// #endif // ifdef __x86_64__ || __X86__
 }
 
 BYTE GPIOBUS_Allwinner::GetDAT()
@@ -290,14 +290,14 @@ void GPIOBUS_Allwinner::MakeTable(void)
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::SetControl(int pin, bool ast)
+void GPIOBUS_Allwinner::SetControl(board_type::pi_physical_pin_e pin, bool ast)
 {
     // GPIOBUS_Allwinner::SetSignal(pin, ast);
         LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 
 }
 
-void GPIOBUS_Allwinner::SetMode(int pin, int mode)
+void GPIOBUS_Allwinner::SetMode(board_type::pi_physical_pin_e pin, int mode)
 {
     // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // if(mode == GPIO_INPUT){
@@ -309,14 +309,14 @@ void GPIOBUS_Allwinner::SetMode(int pin, int mode)
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-bool GPIOBUS_Allwinner::GetSignal(int pin) const
+bool GPIOBUS_Allwinner::GetSignal(board_type::pi_physical_pin_e pin) const
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return false;
     // return (digitalRead(pin) != 0);
 }
 
-void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
+void GPIOBUS_Allwinner::SetSignal(board_type::pi_physical_pin_e pin, bool ast)
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // digitalWrite(pin, ast);
@@ -329,7 +329,7 @@ void GPIOBUS_Allwinner::SetSignal(int pin, bool ast)
 //
 // TODO: maybe this should be moved to SCSI_Bus?
 //---------------------------------------------------------------------------
-bool GPIOBUS_Allwinner::WaitSignal(int pin, int ast)
+bool GPIOBUS_Allwinner::WaitSignal(board_type::pi_physical_pin_e pin, int ast)
 {
         LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
@@ -370,7 +370,7 @@ void GPIOBUS_Allwinner::EnableIRQ()
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::PinConfig(int pin, int mode)
+void GPIOBUS_Allwinner::PinConfig(board_type::pi_physical_pin_e pin, int mode)
 {
         LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
@@ -383,7 +383,7 @@ void GPIOBUS_Allwinner::PinConfig(int pin, int mode)
 }
 
 
-void GPIOBUS_Allwinner::PullConfig(int pin, int mode)
+void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, int mode)
 {
 
         // switch (mode)
@@ -405,7 +405,7 @@ void GPIOBUS_Allwinner::PullConfig(int pin, int mode)
 }
 
 
-void GPIOBUS_Allwinner::PinSetSignal(int pin, bool ast)
+void GPIOBUS_Allwinner::PinSetSignal(board_type::pi_physical_pin_e pin, bool ast)
 {
     // digitalWrite(pin, ast);
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)

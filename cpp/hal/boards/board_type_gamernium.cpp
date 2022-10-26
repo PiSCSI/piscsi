@@ -15,7 +15,7 @@ namespace board_type
 {
 
 // RaSCSI Adapter GAMERnium.com version
-const Rascsi_Board_Type board_type_gamernium = {
+const Rascsi_Board_Type board_definition_gamernium = {
 
     .connect_desc = "GAMERnium.com version", // Startup message
 
