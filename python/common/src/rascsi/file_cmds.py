@@ -403,16 +403,20 @@ class FileCmds:
                 process.stdin.flush()
             try:
                 outs, errs = process.communicate(timeout=15)
-                logging.info(str(outs))
-                logging.error(str(errs))
+                if outs:
+                    logging.info(str(outs, "utf-8"))
+                if errs:
+                    logging.error(str(errs, "utf-8"))
                 if process.returncode:
                     self.delete_file(Path(file_name))
                     return {"status": False, "msg": errs}
             except TimeoutExpired:
                 proc.kill()
                 outs, errs = proc.communicate()
-                logging.info(str(outs))
-                logging.error(str(errs))
+                if outs:
+                    logging.info(str(outs, "utf-8"))
+                if errs:
+                    logging.error(str(errs, "utf-8"))
                 self.delete_file(Path(file_name))
                 return {"status": False, "msg": errs}
 

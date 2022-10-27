@@ -594,7 +594,8 @@ function createDriveCustom() {
 
 # Clone, compile and install 'hfdisk', partition tool
 function installHfdisk() {
-    if [ ! -x $HFDISK_BIN ]; then
+    if [ ! -x "$HFDISK_BIN" ]; then
+        cd "$BASE" || exit 1
         git clone https://github.com/bfranske/hfdisk.git
         cd hfdisk || exit 1
         make
@@ -602,6 +603,14 @@ function installHfdisk() {
         sudo cp hfdisk /usr/bin/hfdisk
 
         echo "Installed hfdisk into /usr/bin"
+    fi
+}
+
+# Clone HFSer, which contains HFS drivers that the Web Interface uses
+function cloneHfser() {
+    if [ ! -f "$BASE/HFSer" ]; then
+        cd "$BASE" || exit 1
+        git clone https://github.com/erichelgeson/HFSer.git
     fi
 }
 
@@ -1101,6 +1110,7 @@ function runChoice() {
               updateRaScsiGit
               installPackages
               installHfdisk
+              cloneHfser
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1251,6 +1261,7 @@ function runChoice() {
               updateRaScsiGit
               installPackages
               installHfdisk
+              cloneHfser
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface

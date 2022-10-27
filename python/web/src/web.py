@@ -924,26 +924,38 @@ def create_file():
         return response(error=True, message=process["msg"])
 
     # Formatting and injecting driver, if one is choosen
-    if drive_format == "HFS with LIDO":
+    if drive_format:
+        driver_base_path = Path(f"{WEB_DIR}/../../../HFSer/drivers")
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
-        process = file_cmd.partition_hfs(full_file_name, volume_name)
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
-        process = file_cmd.format_hfs(
-                full_file_name,
-                volume_name,
-                Path(f"{WEB_DIR}/../../../lido-driver.img"),
+        known_drivers = [
+                "Apple Drive Setup 1.7.3",
+                "Apple Drive Setup 2.0.3",
+                "Apple HD SC Setup 7.3.5",
+                "FWB 4.5.2",
+                "Lido 7.56",
+                "MacOS8 Installer Driver",
+                ]
+        if drive_format in known_drivers:
+            process = file_cmd.partition_hfs(full_file_name, volume_name)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            process = file_cmd.format_hfs(
+                    full_file_name,
+                    volume_name,
+                    driver_base_path / Path(drive_format.replace(" ", "-") + ".img"),
+                    )
+
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+        else:
+            return response(
+                error=True,
+                message=_(
+                    "%(drive_format)s is not a valid hard disk driver.",
+                    drive_format=drive_format,
                 )
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
-    else:
-        return response(
-            error=True,
-            message=_(
-                "%(drive_format)s is not a valid hard drive format.",
-                drive_format=drive_format,
             )
-        )
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
