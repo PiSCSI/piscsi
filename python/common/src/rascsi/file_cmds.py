@@ -372,6 +372,25 @@ class FileCmds:
         Creates a partition table for HFS on an image file.
         Takes (str) file_name and (str) volume_name as arguments.
         Returns (dict) with (bool) status, (str) msg
+
+        Inject hfdisk commands to create Drive with correct partitions
+        https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
+        i                         initialize partition map
+        continue with default first block
+        C                         Create 1st partition with type specified next)
+        continue with default
+        32                        32 blocks (required for HFS+)
+        Driver_Partition          Partition Name
+        Apple_Driver              Partition Type  (available types: Apple_Driver,
+                                  Apple_Driver43, Apple_Free, Apple_HFS...)
+        C                         Create 2nd partition with type specified next
+        continue with default first block
+        continue with default block size (rest of the disk)
+        ${volumeName}             Partition name provided by user
+        Apple_HFS                 Partition Type
+        w                         Write partition map to disk
+        y                         Confirm partition table
+        p                         Print partition map
         """
         server_info = self.ractl.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
