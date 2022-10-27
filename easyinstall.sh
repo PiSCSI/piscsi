@@ -594,15 +594,18 @@ function createDriveCustom() {
 
 # Clone, compile and install 'hfdisk', partition tool
 function installHfdisk() {
+    HFDISK_VERSION="2022.10"
     if [ ! -x "$HFDISK_BIN" ]; then
         cd "$BASE" || exit 1
-        git clone https://github.com/bfranske/hfdisk.git
-        cd hfdisk || exit 1
+        wget -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
+        tar -xzvf "hfdisk-$HFDISK_VERSION.tar.gz"
+        rm "hfdisk-$HFDISK_VERSION.tar.gz"
+        cd "hfdisk-$HFDISK_VERSION" || exit 1
         make
 
-        sudo cp hfdisk /usr/bin/hfdisk
+        sudo cp hfdisk "$HFDISK_BIN"
 
-        echo "Installed hfdisk into /usr/bin"
+        echo "Installed $HFDISK_BIN"
     fi
 }
 
@@ -783,7 +786,8 @@ function installNetatalk() {
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
+    tar -xzvf "netatalk-$NETATALK_VERSION.tar.gz"
+    rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
     ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
