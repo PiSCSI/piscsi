@@ -935,7 +935,15 @@ def create_file():
                 "Lido 7.56",
                 "MacOS8 Installer Driver",
                 ]
-        if drive_format in known_drivers:
+        if drive_format not in known_drivers:
+            return response(
+                error=True,
+                message=_(
+                    "%(drive_format)s is not a valid hard disk driver.",
+                    drive_format=drive_format,
+                )
+            )
+        else:
             process = file_cmd.partition_hfs(full_file_name, volume_name)
             if not process["status"]:
                 return response(error=True, message=process["msg"])
@@ -948,14 +956,6 @@ def create_file():
 
             if not process["status"]:
                 return response(error=True, message=process["msg"])
-        else:
-            return response(
-                error=True,
-                message=_(
-                    "%(drive_format)s is not a valid hard disk driver.",
-                    drive_format=drive_format,
-                )
-            )
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
