@@ -76,7 +76,7 @@ def test_create_file_and_format(http_client, list_files, delete_file):
             "file_name": file_prefix,
             "type": "hda",
             "size": 1,
-            "drive_format": "Apple Drive Setup 2.0.3"
+            "drive_format": "Apple Drive Setup 2.0.3",
         },
     )
 
