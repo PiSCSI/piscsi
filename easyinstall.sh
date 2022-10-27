@@ -58,7 +58,6 @@ PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 SSL_CERTS_PATH="/etc/ssl/certs"
 SSL_KEYS_PATH="/etc/ssl/private"
-HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
