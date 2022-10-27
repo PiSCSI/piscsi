@@ -8,7 +8,7 @@ from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
-from subprocess import run, Popen, PIPE, CalledProcessError
+from subprocess import run, Popen, PIPE, CalledProcessError, TimeoutExpired
 from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
@@ -403,21 +403,21 @@ class FileCmds:
                 process.stdin.flush()
             try:
                 outs, errs = process.communicate(timeout=15)
-                logging.info(outs)
-                logging.error(errs)
+                logging.info(str(outs))
+                logging.error(str(errs))
                 if process.returncode:
                     self.delete_file(Path(file_name))
                     return {"status": False, "msg": errs}
             except TimeoutExpired:
                 proc.kill()
                 outs, errs = proc.communicate()
-                logging.info(outs)
-                logging.error(errs)
+                logging.info(str(outs))
+                logging.error(str(errs))
                 self.delete_file(Path(file_name))
                 return {"status": False, "msg": errs}
 
         except (OSError, IOError) as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
@@ -466,7 +466,7 @@ class FileCmds:
                 check=True,
             )
         except CalledProcessError as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
