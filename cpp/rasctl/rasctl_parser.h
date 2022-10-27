@@ -30,9 +30,10 @@ private:
 	unordered_map<int, PbOperation> operations = {
 			{ 'a', ATTACH },
 			{ 'd', DETACH },
-			{ 'i', INSERT },
 			{ 'e', EJECT },
+			{ 'i', INSERT },
 			{ 'p', PROTECT },
+			{ 's', DEVICES_INFO },
 			{ 'u', UNPROTECT }
 	};
 
