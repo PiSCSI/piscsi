@@ -38,13 +38,13 @@ def test_create_file(http_client, list_files, delete_file):
 # route("/files/create", methods=["POST"])
 def test_create_file_with_properties(http_client, list_files, delete_file):
     file_prefix = str(uuid.uuid4())
-    file_name = f"{file_prefix}.hds"
+    file_name = f"{file_prefix}.hd1"
 
     response = http_client.post(
         "/files/create",
         data={
             "file_name": file_prefix,
-            "type": "hds",
+            "type": "hd1",
             "size": 1,
             "drive_name": "DEC RZ22",
         },
@@ -59,6 +59,33 @@ def test_create_file_with_properties(http_client, list_files, delete_file):
         response_data["messages"][0]["message"]
         == f"Image file with properties created: {file_name}"
     )
+    assert file_name in list_files()
+
+    # Cleanup
+    delete_file(file_name)
+
+
+# route("/files/create", methods=["POST"])
+def test_create_file_and_format(http_client, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hda"
+
+    response = http_client.post(
+        "/files/create",
+        data={
+            "file_name": file_prefix,
+            "type": "hda",
+            "size": 1,
+            "drive_format": "Apple Drive Setup 2.0.3"
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 201
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["data"]["image"] == file_name
+    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
     assert file_name in list_files()
 
     # Cleanup
