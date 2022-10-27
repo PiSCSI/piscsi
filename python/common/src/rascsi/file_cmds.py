@@ -8,7 +8,7 @@ from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
-from subprocess import run, CalledProcessError
+from subprocess import run, Popen, PIPE, CalledProcessError
 from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
@@ -364,6 +364,113 @@ class FileCmds:
                     "error": error,
                     }
                 }
+
+
+    # noinspection PyMethodMayBeStatic
+    def partition_hfs(self, file_name, volume_name):
+        """
+        Creates a partition table for HFS on an image file.
+        Takes (str) file_name and (str) volume_name as arguments.
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+
+        try:
+            process = Popen(
+                    ["/usr/bin/hfdisk", str(full_file_path)],
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    )
+            for command in [
+                    "i",
+                    "",
+                    "C",
+                    "",
+                    "32",
+                    "Driver_Partition",
+                    "Apple_Driver",
+                    "C",
+                    "",
+                    "",
+                    volume_name,
+                    "Apple_HFS",
+                    "w",
+                    "y",
+                    "p",
+                    ]:
+                process.stdin.write(bytes(command + "\n", "utf-8"))
+                process.stdin.flush()
+            try:
+                outs, errs = process.communicate(timeout=15)
+                logging.info(outs)
+                logging.error(errs)
+                if process.returncode:
+                    self.delete_file(Path(file_name))
+                    return {"status": False, "msg": errs}
+            except TimeoutExpired:
+                proc.kill()
+                outs, errs = proc.communicate()
+                logging.info(outs)
+                logging.error(errs)
+                self.delete_file(Path(file_name))
+                return {"status": False, "msg": errs}
+
+        except (OSError, IOError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
+
+
+    # noinspection PyMethodMayBeStatic
+    def format_hfs(self, file_name, volume_name, driver_path):
+        """
+        Initializes an HFS file system and injects a hard disk driver
+        Takes (str) file_name, (str) volume_name and (Path) driver_path as arguments.
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+
+        try:
+            run(
+                [
+                    "/usr/bin/dd",
+                    f"if={driver_path}",
+                    f"of={full_file_path}",
+                    "seek=64",
+                    "count=32",
+                    "bs=512",
+                    "conv=notrunc",
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        try:
+            run(
+                [
+                    "/usr/bin/hformat",
+                    "-l",
+                    volume_name,
+                    str(full_file_path),
+                    "1",
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
 
 
     def download_file_to_iso(self, url, *iso_args):

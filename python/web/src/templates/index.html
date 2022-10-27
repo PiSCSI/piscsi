@@ -587,6 +587,15 @@
     </option>
     {% endfor %}
     </select>
+    <label for="format_as">{{ _("Format as:") }}</label>
+    <select name="format_as" id="format_as">
+    <option value="">
+    {{ _("None") }}
+    </option>
+    <option value="HFS with LIDO">
+    {{ _("HFS with LIDO") }}
+    </option>
+    </select>
     <input type="submit" value="{{ _("Create") }}">
 </form>
 

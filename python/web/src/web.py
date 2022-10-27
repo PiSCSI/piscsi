@@ -913,6 +913,7 @@ def create_file():
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
+    drive_format = request.form.get("format_as")
 
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
@@ -921,6 +922,28 @@ def create_file():
     process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
+
+    # Formatting and injecting driver, if one is choosen
+    if drive_format == "HFS with LIDO":
+        volume_name = f"HD {size / 1024 / 1024:0.0f}M"
+        process = file_cmd.partition_hfs(full_file_name, volume_name)
+        if not process["status"]:
+            return response(error=True, message=process["msg"])
+        process = file_cmd.format_hfs(
+                full_file_name,
+                volume_name,
+                Path(f"{WEB_DIR}/../../../lido-driver.img"),
+                )
+        if not process["status"]:
+            return response(error=True, message=process["msg"])
+    else:
+        return response(
+            error=True,
+            message=_(
+                "%(drive_format)s is not a valid hard drive format.",
+                drive_format=drive_format,
+            )
+        )
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
