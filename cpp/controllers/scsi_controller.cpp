@@ -494,13 +494,13 @@ void ScsiController::Send()
 
 	if (HasValidLength()) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(GetOffset()) + ", length "
-				+ to_string(ctrl.length)).c_str())
+				+ to_string(GetLength())).c_str())
 
 		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
-		if (const int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, ctrl.length,
+		if (const int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, GetLength(),
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
-			len != (int)ctrl.length) {
+			len != (int)GetLength()) {
 			// If you cannot send all, move to status phase
 			Error(sense_key::ABORTED_COMMAND);
 			return;
@@ -590,12 +590,11 @@ void ScsiController::Receive()
 
 	// Length != 0 if received
 	if (HasValidLength()) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, GetLength())
 
 		// If not able to receive all, move to status phase
-		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
-				len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, ctrl.length, len)
+		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != (int)GetLength()) {
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -694,18 +693,17 @@ void ScsiController::ReceiveBytes()
 	assert(!bus->GetIO());
 
 	if (HasValidLength()) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length)
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, GetLength())
 
 		// If not able to receive all, move to status phase
-		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), ctrl.length);
-				len != ctrl.length) {
+		if (uint32_t len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
-					__PRETTY_FUNCTION__, ctrl.length, len)
+					__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
 
-		bytes_to_transfer = ctrl.length;
+		bytes_to_transfer = GetLength();
 
 		UpdateOffsetAndLength();
 
@@ -902,7 +900,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		{
 			// Special case for SCBR and SCDP
 			if (auto byte_writer = dynamic_pointer_cast<ByteWriter>(device); byte_writer) {
-				if (!byte_writer->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
+				if (!byte_writer->WriteBytes(ctrl.cmd, GetBuffer(), GetLength())) {
 					return false;
 				}
 
