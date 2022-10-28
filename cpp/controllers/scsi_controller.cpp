@@ -865,6 +865,8 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 //	Data transfer OUT
 //	*If cont=true, reset the offset and length
 //
+// TODO Try to use less casts
+//
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
