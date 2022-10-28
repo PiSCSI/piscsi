@@ -24,17 +24,17 @@
 #include <sys/epoll.h>
 #endif
 
-#if defined CONNECT_TYPE_STANDARD
-#include "hal/gpiobus_standard.h"
-#elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/gpiobus_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/gpiobus_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/gpiobus_gamernium.h"
-#else
-#error Invalid connection type or none specified
-#endif
+// #if defined CONNECT_TYPE_STANDARD
+// #include "hal/gpiobus_standard.h"
+// #elif defined CONNECT_TYPE_FULLSPEC
+// #include "hal/gpiobus_fullspec.h"
+// #elif defined CONNECT_TYPE_AIBOM
+// #include "hal/gpiobus_aibom.h"
+// #elif defined CONNECT_TYPE_GAMERNIUM
+// #include "hal/gpiobus_gamernium.h"
+// #else
+// #error Invalid connection type or none specified
+// #endif
 
 //---------------------------------------------------------------------------
 //
@@ -638,7 +638,9 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
         }
     } else {
         // Get phase
-        uint32_t phase = Acquire() & GPIO_MCI;
+        // uint32_t phase = Acquire() & GPIO_MCI;
+        (void)Acquire();
+        phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             // Wait for the REQ signal to be asserted
@@ -650,7 +652,8 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             }
 
             // Phase error
-            if ((signals & GPIO_MCI) != phase) {
+            (void)Acquire();
+            if (GetPhase() != phase) {
                 break;
             }
 
@@ -675,7 +678,8 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
             }
 
             // Phase error
-            if ((signals & GPIO_MCI) != phase) {
+            (void)Acquire();
+            if (GetPhase() != phase) {
                 break;
             }
 
@@ -748,7 +752,9 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
         WaitSignal(board->pin_ack, board_type::gpio_high_low_e::GPIO_STATE_LOW);
     } else {
         // Get Phase
-        uint32_t phase = Acquire() & GPIO_MCI;
+        // uint32_t phase = Acquire() & GPIO_MCI;
+        (void)Acquire();
+        phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
@@ -769,7 +775,8 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             }
 
             // Phase error
-            if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+            if (GetPhase() != phase) {
                 break;
             }
 
@@ -790,7 +797,8 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
             }
 
             // Phase error
-            if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+            if (GetPhase() != phase) {
                 break;
             }
 

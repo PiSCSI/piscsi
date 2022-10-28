@@ -253,9 +253,9 @@ bool GPIOBUS_Raspberry::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
     }
 
     // Event request setting
-    LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, PIN_SEL);
+    LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, phys_to_gpio_map.at(board->pin_sel));
     strcpy(selevreq.consumer_label, "RaSCSI");
-    selevreq.lineoffset  = PIN_SEL;
+    selevreq.lineoffset  = phys_to_gpio_map.at(board->pin_sel);
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
     selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
@@ -293,14 +293,14 @@ bool GPIOBUS_Raspberry::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
     // Edge detection setting
     if (board->signal_control_mode == 2) {
         // #if SIGNAL_CONTROL_MODE == 2
-        gpio[GPIO_AREN_0] = 1 << PIN_SEL;
+        gpio[GPIO_AREN_0] = 1 << phys_to_gpio_map.at(board->pin_sel);
     } else {
         // #else
-        gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
+        gpio[GPIO_AFEN_0] = 1 << phys_to_gpio_map.at(board->pin_sel);
         // #endif // SIGNAL_CONTROL_MODE
     }
     // Clear event
-    gpio[GPIO_EDS_0] = 1 << PIN_SEL;
+    gpio[GPIO_EDS_0] = 1 << phys_to_gpio_map.at(board->pin_sel);
 
     // Register interrupt handler
     setIrqFuncAddress(IrqHandler);
@@ -348,7 +348,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
     // Finally, enable ENABLE
     LOGTRACE("%s Finally, enable ENABLE....", __PRETTY_FUNCTION__);
     // Show the user that this app is running
-    SetControl(board->pin_enb, ENB_ON);
+    SetControl(board->pin_enb, board->EnbOn());
 
     return true;
 #endif // ifdef __x86_64__ || __X86__

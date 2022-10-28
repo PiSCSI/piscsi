@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "hal/board_type.h"
 #include "config.h"
+#include "hal/board_type.h"
 #include "scsi.h"
 #include <array>
 #include <memory>
@@ -31,17 +31,17 @@
 //#define CONNECT_TYPE_AIBOM		// AIBOM version (positive logic, unique pin assignment)
 //#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
-#if defined CONNECT_TYPE_STANDARD
-#include "hal/gpiobus_standard.h"
-#elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/gpiobus_fullspec.h"
-#elif defined CONNECT_TYPE_AIBOM
-#include "hal/gpiobus_aibom.h"
-#elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/gpiobus_gamernium.h"
-#else
-#error Invalid connection type or none specified
-#endif
+// #if defined CONNECT_TYPE_STANDARD
+// #include "hal/gpiobus_standard.h"
+// #elif defined CONNECT_TYPE_FULLSPEC
+// #include "hal/gpiobus_fullspec.h"
+// #elif defined CONNECT_TYPE_AIBOM
+// #include "hal/gpiobus_aibom.h"
+// #elif defined CONNECT_TYPE_GAMERNIUM
+// #include "hal/gpiobus_gamernium.h"
+// #else
+// #error Invalid connection type or none specified
+// #endif
 
 #ifdef ENABLE_GPIO_TRACE
 #define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
@@ -125,10 +125,25 @@ using namespace std; // NOSONAR Not relevant for rascsi
 //
 //---------------------------------------------------------------------------
 
-#define ALL_SCSI_PINS                                                                                      \
-    ((1 << PIN_DT0) | (1 << PIN_DT1) | (1 << PIN_DT2) | (1 << PIN_DT3) | (1 << PIN_DT4) | (1 << PIN_DT5) | \
-     (1 << PIN_DT6) | (1 << PIN_DT7) | (1 << PIN_DP) | (1 << PIN_ATN) | (1 << PIN_RST) | (1 << PIN_ACK) |  \
-     (1 << PIN_REQ) | (1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO) | (1 << PIN_BSY) | (1 << PIN_SEL))
+#define ALL_SCSI_PINS                              \
+    ((1 << phys_to_gpio_map.at(board->pin_dt0))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt1))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt2))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt3))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt4))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt5))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt6))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dt7))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_dp)))  | \
+    ((1 << phys_to_gpio_map.at(board->pin_atn))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_rst))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_ack))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_req))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_msg))) | \
+    ((1 << phys_to_gpio_map.at(board->pin_cd)))  | \
+    ((1 << phys_to_gpio_map.at(board->pin_io)))  | \
+    ((1 << phys_to_gpio_map.at(board->pin_bsy))  | \
+    ((1 << phys_to_gpio_map.at(board->pin_sel)))
 
 //---------------------------------------------------------------------------
 //
@@ -196,9 +211,9 @@ const static int IRPT_DIS_IRQ_B  = 9;
 const static int QA7_CORE0_TINTC = 16;
 const static int GPIO_IRQ        = (32 + 20); // GPIO3
 
-#define GPIO_INEDGE ((1 << PIN_BSY) | (1 << PIN_SEL) | (1 << PIN_ATN) | (1 << PIN_ACK) | (1 << PIN_RST))
+// #define GPIO_INEDGE ((1 << PIN_BSY) | (1 << PIN_SEL) | (1 << PIN_ATN) | (1 << PIN_ACK) | (1 << PIN_RST))
 
-#define GPIO_MCI ((1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO))
+// #define GPIO_MCI ((1 << PIN_MSG) | (1 << PIN_CD) | (1 << PIN_IO))
 
 //---------------------------------------------------------------------------
 //
@@ -247,8 +262,8 @@ class GPIOBUS : public BUS
     GPIOBUS()           = default;
     ~GPIOBUS() override = default;
     // Destructor
-    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e 
-                rascsi_type = board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
+    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e rascsi_type =
+                                                board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
     // Initialization
     void Reset() override;
     // Reset
@@ -318,10 +333,12 @@ class GPIOBUS : public BUS
     int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake
 
-    static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
     // Get the phase based on raw data
+    static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
 
     static int GetCommandByteCount(BYTE opcode);
+
+    const string GetConnectDesc(){return board->connect_desc;}
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt

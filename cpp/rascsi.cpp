@@ -74,7 +74,7 @@ const ProtobufSerializer serializer;
 void Banner(int argc, char* argv[])
 {
 	cout << Banner("Reloaded");
-	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
+	cout << "Connect type: " << bus->GetConnectDesc() << '\n' << flush;
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)){
 		cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
