@@ -86,6 +86,7 @@ public:
 	uint32_t GetLength() const { return ctrl.length; }
 	uint32_t GetBlocks() const { return ctrl.blocks; }
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
+	void DecrementBlocks() { --ctrl.blocks; }
 
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);

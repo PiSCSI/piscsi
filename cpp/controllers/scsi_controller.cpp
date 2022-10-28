@@ -512,7 +512,7 @@ void ScsiController::Send()
 	}
 
 	// Block subtraction, result initialization
-	SetBlocks(GetBlocks() - 1);
+	DecrementBlocks();
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
@@ -606,7 +606,7 @@ void ScsiController::Receive()
 	}
 
 	// Block subtraction, result initialization
-	SetBlocks(GetBlocks() - 1);
+	DecrementBlocks();
 	bool result = true;
 
 	// Processing after receiving data (by phase)
