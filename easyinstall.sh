@@ -897,7 +897,7 @@ function installSamba() {
     echo ""
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
     sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
-    echo -e '\n[Pi File Server]\npath = /home/'"$USER"'/smbshare\nbrowseable = yes\nwriteable = yes' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    echo -e '\n[Pi File Server]\npath = /home/'"$USER"'/smbshare\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
 
     sudo systemctl restart smbd
 
