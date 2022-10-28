@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
 #include <string>
@@ -40,7 +41,7 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort : public PrimaryDevice
+class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
 {
 public:
 
@@ -52,7 +53,7 @@ public:
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int Read(const vector<int>&, vector<BYTE>&, uint64_t);
-	bool WriteBytes(const vector<int>&, const vector<BYTE>&, uint64_t);
+	bool WriteBytes(const vector<int>&, vector<BYTE>&, uint32_t) override;
 	int WriteCheck(uint64_t block);
 
 	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;

@@ -84,6 +84,8 @@ public:
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
+	uint32_t GetBlocks() const { return ctrl.blocks; }
+	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);

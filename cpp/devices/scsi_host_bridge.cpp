@@ -194,7 +194,7 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
+bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint32_t)
 {
 	// Type
 	const int type = cdb[2];

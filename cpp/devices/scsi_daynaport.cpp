@@ -266,7 +266,7 @@ int SCSIDaynaPort::WriteCheck(uint64_t)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, uint64_t)
+bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint32_t)
 {
 	const int data_format = cdb[5];
 	int data_length = GetInt16(cdb, 3);
@@ -284,6 +284,8 @@ bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, const vector<BYTE>& buf, 
 	else {
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, data_format)
 	}
+
+	controller->SetBlocks(0);
 
 	return true;
 }

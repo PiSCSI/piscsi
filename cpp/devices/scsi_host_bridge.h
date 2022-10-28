@@ -17,7 +17,7 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "os.h"
+#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
@@ -26,7 +26,7 @@
 
 using namespace std;
 
-class SCSIBR : public PrimaryDevice
+class SCSIBR : public PrimaryDevice, public ByteWriter
 {
 	static constexpr const array<BYTE, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
@@ -41,7 +41,7 @@ public:
 	// Commands
 	vector<byte> InquiryInternal() const override;
 	int GetMessage10(const vector<int>&, vector<BYTE>&);
-	bool WriteBytes(const vector<int>&, vector<BYTE>&, uint64_t);
+	bool WriteBytes(const vector<int>&, vector<BYTE>&, uint32_t) override;
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10();

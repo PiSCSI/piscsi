@@ -16,10 +16,9 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_exceptions.h"
+#include "devices/interfaces/byte_writer.h"
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
-#include "devices/scsi_host_bridge.h"
-#include "devices/scsi_daynaport.h"
 #include "scsi_controller.h"
 #include <sstream>
 #include <iomanip>
@@ -232,7 +231,7 @@ void ScsiController::Execute()
 
 	// Initialization for data transfer
 	ResetOffset();
-	ctrl.blocks = 1;
+	SetBlocks(1);
 	execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
@@ -320,7 +319,7 @@ void ScsiController::Status()
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
 		SetLength(1);
-		ctrl.blocks = 1;
+		SetBlocks(1);
 		GetBuffer()[0] = (BYTE)GetStatus();
 
 		return;
@@ -370,7 +369,7 @@ void ScsiController::MsgOut()
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
 		SetLength(1);
-		ctrl.blocks = 1;
+		SetBlocks(1);
 
 		return;
 	}
@@ -513,14 +512,14 @@ void ScsiController::Send()
 	}
 
 	// Block subtraction, result initialization
-	ctrl.blocks--;
+	SetBlocks(GetBlocks() - 1);
 	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (IsDataIn() && ctrl.blocks != 0) {
+	if (IsDataIn() && GetBlocks() != 0) {
 		// set next buffer (set offset, length)
 		result = XferIn(GetBuffer());
-		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str())
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(GetBlocks())).c_str())
 	}
 
 	// If result FALSE, move to status phase
@@ -530,8 +529,8 @@ void ScsiController::Send()
 	}
 
 	// Continue sending if block !=0
-	if (ctrl.blocks != 0){
-		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str())
+	if (GetBlocks() != 0){
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(GetBlocks())).c_str())
 		assert(HasValidLength());
 		assert(ctrl.offset == 0);
 		return;
@@ -565,7 +564,7 @@ void ScsiController::Send()
 		case BUS::phase_t::status:
 			// Message in phase
 			SetLength(1);
-			ctrl.blocks = 1;
+			SetBlocks(1);
 			GetBuffer()[0] = (BYTE)ctrl.message;
 			MsgIn();
 			break;
@@ -607,14 +606,14 @@ void ScsiController::Receive()
 	}
 
 	// Block subtraction, result initialization
-	ctrl.blocks--;
+	SetBlocks(GetBlocks() - 1);
 	bool result = true;
 
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s Phase: %s",__PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(GetPhase()))
 	switch (GetPhase()) {
 		case BUS::phase_t::dataout:
-			if (ctrl.blocks == 0) {
+			if (GetBlocks() == 0) {
 				// End with this buffer
 				result = XferOut(false);
 			} else {
@@ -640,14 +639,13 @@ void ScsiController::Receive()
 	}
 
 	// If result FALSE, move to status phase
-	// TODO Check whether we can raise scsi_exception here in order to simplify the error handling
 	if (!result) {
 		Error(sense_key::ABORTED_COMMAND);
 		return;
 	}
 
-	// Continue to receive if block !=0
-	if (ctrl.blocks != 0) {
+	// Continue to receive if block != 0
+	if (GetBlocks() != 0) {
 		assert(HasValidLength());
 		assert(ctrl.offset == 0);
 		return;
@@ -872,23 +870,28 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 //---------------------------------------------------------------------------
 bool ScsiController::XferOutBlockOriented(bool cont)
 {
-	auto disk = dynamic_pointer_cast<Disk>(GetDeviceForLun(GetEffectiveLun()));
-	if (disk == nullptr) {
-		return false;
-	}
+	auto device = GetDeviceForLun(GetEffectiveLun());
 
 	// Limited to write commands
 	switch (GetOpcode()) {
 		case scsi_command::eCmdModeSelect6:
 		case scsi_command::eCmdModeSelect10:
+		{
+			auto mode_page_device = dynamic_pointer_cast<ModePageDevice>(device);
+			if (mode_page_device == nullptr) {
+				return false;
+			}
+
 			try {
-				disk->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
+				mode_page_device->ModeSelect(GetOpcode(), ctrl.cmd, GetBuffer(), GetOffset());
 			}
 			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc());
 				return false;
 			}
+
 			break;
+		}
 
 		case scsi_command::eCmdWrite6:
 		case scsi_command::eCmdWrite10:
@@ -897,11 +900,9 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			// Special case Write function for bridge
-			// TODO This class must not know about SCSIBR
-			if (auto bridge = dynamic_pointer_cast<SCSIBR>(disk); bridge) {
-				if (!bridge->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
-					// Write failed
+			// Special case for SCBR and SCDP
+			if (auto byte_writer = dynamic_pointer_cast<ByteWriter>(device); byte_writer) {
+				if (!byte_writer->WriteBytes(ctrl.cmd, GetBuffer(), ctrl.length)) {
 					return false;
 				}
 
@@ -909,14 +910,9 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			// Special case Write function for DaynaPort
-			// TODO This class must not know about DaynaPort
-			if (auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(disk); daynaport) {
-				daynaport->WriteBytes(ctrl.cmd, GetBuffer(), 0);
-
-				ResetOffset();
-				ctrl.blocks = 0;
-				break;
+			auto disk = dynamic_pointer_cast<Disk>(device);
+			if (disk == nullptr) {
+				return false;
 			}
 
 			try {
@@ -925,7 +921,6 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc());
 
-				// Write failed
 				return false;
 			}
 
@@ -940,7 +935,6 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				SetLength(disk->WriteCheck(ctrl.next - 1));
 			}
 			catch(const scsi_exception&) {
-				// Cannot write
 				return false;
 			}
 
@@ -1008,7 +1002,7 @@ void ScsiController::ParseMessage()
 			// Check only when synchronous transfer is possible
 			if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
 				SetLength(1);
-				ctrl.blocks = 1;
+				SetBlocks(1);
 				GetBuffer()[0] = 0x07;
 				MsgIn();
 				return;
@@ -1026,7 +1020,7 @@ void ScsiController::ParseMessage()
 
 			// STDR response message generation
 			SetLength(5);
-			ctrl.blocks = 1;
+			SetBlocks(1);
 			GetBuffer()[0] = 0x01;
 			GetBuffer()[1] = 0x03;
 			GetBuffer()[2] = 0x01;
@@ -1048,7 +1042,7 @@ void ScsiController::ProcessMessage()
 		// Data transfer is 1 byte x 1 block
 		ResetOffset();
 		SetLength(1);
-		ctrl.blocks = 1;
+		SetBlocks(1);
 		return;
 	}
 
