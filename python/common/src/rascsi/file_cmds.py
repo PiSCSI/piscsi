@@ -497,25 +497,33 @@ class FileCmds:
 
 
     # noinspection PyMethodMayBeStatic
-    def format_fat(self, file_name, volume_name, fat_size):
+    def format_fat(self, file_name, volume_name, fat_size=None, Atari=None):
         """
         Initializes a FAT file system
         Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
+        Takes (bool) Atari as optional argument.
         Returns (dict) with (bool) status, (str) msg
         """
         server_info = self.ractl.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
 
-        try:
-            run(
-                [
+        args =  [
                     "/usr/sbin/mkfs.vfat",
-                    "-F",
-                    fat_size,
                     "-n",
                     volume_name,
                     str(full_file_path),
-                ],
+                ]
+
+        if Atari:
+            args.insert(1, "-A")
+
+        if fat_size:
+            args.insert(1, "-F")
+            args.insert(2, fat_size)
+
+        try:
+            run(
+                args,
                 capture_output=True,
                 check=True,
             )

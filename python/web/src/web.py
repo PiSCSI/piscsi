@@ -942,6 +942,7 @@ def create_file():
                 "FAT12",
                 "FAT16",
                 "FAT32",
+                "Atari ST FAT",
                 ]
         if drive_format not in known_formats:
             return response(
@@ -951,12 +952,22 @@ def create_file():
                     drive_format=drive_format,
                 )
             )
+        elif drive_format == "Atari ST FAT":
+            process = file_cmd.format_fat(
+                    full_file_name,
+                    # FAT volume labels are max 11 chars
+                    volume_name[:11],
+                    Atari=True,
+                    )
+
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
         elif drive_format.startswith("FAT"):
             process = file_cmd.format_fat(
                     full_file_name,
                     # FAT volume labels are max 11 chars
                     volume_name[:11],
-                    drive_format[-2:],
+                    fat_size=drive_format[-2:],
                     )
 
             if not process["status"]:
