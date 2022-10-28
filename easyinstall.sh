@@ -106,7 +106,8 @@ function installPackages() {
         disktype \
         libgmock-dev \
         man2html \
-        hfsutils
+        hfsutils \
+        dosfstools
 }
 
 # install Debian packges for RaSCSI standalone
