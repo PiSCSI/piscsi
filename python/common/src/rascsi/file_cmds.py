@@ -496,6 +496,37 @@ class FileCmds:
         return {"status": True, "msg": ""}
 
 
+    # noinspection PyMethodMayBeStatic
+    def format_fat(self, file_name, volume_name, fat_size):
+        """
+        Initializes a FAT file system
+        Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+
+        try:
+            run(
+                [
+                    "/usr/sbin/mkfs.vfat",
+                    "-F",
+                    fat_size,
+                    "-n",
+                    volume_name,
+                    str(full_file_path),
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
+
+
     def download_file_to_iso(self, url, *iso_args):
         """
         Takes (str) url and one or more (str) *iso_args

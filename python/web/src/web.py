@@ -931,25 +931,39 @@ def create_file():
 
     # Formatting and injecting driver, if one is choosen
     if drive_format:
-        driver_base_path = Path(f"{WEB_DIR}/../../../HFSer/drivers")
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
-        known_drivers = [
+        known_formats = [
                 "Apple Drive Setup 1.7.3",
                 "Apple Drive Setup 2.0.3",
                 "Apple HD SC Setup 7.3.5",
                 "FWB 4.5.2",
                 "Lido 7.56",
                 "MacOS8 Installer Driver",
+                "FAT12",
+                "FAT16",
+                "FAT32",
                 ]
-        if drive_format not in known_drivers:
+        if drive_format not in known_formats:
             return response(
                 error=True,
                 message=_(
-                    "%(drive_format)s is not a valid hard disk driver.",
+                    "%(drive_format)s is not a valid hard disk format.",
                     drive_format=drive_format,
                 )
             )
+        elif drive_format.startswith("FAT"):
+            process = file_cmd.format_fat(
+                    full_file_name,
+                    # FAT volume labels are max 11 chars
+                    volume_name[:11],
+                    drive_format[-2:],
+                    )
+
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
         else:
+            driver_base_path = Path(f"{WEB_DIR}/../../../HFSer/drivers")
             process = file_cmd.partition_hfs(full_file_name, volume_name)
             if not process["status"]:
                 return response(error=True, message=process["msg"])
