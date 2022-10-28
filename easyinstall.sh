@@ -887,7 +887,7 @@ function installSamba() {
         echo "Creating the $SMB_SHARE_PATH directory and granting read/write permissions to all users..."
         sudo mkdir -p "$SMB_SHARE_PATH"
         sudo chown -R "$USER:$USER" "$SMB_SHARE_PATH"
-        chmod -Rv 777 "$SMB_SHARE_PATH"
+        chmod -Rv 775 "$SMB_SHARE_PATH"
     fi
 
     echo ""
