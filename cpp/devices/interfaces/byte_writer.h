@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// Abstraction for the DaynaPort and host bridge
+// Abstraction for the DaynaPort and the host bridge, which both have methods for writing byte sequences
 //
 //---------------------------------------------------------------------------
 
