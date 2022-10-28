@@ -29,11 +29,11 @@ const static int PIN_TAD = 7; // TARGET CTRL DIRECTION
 const static int PIN_DTD = 8; // DATA DIRECTION
 
 // Control signal output logic
-#define ACT_ON RASCSI_PIN_ON  // ACTIVE SIGNAL ON
-#define ENB_ON RASCSI_PIN_ON  // ENABLE SIGNAL ON
-#define IND_IN RASCSI_PIN_OFF // INITIATOR SIGNAL INPUT
-#define TAD_IN RASCSI_PIN_OFF // TARGET SIGNAL INPUT
-#define DTD_IN RASCSI_PIN_ON  // DATA SIGNAL INPUT
+#define ACT_ON board_type::gpio_high_low_e::GPIO_STATE_HIGH  // ACTIVE SIGNAL ON
+#define ENB_ON board_type::gpio_high_low_e::GPIO_STATE_HIGH  // ENABLE SIGNAL ON
+#define IND_IN board_type::gpio_high_low_e::GPIO_STATE_LOW // INITIATOR SIGNAL INPUT
+#define TAD_IN board_type::gpio_high_low_e::GPIO_STATE_LOW // TARGET SIGNAL INPUT
+#define DTD_IN board_type::gpio_high_low_e::GPIO_STATE_HIGH  // DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
 const static int PIN_DT0 = 10; // Data 0

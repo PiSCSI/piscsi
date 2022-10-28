@@ -54,15 +54,15 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data
-    void SetControl(board_type::pi_physical_pin_e pin, bool ast) override;
+    void SetControl(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set Control Signal
-    void SetMode(board_type::pi_physical_pin_e pin, int mode) override;
+    void SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) override;
     // Set SCSI I/O mode
     bool GetSignal(board_type::pi_physical_pin_e pin) const override;
     // Get SCSI input signal value
-    void SetSignal(board_type::pi_physical_pin_e pin, bool ast) override;
+    void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set SCSI output signal value
-    bool WaitSignal(board_type::pi_physical_pin_e pin, int ast) override;
+    bool WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Wait for a signal to change
     // Interrupt control
     void DisableIRQ() override;
@@ -71,11 +71,11 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    void PinConfig(board_type::pi_physical_pin_e pin, int mode) override;
+    void PinConfig(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) override;
     // GPIO pin direction setting
-    void PullConfig(board_type::pi_physical_pin_e pin, int mode) override;
+    void PullConfig(board_type::pi_physical_pin_e pin, board_type::gpio_pull_up_down_e mode) override;
     // GPIO pin pull up/down resistor setting
-    void PinSetSignal(board_type::pi_physical_pin_e pin, bool ast) override;
+    void PinSetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set GPIO output signal
     void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength

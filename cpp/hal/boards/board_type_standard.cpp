@@ -22,11 +22,11 @@ const Rascsi_Board_Type board_definition_standard = {
     .signal_control_mode = 0, // SCSI positive logic specification
 
     // Control signal output logic
-    .act_on = active_high_low_e::ACTIVE_HIGH, // ACTIVE SIGNAL ON
-    .enb_on = active_high_low_e::ACTIVE_HIGH, // ENABLE SIGNAL ON
-    .ind_in = active_high_low_e::ACTIVE_LOW,  // INITIATOR SIGNAL INPUT
-    .tad_in = active_high_low_e::ACTIVE_LOW,  // TARGET SIGNAL INPUT
-    .dtd_in = active_high_low_e::ACTIVE_HIGH, // DATA SIGNAL INPUT
+    .act_on = gpio_high_low_e::GPIO_STATE_HIGH, // ACTIVE SIGNAL ON
+    .enb_on = gpio_high_low_e::GPIO_STATE_HIGH, // ENABLE SIGNAL ON
+    .ind_in = gpio_high_low_e::GPIO_STATE_LOW,  // INITIATOR SIGNAL INPUT
+    .tad_in = gpio_high_low_e::GPIO_STATE_LOW,  // TARGET SIGNAL INPUT
+    .dtd_in = gpio_high_low_e::GPIO_STATE_HIGH, // DATA SIGNAL INPUT
 
     // Control signal pin assignment (-1 means no control)
     .pin_act = pi_physical_pin_e::PI_PHYS_PIN_07,   // RPi GPIO 4

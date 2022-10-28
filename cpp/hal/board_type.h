@@ -53,20 +53,20 @@ enum class pi_physical_pin_e : int {
 };
 
 // Operation modes definition
-enum class gpio_direction_e : int {
+enum class gpio_direction_e : uint8_t {
     GPIO_INPUT  = 0,
     GPIO_OUTPUT = 1,
 };
 
-enum class gpio_pull_up_down_e : int {
+enum class gpio_pull_up_down_e : uint8_t {
     GPIO_PULLNONE = 0,
     GPIO_PULLDOWN = 1,
     GPIO_PULLUP   = 2,
 };
 
-enum class active_high_low_e : int {
-    ACTIVE_HIGH = 1, // Equivalent of "ON" in old code
-    ACTIVE_LOW  = 0, // Equivalent of "OFF" in old code
+enum class gpio_high_low_e : uint8_t {
+    GPIO_STATE_HIGH = 1, // Equivalent of "ON" in old code
+    GPIO_STATE_LOW  = 0, // Equivalent of "OFF" in old code
 };
 
 struct Rascsi_Board_Struct {
@@ -76,11 +76,11 @@ struct Rascsi_Board_Struct {
     const int signal_control_mode;
 
     // Control signal output logic
-    const active_high_low_e act_on; // ACTIVE SIGNAL ON
-    const active_high_low_e enb_on; // ENABLE SIGNAL ON
-    const active_high_low_e ind_in; // INITIATOR SIGNAL INPUT
-    const active_high_low_e tad_in; // TARGET SIGNAL INPUT
-    const active_high_low_e dtd_in; // DATA SIGNAL INPUT
+    const gpio_high_low_e act_on; // ACTIVE SIGNAL ON
+    const gpio_high_low_e enb_on; // ENABLE SIGNAL ON
+    const gpio_high_low_e ind_in; // INITIATOR SIGNAL INPUT
+    const gpio_high_low_e tad_in; // TARGET SIGNAL INPUT
+    const gpio_high_low_e dtd_in; // DATA SIGNAL INPUT
 
     // Control signal pin assignment (-1 means no control)
     const pi_physical_pin_e pin_act; // ACTIVE
@@ -108,6 +108,32 @@ struct Rascsi_Board_Struct {
     const pi_physical_pin_e pin_io;  // IO
     const pi_physical_pin_e pin_bsy; // BSY
     const pi_physical_pin_e pin_sel; // SEL
+
+    gpio_high_low_e bool_to_gpio_state(bool);
+    bool gpio_state_to_bool(gpio_high_low_e);
+
+    // Activity signal true (on)
+    gpio_high_low_e ActOn();
+    // Activity signal false (off)
+    gpio_high_low_e ActOff();
+    // Enable signal true (on)
+    gpio_high_low_e EnbOn();
+    // Enable signal false (off)
+    gpio_high_low_e EnbOff();
+    // Initiator signal = Input
+    gpio_high_low_e IndIn();
+    // Initiator signal = Output
+    gpio_high_low_e IndOut();
+    // Target signal = Input
+    gpio_high_low_e TadIn();
+    // Target signal = Output
+    gpio_high_low_e TadOut();
+    // Data signal = Input
+    gpio_high_low_e DtdIn();
+    // Data signal = Output
+    gpio_high_low_e DtdOut();
+
+    gpio_high_low_e GpioInvert(gpio_high_low_e);
 };
 
 typedef struct Rascsi_Board_Struct Rascsi_Board_Type;

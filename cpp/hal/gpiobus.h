@@ -142,8 +142,6 @@ const static uint32_t PADS_OFFSET = 0x00100000;
 const static uint32_t GPIO_OFFSET = 0x00200000;
 const static uint32_t QA7_OFFSET  = 0x01000000;
 
-const static int GPIO_INPUT      = 0;
-const static int GPIO_OUTPUT     = 1;
 const static int GPIO_PULLNONE   = 0;
 const static int GPIO_PULLDOWN   = 1;
 const static int GPIO_PULLUP     = 2;
@@ -234,27 +232,6 @@ const static int GICC_EOIR          = 0x004;
 //---------------------------------------------------------------------------
 const static int GIC_IRQLOCAL0 = (16 + 14);
 const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (Control signals)
-//
-//---------------------------------------------------------------------------
-#define ACT_OFF !ACT_ON
-#define ENB_OFF !ENB_ON
-#define TAD_OUT !TAD_IN
-#define IND_OUT !IND_IN
-#define DTD_OUT !DTD_IN
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (SCSI)
-//
-//---------------------------------------------------------------------------
-#define RASCSI_PIN_IN GPIO_INPUT
-#define RASCSI_PIN_OUT GPIO_OUTPUT
-const static int RASCSI_PIN_ON  = 1;
-const static int RASCSI_PIN_OFF = 0;
 
 //---------------------------------------------------------------------------
 //
@@ -358,15 +335,15 @@ class GPIOBUS : public BUS
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
-    virtual void SetControl(board_type::pi_physical_pin_e pin, bool ast) = 0;
+    virtual void SetControl(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) = 0;
     // Set Control Signal
-    virtual void SetMode(board_type::pi_physical_pin_e pin, int mode) = 0;
+    virtual void SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) = 0;
     // Set SCSI I/O mode
     bool GetSignal(board_type::pi_physical_pin_e pin) const override = 0;
     // Set Control Signal
-    void SetSignal(board_type::pi_physical_pin_e pin, bool ast) override = 0;
+    void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override = 0;
     // Set SCSI I/O mode
-    virtual bool WaitSignal(board_type::pi_physical_pin_e pin, int ast) = 0;
+    virtual bool WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) = 0;
     // Wait for a signal to change
     // Interrupt control
     virtual void DisableIRQ() = 0;
@@ -375,11 +352,11 @@ class GPIOBUS : public BUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    virtual void PinConfig(board_type::pi_physical_pin_e pin, int mode) = 0;
+    virtual void PinConfig(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) = 0;
     // GPIO pin direction setting
-    virtual void PullConfig(board_type::pi_physical_pin_e pin, int mode) = 0;
+    virtual void PullConfig(board_type::pi_physical_pin_e pin, board_type::gpio_pull_up_down_e mode) = 0;
     // GPIO pin pull up/down resistor setting
-    virtual void PinSetSignal(board_type::pi_physical_pin_e pin, bool ast) = 0;
+    virtual void PinSetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) = 0;
     // Set GPIO output signal
     virtual void DrvConfig(uint32_t drive) = 0;
     // Set GPIO drive strength

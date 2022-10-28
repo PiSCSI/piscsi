@@ -187,43 +187,52 @@ bool GPIOBUS_Raspberry::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
 
     // Set pull up/pull down
     LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
-
-#if SIGNAL_CONTROL_MODE == 0
-    LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
-    int pullmode = GPIO_PULLNONE;
-#elif SIGNAL_CONTROL_MODE == 1
-    LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
-    int pullmode = GPIO_PULLUP;
-#else
-    LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
-    int pullmode = GPIO_PULLDOWN;
-#endif
+    board_type::gpio_pull_up_down_e pullmode ;
+    if (board->signal_control_mode == 0)
+    {
+        // #if SIGNAL_CONTROL_MODE == 0
+        LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e::GPIO_PULLNONE;
+    }
+    else if (board->signal_control_mode == 1)
+    {
+        // #elif SIGNAL_CONTROL_MODE == 1
+        LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLUP;
+    }
+    else
+    {
+        // #else
+        LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLDOWN;
+    }
+    // #endif
 
     // Initialize all signals
     LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
     for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
         board_type::pi_physical_pin_e j = SignalTable[i];
-        PinSetSignal(j, RASCSI_PIN_OFF);
-        PinConfig(j, GPIO_INPUT);
+        PinSetSignal(j, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+        PinConfig(j, board_type::gpio_direction_e::GPIO_INPUT);
         PullConfig(j, pullmode);
     }
 
     // Set control signals
     LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
-    PinSetSignal(board->pin_act, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_tad, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_ind, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_dtd, RASCSI_PIN_OFF);
-    PinConfig(board->pin_act, GPIO_OUTPUT);
-    PinConfig(board->pin_tad, GPIO_OUTPUT);
-    PinConfig(board->pin_ind, GPIO_OUTPUT);
-    PinConfig(board->pin_dtd, GPIO_OUTPUT);
+    PinSetSignal(board->pin_act, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_tad, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_ind, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_dtd, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinConfig(board->pin_act, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_tad, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_ind, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_OUTPUT);
 
     // Set the ENABLE signal
     // This is used to show that the application is running
-    PinSetSignal(board->pin_enb, ENB_OFF);
-    PinConfig(   board->pin_enb, GPIO_OUTPUT);
+    PinSetSignal(board->pin_enb, board->EnbOff());
+    PinConfig(board->pin_enb, board_type::gpio_direction_e::GPIO_OUTPUT);
 
     // GPFSEL backup
     LOGTRACE("%s GPFSEL backup....", __PRETTY_FUNCTION__);
@@ -282,12 +291,14 @@ bool GPIOBUS_Raspberry::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 #else
     // Edge detection setting
-#if SIGNAL_CONTROL_MODE == 2
-    gpio[GPIO_AREN_0] = 1 << PIN_SEL;
-#else
-    gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
-#endif // SIGNAL_CONTROL_MODE
-
+    if (board->signal_control_mode == 2) {
+        // #if SIGNAL_CONTROL_MODE == 2
+        gpio[GPIO_AREN_0] = 1 << PIN_SEL;
+    } else {
+        // #else
+        gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
+        // #endif // SIGNAL_CONTROL_MODE
+    }
     // Clear event
     gpio[GPIO_EDS_0] = 1 << PIN_SEL;
 
@@ -355,22 +366,22 @@ void GPIOBUS_Raspberry::Cleanup()
 #endif // USE_SEL_EVENT_ENABLE
 
     // Set control signals
-    PinSetSignal(board->pin_enb, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_act, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_tad, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_ind, RASCSI_PIN_OFF);
-    PinSetSignal(board->pin_dtd, RASCSI_PIN_OFF);
-    PinConfig(board->pin_act, GPIO_INPUT);
-    PinConfig(board->pin_tad, GPIO_INPUT);
-    PinConfig(board->pin_ind, GPIO_INPUT);
-    PinConfig(board->pin_dtd, GPIO_INPUT);
+    PinSetSignal(board->pin_enb, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_act, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_tad, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_ind, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_dtd, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinConfig(board->pin_act, board_type::gpio_direction_e::GPIO_INPUT);
+    PinConfig(board->pin_tad, board_type::gpio_direction_e::GPIO_INPUT);
+    PinConfig(board->pin_ind, board_type::gpio_direction_e::GPIO_INPUT);
+    PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_INPUT);
 
     // Initialize all signals
     for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
         board_type::pi_physical_pin_e pin = SignalTable[i];
-        PinSetSignal(pin, RASCSI_PIN_OFF);
-        PinConfig(pin, GPIO_INPUT);
-        PullConfig(pin, GPIO_PULLNONE);
+        PinSetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+        PinConfig(pin, board_type::gpio_direction_e::GPIO_INPUT);
+        PullConfig(pin, board_type::gpio_pull_up_down_e::GPIO_PULLNONE);
     }
 
     // Set drive strength back to 8mA
@@ -540,7 +551,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 //	Control signal setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetControl(board_type::pi_physical_pin_e pin, bool ast)
+void GPIOBUS_Raspberry::SetControl(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
     PinSetSignal(pin, ast);
 }
@@ -550,12 +561,12 @@ void GPIOBUS_Raspberry::SetControl(board_type::pi_physical_pin_e pin, bool ast)
 //	Input/output mode setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetMode(board_type::pi_physical_pin_e hw_pin, int mode)
+void GPIOBUS_Raspberry::SetMode(board_type::pi_physical_pin_e hw_pin, board_type::gpio_direction_e mode)
 {
     int pin = phys_to_gpio_map.at(hw_pin);
 
 #if SIGNAL_CONTROL_MODE == 0
-    if (mode == RASCSI_PIN_OUT) {
+    if (mode == board_type::gpio_direction_e::GPIO_OUTPUT) {
         return;
     }
 #endif // SIGNAL_CONTROL_MODE
@@ -564,7 +575,7 @@ void GPIOBUS_Raspberry::SetMode(board_type::pi_physical_pin_e hw_pin, int mode)
     int shift     = (pin % 10) * 3;
     uint32_t data = gpfsel[index];
     data &= ~(0x7 << shift);
-    if (mode == RASCSI_PIN_OUT) {
+    if (mode == board_type::gpio_direction_e::GPIO_OUTPUT) {
         data |= (1 << shift);
     }
     gpio[index]   = data;
@@ -587,34 +598,38 @@ bool GPIOBUS_Raspberry::GetSignal(board_type::pi_physical_pin_e hw_pin) const
 //	Set output signal value
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetSignal(board_type::pi_physical_pin_e hw_pin, bool ast)
+void GPIOBUS_Raspberry::SetSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
     int pin = phys_to_gpio_map.at(hw_pin);
 
-#if SIGNAL_CONTROL_MODE == 0
-    int index     = pin / 10;
-    int shift     = (pin % 10) * 3;
-    uint32_t data = gpfsel[index];
-    if (ast) {
-        data |= (1 << shift);
-    } else {
-        data &= ~(0x7 << shift);
+    if (board->signal_control_mode == 0) {
+        // #if SIGNAL_CONTROL_MODE == 0
+        int index     = pin / 10;
+        int shift     = (pin % 10) * 3;
+        uint32_t data = gpfsel[index];
+        if (ast == board_type::gpio_high_low_e::GPIO_STATE_HIGH) {
+            data |= (1 << shift);
+        } else {
+            data &= ~(0x7 << shift);
+        }
+        gpio[index]   = data;
+        gpfsel[index] = data;
+    } else if (board->signal_control_mode == 1) {
+        //#elif SIGNAL_CONTROL_MODE == 1
+        if (ast == board_type::gpio_high_low_e::GPIO_STATE_HIGH) {
+            gpio[GPIO_CLR_0] = 0x1 << pin;
+        } else {
+            gpio[GPIO_SET_0] = 0x1 << pin;
+        }
+    } else if (board->signal_control_mode == 2) {
+        // #elif SIGNAL_CONTROL_MODE == 2
+        if (ast == board_type::gpio_high_low_e::GPIO_STATE_HIGH) {
+            gpio[GPIO_SET_0] = 0x1 << pin;
+        } else {
+            gpio[GPIO_CLR_0] = 0x1 << pin;
+        }
     }
-    gpio[index]   = data;
-    gpfsel[index] = data;
-#elif SIGNAL_CONTROL_MODE == 1
-    if (ast) {
-        gpio[GPIO_CLR_0] = 0x1 << pin;
-    } else {
-        gpio[GPIO_SET_0] = 0x1 << pin;
-    }
-#elif SIGNAL_CONTROL_MODE == 2
-    if (ast) {
-        gpio[GPIO_SET_0] = 0x1 << pin;
-    } else {
-        gpio[GPIO_CLR_0] = 0x1 << pin;
-    }
-#endif // SIGNAL_CONTROL_MODE
+    // #endif // SIGNAL_CONTROL_MODE
 }
 
 //---------------------------------------------------------------------------
@@ -623,7 +638,7 @@ void GPIOBUS_Raspberry::SetSignal(board_type::pi_physical_pin_e hw_pin, bool ast
 //
 // TODO: maybe this should be moved to SCSI_Bus?
 //---------------------------------------------------------------------------
-bool GPIOBUS_Raspberry::WaitSignal(board_type::pi_physical_pin_e hw_pin, int ast)
+bool GPIOBUS_Raspberry::WaitSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
     int pin = phys_to_gpio_map.at(hw_pin);
     // Get current time
@@ -641,7 +656,7 @@ bool GPIOBUS_Raspberry::WaitSignal(board_type::pi_physical_pin_e hw_pin, int ast
         }
 
         // Check for the signal edge
-        if (((signals >> pin) ^ ~ast) & 1) {
+        if (((signals >> pin) ^ ~((int)board->gpio_state_to_bool(ast))) & 1) {
             return true;
         }
     } while ((SysTimer::GetTimerLow() - now) < timeout);
@@ -694,7 +709,7 @@ void GPIOBUS_Raspberry::EnableIRQ()
 //	Pin direction setting (input/output)
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PinConfig(board_type::pi_physical_pin_e hw_pin, int mode)
+void GPIOBUS_Raspberry::PinConfig(board_type::pi_physical_pin_e hw_pin, board_type::gpio_direction_e mode)
 {
     int pin = phys_to_gpio_map.at(hw_pin);
 
@@ -705,7 +720,7 @@ void GPIOBUS_Raspberry::PinConfig(board_type::pi_physical_pin_e hw_pin, int mode
 
     int index     = pin / 10;
     uint32_t mask = ~(0x7 << ((pin % 10) * 3));
-    gpio[index]   = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
+    gpio[index]   = (gpio[index] & mask) | (((uint8_t)mode & 0x7) << ((pin % 10) * 3));
 }
 
 //---------------------------------------------------------------------------
@@ -713,7 +728,7 @@ void GPIOBUS_Raspberry::PinConfig(board_type::pi_physical_pin_e hw_pin, int mode
 //	Pin pull-up/pull-down setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, int mode)
+void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, board_type::gpio_pull_up_down_e mode)
 {
     uint32_t pull;
 
@@ -727,13 +742,13 @@ void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, int mod
     if (rpitype == 4) {
         LOGTRACE("%s I'm a Pi 4", __PRETTY_FUNCTION__)
         switch (mode) {
-        case GPIO_PULLNONE:
+        case board_type::gpio_pull_up_down_e::GPIO_PULLNONE:
             pull = 0;
             break;
-        case GPIO_PULLUP:
+        case board_type::gpio_pull_up_down_e::GPIO_PULLUP:
             pull = 1;
             break;
-        case GPIO_PULLDOWN:
+        case board_type::gpio_pull_up_down_e::GPIO_PULLDOWN:
             pull = 2;
             break;
         default:
@@ -748,7 +763,7 @@ void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, int mod
         gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
     } else {
         pin &= 0x1f;
-        gpio[GPIO_PUD] = mode & 0x3;
+        gpio[GPIO_PUD] = (uint32_t)mode & 0x3;
         SysTimer::SleepUsec(2);
         gpio[GPIO_CLK_0] = 0x1 << pin;
         SysTimer::SleepUsec(2);
@@ -762,7 +777,7 @@ void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, int mod
 //	Set output pin
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::PinSetSignal(board_type::pi_physical_pin_e hw_pin, bool ast)
+void GPIOBUS_Raspberry::PinSetSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
     int pin = phys_to_gpio_map.at(hw_pin);
 
@@ -771,7 +786,7 @@ void GPIOBUS_Raspberry::PinSetSignal(board_type::pi_physical_pin_e hw_pin, bool 
         return;
     }
 
-    if (ast) {
+    if (ast == board_type::gpio_high_low_e::GPIO_STATE_HIGH) {
         gpio[GPIO_SET_0] = 0x1 << pin;
     } else {
         gpio[GPIO_CLR_0] = 0x1 << pin;
@@ -799,10 +814,12 @@ uint32_t GPIOBUS_Raspberry::Acquire()
 #else
     signals = *level;
 
-#if SIGNAL_CONTROL_MODE < 2
-    // Invert if negative logic (internal processing is unified to positive logic)
-    signals = ~signals;
-#endif // SIGNAL_CONTROL_MODE
+    if (board->signal_control_mode < 2) {
+        // #if SIGNAL_CONTROL_MODE < 2
+        // Invert if negative logic (internal processing is unified to positive logic)
+        signals = ~signals;
+        // #endif // SIGNAL_CONTROL_MODE
+    }
     return signals;
 #endif // ifdef __x86_64__ || __X86__
 }

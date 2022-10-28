@@ -104,7 +104,7 @@ public:
 
 	virtual bool GetSignal(board_type::pi_physical_pin_e pin) const = 0;
 										// Get SCSI input signal value
-	virtual void SetSignal(board_type::pi_physical_pin_e pin, bool ast) = 0;
+	virtual void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) = 0;
 										// Set SCSI output signal value
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay

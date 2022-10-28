@@ -48,7 +48,7 @@ bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
 // 	for (int i = 0; SignalTable[i] >= 0; i++) {
 // 		int j = SignalTable[i];
 // 		PinSetSignal(j, OFF);
-// 		PinConfig(j, GPIO_INPUT);
+// 		PinConfig(j, board_type::gpio_high_low_e::GPIO_INPUT);
 // 		PullConfig(j, pullmode);
 // 	}
 
@@ -58,15 +58,15 @@ bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
 // 	PinSetSignal(PIN_TAD, OFF);
 // 	PinSetSignal(PIN_IND, OFF);
 // 	PinSetSignal(PIN_DTD, OFF);
-// 	PinConfig(PIN_ACT, GPIO_OUTPUT);
-// 	PinConfig(PIN_TAD, GPIO_OUTPUT);
-// 	PinConfig(PIN_IND, GPIO_OUTPUT);
-// 	PinConfig(PIN_DTD, GPIO_OUTPUT);
+// 	PinConfig(PIN_ACT, board_type::gpio_high_low_e::GPIO_OUTPUT);
+// 	PinConfig(PIN_TAD, board_type::gpio_high_low_e::GPIO_OUTPUT);
+// 	PinConfig(PIN_IND, board_type::gpio_high_low_e::GPIO_OUTPUT);
+// 	PinConfig(PIN_DTD, board_type::gpio_high_low_e::GPIO_OUTPUT);
 
 // 	// Set the ENABLE signal
 // 	// This is used to show that the application is running
 // 	PinSetSignal(PIN_ENB, ENB_OFF);
-// 	PinConfig(PIN_ENB, GPIO_OUTPUT);
+// 	PinConfig(PIN_ENB, board_type::gpio_high_low_e::GPIO_OUTPUT);
 
 
 
@@ -145,17 +145,17 @@ void GPIOBUS_Allwinner::Cleanup()
 	// PinSetSignal(PIN_TAD, FALSE);
 	// PinSetSignal(PIN_IND, FALSE);
 	// PinSetSignal(PIN_DTD, FALSE);
-	// PinConfig(PIN_ACT, GPIO_INPUT);
-	// PinConfig(PIN_TAD, GPIO_INPUT);
-	// PinConfig(PIN_IND, GPIO_INPUT);
-	// PinConfig(PIN_DTD, GPIO_INPUT);
+	// PinConfig(PIN_ACT, board_type::gpio_high_low_e::GPIO_INPUT);
+	// PinConfig(PIN_TAD, board_type::gpio_high_low_e::GPIO_INPUT);
+	// PinConfig(PIN_IND, board_type::gpio_high_low_e::GPIO_INPUT);
+	// PinConfig(PIN_DTD, board_type::gpio_high_low_e::GPIO_INPUT);
 
 	// // Initialize all signals
 	// for (i = 0; SignalTable[i] >= 0; i++)
 	// {
 	// 	pin = SignalTable[i];
 	// 	PinSetSignal(pin, FALSE);
-	// 	PinConfig(pin, GPIO_INPUT);
+	// 	PinConfig(pin, board_type::gpio_high_low_e::GPIO_INPUT);
 	// 	PullConfig(pin, GPIO_PULLNONE);
 	// }
 
@@ -183,7 +183,7 @@ void GPIOBUS_Allwinner::Reset()
 // 			break;
 // 		}
 
-//         SetSignal(j, RASCSI_PIN_OFF);
+//         SetSignal(j, board_type::gpio_high_low_e::GPIO_STATE_LOW);
 //     }
 
 // 	if (actmode == mode_e::TARGET) {
@@ -290,17 +290,17 @@ void GPIOBUS_Allwinner::MakeTable(void)
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::SetControl(board_type::pi_physical_pin_e pin, bool ast)
+void GPIOBUS_Allwinner::SetControl(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
     // GPIOBUS_Allwinner::SetSignal(pin, ast);
         LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 
 }
 
-void GPIOBUS_Allwinner::SetMode(board_type::pi_physical_pin_e pin, int mode)
+void GPIOBUS_Allwinner::SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode)
 {
     // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    // if(mode == GPIO_INPUT){
+    // if(mode == board_type::gpio_high_low_e::GPIO_INPUT){
     //     pinMode(pin, INPUT);
 
     // }else{
@@ -316,7 +316,7 @@ bool GPIOBUS_Allwinner::GetSignal(board_type::pi_physical_pin_e pin) const
     // return (digitalRead(pin) != 0);
 }
 
-void GPIOBUS_Allwinner::SetSignal(board_type::pi_physical_pin_e pin, bool ast)
+void GPIOBUS_Allwinner::SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // digitalWrite(pin, ast);
@@ -329,7 +329,7 @@ void GPIOBUS_Allwinner::SetSignal(board_type::pi_physical_pin_e pin, bool ast)
 //
 // TODO: maybe this should be moved to SCSI_Bus?
 //---------------------------------------------------------------------------
-bool GPIOBUS_Allwinner::WaitSignal(board_type::pi_physical_pin_e pin, int ast)
+bool GPIOBUS_Allwinner::WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
         LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
@@ -370,11 +370,11 @@ void GPIOBUS_Allwinner::EnableIRQ()
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::PinConfig(board_type::pi_physical_pin_e pin, int mode)
+void GPIOBUS_Allwinner::PinConfig(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode)
 {
         LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
-    // if(mode == GPIO_INPUT){
+    // if(mode == board_type::gpio_high_low_e::GPIO_INPUT){
     //     pinMode(pin, INPUT);
 
     // }else{
@@ -383,7 +383,7 @@ void GPIOBUS_Allwinner::PinConfig(board_type::pi_physical_pin_e pin, int mode)
 }
 
 
-void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, int mode)
+void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, board_type::gpio_pull_up_down_e mode)
 {
 
         // switch (mode)
@@ -405,7 +405,7 @@ void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, int mode)
 }
 
 
-void GPIOBUS_Allwinner::PinSetSignal(board_type::pi_physical_pin_e pin, bool ast)
+void GPIOBUS_Allwinner::PinSetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
     // digitalWrite(pin, ast);
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)

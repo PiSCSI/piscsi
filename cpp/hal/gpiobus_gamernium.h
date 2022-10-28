@@ -22,11 +22,11 @@ const std::string CONNECT_DESC = "GAMERnium.com version"; // Startup message
 const static int SIGNAL_CONTROL_MODE = 0; // SCSI logical specification
 
 // Control signal output logic
-#define ACT_ON RASCSI_PIN_ON  // ACTIVE SIGNAL ON
-#define ENB_ON RASCSI_PIN_ON  // ENABLE SIGNAL ON
-#define IND_IN RASCSI_PIN_OFF // INITIATOR SIGNAL INPUT
-#define TAD_IN RASCSI_PIN_OFF // TARGET SIGNAL INPUT
-#define DTD_IN RASCSI_PIN_ON  // DATA SIGNAL INPUT
+#define ACT_ON board_type::gpio_high_low_e::GPIO_STATE_HIGH  // ACTIVE SIGNAL ON
+#define ENB_ON board_type::gpio_high_low_e::GPIO_STATE_HIGH  // ENABLE SIGNAL ON
+#define IND_IN board_type::gpio_high_low_e::GPIO_STATE_LOW // INITIATOR SIGNAL INPUT
+#define TAD_IN board_type::gpio_high_low_e::GPIO_STATE_LOW // TARGET SIGNAL INPUT
+#define DTD_IN board_type::gpio_high_low_e::GPIO_STATE_HIGH  // DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
 const static int PIN_ACT = 14; // ACTIVE
