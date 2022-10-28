@@ -54,7 +54,6 @@ public:
 	vector<byte> InquiryInternal() const override;
 	int Read(const vector<int>&, vector<BYTE>&, uint64_t);
 	bool WriteBytes(const vector<int>&, vector<BYTE>&, uint32_t) override;
-	int WriteCheck(uint64_t block);
 
 	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
 

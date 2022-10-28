@@ -237,17 +237,6 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 	return DAYNAPORT_READ_HEADER_SZ;
 }
 
-int SCSIDaynaPort::WriteCheck(uint64_t)
-{
-	CheckReady();
-
-	if (!m_bTapEnable) {
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::MEDIUM_NOT_PRESENT);
-	}
-
-	return 1;
-}
-
 //---------------------------------------------------------------------------
 //
 //  Write
