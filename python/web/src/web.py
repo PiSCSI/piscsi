@@ -60,6 +60,7 @@ from web_utils import (
 from settings import (
     WEB_DIR,
     AFP_DIR,
+    SMB_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
@@ -252,6 +253,7 @@ def index():
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
+        SMB_DIR=SMB_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
@@ -866,6 +868,8 @@ def download_file():
     url = request.form.get("url")
     if destination == "afp":
         destination_dir = AFP_DIR
+    elif destination == "smb":
+        destination_dir = SMB_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
@@ -897,6 +901,8 @@ def upload_file():
     destination = request.form.get("destination")
     if destination == "afp":
         destination_dir = AFP_DIR
+    elif destination == "smb":
+        destination_dir = SMB_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]

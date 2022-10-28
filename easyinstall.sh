@@ -868,6 +868,42 @@ function installMacproxy {
     echo ""
 }
 
+# Installs and configures Samba (SMB server)
+function installSamba() {
+    SMB_SHARE_PATH="$HOME/smbshare"
+    SMB_SHARE_NAME="Pi File Server"
+    SAMBA_CONFIG_PATH="/etc/samba"
+
+    if [ -d "$SAMBA_CONFIG_PATH" ]; then
+        echo
+        echo "Samba configuration dir $SAMBA_CONFIG_PATH already exists."
+        echo "Please configure Samba manually, or uninstall it first before running this script."
+    fi
+
+    if [ -d "$SMB_SHARE_PATH" ]; then
+        echo "Found a $SMB_SHARE_PATH directory; will use it for file sharing."
+    else
+        echo "Creating the $SMB_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$SMB_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$SMB_SHARE_PATH"
+        chmod -Rv 777 "$SMB_SHARE_PATH"
+    fi
+
+    echo ""
+    echo "Installing dependencies..."
+    sudo apt-get update || true
+    sudo apt-get install samba --assume-yes </dev/null
+    echo ""
+    echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
+    #sudo awk '[global] { print; print "; next "}1' "$SAMBA_CONFIG_PATH/smb.conf"
+    sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/'
+    echo -e '\n[Pi File Server]\npath = /home/'"$USER"'/smbshare\nbrowseable = yes\nwriteable = yes' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+
+    sudo systemctl restart smbd
+
+    sudo smbpasswd -a "$USER"
+}
+
 # updates configuration files and installs packages needed for the OLED screen script
 function installRaScsiScreen() {
     if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
@@ -1222,10 +1258,22 @@ function runChoice() {
               echo "Configuring wifi network bridge - Complete!"
           ;;
           7)
+              echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
           8)
+              echo "Installing SMB File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable Samba systemd services"
+              echo " - Create a directory in the current user's home directory where shared files will be stored"
+              echo " - Create a Samba user for the current user"
+              sudoCheck
+              installSamba
+              echo "Installing AppleShare File Server - Complete!"
+          ;;
+          9)
               echo "Installing Web Proxy Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1235,7 +1283,7 @@ function runChoice() {
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
-          9)
+          10)
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1252,7 +1300,7 @@ function runChoice() {
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
               echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
           ;;
-          10)
+          11)
               echo "Configuring RaSCSI Web Interface stand-alone"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1272,7 +1320,7 @@ function runChoice() {
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
-          11)
+          12)
               echo "Enabling or disabling RaSCSI back-end authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1282,7 +1330,7 @@ function runChoice() {
               enableRaScsiService
               echo "Enabling or disabling RaSCSI back-end authentication - Complete!"
           ;;
-          12)
+          13)
               echo "Enabling or disabling Web Interface authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1290,7 +1338,7 @@ function runChoice() {
               enableWebInterfaceAuth
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
-          13)
+          14)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
@@ -1308,7 +1356,7 @@ function readChoice() {
    choice=-1
 
    until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
-       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
+       echo -n "Enter your choice (0-14) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1329,14 +1377,15 @@ function showMenu() {
     echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
     echo "  7) Install AppleShare File Server (Netatalk)"
-    echo "  8) Install Web Proxy Server (Macproxy)"
+    echo "  8) Install SMB File Server (Samba)"
+    echo "  9) Install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo "  9) Compile and install RaSCSI stand-alone"
-    echo " 10) Configure the RaSCSI Web Interface stand-alone"
-    echo " 11) Enable or disable RaSCSI back-end authentication"
-    echo " 12) Enable or disable RaSCSI Web Interface authentication"
+    echo " 10) Compile and install RaSCSI stand-alone"
+    echo " 11) Configure the RaSCSI Web Interface stand-alone"
+    echo " 12) Enable or disable RaSCSI back-end authentication"
+    echo " 13) Enable or disable RaSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 13) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 14) Share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
@@ -1352,8 +1401,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 13 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 13"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 14 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 14"
                 exit 1
             fi
             RUN_CHOICE=$VALUE

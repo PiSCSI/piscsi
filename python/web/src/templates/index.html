@@ -449,6 +449,7 @@
     <select name="destination" id="upload_destination">
         <option value="images">Images - {{ env["image_dir"] }}</option>
         <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+        <option value="smb">Samba - {{ SMB_DIR }}</option>
     </select>
     </p>
 </form>
@@ -498,6 +499,7 @@
     <select name="destination" id="download_destination">
         <option value="images">Images - {{ env["image_dir"] }}</option>
         <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+        <option value="smb">Samba - {{ SMB_DIR }}</option>
     </select>
     <label for="download_url">{{ _("URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">

@@ -9,6 +9,7 @@ WEB_DIR = getcwd()
 HOME_DIR = "/".join(WEB_DIR.split("/")[0:3])
 
 AFP_DIR = f"{HOME_DIR}/afpshare"
+SMB_DIR = f"{HOME_DIR}/smbshare"
 
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", str(1024 * 1024 * 1024 * 4))  # 4gb
 
