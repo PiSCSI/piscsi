@@ -878,6 +878,7 @@ function installSamba() {
         echo
         echo "Samba configuration dir $SAMBA_CONFIG_PATH already exists."
         echo "Please configure Samba manually, or uninstall it first before running this script."
+        exit 0
     fi
 
     if [ -d "$SMB_SHARE_PATH" ]; then
@@ -895,8 +896,7 @@ function installSamba() {
     sudo apt-get install samba --assume-yes </dev/null
     echo ""
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
-    #sudo awk '[global] { print; print "; next "}1' "$SAMBA_CONFIG_PATH/smb.conf"
-    sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/'
+    sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
     echo -e '\n[Pi File Server]\npath = /home/'"$USER"'/smbshare\nbrowseable = yes\nwriteable = yes' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
 
     sudo systemctl restart smbd
