@@ -615,9 +615,12 @@ class FileCmds:
                     headers={"User-Agent": "Mozilla/5.0"},
                     ) as req:
                 req.raise_for_status()
-                with open(f"{save_dir}/{file_name}", "wb") as download:
-                    for chunk in req.iter_content(chunk_size=8192):
-                        download.write(chunk)
+                try:
+                    with open(f"{save_dir}/{file_name}", "wb") as download:
+                        for chunk in req.iter_content(chunk_size=8192):
+                            download.write(chunk)
+                except FileNotFoundError as error:
+                    return {"status": False, "msg": str(error)}
         except requests.exceptions.RequestException as error:
             logging.warning("Request failed: %s", str(error))
             return {"status": False, "msg": str(error)}
