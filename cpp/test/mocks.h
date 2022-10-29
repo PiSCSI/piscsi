@@ -181,6 +181,7 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
+	explicit MockScsiController(shared_ptr<NiceMock<MockBus>> bus, int target_id) : ScsiController(bus, target_id) {}
 	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
 	MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
 	~MockScsiController() override = default;
