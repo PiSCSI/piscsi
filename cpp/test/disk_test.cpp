@@ -34,7 +34,7 @@ TEST(DiskTest, Rezero)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "REZERO must fail because drive is not ready";
@@ -55,7 +55,7 @@ TEST(DiskTest, FormatUnit)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdFormat); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormat); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "FORMAT UNIT must fail because drive is not ready";
@@ -68,7 +68,7 @@ TEST(DiskTest, FormatUnit)
 
 	cmd[1] = 0x10;
 	cmd[4] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdFormat); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormat); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))));
 }
@@ -80,7 +80,7 @@ TEST(DiskTest, ReassignBlocks)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReassign); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReassign); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "REASSIGN must fail because drive is not ready";
@@ -101,7 +101,7 @@ TEST(DiskTest, Seek6)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "SEEK(6) must fail for a medium with 0 blocks";
@@ -109,7 +109,7 @@ TEST(DiskTest, Seek6)
 	disk->SetBlockCount(1);
 	// Block count
 	cmd[4] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "SEEK(6) must fail because drive is not ready";
@@ -130,7 +130,7 @@ TEST(DiskTest, Seek10)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "SEEK(10) must fail for a medium with 0 blocks";
@@ -138,7 +138,7 @@ TEST(DiskTest, Seek10)
 	disk->SetBlockCount(1);
 	// Block count
 	cmd[5] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "SEEK(10) must fail because drive is not ready";
@@ -157,13 +157,13 @@ TEST(DiskTest, ReadCapacity10)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "READ CAPACITY(10) must fail because drive is not ready";
 
 	disk->SetReady(true);
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "READ CAPACITY(10) must fail because the medium has no capacity";
@@ -195,20 +195,20 @@ TEST(DiskTest, ReadCapacity16)
 	vector<int>& cmd = controller.GetCmd();
 
 	cmd[1] = 0x00;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "Neither READ CAPACITY(16) nor READ LONG(16)";
 
 	// READ CAPACITY(16), not READ LONG(16)
 	cmd[1] = 0x10;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "READ CAPACITY(16) must fail because drive is not ready";
 
 	disk->SetReady(true);
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "READ CAPACITY(16) must fail because the medium has no capacity";
@@ -238,7 +238,7 @@ TEST(DiskTest, Read6)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "READ(6) must fail for a medium with 0 blocks";
@@ -253,7 +253,7 @@ TEST(DiskTest, Read10)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "READ(10) must fail for a medium with 0 blocks";
@@ -273,7 +273,7 @@ TEST(DiskTest, Read16)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "READ(16) must fail for a medium with 0 blocks";
@@ -293,7 +293,7 @@ TEST(DiskTest, Write6)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "WRIte(6) must fail for a medium with 0 blocks";
@@ -308,7 +308,7 @@ TEST(DiskTest, Write10)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "WRITE(10) must fail for a medium with 0 blocks";
@@ -328,7 +328,7 @@ TEST(DiskTest, Write16)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "WRITE(16) must fail for a medium with 0 blocks";
@@ -348,7 +348,7 @@ TEST(DiskTest, Verify10)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "VERIFY(10) must fail for a medium with 0 blocks";
@@ -368,7 +368,7 @@ TEST(DiskTest, Verify16)
 
 	controller.AddDevice(disk);
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "VERIFY(16) must fail for a medium with 0 blocks";
@@ -395,14 +395,14 @@ TEST(DiskTest, ReadLong10)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[2] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "READ LONG(10) must fail because the capacity is exceeded";
 	cmd[2] = 0;
 
 	cmd[7] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "READ LONG(10) must fail because it currently only supports 0 bytes transfer length";
@@ -420,7 +420,7 @@ TEST(DiskTest, ReadLong16)
 	// READ LONG(16), not READ CAPACITY(16)
 	cmd[1] = 0x11;
 	cmd[2] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "READ LONG(16) must fail because the capacity is exceeded";
@@ -431,7 +431,7 @@ TEST(DiskTest, ReadLong16)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[13] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
@@ -451,14 +451,14 @@ TEST(DiskTest, WriteLong10)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[2] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "WRITE LONG(10) must fail because the capacity is exceeded";
 	cmd[2] = 0;
 
 	cmd[7] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "WRITE LONG(10) must fail because it currently only supports 0 bytes transfer length";
@@ -474,7 +474,7 @@ TEST(DiskTest, WriteLong16)
 	vector<int>& cmd = controller.GetCmd();
 
 	cmd[2] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LBA_OUT_OF_RANGE))))
 		<< "WRITE LONG(16) must fail because the capacity is exceeded";
@@ -485,7 +485,7 @@ TEST(DiskTest, WriteLong16)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[13] = 1;
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
@@ -520,14 +520,14 @@ TEST(DiskTest, StartStopUnit)
 
 	disk->SetReady(false);
 	EXPECT_CALL(*disk, FlushCache).Times(0);
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LOAD_OR_EJECT_FAILED))));
 
 	disk->SetReady(true);
 	disk->SetLocked(true);
 	EXPECT_CALL(*disk, FlushCache).Times(0);
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::LOAD_OR_EJECT_FAILED))));
 
@@ -554,7 +554,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	EXPECT_THAT([&disk] { disk->Dispatch(scsi_command::eCmdRemoval); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRemoval); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))))
 		<< "REMOVAL must fail because drive is not ready";
