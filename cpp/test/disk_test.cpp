@@ -217,18 +217,13 @@ TEST(DiskTest, ReadCapacity16)
 	disk->SetSectorSizeInBytes(1024);
 	EXPECT_CALL(controller, DataIn());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16));
-	EXPECT_EQ(0x12, controller.GetBuffer()[0]);
-	EXPECT_EQ(0x34, controller.GetBuffer()[1]);
-	EXPECT_EQ(0x56, controller.GetBuffer()[2]);
-	EXPECT_EQ(0x78, controller.GetBuffer()[3]);
-	EXPECT_EQ(0x87, controller.GetBuffer()[4]);
-	EXPECT_EQ(0x65, controller.GetBuffer()[5]);
-	EXPECT_EQ(0x43, controller.GetBuffer()[6]);
-	EXPECT_EQ(0x20, controller.GetBuffer()[7]);
-	EXPECT_EQ(0x00, controller.GetBuffer()[8]);
-	EXPECT_EQ(0x00, controller.GetBuffer()[9]);
-	EXPECT_EQ(0x04, controller.GetBuffer()[10]);
-	EXPECT_EQ(0x00, controller.GetBuffer()[11]);
+	const auto& buf = controller.GetBuffer();
+	EXPECT_EQ(0x1234, GetInt16(buf, 0));
+	EXPECT_EQ(0x5678, GetInt16(buf, 2));
+	EXPECT_EQ(0x8765, GetInt16(buf, 4));
+	EXPECT_EQ(0x4320, GetInt16(buf, 6));
+	EXPECT_EQ(0x0000, GetInt16(buf, 8));
+	EXPECT_EQ(0x0400, GetInt16(buf, 10));
 }
 
 TEST(DiskTest, Read6)
