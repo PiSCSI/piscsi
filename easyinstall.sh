@@ -1204,7 +1204,6 @@ function runChoice() {
               createCfgDir
               updateRaScsiGit
               installPackages
-              installHfdisk
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi

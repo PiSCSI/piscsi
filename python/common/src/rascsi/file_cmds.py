@@ -430,8 +430,8 @@ class FileCmds:
                     self.delete_file(Path(file_name))
                     return {"status": False, "msg": errs}
             except TimeoutExpired:
-                proc.kill()
-                outs, errs = proc.communicate()
+                process.kill()
+                outs, errs = process.communicate()
                 if outs:
                     logging.info(str(outs, "utf-8"))
                 if errs:
