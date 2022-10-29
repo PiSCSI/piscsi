@@ -99,6 +99,7 @@ TEST(ScsiControllerTest, Selection)
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(true));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(false));
 	EXPECT_CALL(*bus, GetATN).Times(0);
+	EXPECT_CALL(controller, Status);
 	controller.Selection();
 	EXPECT_EQ(BUS::phase_t::selection, controller.GetPhase());
 
@@ -145,6 +146,7 @@ TEST(ScsiControllerTest, Command)
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::command);
+	EXPECT_CALL(controller, Status);
 	controller.Command();
 	EXPECT_EQ(BUS::phase_t::command, controller.GetPhase());
 
