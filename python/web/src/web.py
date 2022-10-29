@@ -952,7 +952,7 @@ def create_file():
             if not process["status"]:
                 return response(error=True, message=process["msg"])
         elif drive_format.startswith("FAT"):
-            elif drive_format == "FAT16":
+            if drive_format == "FAT16":
                 fat_size = "16"
             elif drive_format == "FAT32":
                 fat_size = "32"
