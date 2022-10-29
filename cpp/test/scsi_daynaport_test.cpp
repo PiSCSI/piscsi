@@ -22,16 +22,6 @@ TEST(ScsiDaynaportTest, Dispatch)
 	auto daynaport = CreateDevice(SCDP, controller);
 
 	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
-
-	// TODO Remove tests below as soon as Daynaport does not inherit from Disk anymore
-	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSense6))
-		<< "Non-DaynaPort commands inherited from Disk must not be supported";
-	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSelect6))
-		<< "Non-DaynaPort commands inherited from Disk must not be supported";
-	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSense10))
-		<< "Non-DaynaPort commands inherited from Disk must not be supported";
-	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdModeSelect10))
-		<< "Non-DaynaPort commands inherited from Disk must not be supported";
 }
 
 TEST(ScsiDaynaportTest, TestUnitReady)
@@ -87,7 +77,10 @@ TEST(ScsiDaynaportTest, Read6)
 	vector<int>& cmd = controller.GetCmd();
 
 	cmd[5] = 0xff;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdRead6), scsi_exception) << "Invalid data format";
+    EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Invalid data format";
 }
 
 TEST(ScsiDaynaportTest, Write6)
@@ -98,17 +91,26 @@ TEST(ScsiDaynaportTest, Write6)
 	vector<int>& cmd = controller.GetCmd();
 
 	cmd[5] = 0x00;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
+    EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Invalid transfer length";
 
 	cmd[3] = -1;
 	cmd[4] = -8;
 	cmd[5] = 0x80;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
+    EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Invalid transfer length";
 
 	cmd[3] = 0;
 	cmd[4] = 0;
 	cmd[5] = 0xff;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdWrite6), scsi_exception) << "Invalid transfer length";
+    EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Invalid transfer length";
 }
 
 TEST(ScsiDaynaportTest, TestRetrieveStats)
@@ -132,7 +134,9 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 	vector<int>& cmd = controller.GetCmd();
 
 	// Unknown interface command
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+    EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))));
 
 	// Not implemented, do nothing
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMODE;
@@ -146,15 +150,21 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 
 	// Not implemented
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_STATS;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))));
 
 	// Not implemented
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_ENABLE;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))));
 
 	// Not implemented
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SET;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode), scsi_exception);
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))));
 }
 
 TEST(ScsiDaynaportTest, SetMcastAddr)
@@ -164,7 +174,10 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdSetMcastAddr), scsi_exception) << "Length of 0 is not supported";
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Length of 0 is not supported";
 
 	cmd[4] = 1;
     EXPECT_CALL(controller, DataOut());
@@ -179,11 +192,15 @@ TEST(ScsiDaynaportTest, EnableInterface)
 	vector<int>& cmd = controller.GetCmd();
 
 	// Enable
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdEnableInterface), scsi_exception);
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
+			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 
 	// Disable
 	cmd[5] = 0x80;
-	EXPECT_THROW(daynaport->Dispatch(scsi_command::eCmdEnableInterface), scsi_exception);
+	EXPECT_THAT([&daynaport]() { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
+			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 }
 
 TEST(ScsiDaynaportTest, GetSendDelay)

@@ -127,8 +127,10 @@ TEST(ModePageDeviceTest, ModeSelect6)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
 
     cmd[1] = 0x01;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect6), scsi_exception)
-    	<< "Saving parameters is not supported for most device types";
+	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Saving parameters is not supported by base class";
 }
 
 TEST(ModePageDeviceTest, ModeSelect10)
@@ -144,6 +146,8 @@ TEST(ModePageDeviceTest, ModeSelect10)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
 
     cmd[1] = 0x01;
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdModeSelect10), scsi_exception)
-    	<< "Saving parameters is not supported for most device types";
+	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Saving parameters is not supported for by base class";
 }

@@ -18,7 +18,7 @@ TEST(ScsiControllerTest, GetInitiatorId)
 {
 	const int ID = 2;
 
-	MockScsiController controller(make_shared<MockBus>());
+	MockScsiController controller(make_shared<NiceMock<MockBus>>());
 
 	controller.Process(ID);
 	EXPECT_EQ(ID, controller.GetInitiatorId());
@@ -55,7 +55,7 @@ TEST(ScsiControllerTest, Process)
 
 TEST(ScsiControllerTest, BusFree)
 {
-	MockScsiController controller(make_shared<MockBus>());
+	MockScsiController controller(make_shared<NiceMock<MockBus>>());
 
 	controller.SetPhase(BUS::phase_t::busfree);
 	controller.BusFree();
@@ -86,7 +86,7 @@ TEST(ScsiControllerTest, BusFree)
 
 TEST(ScsiControllerTest, Selection)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::selection);
@@ -141,7 +141,7 @@ TEST(ScsiControllerTest, Selection)
 
 TEST(ScsiControllerTest, Command)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::command);
@@ -167,7 +167,7 @@ TEST(ScsiControllerTest, Command)
 
 TEST(ScsiControllerTest, MsgIn)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -182,7 +182,7 @@ TEST(ScsiControllerTest, MsgIn)
 
 TEST(ScsiControllerTest, MsgOut)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -197,7 +197,7 @@ TEST(ScsiControllerTest, MsgOut)
 
 TEST(ScsiControllerTest, DataIn)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -217,7 +217,7 @@ TEST(ScsiControllerTest, DataIn)
 
 TEST(ScsiControllerTest, DataOut)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -237,7 +237,7 @@ TEST(ScsiControllerTest, DataOut)
 
 TEST(ScsiControllerTest, Error)
 {
-	auto bus = make_shared<MockBus>();
+	auto bus = make_shared<NiceMock<MockBus>>();
 	MockScsiController controller(bus, 0);
 
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
@@ -280,7 +280,7 @@ TEST(ScsiControllerTest, Error)
 
 TEST(ScsiControllerTest, RequestSense)
 {
-	MockScsiController controller(make_shared<MockBus>());
+	MockScsiController controller(make_shared<NiceMock<MockBus>>());
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller.AddDevice(device);
