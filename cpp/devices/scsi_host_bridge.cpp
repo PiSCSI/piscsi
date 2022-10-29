@@ -27,7 +27,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIBR::SCSIBR(int lun) : Disk(SCBR, lun)
+SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
 {
 	// Create host file system
 	fs.Reset();
@@ -37,10 +37,6 @@ SCSIBR::SCSIBR(int lun) : Disk(SCBR, lun)
 	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 
 	SupportsParams(true);
-	// TODO Remove as soon as SCBR is not a subclass of Disk anymore
-	SetStoppable(false);
-	// TODO Remove as soon as SCBR is not a subclass of Disk anymore
-	SupportsFile(false);
 }
 
 bool SCSIBR::Init(const unordered_map<string, string>& params)
@@ -198,7 +194,7 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<BYTE>& buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
+bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint32_t)
 {
 	// Type
 	const int type = cdb[2];
@@ -261,13 +257,13 @@ void SCSIBR::GetMessage10()
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
 	controller->AllocateBuffer(0x1000000);
 
-	ctrl->length = GetMessage10(ctrl->cmd, controller->GetBuffer());
-	if (ctrl->length <= 0) {
+	controller->SetLength(GetMessage10(ctrl->cmd, controller->GetBuffer()));
+	if (controller->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Set next block
-	ctrl->blocks = 1;
+	controller->SetBlocks(1);
 	ctrl->next = 1;
 
 	EnterDataInPhase();
@@ -282,8 +278,8 @@ void SCSIBR::GetMessage10()
 //---------------------------------------------------------------------------
 void SCSIBR::SendMessage10()
 {
-	ctrl->length = GetInt24(ctrl->cmd, 6);
-	if (ctrl->length <= 0) {
+	controller->SetLength(GetInt24(ctrl->cmd, 6));
+	if (controller->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -291,7 +287,7 @@ void SCSIBR::SendMessage10()
 	controller->AllocateBuffer(0x1000000);
 
 	// Set next block
-	ctrl->blocks = 1;
+	controller->SetBlocks(1);
 	ctrl->next = 1;
 
 	EnterDataOutPhase();

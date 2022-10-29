@@ -110,7 +110,7 @@ void Disk::FormatUnit()
 void Disk::Read(access_mode mode)
 {
 	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
-		ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), start);
+		controller->SetLength(Read(ctrl->cmd, controller->GetBuffer(), start));
 		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
 
 		// Set next block
@@ -150,7 +150,7 @@ void Disk::ReadWriteLong16()
 void Disk::Write(access_mode mode)
 {
 	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
-		ctrl->length = WriteCheck(start);
+		controller->SetLength(WriteCheck(start));
 
 		// Set next block
 		ctrl->next = start + 1;
@@ -172,7 +172,7 @@ void Disk::Verify(access_mode mode)
 		}
 
 		// Test reading
-		ctrl->length = Read(ctrl->cmd, controller->GetBuffer(), start);
+		controller->SetLength(Read(ctrl->cmd, controller->GetBuffer(), start));
 
 		// Set next block
 		ctrl->next = start + 1;
@@ -245,7 +245,7 @@ void Disk::ReadDefectData10()
 
 	// The defect list is empty
 	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
-	ctrl->length = (int)allocation_length;
+	controller->SetLength((uint32_t)allocation_length);
 
 	EnterDataInPhase();
 }
@@ -586,7 +586,7 @@ void Disk::ReadCapacity10()
 	SetInt32(buf, 4, 1 << size_shift_count);
 
 	// the size
-	ctrl->length = 8;
+	controller->SetLength(8);
 
 	EnterDataInPhase();
 }
@@ -613,7 +613,7 @@ void Disk::ReadCapacity16()
 	buf[13] = 0;
 
 	// the size
-	ctrl->length = 14;
+	controller->SetLength(14);
 
 	EnterDataInPhase();
 }

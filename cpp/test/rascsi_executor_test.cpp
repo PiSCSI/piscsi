@@ -39,10 +39,10 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 	const int ID = 3;
 	const int LUN = 0;
 
-	shared_ptr<MockBus> bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	MockAbstractController controller(bus_ptr, ID);
-	ControllerManager controller_manager(bus_ptr);
+	MockAbstractController controller(bus, ID);
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);

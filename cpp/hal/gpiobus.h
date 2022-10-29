@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "scsi.h"
+#include "bus.h"
 #include <array>
 
 #ifdef __linux__
@@ -47,7 +48,7 @@
 #define GPIO_FUNCTION_TRACE
 #endif
 
-using namespace std; // NOSONAR Not relevant for rascsi
+using namespace std;
 
 //---------------------------------------------------------------------------
 //

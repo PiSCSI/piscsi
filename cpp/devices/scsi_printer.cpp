@@ -109,7 +109,7 @@ void SCSIPrinter::Print()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	ctrl->length = length;
+	controller->SetLength(length);
 	controller->SetByteTransfer(true);
 
 	EnterDataOutPhase();

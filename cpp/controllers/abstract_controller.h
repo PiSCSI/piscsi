@@ -84,6 +84,10 @@ public:
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
+	void SetLength(uint32_t l) { ctrl.length = l; }
+	uint32_t GetBlocks() const { return ctrl.blocks; }
+	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
+	void DecrementBlocks() { --ctrl.blocks; }
 
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
@@ -101,7 +105,6 @@ protected:
 	bool HasValidLength() const { return ctrl.length != 0; }
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
-	void SetLength(uint32_t l) { ctrl.length = l; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
 private:

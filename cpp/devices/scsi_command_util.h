@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "os.h"
 #include "scsi.h"
 #include <vector>
 #include <map>
