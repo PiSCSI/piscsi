@@ -54,7 +54,9 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 
 	// Match the requested to the current sector size
 	buf[24] = 0x02;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Not enough command parameters";
 
 	ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512);
@@ -99,7 +101,9 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 
 	// Match the requested to the current sector size
 	buf[28] = 0x02;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Not enough command parameters";
 
 	ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512);
