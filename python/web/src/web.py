@@ -929,11 +929,9 @@ def create_file():
         known_formats = [
                 "Lido 7.56",
                 "SpeedTools 3.6",
-                "FAT12",
                 "FAT16",
                 "FAT32",
                 "Atari ST FAT",
-                "NTFS",
                 ]
         if drive_format not in known_formats:
             return response(
@@ -943,14 +941,6 @@ def create_file():
                     drive_format=drive_format,
                 )
             )
-        elif drive_format == "NTFS":
-            process = file_cmd.format_ntfs(
-                    full_file_name,
-                    volume_name,
-                    )
-
-            if not process["status"]:
-                return response(error=True, message=process["msg"])
         elif drive_format == "Atari ST FAT":
             process = file_cmd.format_fat(
                     full_file_name,
@@ -962,8 +952,6 @@ def create_file():
             if not process["status"]:
                 return response(error=True, message=process["msg"])
         elif drive_format.startswith("FAT"):
-            if drive_format == "FAT12":
-                fat_size = "12"
             elif drive_format == "FAT16":
                 fat_size = "16"
             elif drive_format == "FAT32":
