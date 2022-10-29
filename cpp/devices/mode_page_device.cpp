@@ -101,14 +101,14 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 void ModePageDevice::ModeSense6()
 {
-	ctrl->length = ModeSense6(ctrl->cmd, controller->GetBuffer());
+	controller->SetLength(ModeSense6(ctrl->cmd, controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	ctrl->length = ModeSense10(ctrl->cmd, controller->GetBuffer());
+	controller->SetLength(ModeSense10(ctrl->cmd, controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
@@ -120,7 +120,7 @@ void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<B
 
 void ModePageDevice::ModeSelect6()
 {
-	ctrl->length = SaveParametersCheck(ctrl->cmd[4]);
+	controller->SetLength(SaveParametersCheck(ctrl->cmd[4]));
 
 	EnterDataOutPhase();
 }
@@ -129,7 +129,7 @@ void ModePageDevice::ModeSelect10()
 {
 	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
 
-	ctrl->length = SaveParametersCheck((int)length);
+	controller->SetLength(SaveParametersCheck((uint32_t)length));
 
 	EnterDataOutPhase();
 }
