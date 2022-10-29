@@ -11,6 +11,8 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "cstdint": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "deque": "cpp",
+        "vector": "cpp"
     }
 }

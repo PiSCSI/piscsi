@@ -16,6 +16,7 @@
 #include "scsi.h"
 #include <array>
 #include <memory>
+#include <vector>
 
 #ifdef __linux__
 #include <linux/gpio.h>
@@ -327,12 +328,14 @@ class GPIOBUS : public BUS
     bool GetDP() const override;
     // Get Data parity signal
 
-
-	// Extract as specific pin field from a raw data capture
-	uint32_t GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num);
+    // Extract as specific pin field from a raw data capture
+    uint32_t GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num);
     // TODO: SCSIMON needs to be re-worked to work differently. For now, a quick
     // and dirty hack is just to expose the current board type data structure.
-    shared_ptr<board_type::Rascsi_Board_Type> GetBoard(){return board;}
+    shared_ptr<board_type::Rascsi_Board_Type> GetBoard()
+    {
+        return board;
+    }
 
     int CommandHandShake(BYTE *buf) override;
     // Command receive handshake
@@ -346,7 +349,10 @@ class GPIOBUS : public BUS
 
     static int GetCommandByteCount(BYTE opcode);
 
-    const string GetConnectDesc(){return board->connect_desc;}
+    const string GetConnectDesc()
+    {
+        return board->connect_desc;
+    }
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
@@ -394,7 +400,7 @@ class GPIOBUS : public BUS
     uint32_t baseaddr = 0; // Base address
 #endif
 
-    static array<board_type::pi_physical_pin_e, 19> SignalTable; // signal table
+    static vector<board_type::pi_physical_pin_e> SignalTable; // signal table
 
 #ifdef USE_SEL_EVENT_ENABLE
     struct gpioevent_request selevreq = {}; // SEL signal event request

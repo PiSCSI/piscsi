@@ -98,25 +98,24 @@ bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
     // Save operation mode
     actmode = mode;
 
-    SignalTable[0] = board->pin_dt0;
-    SignalTable[1] = board->pin_dt1;
-    SignalTable[2] = board->pin_dt2;
-    SignalTable[3] = board->pin_dt3;
-    SignalTable[4] = board->pin_dt4;
-    SignalTable[5] = board->pin_dt5;
-    SignalTable[6] = board->pin_dt6;
-    SignalTable[7] = board->pin_dt7;
-    SignalTable[8] = board->pin_dp;
-    SignalTable[9] = board->pin_sel;
-    SignalTable[10] = board->pin_atn;
-    SignalTable[11] = board->pin_rst;
-    SignalTable[12] = board->pin_ack;
-    SignalTable[13] = board->pin_bsy;
-    SignalTable[14] = board->pin_msg;
-    SignalTable[15] = board->pin_cd;
-    SignalTable[16] = board->pin_io;
-    SignalTable[17] = board->pin_req;
-    SignalTable[18] = board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE;
+    SignalTable.push_back(board->pin_dt0);
+    SignalTable.push_back(board->pin_dt1);
+    SignalTable.push_back(board->pin_dt2);
+    SignalTable.push_back(board->pin_dt3);
+    SignalTable.push_back(board->pin_dt4);
+    SignalTable.push_back(board->pin_dt5);
+    SignalTable.push_back(board->pin_dt6);
+    SignalTable.push_back(board->pin_dt7);
+    SignalTable.push_back(board->pin_dp);
+    SignalTable.push_back(board->pin_sel);
+    SignalTable.push_back(board->pin_atn);
+    SignalTable.push_back(board->pin_rst);
+    SignalTable.push_back(board->pin_ack);
+    SignalTable.push_back(board->pin_bsy);
+    SignalTable.push_back(board->pin_msg);
+    SignalTable.push_back(board->pin_cd);
+    SignalTable.push_back(board->pin_io);
+    SignalTable.push_back(board->pin_req);
 
     return true;
 }
@@ -143,11 +142,12 @@ void GPIOBUS::Cleanup()
     PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_INPUT);
 
     // Initialize all signals
-    for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
-        board_type::pi_physical_pin_e pin = SignalTable[i];
-        PinSetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
-        PinConfig(pin, board_type::gpio_direction_e::GPIO_INPUT);
-        PullConfig(pin, board_type::gpio_pull_up_down_e::GPIO_PULLNONE);
+    for (board_type::pi_physical_pin_e pin : SignalTable) {
+        if (pin != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
+            PinSetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+            PinConfig(pin, board_type::gpio_direction_e::GPIO_INPUT);
+            PullConfig(pin, board_type::gpio_pull_up_down_e::GPIO_PULLNONE);
+        }
     }
 
     // Set drive strength back to 8mA
@@ -161,20 +161,14 @@ void GPIOBUS::Reset()
 #if defined(__x86_64__) || defined(__X86__)
     return;
 #else
-    int i;
-    board_type::pi_physical_pin_e j;
 
     // Turn off active signal
     SetControl(board->pin_act, board->ActOff());
 
-    // Set all signals to off
-    for (i = 0;; i++) {
-        j = SignalTable[i];
-        if (j == board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
-            break;
+    for (board_type::pi_physical_pin_e pin : SignalTable) {
+        if (pin != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
+            SetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
         }
-
-        SetSignal(j, board_type::gpio_high_low_e::GPIO_STATE_LOW);
     }
 
     if (actmode == mode_e::TARGET) {
@@ -467,14 +461,14 @@ bool GPIOBUS::GetDP() const
 }
 
 // Extract as specific pin field from a raw data capture
-uint32_t GPIOBUS::GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num){
+uint32_t GPIOBUS::GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num)
+{
     // return GetSignalRaw(raw_data, pin_num);
     (void)raw_data;
     (void)pin_num;
     LOGWARN("THIS FUNCTION ISN'T IMPLEMENTED YET");
     return 0;
 }
-
 
 //---------------------------------------------------------------------------
 //
@@ -866,7 +860,7 @@ void GPIOBUS::ClearSelectEvent()
 //	Signal table
 //
 //---------------------------------------------------------------------------
-array<board_type::pi_physical_pin_e, 19> GPIOBUS::SignalTable;
+vector<board_type::pi_physical_pin_e> GPIOBUS::SignalTable;
 
 //---------------------------------------------------------------------------
 //
@@ -877,7 +871,9 @@ void GPIOBUS::MakeTable(void)
 {
     GPIO_FUNCTION_TRACE
 
-    [[maybe_unused]] const array<board_type::pi_physical_pin_e, 9> pintbl = {board->pin_dt0, board->pin_dt1, board->pin_dt2, board->pin_dt3, board->pin_dt4, board->pin_dt5, board->pin_dt6, board->pin_dt7, board->pin_dp};
+    [[maybe_unused]] const array<board_type::pi_physical_pin_e, 9> pintbl = {
+        board->pin_dt0, board->pin_dt1, board->pin_dt2, board->pin_dt3, board->pin_dt4,
+        board->pin_dt5, board->pin_dt6, board->pin_dt7, board->pin_dp};
 
     array<bool, 256> tblParity;
 
@@ -989,7 +985,7 @@ bool GPIOBUS::WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_hig
 
         // Check for the signal edge
         LOGWARN("THIS WONT WORK. NEEDS TO BE UPDATED");
-        
+
         if ((GetSignal(pin) ^ ~((int)(board->gpio_state_to_bool(ast)))) & 1) {
             return true;
         }
@@ -1010,8 +1006,7 @@ bool GPIOBUS::WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_hig
 //---------------------------------------------------------------------------
 BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
 {
-    GPIO_FUNCTION_TRACE
-    (void)raw_data;
+    GPIO_FUNCTION_TRACE(void) raw_data;
     // // Selection Phase
     // if (GetPinRaw(raw_data, board->pin_sel)) {
     //     if (GetPinRaw(raw_data, board->pin_io)) {
@@ -1026,28 +1021,27 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
     //     return BUS::phase_t::busfree;
     // }
 
-
     LOGWARN("NOT IMPLEMENTED YET");
     return BUS::phase_t::busfree;
-//     // Selection Phase
-//     if (GetSignal(board->pin_sel)) {
-//         if (GetSignal(board->pin_io)) {
-//             return BUS::phase_t::reselection;
-//         } else {
-//             return BUS::phase_t::selection;
-//         }
-//     }
+    //     // Selection Phase
+    //     if (GetSignal(board->pin_sel)) {
+    //         if (GetSignal(board->pin_io)) {
+    //             return BUS::phase_t::reselection;
+    //         } else {
+    //             return BUS::phase_t::selection;
+    //         }
+    //     }
 
-//     // Bus busy phase
-//     if (!GetPinRaw(raw_data, board->pin_bsy)) {
-//         return BUS::phase_t::busfree;
-//     }
+    //     // Bus busy phase
+    //     if (!GetPinRaw(raw_data, board->pin_bsy)) {
+    //         return BUS::phase_t::busfree;
+    //     }
 
-//     // Get target phase from bus signal line
-//     int mci = GetPinRaw(raw_data, board->pin_msg) ? 0x04 : 0x00;
-//     mci |= GetPinRaw(raw_data, board->pin_cd) ? 0x02 : 0x00;
-//     mci |= GetPinRaw(raw_data, board->pin_io) ? 0x01 : 0x00;
-//     return GetPhase(mci);
+    //     // Get target phase from bus signal line
+    //     int mci = GetPinRaw(raw_data, board->pin_msg) ? 0x04 : 0x00;
+    //     mci |= GetPinRaw(raw_data, board->pin_cd) ? 0x02 : 0x00;
+    //     mci |= GetPinRaw(raw_data, board->pin_io) ? 0x01 : 0x00;
+    //     return GetPhase(mci);
 }
 
 //---------------------------------------------------------------------------
