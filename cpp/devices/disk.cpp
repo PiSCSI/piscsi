@@ -586,7 +586,7 @@ void Disk::ReadCapacity10()
 	SetInt32(buf, 4, 1 << size_shift_count);
 
 	// the size
-	controller->SetLength(0);
+	controller->SetLength(8);
 
 	EnterDataInPhase();
 }
