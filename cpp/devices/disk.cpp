@@ -78,13 +78,13 @@ bool Disk::Dispatch(scsi_command cmd)
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
 {
-	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, (uint32_t)GetBlockCount(), image_offset);
+	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, static_cast<uint32_t>(GetBlockCount()), image_offset);
 	cache->SetRawMode(raw);
 }
 
 void Disk::ResizeCache(const string& path, bool raw)
 {
-	cache.reset(new DiskCache(path, size_shift_count, (uint32_t)GetBlockCount()));
+	cache.reset(new DiskCache(path, size_shift_count, static_cast<uint32_t>(GetBlockCount())));
 	cache->SetRawMode(raw);
 }
 
@@ -241,11 +241,11 @@ void Disk::SynchronizeCache()
 
 void Disk::ReadDefectData10()
 {
-	const size_t allocation_length = min((size_t)GetInt16(ctrl->cmd, 7), (size_t)4);
+	const size_t allocation_length = min(static_cast<size_t>(GetInt16(ctrl->cmd, 7)), static_cast<size_t>(4));
 
 	// The defect list is empty
 	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
-	controller->SetLength((uint32_t)allocation_length);
+	controller->SetLength(static_cast<uint32_t>(allocation_length));
 
 	EnterDataInPhase();
 }
@@ -267,7 +267,7 @@ bool Disk::Eject(bool force)
 int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -286,7 +286,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 		// Only if ready
 		if (IsReady()) {
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(buf, 4, (uint32_t)GetBlockCount());
+			SetInt32(buf, 4, static_cast<uint32_t>(GetBlockCount()));
 			SetInt32(buf, 8, GetSectorSizeInBytes());
 		}
 
@@ -303,7 +303,7 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 {
 	// Get length, clear buffer
-	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
 	fill_n(buf.begin(), length, 0);
 
 	// DEVICE SPECIFIC PARAMETER
@@ -325,7 +325,7 @@ int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 			buf[7] = 0x08;
 
 			// Short LBA mode parameter block descriptor (number of blocks and block length)
-			SetInt32(buf, 8, (uint32_t)disk_blocks);
+			SetInt32(buf, 8, static_cast<uint32_t>(disk_blocks));
 			SetInt32(buf, 12, disk_size);
 
 			size = 16;
@@ -443,7 +443,7 @@ void Disk::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) const
 		uint64_t cylinders = GetBlockCount();
 		cylinders >>= 3;
 		cylinders /= 25;
-		SetInt32(buf, 0x01, (uint32_t)cylinders);
+		SetInt32(buf, 0x01, static_cast<uint32_t>(cylinders));
 
 		// Fix the head at 8
 		buf[0x05] = (byte)0x8;
@@ -492,7 +492,7 @@ int Disk::Read(const vector<int>&, vector<BYTE>& buf, uint64_t block)
 	}
 
 	// leave it to the cache
-	if (!cache->ReadSector(buf, (uint32_t)block)) {
+	if (!cache->ReadSector(buf, static_cast<uint32_t>(block))) {
 		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
@@ -533,7 +533,7 @@ void Disk::Write(const vector<int>&, const vector<BYTE>& buf, uint64_t block)
 	}
 
 	// Leave it to the cache
-	if (!cache->WriteSector(buf, (uint32_t)block)) {
+	if (!cache->WriteSector(buf, static_cast<uint32_t>(block))) {
 		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 	}
 }
@@ -580,7 +580,7 @@ void Disk::ReadCapacity10()
 	if (capacity > 4294967295) {
 		capacity = -1;
 	}
-	SetInt32(buf, 0, (uint32_t)capacity);
+	SetInt32(buf, 0, static_cast<uint32_t>(capacity));
 
 	// Create block length (1 << size)
 	SetInt32(buf, 4, 1 << size_shift_count);
@@ -677,7 +677,8 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 		}
 	}
 
-	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count)
+	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__,
+			static_cast<uint32_t>(start), count)
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {

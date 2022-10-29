@@ -74,10 +74,10 @@ void PrimaryDevice::Inquiry()
 
 	vector<byte> buf = InquiryInternal();
 
-	const size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(ctrl->cmd, 3)));
 
 	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-	controller->SetLength((uint32_t)allocation_length);
+	controller->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
 	if (int lun = controller->GetEffectiveLun(); !controller->HasDeviceForLun(lun)) {
@@ -100,7 +100,7 @@ void PrimaryDevice::ReportLuns()
 	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
-	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
+	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
@@ -139,10 +139,10 @@ void PrimaryDevice::RequestSense()
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(ctrl->cmd[4]));
 
     memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-    controller->SetLength((uint32_t)allocation_length);
+    controller->SetLength(static_cast<uint32_t>(allocation_length));
 
     EnterDataInPhase();
 }

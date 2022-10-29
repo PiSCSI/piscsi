@@ -182,7 +182,7 @@ void SCSIMO::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 
 		buf[2] = (byte)0; // format mode
 		buf[3] = (byte)0; // type of format
-		SetInt32(buf, 4, (uint32_t)blocks);
+		SetInt32(buf, 4, static_cast<uint32_t>(blocks));
 		SetInt16(buf, 8, spare);
 		SetInt16(buf, 10, bands);
 	}

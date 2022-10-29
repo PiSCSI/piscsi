@@ -92,7 +92,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto size = (int)min((size_t)max_length, result.size());
+	auto size = (int)min(static_cast<size_t>(max_length), result.size());
 	memcpy(&buf.data()[offset], result.data(), size);
 
 	// Do not return more than the requested number of bytes
@@ -127,9 +127,9 @@ void ModePageDevice::ModeSelect6()
 
 void ModePageDevice::ModeSelect10()
 {
-	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
+	const size_t length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(ctrl->cmd, 7)));
 
-	controller->SetLength(SaveParametersCheck((uint32_t)length));
+	controller->SetLength(SaveParametersCheck(static_cast<uint32_t>(length)));
 
 	EnterDataOutPhase();
 }

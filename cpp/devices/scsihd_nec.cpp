@@ -34,7 +34,7 @@ void SCSIHD_NEC::Open()
 	array<char, 512> root_sector;
 	ifstream in(GetFilename(), ios::binary);
 	in.read(root_sector.data(), root_sector.size());
-	if (!in.good() || size < (off_t)root_sector.size()) {
+	if (!in.good() || size < static_cast<off_t>(root_sector.size())) {
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
 
@@ -44,7 +44,7 @@ void SCSIHD_NEC::Open()
 	// Determine parameters by extension
 	const auto [image_size, sector_size] = SetParameters(root_sector, (int)size);
 
-	SetSectorSizeShiftCount((uint32_t)size);
+	SetSectorSizeShiftCount(static_cast<uint32_t>(size));
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
@@ -88,7 +88,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 			heads = GetInt16LittleEndian(&root_sector[0x118]);
 			sectors = GetInt16LittleEndian(&root_sector[0x11a]);
 			sector_size = GetInt16LittleEndian(&root_sector[0x11c]);
-			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
+			image_size = static_cast<int>(static_cast<off_t>(cylinders * heads * sectors * sector_size));
 		}
 		else {
 			throw io_exception("Invalid NEC image file format");
