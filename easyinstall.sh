@@ -64,6 +64,8 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
 SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+FILE_SHARE_PATH="$HOME/file_sharing"
+FILE_SHARE_NAME="Pi File Server"
 
 set -e
 
@@ -767,8 +769,7 @@ function setupWirelessNetworking() {
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="2-220801"
-    AFP_SHARE_PATH="$HOME/afpshare"
-    AFP_SHARE_NAME="Pi File Server"
+    FILE_SHARE_PATH="$HOME/file_sharing"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
@@ -791,7 +792,7 @@ function installNetatalk() {
     rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+    ./debian_install.sh -j="${CORES:-1}" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -871,8 +872,6 @@ function installMacproxy {
 
 # Installs and configures Samba (SMB server)
 function installSamba() {
-    SMB_SHARE_PATH="$HOME/smbshare"
-    SMB_SHARE_NAME="Pi File Server"
     SAMBA_CONFIG_PATH="/etc/samba"
 
     if [ -d "$SAMBA_CONFIG_PATH" ]; then
@@ -882,13 +881,13 @@ function installSamba() {
         exit 0
     fi
 
-    if [ -d "$SMB_SHARE_PATH" ]; then
-        echo "Found a $SMB_SHARE_PATH directory; will use it for file sharing."
+    if [ -d "$FILE_SHARE_PATH" ]; then
+        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
     else
-        echo "Creating the $SMB_SHARE_PATH directory and granting read/write permissions to all users..."
-        sudo mkdir -p "$SMB_SHARE_PATH"
-        sudo chown -R "$USER:$USER" "$SMB_SHARE_PATH"
-        chmod -Rv 775 "$SMB_SHARE_PATH"
+        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$FILE_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        chmod -Rv 775 "$FILE_SHARE_PATH"
     fi
 
     echo ""
@@ -897,11 +896,14 @@ function installSamba() {
     sudo apt-get install samba --assume-yes </dev/null
     echo ""
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
+    # Allow Windows XP clients and earlier to connect to the server
     sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
-    echo -e '\n[Pi File Server]\npath = /home/'"$USER"'/smbshare\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    # Define a shared directory with full read/write privileges, while aggressively hiding dot files
+    echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
 
     sudo systemctl restart smbd
 
+    echo "Please create a Samba password for user $USER"
     sudo smbpasswd -a "$USER"
 }
 

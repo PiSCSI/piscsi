@@ -59,8 +59,7 @@ from web_utils import (
 )
 from settings import (
     WEB_DIR,
-    AFP_DIR,
-    SMB_DIR,
+    FILE_SERVER_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
@@ -252,8 +251,7 @@ def index():
         drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
-        AFP_DIR=AFP_DIR,
-        SMB_DIR=SMB_DIR,
+        FILE_SERVER_DIR=FILE_SERVER_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
@@ -866,10 +864,8 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "afp":
-        destination_dir = AFP_DIR
-    elif destination == "smb":
-        destination_dir = SMB_DIR
+    if destination == "file_server":
+        destination_dir = FILE_SERVER_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
