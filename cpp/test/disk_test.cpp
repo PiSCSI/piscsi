@@ -171,18 +171,16 @@ TEST(DiskTest, ReadCapacity10)
 	disk->SetBlockCount(0x12345678);
 	EXPECT_CALL(controller, DataIn());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadCapacity10));
-	EXPECT_EQ(0x12, controller.GetBuffer()[0]);
-	EXPECT_EQ(0x34, controller.GetBuffer()[1]);
-	EXPECT_EQ(0x56, controller.GetBuffer()[2]);
-	EXPECT_EQ(0x77, controller.GetBuffer()[3]);
+	auto& buf = controller.GetBuffer();
+	EXPECT_EQ(0x1234, GetInt16(buf, 0));
+	EXPECT_EQ(0x5677, GetInt16(buf, 2));
 
 	disk->SetBlockCount(0x1234567887654321);
 	EXPECT_CALL(controller, DataIn());
 	EXPECT_TRUE(disk->Dispatch(scsi_command::eCmdReadCapacity10));
-	EXPECT_EQ(0xff, controller.GetBuffer()[0]);
-	EXPECT_EQ(0xff, controller.GetBuffer()[1]);
-	EXPECT_EQ(0xff, controller.GetBuffer()[2]);
-	EXPECT_EQ(0xff, controller.GetBuffer()[3]);
+	buf = controller.GetBuffer();
+	EXPECT_EQ(0xffff, GetInt16(buf, 0));
+	EXPECT_EQ(0xffff, GetInt16(buf, 2));
 }
 
 TEST(DiskTest, ReadCapacity16)
