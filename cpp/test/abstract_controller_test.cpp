@@ -179,7 +179,17 @@ TEST(AbstractControllerTest, GetLun)
 	EXPECT_EQ(LUN, controller.GetLun());
 }
 
-TEST(AbstractControllerTest, SetLength)
+TEST(AbstractControllerTest, Blocks)
+{
+	MockAbstractController controller(make_shared<MockBus>(), 0);
+
+	controller.SetBlocks(1);
+	EXPECT_EQ(1, controller.GetBlocks());
+	controller.DecrementBlocks();
+	EXPECT_EQ(0, controller.GetBlocks());
+}
+
+TEST(AbstractControllerTest, Length)
 {
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 

@@ -98,7 +98,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
 	FRIEND_TEST(AbstractControllerTest, GetLun);
-	FRIEND_TEST(AbstractControllerTest, SetLength);
+	FRIEND_TEST(AbstractControllerTest, Blocks);
+	FRIEND_TEST(AbstractControllerTest, Length);
 	FRIEND_TEST(AbstractControllerTest, UpdateOffsetAndLength);
 	FRIEND_TEST(AbstractControllerTest, Offset);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
