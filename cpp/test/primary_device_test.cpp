@@ -188,7 +188,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 
-	ON_CALL(*device, InquiryInternal()).WillByDefault([&]() {
+	ON_CALL(*device, InquiryInternal()).WillByDefault([&device]() {
 		return device->HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 	});
 	EXPECT_CALL(*device, InquiryInternal());
@@ -208,7 +208,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_EQ(scsi_level::SCSI_2, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
 	EXPECT_EQ(0x1f, controller->GetBuffer()[4]) << "Wrong additional data size";
 
-	ON_CALL(*device, InquiryInternal()).WillByDefault([&]() {
+	ON_CALL(*device, InquiryInternal()).WillByDefault([&device]() {
 		return device->HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, true);
 	});
 	EXPECT_CALL(*device, InquiryInternal());
