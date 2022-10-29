@@ -41,14 +41,19 @@ TEST(ModePageDeviceTest, AddModePages)
 	cdb[2] = 0x3f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception)
+	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "Maximum size was ignored";
 
 	// All pages, changeable
 	cdb[2]= 0x7f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception) << "Maximum size was ignored";
+	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Maximum size was ignored";
 }
 
 TEST(ModePageDeviceTest, Page0)
