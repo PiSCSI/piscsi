@@ -937,6 +937,7 @@ def create_file():
                 "FAT16",
                 "FAT32",
                 "Atari ST FAT",
+                "NTFS",
                 ]
         if drive_format not in known_formats:
             return response(
@@ -946,6 +947,14 @@ def create_file():
                     drive_format=drive_format,
                 )
             )
+        elif drive_format == "NTFS":
+            process = file_cmd.format_ntfs(
+                    full_file_name,
+                    volume_name,
+                    )
+
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
         elif drive_format == "Atari ST FAT":
             process = file_cmd.format_fat(
                     full_file_name,
