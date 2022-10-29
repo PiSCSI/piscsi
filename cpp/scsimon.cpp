@@ -33,7 +33,7 @@ static const int _MAX_FNAME = 256;
 //
 //---------------------------------------------------------------------------
 static volatile bool running; // Running flag
-unique_ptr<GPIOBUS> bus;			      // GPIO Bus
+shared_ptr<GPIOBUS> bus;			      // GPIO Bus
 
 uint32_t buff_size = 1000000;
 data_capture *data_buffer;
@@ -151,7 +151,7 @@ void Banner(int, char *[])
     }
     else {
         LOGINFO("Reading live data from the GPIO pins")
-        LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
+        LOGINFO("    Connection type : %s", bus->GetConnectDesc().c_str())
     }
     LOGINFO("    Data buffer size: %u", buff_size)
     LOGINFO(" ")
@@ -331,13 +331,13 @@ int main(int argc, char *argv[])
 
     (void)gettimeofday(&start_time, nullptr);
 
-    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
+    // LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
 
     // Main Loop
     while (running)
     {
         // Work initialization
-        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
+        this_sample = (bus->Acquire());// & ALL_SCSI_PINS);
         loop_count++;
         if (loop_count > LLONG_MAX - 1)
         {

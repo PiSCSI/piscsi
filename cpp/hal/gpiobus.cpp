@@ -466,6 +466,16 @@ bool GPIOBUS::GetDP() const
     return GetSignal(board->pin_dp);
 }
 
+// Extract as specific pin field from a raw data capture
+uint32_t GPIOBUS::GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num){
+    // return GetSignalRaw(raw_data, pin_num);
+    (void)raw_data;
+    (void)pin_num;
+    LOGWARN("THIS FUNCTION ISN'T IMPLEMENTED YET");
+    return 0;
+}
+
+
 //---------------------------------------------------------------------------
 //
 //	Receive command handshake

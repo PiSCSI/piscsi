@@ -13,6 +13,7 @@
 
 #include "scsi.h"
 #include "hal/gpiobus.h"
+#include "hal/board_type.h"
 
 using data_capture_t = struct data_capture
 {
@@ -22,27 +23,30 @@ using data_capture_t = struct data_capture
 
 #define GET_PIN(SAMPLE, PIN) ((bool)((SAMPLE->data >> PIN) & 1))
 
-inline bool GetBsy(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_BSY); }
-inline bool GetSel(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_SEL); }
-inline bool GetAtn(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_ATN); }
-inline bool GetAck(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_ACK); }
-inline bool GetRst(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_RST); }
-inline bool GetMsg(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_MSG); }
-inline bool GetCd(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_CD); }
-inline bool GetIo(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_IO); }
-inline bool GetReq(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_REQ); }
-inline bool GetDp(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_DP); }
+extern shared_ptr<GPIOBUS> bus;			      // GPIO Bus
+
+inline bool GetBsy(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_bsy); }
+inline bool GetSel(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_sel); }
+inline bool GetAtn(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_atn); }
+inline bool GetAck(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_ack); }
+inline bool GetRst(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_rst); }
+inline bool GetMsg(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_msg); }
+inline bool GetCd(const data_capture *sample)  { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_cd); }
+inline bool GetIo(const data_capture *sample)  { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_io); }
+inline bool GetReq(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_req); }
+inline bool GetDp(const data_capture *sample)  { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dp); }
 inline BYTE GetData(const data_capture *sample)
 {
-	uint32_t data = sample->data;
-	return (BYTE)((data >> (PIN_DT0 - 0)) & (1 << 0)) |
-		   ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-		   ((data >> (PIN_DT2 - 2)) & (1 << 2)) |
-		   ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-		   ((data >> (PIN_DT4 - 4)) & (1 << 4)) |
-		   ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-		   ((data >> (PIN_DT6 - 6)) & (1 << 6)) |
-		   ((data >> (PIN_DT7 - 7)) & (1 << 7));
+	uint32_t result = 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt0) != 0) ? (1 << 0) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt1) != 0) ? (1 << 1) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt2) != 0) ? (1 << 2) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt3) != 0) ? (1 << 3) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt4) != 0) ? (1 << 4) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt5) != 0) ? (1 << 5) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt6) != 0) ? (1 << 6) : 0;
+	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt7) != 0) ? (1 << 7) : 0;
+	return result;
 }
 
 const char *GetPhaseStr(const data_capture *sample);

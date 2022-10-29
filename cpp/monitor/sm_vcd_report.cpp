@@ -20,6 +20,8 @@
 
 using namespace std;
 
+extern shared_ptr<GPIOBUS> bus;		
+
 //---------------------------------------------------------------------------
 //
 //  Constant declarations
@@ -49,28 +51,27 @@ const int PIN_PHASE = 0;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static BYTE prev_value[32] = {0xFF};
+// TODO: prev_value can be smaller. Just making up a big number for now
+static BYTE prev_value[128] = {0xFF};
 
 extern double ns_per_loop;
 
-static BYTE get_pin_value(uint32_t data, int pin)
+static BYTE get_pin_value(uint32_t data, board_type::pi_physical_pin_e pin)
 {
-    return (data >> pin) & 1;
+    return bus->GetPinRaw(data, pin);
+    // return (data >> pin) & 1;
 }
 
 static BYTE get_data_field(uint32_t data)
 {
-    const uint32_t data_out =
-        ((data >> (PIN_DT0 - 0)) & (1 << 7)) |
-        ((data >> (PIN_DT1 - 1)) & (1 << 6)) |
-        ((data >> (PIN_DT2 - 2)) & (1 << 5)) |
-        ((data >> (PIN_DT3 - 3)) & (1 << 4)) |
-        ((data >> (PIN_DT4 - 4)) & (1 << 3)) |
-        ((data >> (PIN_DT5 - 5)) & (1 << 2)) |
-        ((data >> (PIN_DT6 - 6)) & (1 << 1)) |
-        ((data >> (PIN_DT7 - 7)) & (1 << 0));
+    // TODO: This is a quick hack to re-use the GetData() function from data_sample.h
+    const struct data_capture dummy_data_capture =
+    {
+        .data = data,
+        .timestamp = 0,
+    };
+    return GetData(&dummy_data_capture);
 
-    return (BYTE)data_out;
 }
 
 static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
@@ -82,11 +83,11 @@ static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, ch
     }
 }
 
-static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, char symbol)
+static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, board_type::pi_physical_pin_e pin, char symbol)
 {
     const BYTE new_value = get_pin_value(data, pin);
-    if (prev_value[pin] != new_value) {
-        prev_value[pin] = new_value;
+    if (prev_value[(int)pin] != new_value) {
+        prev_value[(int)pin] = new_value;
         fp << new_value << symbol << endl;
     }
 }
@@ -97,14 +98,14 @@ static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, cha
     if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << "b"
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT7))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT6))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT5))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT4))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT3))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT2))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT1))
-            << fmt::format("{0:b}", get_pin_value(data, PIN_DT0))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt7))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt6))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt5))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt4))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt3))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt2))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt1))
+            << fmt::format("{0:b}", get_pin_value(data, bus->GetBoard()->pin_dt0))
             << " " << symbol << endl;
     }
 }
@@ -166,16 +167,16 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
     uint32_t i = 0;
     while (i < capture_count) {
         vcd_ofstream << "#" << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop) << endl;
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_CD, SYMBOL_PIN_CD);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_IO, SYMBOL_PIN_IO);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_MSG, SYMBOL_PIN_MSG);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_REQ, SYMBOL_PIN_REQ);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_ACK, SYMBOL_PIN_ACK);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_ATN, SYMBOL_PIN_ATN);
-        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_RST, SYMBOL_PIN_RST);
-        vcd_output_if_changed_byte(vcd_ofstream, data_capture_array[i].data, PIN_DT0, SYMBOL_PIN_DAT);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_bsy, SYMBOL_PIN_BSY);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_sel, SYMBOL_PIN_SEL);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_cd, SYMBOL_PIN_CD);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_io, SYMBOL_PIN_IO);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_msg, SYMBOL_PIN_MSG);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_req, SYMBOL_PIN_REQ);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_ack, SYMBOL_PIN_ACK);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_atn, SYMBOL_PIN_ATN);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data,  bus->GetBoard()->pin_rst, SYMBOL_PIN_RST);
+        vcd_output_if_changed_byte(vcd_ofstream, data_capture_array[i].data,  (int)bus->GetBoard()->pin_dt0, SYMBOL_PIN_DAT);
         vcd_output_if_changed_phase(vcd_ofstream, data_capture_array[i].data, PIN_PHASE, SYMBOL_PIN_PHASE);
         i++;
     }

@@ -60,12 +60,6 @@ public:
 	// Get the string phase name, based upon the raw data
 	static const char* GetPhaseStrRaw(phase_t current_phase);
 
-	// Extract as specific pin field from a raw data capture
-	static inline uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num)
-	{
-		return ((raw_data >> pin_num) & 1);
-	}
-
 	virtual bool GetBSY() const = 0;
 	virtual void SetBSY(bool ast) = 0;
 

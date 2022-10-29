@@ -326,6 +326,14 @@ class GPIOBUS : public BUS
     // Set REQ signal
     bool GetDP() const override;
     // Get Data parity signal
+
+
+	// Extract as specific pin field from a raw data capture
+	uint32_t GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num);
+    // TODO: SCSIMON needs to be re-worked to work differently. For now, a quick
+    // and dirty hack is just to expose the current board type data structure.
+    shared_ptr<board_type::Rascsi_Board_Type> GetBoard(){return board;}
+
     int CommandHandShake(BYTE *buf) override;
     // Command receive handshake
     int ReceiveHandShake(BYTE *buf, int count) override;
