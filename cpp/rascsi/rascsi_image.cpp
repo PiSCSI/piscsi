@@ -249,6 +249,12 @@ bool RascsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
     	return context.ReturnStatus(false, "Can't read source image file '" + from + "'");
     }
 
+	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
+	if (id != -1 || lun != -1) {
+		return context.ReturnStatus(false, "Can't copy image file '" + from +
+				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
+	}
+
 	if (!CreateImageFolder(context, to)) {
 		return false;
 	}
