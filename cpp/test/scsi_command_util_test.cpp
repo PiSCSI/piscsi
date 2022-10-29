@@ -23,7 +23,9 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Vendor-specific parameters are not supported";
 
 	cdb[0] = 0x15;
@@ -33,12 +35,16 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	buf[9] = 0x00;
 	buf[10] = 0x02;
 	buf[11] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[12] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
@@ -63,7 +69,9 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Vendor-specific parameters are not supported";
 
 	// PF (standard parameter format)
@@ -72,12 +80,16 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	buf[13] = 0x00;
 	buf[14] = 0x02;
 	buf[15] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[16] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
