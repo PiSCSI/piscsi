@@ -49,7 +49,9 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 
 	// Page 3 (Format Device Page)
 	buf[12] = 0x03;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
@@ -96,7 +98,9 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 
 	// Page 3 (Format Device Page)
 	buf[16] = 0x03;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
