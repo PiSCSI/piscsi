@@ -905,6 +905,8 @@ void GPIOBUS::MakeTable(void)
     for (uint32_t i = 0; i < 0x100; i++) {
         // Bit string for inspection
         uint32_t bits = i;
+        // TODO: temporary to make clang++ happy.....
+        (void)bits;
 
         // Get parity
         if (tblParity[i]) {
