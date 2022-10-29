@@ -39,7 +39,7 @@ public:
 		commands[opcode] = make_unique<command_t>(name, execute);
 	}
 
-	bool Dispatch(T *instance, scsi_command cmd)
+	bool Dispatch(T *instance, scsi_command cmd) const
 	{
 		if (const auto& it = commands.find(cmd); it != commands.end()) {
 			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (int)cmd)
