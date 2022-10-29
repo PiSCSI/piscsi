@@ -959,11 +959,25 @@ def create_file():
             if not process["status"]:
                 return response(error=True, message=process["msg"])
         elif drive_format.startswith("FAT"):
+            if drive_format == "FAT12":
+                fat_size = "12"
+            elif drive_format == "FAT16":
+                fat_size = "16"
+            elif drive_format == "FAT32":
+                fat_size = "32"
+            else:
+                return response(
+                    error=True,
+                    message=_(
+                        "%(drive_format)s is not a valid hard disk format.",
+                        drive_format=drive_format,
+                    )
+                )
             process = file_cmd.format_fat(
                     full_file_name,
                     # FAT volume labels are max 11 chars
                     volume_name[:11],
-                    fat_size=drive_format[-2:],
+                    fat_size=fat_size,
                     )
 
             if not process["status"]:
