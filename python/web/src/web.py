@@ -927,12 +927,8 @@ def create_file():
     if drive_format:
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
         known_formats = [
-                "Apple Drive Setup 1.7.3",
-                "Apple Drive Setup 2.0.3",
-                "Apple HD SC Setup 7.3.5",
-                "FWB 4.5.2",
                 "Lido 7.56",
-                "MacOS8 Installer Driver",
+                "SpeedTools 3.6",
                 "FAT12",
                 "FAT16",
                 "FAT32",
