@@ -124,8 +124,6 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 bool AbstractController::RemoveDevice(const shared_ptr<PrimaryDevice> device)
 {
 	const size_t count = luns.erase(device->GetLun());
-	assert (count == 1);
-
 	if (count == 1) {
 		device->SetController(nullptr);
 	}
