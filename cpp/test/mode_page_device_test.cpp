@@ -108,9 +108,13 @@ TEST(ModePageDeviceTest, ModeSelect)
 	vector<int> cmd;
 	vector<BYTE> buf;
 
-	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0), scsi_exception)
+	EXPECT_THAT([&]() { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(6) default implementation";
-	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0), scsi_exception)
+	EXPECT_THAT([&]() { device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(10) default implementation";
 }
 
