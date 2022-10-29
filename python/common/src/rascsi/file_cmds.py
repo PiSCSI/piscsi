@@ -508,18 +508,19 @@ class FileCmds:
         full_file_path = Path(server_info["image_dir"]) / file_name
 
         args =  [
-                    "/usr/sbin/mkfs.vfat",
+                    "/usr/sbin/mkfs.fat",
+                    "-v",
                     "-n",
                     volume_name,
                     str(full_file_path),
                 ]
 
         if atari:
-            args.insert(1, "-A")
+            args.insert(2, "-A")
 
         if fat_size:
-            args.insert(1, "-F")
-            args.insert(2, fat_size)
+            args.insert(2, "-F")
+            args.insert(3, fat_size)
 
         try:
             run(
