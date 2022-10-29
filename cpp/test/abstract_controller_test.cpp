@@ -110,10 +110,14 @@ TEST(AbstractControllerTest, ProcessPhase)
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::reselection);
-	EXPECT_THROW(controller.ProcessPhase(), scsi_exception);
+	EXPECT_THAT([&controller]() { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
+			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 
 	controller.SetPhase(BUS::phase_t::reserved);
-	EXPECT_THROW(controller.ProcessPhase(), scsi_exception);
+	EXPECT_THAT([&controller]() { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
+			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 }
 
 TEST(AbstractControllerTest, DeviceLunLifeCycle)

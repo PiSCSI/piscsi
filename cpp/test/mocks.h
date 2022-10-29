@@ -125,7 +125,8 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, Write16);
 	FRIEND_TEST(DiskTest, Verify10);
 	FRIEND_TEST(DiskTest, Verify16);
-	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadCapacity10);
+	FRIEND_TEST(DiskTest, ReadCapacity16);
 	FRIEND_TEST(DiskTest, ReadLong10);
 	FRIEND_TEST(DiskTest, ReadLong16);
 	FRIEND_TEST(DiskTest, WriteLong10);
@@ -180,6 +181,7 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
+	explicit MockScsiController(shared_ptr<NiceMock<MockBus>> bus, int target_id) : ScsiController(bus, target_id) {}
 	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
 	MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
 	~MockScsiController() override = default;
@@ -299,7 +301,8 @@ class MockDisk : public Disk
 	FRIEND_TEST(DiskTest, Write16);
 	FRIEND_TEST(DiskTest, Verify10);
 	FRIEND_TEST(DiskTest, Verify16);
-	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadCapacity10);
+	FRIEND_TEST(DiskTest, ReadCapacity16);
 	FRIEND_TEST(DiskTest, ReadLong10);
 	FRIEND_TEST(DiskTest, ReadLong16);
 	FRIEND_TEST(DiskTest, WriteLong10);
