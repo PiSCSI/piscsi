@@ -64,7 +64,7 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
 SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
-FILE_SHARE_PATH="$HOME/file_sharing"
+FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
 set -e
@@ -775,7 +775,7 @@ function installNetatalk() {
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
         echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
-        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "This installation process will overwrite existing binaries and configurations."
         echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
         echo
         echo "Do you want to proceed with the installation? [y/N]"
@@ -877,8 +877,14 @@ function installSamba() {
     if [ -d "$SAMBA_CONFIG_PATH" ]; then
         echo
         echo "Samba configuration dir $SAMBA_CONFIG_PATH already exists."
-        echo "Please configure Samba manually, or uninstall it first before running this script."
-        exit 0
+        echo "This installation process may overwrite existing binaries and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
     fi
 
     if [ -d "$FILE_SHARE_PATH" ]; then
@@ -896,10 +902,15 @@ function installSamba() {
     sudo apt-get install samba --assume-yes </dev/null
     echo ""
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
-    # Allow Windows XP clients and earlier to connect to the server
-    sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
-    # Define a shared directory with full read/write privileges, while aggressively hiding dot files
-    echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Allow Windows XP clients and earlier to connect to the server
+        sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
+        echo "server min prototol = NT1"
+    fi
+    if [[ `sudo grep -c "\[Pi File Server\]" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Define a shared directory with full read/write privileges, while aggressively hiding dot files
+        echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    fi
 
     sudo systemctl restart smbd
 
@@ -1274,7 +1285,7 @@ function runChoice() {
               echo " - Create a Samba user for the current user"
               sudoCheck
               installSamba
-              echo "Installing AppleShare File Server - Complete!"
+              echo "Installing SMB File Server - Complete!"
           ;;
           9)
               echo "Installing Web Proxy Server"
