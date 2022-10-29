@@ -91,7 +91,7 @@ TEST(ScsiPrinterTest, Print)
 
     cmd[3] = 0xff;
     cmd[4] = 0xff;
-    EXPECT_THAT([&printer]() { printer->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&printer] { printer->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
     	<< "Buffer overflow was not reported";
@@ -112,7 +112,7 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
-    EXPECT_THAT([&printer]() { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&printer] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
 			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))))
 		<< "Nothing to print";

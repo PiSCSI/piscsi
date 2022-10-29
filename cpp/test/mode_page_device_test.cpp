@@ -108,11 +108,11 @@ TEST(ModePageDeviceTest, ModeSelect)
 	vector<int> cmd;
 	vector<BYTE> buf;
 
-	EXPECT_THAT([&]() { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(6) default implementation";
-	EXPECT_THAT([&]() { device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(10) default implementation";
@@ -131,7 +131,7 @@ TEST(ModePageDeviceTest, ModeSelect6)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
 
     cmd[1] = 0x01;
-	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&device] { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
     	<< "Saving parameters is not supported by base class";
@@ -150,7 +150,7 @@ TEST(ModePageDeviceTest, ModeSelect10)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
 
     cmd[1] = 0x01;
-	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&device] { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
     	<< "Saving parameters is not supported for by base class";
