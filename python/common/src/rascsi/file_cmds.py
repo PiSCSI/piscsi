@@ -497,7 +497,7 @@ class FileCmds:
 
 
     # noinspection PyMethodMayBeStatic
-    def format_fat(self, file_name, volume_name, fat_size=None, Atari=None):
+    def format_fat(self, file_name, volume_name, fat_size=None, atari=None):
         """
         Initializes a FAT file system
         Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
@@ -514,7 +514,7 @@ class FileCmds:
                     str(full_file_path),
                 ]
 
-        if Atari:
+        if atari:
             args.insert(1, "-A")
 
         if fat_size:

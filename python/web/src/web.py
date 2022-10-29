@@ -895,10 +895,8 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    if destination == "afp":
-        destination_dir = AFP_DIR
-    elif destination == "smb":
-        destination_dir = SMB_DIR
+    if destination == "file_server":
+        destination_dir = FILE_SERVER_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
@@ -953,7 +951,7 @@ def create_file():
                     full_file_name,
                     # FAT volume labels are max 11 chars
                     volume_name[:11],
-                    Atari=True,
+                    atari=True,
                     )
 
             if not process["status"]:
