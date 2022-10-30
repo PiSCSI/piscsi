@@ -85,7 +85,7 @@ bool DiskTrack::Load(const string& path)
 	}
 
 	// Reallocate if the buffer length is different
-	if (dt.length != (uint32_t)length) {
+	if (dt.length != static_cast<uint32_t>(length)) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
 			LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
