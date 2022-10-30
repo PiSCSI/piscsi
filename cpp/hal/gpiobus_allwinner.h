@@ -91,94 +91,12 @@ class GPIOBUS_Allwinner : public GPIOBUS
 
     volatile uint32_t *pads = nullptr; // PADS register
 
-static volatile uint32_t *gpio_map;
+ volatile uint32_t *gpio_map;
 
 
 
-int bpi_piGpioLayout (void)
-{
-  FILE *bpiFd ;
-  char buffer[1024];
-  char hardware[1024];
-  struct BPIBoards *board;
-  static int  gpioLayout = -1 ;
-
-  if (gpioLayout != -1)	// No point checking twice
-    return gpioLayout ;
-
-  bpi_found = 0; // -1: not init, 0: init but not found, 1: found
-  if ((bpiFd = fopen("/var/lib/bananapi/board.sh", "r")) == NULL) {
-    return -1;
-  }
-  while(!feof(bpiFd)) {
-    fgets(buffer, sizeof(buffer), bpiFd);
-    sscanf(buffer, "BOARD=%s", hardware);
-    //printf("BPI: buffer[%s] hardware[%s]\n",buffer, hardware);
-// Search for board:
-    for (board = bpiboard ; board->name != NULL ; ++board) {
-      //printf("BPI: name[%s] hardware[%s]\n",board->name, hardware);
-      if (strcmp (board->name, hardware) == 0) {
-        //gpioLayout = board->gpioLayout;
-        gpioLayout = board->model; // BPI: use model to replace gpioLayout
-        //printf("BPI: name[%s] gpioLayout(%d)\n",board->name, gpioLayout);
-        if(gpioLayout >= 21) {
-          bpi_found = 1;
-          break;
-        }
-      }
-    }
-    if(bpi_found == 1) {
-      break;
-    }
-  }
-  fclose(bpiFd);
-  //printf("BPI: name[%s] gpioLayout(%d)\n",board->name, gpioLayout);
-  return gpioLayout ;
-}
-
-int bpi_get_rpi_info(rpi_info *info)
-{
-  struct BPIBoards *board=bpiboard;
-  static int  gpioLayout = -1 ;
-  char ram[64];
-  char manufacturer[64];
-  char processor[64];
-  char type[64];
-
-  gpioLayout = bpi_piGpioLayout () ;
-  printf("BPI: gpioLayout(%d)\n", gpioLayout);
-  if(bpi_found == 1) {
-    board = &bpiboard[gpioLayout];
-    printf("BPI: name[%s] gpioLayout(%d)\n",board->name, gpioLayout);
-    sprintf(ram, "%dMB", piMemorySize [board->mem]);
-    sprintf(type, "%s", piModelNames [board->model]);
-     //add by jackzeng
-     //jude mtk platform
-    if(strcmp(board->name, "bpi-r2") == 0){
-        bpi_found_mtk = 1;
-	printf("found mtk board\n");
-    }
-    sprintf(manufacturer, "%s", piMakerNames [board->maker]);
-    info->p1_revision = 3;
-    info->type = type;
-    info->ram  = ram;
-    info->manufacturer = manufacturer;
-    if(bpi_found_mtk == 1){
-        info->processor = "MTK";
-    }else{
-	info->processor = "Allwinner";
-    }
-    
-    strcpy(info->revision, "4001");
-//    pin_to_gpio =  board->physToGpio ;
-    pinToGpio_BP =  board->pinToGpio ;
-    physToGpio_BP = board->physToGpio ;
-    pinTobcm_BP = board->pinTobcm ;
-    //printf("BPI: name[%s] bType(%d) model(%d)\n",board->name, bType, board->model);
-    return 0;
-  }
-  return -1;
-}
+int bpi_piGpioLayout (void);
+// int bpi_get_rpi_info(rpi_info *info);
 
     
 
@@ -238,9 +156,74 @@ void sunxi_writel(volatile uint32_t *addr, uint32_t val);
     void sunxi_output_gpio(int gpio, int value);
     int sunxi_input_gpio(int gpio);
 
+    int bpi_found = -1;
+
+struct BPIBoards
+{
+  const char *name;
+  int gpioLayout;
+  int model;
+  int rev;
+  int mem;
+  int maker;
+  int warranty;
+  int *pinToGpio;
+  int *physToGpio;
+  int *pinTobcm;
+} ;
+
+
+typedef BPIBoards BpiBoardsType;
+static BpiBoardsType bpiboard[];
 
 
 
+typedef struct sunxi_gpio {
+    unsigned int CFG[4];
+    unsigned int DAT;
+    unsigned int DRV[2];
+    unsigned int PULL[2];
+} sunxi_gpio_t;
+
+/* gpio interrupt control */
+typedef struct sunxi_gpio_int {
+    unsigned int CFG[3];
+    unsigned int CTL;
+    unsigned int STA;
+    unsigned int DEB;
+} sunxi_gpio_int_t;
+
+typedef struct sunxi_gpio_reg {
+    struct sunxi_gpio gpio_bank[9];
+    unsigned char res[0xbc];
+    struct sunxi_gpio_int gpio_int;
+} sunxi_gpio_reg_t;
+
+ volatile uint32_t *pio_map;
+ volatile uint32_t *r_pio_map;
+
+ volatile uint32_t *r_gpio_map;
+
+ uint8_t* gpio_mmap_reg;
+
+void set_pullupdn(int gpio, int pud);
+
+// These definitions are from c_gpio.c and should be removed at some point!!
+const int SETUP_OK           = 0;
+const int SETUP_DEVMEM_FAIL  = 1;
+const int SETUP_MALLOC_FAIL  = 2;
+const int SETUP_MMAP_FAIL    = 3;
+const int SETUP_CPUINFO_FAIL = 4;
+const int SETUP_NOT_RPI_FAIL = 5;
+const int INPUT  = 1; // is really 0 for control register!;
+const int OUTPUT = 0; // is really 1 for control register!;
+const int ALT0 =   4;
+const int HIGH = 1;
+const int LOW  = 0;
+const int PUD_OFF  = 0;
+const int PUD_DOWN = 1;
+const int PUD_UP   = 2;
+void short_wait(void);
 
 
 };

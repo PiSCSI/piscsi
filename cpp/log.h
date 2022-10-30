@@ -15,7 +15,8 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/sink.h"
 
-static const int LOGBUF_SIZE = 512;
+// TODO: Change this back to 512!!
+static const int LOGBUF_SIZE = 1024*3;
 
 #define SPDLOGWRAPPER(loglevel, ...)			\
 {							\

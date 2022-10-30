@@ -107,3 +107,31 @@ const Banana_Pi_Gpio_Mapping banana_pi_m2p_map{
     .SPI_OFFSET = 3,
     .PWM_OFFSET = 3,
 };
+
+//map phys_num(index) to bp gpio_num(element)
+ int physToGpio_BPI_M2P [64] =
+{
+          -1,                //0
+          -1,        -1,     //1, 2
+   BPI_M2P_03,        -1,     //3, 4
+   BPI_M2P_05,        -1,     //5, 6
+   BPI_M2P_07, BPI_M2P_08,     //7, 8
+          -1, BPI_M2P_10,     //9, 10
+   BPI_M2P_11, BPI_M2P_12,     //11, 12
+   BPI_M2P_13,        -1,     //13, 14
+   BPI_M2P_15, BPI_M2P_16,     //15, 16
+          -1, BPI_M2P_18,     //17, 18
+   BPI_M2P_19,        -1,     //19, 20
+   BPI_M2P_21, BPI_M2P_22,     //21, 22
+   BPI_M2P_23, BPI_M2P_24,     //23, 24
+          -1, BPI_M2P_26,     //25, 26
+   BPI_M2P_27, BPI_M2P_28,     //27, 28
+   BPI_M2P_29,        -1,     //29, 30
+   BPI_M2P_31, BPI_M2P_32,     //31, 32      
+   BPI_M2P_33,        -1,     //33, 34
+   BPI_M2P_35, BPI_M2P_36,     //35, 36
+   BPI_M2P_37, BPI_M2P_38,     //37, 38
+          -1, BPI_M2P_40,     //39, 40
+   -1,   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, //41-> 55
+   -1,   -1, -1, -1, -1, -1, -1, -1 // 56-> 63
+} ;
