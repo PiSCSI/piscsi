@@ -84,7 +84,7 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
-	buf[4] = (byte)((int)buf[4] + 1);
+	buf[4] = (byte)(static_cast<int>(buf[4]) + 1);
 	buf.push_back((byte)0);
 
 	return buf;
@@ -188,12 +188,12 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t)
 		if (!send_message_to_host) {
 			LOGDEBUG("%s Received a packet that's not for me: %02X %02X %02X %02X %02X %02X", \
 				__PRETTY_FUNCTION__,
-				(int)response->data[0],
-				(int)response->data[1],
-				(int)response->data[2],
-				(int)response->data[3],
-				(int)response->data[4],
-				(int)response->data[5])
+				static_cast<int>(response->data[0]),
+				static_cast<int>(response->data[1]),
+				static_cast<int>(response->data[2]),
+				static_cast<int>(response->data[3]),
+				static_cast<int>(response->data[4]),
+				static_cast<int>(response->data[5]))
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
@@ -266,7 +266,7 @@ bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, vector<BYTE>& buf, uint32
 	}
 	else if (data_format == 0x80) {
 		// The data length is specified in the first 2 bytes of the payload
-		data_length = buf[1] + (((int)buf[0] & 0xff) << 8);
+		data_length = buf[1] + ((static_cast<int>(buf[0]) & 0xff) << 8);
 		m_tap.Send(&(buf.data()[4]), data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length)
 	}
@@ -299,7 +299,7 @@ int SCSIDaynaPort::RetrieveStats(const vector<int>& cdb, vector<BYTE>& buf) cons
 {
 	memcpy(buf.data(), &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
-	return (int)min(sizeof(m_scsi_link_stats), (size_t)GetInt16(cdb, 3));
+	return static_cast<int>(min(sizeof(m_scsi_link_stats), static_cast<size_t>(GetInt16(cdb, 3))));
 }
 
 void SCSIDaynaPort::TestUnitReady()

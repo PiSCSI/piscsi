@@ -296,7 +296,7 @@ void SCSIBR::SendMessage10()
 int SCSIBR::GetMacAddr(vector<BYTE>& mac) const
 {
 	memcpy(mac.data(), mac_addr.data(), mac_addr.size());
-	return (int)mac_addr.size();
+	return static_cast<int>(mac_addr.size());
 }
 
 void SCSIBR::SetMacAddr(const vector<BYTE>& mac)

@@ -201,7 +201,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 
 	const auto& m = messages.find(key);
 	if (m == messages.end()) {
-		return "Missing localization for enum value " + to_string((int)key);
+		return "Missing localization for enum value " + to_string(static_cast<int>(key));
 	}
 
 	string message = m->second;

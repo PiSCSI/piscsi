@@ -103,7 +103,7 @@ int scsi_command_util::GetInt16(const vector<BYTE>& buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	return ((int)buf[offset] << 8) | buf[offset + 1];
+	return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
 }
 
 int scsi_command_util::GetInt16(const vector<int>& buf, int offset)

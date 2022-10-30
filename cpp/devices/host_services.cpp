@@ -92,7 +92,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const auto length = (int)min(buf.size(), static_cast<size_t>(cdb[4]));
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
 	fill_n(buf.begin(), length, 0);
 
 	// 4 bytes basic information
@@ -110,7 +110,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const auto length = (int)min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7)));
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
 	fill_n(buf.begin(), length, 0);
 
 	// 8 bytes basic information

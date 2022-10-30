@@ -157,7 +157,7 @@ void ScsiController::Selection()
 {
 	if (!IsSelection()) {
 		// A different device controller was selected
-		if (int id = 1 << GetTargetId(); ((int)bus->GetDAT() & id) == 0) {
+		if (int id = 1 << GetTargetId(); (static_cast<int>(bus->GetDAT()) & id) == 0) {
 			return;
 		}
 
@@ -227,7 +227,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, static_cast<int>(GetOpcode()))
 
 	// Initialization for data transfer
 	ResetOffset();
@@ -275,7 +275,7 @@ void ScsiController::Execute()
 	else {
 		try {
 			if (!device->Dispatch(GetOpcode())) {
-				LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, (int)GetOpcode())
+				LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, static_cast<int>(GetOpcode()))
 
 				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			}
@@ -307,7 +307,7 @@ void ScsiController::Status()
 			SysTimer::SleepUsec(5);
 		}
 
-		LOGTRACE("%s Status Phase, status is $%02X",__PRETTY_FUNCTION__, (int)GetStatus())
+		LOGTRACE("%s Status Phase, status is $%02X",__PRETTY_FUNCTION__, static_cast<int>(GetStatus()))
 
 		SetPhase(BUS::phase_t::status);
 
@@ -473,10 +473,10 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
-		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X", (int)sense_key, (int)asc)
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X", static_cast<int>(sense_key), static_cast<int>(asc))
 
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		GetDeviceForLun(lun)->SetStatusCode(((int)sense_key << 16) | ((int)asc << 8));
+		GetDeviceForLun(lun)->SetStatusCode((static_cast<int>(sense_key) << 16) | (static_cast<int>(asc) << 8));
 	}
 
 	SetStatus(status);
@@ -500,7 +500,7 @@ void ScsiController::Send()
 		// LUNs other than 0 this work-around works.
 		if (const int len = bus->SendHandShake(GetBuffer().data() + ctrl.offset, GetLength(),
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
-			len != (int)GetLength()) {
+			len != static_cast<int>(GetLength())) {
 			// If you cannot send all, move to status phase
 			Error(sense_key::ABORTED_COMMAND);
 			return;
@@ -593,7 +593,8 @@ void ScsiController::Receive()
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, GetLength())
 
 		// If not able to receive all, move to status phase
-		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != (int)GetLength()) {
+		if (int len = bus->ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength());
+			len != static_cast<int>(GetLength())) {
 			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
@@ -809,7 +810,7 @@ void ScsiController::DataOutNonBlockOriented()
 			break;
 
 		default:
-			LOGWARN("Unexpected Data Out phase for command $%02X", (int)GetOpcode())
+			LOGWARN("Unexpected Data Out phase for command $%02X", static_cast<int>(GetOpcode()))
 			break;
 	}
 }
@@ -824,7 +825,7 @@ bool ScsiController::XferIn(vector<BYTE>& buf)
 {
 	assert(IsDataIn());
 
-	LOGTRACE("%s command=%02X", __PRETTY_FUNCTION__, (int)GetOpcode())
+	LOGTRACE("%s command=%02X", __PRETTY_FUNCTION__, static_cast<int>(GetOpcode()))
 
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -947,7 +948,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			break;
 
 		default:
-			LOGWARN("Received an unexpected command ($%02X) in %s", (int)GetOpcode(), __PRETTY_FUNCTION__)
+			LOGWARN("Received an unexpected command ($%02X) in %s", static_cast<int>(GetOpcode()), __PRETTY_FUNCTION__)
 			break;
 	}
 
@@ -992,7 +993,7 @@ void ScsiController::ParseMessage()
 		}
 
 		if (message_type >= 0x80) {
-			identified_lun = (int)message_type & 0x1F;
+			identified_lun = static_cast<int>(message_type) & 0x1F;
 			LOGTRACE("Received IDENTIFY message for LUN %d", identified_lun)
 		}
 

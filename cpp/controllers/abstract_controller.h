@@ -70,7 +70,7 @@ public:
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }
-	int GetLunCount() const { return (int)luns.size(); }
+	int GetLunCount() const { return static_cast<int>(luns.size()); }
 
 	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
 	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;

@@ -92,7 +92,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 	for (size_t i = 0; i < cache.size(); i++) {
 		if (cache[i].disktrk == nullptr) {
 			// Try loading
-			if (Load((int)i, track, nullptr)) {
+			if (Load(static_cast<int>(i), track, nullptr)) {
 				// Success loading
 				cache[i].serial = serial;
 				return cache[i].disktrk;
@@ -129,7 +129,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 	shared_ptr<DiskTrack> disktrk = cache[c].disktrk;
 	cache[c].disktrk.reset();
 
-	if (Load((int)c, track, disktrk)) {
+	if (Load(static_cast<int>(c), track, disktrk)) {
 		// Successful loading
 		cache[c].serial = serial;
 		return cache[c].disktrk;
@@ -146,7 +146,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 //---------------------------------------------------------------------------
 bool DiskCache::Load(int index, int track, shared_ptr<DiskTrack> disktrk)
 {
-	assert(index >= 0 && index < (int)cache.size());
+	assert(index >= 0 && index < static_cast<int>(cache.size()));
 	assert(track >= 0);
 	assert(cache[index].disktrk == nullptr);
 

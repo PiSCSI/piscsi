@@ -229,8 +229,8 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (int)controller->GetStatus(),
-			(int)buf[2], (int)buf[12])
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(controller->GetStatus()),
+			static_cast<int>(buf[2]), static_cast<int>(buf[12]))
 
 	return buf;
 }

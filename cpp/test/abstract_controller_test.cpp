@@ -164,8 +164,8 @@ TEST(AbstractControllerTest, GetOpcode)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	cmd[0] = 0x12;
-	EXPECT_EQ(0x12, (int)controller.GetOpcode());
+	cmd[0] = static_cast<int>(scsi_command::eCmdInquiry);
+	EXPECT_EQ(scsi_command::eCmdInquiry, controller.GetOpcode());
 }
 
 TEST(AbstractControllerTest, GetLun)

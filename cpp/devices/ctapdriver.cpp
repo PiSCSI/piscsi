@@ -452,7 +452,7 @@ uint32_t CTapDriver::Crc32(const BYTE *buf, int length) {
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];
       for (int j = 0; j < 8; j++) {
-         const uint32_t mask = -((int)crc & 1);
+         const uint32_t mask = -(static_cast<int>(crc) & 1);
          crc = (crc >> 1) ^ (0xEDB88320 & mask);
       }
    }
@@ -524,5 +524,5 @@ int CTapDriver::Send(const BYTE *buf, int len)
 	}
 
 	// Start sending
-	return (int)write(m_hTAP, buf, len);
+	return static_cast<int>(write(m_hTAP, buf, len));
 }
