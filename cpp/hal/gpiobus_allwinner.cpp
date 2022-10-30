@@ -7,7 +7,7 @@
 //	Copyright (C) 2016-2020 GIMONS
 //
 //	[ GPIO-SCSI bus ]
-//
+//https://github.com/BPI-SINOVOIP/RPi.GPIO/blob/master/source/bpi-m2p.h
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus_allwinner.h"

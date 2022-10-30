@@ -120,6 +120,59 @@ bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
     return true;
 }
 
+// The GPIO hardware needs to be initialized before calling this function.
+void GPIOBUS::InitializeGpio(){
+       // Set pull up/pull down
+    LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
+    board_type::gpio_pull_up_down_e pullmode ;
+    if (board->signal_control_mode == 0)
+    {
+        // #if SIGNAL_CONTROL_MODE == 0
+        LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e::GPIO_PULLNONE;
+    }
+    else if (board->signal_control_mode == 1)
+    {
+        // #elif SIGNAL_CONTROL_MODE == 1
+        LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLUP;
+    }
+    else
+    {
+        // #else
+        LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
+        pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLDOWN;
+    }
+    // #endif
+
+    // Initialize all signals
+    LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
+
+    for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
+        board_type::pi_physical_pin_e j = SignalTable[i];
+        PinSetSignal(j, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+        PinConfig(j, board_type::gpio_direction_e::GPIO_INPUT);
+        PullConfig(j, pullmode);
+    }
+
+    // Set control signals
+    LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
+    PinSetSignal(board->pin_act, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_tad, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_ind, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinSetSignal(board->pin_dtd, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+    PinConfig(board->pin_act, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_tad, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_ind, board_type::gpio_direction_e::GPIO_OUTPUT);
+    PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_OUTPUT);
+
+    // Set the ENABLE signal
+    // This is used to show that the application is running
+    PinSetSignal(board->pin_enb, board->EnbOff());
+    PinConfig(board->pin_enb, board_type::gpio_direction_e::GPIO_OUTPUT);
+
+}
+
 void GPIOBUS::Cleanup()
 {
 #if defined(__x86_64__) || defined(__X86__)

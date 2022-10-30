@@ -265,6 +265,9 @@ class GPIOBUS : public BUS
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e rascsi_type =
                                                 board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
+    
+    void InitializeGpio();
+    
     // Initialization
     void Reset() override;
     // Reset
