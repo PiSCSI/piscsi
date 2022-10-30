@@ -4,6 +4,7 @@
 // for Raspberry Pi
 //
 // Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2022 akuker
 //
 // Helper methods used by rascsi and rasctl
 //
@@ -21,7 +22,6 @@ namespace ras_util
 {
 	bool GetAsInt(const string&, int&);
 	string Banner(const string&);
-	string ListDevices(const list<rascsi_interface::PbDevice>&);
 
 	string GetExtensionLowerCase(const string&);
 
