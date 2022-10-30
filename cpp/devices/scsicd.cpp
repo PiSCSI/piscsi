@@ -123,9 +123,9 @@ void SCSICD::OpenIso()
 					+ to_string(size) + " bytes");
 		}
 
-		SetBlockCount((uint32_t)(size / 2352));
+		SetBlockCount(static_cast<uint32_t>(size / 2352));
 	} else {
-		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
+		SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 	}
 
 	CreateDataTrack();
@@ -144,7 +144,7 @@ void SCSICD::OpenPhysical()
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 
 	CreateDataTrack();
 }

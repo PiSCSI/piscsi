@@ -469,8 +469,8 @@ int CTapDriver::Receive(BYTE *buf)
 	}
 
 	// Receive
-	auto dwReceived = (uint32_t)read(m_hTAP, buf, ETH_FRAME_LEN);
-	if (dwReceived == (uint32_t)-1) {
+	auto dwReceived = static_cast<uint32_t>(read(m_hTAP, buf, ETH_FRAME_LEN));
+	if (dwReceived == static_cast<uint32_t>(-1)) {
 		LOGWARN("%s Error occured while receiving a packet", __PRETTY_FUNCTION__)
 		return 0;
 	}
