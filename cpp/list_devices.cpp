@@ -9,7 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
-#include "rasutil.h"
+#include "list_devices.h"
 #include <sstream>
 
 using namespace std;

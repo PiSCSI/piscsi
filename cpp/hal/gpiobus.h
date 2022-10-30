@@ -43,7 +43,7 @@
 // #else
 // #error Invalid connection type or none specified
 // #endif
-
+#define ENABLE_GPIO_TRACE
 #ifdef ENABLE_GPIO_TRACE
 #define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
 #else
@@ -352,10 +352,7 @@ class GPIOBUS : public BUS
 
     static int GetCommandByteCount(BYTE opcode);
 
-    const string GetConnectDesc()
-    {
-        return board->connect_desc;
-    }
+    const string GetConnectDesc();
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
@@ -365,7 +362,11 @@ class GPIOBUS : public BUS
     // Clear SEL signal event
 #endif // USE_SEL_EVENT_ENABLE
 
-  protected:
+// TODO: THIS SHOULD BE PROTECTED
+    static vector<board_type::pi_physical_pin_e> SignalTable; // signal table
+
+// TODO: RESTORE THIS TO PROTECTED!!!
+//   protected:
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
@@ -397,13 +398,13 @@ class GPIOBUS : public BUS
 
     mode_e actmode = mode_e::TARGET; // Operation mode
 
-    shared_ptr<board_type::Rascsi_Board_Type> board;
+    shared_ptr<board_type::Rascsi_Board_Type> board = nullptr;
 
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
 #endif
 
-    static vector<board_type::pi_physical_pin_e> SignalTable; // signal table
+
 
 #ifdef USE_SEL_EVENT_ENABLE
     struct gpioevent_request selevreq = {}; // SEL signal event request
@@ -442,7 +443,7 @@ class GPIOBUS : public BUS
 
     array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
 
-    uint32_t signals = 0; // All bus signals
+
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table

@@ -93,7 +93,7 @@ bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
         board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_standard);
         break;
     }
-    board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_aibom);
+    LOGINFO("Detected board type: %s", board->connect_desc.c_str());
 
     // Save operation mode
     actmode = mode;
@@ -121,24 +121,20 @@ bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
 }
 
 // The GPIO hardware needs to be initialized before calling this function.
-void GPIOBUS::InitializeGpio(){
-       // Set pull up/pull down
+void GPIOBUS::InitializeGpio()
+{
+    // Set pull up/pull down
     LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
-    board_type::gpio_pull_up_down_e pullmode ;
-    if (board->signal_control_mode == 0)
-    {
+    board_type::gpio_pull_up_down_e pullmode;
+    if (board->signal_control_mode == 0) {
         // #if SIGNAL_CONTROL_MODE == 0
         LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
         pullmode = board_type::gpio_pull_up_down_e::GPIO_PULLNONE;
-    }
-    else if (board->signal_control_mode == 1)
-    {
+    } else if (board->signal_control_mode == 1) {
         // #elif SIGNAL_CONTROL_MODE == 1
         LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
         pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLUP;
-    }
-    else
-    {
+    } else {
         // #else
         LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
         pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLDOWN;
@@ -170,7 +166,6 @@ void GPIOBUS::InitializeGpio(){
     // This is used to show that the application is running
     PinSetSignal(board->pin_enb, board->EnbOff());
     PinConfig(board->pin_enb, board_type::gpio_direction_e::GPIO_OUTPUT);
-
 }
 
 void GPIOBUS::Cleanup()
@@ -284,8 +279,9 @@ void GPIOBUS::Reset()
         SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_OUTPUT);
     }
 
-    // Initialize all signals
-    signals = 0;
+    // Re-read all signals
+    Acquire();
+    // signals = 0;
 #endif // ifdef __x86_64__ || __X86__
 }
 
@@ -1115,4 +1111,12 @@ int GPIOBUS::GetCommandByteCount(BYTE opcode)
     } else {
         return 6;
     }
+}
+
+const string GPIOBUS::GetConnectDesc()
+{
+    if (board == nullptr) {
+        return "unknown";
+    }
+    return board->connect_desc;
 }

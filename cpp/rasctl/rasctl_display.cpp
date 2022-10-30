@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "list_devices.h"
 #include "rascsi_interface.pb.h"
 #include "rasutil.h"
 #include "rasctl_display.h"

@@ -50,7 +50,8 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     // Get DAT signal
     void SetDAT(BYTE dat) override;
     // Set DAT signal
-  private:
+// TODO: Restore this back to private
+//   private:
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data

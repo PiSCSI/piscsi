@@ -20,6 +20,7 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
+#include "list_devices.h"
 #include "rascsi_version.h"
 #include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"

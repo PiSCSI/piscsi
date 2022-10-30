@@ -47,7 +47,8 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Get DAT signal
     void SetDAT(BYTE dat) override;
     // Set DAT signal
-  protected:
+    // TODO: Restore these back to protected
+//   protected:
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data
@@ -55,8 +56,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Set Control Signal
     void SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) override;
     // Set SCSI I/O mode
-    bool GetSignal(board_type::pi_physical_pin_e pin);
-       bool GetSignal(board_type::pi_physical_pin_e pin) const override {(void)pin;return true;}
+    bool GetSignal(board_type::pi_physical_pin_e pin) const override;
  
     // Get SCSI input signal value
     void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
@@ -123,7 +123,7 @@ int bpi_piGpioLayout (void);
 
     array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
 
-    uint32_t signals = 0; // All bus signals
+    array<uint32_t, 12> signals = {0}; // All bus signals
 
 #ifdef USE_SEL_EVENT_ENABLE
     struct gpioevent_request selevreq = {}; // SEL signal event request
@@ -153,7 +153,7 @@ void sunxi_writel(volatile uint32_t *addr, uint32_t val);
     int sunxi_gpio_function(int gpio);
 
     void sunxi_output_gpio(int gpio, int value);
-    int sunxi_input_gpio(int gpio);
+    int sunxi_input_gpio(int gpio) const;
 
     int bpi_found = -1;
 
@@ -204,7 +204,7 @@ typedef struct sunxi_gpio_reg {
  volatile uint32_t *r_gpio_map;
 
  uint8_t* gpio_mmap_reg;
-
+uint32_t sunxi_capture_all_gpio();
 void set_pullupdn(int gpio, int pud);
 
 // These definitions are from c_gpio.c and should be removed at some point!!

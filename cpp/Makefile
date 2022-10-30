@@ -60,7 +60,7 @@ RASDUMP = rasdump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
 REGISTERS_TEST = registers
-GPIO_TEST = gpiotest
+SCSILOOP = scsiloop
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -80,7 +80,8 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP)
+	$(BINDIR)/$(RASDUMP) \
+	$(BINDIR)/$(SCSILOOP)
 
 SRC_PROTOC = \
 	rascsi_interface.proto
@@ -89,6 +90,7 @@ SRC_PROTOBUF = \
 	rascsi_interface.pb.cpp
 
 SRC_SHARED = \
+	list_devices.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	protobuf_util.cpp \
@@ -123,12 +125,14 @@ SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
-SRC_GPIO_TEST = \
-	scsi.cpp \
-	gpiotest.cpp
-SRC_GPIO_TEST += $(shell find ./hal -name '*.cpp')
+SRC_SCSILOOP= \
+	scsiloop.cpp \
+	bus.cpp \
+	rasutil.cpp \
+	rascsi_version.cpp
+SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ../BPI-WiringPi2/wiringPi/
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl
 vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
@@ -140,18 +144,16 @@ OBJ_RASCTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL_CORE:%.cpp=%.o))
 OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
+OBJ_SCSILOOP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
-OBJ_GPIO_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GPIO_TEST:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
-LIB_BPI_WIRINGPI := $(OBJDIR)/libwiringPi.a
-
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_SCSILOOP) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -194,39 +196,39 @@ docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/s
 
 $(SRC_SHARED) $(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE): $(OBJ_PROTOBUF)
 
-$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI)  -lpthread -lpcap -lprotobuf -lstdc++fs
 
-$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) -lpthread 
 
-$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(LIB_BPI_WIRINGPI) -lpthread
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI) | $(BINDIR)
+$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
-$(BINDIR)/$(GPIO_TEST): $(OBJ_GPIO_TEST) $(LIB_BPI_WIRINGPI) | $(BINDIR)
-	echo  $(OBJ_GPIO_TEST)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_GPIO_TEST) $(LIB_BPI_WIRINGPI) -lpthread
+$(BINDIR)/$(SCSILOOP): $(SRC_PROTOBUF) $(OBJ_SCSILOOP) | $(BINDIR)
+	echo SCSILOOP SRC: $(SRC_SCSILOOP)
+	echo SCSILOOP OBJ:  $(OBJ_SCSILOOP)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSILOOP) -lpthread
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(GPIO_TEST)
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(SCSILOOP)
 $(RASCSI)  : $(BINDIR)/$(RASCSI) 
 $(RASCTL)  : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
-$(GPIO_TEST) : $(BINDIR)/$(GPIO_TEST)
+$(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
 
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	make -j1 -C ../BPI-WiringPi2/wiringPi/ clean
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
 ##   install  : Copies all of the man pages to the correct location
@@ -285,12 +287,6 @@ $(RSYSLOG_LOG) :
 $(MAN_PAGE_DIR)/:
 	echo "-- Creating directory $@"
 	mkdir -p $@
-
-$(LIB_BPI_WIRINGPI) : | $(OBJDIR)
-	make -j1 -C ../BPI-WiringPi2/wiringPi/ static CC=$(CC) AR=$(AR) RANLIB=$(RANLIB)
-	cp ../BPI-WiringPi2/wiringPi/libwiringPi.a $@
-
-
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

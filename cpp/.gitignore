@@ -7,6 +7,8 @@
 *.vcd
 *.json
 *.html
+*.d
+*.o
 rascsi.dat
 obj
 bin
@@ -16,3 +18,4 @@ coverage
 .project
 .cproject
 .settings
+settings.json
