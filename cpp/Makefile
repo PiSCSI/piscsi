@@ -128,8 +128,8 @@ SRC_GPIO_TEST = \
 	gpiotest.cpp
 SRC_GPIO_TEST += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./rascsi ./rasctl ../BPI-WiringPi2/wiringPi/
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./hal/boards ./rascsi ./rasctl
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ../BPI-WiringPi2/wiringPi/
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 

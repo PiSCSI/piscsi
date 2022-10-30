@@ -13,6 +13,15 @@
         "cstdint": "cpp",
         "stdexcept": "cpp",
         "deque": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "compare": "cpp",
+        "cwchar": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }
