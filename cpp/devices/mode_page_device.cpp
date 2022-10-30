@@ -88,11 +88,11 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		result[off + 1] = (byte)(page0.size() - 2);
 	}
 
-	if ((int)result.size() > max_size) {
+	if (static_cast<int>(result.size()) > max_size) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto size = (int)min(static_cast<size_t>(max_length), result.size());
+	auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
 	memcpy(&buf.data()[offset], result.data(), size);
 
 	// Do not return more than the requested number of bytes

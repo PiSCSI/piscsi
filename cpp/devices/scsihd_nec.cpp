@@ -42,7 +42,7 @@ void SCSIHD_NEC::Open()
 	size = (size / 512) * 512;
 
 	// Determine parameters by extension
-	const auto [image_size, sector_size] = SetParameters(root_sector, (int)size);
+	const auto [image_size, sector_size] = SetParameters(root_sector, static_cast<int>(size));
 
 	SetSectorSizeShiftCount(static_cast<uint32_t>(size));
 
@@ -172,10 +172,10 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) co
 
 int SCSIHD_NEC::GetInt16LittleEndian(const BYTE *buf)
 {
-	return ((int)buf[1] << 8) | buf[0];
+	return (static_cast<int>(buf[1]) << 8) | buf[0];
 }
 
 int SCSIHD_NEC::GetInt32LittleEndian(const BYTE *buf)
 {
-	return ((int)buf[3] << 24) | ((int)buf[2] << 16) | ((int)buf[1] << 8) | buf[0];
+	return (static_cast<int>(buf[3]) << 24) | (static_cast<int>(buf[2]) << 16) | (static_cast<int>(buf[1]) << 8) | buf[0];
 }

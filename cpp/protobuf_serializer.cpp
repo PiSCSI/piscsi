@@ -47,8 +47,8 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 		throw io_exception("Invalid protobuf message header");
 	}
 
-	const int size = ((int)header_buf[3] << 24) + ((int)header_buf[2] << 16)
-			+ ((int)header_buf[1] << 8) + (int)header_buf[0];
+	const int size = (static_cast<int>(header_buf[3]) << 24) + (static_cast<int>(header_buf[2]) << 16)
+			+ (static_cast<int>(header_buf[1]) << 8) + static_cast<int>(header_buf[0]);
 	if (size < 0) {
 		throw io_exception("Invalid protobuf message header");
 	}

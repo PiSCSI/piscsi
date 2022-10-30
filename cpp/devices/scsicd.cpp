@@ -154,7 +154,7 @@ void SCSICD::CreateDataTrack()
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, (int)GetBlockCount() - 1);
+	track->Init(1, 0, static_cast<int>(GetBlockCount()) - 1);
 	track->SetPath(false, GetFilename());
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -227,7 +227,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 	CheckReady();
 
 	// Search for the track
-	const int index = SearchTrack((int)block);
+	const int index = SearchTrack(static_cast<int>(block));
 
 	// If invalid, out of range
 	if (index < 0) {
@@ -403,7 +403,7 @@ int SCSICD::SearchTrack(uint32_t lba) const
 		// Listen to the track
 		assert(tracks[i]);
 		if (tracks[i]->IsValid(lba)) {
-			return (int)i;
+			return static_cast<int>(i);
 		}
 	}
 
