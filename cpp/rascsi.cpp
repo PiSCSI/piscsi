@@ -39,6 +39,7 @@
 #include <fstream>
 #include <list>
 #include <map>
+#include <iostream>
 
 using namespace std;
 using namespace spdlog;
