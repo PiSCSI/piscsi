@@ -29,7 +29,7 @@ using namespace testing;
 class MockBus : public BUS // NOSONAR Having many fields/methods cannot be avoided
 {
   public:
-    MOCK_METHOD(bool, Init, (mode_e), (override));
+    MOCK_METHOD(bool, Init, (mode_e, board_type::rascsi_board_type_e), (override));
     MOCK_METHOD(void, Reset, (), (override));
     MOCK_METHOD(void, Cleanup, (), (override));
     MOCK_METHOD(bool, GetBSY, (), (const override));
