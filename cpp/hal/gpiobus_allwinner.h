@@ -15,6 +15,7 @@
 #include "config.h"
 #include "hal/gpiobus.h"
 #include "hal/board_type.h"
+#include "hal/pi_defs/bpi-gpio.h"
 #include "log.h"
 #include "scsi.h"
 
@@ -33,11 +34,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e 
                 rascsi_type = board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
 
-    // Initialization
-    void Reset() override;
-    // Reset
     void Cleanup() override;
-    // Cleanup
 
     //---------------------------------------------------------------------------
     //
@@ -58,7 +55,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Set Control Signal
     void SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) override;
     // Set SCSI I/O mode
-    bool GetSignal(board_type::pi_physical_pin_e pin) const override;
+    bool GetSignal(board_type::pi_physical_pin_e pin);
+       bool GetSignal(board_type::pi_physical_pin_e pin) const override {(void)pin;return true;}
+ 
     // Get SCSI input signal value
     void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set SCSI output signal value
@@ -81,7 +80,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Set GPIO drive strength
 
     // Map the physical pin number to the logical GPIO number
-    const static std::map<board_type::pi_physical_pin_e, int> phys_to_gpio_map;
+    shared_ptr<Banana_Pi_Gpio_Mapping> phys_to_gpio_map;
 
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address

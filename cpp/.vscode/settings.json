@@ -22,6 +22,24 @@
         "limits": "cpp",
         "new": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "bit": "cpp",
+        "*.tcc": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "concepts": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cwctype": "cpp",
+        "map": "cpp",
+        "exception": "cpp",
+        "initializer_list": "cpp",
+        "iosfwd": "cpp",
+        "memory": "cpp",
+        "numbers": "cpp",
+        "streambuf": "cpp",
+        "system_error": "cpp",
+        "typeinfo": "cpp"
     }
 }
