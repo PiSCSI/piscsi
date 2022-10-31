@@ -187,7 +187,7 @@ vector<string> DeviceFactory::GetNetworkInterfaces() const
 	        strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
 	        // Only list interfaces that are up
 	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
-	        	network_interfaces.push_back(tmp->ifa_name);
+	        	network_interfaces.emplace_back(tmp->ifa_name);
 	        }
 
 	        close(fd);
