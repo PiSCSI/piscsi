@@ -29,7 +29,7 @@ public:
 	int GetId() const override;
 
 	void SetController(AbstractController *);
-	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
+	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
 
 	int GetSendDelay() const { return send_delay; }
 

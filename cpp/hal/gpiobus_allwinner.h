@@ -42,9 +42,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    BYTE GetDAT() override;
+    uint8_t GetDAT() override;
     // Get DAT signal
-    void SetDAT(BYTE dat) override;
+    void SetDAT(uint8_t dat) override;
     // Set DAT signal
   protected:
     // SCSI I/O signal control
@@ -73,7 +73,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
     // Set GPIO output signal
-    void DrvConfig(DWORD drive) override;
+    void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
 #if !defined(__x86_64__) && !defined(__X86__)

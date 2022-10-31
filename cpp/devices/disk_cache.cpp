@@ -14,7 +14,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "disk_track.h"
 #include "disk_cache.h"
 #include <cstdlib>
@@ -47,7 +46,7 @@ shared_ptr<DiskTrack> DiskCache::GetTrack(uint32_t block)
 	return Assign(track);
 }
 
-bool DiskCache::ReadSector(vector<BYTE>& buf, uint32_t block)
+bool DiskCache::ReadSector(vector<uint8_t>& buf, uint32_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {
@@ -58,7 +57,7 @@ bool DiskCache::ReadSector(vector<BYTE>& buf, uint32_t block)
 	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-bool DiskCache::WriteSector(const vector<BYTE>& buf, uint32_t block)
+bool DiskCache::WriteSector(const vector<uint8_t>& buf, uint32_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {

@@ -627,7 +627,7 @@ int main(int argc, char* argv[])
 		int initiator_id = -1;
 
 		// The initiator and target ID
-		const BYTE id_data = bus->GetDAT();
+		const uint8_t id_data = bus->GetDAT();
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 

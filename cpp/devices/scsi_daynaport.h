@@ -52,10 +52,10 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<BYTE>&, uint64_t);
-	bool WriteBytes(const vector<int>&, vector<BYTE>&, uint32_t) override;
+	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
+	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
 
-	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
+	int RetrieveStats(const vector<int>&, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
 	void Read6();

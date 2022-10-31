@@ -51,7 +51,7 @@ void SCSIHD_NEC::Open()
 
 pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 {
-	array<BYTE, 512> root_sector = {};
+	array<uint8_t, 512> root_sector = {};
 	memcpy(root_sector.data(), data.data(), root_sector.size());
 
 	int image_size;
@@ -168,12 +168,12 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) co
 	pages[4] = buf;
 }
 
-int SCSIHD_NEC::GetInt16LittleEndian(const BYTE *buf)
+int SCSIHD_NEC::GetInt16LittleEndian(const uint8_t *buf)
 {
 	return (static_cast<int>(buf[1]) << 8) | buf[0];
 }
 
-int SCSIHD_NEC::GetInt32LittleEndian(const BYTE *buf)
+int SCSIHD_NEC::GetInt32LittleEndian(const uint8_t *buf)
 {
 	return (static_cast<int>(buf[3]) << 24) | (static_cast<int>(buf[2]) << 16) | (static_cast<int>(buf[1]) << 8) | buf[0];
 }

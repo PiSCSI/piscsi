@@ -34,13 +34,13 @@ void GPIOBUS_Allwinner::Cleanup()
 
 void GPIOBUS_Allwinner::Reset(){LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)}
 
-BYTE GPIOBUS_Allwinner::GetDAT()
+uint8_t GPIOBUS_Allwinner::GetDAT()
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     return 0;
 }
 
-void GPIOBUS_Allwinner::SetDAT(BYTE dat)
+void GPIOBUS_Allwinner::SetDAT(uint8_t dat)
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
@@ -103,7 +103,7 @@ void GPIOBUS_Allwinner::PinSetSignal(int pin, bool ast)
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::DrvConfig(DWORD drive)
+void GPIOBUS_Allwinner::DrvConfig(uint32_t drive)
 {
     (void)drive;
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)

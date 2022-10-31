@@ -98,14 +98,14 @@ void PrimaryDevice::ReportLuns()
 
 	const uint32_t allocation_length = GetInt32(controller->GetCmd(), 6);
 
-	vector<BYTE>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = controller->GetBuffer();
 	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
 		if (controller->HasDeviceForLun(lun)) {
 			size += 8;
-			buf[size + 7] = (BYTE)lun;
+			buf[size + 7] = (uint8_t)lun;
 		}
 	}
 
@@ -234,7 +234,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	return buf;
 }
 
-bool PrimaryDevice::WriteByteSequence(vector<BYTE>&, uint32_t)
+bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
 {
 	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__)
 

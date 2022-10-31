@@ -8,7 +8,7 @@
 //	[ SCSI Bus Monitor ]
 //
 //---------------------------------------------------------------------------
-#include "os.h"
+
 #include "scsi.h"
 #include "data_sample.h"
 

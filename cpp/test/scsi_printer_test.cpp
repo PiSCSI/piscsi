@@ -125,7 +125,7 @@ TEST(ScsiPrinterTest, WriteByteSequence)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = dynamic_pointer_cast<SCSIPrinter>(CreateDevice(SCLP, controller));
 
-	vector<BYTE> buf(1);
+	vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf, buf.size()));
 	printer->Cleanup();
 }

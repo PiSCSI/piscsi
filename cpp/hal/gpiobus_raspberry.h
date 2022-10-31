@@ -42,9 +42,9 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    BYTE GetDAT() override;
+    uint8_t GetDAT() override;
     // Get DAT signal
-    void SetDAT(BYTE dat) override;
+    void SetDAT(uint8_t dat) override;
     // Set DAT signal
   private:
     // SCSI I/O signal control

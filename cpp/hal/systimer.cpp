@@ -18,7 +18,6 @@
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
-#include "os.h"
 
 #include "config.h"
 #include "log.h"

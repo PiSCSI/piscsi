@@ -43,7 +43,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
-	const vector<BYTE>& buffer = controller.GetBuffer();
+	const vector<uint8_t>& buffer = controller.GetBuffer();
 	EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
 	EXPECT_EQ(removable ? 0x80: 0x00, buffer[1]);
 	EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));

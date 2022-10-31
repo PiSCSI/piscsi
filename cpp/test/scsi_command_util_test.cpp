@@ -19,7 +19,7 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	const int LENGTH = 26;
 
 	vector<int> cdb(6);
-	vector<BYTE> buf(LENGTH);
+	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
@@ -69,7 +69,7 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	const int LENGTH = 30;
 
 	vector<int> cdb(10);
-	vector<BYTE> buf(LENGTH);
+	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
@@ -149,7 +149,7 @@ TEST(ScsiCommandUtilTest, AddAppleVendorModePage)
 
 TEST(ScsiCommandUtilTest, GetInt16)
 {
-	vector<BYTE> b = { 0xfe, 0xdc };
+	vector<uint8_t> b = { 0xfe, 0xdc };
 	EXPECT_EQ(0xfedc, GetInt16(b, 0));
 
 	vector<int> v = { 0x12, 0x34 };
@@ -184,7 +184,7 @@ TEST(ScsiCommandUtilTest, SetInt16)
 
 TEST(ScsiCommandUtilTest, SetInt32)
 {
-	vector<BYTE> buf(4);
+	vector<uint8_t> buf(4);
 	SetInt32(buf, 0, 0x12345678);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);
@@ -201,7 +201,7 @@ TEST(ScsiCommandUtilTest, SetInt32)
 
 TEST(ScsiCommandUtilTest, SetInt64)
 {
-	vector<BYTE> buf(8);
+	vector<uint8_t> buf(8);
 	SetInt64(buf, 0, 0x1234567887654321);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);

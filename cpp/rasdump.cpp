@@ -12,7 +12,6 @@
 #include <cerrno>
 #include <csignal>
 #include <unistd.h>
-#include "os.h"
 #include "rasdump_fileio.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
@@ -41,7 +40,7 @@ int targetid;						// Target ID
 int boardid;						// Board ID (own ID)
 string hdsfile;						// HDS file
 bool restore;						// Restore flag
-BYTE buffer[BUFSIZE];					// Work Buffer
+uint8_t buffer[BUFSIZE];					// Work Buffer
 int result;						// Result Code
 
 //---------------------------------------------------------------------------
@@ -249,7 +248,7 @@ void BusFree()
 bool Selection(int id)
 {
 	// ID setting and SEL assert
-	BYTE data = 1 << boardid;
+	uint8_t data = 1 << boardid;
 	data |= (1 << id);
 	bus->SetDAT(data);
 	bus->SetSEL(true);
@@ -278,7 +277,7 @@ bool Selection(int id)
 //	Command Phase
 //
 //---------------------------------------------------------------------------
-bool Command(BYTE *buf, int length)
+bool Command(uint8_t *buf, int length)
 {
 	// Waiting for Phase
 	if (!WaitPhase(BUS::phase_t::command)) {
@@ -303,7 +302,7 @@ bool Command(BYTE *buf, int length)
 //	Data in phase
 //
 //---------------------------------------------------------------------------
-int DataIn(BYTE *buf, int length)
+int DataIn(uint8_t *buf, int length)
 {
 	// Wait for phase
 	if (!WaitPhase(BUS::phase_t::datain)) {
@@ -319,7 +318,7 @@ int DataIn(BYTE *buf, int length)
 //	Data out phase
 //
 //---------------------------------------------------------------------------
-int DataOut(BYTE *buf, int length)
+int DataOut(uint8_t *buf, int length)
 {
 	// Wait for phase
 	if (!WaitPhase(BUS::phase_t::dataout)) {
@@ -337,7 +336,7 @@ int DataOut(BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int Status()
 {
-	BYTE buf[256];
+	uint8_t buf[256];
 
 	// Wait for phase
 	if (!WaitPhase(BUS::phase_t::status)) {
@@ -360,7 +359,7 @@ int Status()
 //---------------------------------------------------------------------------
 int MessageIn()
 {
-	BYTE buf[256];
+	uint8_t buf[256];
 
 	// Wait for phase
 	if (!WaitPhase(BUS::phase_t::msgin)) {
@@ -383,7 +382,7 @@ int MessageIn()
 //---------------------------------------------------------------------------
 int TestUnitReady(int id)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -425,9 +424,9 @@ exit:
 //	REQUEST SENSE
 //
 //---------------------------------------------------------------------------
-int RequestSense(int id, BYTE *buf)
+int RequestSense(int id, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -484,9 +483,9 @@ exit:
 //	MODE SENSE
 //
 //---------------------------------------------------------------------------
-int ModeSense(int id, BYTE *buf)
+int ModeSense(int id, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -544,9 +543,9 @@ exit:
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int Inquiry(int id, BYTE *buf)
+int Inquiry(int id, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -603,9 +602,9 @@ exit:
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-int ReadCapacity(int id, BYTE *buf)
+int ReadCapacity(int id, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -661,9 +660,9 @@ exit:
 //	READ10
 //
 //---------------------------------------------------------------------------
-int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
+int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -677,12 +676,12 @@ int Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf
 
 	// COMMAND
 	cmd[0] = 0x28;
-	cmd[2] = (BYTE)(bstart >> 24);
-	cmd[3] = (BYTE)(bstart >> 16);
-	cmd[4] = (BYTE)(bstart >> 8);
-	cmd[5] = (BYTE)bstart;
-	cmd[7] = (BYTE)(blength >> 8);
-	cmd[8] = (BYTE)blength;
+	cmd[2] = (uint8_t)(bstart >> 24);
+	cmd[3] = (uint8_t)(bstart >> 16);
+	cmd[4] = (uint8_t)(bstart >> 8);
+	cmd[5] = (uint8_t)bstart;
+	cmd[7] = (uint8_t)(blength >> 8);
+	cmd[8] = (uint8_t)blength;
 	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;
@@ -724,9 +723,9 @@ exit:
 //	WRITE10
 //
 //---------------------------------------------------------------------------
-int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *buf)
+int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, uint8_t *buf)
 {
-	array<BYTE, 256> cmd = {};
+	array<uint8_t, 256> cmd = {};
 
 	// Result code initialization
 	result = 0;
@@ -740,12 +739,12 @@ int Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, BYTE *bu
 
 	// COMMAND
 	cmd[0] = 0x2a;
-	cmd[2] = (BYTE)(bstart >> 24);
-	cmd[3] = (BYTE)(bstart >> 16);
-	cmd[4] = (BYTE)(bstart >> 8);
-	cmd[5] = (BYTE)bstart;
-	cmd[7] = (BYTE)(blength >> 8);
-	cmd[8] = (BYTE)blength;
+	cmd[2] = (uint8_t)(bstart >> 24);
+	cmd[3] = (uint8_t)(bstart >> 16);
+	cmd[4] = (uint8_t)(bstart >> 8);
+	cmd[5] = (uint8_t)bstart;
+	cmd[7] = (uint8_t)(blength >> 8);
+	cmd[8] = (uint8_t)blength;
 	if (!Command(cmd.data(), 10)) {
 		result = -2;
 		goto exit;

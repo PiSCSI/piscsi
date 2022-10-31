@@ -49,8 +49,8 @@ private:
 
 	pair<int, int> SetParameters(const array<char, 512>&, int);
 
-	static int GetInt16LittleEndian(const BYTE *);
-	static int GetInt32LittleEndian(const BYTE *);
+	static int GetInt16LittleEndian(const uint8_t *);
+	static int GetInt32LittleEndian(const uint8_t *);
 
 	static inline const unordered_set<uint32_t> sector_sizes = { 512 };
 

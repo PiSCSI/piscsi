@@ -52,13 +52,13 @@ public:
 	MOCK_METHOD(void, SetIO, (bool), (override));
 	MOCK_METHOD(bool, GetREQ, (), (const override));
 	MOCK_METHOD(void, SetREQ, (bool), (override));
-	MOCK_METHOD(BYTE, GetDAT, (), (override));
-	MOCK_METHOD(void, SetDAT, (BYTE), (override));
+	MOCK_METHOD(uint8_t, GetDAT, (), (override));
+	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
-	MOCK_METHOD(int, CommandHandShake, (BYTE *), (override));
-	MOCK_METHOD(int, ReceiveHandShake, (BYTE *, int), (override));
-	MOCK_METHOD(int, SendHandShake, (BYTE *, int, int), (override));
+	MOCK_METHOD(int, CommandHandShake, (uint8_t *), (override));
+	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
+	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
@@ -236,8 +236,8 @@ class MockModePageDevice : public ModePageDevice
 public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 
 	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
@@ -279,8 +279,8 @@ public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
 	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}

@@ -320,7 +320,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 	EXPECT_CALL(controller, DataIn());
 	EXPECT_TRUE(device1->Dispatch(scsi_command::eCmdReportLuns));
-	const vector<BYTE>& buffer = controller.GetBuffer();
+	const vector<uint8_t>& buffer = controller.GetBuffer();
 	EXPECT_EQ(0x00, buffer[0]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[1]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[2]) << "Wrong data length";
@@ -371,7 +371,7 @@ TEST(PrimaryDeviceTest, Dispatch)
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-	vector<BYTE> data;
+	vector<uint8_t> data;
 	MockPrimaryDevice device(0);
 
 	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device does not support writing byte sequences";

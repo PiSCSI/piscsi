@@ -60,7 +60,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
-	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
+	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
@@ -107,7 +107,7 @@ private:
 		int message;					// Message data
 
 		// Transfer
-		vector<BYTE> buffer;			// Transfer data buffer
+		vector<uint8_t> buffer;			// Transfer data buffer
 		uint32_t blocks;				// Number of transfer blocks
 		uint64_t next;					// Next record
 		uint32_t offset;				// Transfer offset

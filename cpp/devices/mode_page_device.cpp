@@ -34,7 +34,7 @@ bool ModePageDevice::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int offset, int length, int max_size) const
+int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
 	int max_length = length - offset;
 	if (max_length < 0) {
@@ -113,7 +113,7 @@ void ModePageDevice::ModeSense10()
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<BYTE>&, int) const
+void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<uint8_t>&, int) const
 {
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }

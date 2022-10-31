@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>
-#include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
 #include "rasutil.h"
@@ -411,12 +410,12 @@ void CTapDriver::Flush()
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	while (PendingPackets()) {
-		array<BYTE, ETH_FRAME_LEN> m_garbage_buffer;
+		array<uint8_t, ETH_FRAME_LEN> m_garbage_buffer;
 		(void)Receive(m_garbage_buffer.data());
 	}
 }
 
-void CTapDriver::GetMacAddr(BYTE *mac) const
+void CTapDriver::GetMacAddr(uint8_t *mac) const
 {
 	assert(mac);
 
@@ -447,7 +446,7 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t CTapDriver::Crc32(const BYTE *buf, int length) {
+uint32_t CTapDriver::Crc32(const uint8_t *buf, int length) {
    uint32_t crc = 0xffffffff;
    for (int i = 0; i < length; i++) {
       crc ^= buf[i];
@@ -459,7 +458,7 @@ uint32_t CTapDriver::Crc32(const BYTE *buf, int length) {
    return ~crc;
 }
 
-int CTapDriver::Receive(BYTE *buf)
+int CTapDriver::Receive(uint8_t *buf)
 {
 	assert(m_hTAP != -1);
 
@@ -482,10 +481,10 @@ int CTapDriver::Receive(BYTE *buf)
 		// need it.
 		const int crc = Crc32(buf, dwReceived);
 
-		buf[dwReceived + 0] = (BYTE)((crc >> 0) & 0xFF);
-		buf[dwReceived + 1] = (BYTE)((crc >> 8) & 0xFF);
-		buf[dwReceived + 2] = (BYTE)((crc >> 16) & 0xFF);
-		buf[dwReceived + 3] = (BYTE)((crc >> 24) & 0xFF);
+		buf[dwReceived + 0] = (uint8_t)((crc >> 0) & 0xFF);
+		buf[dwReceived + 1] = (uint8_t)((crc >> 8) & 0xFF);
+		buf[dwReceived + 2] = (uint8_t)((crc >> 16) & 0xFF);
+		buf[dwReceived + 3] = (uint8_t)((crc >> 24) & 0xFF);
 
 		LOGDEBUG("%s CRC is %08X - %02X %02X %02X %02X\n", __PRETTY_FUNCTION__, crc, buf[dwReceived+0], buf[dwReceived+1], buf[dwReceived+2], buf[dwReceived+3])
 
@@ -508,7 +507,7 @@ int CTapDriver::Receive(BYTE *buf)
 	return dwReceived;
 }
 
-int CTapDriver::Send(const BYTE *buf, int len)
+int CTapDriver::Send(const uint8_t *buf, int len)
 {
 	assert(m_hTAP != -1);
 

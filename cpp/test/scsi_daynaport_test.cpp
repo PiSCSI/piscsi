@@ -36,7 +36,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 
 TEST(ScsiDaynaportTest, Read)
 {
-	vector<BYTE> buf(0);
+	vector<uint8_t> buf(0);
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
@@ -49,7 +49,7 @@ TEST(ScsiDaynaportTest, Read)
 
 TEST(ScsiDaynaportTest, WriteBytes)
 {
-	vector<BYTE> buf(0);
+	vector<uint8_t> buf(0);
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 

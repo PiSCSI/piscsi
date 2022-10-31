@@ -27,7 +27,7 @@ TEST(ModePageDeviceTest, SupportsSaveParameters)
 TEST(ModePageDeviceTest, AddModePages)
 {
 	vector<int> cdb(6);
-	vector<BYTE> buf(512);
+	vector<uint8_t> buf(512);
 	MockModePageDevice device;
 
 	// Page 0
@@ -59,7 +59,7 @@ TEST(ModePageDeviceTest, AddModePages)
 TEST(ModePageDeviceTest, Page0)
 {
 	vector<int> cdb(6);
-	vector<BYTE> buf(512);
+	vector<uint8_t> buf(512);
 	MockPage0ModePageDevice device;
 
 	cdb[2] = 0x3f;
@@ -114,7 +114,7 @@ TEST(ModePageDeviceTest, ModeSelect)
 {
 	MockModePageDevice device;
 	vector<int> cmd;
-	vector<BYTE> buf;
+	vector<uint8_t> buf;
 
 	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),

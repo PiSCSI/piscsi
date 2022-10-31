@@ -13,7 +13,7 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length,
+void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length,
 		int sector_size)
 {
 	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
@@ -99,7 +99,7 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 	pages[48] = buf;
 }
 
-int scsi_command_util::GetInt16(const vector<BYTE>& buf, int offset)
+int scsi_command_util::GetInt16(const vector<uint8_t>& buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
@@ -156,34 +156,34 @@ void scsi_command_util::SetInt32(vector<byte>& buf, int offset, uint32_t value)
 	buf[offset + 3] = static_cast<byte>(value);
 }
 
-void scsi_command_util::SetInt16(vector<BYTE>& buf, int offset, int value)
+void scsi_command_util::SetInt16(vector<uint8_t>& buf, int offset, int value)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	buf[offset] = static_cast<BYTE>(value >> 8);
-	buf[offset + 1] = static_cast<BYTE>(value);
+	buf[offset] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 1] = static_cast<uint8_t>(value);
 }
 
-void scsi_command_util::SetInt32(vector<BYTE>& buf, int offset, uint32_t value)
+void scsi_command_util::SetInt32(vector<uint8_t>& buf, int offset, uint32_t value)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	buf[offset] = static_cast<BYTE>(value >> 24);
-	buf[offset + 1] = static_cast<BYTE>(value >> 16);
-	buf[offset + 2] = static_cast<BYTE>(value >> 8);
-	buf[offset + 3] = static_cast<BYTE>(value);
+	buf[offset] = static_cast<uint8_t>(value >> 24);
+	buf[offset + 1] = static_cast<uint8_t>(value >> 16);
+	buf[offset + 2] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 3] = static_cast<uint8_t>(value);
 }
 
-void scsi_command_util::SetInt64(vector<BYTE>& buf, int offset, uint64_t value)
+void scsi_command_util::SetInt64(vector<uint8_t>& buf, int offset, uint64_t value)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 7);
 
-	buf[offset] = static_cast<BYTE>(value >> 56);
-	buf[offset + 1] = static_cast<BYTE>(value >> 48);
-	buf[offset + 2] = static_cast<BYTE>(value >> 40);
-	buf[offset + 3] = static_cast<BYTE>(value >> 32);
-	buf[offset + 4] = static_cast<BYTE>(value >> 24);
-	buf[offset + 5] = static_cast<BYTE>(value >> 16);
-	buf[offset + 6] = static_cast<BYTE>(value >> 8);
-	buf[offset + 7] = static_cast<BYTE>(value);
+	buf[offset] = static_cast<uint8_t>(value >> 56);
+	buf[offset + 1] = static_cast<uint8_t>(value >> 48);
+	buf[offset + 2] = static_cast<uint8_t>(value >> 40);
+	buf[offset + 3] = static_cast<uint8_t>(value >> 32);
+	buf[offset + 4] = static_cast<uint8_t>(value >> 24);
+	buf[offset + 5] = static_cast<uint8_t>(value >> 16);
+	buf[offset + 6] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 7] = static_cast<uint8_t>(value);
 }

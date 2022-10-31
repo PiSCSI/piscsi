@@ -85,7 +85,7 @@ void HostServices::StartStopUnit()
 	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
+int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
@@ -98,12 +98,12 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 	// 4 bytes basic information
 	int size = AddModePages(cdb, buf, 4, length, 255);
 
-	buf[0] = (BYTE)size;
+	buf[0] = (uint8_t)size;
 
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
+int HostServices::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {

@@ -97,7 +97,7 @@ TEST(HostServicesTest, ModeSense6)
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense6));
-	vector<BYTE>& buffer = controller.GetBuffer();
+	vector<uint8_t>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[6]);
 	// Minor version 0
@@ -138,7 +138,7 @@ TEST(HostServicesTest, ModeSense10)
     cmd[8] = 255;
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense10));
-	vector<BYTE>& buffer = controller.GetBuffer();
+	vector<uint8_t>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[10]);
 	// Minor version 0

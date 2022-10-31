@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "os.h"
 #include <vector>
 
 using namespace std;
@@ -24,5 +23,5 @@ public:
 	ByteWriter() = default;
 	virtual ~ByteWriter() = default;
 
-	virtual bool WriteBytes(const vector<int>&, vector<BYTE>&, uint32_t) = 0;
+	virtual bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) = 0;
 };

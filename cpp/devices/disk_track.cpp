@@ -215,7 +215,7 @@ bool DiskTrack::Save(const string& path)
 	return true;
 }
 
-bool DiskTrack::ReadSector(vector<BYTE>& buf, int sec) const
+bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
 	assert(sec >= 0 && sec < 0x100);
 
@@ -240,7 +240,7 @@ bool DiskTrack::ReadSector(vector<BYTE>& buf, int sec) const
 	return true;
 }
 
-bool DiskTrack::WriteSector(const vector<BYTE>& buf, int sec)
+bool DiskTrack::WriteSector(const vector<uint8_t>& buf, int sec)
 {
 	assert((sec >= 0) && (sec < 0x100));
 	assert(!dt.raw);

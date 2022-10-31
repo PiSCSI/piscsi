@@ -273,7 +273,7 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
+int Disk::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Get length, clear buffer
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
@@ -304,12 +304,12 @@ int Disk::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
 
 	size = AddModePages(cdb, buf, size, length, 255);
 
-	buf[0] = (BYTE)size;
+	buf[0] = (uint8_t)size;
 
 	return size;
 }
 
-int Disk::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
+int Disk::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Get length, clear buffer
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
@@ -489,7 +489,7 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 	pages[8] = buf;
 }
 
-int Disk::Read(const vector<int>&, vector<BYTE>& buf, uint64_t block)
+int Disk::Read(const vector<int>&, vector<uint8_t>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -525,7 +525,7 @@ int Disk::WriteCheck(uint64_t block)
 	return GetSectorSizeInBytes();
 }
 
-void Disk::Write(const vector<int>&, const vector<BYTE>& buf, uint64_t block)
+void Disk::Write(const vector<int>&, const vector<uint8_t>& buf, uint64_t block)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -582,7 +582,7 @@ void Disk::ReadCapacity10()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	vector<BYTE>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = controller->GetBuffer();
 
 	// Create end of logical block address (blocks-1)
 	uint64_t capacity = GetBlockCount() - 1;
@@ -610,7 +610,7 @@ void Disk::ReadCapacity16()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	vector<BYTE>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = controller->GetBuffer();
 
 	// Create end of logical block address (blocks-1)
 	SetInt64(buf, 0, GetBlockCount() - 1);

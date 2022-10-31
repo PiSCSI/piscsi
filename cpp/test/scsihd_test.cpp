@@ -97,7 +97,7 @@ TEST(ScsiHdTest, ModeSelect)
 	const unordered_set<uint32_t> sector_sizes = { 512 };
 	MockSCSIHD hd(0, sector_sizes, false);
 	vector<int> cmd(10);
-	vector<BYTE> buf(255);
+	vector<uint8_t> buf(255);
 
 	hd.SetSectorSizeInBytes(512);
 

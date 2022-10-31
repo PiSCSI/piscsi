@@ -15,7 +15,6 @@
 #pragma once
 
 #include "abstract_controller.h"
-#include "os.h"
 #include "scsi.h"
 #include <array>
 
@@ -30,7 +29,7 @@ class ScsiController : public AbstractController
 	static const int MAX_SYNC_PERIOD = 50;
 
 	// REQ/ACK offset(limited to 16)
-	static const BYTE MAX_SYNC_OFFSET = 16;
+	static const uint8_t MAX_SYNC_OFFSET = 16;
 
 	static const int UNKNOWN_INITIATOR_ID = -1;
 
@@ -39,14 +38,14 @@ class ScsiController : public AbstractController
 	using scsi_t = struct _scsi_t {
 		// Synchronous transfer
 		bool syncenable;				// Synchronous transfer possible
-		BYTE syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
-		BYTE syncoffset;					// Synchronous transfer offset
+		uint8_t syncperiod = MAX_SYNC_PERIOD;	// Synchronous transfer period
+		uint8_t syncoffset;					// Synchronous transfer offset
 		int syncack;					// Number of synchronous transfer ACKs
 
 		// ATN message
 		bool atnmsg;
 		int msc;
-		std::array<BYTE, 256> msb;
+		std::array<uint8_t, 256> msb;
 	};
 
 public:
@@ -98,7 +97,7 @@ private:
 	// Data transfer
 	void Send();
 	bool XferMsg(int);
-	bool XferIn(vector<BYTE>&);
+	bool XferIn(vector<uint8_t>&);
 	bool XferOut(bool);
 	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();

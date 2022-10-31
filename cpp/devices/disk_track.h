@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "os.h"
 #include <cstdlib>
 #include <vector>
 #include <string>
@@ -29,7 +28,7 @@ class DiskTrack
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		int sectors;						// Number of sectors(<0x100)
 		uint32_t length;					// Data buffer length
-		BYTE *buffer;						// Data buffer
+		uint8_t *buffer;						// Data buffer
 		bool init;							// Is it initilized?
 		bool changed;						// Changed flag
 		vector<bool> changemap;				// Changed map
@@ -53,8 +52,8 @@ private:
 	bool Save(const string& path);
 
 	// Read / Write
-	bool ReadSector(vector<BYTE>&, int) const;				// Sector Read
-	bool WriteSector(const vector<BYTE>& buf, int);			// Sector Write
+	bool ReadSector(vector<uint8_t>&, int) const;				// Sector Read
+	bool WriteSector(const vector<uint8_t>& buf, int);			// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };

@@ -128,7 +128,7 @@ TEST(ScsiMoTest, ModeSelect)
 	const unordered_set<uint32_t> sector_sizes = { 1024, 2048 };
 	MockSCSIMO mo(0, sector_sizes);
 	vector<int> cmd(10);
-	vector<BYTE> buf(255);
+	vector<uint8_t> buf(255);
 
 	mo.SetSectorSizeInBytes(2048);
 

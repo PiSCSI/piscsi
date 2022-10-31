@@ -15,7 +15,6 @@
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "log.h"
-#include "os.h"
 #include <array>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -432,7 +431,7 @@ bool GPIOBUS::GetDP() const
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(BYTE *buf)
+int GPIOBUS::CommandHandShake(uint8_t *buf)
 {
     GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
@@ -555,7 +554,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 //	Data reception handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
+int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
     GPIO_FUNCTION_TRACE
 
@@ -657,7 +656,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 //	Data transmission handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
+int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
     GPIO_FUNCTION_TRACE
 
@@ -973,7 +972,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
 // Get the number of bytes for a command
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::GetCommandByteCount(BYTE opcode)
+int GPIOBUS::GetCommandByteCount(uint8_t opcode)
 {
     GPIO_FUNCTION_TRACE
 

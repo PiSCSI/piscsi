@@ -318,7 +318,7 @@ void ScsiController::Status()
 		ResetOffset();
 		SetLength(1);
 		SetBlocks(1);
-		GetBuffer()[0] = (BYTE)GetStatus();
+		GetBuffer()[0] = (uint8_t)GetStatus();
 
 		return;
 	}
@@ -563,7 +563,7 @@ void ScsiController::Send()
 			// Message in phase
 			SetLength(1);
 			SetBlocks(1);
-			GetBuffer()[0] = (BYTE)GetMessage();
+			GetBuffer()[0] = (uint8_t)GetMessage();
 			MsgIn();
 			break;
 
@@ -678,7 +678,7 @@ bool ScsiController::XferMsg(int msg)
 
 	// Save message out data
 	if (scsi.atnmsg) {
-		scsi.msb[scsi.msc] = (BYTE)msg;
+		scsi.msb[scsi.msc] = (uint8_t)msg;
 		scsi.msc++;
 		scsi.msc %= 256;
 	}
@@ -819,7 +819,7 @@ void ScsiController::DataOutNonBlockOriented()
 //	*Reset offset and length
 //
 //---------------------------------------------------------------------------
-bool ScsiController::XferIn(vector<BYTE>& buf)
+bool ScsiController::XferIn(vector<uint8_t>& buf)
 {
 	assert(IsDataIn());
 
@@ -972,7 +972,7 @@ void ScsiController::ParseMessage()
 {
 	int i = 0;
 	while (i < scsi.msc) {
-		const BYTE message_type = scsi.msb[i];
+		const uint8_t message_type = scsi.msb[i];
 
 		if (message_type == 0x06) {
 			LOGTRACE("Received ABORT message")

@@ -147,7 +147,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	EnterStatusPhase();
 }
 
-bool SCSIPrinter::WriteByteSequence(vector<BYTE>& buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 {
 	if (!out.is_open()) {
 		vector<char> f(file_template.begin(), file_template.end());
