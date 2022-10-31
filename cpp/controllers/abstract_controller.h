@@ -69,8 +69,11 @@ public:
 	uint32_t GetBlocks() const { return ctrl.blocks; }
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 	void DecrementBlocks() { --ctrl.blocks; }
+	uint64_t GetNext() const { return ctrl.next; }
 	void SetNext(uint64_t n) { ctrl.next = n; }
-
+	void IncrementNext() { ++ctrl.next; }
+	int GetMessage() const { return ctrl.message; }
+	void SetMessage(int m) { ctrl.message = m; }
 	vector<int>& GetCmd() { return ctrl.cmd; }
 	int GetCmd(int index) const { return ctrl.cmd[index]; }
 
