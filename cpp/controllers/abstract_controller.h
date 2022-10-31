@@ -25,7 +25,6 @@ class PrimaryDevice;
 
 class AbstractController : public PhaseHandler
 {
-	friend class PrimaryDevice;
 	friend class ScsiController;
 
 public:
@@ -109,6 +108,8 @@ private:
 		uint32_t length;				// Transfer remaining length
 	};
 
+	ctrl_t ctrl = {};
+
 	// Logical units of this controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
@@ -120,7 +121,4 @@ private:
 
 	bool is_byte_transfer = false;
 	uint32_t bytes_to_transfer = 0;
-
-	ctrl_t ctrl = {};
-	ctrl_t* GetCtrl() { return &ctrl; }
 };

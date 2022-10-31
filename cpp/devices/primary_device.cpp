@@ -55,7 +55,6 @@ int PrimaryDevice::GetId() const
 void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
-	ctrl = controller->GetCtrl();
 }
 
 void PrimaryDevice::TestUnitReady()

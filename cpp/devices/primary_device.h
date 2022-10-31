@@ -61,7 +61,6 @@ protected:
 	void EnterDataOutPhase() { controller->DataOut(); }
 
 	AbstractController *controller = nullptr;
-	AbstractController::ctrl_t *ctrl = nullptr;
 
 private:
 
