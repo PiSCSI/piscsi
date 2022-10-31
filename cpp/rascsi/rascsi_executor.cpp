@@ -350,7 +350,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 }
 
 bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
-		shared_ptr<PrimaryDevice> device, bool dryRun) const
+		shared_ptr<PrimaryDevice>& device, bool dryRun) const
 {
 	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (storage_device == nullptr) {
@@ -394,7 +394,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Detach(const CommandContext& context, shared_ptr<PrimaryDevice>& device, bool dryRun) const
 {
 	auto controller = controller_manager.FindController(device->GetId());
 	if (controller == nullptr) {
