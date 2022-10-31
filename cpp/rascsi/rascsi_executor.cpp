@@ -49,16 +49,16 @@ bool RascsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
 
-	if (!ValidateOperationAgainstDevice(context, device, operation)) {
+	if (!ValidateOperationAgainstDevice(context, *device, operation)) {
 		return false;
 	}
 
 	switch (operation) {
 		case START:
-			return Start(device, dryRun);
+			return Start(*device, dryRun);
 
 		case STOP:
-			return Stop(device, dryRun);
+			return Stop(*device, dryRun);
 
 		case ATTACH:
 			return Attach(context, pb_device, dryRun);
@@ -70,13 +70,13 @@ bool RascsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 			return Insert(context, pb_device, device, dryRun);
 
 		case EJECT:
-			return Eject(device, dryRun);
+			return Eject(*device, dryRun);
 
 		case PROTECT:
-			return Protect(device, dryRun);
+			return Protect(*device, dryRun);
 
 		case UNPROTECT:
-			return Unprotect(device, dryRun);
+			return Unprotect(*device, dryRun);
 			break;
 
 		case CHECK_AUTHENTICATION:
@@ -196,62 +196,62 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 	return true;
 }
 
-bool RascsiExecutor::Start(shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Start requested for %s ID %d, unit %d", device->GetTypeString(), device->GetId(), device->GetLun())
+		LOGINFO("Start requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
 
-		if (!device->Start()) {
-			LOGWARN("Starting %s ID %d, unit %d failed", device->GetTypeString(), device->GetId(), device->GetLun())
+		if (!device.Start()) {
+			LOGWARN("Starting %s ID %d, unit %d failed", device.GetTypeString(), device.GetId(), device.GetLun())
 		}
 	}
 
 	return true;
 }
 
-bool RascsiExecutor::Stop(shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Stop(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Stop requested for %s ID %d, unit %d", device->GetTypeString(), device->GetId(), device->GetLun())
+		LOGINFO("Stop requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
 
-		device->Stop();
+		device.Stop();
 	}
 
 	return true;
 }
 
-bool RascsiExecutor::Eject(shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Eject(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Eject requested for %s ID %d, unit %d", device->GetTypeString(), device->GetId(), device->GetLun())
+		LOGINFO("Eject requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
 
-		if (!device->Eject(true)) {
-			LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetTypeString(), device->GetId(), device->GetLun())
+		if (!device.Eject(true)) {
+			LOGWARN("Ejecting %s ID %d, unit %d failed", device.GetTypeString(), device.GetId(), device.GetLun())
 		}
 	}
 
 	return true;
 }
 
-bool RascsiExecutor::Protect(shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Protect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetTypeString(), device->GetId(),
-				device->GetLun())
+		LOGINFO("Write protection requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(),
+				device.GetLun())
 
-		device->SetProtected(true);
+		device.SetProtected(true);
 	}
 
 	return true;
 }
 
-bool RascsiExecutor::Unprotect(shared_ptr<PrimaryDevice> device, bool dryRun) const
+bool RascsiExecutor::Unprotect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetTypeString(), device->GetId(),
-				device->GetLun())
+		LOGINFO("Write unprotection requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(),
+				device.GetLun())
 
-		device->SetProtected(false);
+		device.SetProtected(false);
 	}
 
 	return true;
@@ -286,7 +286,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	device->SetRemoved(storage_device != nullptr ? filename.empty() : false);
 
-	if (!SetProductData(context, pb_device, device)) {
+	if (!SetProductData(context, pb_device, *device)) {
 		return false;
 	}
 
@@ -699,23 +699,23 @@ bool RascsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 	return true;
 }
 
-bool RascsiExecutor::ValidateOperationAgainstDevice(const CommandContext& context,
-		const shared_ptr<PrimaryDevice> device, const PbOperation& operation)
+bool RascsiExecutor::ValidateOperationAgainstDevice(const CommandContext& context, const PrimaryDevice& device,
+		const PbOperation& operation)
 {
-	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device->GetTypeString());
+	if ((operation == START || operation == STOP) && !device.IsStoppable()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device.GetTypeString());
 	}
 
-	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device->GetTypeString());
+	if ((operation == INSERT || operation == EJECT) && !device.IsRemovable()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device.GetTypeString());
 	}
 
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device->GetTypeString());
+	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsProtectable()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device.GetTypeString());
 	}
 
-	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, device->GetTypeString());
+	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsReady()) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, device.GetTypeString());
 	}
 
 	return true;
@@ -738,17 +738,17 @@ bool RascsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int
 }
 
 bool RascsiExecutor::SetProductData(const CommandContext& context, const PbDeviceDefinition& pb_device,
-		shared_ptr<PrimaryDevice> device)
+		PrimaryDevice& device)
 {
 	try {
 		if (!pb_device.vendor().empty()) {
-			device->SetVendor(pb_device.vendor());
+			device.SetVendor(pb_device.vendor());
 		}
 		if (!pb_device.product().empty()) {
-			device->SetProduct(pb_device.product());
+			device.SetProduct(pb_device.product());
 		}
 		if (!pb_device.revision().empty()) {
-			device->SetRevision(pb_device.revision());
+			device.SetRevision(pb_device.revision());
 		}
 	}
 	catch(const invalid_argument& e) {
