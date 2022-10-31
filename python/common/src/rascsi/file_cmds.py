@@ -460,7 +460,7 @@ class FileCmds:
         try:
             run(
                 [
-                    "/usr/bin/dd",
+                    "dd",
                     f"if={driver_path}",
                     f"of={full_file_path}",
                     "seek=64",
@@ -479,7 +479,7 @@ class FileCmds:
         try:
             run(
                 [
-                    "/usr/bin/hformat",
+                    "hformat",
                     "-l",
                     volume_name,
                     str(full_file_path),
@@ -497,7 +497,7 @@ class FileCmds:
 
 
     # noinspection PyMethodMayBeStatic
-    def format_fat(self, file_name, volume_name, fat_size=None, atari=None):
+    def format_fat(self, file_name, volume_name, fat_size):
         """
         Initializes a FAT file system
         Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
@@ -508,20 +508,14 @@ class FileCmds:
         full_file_path = Path(server_info["image_dir"]) / file_name
 
         args =  [
-                    "/usr/sbin/mkfs.fat",
+                    "mkfs.fat",
                     "-v",
+                    "-F",
+                    fat_size,
                     "-n",
                     volume_name,
                     str(full_file_path),
                 ]
-
-        if atari:
-            args.insert(2, "-A")
-
-        if fat_size:
-            args.insert(2, "-F")
-            args.insert(3, fat_size)
-
         try:
             run(
                 args,

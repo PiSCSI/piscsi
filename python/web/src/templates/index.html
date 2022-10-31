@@ -588,8 +588,8 @@
     </option>
     {% endfor %}
     </select>
-    <label for="format_as">{{ _("Format as:") }}</label>
-    <select name="format_as" id="format_as">
+    <label for="drive_format">{{ _("Format as:") }}</label>
+    <select name="drive_format" id="drive_format">
     <option value="">
     {{ _("None") }}
     </option>
@@ -604,9 +604,6 @@
     </option>
     <option value="FAT32">
     FAT32
-    </option>
-    <option value="Atari ST FAT">
-    Atari ST FAT
     </option>
     </select>
     <input type="submit" value="{{ _("Create") }}">

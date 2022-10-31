@@ -38,13 +38,13 @@ def test_create_file(http_client, list_files, delete_file):
 # route("/files/create", methods=["POST"])
 def test_create_file_with_properties(http_client, list_files, delete_file):
     file_prefix = str(uuid.uuid4())
-    file_name = f"{file_prefix}.hd1"
+    file_name = f"{file_prefix}.hds"
 
     response = http_client.post(
         "/files/create",
         data={
             "file_name": file_prefix,
-            "type": "hd1",
+            "type": "hds",
             "size": 1,
             "drive_name": "DEC RZ22",
         },
@@ -76,7 +76,7 @@ def test_create_file_and_format(http_client, list_files, delete_file):
             "file_name": file_prefix,
             "type": "hda",
             "size": 1,
-            "drive_format": "Apple Drive Setup 2.0.3",
+            "drive_format": "Lido 7.56",
         },
     )
 

@@ -913,7 +913,7 @@ def create_file():
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
-    drive_format = request.form.get("format_as")
+    drive_format = request.form.get("drive_format")
 
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
@@ -931,7 +931,6 @@ def create_file():
                 "SpeedTools 3.6",
                 "FAT16",
                 "FAT32",
-                "Atari ST FAT",
                 ]
         if drive_format not in known_formats:
             return response(
@@ -941,16 +940,6 @@ def create_file():
                     drive_format=drive_format,
                 )
             )
-        elif drive_format == "Atari ST FAT":
-            process = file_cmd.format_fat(
-                    full_file_name,
-                    # FAT volume labels are max 11 chars
-                    volume_name[:11],
-                    atari=True,
-                    )
-
-            if not process["status"]:
-                return response(error=True, message=process["msg"])
         elif drive_format.startswith("FAT"):
             if drive_format == "FAT16":
                 fat_size = "16"
@@ -968,7 +957,7 @@ def create_file():
                     full_file_name,
                     # FAT volume labels are max 11 chars
                     volume_name[:11],
-                    fat_size=fat_size,
+                    fat_size,
                     )
 
             if not process["status"]:

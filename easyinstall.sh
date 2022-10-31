@@ -59,7 +59,6 @@ SYSTEMD_PATH="/etc/systemd/system"
 SSL_CERTS_PATH="/etc/ssl/certs"
 SSL_KEYS_PATH="/etc/ssl/private"
 HFDISK_BIN=/usr/bin/hfdisk
-LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
@@ -769,7 +768,6 @@ function setupWirelessNetworking() {
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="2-220801"
-    FILE_SHARE_PATH="$HOME/file_sharing"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
@@ -899,7 +897,7 @@ function installSamba() {
     echo ""
     echo "Installing dependencies..."
     sudo apt-get update || true
-    sudo apt-get install samba --assume-yes </dev/null
+    sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
     echo ""
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
     if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
