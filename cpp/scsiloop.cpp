@@ -1,67 +1,54 @@
-
-// Kernel module to access cycle count registers:
-//       https://matthewarcus.wordpress.com/2018/01/27/using-the-cycle-counter-registers-on-the-raspberry-pi-3/
-
-// https://mindplusplus.wordpress.com/2013/05/21/accessing-the-raspberry-pis-1mhz-timer/
-
-// Reading register from user space:
-//      https://stackoverflow.com/questions/59749160/reading-from-register-of-allwinner-h3-arm-processor
-
-// Maybe kernel patch>
-// https://yhbt.net/lore/all/20140707085858.GG16262@lukather/T/
-
+//---------------------------------------------------------------------------
 //
-// Access the Raspberry Pi System Timer registers directly.
+//	SCSI Target Emulator RaSCSI Reloaded for Raspberry Pi
+//  Loopback tester utility
 //
-#include "hal/sbc_version.h"
-#include "hal/systimer.h"
-#include "rascsi_version.h"
-#include "rasutil.h"
-#include <fcntl.h>
-#include <iostream>
-#include <memory>
-#include <ostream>
-#include <sched.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <sys/mman.h>
-#include <unistd.h>
-// #include "common.h"
-#include "log.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/spdlog.h"
+//	Copyright (C) 2022 akuker
+//
+//	[ Loopback tester utility ]
+//
+//  For more information, see:
+//     https://github.com/akuker/RASCSI/wiki/Troubleshooting#Loopback_Testing
+//
+//---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
+#include "hal/sbc_version.h"
+#include "hal/systimer.h"
+#include "log.h"
+#include "rascsi_version.h"
+#include "rasutil.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/spdlog.h"
+#include <sched.h>
+#include <stdio.h>
 
 using namespace std;
 using namespace spdlog;
+
 //---------------------------------------------------------------------------
 //
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-static const int DEFAULT_PORT         = 6868;
-static const char COMPONENT_SEPARATOR = ':';
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
 
 //---------------------------------------------------------------------------
 //
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile bool active; // Processing flag
-// RascsiService service;
 shared_ptr<GPIOBUS> bus;
 string current_log_level = "debug"; // Some versions of spdlog do not support get_log_level()
-string access_token;
-// DeviceFactory device_factory;
-// shared_ptr<ControllerManager> controller_manager;
-// RascsiImage rascsi_image;
-// shared_ptr<RascsiResponse> rascsi_response;
-// shared_ptr<RascsiExecutor> executor;
-// const ProtobufSerializer serializer;
 
 string connection_type = "hard-coded fullspec";
 
@@ -99,11 +86,8 @@ bool InitBus()
     // GPIOBUS creation
     bus = GPIOBUS_Factory::Create();
 
-    // controller_manager = make_shared<ControllerManager>(bus);
-    // rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
-    // executor  = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
-
     // GPIO Initialization
+    // TODO: process command line option to specify board type
     if (!bus->Init(BUS::mode_e::TARGET, board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC)) {
         return false;
     }
@@ -115,27 +99,13 @@ bool InitBus()
 
 void Cleanup()
 {
-    // executor->DetachAll();
-
-    // service.Cleanup();
-
     bus->Cleanup();
 }
 
 void Reset()
 {
-    // controller_manager->ResetAllControllers();
-
     bus->Reset();
 }
-
-// bool InitBus()
-// {
-// 	LOGTRACE("%s", __PRETTY_FUNCTION__);
-// 	SBC_Version::Init();
-
-// 	return true;
-// }
 
 void test_timer();
 void test_gpio();
@@ -146,6 +116,8 @@ void set_ind_out();
 void set_ind_in();
 void set_tad_out();
 void set_tad_in();
+void tony_test();
+void print_all();
 
 //---------------------------------------------------------------------------
 //
@@ -171,7 +143,6 @@ void FixCpu(int cpu)
 
 bool SetLogLevel(const string &log_level)
 {
-    cout << "log level " << endl;
     if (log_level == "trace") {
         set_level(level::trace);
     } else if (log_level == "debug") {
@@ -199,42 +170,12 @@ bool SetLogLevel(const string &log_level)
 
 void TerminationHandler(int signum)
 {
-    // Cleanup();
-
+    Cleanup();
     exit(signum);
-}
-
-// #include "wiringPi.h"
-
-void blink()
-{
-    printf("Simple Blink\n");
-    // wiringPiSetup();
-    // for(int i=0; i<20; i++){
-    // pinMode(i,OUTPUT);
-    // }
-
-    // for(int i=0; i<20; i++){
-    // 	for(int pin=0; pin<20; pin++){
-    // 		printf("Setting pin %d high\n", pin);
-    // 		digitalWrite(pin, HIGH);
-    // 		delay(100);
-    // 	}
-    // 	for(int pin=0; pin<20; pin++){
-    // 		printf("Setting pin %d low\n", pin);
-    // 		digitalWrite(pin, LOW);
-    // 		delay(100);
-    // 	}
-    // }
 }
 
 bool ParseArgument(int argc, char *argv[])
 {
-    // PbCommand command;
-    // int id = -1;
-    // int unit = -1;
-    // PbDeviceType type = UNDEFINED;
-    // int block_size = 0;
     string name;
     string log_level;
 
@@ -247,89 +188,17 @@ bool ParseArgument(int argc, char *argv[])
     int opt;
     while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
         switch (opt) {
-            // // The two options below are kind of a compound option with two letters
-            // case 'i':
-            // case 'I':
-            // 	id = -1;
-            // 	unit = -1;
-            // 	continue;
-
-            // case 'd':
-            // case 'D': {
-            // 	if (!ProcessId(optarg, id, unit)) {
-            // 		return false;
-            // 	}
-            // 	continue;
-            // }
-
-            // case 'b': {
-            // 	if (!GetAsInt(optarg, block_size)) {
-            // 		cerr << "Invalid block size " << optarg << endl;
-            // 		return false;
-            // 	}
-            // 	continue;
-            // }
-
         case 'z':
             locale = optarg;
             continue;
-
-            // case 'F': {
-            // 	if (const string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
-            // 		cerr << result << endl;
-            // 		return false;
-            // 	}
-            // 	continue;
-            // }
 
         case 'L':
             log_level = optarg;
             continue;
 
-            // case 'R':
-            // 	int depth;
-            // 	if (!GetAsInt(optarg, depth) || depth < 0) {
-            // 		cerr << "Invalid image file scan depth " << optarg << endl;
-            // 		return false;
-            // 	}
-            // 	rascsi_image.SetDepth(depth);
-            // 	continue;
-
         case 'n':
             name = optarg;
             continue;
-
-            // case 'p':
-            // 	if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
-            // 		cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-            // 		return false;
-            // 	}
-            // 	continue;
-
-            // case 'P':
-            // 	if (!ReadAccessToken(optarg)) {
-            // 		return false;
-            // 	}
-            // 	continue;
-
-            // case 'r': {
-            // 		string error = executor->SetReservedIds(optarg);
-            // 		if (!error.empty()) {
-            // 			cerr << error << endl;
-            // 			return false;
-            // 		}
-            // 	}
-            // 	continue;
-
-            // case 't': {
-            // 		string t = optarg;
-            // 		transform(t.begin(), t.end(), t.begin(), ::toupper);
-            // 		if (!PbDeviceType_Parse(t, &type)) {
-            // 			cerr << "Illegal device type '" << optarg << "'" << endl;
-            // 			return false;
-            // 		}
-            // 	}
-            // 	continue;
 
         case 1:
             // Encountered filename
@@ -342,62 +211,14 @@ bool ParseArgument(int argc, char *argv[])
         if (optopt) {
             return false;
         }
-
-        // // Set up the device data
-        // PbDeviceDefinition *device = command.add_devices();
-        // device->set_id(id);
-        // device->set_unit(unit);
-        // device->set_type(type);
-        // device->set_block_size(block_size);
-
-        // ParseParameters(*device, optarg);
-
-        // if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-        // 	device->set_vendor(name.substr(0, separator_pos));
-        // 	name = name.substr(separator_pos + 1);
-        // 	separator_pos = name.find(COMPONENT_SEPARATOR);
-        // 	if (separator_pos != string::npos) {
-        // 		device->set_product(name.substr(0, separator_pos));
-        // 		device->set_revision(name.substr(separator_pos + 1));
-        // 	}
-        // 	else {
-        // 		device->set_product(name);
-        // 	}
-        // }
-        // else {
-        // 	device->set_vendor(name);
-        // }
-
-        // id = -1;
-        // type = UNDEFINED;
-        // block_size = 0;
-        // name = "";
     }
 
     if (!log_level.empty()) {
         SetLogLevel(log_level);
     }
 
-    // // Attach all specified devices
-    // command.set_operation(ATTACH);
-
-    // if (CommandContext context(locale); !executor->ProcessCmd(context, command)) {
-    // 	return false;
-    // }
-
-    // // Display and log the device list
-    // PbServerInfo server_info;
-    // rascsi_response->GetDevices(server_info, rascsi_image.GetDefaultFolder());
-    // const list<PbDevice>& devices = { server_info.devices_info().devices().begin(),
-    // server_info.devices_info().devices().end() }; const string device_list = ListDevices(devices);
-    // LogDevices(device_list);
-    // cout << device_list << flush;
-
     return true;
 }
-
-void tony_test();
-void print_all();
 
 int main(int argc, char *argv[])
 {
@@ -454,96 +275,9 @@ int main(int argc, char *argv[])
     cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
-    LOGWARN("THIS WILL DO SOMETHING SOMEDAY");
-
-    LOGDEBUG("DTD OUT %d = %d", (int)bus->board->pin_dtd, (int)bus->board->DtdOut());
-    LOGDEBUG("DTD IN %d = %d", (int)bus->board->pin_dtd, (int)bus->board->DtdIn());
-    LOGDEBUG("IND OUT %d = %d", (int)bus->board->pin_ind, (int)bus->board->IndOut());
-    LOGDEBUG("IND IN %d = %d", (int)bus->board->pin_ind, (int)bus->board->IndIn());
-    LOGDEBUG("TAD OUT %d = %d", (int)bus->board->pin_tad, (int)bus->board->TadOut());
-    LOGDEBUG("TAD IN %d = %d", (int)bus->board->pin_tad, (int)bus->board->TadIn());
-
-    bus->PullConfig(bus->board->pin_dtd, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-    bus->PullConfig(bus->board->pin_ind, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-    bus->PullConfig(bus->board->pin_tad, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-
-    bus->PinConfig(bus->board->pin_dtd, board_type::gpio_direction_e::GPIO_OUTPUT);
-    bus->PinConfig(bus->board->pin_ind, board_type::gpio_direction_e::GPIO_OUTPUT);
-    bus->PinConfig(bus->board->pin_tad, board_type::gpio_direction_e::GPIO_OUTPUT);
-    bus->PinConfig(bus->board->pin_ack, board_type::gpio_direction_e::GPIO_OUTPUT);
-
-    int delay_time = 10000;
-    (void)delay_time;
-
-    set_tad_out();
-    set_dtd_out();
-    set_ind_out();
-
-    // for (int i = 0; i < 10; i++) {
-    //     bus->SetACK(true);
-    //     usleep(delay_time);
-    //     bus->SetACK(false);
-    //     usleep(delay_time);
-    // }
-
     run_loopback_test();
     return 0;
-
-    tony_test();
-
-    // LOGDEBUG("bus->Acquire(): %08X", bus->Acquire());
-    // SysTimer::SleepUsec(1000);
-
-    // LOGDEBUG("IO True");
-    // bus->SetIO(true);
-    // SysTimer::SleepUsec(1000);
-    // LOGDEBUG("bus->Acquire(): %08X", bus->Acquire());
-
-    // LOGDEBUG("IO False");
-    // bus->SetIO(false);
-    // SysTimer::SleepUsec(1000);
-    // LOGDEBUG("bus->Acquire(): %08X", bus->Acquire());
-
-    return 0;
 }
-
-// //---------------------------------------------------------------------------
-// //
-// //	Main processing
-// //
-// //---------------------------------------------------------------------------
-// int main(int argc, char* argv[])
-// {
-
-// 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
-// 	setvbuf(stdout, nullptr, _IONBF, 0);
-
-// 	if(argc > 1){
-// 		SetLogLevel(argv[1]);
-// 	}else{
-// 		SetLogLevel("trace");
-// 	}
-
-// 	// Create a thread-safe stdout logger to process the log messages
-// 	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
-
-// 	// Signal handler to detach all devices on a KILL or TERM signal
-// 	struct sigaction termination_handler;
-// 	termination_handler.sa_handler = TerminationHandler;
-// 	sigemptyset(&termination_handler.sa_mask);
-// 	termination_handler.sa_flags = 0;
-// 	sigaction(SIGINT, &termination_handler, nullptr);
-// 	sigaction(SIGTERM, &termination_handler, nullptr);
-
-// 	if (!InitBus()) {
-// 		return EPERM;
-// 	}
-
-// 	// blink();
-// 	// test_timer();
-// 	test_gpio();
-
-// }
 
 void test_timer()
 {
@@ -580,46 +314,6 @@ void test_timer()
     SysTimer::SleepNsec(1000000);
     after = SysTimer::GetTimerLow();
     LOGINFO("SysTimer::SleepNSec: %d (expected ~1000)", (uint32_t)(after - before));
-}
-
-void tony_test()
-{
-    LOGWARN("Set everything to HIGH OUTPUT with PULLUP");
-
-    for (auto phys_pin : bus->SignalTable) {
-        LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
-
-        bus->PullConfig(phys_pin, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-        bus->PinConfig(phys_pin, board_type::gpio_direction_e::GPIO_OUTPUT);
-        bus->PinSetSignal(phys_pin, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
-        SysTimer::SleepUsec(10000);
-    }
-    // SysTimer::SleepUsec(1000);
-    usleep(1000000);
-
-    LOGWARN("Set everything to LOW OUTPUT with PULLUP");
-
-    for (auto phys_pin : bus->SignalTable) {
-        LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
-
-        bus->PullConfig(phys_pin, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-        bus->PinConfig(phys_pin, board_type::gpio_direction_e::GPIO_OUTPUT);
-        bus->PinSetSignal(phys_pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
-        SysTimer::SleepUsec(10000);
-    }
-    usleep(1000000);
-
-    LOGWARN("Set everything to INPUT");
-
-    for (auto phys_pin : bus->SignalTable) {
-        LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
-
-        bus->PullConfig(phys_pin, board_type::gpio_pull_up_down_e::GPIO_PULLUP);
-        bus->PinConfig(phys_pin, board_type::gpio_direction_e::GPIO_INPUT);
-        bus->PinSetSignal(phys_pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
-        SysTimer::SleepUsec(10000);
-    }
-    usleep(1000000);
 }
 
 struct loopback_connections_struct {
@@ -715,50 +409,39 @@ void print_all()
 // Set transceivers IC1 and IC2 to OUTPUT
 void set_dtd_out()
 {
-    LOGDEBUG("DTD OUT %d = %d", (int)bus->board->pin_dtd, (int)bus->board->DtdOut());
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->PinSetSignal(bus->board->pin_dtd, bus->board->DtdOut());
-    // gpio.output(rascsi_dtd_gpio,gpio.LOW)
 }
 
 // Set transceivers IC1 and IC2 to INPUT
 void set_dtd_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGDEBUG("DTD IN %d = %d", (int)bus->board->pin_dtd, (int)bus->board->DtdIn());
     bus->PinSetSignal(bus->board->pin_dtd, bus->board->DtdIn());
-    // gpio.output(rascsi_dtd_gpio,gpio.HIGH)
 }
 // Set transceiver IC4 to OUTPUT
 void set_ind_out()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGDEBUG("IND OUT %d = %d", (int)bus->board->pin_ind, (int)bus->board->IndOut());
     bus->PinSetSignal(bus->board->pin_ind, bus->board->IndOut());
-    // gpio.output(rascsi_ind_gpio,gpio.HIGH)
 }
 // Set transceiver IC4 to INPUT
 void set_ind_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGDEBUG("IND IN %d = %d", (int)bus->board->pin_ind, (int)bus->board->IndIn());
     bus->PinSetSignal(bus->board->pin_ind, bus->board->IndIn());
-    // gpio.output(rascsi_ind_gpio,gpio.LOW)
 }
 // Set transceiver IC3 to OUTPUT
 void set_tad_out()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGDEBUG("TAD OUT %d = %d", (int)bus->board->pin_tad, (int)bus->board->TadOut());
     bus->PinSetSignal(bus->board->pin_tad, bus->board->TadOut());
-    // gpio.output(rascsi_tad_gpio,gpio.HIGH)
 }
 // Set transceiver IC3 to INPUT
 void set_tad_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    LOGDEBUG("TAD IN %d = %d", (int)bus->board->pin_tad, (int)bus->board->TadIn());
     bus->PinSetSignal(bus->board->pin_tad, bus->board->TadIn());
-    // gpio.output(rascsi_tad_gpio,gpio.LOW)
 }
 
 // Set the specified transciever to an OUTPUT. All of the other transceivers
@@ -788,19 +471,15 @@ void loopback_setup()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
-    // gpio.setmode(gpio.BOARD)
-    // gpio.setwarnings(False)
     for (loopback_connection cur_gpio : loopback_conn_table) {
         if (cur_gpio.this_pin == board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
             continue;
         }
         bus->PinConfig(cur_gpio.this_pin, board_type::gpio_direction_e::GPIO_OUTPUT);
         bus->PullConfig(cur_gpio.this_pin, board_type::gpio_pull_up_down_e::GPIO_PULLNONE);
-        // gpio.setup(cur_gpio['gpio_num'], gpio.OUT, initial=gpio.HIGH)
     }
-    // Setup direction control
-    // gpio.setup(rascsi_ind_gpio, gpio.OUT) gpio.setup(rascsi_tad_gpio, gpio.OUT) gpio.setup(rascsi_dtd_gpio, gpio.OUT)
 
+    // Setup direction control
     if (bus->board->pin_ind != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
         bus->PinConfig(bus->board->pin_ind, board_type::gpio_direction_e::GPIO_OUTPUT);
     }
@@ -818,11 +497,10 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
-    (void)gpio_rec;
     int err_count  = 0;
-    int sleep_time = 10000;
+    int sleep_time = 5000; // 5ms
 
-    LOGDEBUG("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
+    LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
     usleep(sleep_time);
 
@@ -835,40 +513,15 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     usleep(sleep_time);
     bus->Acquire();
 
-    //     LOGDEBUG("------------------------------------------------");
-    // for (int xx = 0; xx < 3; xx++) {
-    //     LOGDEBUG("------------------");
-    //     for (auto cur_gpio : loopback_conn_table) {
-    //         LOGDEBUG(" +[%d]", (int)cur_gpio.this_pin)
-    //         bus->PinSetSignal(cur_gpio.this_pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
-    //         usleep(100000);
-    //         bus->Acquire();
-    //     }
-
-    //     for (auto cur_gpio : loopback_conn_table) {
-    //         LOGTRACE(" -[%d]", (int)cur_gpio.this_pin)
-    //         bus->PinSetSignal(cur_gpio.this_pin, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
-    //         usleep(100000);
-    //         bus->Acquire();
-    //     }
-    // }
-    // exit(1);
-
     // ############################################
-    // # set the test gpio low
-    // gpio.output(gpio_rec['gpio_num'], gpio.LOW)
-    LOGTRACE("PinSetSignal %d", (int)gpio_rec.this_pin);
+    // set the test gpio low
     bus->SetMode(gpio_rec.this_pin, board_type::gpio_direction_e::GPIO_OUTPUT);
     bus->PinSetSignal(gpio_rec.this_pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
 
-    // time.sleep(pin_settle_delay)
-    // LOGINFO("Sleep");
     usleep(sleep_time);
-    // LOGINFO("Done");
 
-    LOGTRACE("Acquire");
     bus->Acquire();
-    // # loop through all of the gpios
+    // loop through all of the gpios
     for (auto cur_gpio : loopback_conn_table) {
         printf(".");
         // all of the gpios should be high except for the test gpio and the connected gpio
@@ -898,18 +551,11 @@ int test_gpio_pin(loopback_connection &gpio_rec)
             }
         }
     }
-    // exit(1);
-
-    //         if(cur_val != gpio.HIGH):
-    //             print("Error: GPIO " + scsi_signals[gpio_rec['gpio_num']] + " incorrectly pulled " +
-    //             scsi_signals[cur_gpio] + " LOW, when it shouldn't have") err_count = err_count+1
 
     // ############################################
-    // # set the transceivers to input
+    // set the transceivers to input
     set_output_channel(board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE);
-    // set_output_channel(rascsi_none)
 
-    // time.sleep(pin_settle_delay)
     usleep(sleep_time);
 
     // # loop through all of the gpios
@@ -917,15 +563,11 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         printf(".");
         // all of the gpios should be high except for the test gpio
         LOGTRACE("calling bus->GetSignal(%d)", (int)cur_gpio.this_pin);
-        //     cur_val = gpio.input(cur_gpio)
         auto cur_val = bus->GetSignal(cur_gpio.this_pin);
         LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
-
-    //     if( cur_gpio == gpio_rec['gpio_num']):
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
-     //         if(cur_val != gpio.LOW):
-           if (cur_val != false) {
+            if (cur_val != false) {
                 LOGERROR("Test commanded GPIO %d [%s] to be low, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
@@ -939,33 +581,27 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         }
     }
 
-    // # Set the transceiver back to output
-    // set_output_channel(gpio_rec['dir_ctrl'])
+    // Set the transceiver back to output
     set_output_channel(gpio_rec.dir_ctrl_pin);
     usleep(sleep_time);
 
     // #############################################
-    // # set the test gpio high
-    // gpio.output(gpio_rec['gpio_num'], gpio.HIGH)
+    // set the test gpio high
     bus->SetMode(gpio_rec.this_pin, board_type::gpio_direction_e::GPIO_OUTPUT);
     bus->PinSetSignal(gpio_rec.this_pin, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
 
-    // time.sleep(pin_settle_delay)
     usleep(sleep_time);
 
     bus->Acquire();
-    // # loop through all of the gpios
-    // for cur_gpio in scsi_signals:
+    // loop through all of the gpios
     for (auto cur_gpio : loopback_conn_table) {
         printf(".");
 
-        LOGTRACE("calling bus->GetSignal(%d)", (int)cur_gpio.this_pin);
         auto cur_val = bus->GetSignal(cur_gpio.this_pin);
-        LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
+        LOGTRACE("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
-     //         if(cur_val != gpio.LOW):
-           if (cur_val != true) {
+            if (cur_val != true) {
                 LOGERROR("Test commanded GPIO %d [%s] to be high, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
@@ -978,11 +614,11 @@ int test_gpio_pin(loopback_connection &gpio_rec)
             }
         }
     }
-    if(err_count == 0){
-        printf("GPIO %2d [%s] OK!\n\r", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str());
-    }
-    else{
-        printf("GPIO %2d [%s] FAILED - %d errors!\n\r", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str(), err_count);
+    if (err_count == 0) {
+        printf(GREEN "GPIO %2d [%s] OK!\n", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str());
+    } else {
+        printf(RED "GPIO %2d [%s] FAILED - %d errors!\n\r", (int)gpio_rec.this_pin,
+               pin_name_lookup.at(gpio_rec.this_pin).c_str(), err_count);
     }
     return err_count;
 }
@@ -992,27 +628,9 @@ void run_loopback_test()
     LOGTRACE("%s", __PRETTY_FUNCTION__);
     init_loopback();
     loopback_setup();
-    // print_all();
-    // LOGWARN("---------------------------------------------------");
-
-    // set_output_channel(bus->board->pin_dtd);
-    // // for(int j = 0; j<5; j++){
-    // for (uint8_t i = 0; i < 0xFF; i++) {
-    //     bus->SetDAT(i);
-    //     usleep(50000);
-    // }
-    // // }
-
-    // loopback_connection ack;
-    // ack.this_pin      = bus->board->pin_ack;
-    // ack.connected_pin = bus->board->pin_dt0;
-    // ack.dir_ctrl_pin  = bus->board->pin_ind;
-
-    // test_gpio_pin(ack);
 
     for (auto cur_gpio : loopback_conn_table) {
-        printf("Testing GPIO %2d [%s]:", (int)cur_gpio.this_pin,
-                pin_name_lookup.at(cur_gpio.this_pin).c_str());
+        printf(CYAN "Testing GPIO %2d [%s]:" WHITE, (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str());
         test_gpio_pin(cur_gpio);
     }
 }

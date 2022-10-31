@@ -598,7 +598,6 @@ int GPIOBUS_Allwinner::sunxi_setup(void)
     // char buffer[1024];
     // char hardware[1024];
     // int found = 0;
-    printf("enter to sunxi_setup\n");
 
     // mmap the GPIO memory registers
     if ((mem_fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
