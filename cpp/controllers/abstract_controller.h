@@ -94,6 +94,8 @@ protected:
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
+	shared_ptr<BUS> GetBus() const { return bus; }
+
 private:
 
 	using ctrl_t = struct _ctrl_t {
