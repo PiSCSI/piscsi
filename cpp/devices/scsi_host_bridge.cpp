@@ -264,7 +264,7 @@ void SCSIBR::GetMessage10()
 
 	// Set next block
 	controller->SetBlocks(1);
-	ctrl->next = 1;
+	controller->SetNext(1);
 
 	EnterDataInPhase();
 }
@@ -288,7 +288,7 @@ void SCSIBR::SendMessage10()
 
 	// Set next block
 	controller->SetBlocks(1);
-	ctrl->next = 1;
+	controller->SetNext(1);
 
 	EnterDataOutPhase();
 }

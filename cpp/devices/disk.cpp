@@ -109,12 +109,15 @@ void Disk::FormatUnit()
 
 void Disk::Read(access_mode mode)
 {
-	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	uint64_t start;
+	uint32_t blocks;
+	if (CheckAndGetStartAndCount(start, blocks, mode)) {
+		controller->SetBlocks(blocks);
 		controller->SetLength(Read(controller->GetCmd(), controller->GetBuffer(), start));
 		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
 
 		// Set next block
-		ctrl->next = start + 1;
+		controller->SetNext(start + 1);
 
 		EnterDataInPhase();
 	}
@@ -149,11 +152,14 @@ void Disk::ReadWriteLong16()
 
 void Disk::Write(access_mode mode)
 {
-	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	uint64_t start;
+	uint32_t blocks;
+	if (CheckAndGetStartAndCount(start, blocks, mode)) {
+		controller->SetBlocks(blocks);
 		controller->SetLength(WriteCheck(start));
 
 		// Set next block
-		ctrl->next = start + 1;
+		controller->SetNext(start + 1);
 
 		EnterDataOutPhase();
 	}
@@ -164,7 +170,9 @@ void Disk::Write(access_mode mode)
 
 void Disk::Verify(access_mode mode)
 {
-	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, mode)) {
+	uint64_t start;
+	uint32_t blocks;
+	if (CheckAndGetStartAndCount(start, blocks, mode)) {
 		// if BytChk=0
 		if ((controller->GetCmd(1) & 0x02) == 0) {
 			Seek();
@@ -172,10 +180,11 @@ void Disk::Verify(access_mode mode)
 		}
 
 		// Test reading
+		controller->SetBlocks(blocks);
 		controller->SetLength(Read(controller->GetCmd(), controller->GetBuffer(), start));
 
 		// Set next block
-		ctrl->next = start + 1;
+		controller->SetNext(start + 1);
 
 		EnterDataOutPhase();
 	}
@@ -547,7 +556,9 @@ void Disk::Seek()
 
 void Disk::Seek6()
 {
-	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, SEEK6)) {
+	uint64_t start;
+	uint32_t blocks;
+	if (CheckAndGetStartAndCount(start, blocks, SEEK6)) {
 		CheckReady();
 	}
 
@@ -556,7 +567,9 @@ void Disk::Seek6()
 
 void Disk::Seek10()
 {
-	if (uint64_t start; CheckAndGetStartAndCount(start, ctrl->blocks, SEEK10)) {
+	uint64_t start;
+	uint32_t blocks;
+	if (CheckAndGetStartAndCount(start, blocks, SEEK10)) {
 		CheckReady();
 	}
 

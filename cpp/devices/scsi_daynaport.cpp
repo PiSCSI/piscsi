@@ -328,7 +328,7 @@ void SCSIDaynaPort::Read6()
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
 
 	// Set next block
-	ctrl->next = record + 1;
+	controller->SetNext(record + 1);
 
 	EnterDataInPhase();
 }
@@ -358,7 +358,7 @@ void SCSIDaynaPort::Write6()
 
 	// Set next block
 	controller->SetBlocks(1);
-	ctrl->next = 1;
+	controller->SetNext(1);
 
 	EnterDataOutPhase();
 }
@@ -369,7 +369,7 @@ void SCSIDaynaPort::RetrieveStatistics()
 
 	// Set next block
 	controller->SetBlocks(1);
-	ctrl->next = 1;
+	controller->SetNext(1);
 
 	EnterDataInPhase();
 }
