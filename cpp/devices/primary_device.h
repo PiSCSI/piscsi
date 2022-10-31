@@ -60,6 +60,7 @@ protected:
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
 
+	// TODO Try to replace this raw pointer, maybe by a weak_ptr
 	AbstractController *controller = nullptr;
 
 private:
