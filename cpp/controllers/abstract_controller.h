@@ -58,6 +58,7 @@ public:
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
 
+	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
 	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
@@ -74,7 +75,6 @@ public:
 	void SetMessage(int m) { ctrl.message = m; }
 	vector<int>& GetCmd() { return ctrl.cmd; }
 	int GetCmd(int index) const { return ctrl.cmd[index]; }
-
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
 	uint32_t GetBytesToTransfer() const { return bytes_to_transfer; }
@@ -91,6 +91,7 @@ protected:
 
 	void AllocateCmd(size_t);
 
+	// TODO These should probably be extracted into a new TransferHandler class
 	bool HasValidLength() const { return ctrl.length != 0; }
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
