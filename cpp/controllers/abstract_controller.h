@@ -25,8 +25,6 @@ class PrimaryDevice;
 
 class AbstractController : public PhaseHandler
 {
-	friend class ScsiController;
-
 public:
 
 	enum class rascsi_shutdown_mode {
@@ -79,8 +77,12 @@ public:
 
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
+	uint32_t GetBytesToTransfer() const { return bytes_to_transfer; }
+	void SetBytesToTransfer(uint32_t b) { bytes_to_transfer = b; }
 
 protected:
+
+	inline shared_ptr<BUS> GetBus() const { return bus; }
 
 	scsi_defs::scsi_command GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
@@ -93,8 +95,6 @@ protected:
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
-
-	shared_ptr<BUS> GetBus() const { return bus; }
 
 private:
 
