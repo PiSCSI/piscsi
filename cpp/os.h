@@ -13,5 +13,5 @@
 
 #include <cstdint>
 
-using BYTE = unsigned char;
+using BYTE = uint8_t;
 using DWORD = uint32_t;
