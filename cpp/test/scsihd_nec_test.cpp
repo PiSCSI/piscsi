@@ -57,14 +57,14 @@ TEST(ScsiHdNecTest, TestAddFormatPage)
 	hd.SetUpModePages(pages, 0x03, false);
 	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
 	vector<byte>& page_3 = pages[3];
-	EXPECT_EQ(0x80, static_cast<int>(page_3[0]) & 0x80);
-	EXPECT_EQ(0, static_cast<int>(page_3[20]));
+	EXPECT_EQ(0x80, to_integer<int>(page_3[0]) & 0x80);
+	EXPECT_EQ(0, to_integer<int>(page_3[20]));
 
 	hd.SetRemovable(true);
 	// Non changeable
 	hd.SetUpModePages(pages, 0x03, false);
 	page_3 = pages[3];
-	EXPECT_EQ(0x20, static_cast<int>(page_3[20]));
+	EXPECT_EQ(0x20, to_integer<int>(page_3[20]));
 
 	pages.clear();
 	// Changeable

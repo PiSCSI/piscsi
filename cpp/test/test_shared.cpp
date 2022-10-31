@@ -45,11 +45,10 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
 	const vector<BYTE>& buffer = controller.GetBuffer();
-	EXPECT_EQ(static_cast<int>(t), buffer[0]);
+	EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
 	EXPECT_EQ(removable ? 0x80: 0x00, buffer[1]);
-	EXPECT_EQ(static_cast<int>(l), buffer[2]);
-	EXPECT_EQ(static_cast<int>(l) > static_cast<int>(scsi_level::SCSI_2) ?
-			static_cast<int>(scsi_level::SCSI_2) : static_cast<int>(l), buffer[3]);
+	EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));
+	EXPECT_EQ(l > scsi_level::SCSI_2 ? scsi_level::SCSI_2 : l, static_cast<scsi_level>(buffer[3]));
 	EXPECT_EQ(additional_length, buffer[4]);
 	string product_data;
 	if (ident.size() == 24) {

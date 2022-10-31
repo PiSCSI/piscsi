@@ -65,8 +65,8 @@ TEST(ScsiMoTest, TestAddVendorPage)
 	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
 	vector<byte>& page_32 = pages[32];
 	EXPECT_EQ(12, page_32.size());
-	EXPECT_EQ(0, static_cast<int>(page_32[2]))  << "Wrong format mode";
-	EXPECT_EQ(0, static_cast<int>(page_32[3]))  << "Wrong format type";
+	EXPECT_EQ(0, to_integer<int>(page_32[2]))  << "Wrong format mode";
+	EXPECT_EQ(0, to_integer<int>(page_32[3]))  << "Wrong format type";
 	EXPECT_EQ(0x12345678, GetInt32(page_32, 4)) << "Wrong number of blocks";
 	EXPECT_EQ(0, GetInt16(page_32, 8)) << "Wrong number of spare blocks";
 	EXPECT_EQ(0, GetInt16(page_32, 10));
@@ -116,8 +116,8 @@ TEST(ScsiMoTest, TestAddVendorPage)
 
 	// Changeable page
 	mo.SetUpModePages(pages, 0x20, true);
-	EXPECT_EQ(0, static_cast<int>(page_32[2]));
-	EXPECT_EQ(0, static_cast<int>(page_32[3]));
+	EXPECT_EQ(0, to_integer<int>(page_32[2]));
+	EXPECT_EQ(0, to_integer<int>(page_32[3]));
 	EXPECT_EQ(0, GetInt32(page_32, 4));
 	EXPECT_EQ(0, GetInt16(page_32, 8));
 	EXPECT_EQ(0, GetInt16(page_32, 10));
