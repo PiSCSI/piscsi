@@ -99,13 +99,13 @@ int GetInt16(const vector<byte>& buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	return (static_cast<int>(buf[offset]) << 8) | static_cast<int>(buf[offset + 1]);
+	return (to_integer<int>(buf[offset]) << 8) | to_integer<int>(buf[offset + 1]);
 }
 
 uint32_t GetInt32(const vector<byte>& buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	return (static_cast<uint32_t>(buf[offset]) << 24) | (static_cast<uint32_t>(buf[offset + 1]) << 16) |
-			(static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
+	return (to_integer<uint32_t>(buf[offset]) << 24) | (to_integer<uint32_t>(buf[offset + 1]) << 16) |
+			(to_integer<uint32_t>(buf[offset + 2]) << 8) | to_integer<uint32_t>(buf[offset + 3]);
 }
