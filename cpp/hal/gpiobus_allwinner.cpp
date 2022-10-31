@@ -31,10 +31,12 @@
 //---------------------------------------------------------------------------
 
 #include <memory>
+#include <sstream>
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <iomanip>
 
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_allwinner.h"
@@ -353,7 +355,6 @@ void GPIOBUS_Allwinner::SetDAT(BYTE dat)
                                                        : board_type::gpio_high_low_e::GPIO_STATE_LOW);
     PinSetSignal(board->pin_dt7, (dat & (1 << 7)) != 0 ? board_type::gpio_high_low_e::GPIO_STATE_HIGH
                                                        : board_type::gpio_high_low_e::GPIO_STATE_LOW);
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
 void GPIOBUS_Allwinner::MakeTable(void)
@@ -533,6 +534,16 @@ uint32_t GPIOBUS_Allwinner::Acquire()
     // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // Only used for development/debugging purposes. Isn't really applicable
     // to any real-world RaSCSI application
+    // string data = "";
+
+    // std::stringstream stream;
+
+    //     stream << std::hex << std::setfill ('0') << std::setw(sizeof(uint32_t)*2) << signals[0];
+    //     stream << std::hex << std::setfill ('0') << std::setw(sizeof(uint32_t)*2) << signals[2];
+    //     stream << std::hex << std::setfill ('0') << std::setw(sizeof(uint32_t)*2) << signals[11];
+
+    // LOGINFO("Raw GPIO: %s", stream.str().c_str());
+
     return 0;
 }
 
@@ -543,7 +554,7 @@ uint32_t GPIOBUS_Allwinner::sunxi_readl(volatile uint32_t *addr)
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
         (void)
-        addr;
+    addr;
     return 0;
 #else
     printf("sunxi_readl\n");
@@ -560,7 +571,7 @@ void GPIOBUS_Allwinner::sunxi_writel(volatile uint32_t *addr, uint32_t val)
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
         (void)
-        addr;
+    addr;
     (void)val;
     return;
 #else
@@ -634,7 +645,7 @@ void GPIOBUS_Allwinner::sunxi_set_pullupdn(int gpio, int pud)
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
         (void)
-        gpio;
+    gpio;
     (void)pud;
     return;
 #else
@@ -663,7 +674,7 @@ void GPIOBUS_Allwinner::sunxi_setup_gpio(int gpio, int direction, int pud)
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
         (void)
-        gpio;
+    gpio;
     (void)direction;
     (void)pud;
     return;
@@ -725,11 +736,11 @@ void GPIOBUS_Allwinner::sunxi_output_gpio(int gpio, int value)
     int bank = GPIO_BANK(gpio); // gpio >> 5
     int num  = GPIO_NUM(gpio);  // gpio & 0x1F
 
-    LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
-    LOGTRACE("pio_map: %p", pio_map)
-    LOGTRACE("pio_map->gpio_bank: %p", &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0])
+    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
+    // LOGTRACE("pio_map: %p", pio_map)
+    // LOGTRACE("pio_map->gpio_bank: %p", &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0])
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
-    LOGTRACE("pio: %p", pio)
+    // LOGTRACE("pio: %p", pio)
     /* DK, for PL and PM */
     if (bank >= 11) {
         LOGTRACE("bank > 11");
@@ -750,7 +761,7 @@ int GPIOBUS_Allwinner::sunxi_input_gpio(int gpio) const
     int bank        = GPIO_BANK(gpio); // gpio >> 5
     int num         = GPIO_NUM(gpio);  // gpio & 0x1F
 
-    LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
+    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
     if (bank >= 11) {
@@ -779,7 +790,7 @@ uint32_t GPIOBUS_Allwinner::sunxi_capture_all_gpio()
 
         uint32_t regval = *(&pio->DAT);
         signals[bank]   = regval;
-        LOGDEBUG("Bank %d value %08X", bank, regval);
+        // LOGDEBUG("Bank %d value %08X", bank, regval);
     }
     return value;
 
