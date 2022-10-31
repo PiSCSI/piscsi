@@ -23,8 +23,6 @@
 using namespace ras_util;
 using namespace scsi_command_util;
 
-const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
-
 void SCSIHD_NEC::Open()
 {
 	assert(!IsReady());

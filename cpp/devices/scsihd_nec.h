@@ -52,7 +52,7 @@ private:
 	static int GetInt16LittleEndian(const BYTE *);
 	static int GetInt32LittleEndian(const BYTE *);
 
-	static const unordered_set<uint32_t> sector_sizes;
+	static inline const unordered_set<uint32_t> sector_sizes = { 512 };
 
 	// Image file offset
 	off_t image_offset = 0;

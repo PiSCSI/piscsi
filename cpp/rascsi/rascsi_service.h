@@ -28,7 +28,7 @@ class RascsiService
 
 	thread monthread;
 
-	static volatile bool running;
+	static inline volatile bool running = false;
 
 public:
 

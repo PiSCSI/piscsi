@@ -19,8 +19,6 @@
 
 using namespace rascsi_interface;
 
-volatile bool RascsiService::running = false;
-
 void RascsiService::Cleanup() const
 {
 	if (service_socket != -1) {
