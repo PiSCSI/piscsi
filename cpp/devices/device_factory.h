@@ -12,7 +12,7 @@
 #pragma once
 
 #include <string>
-#include <list>
+#include <vector>
 #include <unordered_set>
 #include <unordered_map>
 #include "rascsi_interface.pb.h"
@@ -36,7 +36,7 @@ public:
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
-	list<string> GetNetworkInterfaces() const;
+	vector<string> GetNetworkInterfaces() const;
 	const unordered_map<string, PbDeviceType>& GetExtensionMapping() const { return extension_mapping; }
 
 private:
