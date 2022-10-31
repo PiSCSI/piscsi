@@ -144,11 +144,10 @@ void GPIOBUS::InitializeGpio()
     // Initialize all signals
     LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
-    for (int i = 0; SignalTable[i] != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE; i++) {
-        board_type::pi_physical_pin_e j = SignalTable[i];
-        PinSetSignal(j, board_type::gpio_high_low_e::GPIO_STATE_LOW);
-        PinConfig(j, board_type::gpio_direction_e::GPIO_INPUT);
-        PullConfig(j, pullmode);
+    for (auto cur_signal : SignalTable){
+        PinSetSignal(cur_signal, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+        PinConfig(cur_signal, board_type::gpio_direction_e::GPIO_INPUT);
+        PullConfig(cur_signal, pullmode);
     }
 
     // Set control signals

@@ -554,6 +554,7 @@ void GPIOBUS_Raspberry::MakeTable(void)
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetControl(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)pin);
     PinSetSignal(pin, ast);
 }
 
@@ -564,6 +565,7 @@ void GPIOBUS_Raspberry::SetControl(board_type::pi_physical_pin_e pin, board_type
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetMode(board_type::pi_physical_pin_e hw_pin, board_type::gpio_direction_e mode)
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
     int pin = phys_to_gpio_map.at(hw_pin);
 
 #if SIGNAL_CONTROL_MODE == 0
@@ -590,6 +592,8 @@ void GPIOBUS_Raspberry::SetMode(board_type::pi_physical_pin_e hw_pin, board_type
 //---------------------------------------------------------------------------
 bool GPIOBUS_Raspberry::GetSignal(board_type::pi_physical_pin_e hw_pin) const
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
+
     int pin = phys_to_gpio_map.at(hw_pin);
     return (signals >> pin) & 1;
 }
@@ -601,6 +605,8 @@ bool GPIOBUS_Raspberry::GetSignal(board_type::pi_physical_pin_e hw_pin) const
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
+
     int pin = phys_to_gpio_map.at(hw_pin);
 
     if (board->signal_control_mode == 0) {
@@ -712,6 +718,8 @@ void GPIOBUS_Raspberry::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::PinConfig(board_type::pi_physical_pin_e hw_pin, board_type::gpio_direction_e mode)
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
+
     int pin = phys_to_gpio_map.at(hw_pin);
 
     // Check for invalid pin
@@ -741,7 +749,7 @@ void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, board_t
     }
 
     if (rpitype == 4) {
-        LOGTRACE("%s I'm a Pi 4", __PRETTY_FUNCTION__)
+        LOGTRACE("%s (I'm a Pi 4) hwpin: %d gpio: %d", __PRETTY_FUNCTION__, (int)hw_pin, pin);
         switch (mode) {
         case board_type::gpio_pull_up_down_e::GPIO_PULLNONE:
             pull = 0;
@@ -780,6 +788,8 @@ void GPIOBUS_Raspberry::PullConfig(board_type::pi_physical_pin_e hw_pin, board_t
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::PinSetSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
+
     int pin = phys_to_gpio_map.at(hw_pin);
 
     // Check for invalid pin
