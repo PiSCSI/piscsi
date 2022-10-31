@@ -6,19 +6,19 @@ FROM "${OS_ARCH}/${OS_DISTRO}:${OS_VERSION}"
 EXPOSE 6868
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends sudo systemd rsyslog patch
+RUN apt-get update && apt-get install -y --no-install-recommends sudo systemd rsyslog patch wget
 
 RUN groupadd pi
 RUN useradd --create-home --shell /bin/bash -g pi pi
 RUN echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-WORKDIR /home/pi/RASCSI
 USER pi
+WORKDIR /home/pi/RASCSI
 COPY --chown=pi:pi . .
 
 # Workaround for Bullseye amd64 compilation error
 # https://github.com/akuker/RASCSI/issues/821
-RUN patch -p0 < docker/rascsi/cfilesystem.patch
+# RUN patch -p0 < docker/rascsi/cfilesystem.patch
 
 # Install RaSCSI standalone
 RUN ./easyinstall.sh --run_choice=10 --cores=`nproc`

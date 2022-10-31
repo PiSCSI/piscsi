@@ -6,19 +6,27 @@ FROM "${OS_ARCH}/${OS_DISTRO}:${OS_VERSION}"
 EXPOSE 80 443
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db man2html
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    sudo \
+    systemd \
+    rsyslog \
+    procps \
+    man-db \
+    wget \
+    git
 
 RUN groupadd pi
 RUN useradd --create-home --shell /bin/bash -g pi pi
 RUN echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN echo "pi:rascsi" | chpasswd 
 
-RUN mkdir /home/pi/afpshare
+RUN mkdir /home/pi/shared_files
 RUN touch /etc/dhcpcd.conf
 RUN mkdir -p /etc/network/interfaces.d/
 
-WORKDIR /home/pi/RASCSI
 USER pi
+WORKDIR /home/pi/RASCSI
 COPY --chown=pi:pi . .
 
 # Install standalone RaSCSI web UI
