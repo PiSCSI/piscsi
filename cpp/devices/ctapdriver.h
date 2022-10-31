@@ -14,7 +14,7 @@
 #include <pcap/pcap.h>
 #include <net/ethernet.h>
 #include <unordered_map>
-#include <list>
+#include <vector>
 #include <string>
 #include <array>
 
@@ -52,7 +52,7 @@ private:
 	pcap_dumper_t *m_pcap_dumper = nullptr;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
-	list<string> interfaces;
+	vector<string> interfaces;
 
 	string inet;
 };
