@@ -1,0 +1,769 @@
+@import url("bootstrap-reboot.css");
+
+:root {
+  --success: var(--bs-success);
+  --danger: var(--bs-danger);
+  --info: #80eaff;
+  --warning: var(--bs-warning);
+  --dark: var(--bs-dark);
+  --light: var(--bs-light);
+  --primary: var(--bs-primary);
+  --secondary: var(--bs-secondary);
+  --text-color: var(--bs-body-color);
+  --border-radius: 0.2rem;
+  --input-padding: 0.375rem 0.75rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ General layout
+ ------------------------------------------------------------------------------
+ */
+div.content {
+  padding: 1rem;
+  margin: auto;
+}
+
+hr {
+  display: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+@media (max-width: 820px) {
+  body {
+    font-size: 0.85rem;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Header
+ ------------------------------------------------------------------------------
+ */
+div.header {
+  background: #1d1d1d;
+  color: #fff;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+div.header div.title {
+  order: 1;
+  text-align: left;
+}
+
+div.header div.title h1 {
+  margin: 0;
+  color: #f9f9f9;
+}
+
+div.header div.title a {
+  text-decoration: none;
+}
+
+div.header div.hostname {
+  display: none;
+}
+
+div.header div.login-status {
+  order: 10;
+}
+
+div.header div.login-status a {
+  color: #fff;
+}
+
+div.header div.login-status span.logged-in-as-text em {
+  font-weight: bold;
+  font-style: normal;
+}
+
+div.header div.login-status.logged_out form div,
+div.header div.login-status.logged_out form label {
+  display: none;
+}
+
+div.header div.authentication-disabled {
+  background: var(--danger);
+  border-radius: var(--border-radius);
+  padding: 0 0.5rem;
+}
+
+@media (max-width: 820px) {
+  div.header {
+    flex-wrap: wrap;
+  }
+
+  div.header div.title,
+  div.header div.login-status {
+    flex: 0 0 100%;
+    text-align: left;
+  }
+
+  div.header div.title {
+    background: none;
+    padding: 0;
+    text-align: center;
+  }
+
+  div.header div.title h1 {
+    font-size: 1.5rem;
+  }
+
+  div.header div.login-status {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  div.header div.login-status.logged_out form input:not([type="submit"]) {
+    width: 6rem;
+  }
+}
+
+@media (min-width: 821px) {
+  div.header div.title a {
+    display: block;
+    background: url(/static/logo.png) no-repeat;
+    background-size: auto 40px;
+    background-position: left center;
+    padding-left: 3rem;
+  }
+
+  div.header div.title a h1 {
+    font-size: 32px;
+  }
+
+  @supports (-webkit-background-clip: text) {
+    div.header div.title a:hover h1 {
+      background: linear-gradient(to right, rgb(101 204 51 / 100%) 0%, rgb(255 204 51 / 100%) 10%, rgb(255 153 51 / 100%) 20%, rgb(205 51 50 / 100%) 55%, rgb(152 50 153 / 100%) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  div.header div.login-status span.logged-in-as-text {
+    margin-right: 1rem;
+  }
+
+  div.header div.login-status span.separator {
+    display: none;
+  }
+
+  div.header div.login-status.logged_out form input:not([type="submit"]) {
+    width: 10rem;
+    background: #1d1d1d;
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged_out form input::-webkit-credentials-auto-fill-button {
+    background-color: #ccc;
+  }
+
+  div.header div.login-status.logged_out form input[type="submit"] {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged_in a {
+    background: var(--danger) url(icons/log-out.svg) no-repeat right 0.5rem center;
+    border-radius: var(--border-radius);
+    padding: var(--input-padding);
+    padding-right: 2.5rem;
+    display: inline-block;
+    text-decoration: none;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Footer
+ ------------------------------------------------------------------------------
+ */
+div.footer {
+  background: #1d1d1d;
+  padding: 1rem;
+  color: #fff;
+}
+
+div.footer a {
+  color: #ccc;
+}
+
+div.footer div.theme-change-hint {
+  margin-bottom: 1rem;
+}
+
+div.footer div.theme-change-hint a {
+  color: yellow;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Tables
+ ------------------------------------------------------------------------------
+ */
+table {
+  width: 100%;
+  border: 1px solid var(--dark);
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 0.5rem;
+  text-align: left;
+}
+
+table td {
+  border: 1px solid #ccc;
+}
+
+table th {
+  background: var(--dark);
+  border: 1px solid var(--dark);
+  color: #fff;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Forms
+ ------------------------------------------------------------------------------
+ */
+form {
+  display: inline-block;
+}
+
+input,
+select,
+button,
+label {
+  margin: 0.25rem 0;
+}
+
+@media (min-width: 821px) {
+  input,
+  select,
+  button {
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  input[type="submit"],
+  button {
+    padding: var(--input-padding);
+    background-color: #efefef;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="password"] {
+    display: inline-block;
+    padding: var(--input-padding);
+    background-color: #fff;
+    background-clip: padding-box;
+    appearance: none;
+    appearance: none;
+    appearance: none;
+  }
+
+  select {
+    display: inline-block;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    -moz-padding-start: calc(0.75rem - 3px);
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    appearance: none;
+    appearance: none;
+    appearance: none;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Dropzone
+ ------------------------------------------------------------------------------
+ */
+.dropzone {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dropzone p,
+.dropzone .dz-default {
+  flex: 0 0 100%;
+}
+
+.dropzone .dz-button {
+  width: 100%;
+  padding: 2rem 4rem;
+  border: 2px dashed darkcyan;
+  background: lightcyan;
+}
+
+.dropzone .dz-preview .dz-image,
+.dropzone .dz-preview .dz-success-mark,
+.dropzone .dz-preview .dz-error-mark {
+  display: none;
+}
+
+.dropzone .dz-preview {
+  display: inline-block;
+  background: var(--light) url(icons/upload-queued.svg) no-repeat 1rem center;
+  padding: 1rem 1rem 1rem 3.5rem;
+  margin: 1rem 1rem 0 0;
+  border-radius: var(--border-radius);
+}
+
+.dropzone .dz-preview.dz-processing {
+  background: #ededbe url(icons/upload-in-progress.svg) no-repeat 1rem center;
+}
+
+.dropzone .dz-preview.dz-success {
+  background: #e0f5df url(icons/upload-success.svg) no-repeat 1rem center;
+}
+
+.dropzone .dz-preview.dz-error {
+  background: #fae2e2 url(icons/upload-error.svg) no-repeat 1rem center;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  color: var(--danger);
+}
+
+.dropzone .dz-preview.dz-processing .dz-progress {
+  display: block;
+}
+
+.dropzone .dz-preview.dz-error .dz-progress,
+.dropzone .dz-preview:not(.dz-processing) .dz-progress {
+  display: none;
+}
+
+.dropzone .dz-preview .dz-progress .dz-upload {
+  width: 1px;
+  background: var(--dark);
+  display: block;
+  height: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Flash messages
+ ------------------------------------------------------------------------------
+ */
+div.flash > div {
+  margin: 1rem 1rem 0;
+  padding: 1rem 1rem 1rem 3rem;
+  border-radius: var(--border-radius);
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  display: flex;
+  align-items: center;
+}
+
+div.flash > div a {
+  display: inline-block !important;
+  padding: 0.25rem 0.75rem;
+  margin-left: auto;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+div.flash > div a::before {
+  content: "×";
+}
+
+div.flash > div.info {
+  background-color: var(--info);
+  background-image: url(icons/info.svg);
+}
+
+div.flash > div.error {
+  background-color: var(--danger);
+  background-image: url(icons/error.svg);
+  color: #fff;
+}
+
+div.flash > div.success {
+  background-color: var(--success);
+  background-image: url(icons/success.svg);
+  color: #fff;
+}
+
+div.flash > div.warning {
+  background-color: var(--warning);
+  background-image: url(icons/warning.svg);
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Section headings
+ ------------------------------------------------------------------------------
+ */
+section > details {
+  margin: 2rem auto 1rem;
+}
+
+div.content > section:first-child > details {
+  margin-top: 0;
+}
+
+section > details summary {
+  background: var(--secondary);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+section > details ul {
+  background-color: lightcyan;
+  border: 2px solid var(--secondary);
+  padding: 1rem 1rem 1rem 2rem;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 820px) {
+  section > details summary {
+    font-size: 0.9rem;
+  }
+}
+
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Current RaSCSI configuration
+ ------------------------------------------------------------------------------
+ */
+table#bus th:first-child,
+table#bus td:first-child {
+  text-align: center;
+}
+
+table#bus td:nth-child(3) {
+  word-break: break-all;
+}
+
+table#bus td:nth-child(3) label {
+  display: none;
+}
+
+table#bus td:nth-child(3) form {
+  display: flex;
+  align-items: center;
+}
+
+table#bus td:nth-child(3) form select {
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+table#bus tr.reserved td {
+  background-color: #ffe9e9;
+}
+
+@media (max-width: 820px) {
+  table#bus select {
+    width: 100%;
+  }
+
+  table#bus tr th:nth-child(4),
+  table#bus tr td:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (min-width: 821px) {
+  section#current-config form#config-actions {
+    float: left;
+    height: 3.5rem;
+  }
+
+  section#current-config form#config-save {
+    float: right;
+    height: 3.5rem;
+  }
+
+  section#current-config form#config-save input[type="text"] {
+    width: 10rem;
+  }
+
+  table#bus tr.device-assigned td:nth-child(2),
+  table#bus tr.reserved td:nth-child(2) {
+    background-image: url(icons/device-other.svg);
+    background-repeat: no-repeat;
+    background-position: 1rem center;
+    padding-left: 3rem;
+  }
+
+  table#bus tr.reserved td:nth-child(2) {
+    background-image: url(icons/device-reserved.svg);
+  }
+
+  table#bus tr.device-sccd td:nth-child(2),
+  table#bus tr.device-scmo td:nth-child(2) {
+    background-image: url(icons/device-optical.svg);
+  }
+
+  table#bus tr.device-scdp td:nth-child(2) {
+    background-image: url(icons/device-network.svg);
+  }
+
+  table#bus tr.device-schd td:nth-child(2) {
+    background-image: url(icons/device-hard-drive.svg);
+  }
+
+  table#bus tr.device-scrm td:nth-child(2) {
+    background-image: url(icons/device-removable.svg);
+  }
+
+  table#bus tr.device-sclp td:nth-child(2) {
+    background-image: url(icons/device-printer.svg);
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section:Image/file management
+ ------------------------------------------------------------------------------
+ */
+section#images table td:first-child {
+  word-break: break-all;
+  width: 25%;
+}
+
+section#images p {
+  margin-top: 1rem;
+}
+
+@media (max-width: 820px) {
+  section#images table tr th:nth-child(2),
+  section#images table tr td:nth-child(2) {
+    display: none;
+  }
+
+  section#images form.file-attach {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dotted #ccc;
+  }
+}
+
+@media (min-width: 821px) {
+  section#images form.file-copy input[type="submit"],
+  section#images form.file-rename input[type="submit"],
+  section#images form.file-delete input[type="submit"],
+  section#images form.file-info input[type="submit"] {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1rem;
+    text-indent: -1000px;
+    width: 2.5rem;
+  }
+
+  section#images form.file-attach input[type="submit"],
+  section#attach-devices form.device-attach input[type="submit"] {
+    background: #efefef url(icons/file-device-attach.svg) no-repeat 0.75rem center;
+    background-size: 1rem;
+    padding-left: 2rem;
+  }
+
+  section#images form.file-copy input[type="submit"] {
+    background-image: url(icons/file-copy.svg);
+  }
+
+  section#images form.file-rename input[type="submit"] {
+    background-image: url(icons/file-rename.svg);
+  }
+
+  section#images form.file-delete input[type="submit"] {
+    background-image: url(icons/file-delete.svg);
+  }
+
+  section#images form.file-info input[type="submit"] {
+    background-image: url(icons/file-info.svg);
+  }
+
+  section#images form.file-extract input[type="submit"] {
+    background: #efefef url(icons/file-extract.svg) no-repeat 0.75rem center;
+    background-size: 1rem;
+    padding-left: 2rem;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Attach peripheral devices
+ ------------------------------------------------------------------------------
+ */
+@media (max-width: 820px) {
+  section#attach-devices table tr th:nth-child(2),
+  section#attach-devices table tr td:nth-child(2) {
+    display: none;
+  }
+
+  section#attach-devices form label {
+    display: none;
+  }
+
+  section#attach-devices form select {
+    max-width: 200px;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Create image
+ ------------------------------------------------------------------------------
+ */
+section#create-image > p a {
+  display: block;
+  margin-top: 1rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Logging
+ ------------------------------------------------------------------------------
+ */
+section#logging div:first-of-type {
+  margin-bottom: 0.5rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: System
+ ------------------------------------------------------------------------------
+ */
+@media (min-width: 821px) {
+  section#system input[type="submit"] {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Manual
+ ------------------------------------------------------------------------------
+ */
+section#manual {
+  margin: 2rem 0 1rem;
+}
+
+section#manual a {
+  margin: auto;
+  display: block;
+  padding: 0 0 0 2rem;
+  background: url(icons/manual.svg) no-repeat left center;
+  font-weight: bold;
+}
+
+section#manual a p {
+  margin: 0;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Drives page
+ ------------------------------------------------------------------------------
+ */
+body.page-drives div.content h2:first-child {
+  margin-top: 0;
+}
+
+body.page-drives div.content h2 {
+  margin: 2rem 0 1rem;
+}
+
+body.page-drives div.content p:first-of-type {
+  background: lightcyan;
+  border: 2px solid darkcyan;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+body.page-drives div.content > p:nth-of-type(3) {
+  margin-top: 1rem;
+}
+
+body.page-drives div.content > p a {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Disk info page
+ ------------------------------------------------------------------------------
+ */
+body.page-diskinfo div.content > p a {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Device info page
+ ------------------------------------------------------------------------------
+ */
+body.page-deviceinfo div.content table th {
+  background: #efefef;
+  color: var(--text-color);
+  border-color: #ccc;
+  width: 25%;
+}
+
+body.page-deviceinfo div.content > p a {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Logs page
+ ------------------------------------------------------------------------------
+ */
+body.page-logs div.content > p a {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Manual page
+ ------------------------------------------------------------------------------
+ */
+body.page-manpage div#manpage-content {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+body.page-manpage div#manpage-content h2 {
+  margin: 2rem 0 0.5rem;
+}
+
+body.page-manpage div.content > p {
+  margin-top: 2rem;
+}
+
+body.page-manpage div.content > p a {
+  font-weight: bold;
+}

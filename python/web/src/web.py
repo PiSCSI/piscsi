@@ -5,7 +5,7 @@ Module for the Flask app rendering and endpoints
 import sys
 import logging
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
 
@@ -65,6 +65,8 @@ from settings import (
     DRIVE_PROPERTIES_FILE,
     AUTH_GROUP,
     LANGUAGES,
+    TEMPLATE_THEMES,
+    TEMPLATE_THEME_DEFAULT,
 )
 
 
@@ -133,7 +135,18 @@ def response(
             flash(message, category)
 
     if template:
+        theme_support = True
+        if theme_support and session.get("theme") and session["theme"] in TEMPLATE_THEMES:
+            theme = session["theme"]
+        else:
+            theme = TEMPLATE_THEME_DEFAULT
+
         kwargs["env"] = get_env_info()
+        kwargs["body_class"] = f"page-{PurePath(template).stem.lower()}"
+        kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
+        kwargs["current_theme"] = theme
+        kwargs["available_themes"] = TEMPLATE_THEMES
+        kwargs["theme_support"] = theme_support
         return render_template(template, **kwargs)
 
     if redirect_url:
@@ -1205,6 +1218,20 @@ def change_language():
     language = Locale.parse(locale)
     language_name = language.get_language_name(locale)
     return response(message=_("Changed Web Interface language to %(locale)s", locale=language_name))
+
+
+@APP.route("/theme", methods=["GET", "POST"])
+def change_theme():
+    if request.method == "GET":
+        theme = request.args.get("v")
+    else:
+        theme = request.form.get("theme")
+
+    if theme not in TEMPLATE_THEMES:
+        return response(error=True, message=_("The requested theme does not exist."))
+
+    session["theme"] = theme
+    return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
 
 
 @APP.before_first_request

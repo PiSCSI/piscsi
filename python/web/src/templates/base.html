@@ -22,16 +22,16 @@
     <meta name="msapplication-TileImage" content="/pwa/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename=current_theme_stylesheet) }}">
 
     <script type="application/javascript">
         var processNotify = function(Notification) {
-                document.getElementById("flash").innerHTML = "<div class=\"info\">" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div>";
+            document.getElementById("flash").innerHTML = "<div class=\"info\"><div>" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div></div>";
             window.scrollTo(0,0);
         }
 
         var shutdownNotify = function(Notification) {
-                document.getElementById("flash").innerHTML = "<div class=\"info\">" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div>";
+            document.getElementById("flash").innerHTML = "<div class=\"warning\"><div>" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div></div>";
             window.scrollTo(0,0);
         }
     </script>
@@ -39,52 +39,73 @@
     <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 </head>
 
-<body>
+<body class="{{ body_class }}">
     <div class="header">
         {% if env["auth_active"] %}
         {% if env["username"] %}
-        <div align="center" class="logged_in">
-            {{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }} - <a href="/logout">{{ _("Log Out") }}</a>
+        <div align="center" class="login-status logged_in">
+            <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
+            <span class="separator">-</span>
+            <a href="/logout">{{ _("Log Out") }}</a>
         </div>
         {% else %}
-        <div align="center" class="logged_out">
+        <div align="center" class="login-status logged_out">
             <form method="POST" action="/login">
                 <div>{{ _("Log In to Use Web Interface") }}</div>
                 <label for="username">{{ _("Username") }}</label>
-                <input type="text" name="username" id="username">
+                <input type="text" name="username" placeholder="Username" id="username">
                 <label for="password">{{ _("Password") }}</label>
-                <input type="password" name="password" id="password">
+                <input type="password" name="password" placeholder="Password" id="password">
                 <input type="submit" value="Login">
             </form>
         </div>
         {% endif %}
         {% else %}
-        <div align="center" class="logged_out">
+        <div align="center" class="login-status authentication-disabled logged_out">
             {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
         </div>
         {% endif %}
-        <div align="center">
+        <div align="center" class="title">
             <a href="/">
-                <h1>{{ _("RaSCSI Reloaded Control Page") }}</h1>
+                <h1>{{ _("RaSCSI Reloaded") }}</h1>
             </a>
         </div>
-        <div>
-            hostname: {{ env["host"] }} ip: {{ env["ip_addr"] }}
+        <div class="hostname">
+            <span>IP: {{ env["ip_addr"] }}</span>
+            <span>Hostname: {{ env["host"] }}</span>
         </div>
     </div>
+
     <div class="flash" id="flash">
-        {% for category, message in get_flashed_messages(with_categories=true) %}
-        {% if category == "stdout" or category == "stderr" %}
-        <pre>{{ message }}</pre>
-        {% else %}
-        <div class="{{ category }}">{{ message }}</div>
+        {% if get_flashed_messages(): %}
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="{{ category }}">
+                    {% if category == "stdout" or category == "stderr" %}
+                        <pre>{{ message }}</pre>
+                    {% else %}
+                        <div>{{ message }}</div>
+                    {% endif %}
+                    <a style="display: none;" href="/"></a>
+                </div>
+            {% endfor %}
         {% endif %}
-        {% endfor %}
     </div>
+
     <div class="content">
+        {{ content_class }}
         {% block content %}{% endblock content %}
     </div>
     <div align="center" class="footer">
+        {% if theme_support %}
+            <div class="theme-change-hint">
+                {% if current_theme == "classic" %}
+                    {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="modern") }}
+                {% else %}
+                    {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="classic") }}
+                {% endif %}
+            </div>
+        {% endif %}
+
         <div>
             {% if env["netatalk_configured"] == 1 %}
             {{ _("The AppleShare server is running. No active connections.") }}
