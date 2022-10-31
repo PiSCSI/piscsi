@@ -28,9 +28,6 @@ class AbstractController : public PhaseHandler
 	friend class PrimaryDevice;
 	friend class ScsiController;
 
-	// Logical units of this controller mapped to their LUN numbers
-	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
-
 public:
 
 	enum class rascsi_shutdown_mode {
@@ -38,21 +35,6 @@ public:
 		STOP_RASCSI,
 		STOP_PI,
 		RESTART_PI
-	};
-
-	using ctrl_t = struct _ctrl_t {
-		// Command data, dynamically resized if required
-		vector<int> cmd = vector<int>(16);
-
-		scsi_defs::status status;		// Status data
-		int message;					// Message data
-
-		// Transfer
-		vector<BYTE> buffer;			// Transfer data buffer
-		uint32_t blocks;				// Number of transfer blocks
-		uint64_t next;					// Next record
-		uint32_t offset;				// Transfer offset
-		uint32_t length;				// Transfer remaining length
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
@@ -111,6 +93,24 @@ protected:
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
 private:
+
+	using ctrl_t = struct _ctrl_t {
+		// Command data, dynamically resized if required
+		vector<int> cmd = vector<int>(16);
+
+		scsi_defs::status status;		// Status data
+		int message;					// Message data
+
+		// Transfer
+		vector<BYTE> buffer;			// Transfer data buffer
+		uint32_t blocks;				// Number of transfer blocks
+		uint64_t next;					// Next record
+		uint32_t offset;				// Transfer offset
+		uint32_t length;				// Transfer remaining length
+	};
+
+	// Logical units of this controller mapped to their LUN numbers
+	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
 	int target_id;
 
