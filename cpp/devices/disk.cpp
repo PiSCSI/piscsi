@@ -557,8 +557,7 @@ void Disk::Seek()
 void Disk::Seek6()
 {
 	uint64_t start;
-	uint32_t blocks;
-	if (CheckAndGetStartAndCount(start, blocks, SEEK6)) {
+	if (uint32_t blocks; CheckAndGetStartAndCount(start, blocks, SEEK6)) {
 		CheckReady();
 	}
 
@@ -568,8 +567,7 @@ void Disk::Seek6()
 void Disk::Seek10()
 {
 	uint64_t start;
-	uint32_t blocks;
-	if (CheckAndGetStartAndCount(start, blocks, SEEK10)) {
+	if (uint32_t blocks; CheckAndGetStartAndCount(start, blocks, SEEK10)) {
 		CheckReady();
 	}
 
