@@ -28,8 +28,6 @@
 
 using namespace scsi_defs;
 
-const int ScsiController::LUN_MAX = 32;
-
 ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
 {
 	// The initial buffer size will default to either the default buffer size OR

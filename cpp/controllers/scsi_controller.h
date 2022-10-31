@@ -52,7 +52,7 @@ class ScsiController : public AbstractController
 public:
 
 	// Maximum number of logical units
-	static const int LUN_MAX;
+	static inline const int LUN_MAX = 32;
 
 	ScsiController(shared_ptr<BUS>, int);
 	~ScsiController() override = default;
