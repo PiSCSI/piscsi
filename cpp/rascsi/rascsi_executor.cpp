@@ -301,7 +301,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
-		if (!ValidateImageFile(context, storage_device, filename, full_path)) {
+		if (!ValidateImageFile(context, *storage_device, filename, full_path)) {
 			return false;
 		}
 	}
@@ -383,7 +383,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	string full_path;
-	if (!ValidateImageFile(context, storage_device, filename, full_path)) {
+	if (!ValidateImageFile(context, *storage_device, filename, full_path)) {
 		return false;
 	}
 
@@ -539,7 +539,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
 	return "";
 }
 
-bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr<StorageDevice> storage_device,
+bool RascsiExecutor::ValidateImageFile(const CommandContext& context, StorageDevice& storage_device,
 		const string& filename, string& full_path) const
 {
 	if (filename.empty()) {
@@ -567,19 +567,19 @@ bool RascsiExecutor::ValidateImageFile(const CommandContext& context, shared_ptr
 		}
 	}
 
-	storage_device->SetFilename(effective_filename);
+	storage_device.SetFilename(effective_filename);
 
-	if (storage_device->IsReadOnlyFile()) {
+	if (storage_device.IsReadOnlyFile()) {
 		// Permanently write-protected
-		storage_device->SetReadOnly(true);
-		storage_device->SetProtectable(false);
+		storage_device.SetReadOnly(true);
+		storage_device.SetProtectable(false);
 	}
 	else {
-		storage_device->SetReadOnly(false);
-		storage_device->SetProtectable(true);
+		storage_device.SetReadOnly(false);
+		storage_device.SetProtectable(true);
 	}
 
-	storage_device->Open();
+	storage_device.Open();
 
 	full_path = effective_filename;
 

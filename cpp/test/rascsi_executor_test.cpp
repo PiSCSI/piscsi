@@ -489,10 +489,10 @@ TEST_F(RascsiExecutorTest, ValidateImageFile)
 
 	string full_path;
 	auto device = dynamic_pointer_cast<StorageDevice>(device_factory.CreateDevice(controller_manager, SCHD, 0, "test"));
-	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
+	EXPECT_TRUE(executor.ValidateImageFile(context, *device, "", full_path));
 	EXPECT_TRUE(full_path.empty());
 
-	EXPECT_FALSE(executor.ValidateImageFile(context, device, "/non_existing_file", full_path));
+	EXPECT_FALSE(executor.ValidateImageFile(context, *device, "/non_existing_file", full_path));
 	EXPECT_TRUE(full_path.empty());
 }
 
