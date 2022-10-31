@@ -84,7 +84,7 @@ vector<byte> SCSIDaynaPort::InquiryInternal() const
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
-	buf[4] = (byte)(static_cast<int>(buf[4]) + 1);
+	buf[4] = (byte)(to_integer<int>(buf[4]) + 1);
 	buf.push_back((byte)0);
 
 	return buf;
