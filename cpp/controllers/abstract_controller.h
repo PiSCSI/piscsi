@@ -89,6 +89,9 @@ public:
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 	void DecrementBlocks() { --ctrl.blocks; }
 
+	vector<int>& GetCmd() { return ctrl.cmd; }
+	int GetCmd(int index) const { return ctrl.cmd[index]; }
+
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
 
@@ -99,7 +102,6 @@ protected:
 
 	void ProcessPhase();
 
-	vector<int>& GetCmd() { return ctrl.cmd; }
 	void AllocateCmd(size_t);
 
 	bool HasValidLength() const { return ctrl.length != 0; }

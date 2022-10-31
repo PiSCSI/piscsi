@@ -101,14 +101,14 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 void ModePageDevice::ModeSense6()
 {
-	controller->SetLength(ModeSense6(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(ModeSense6(controller->GetCmd(), controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	controller->SetLength(ModeSense10(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(ModeSense10(controller->GetCmd(), controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
@@ -120,14 +120,14 @@ void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<B
 
 void ModePageDevice::ModeSelect6()
 {
-	controller->SetLength(SaveParametersCheck(ctrl->cmd[4]));
+	controller->SetLength(SaveParametersCheck(controller->GetCmd(4)));
 
 	EnterDataOutPhase();
 }
 
 void ModePageDevice::ModeSelect10()
 {
-	const size_t length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(ctrl->cmd, 7)));
+	const size_t length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 7)));
 
 	controller->SetLength(SaveParametersCheck(static_cast<uint32_t>(length)));
 
@@ -136,7 +136,7 @@ void ModePageDevice::ModeSelect10()
 
 int ModePageDevice::SaveParametersCheck(int length) const
 {
-	if (!SupportsSaveParameters() && (ctrl->cmd[1] & 0x01)) {
+	if (!SupportsSaveParameters() && (controller->GetCmd(1) & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

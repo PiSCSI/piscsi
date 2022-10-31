@@ -257,7 +257,7 @@ void SCSIBR::GetMessage10()
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
 	controller->AllocateBuffer(0x1000000);
 
-	controller->SetLength(GetMessage10(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(GetMessage10(controller->GetCmd(), controller->GetBuffer()));
 	if (controller->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -278,7 +278,7 @@ void SCSIBR::GetMessage10()
 //---------------------------------------------------------------------------
 void SCSIBR::SendMessage10()
 {
-	controller->SetLength(GetInt24(ctrl->cmd, 6));
+	controller->SetLength(GetInt24(controller->GetCmd(), 6));
 	if (controller->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}

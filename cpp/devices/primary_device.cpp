@@ -68,13 +68,13 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
+	if ((controller->GetCmd(1) & 0x01) || controller->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<byte> buf = InquiryInternal();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(ctrl->cmd, 3)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 3)));
 
 	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
 	controller->SetLength(static_cast<uint32_t>(allocation_length));
@@ -93,11 +93,11 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (ctrl->cmd[2]) {
+	if (controller->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
+	const uint32_t allocation_length = GetInt32(controller->GetCmd(), 6);
 
 	vector<BYTE>& buf = controller->GetBuffer();
 	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
@@ -139,7 +139,7 @@ void PrimaryDevice::RequestSense()
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(ctrl->cmd[4]));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(controller->GetCmd(4)));
 
     memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
     controller->SetLength(static_cast<uint32_t>(allocation_length));
@@ -150,12 +150,12 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (ctrl->cmd[1] & 0x10) {
+	if (controller->GetCmd(1) & 0x10) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not support parameter list
-	if ((ctrl->cmd[3] != 0) || (ctrl->cmd[4] != 0)) {
+	if ((controller->GetCmd(3) != 0) || (controller->GetCmd(4) != 0)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

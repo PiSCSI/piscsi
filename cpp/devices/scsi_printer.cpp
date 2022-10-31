@@ -98,7 +98,7 @@ vector<byte> SCSIPrinter::InquiryInternal() const
 
 void SCSIPrinter::Print()
 {
-	const uint32_t length = GetInt24(ctrl->cmd, 2);
+	const uint32_t length = GetInt24(controller->GetCmd(), 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 

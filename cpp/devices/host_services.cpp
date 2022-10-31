@@ -59,8 +59,8 @@ vector<byte> HostServices::InquiryInternal() const
 
 void HostServices::StartStopUnit()
 {
-	const bool start = ctrl->cmd[4] & 0x01;
-	const bool load = ctrl->cmd[4] & 0x02;
+	const bool start = controller->GetCmd(4) & 0x01;
+	const bool load = controller->GetCmd(4) & 0x02;
 
 	if (!start) {
 		// Flush any caches
