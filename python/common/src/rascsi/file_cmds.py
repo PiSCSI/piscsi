@@ -367,41 +367,37 @@ class FileCmds:
 
 
     # noinspection PyMethodMayBeStatic
-    def partition_hfs(self, file_name, volume_name):
+    def partition_disk(self, file_name, volume_name, disk_format):
         """
-        Creates a partition table for HFS on an image file.
-        Takes (str) file_name and (str) volume_name as arguments.
+        Creates a partition table on an image file.
+        Takes (str) file_name, (str) volume_name, (str) disk_format as arguments.
+        disk_format is either HFS or FAT
         Returns (dict) with (bool) status, (str) msg
-
-        Inject hfdisk commands to create Drive with correct partitions
-        https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-        i                         initialize partition map
-        continue with default first block
-        C                         Create 1st partition with type specified next)
-        continue with default
-        32                        32 blocks (required for HFS+)
-        Driver_Partition          Partition Name
-        Apple_Driver              Partition Type  (available types: Apple_Driver,
-                                  Apple_Driver43, Apple_Free, Apple_HFS...)
-        C                         Create 2nd partition with type specified next
-        continue with default first block
-        continue with default block size (rest of the disk)
-        ${volumeName}             Partition name provided by user
-        Apple_HFS                 Partition Type
-        w                         Write partition map to disk
-        y                         Confirm partition table
-        p                         Print partition map
         """
         server_info = self.ractl.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
 
-        try:
-            process = Popen(
-                    ["/usr/bin/hfdisk", str(full_file_path)],
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    )
-            for command in [
+        # Inject hfdisk commands to create Drive with correct partitions
+        # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
+        # i                         initialize partition map
+        # continue with default first block
+        # C                         Create 1st partition with type specified next)
+        # continue with default
+        # 32                        32 blocks (required for HFS+)
+        # Driver_Partition          Partition Name
+        # Apple_Driver              Partition Type  (available types: Apple_Driver,
+        #                           Apple_Driver43, Apple_Free, Apple_HFS...)
+        # C                         Create 2nd partition with type specified next
+        # continue with default first block
+        # continue with default block size (rest of the disk)
+        # ${volumeName}             Partition name provided by user
+        # Apple_HFS                 Partition Type
+        # w                         Write partition map to disk
+        # y                         Confirm partition table
+        # p                         Print partition map
+        if disk_format == "HFS":
+            partitioning_tool = "hfdisk"
+            commands = [
                     "i",
                     "",
                     "C",
@@ -417,7 +413,28 @@ class FileCmds:
                     "w",
                     "y",
                     "p",
-                    ]:
+                    ]
+        # Create a DOS label, primary partition, W95 FAT type
+        elif disk_format == "FAT":
+            partitioning_tool = "fdisk"
+            commands = [
+                    "o",
+                    "n",
+                    "p",
+                    "",
+                    "",
+                    "",
+                    "t",
+                    "b",
+                    "w",
+                    ]
+        try:
+            process = Popen(
+                    [partitioning_tool, str(full_file_path)],
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    )
+            for command in commands:
                 process.stdin.write(bytes(command + "\n", "utf-8"))
                 process.stdin.flush()
             try:

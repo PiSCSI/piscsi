@@ -953,19 +953,20 @@ def create_file():
                         drive_format=drive_format,
                     )
                 )
-            process = file_cmd.format_fat(
-                    full_file_name,
-                    # FAT volume labels are max 11 chars
-                    volume_name[:11],
-                    fat_size,
-                    )
+            process = file_cmd.partition_disk(full_file_name, volume_name, "FAT")
+            #process = file_cmd.format_fat(
+            #        full_file_name,
+            #        # FAT volume labels are max 11 chars
+            #        volume_name[:11],
+            #        fat_size,
+            #        )
 
             if not process["status"]:
                 return response(error=True, message=process["msg"])
 
         else:
             driver_base_path = Path(f"{WEB_DIR}/../../../HFSer/drivers")
-            process = file_cmd.partition_hfs(full_file_name, volume_name)
+            process = file_cmd.partition_disk(full_file_name, volume_name, "HFS")
             if not process["status"]:
                 return response(error=True, message=process["msg"])
 
