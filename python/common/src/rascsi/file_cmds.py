@@ -571,7 +571,7 @@ class FileCmds:
             )
             logging.info(process.stdout.decode("utf-8"))
             if process.returncode:
-                logging.info(process.stdout.decode("utf-8"))
+                logging.info(process.stderr.decode("utf-8"))
                 logging.warning("Failed to delete loopback device. You may have to do it manually")
         except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
