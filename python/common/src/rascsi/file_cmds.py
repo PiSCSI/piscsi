@@ -519,7 +519,6 @@ class FileCmds:
         """
         Initializes a FAT file system
         Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
-        Takes (bool) Atari as optional argument.
         Returns (dict) with (bool) status, (str) msg
         """
         server_info = self.ractl.get_server_info()
@@ -534,7 +533,7 @@ class FileCmds:
             )
             if process.returncode == 0:
                 loopback_device = search(r"(loop\d\D\d)", process.stdout.decode("utf-8")).group(1)
-                logging.info(loopback_device)
+                logging.info(process.stdout.decode("utf-8"))
             else:
                 logging.info(process.stdout.decode("utf-8"))
                 return {"status": False, "msg": error.stderr.decode("utf-8")}
