@@ -528,7 +528,7 @@ class FileCmds:
 
         try:
             process = run(
-                ["kpartx", "-av", full_file_path],
+                ["kpartx", "-av", str(full_file_path)],
                 capture_output=True,
                 check=True,
             )
@@ -567,7 +567,7 @@ class FileCmds:
 
         try:
             process = run(
-                ["kpartx", "-dv", full_file_path],
+                ["kpartx", "-dv", str(full_file_path)],
                 capture_output=True,
                 check=True,
             )
