@@ -972,7 +972,7 @@ def create_file():
                 return response(error=True, message=process["msg"])
 
         else:
-            driver_base_path = Path(f"{WEB_DIR}/../../../HFSer/drivers")
+            driver_base_path = Path(f"{WEB_DIR}/../../../mac-hard-disk-drivers")
             process = file_cmd.partition_disk(full_file_name, volume_name, "HFS")
             if not process["status"]:
                 return response(error=True, message=process["msg"])

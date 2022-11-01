@@ -612,12 +612,13 @@ function installHfdisk() {
     fi
 }
 
-# Clone HFSer, which contains HFS drivers that the Web Interface uses
-# TODO: This is a temporary hosting solution
-function cloneHfser() {
-    if [ ! -f "$BASE/HFSer" ]; then
+# Fetch HFS drivers that the Web Interface uses
+function fetchHardDiskDrivers() {
+    if [ ! -f "$BASE/mac-hard-disk-drivers" ]; then
         cd "$BASE" || exit 1
-        git clone https://github.com/rdmark/HFSer.git
+        wget https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
+        unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
+        rm mac-hard-disk-drivers.zip
     fi
 }
 
@@ -1164,7 +1165,7 @@ function runChoice() {
               updateRaScsiGit
               installPackages
               installHfdisk
-              cloneHfser
+              fetchHardDiskDrivers
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1326,7 +1327,7 @@ function runChoice() {
               updateRaScsiGit
               installPackages
               installHfdisk
-              cloneHfser
+              fetchHardDiskDrivers
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
