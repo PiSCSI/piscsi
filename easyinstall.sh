@@ -786,6 +786,19 @@ function installNetatalk() {
         fi
     fi
 
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    fi
+
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
@@ -888,7 +901,18 @@ function installSamba() {
         fi
     fi
 
-    if [ -d "$FILE_SHARE_PATH" ]; then
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    elif [ -d "$FILE_SHARE_PATH" ]; then
         echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
     else
         echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
