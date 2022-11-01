@@ -264,9 +264,12 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 				exit(0);
 
 			case 1:
+			{
 				// Encountered filename
-				break;
-
+				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
+				post_process.push_back(optarg_value_type(opt,optarg_str));
+				continue;
+			}
 			default:
 				return false;
 		}
