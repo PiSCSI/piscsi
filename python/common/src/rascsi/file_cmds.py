@@ -489,7 +489,7 @@ class FileCmds:
                 capture_output=True,
                 check=True,
             )
-        except CalledProcessError as error:
+        except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
@@ -507,7 +507,7 @@ class FileCmds:
                 check=True,
             )
             logging.info(process.stdout.decode("utf-8"))
-        except CalledProcessError as error:
+        except (FileNotFoundError, CalledProcessError) as error:
             logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
