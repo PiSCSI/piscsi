@@ -13,6 +13,7 @@ from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
 from tempfile import TemporaryDirectory
+from re import search
 
 import requests
 
@@ -523,6 +524,24 @@ class FileCmds:
         """
         server_info = self.ractl.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
+        loopback_device = ""
+
+        try:
+            process = run(
+                ["kpartx", "-av", full_file_path],
+                capture_output=True,
+                check=True,
+            )
+            if process.returncode == 0:
+                loopback_device = search(r"(loop\d\D\d)", process.stdout.decode("utf-8")).group(1)
+                logging.info(loopback_device)
+            else:
+                logging.info(process.stdout.decode("utf-8"))
+                return {"status": False, "msg": error.stderr.decode("utf-8")}
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
 
         args =  [
                     "mkfs.fat",
@@ -531,7 +550,7 @@ class FileCmds:
                     fat_size,
                     "-n",
                     volume_name,
-                    str(full_file_path),
+                    "/dev/mapper/" + loopback_device,
                 ]
         try:
             run(
@@ -539,7 +558,21 @@ class FileCmds:
                 capture_output=True,
                 check=True,
             )
-        except CalledProcessError as error:
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        try:
+            process = run(
+                ["kpartx", "-d", full_file_path],
+                capture_output=True,
+                check=True,
+            )
+            if process.returncode:
+                logging.info(process.stdout.decode("utf-8"))
+                logging.warning("Failed to delete loopback device. You may have to do it manually")
+        except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
             return {"status": False, "msg": error.stderr.decode("utf-8")}

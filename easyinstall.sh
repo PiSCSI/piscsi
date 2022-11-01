@@ -108,7 +108,8 @@ function installPackages() {
         libgmock-dev \
         man2html \
         hfsutils \
-        dosfstools
+        dosfstools \
+        kpartx
 }
 
 # install Debian packges for RaSCSI standalone
@@ -612,10 +613,11 @@ function installHfdisk() {
 }
 
 # Clone HFSer, which contains HFS drivers that the Web Interface uses
+# TODO: This is a temporary hosting solution
 function cloneHfser() {
     if [ ! -f "$BASE/HFSer" ]; then
         cd "$BASE" || exit 1
-        git clone https://github.com/erichelgeson/HFSer.git
+        git clone https://github.com/rdmark/HFSer.git
     fi
 }
 
