@@ -71,11 +71,7 @@ shared_ptr<RascsiResponse> rascsi_response;
 shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
-struct optarg_struct{
-	int opt;
-	string value;
-};
-typedef std::vector<optarg_struct> optarg_queue_type;
+typedef std::multimap<int, string> optarg_queue_type;
 
 void Banner(int argc, char* argv[])
 {
@@ -234,8 +230,7 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 			case 'z':
 			{
 				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.push_back(
-					optarg_struct{.opt=opt,.value=optarg_str});
+				post_process.insert(std::pair<int, string>(opt,optarg_str));
 				continue;
 			}
 			case 'b': {
@@ -305,7 +300,7 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 
 	opterr = 1;
 	for(auto current_arg : optarg_queue){
-		switch (current_arg.opt) {
+		switch (current_arg.first) {
 			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
@@ -315,18 +310,18 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 
 			case 'd':
 			case 'D': {
-				if (!ProcessId(current_arg.value, id, unit)) {
+				if (!ProcessId(current_arg.second, id, unit)) {
 					return false;
 				}
 				continue;
 			}
 
 			case 'z':
-				locale = current_arg.value.c_str();
+				locale = current_arg.second.c_str();
 				continue;
 
 			case 'F': {
-				if (const string result = rascsi_image.SetDefaultFolder(current_arg.value); !result.empty()) {
+				if (const string result = rascsi_image.SetDefaultFolder(current_arg.second); !result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -335,8 +330,8 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 
 			case 'R':
 				int depth;
-				if (!GetAsInt(current_arg.value, depth) || depth < 0) {
-					cerr << "Invalid image file scan depth " << current_arg.value << endl;
+				if (!GetAsInt(current_arg.second, depth) || depth < 0) {
+					cerr << "Invalid image file scan depth " << current_arg.second << endl;
 					return false;
 				}
 				rascsi_image.SetDepth(depth);
@@ -347,7 +342,7 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 				continue;
 
 			case 'r': {
-					string error = executor->SetReservedIds(current_arg.value);
+					string error = executor->SetReservedIds(current_arg.second);
 					if (!error.empty()) {
 						cerr << error << endl;
 						return false;
@@ -356,10 +351,10 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 				continue;
 
 			case 't': {
-					string t = current_arg.value;
+					string t = current_arg.second;
 					transform(t.begin(), t.end(), t.begin(), ::toupper);
 					if (!PbDeviceType_Parse(t, &type)) {
-						cerr << "Illegal device type '" << current_arg.value << "'" << endl;
+						cerr << "Illegal device type '" << current_arg.second << "'" << endl;
 						return false;
 					}
 				}
@@ -577,13 +572,13 @@ int main(int argc, char* argv[])
 
 	// Output the Banner
 	Banner(argc, argv);
+
+	executor->SetLogLevel(current_log_level);
 	
 	int port = DEFAULT_PORT;
 	if (!ParseArgument(argc, argv, port, optarg_queue)) {
 		return -1;
 	}
-
-	executor->SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("rascsi stdout logger");
