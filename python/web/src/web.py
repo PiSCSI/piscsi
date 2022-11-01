@@ -923,6 +923,8 @@ def create_file():
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
+    message_postfix = ""
+
     # Formatting and injecting driver, if one is choosen
     if drive_format:
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
@@ -932,6 +934,8 @@ def create_file():
                 "FAT16",
                 "FAT32",
                 ]
+        message_postfix = f" ({drive_format})"
+
         if drive_format not in known_formats:
             return response(
                 error=True,
@@ -953,14 +957,17 @@ def create_file():
                         drive_format=drive_format,
                     )
                 )
+
             process = file_cmd.partition_disk(full_file_name, volume_name, "FAT")
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
             process = file_cmd.format_fat(
                     full_file_name,
                     # FAT volume labels are max 11 chars
                     volume_name[:11],
                     fat_size,
                     )
-
             if not process["status"]:
                 return response(error=True, message=process["msg"])
 
@@ -975,7 +982,6 @@ def create_file():
                     volume_name,
                     driver_base_path / Path(drive_format.replace(" ", "-") + ".img"),
                     )
-
             if not process["status"]:
                 return response(error=True, message=process["msg"])
 
@@ -994,15 +1000,20 @@ def create_file():
         return response(
             status_code=201,
             message=_(
-                "Image file with properties created: %(file_name)s",
+                "Image file with properties created: %(file_name)s%(drive_format)s",
                 file_name=full_file_name,
+                drive_format=message_postfix,
             ),
             image=full_file_name,
         )
 
     return response(
         status_code=201,
-        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        message=_(
+            "Image file created: %(file_name)s%(drive_format)s",
+            file_name=full_file_name,
+            drive_format=message_postfix,
+        ),
         image=full_file_name,
     )
 

@@ -85,7 +85,7 @@ def test_create_file_and_format_hfs(http_client, list_files, delete_file):
     assert response.status_code == 201
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["data"]["image"] == file_name
-    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert response_data["messages"][0]["message"] == f"Image file created: {file_name} (Lido 7.56)"
     assert file_name in list_files()
 
     # Cleanup
@@ -112,7 +112,7 @@ def test_create_file_and_format_fat(http_client, list_files, delete_file):
     assert response.status_code == 201
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["data"]["image"] == file_name
-    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert response_data["messages"][0]["message"] == f"Image file created: {file_name} (FAT32)"
     assert file_name in list_files()
 
     # Cleanup

@@ -495,7 +495,7 @@ class FileCmds:
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
         try:
-            run(
+            process = run(
                 [
                     "hformat",
                     "-l",
@@ -506,6 +506,7 @@ class FileCmds:
                 capture_output=True,
                 check=True,
             )
+            logging.info(process.stdout.decode("utf-8"))
         except CalledProcessError as error:
             logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
@@ -553,11 +554,12 @@ class FileCmds:
                     "/dev/mapper/" + loopback_device,
                 ]
         try:
-            run(
+            process = run(
                 args,
                 capture_output=True,
                 check=True,
             )
+            logging.info(process.stdout.decode("utf-8"))
         except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
@@ -565,7 +567,7 @@ class FileCmds:
 
         try:
             process = run(
-                ["kpartx", "-d", full_file_path],
+                ["kpartx", "-dv", full_file_path],
                 capture_output=True,
                 check=True,
             )
