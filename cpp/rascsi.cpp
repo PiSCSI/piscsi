@@ -210,7 +210,6 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 {
 	int block_size = 0;
 	string name;
-	string log_level;
 
 	opterr = 1;
 	int opt;
@@ -242,7 +241,7 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 			}
 
 			case 'L':
-				log_level = optarg;
+				current_log_level = optarg;
 				continue;
 
 			case 'p':
@@ -273,10 +272,6 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 		if (optopt) {
 			return false;
 		}
-	}
-
-	if (!log_level.empty() && executor->SetLogLevel(log_level)) {
-		current_log_level = log_level;
 	}
 
 	return true;
@@ -573,12 +568,13 @@ int main(int argc, char* argv[])
 	// Output the Banner
 	Banner(argc, argv);
 
-	executor->SetLogLevel(current_log_level);
-	
 	int port = DEFAULT_PORT;
 	if (!ParseArgument(argc, argv, port, optarg_queue)) {
 		return -1;
 	}
+
+	// Note that current_log_level may have been modified by ParseArgument()
+	executor->SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("rascsi stdout logger");
