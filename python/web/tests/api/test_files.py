@@ -66,7 +66,7 @@ def test_create_file_with_properties(http_client, list_files, delete_file):
 
 
 # route("/files/create", methods=["POST"])
-def test_create_file_and_format(http_client, list_files, delete_file):
+def test_create_file_and_format_hfs(http_client, list_files, delete_file):
     file_prefix = str(uuid.uuid4())
     file_name = f"{file_prefix}.hda"
 
@@ -77,6 +77,33 @@ def test_create_file_and_format(http_client, list_files, delete_file):
             "type": "hda",
             "size": 1,
             "drive_format": "Lido 7.56",
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 201
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["data"]["image"] == file_name
+    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert file_name in list_files()
+
+    # Cleanup
+    delete_file(file_name)
+
+
+# route("/files/create", methods=["POST"])
+def test_create_file_and_format_fat(http_client, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hdr"
+
+    response = http_client.post(
+        "/files/create",
+        data={
+            "file_name": file_prefix,
+            "type": "hdr",
+            "size": 1,
+            "drive_format": "FAT32",
         },
     )
 
