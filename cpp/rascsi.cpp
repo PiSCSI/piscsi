@@ -39,6 +39,7 @@
 #include <fstream>
 #include <list>
 #include <map>
+#include <deque>
 
 using namespace std;
 using namespace spdlog;
@@ -71,7 +72,8 @@ shared_ptr<RascsiResponse> rascsi_response;
 shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
-typedef std::multimap<int, string> optarg_queue_type;
+typedef std::pair<int, string> optarg_value_type;
+typedef std::deque<optarg_value_type> optarg_queue_type;
 
 void Banner(int argc, char* argv[])
 {
@@ -229,7 +231,7 @@ bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_pr
 			case 'z':
 			{
 				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.insert(std::pair<int, string>(opt,optarg_str));
+				post_process.push_back(optarg_value_type(opt,optarg_str));
 				continue;
 			}
 			case 'b': {
@@ -333,7 +335,7 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 				continue;
 
 			case 'n':
-				name = optarg;
+				name = current_arg.second;
 				continue;
 
 			case 'r': {
@@ -367,7 +369,7 @@ static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		ParseParameters(*device, optarg);
+		ParseParameters(*device, current_arg.second);
 
 		if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 			device->set_vendor(name.substr(0, separator_pos));
