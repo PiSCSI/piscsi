@@ -531,11 +531,12 @@ class FileCmds:
                 capture_output=True,
                 check=True,
             )
+            logging.info(process.stdout.decode("utf-8"))
             if process.returncode == 0:
                 loopback_device = search(r"(loop\d\D\d)", process.stdout.decode("utf-8")).group(1)
-                logging.info(process.stdout.decode("utf-8"))
             else:
                 logging.info(process.stdout.decode("utf-8"))
+                self.delete_file(Path(file_name))
                 return {"status": False, "msg": error.stderr.decode("utf-8")}
         except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
@@ -568,6 +569,7 @@ class FileCmds:
                 capture_output=True,
                 check=True,
             )
+            logging.info(process.stdout.decode("utf-8"))
             if process.returncode:
                 logging.info(process.stdout.decode("utf-8"))
                 logging.warning("Failed to delete loopback device. You may have to do it manually")
