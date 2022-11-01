@@ -447,8 +447,8 @@
     <p>
     <label for="upload_destination">{{ _("Target directory:") }}</label>
     <select name="destination" id="upload_destination">
-        <option value="images">Images - {{ env["image_dir"] }}</option>
-        <option value="file_server">File Server - {{ FILE_SERVER_DIR }}</option>
+        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
+        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
     </select>
     </p>
 </form>
@@ -496,8 +496,8 @@
 <form action="/files/download_url" method="post">
     <label for="download_destination">{{ _("Target directory:") }}</label>
     <select name="destination" id="download_destination">
-        <option value="images">Images - {{ env["image_dir"] }}</option>
-        <option value="file_server">File Server - {{ FILE_SERVER_DIR }}</option>
+        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
+        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
     </select>
     <label for="download_url">{{ _("URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
