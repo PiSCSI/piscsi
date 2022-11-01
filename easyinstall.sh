@@ -597,7 +597,7 @@ function createDriveCustom() {
 
 # Clone, compile and install 'hfdisk', partition tool
 function installHfdisk() {
-    HFDISK_VERSION="2022.10"
+    HFDISK_VERSION="2022.11"
     if [ ! -x "$HFDISK_BIN" ]; then
         cd "$BASE" || exit 1
         wget -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
