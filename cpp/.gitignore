@@ -16,3 +16,4 @@ coverage
 .project
 .cproject
 .settings
+settings.json

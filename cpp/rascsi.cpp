@@ -71,6 +71,12 @@ shared_ptr<RascsiResponse> rascsi_response;
 shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
+struct optarg_struct{
+	int opt;
+	string value;
+};
+typedef std::vector<optarg_struct> optarg_queue_type;
+
 void Banner(int argc, char* argv[])
 {
 	cout << Banner("Reloaded");
@@ -204,40 +210,34 @@ bool ProcessId(const string& id_spec, int& id, int& unit)
 	return true;
 }
 
-bool ParseArgument(int argc, char* argv[], int& port)
+bool ParseArgument(int argc, char* argv[], int& port, optarg_queue_type& post_process)
 {
-	PbCommand command;
-	int id = -1;
-	int unit = -1;
-	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
 	string log_level;
 
-	const char *locale = setlocale(LC_MESSAGES, "");
-	if (locale == nullptr || !strcmp(locale, "C")) {
-		locale = "en";
-	}
-
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
-			// The two options below are kind of a compound option with two letters
+			// The following options can not be processed until AFTER
+			// the 'bus' object is created and configured
 			case 'i':
 			case 'I':
-				id = -1;
-				unit = -1;
-				continue;
-
 			case 'd':
-			case 'D': {
-				if (!ProcessId(optarg, id, unit)) {
-					return false;
-				}
+			case 'D':
+			case 'R':
+			case 'n':
+			case 'r':
+			case 't':
+			case 'F': 
+			case 'z':
+			{
+				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
+				post_process.push_back(
+					optarg_struct{.opt=opt,.value=optarg_str});
 				continue;
 			}
-
 			case 'b': {
 				if (!GetAsInt(optarg, block_size)) {
 					cerr << "Invalid block size " << optarg << endl;
@@ -246,33 +246,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'z':
-				locale = optarg;
-				continue;
-
-			case 'F': {
-				if (const string result = rascsi_image.SetDefaultFolder(optarg); !result.empty()) {
-					cerr << result << endl;
-					return false;
-				}
-				continue;
-			}
-
 			case 'L':
 				log_level = optarg;
-				continue;
-
-			case 'R':
-				int depth;
-				if (!GetAsInt(optarg, depth) || depth < 0) {
-					cerr << "Invalid image file scan depth " << optarg << endl;
-					return false;
-				}
-				rascsi_image.SetDepth(depth);
-				continue;
-
-			case 'n':
-				name = optarg;
 				continue;
 
 			case 'p':
@@ -287,25 +262,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					return false;
 				}
 				continue;
-
-			case 'r': {
-					string error = executor->SetReservedIds(optarg);
-					if (!error.empty()) {
-						cerr << error << endl;
-						return false;
-					}
-				}
-				continue;
-
-			case 't': {
-					string t = optarg;
-					transform(t.begin(), t.end(), t.begin(), ::toupper);
-					if (!PbDeviceType_Parse(t, &type)) {
-						cerr << "Illegal device type '" << optarg << "'" << endl;
-						return false;
-					}
-				}
-				continue;
+			
+			case 'v':
+				cout << rascsi_get_version_string() << endl;
+				exit(0);
 
 			case 1:
 				// Encountered filename
@@ -317,6 +277,97 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 		if (optopt) {
 			return false;
+		}
+	}
+
+	if (!log_level.empty() && executor->SetLogLevel(log_level)) {
+		current_log_level = log_level;
+	}
+
+	return true;
+}
+
+
+static bool CreateInitialDevices(optarg_queue_type& optarg_queue){
+	PbCommand command;
+	int id = -1;
+	int unit = -1;
+	PbDeviceType type = UNDEFINED;
+	int block_size = 0;
+	string name;
+	string log_level;
+
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
+		locale = "en";
+	}
+
+
+	opterr = 1;
+	for(auto current_arg : optarg_queue){
+		switch (current_arg.opt) {
+			// The two options below are kind of a compound option with two letters
+			case 'i':
+			case 'I':
+				id = -1;
+				unit = -1;
+				continue;
+
+			case 'd':
+			case 'D': {
+				if (!ProcessId(current_arg.value, id, unit)) {
+					return false;
+				}
+				continue;
+			}
+
+			case 'z':
+				locale = current_arg.value.c_str();
+				continue;
+
+			case 'F': {
+				if (const string result = rascsi_image.SetDefaultFolder(current_arg.value); !result.empty()) {
+					cerr << result << endl;
+					return false;
+				}
+				continue;
+			}
+
+			case 'R':
+				int depth;
+				if (!GetAsInt(current_arg.value, depth) || depth < 0) {
+					cerr << "Invalid image file scan depth " << current_arg.value << endl;
+					return false;
+				}
+				rascsi_image.SetDepth(depth);
+				continue;
+
+			case 'n':
+				name = optarg;
+				continue;
+
+			case 'r': {
+					string error = executor->SetReservedIds(current_arg.value);
+					if (!error.empty()) {
+						cerr << error << endl;
+						return false;
+					}
+				}
+				continue;
+
+			case 't': {
+					string t = current_arg.value;
+					transform(t.begin(), t.end(), t.begin(), ::toupper);
+					if (!PbDeviceType_Parse(t, &type)) {
+						cerr << "Illegal device type '" << current_arg.value << "'" << endl;
+						return false;
+					}
+				}
+				continue;
+
+			case 1:
+				// Encountered filename
+				break;
 		}
 
 		// Set up the device data
@@ -348,10 +399,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		type = UNDEFINED;
 		block_size = 0;
 		name = "";
-	}
-
-	if (!log_level.empty() && executor->SetLogLevel(log_level)) {
-		current_log_level = log_level;
 	}
 
 	// Attach all specified devices
@@ -522,6 +569,7 @@ static bool ExecuteCommand(const CommandContext& context, PbCommand& command)
 
 int main(int argc, char* argv[])
 {
+	optarg_queue_type optarg_queue;
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
@@ -529,14 +577,10 @@ int main(int argc, char* argv[])
 
 	// Output the Banner
 	Banner(argc, argv);
-
-	// ParseArgument() requires the bus to have been initialized first, which requires the root user.
-	// The -v option should be available for any user, which requires special handling.
-	for (int i = 1 ; i < argc; i++) {
-		if (!strcasecmp(argv[i], "-v")) {
-			cout << rascsi_get_version_string() << endl;
-			return 0;
-		}
+	
+	int port = DEFAULT_PORT;
+	if (!ParseArgument(argc, argv, port, optarg_queue)) {
+		return -1;
 	}
 
 	executor->SetLogLevel(current_log_level);
@@ -548,12 +592,13 @@ int main(int argc, char* argv[])
 		return EPERM;
 	}
 
-	int port = DEFAULT_PORT;
 	if (!service.Init(&ExecuteCommand, port)) {
 		return EPERM;
 	}
 
-	if (!ParseArgument(argc, argv, port)) {
+	// We need to wait to create the devices until after the bus/controller/etc
+	// objects have been created.
+	if (!CreateInitialDevices(optarg_queue)) {
 		Cleanup();
 		return -1;
 	}
