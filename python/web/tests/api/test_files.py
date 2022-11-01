@@ -93,7 +93,7 @@ def test_create_file_and_format_hfs(http_client, list_files, delete_file):
 
 
 # route("/files/create", methods=["POST"])
-def test_create_file_and_format_fat(http_client, list_files, delete_file):
+def test_create_file_and_format_fat(env, http_client, list_files, delete_file):
     if env["is_docker"]:
         pytest.skip("Test not supported in Docker environment.")
     file_prefix = str(uuid.uuid4())
