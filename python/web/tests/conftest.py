@@ -23,7 +23,7 @@ def env(pytestconfig):
         "home_dir": home_dir,
         "cfg_dir": f"{home_dir}/.config/rascsi",
         "images_dir": f"{home_dir}/images",
-        "afp_dir": f"{home_dir}/afpshare",
+        "file_server_dir": f"{home_dir}/shared_files",
     }
 
 

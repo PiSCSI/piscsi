@@ -8,11 +8,12 @@ from os import path, walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
-from subprocess import run, CalledProcessError
+from subprocess import run, Popen, PIPE, CalledProcessError, TimeoutExpired
 from json import dump, load
 from shutil import copyfile
 from urllib.parse import quote
 from tempfile import TemporaryDirectory
+from re import search
 
 import requests
 
@@ -366,6 +367,222 @@ class FileCmds:
                 }
 
 
+    # noinspection PyMethodMayBeStatic
+    def partition_disk(self, file_name, volume_name, disk_format):
+        """
+        Creates a partition table on an image file.
+        Takes (str) file_name, (str) volume_name, (str) disk_format as arguments.
+        disk_format is either HFS or FAT
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+
+        # Inject hfdisk commands to create Drive with correct partitions
+        # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
+        # i                         initialize partition map
+        # continue with default first block
+        # C                         Create 1st partition with type specified next)
+        # continue with default
+        # 32                        32 blocks (required for HFS+)
+        # Driver_Partition          Partition Name
+        # Apple_Driver              Partition Type  (available types: Apple_Driver,
+        #                           Apple_Driver43, Apple_Free, Apple_HFS...)
+        # C                         Create 2nd partition with type specified next
+        # continue with default first block
+        # continue with default block size (rest of the disk)
+        # ${volumeName}             Partition name provided by user
+        # Apple_HFS                 Partition Type
+        # w                         Write partition map to disk
+        # y                         Confirm partition table
+        # p                         Print partition map
+        if disk_format == "HFS":
+            partitioning_tool = "hfdisk"
+            commands = [
+                    "i",
+                    "",
+                    "C",
+                    "",
+                    "32",
+                    "Driver_Partition",
+                    "Apple_Driver",
+                    "C",
+                    "",
+                    "",
+                    volume_name,
+                    "Apple_HFS",
+                    "w",
+                    "y",
+                    "p",
+                    ]
+        # Create a DOS label, primary partition, W95 FAT type
+        elif disk_format == "FAT":
+            partitioning_tool = "fdisk"
+            commands = [
+                    "o",
+                    "n",
+                    "p",
+                    "",
+                    "",
+                    "",
+                    "t",
+                    "b",
+                    "w",
+                    ]
+        try:
+            process = Popen(
+                    [partitioning_tool, str(full_file_path)],
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    )
+            for command in commands:
+                process.stdin.write(bytes(command + "\n", "utf-8"))
+                process.stdin.flush()
+            try:
+                outs, errs = process.communicate(timeout=15)
+                if outs:
+                    logging.info(str(outs, "utf-8"))
+                if errs:
+                    logging.error(str(errs, "utf-8"))
+                if process.returncode:
+                    self.delete_file(Path(file_name))
+                    return {"status": False, "msg": errs}
+            except TimeoutExpired:
+                process.kill()
+                outs, errs = process.communicate()
+                if outs:
+                    logging.info(str(outs, "utf-8"))
+                if errs:
+                    logging.error(str(errs, "utf-8"))
+                self.delete_file(Path(file_name))
+                return {"status": False, "msg": errs}
+
+        except (OSError, IOError) as error:
+            logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
+
+
+    # noinspection PyMethodMayBeStatic
+    def format_hfs(self, file_name, volume_name, driver_path):
+        """
+        Initializes an HFS file system and injects a hard disk driver
+        Takes (str) file_name, (str) volume_name and (Path) driver_path as arguments.
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+
+        try:
+            run(
+                [
+                    "dd",
+                    f"if={driver_path}",
+                    f"of={full_file_path}",
+                    "seek=64",
+                    "count=32",
+                    "bs=512",
+                    "conv=notrunc",
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        try:
+            process = run(
+                [
+                    "hformat",
+                    "-l",
+                    volume_name,
+                    str(full_file_path),
+                    "1",
+                ],
+                capture_output=True,
+                check=True,
+            )
+            logging.info(process.stdout.decode("utf-8"))
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.error(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
+
+
+    # noinspection PyMethodMayBeStatic
+    def format_fat(self, file_name, volume_name, fat_size):
+        """
+        Initializes a FAT file system
+        Takes (str) file_name, (str) volume_name and (str) FAT size (12|16|32) as arguments.
+        Returns (dict) with (bool) status, (str) msg
+        """
+        server_info = self.ractl.get_server_info()
+        full_file_path = Path(server_info["image_dir"]) / file_name
+        loopback_device = ""
+
+        try:
+            process = run(
+                ["kpartx", "-av", str(full_file_path)],
+                capture_output=True,
+                check=True,
+            )
+            logging.info(process.stdout.decode("utf-8"))
+            if process.returncode == 0:
+                loopback_device = search(r"(loop\d\D\d)", process.stdout.decode("utf-8")).group(1)
+            else:
+                logging.info(process.stdout.decode("utf-8"))
+                self.delete_file(Path(file_name))
+                return {"status": False, "msg": error.stderr.decode("utf-8")}
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        args =  [
+                    "mkfs.fat",
+                    "-v",
+                    "-F",
+                    fat_size,
+                    "-n",
+                    volume_name,
+                    "/dev/mapper/" + loopback_device,
+                ]
+        try:
+            process = run(
+                args,
+                capture_output=True,
+                check=True,
+            )
+            logging.info(process.stdout.decode("utf-8"))
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        try:
+            process = run(
+                ["kpartx", "-dv", str(full_file_path)],
+                capture_output=True,
+                check=True,
+            )
+            logging.info(process.stdout.decode("utf-8"))
+            if process.returncode:
+                logging.info(process.stderr.decode("utf-8"))
+                logging.warning("Failed to delete loopback device. You may have to do it manually")
+        except (FileNotFoundError, CalledProcessError) as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            self.delete_file(Path(file_name))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {"status": True, "msg": ""}
+
+
     def download_file_to_iso(self, url, *iso_args):
         """
         Takes (str) url and one or more (str) *iso_args
@@ -446,9 +663,12 @@ class FileCmds:
                     headers={"User-Agent": "Mozilla/5.0"},
                     ) as req:
                 req.raise_for_status()
-                with open(f"{save_dir}/{file_name}", "wb") as download:
-                    for chunk in req.iter_content(chunk_size=8192):
-                        download.write(chunk)
+                try:
+                    with open(f"{save_dir}/{file_name}", "wb") as download:
+                        for chunk in req.iter_content(chunk_size=8192):
+                            download.write(chunk)
+                except FileNotFoundError as error:
+                    return {"status": False, "msg": str(error)}
         except requests.exceptions.RequestException as error:
             logging.warning("Request failed: %s", str(error))
             return {"status": False, "msg": str(error)}

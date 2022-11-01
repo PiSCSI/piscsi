@@ -7,7 +7,6 @@ core
 __pycache__
 current
 rascsi_interface_pb2.py
-src/raspberrypi/hfdisk/
 *~
 messages.pot
 messages.mo
@@ -27,3 +26,7 @@ s.sh
 
 # temporary kicad files
 *-backups
+
+# submodules
+hfdisk*
+mac-hard-disk-drivers

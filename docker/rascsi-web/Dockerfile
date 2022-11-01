@@ -28,7 +28,7 @@ RUN ./easyinstall.sh --run_choice=11
 RUN ./easyinstall.sh --run_choice=13
 
 # Setup wired network bridge
-RUN ./easyinstall.sh --run_choice=6 --headless
+RUN ./easyinstall.sh --run_choice=5 --headless
 
 USER root
 WORKDIR /home/pi
