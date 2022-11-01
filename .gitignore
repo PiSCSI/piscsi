@@ -27,3 +27,6 @@ s.sh
 
 # temporary kicad files
 *-backups
+
+# VSCode temp file
+settings.json
