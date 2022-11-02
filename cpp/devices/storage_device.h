@@ -31,8 +31,6 @@ public:
 	string GetFilename() const { return filename; }
 	void SetFilename(string_view f) { filename = f; }
 
-	void MediumChanged();
-
 	uint64_t GetBlockCount() const { return blocks; }
 
 	void ReserveFile(const string&, int, int) const;
@@ -42,16 +40,17 @@ public:
 	static bool FileExists(const string&);
 	bool IsReadOnlyFile() const;
 
+	void SetMediumChanged(bool b) { medium_changed = b; }
+
 	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& r) { reserved_files = r; }
-	static pair<int, int> GetIdsForReservedFile(const string&);
+	static id_set GetIdsForReservedFile(const string&);
 
 protected:
 
 	void ValidateFile();
 
 	bool IsMediumChanged() const { return medium_changed; }
-	void SetMediumChanged(bool b) { medium_changed = b; }
 
 	void SetBlockCount(uint64_t b) { blocks = b; }
 

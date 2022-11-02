@@ -24,6 +24,7 @@
 #include "devices/host_services.h"
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_executor.h"
+#include <fcntl.h>
 
 using namespace testing;
 
@@ -221,7 +222,7 @@ class MockPrimaryDevice : public PrimaryDevice
 
 public:
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 
 	explicit MockPrimaryDevice(int lun) : PrimaryDevice(UNDEFINED, lun) {}
 	~MockPrimaryDevice() override = default;
@@ -235,7 +236,7 @@ class MockModePageDevice : public ModePageDevice
 
 public:
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 
@@ -277,7 +278,7 @@ class MockStorageDevice : public StorageDevice
 
 public:
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
@@ -323,7 +324,7 @@ class MockDisk : public Disk
 
 public:
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
 

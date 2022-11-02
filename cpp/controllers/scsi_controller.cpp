@@ -196,8 +196,7 @@ void ScsiController::Command()
 		GetBus()->SetIO(false);
 
 		const int actual_count = GetBus()->CommandHandShake(GetBuffer().data());
-		// TODO Try to move GetCommandByteCount() to BUS, so that the controller does not need to know GPIOBUS
-		const int command_byte_count = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
+		const int command_byte_count = BUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -225,7 +224,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, static_cast<int>(GetOpcode()))
+	LOGDEBUG("++++ CMD ++++ Executing command $%02X", static_cast<int>(GetOpcode()))
 
 	// Initialization for data transfer
 	ResetOffset();
@@ -240,24 +239,25 @@ void ScsiController::Execute()
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
 		if (GetOpcode() != scsi_command::eCmdInquiry && GetOpcode() != scsi_command::eCmdRequestSense) {
-			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetTargetId())
+			LOGTRACE("Invalid LUN %d for device ID %d", lun, GetTargetId())
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+
 			return;
 		}
-		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
-		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
-		else {
-			if (!HasDeviceForLun(0)) {
-				LOGERROR("No LUN 0 for device %d", GetTargetId())
 
-				GetBuffer().data()[0] = 0x7f;
+		assert(HasDeviceForLun(0));
 
-				return;
-			}
+		lun = 0;
+	}
 
-			lun = 0;
-		}
+	// SCSI-2 4.4.3 Incorrect logical unit handling
+	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", GetEffectiveLun(), GetTargetId())
+
+		GetBuffer().data()[0] = 0x7f;
+
+		return;
 	}
 
 	auto device = GetDeviceForLun(lun);
@@ -267,31 +267,16 @@ void ScsiController::Execute()
 		device->SetStatusCode(0);
 	}
 
-	if (!device->CheckReservation(initiator_id, GetOpcode(), GetCmd(4) & 0x01)) {
-		Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
+	if (device->CheckReservation(initiator_id, GetOpcode(), GetCmd(4) & 0x01)) {
+		try {
+			device->Dispatch(GetOpcode());
+		}
+		catch(const scsi_exception& e) {
+			Error(e.get_sense_key(), e.get_asc());
+		}
 	}
 	else {
-		try {
-			if (!device->Dispatch(GetOpcode())) {
-				LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetTargetId(), lun, static_cast<int>(GetOpcode()))
-
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
-			}
-		}
-		catch(const scsi_exception& e) { //NOSONAR This exception is handled properly
-			Error(e.get_sense_key(), e.get_asc());
-
-			// Fall through
-		}
-	}
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
-		lun = GetEffectiveLun();
-
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, device->GetId())
-
-		GetBuffer().data()[0] = 0x7f;
+		Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
 	}
 }
 
@@ -494,7 +479,7 @@ void ScsiController::Send()
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(GetOffset()) + ", length "
 				+ to_string(GetLength())).c_str())
 
-		// TODO The delay has to be taken from ctrl.unit[lun], but as there are currently no Daynaport drivers for
+		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
 		if (const int len = GetBus()->SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
@@ -850,7 +835,6 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 			ResetOffset();
 			break;
 
-		// Other (impossible)
 		default:
 			assert(false);
 			return false;
@@ -929,14 +913,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			// Check the next block
-			try {
-				SetLength(disk->WriteCheck(GetNext() - 1));
-			}
-			catch(const scsi_exception&) {
-				return false;
-			}
-
+			SetLength(disk->GetSectorSizeInBytes());
 			ResetOffset();
 			break;
 		}

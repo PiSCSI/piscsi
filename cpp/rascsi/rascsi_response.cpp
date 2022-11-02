@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "controllers/controller_manager.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"

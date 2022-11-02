@@ -45,13 +45,13 @@ class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
 {
 public:
 
-	explicit SCSIDaynaPort(int);
+	explicit SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun) {}
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
 
 	// Commands
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
 	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
 
@@ -64,8 +64,6 @@ public:
 	void SetInterfaceMode();
 	void SetMcastAddr();
 	void EnableInterface();
-
-	bool Dispatch(scsi_command) override;
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
@@ -87,10 +85,6 @@ public:
 	static const uint32_t DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
-
-	using super = PrimaryDevice;
-
-	Dispatcher<SCSIDaynaPort> dispatcher;
 
 	enum class read_data_flags_t : uint32_t {
 		e_no_more_data = 0x00000000,

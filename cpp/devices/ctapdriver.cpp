@@ -129,19 +129,6 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	return false;
 #else
 	unordered_map<string, string> params = const_params;
-	if (params.count("interfaces")) {
-		LOGWARN("You are using the deprecated 'interfaces' parameter. "
-				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters")
-
-		// TODO Remove the deprecated syntax in a future version
-		const string& ifaces = params["interfaces"];
-		size_t separatorPos = ifaces.find(':');
-		if (separatorPos != string::npos) {
-			params["interface"] = ifaces.substr(0, separatorPos);
-			params["inet"] = ifaces.substr(separatorPos + 1);
-		}
-	}
-
 	stringstream s(params["interface"]);
 	string interface;
 	while (getline(s, interface, ',')) {

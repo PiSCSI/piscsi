@@ -10,30 +10,47 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "primary_device.h"
 
 using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun)
+bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 {
 	// Mandatory SCSI primary commands
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	dispatcher.Add(scsi_command::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdInquiry, [this] { Inquiry(); });
+	AddCommand(scsi_command::eCmdReportLuns, [this] { ReportLuns(); });
 
 	// Optional commands supported by all RaSCSI devices
-	dispatcher.Add(scsi_command::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
-	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &PrimaryDevice::ReserveUnit);
-	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &PrimaryDevice::ReleaseUnit);
-	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &PrimaryDevice::SendDiagnostic);
+	AddCommand(scsi_command::eCmdRequestSense, [this] { RequestSense(); });
+	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
+	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
+	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
+
+	SetParams(params);
+
+	return true;
 }
 
-bool PrimaryDevice::Dispatch(scsi_command cmd)
+void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
 {
-	return dispatcher.Dispatch(this, cmd);
+	commands[opcode] = execute;
+}
+
+void PrimaryDevice::Dispatch(scsi_command cmd)
+{
+	if (const auto& it = commands.find(cmd); it != commands.end()) {
+		LOGDEBUG("Executing %s ($%02X)", command_names.find(cmd)->second, static_cast<int>(cmd))
+
+		it->second();
+	}
+	else {
+		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetId(), GetLun(), static_cast<int>(cmd))
+
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	}
 }
 
 void PrimaryDevice::Reset()
@@ -71,7 +88,7 @@ void PrimaryDevice::Inquiry()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	vector<byte> buf = InquiryInternal();
+	vector<uint8_t> buf = InquiryInternal();
 
 	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 3)));
 
@@ -187,9 +204,9 @@ void PrimaryDevice::CheckReady()
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__)
 }
 
-vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
+vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
-	vector<byte> buf(0x1F + 5);
+	vector<uint8_t> buf(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... SCSI device type
@@ -197,11 +214,12 @@ vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	// buf[2] ... SCSI compliance level of command system
 	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
-	buf[0] = (byte)type;
-	buf[1] = (byte)(is_removable ? 0x80 : 0x00);
-	buf[2] = (byte)level;
-	buf[3] = (byte)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
-	buf[4] = (byte)0x1F;
+	buf[0] = static_cast<uint8_t>(type);
+	buf[1] = is_removable ? 0x80 : 0x00;
+	buf[2] = static_cast<uint8_t>(level);
+	buf[3] = level >= scsi_level::SCSI_2 ?
+			static_cast<uint8_t>(scsi_level::SCSI_2) : static_cast<uint8_t>(scsi_level::SCSI_1_CCS);
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
@@ -280,7 +298,7 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 		return true;
 	}
 	// PREVENT ALLOW MEDIUM REMOVAL is permitted if the prevent bit is 0
-	if (cmd == scsi_command::eCmdRemoval && !prevent_removal) {
+	if (cmd == scsi_command::eCmdPreventAllowMediumRemoval && !prevent_removal) {
 		return true;
 	}
 

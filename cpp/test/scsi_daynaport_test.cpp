@@ -16,21 +16,13 @@ TEST(ScsiDaynaportTest, Inquiry)
 	TestInquiry(SCDP, device_type::PROCESSOR, scsi_level::SCSI_2, "Dayna   SCSI/Link       1.4a", 0x20, false);
 }
 
-TEST(ScsiDaynaportTest, Dispatch)
-{
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto daynaport = CreateDevice(SCDP, controller);
-
-	EXPECT_FALSE(daynaport->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
-}
-
 TEST(ScsiDaynaportTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
+    daynaport->Dispatch(scsi_command::eCmdTestUnitReady);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -40,7 +32,7 @@ TEST(ScsiDaynaportTest, Read)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	// ALLOCATION LENGTH
 	cmd[4] = 1;
@@ -53,7 +45,7 @@ TEST(ScsiDaynaportTest, WriteBytes)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, controller));
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	// Unknown data format
 	cmd[5] = 0xff;
@@ -65,7 +57,7 @@ TEST(ScsiDaynaportTest, Read6)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	cmd[5] = 0xff;
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
@@ -79,7 +71,7 @@ TEST(ScsiDaynaportTest, Write6)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	cmd[5] = 0x00;
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
@@ -109,12 +101,12 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
     // ALLOCATION LENGTH
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn());
-	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdRetrieveStats));
+	daynaport->Dispatch(scsi_command::eCmdRetrieveStats);
 }
 
 TEST(ScsiDaynaportTest, SetInterfaceMode)
@@ -122,7 +114,7 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	// Unknown interface command
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
@@ -132,12 +124,12 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 	// Not implemented, do nothing
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMODE;
 	EXPECT_CALL(controller, Status());
-	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode));
+	daynaport->Dispatch(scsi_command::eCmdSetIfaceMode);
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMAC;
 	EXPECT_CALL(controller, DataOut());
-	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetIfaceMode));
+	daynaport->Dispatch(scsi_command::eCmdSetIfaceMode);
 
 	// Not implemented
 	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_STATS;
@@ -163,7 +155,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
@@ -172,7 +164,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 
 	cmd[4] = 1;
     EXPECT_CALL(controller, DataOut());
-	EXPECT_TRUE(daynaport->Dispatch(scsi_command::eCmdSetMcastAddr));
+	daynaport->Dispatch(scsi_command::eCmdSetMcastAddr);
 }
 
 TEST(ScsiDaynaportTest, EnableInterface)
@@ -180,7 +172,7 @@ TEST(ScsiDaynaportTest, EnableInterface)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto daynaport = CreateDevice(SCDP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	// Enable
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
@@ -197,6 +189,8 @@ TEST(ScsiDaynaportTest, EnableInterface)
 TEST(ScsiDaynaportTest, GetSendDelay)
 {
 	SCSIDaynaPort daynaport(0);
+	const unordered_map<string, string> params;
+	daynaport.Init(params);
 
 	EXPECT_EQ(6, daynaport.GetSendDelay());
 }

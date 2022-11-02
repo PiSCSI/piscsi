@@ -29,18 +29,13 @@ TEST(ScsiPrinterTest, Init)
 	EXPECT_TRUE(printer->Init(params));
 }
 
-TEST(ScsiPrinterTest, Dispatch)
-{
-	TestDispatch(SCLP);
-}
-
 TEST(ScsiPrinterTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdTestUnitReady));
+    printer->Dispatch(scsi_command::eCmdTestUnitReady);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -55,7 +50,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdReserve6));
+    printer->Dispatch(scsi_command::eCmdReserve6);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -65,7 +60,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdRelease6));
+    printer->Dispatch(scsi_command::eCmdRelease6);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -75,7 +70,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status()).Times(1);
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdSendDiag));
+    printer->Dispatch(scsi_command::eCmdSendDiagnostic);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -84,10 +79,10 @@ TEST(ScsiPrinterTest, Print)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto printer = CreateDevice(SCLP, controller);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
     EXPECT_CALL(controller, DataOut());
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdPrint));
+    printer->Dispatch(scsi_command::eCmdPrint);
 
     cmd[3] = 0xff;
     cmd[4] = 0xff;
@@ -103,7 +98,7 @@ TEST(ScsiPrinterTest, StopPrint)
 	auto printer = CreateDevice(SCLP, controller);
 
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(printer->Dispatch(scsi_command::eCmdStopPrint));
+    printer->Dispatch(scsi_command::eCmdStopPrint);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -127,5 +122,4 @@ TEST(ScsiPrinterTest, WriteByteSequence)
 
 	vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf, buf.size()));
-	printer->Cleanup();
 }

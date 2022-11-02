@@ -24,40 +24,31 @@
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "scsi_daynaport.h"
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIDaynaPort::SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun)
+bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	dispatcher.Add(scsi_command::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	dispatcher.Add(scsi_command::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	dispatcher.Add(scsi_command::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	dispatcher.Add(scsi_command::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	PrimaryDevice::Init(params);
+
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
+	AddCommand(scsi_command::eCmdWrite6, [this] { Write6(); });
+	AddCommand(scsi_command::eCmdRetrieveStats, [this] { RetrieveStatistics(); });
+	AddCommand(scsi_command::eCmdSetIfaceMode, [this] { SetInterfaceMode(); });
+	AddCommand(scsi_command::eCmdSetMcastAddr, [this] { SetMcastAddr(); });
+	AddCommand(scsi_command::eCmdEnableInterface, [this] { EnableInterface(); });
 
 	// The Daynaport needs to have a delay after the size/flags field of the read response.
 	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	SupportsParams(true);
-}
-
-bool SCSIDaynaPort::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
-}
-
-bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
-{
-	SetParams(params);
 
 	m_bTapEnable = m_tap.Init(GetParams());
 	if(!m_bTapEnable){
@@ -78,14 +69,14 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-vector<byte> SCSIDaynaPort::InquiryInternal() const
+vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 {
-	vector<byte> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<uint8_t> buf = HandleInquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
 	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
 	// add a vendor-specific byte in order to satisfy this driver.
-	buf[4] = (byte)(to_integer<int>(buf[4]) + 1);
-	buf.push_back((byte)0);
+	buf[4]++;
+	buf.push_back(0);
 
 	return buf;
 }

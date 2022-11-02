@@ -12,7 +12,6 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "mode_page_device.h"
 #include <cstddef>
 
@@ -20,23 +19,21 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-ModePageDevice::ModePageDevice(PbDeviceType type, int lun) : PrimaryDevice(type, lun)
+bool ModePageDevice::Init(const unordered_map<string, string>& params)
 {
-	dispatcher.Add(scsi_command::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
-	dispatcher.Add(scsi_command::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
-	dispatcher.Add(scsi_command::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
-	dispatcher.Add(scsi_command::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
-}
+	PrimaryDevice::Init(params);
 
-bool ModePageDevice::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
+	AddCommand(scsi_command::eCmdModeSense6, [this] { ModeSense6(); });
+	AddCommand(scsi_command::eCmdModeSense10, [this] { ModeSense10(); });
+	AddCommand(scsi_command::eCmdModeSelect6, [this] { ModeSelect6(); });
+	AddCommand(scsi_command::eCmdModeSelect10, [this] { ModeSelect10(); });
+
+	return true;
 }
 
 int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
-	int max_length = length - offset;
+	const int max_length = length - offset;
 	if (max_length < 0) {
 		return length;
 	}
@@ -61,7 +58,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	vector<byte> result;
 
 	vector<byte> page0;
-	for (auto const& [index, data] : pages) {
+	for (const auto& [index, data] : pages) {
 		// The specification mandates that page 0 must be returned after all others
 		if (index) {
 			const size_t off = result.size();
@@ -80,7 +77,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 
 	// Page 0 must be last
 	if (!page0.empty()) {
-		size_t off = result.size();
+		const size_t off = result.size();
 
 		// Page data
 		result.insert(result.end(), page0.begin(), page0.end());
@@ -92,7 +89,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
+	const auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
 	memcpy(&buf.data()[offset], result.data(), size);
 
 	// Do not return more than the requested number of bytes
@@ -115,30 +112,29 @@ void ModePageDevice::ModeSense10()
 
 void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<uint8_t>&, int) const
 {
+	// There is no default implementation of MDOE SELECT
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6()
 {
-	controller->SetLength(SaveParametersCheck(controller->GetCmd(4)));
-
-	EnterDataOutPhase();
+	SaveParametersCheck(controller->GetCmd(4));
 }
 
 void ModePageDevice::ModeSelect10()
 {
-	const size_t length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 7)));
+	const auto length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 7)));
 
-	controller->SetLength(SaveParametersCheck(static_cast<uint32_t>(length)));
-
-	EnterDataOutPhase();
+	SaveParametersCheck(static_cast<uint32_t>(length));
 }
 
-int ModePageDevice::SaveParametersCheck(int length) const
+void ModePageDevice::SaveParametersCheck(int length)
 {
 	if (!SupportsSaveParameters() && (controller->GetCmd(1) & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	return length;
+	controller->SetLength(length);
+
+	EnterDataOutPhase();
 }

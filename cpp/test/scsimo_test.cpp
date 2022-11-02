@@ -148,9 +148,3 @@ TEST(ScsiMoTest, ModeSelect)
 	buf[20] = 0x08;
 	EXPECT_NO_THROW(mo.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
 }
-
-TEST(ScsiMoTest, Dispatch)
-{
-	TestDispatch(SCMO);
-}
-

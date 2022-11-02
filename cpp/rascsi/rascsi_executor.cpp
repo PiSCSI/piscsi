@@ -318,7 +318,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		params.erase("file");
 	}
 
-	if (device->SupportsParams() && !device->Init(params)) {
+	if (!device->Init(params)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(device->GetType()),
 				to_string(id), to_string(lun));
 	}
@@ -389,7 +389,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 	storage_device->SetProtected(pb_device.protected_());
 	storage_device->ReserveFile(full_path, storage_device->GetId(), storage_device->GetLun());
-	storage_device->MediumChanged();
+	storage_device->SetMediumChanged(true);
 
 	return true;
 }
@@ -522,7 +522,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
     if (!reserved_ids.empty()) {
     	string s;
     	bool isFirst = true;
-    	for (auto const& reserved_id : reserved) {
+    	for (const auto& reserved_id : reserved) {
     		if (!isFirst) {
     			s += ", ";
     		}

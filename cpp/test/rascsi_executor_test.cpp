@@ -152,10 +152,10 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 
 TEST_F(RascsiExecutorTest, ProcessCmd)
 {
-	shared_ptr<MockBus> bus_ptr;
+	shared_ptr<MockBus> bus;
 	DeviceFactory device_factory;
-	MockAbstractController controller(bus_ptr, 0);
-	ControllerManager controller_manager(bus_ptr);
+	MockAbstractController controller(bus, 0);
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);

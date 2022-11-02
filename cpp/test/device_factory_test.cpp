@@ -122,9 +122,9 @@ TEST(DeviceFactoryTest, GetDefaultParams)
 
 TEST(DeviceFactoryTest, UnknownDeviceType)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device1 = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test");
 	EXPECT_EQ(nullptr, device1);
@@ -138,11 +138,14 @@ TEST(DeviceFactoryTest, UnknownDeviceType)
 
 TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.hda");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCHD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -177,11 +180,14 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 void TestRemovableDrive(PbDeviceType type, const string& filename, const string& product)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, filename);
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(type, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -215,11 +221,14 @@ TEST(DeviceFactoryTest, SCMO_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "test.iso");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCCD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -242,11 +251,14 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "bridge");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCBR, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -269,11 +281,14 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "daynaport");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCDP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -295,11 +310,14 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "services");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCHS, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -322,11 +340,14 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	auto bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus_ptr);
+	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(controller_manager, UNDEFINED, 0, "printer");
+	const unordered_map<string, string> params;
+	device->Init(params);
+
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCLP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());

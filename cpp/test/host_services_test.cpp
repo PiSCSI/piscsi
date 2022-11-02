@@ -20,18 +20,13 @@ void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
 	EXPECT_EQ(10, pages[32].size());
 }
 
-TEST(HostServicesTest, Dispatch)
-{
-	TestDispatch(SCHS);
-}
-
 TEST(HostServicesTest, TestUnitReady)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdTestUnitReady)) << "TEST UNIT READY must never fail";
+    services->Dispatch(scsi_command::eCmdTestUnitReady);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 }
 
@@ -45,26 +40,26 @@ TEST(HostServicesTest, StartStopUnit)
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller.GetCmd();
 
     // STOP
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI));
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdStartStop));
+    services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // LOAD
     cmd[4] = 0x02;
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI));
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdStartStop));
+    services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // UNLOAD
     cmd[4] = 0x03;
     EXPECT_CALL(controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI));
     EXPECT_CALL(controller, Status());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdStartStop));
+    services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller.GetStatus());
 
     // START
@@ -78,8 +73,10 @@ TEST(HostServicesTest, ModeSense6)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
+	const unordered_map<string, string> params;
+	services->Init(params);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller.GetCmd();
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
@@ -96,7 +93,7 @@ TEST(HostServicesTest, ModeSense6)
     // ALLOCATION LENGTH
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense6));
+    services->Dispatch(scsi_command::eCmdModeSense6);
 	vector<uint8_t>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[6]);
@@ -110,7 +107,7 @@ TEST(HostServicesTest, ModeSense6)
     // ALLOCATION LENGTH
     cmd[4] = 2;
     EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense6));
+    services->Dispatch(scsi_command::eCmdModeSense6);
 	buffer = controller.GetBuffer();
 	EXPECT_EQ(0x02, buffer[0]);
 }
@@ -119,8 +116,10 @@ TEST(HostServicesTest, ModeSense10)
 {
 	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
 	auto services = CreateDevice(SCHS, controller);
+	const unordered_map<string, string> params;
+	services->Init(params);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller.GetCmd();
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
@@ -137,7 +136,7 @@ TEST(HostServicesTest, ModeSense10)
     // ALLOCATION LENGTH
     cmd[8] = 255;
     EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense10));
+    services->Dispatch(scsi_command::eCmdModeSense10);
 	vector<uint8_t>& buffer = controller.GetBuffer();
 	// Major version 1
 	EXPECT_EQ(0x01, buffer[10]);
@@ -151,7 +150,7 @@ TEST(HostServicesTest, ModeSense10)
     // ALLOCATION LENGTH
     cmd[8] = 2;
     EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense10));
+    services->Dispatch(scsi_command::eCmdModeSense10);
 	buffer = controller.GetBuffer();
 	EXPECT_EQ(0x02, buffer[1]);
 }

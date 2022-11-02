@@ -24,14 +24,13 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include <tuple>
 
 using namespace std;
 
 class Disk : public StorageDevice, private ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
-
-	Dispatcher<Disk> dispatcher;
 
 	unique_ptr<DiskCache> cache;
 
@@ -44,15 +43,15 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 
 public:
 
-	Disk(PbDeviceType, int);
+	Disk(PbDeviceType type, int lun) : StorageDevice(type, lun) {}
 	~Disk() override;
 
-	bool Dispatch(scsi_command) override;
+	bool Init(const unordered_map<string, string>&) override;
+
+	void Dispatch(scsi_command) override;
 
 	bool Eject(bool) override;
 
-	// Command helpers
-	virtual int WriteCheck(uint64_t);
 	virtual void Write(const vector<int>&, const vector<uint8_t>&, uint64_t);
 
 	virtual int Read(const vector<int>&, vector<uint8_t>& , uint64_t);
@@ -63,8 +62,6 @@ public:
 	void FlushCache() override;
 
 private:
-
-	using super = StorageDevice;
 
 	// Commands covered by the SCSI specifications (see https://www.t10.org/drafts.htm)
 	void StartStopUnit();
@@ -93,12 +90,13 @@ private:
 	void ReadCapacity16_ReadLong16();
 
 	void ValidateBlockAddress(access_mode) const;
-	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
+	tuple<bool, uint64_t, uint32_t> CheckAndGetStartAndCount(access_mode) const;
 
 	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
 	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 
-	static const unordered_map<uint32_t, uint32_t> shift_counts;
+	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
+		{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
 
 protected:
 

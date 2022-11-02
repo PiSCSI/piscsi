@@ -284,10 +284,12 @@ TEST(ScsiControllerTest, RequestSense)
 {
 	MockScsiController controller(make_shared<NiceMock<MockBus>>());
 	auto device = make_shared<MockPrimaryDevice>(0);
+	const unordered_map<string, string> params;
+	device->Init(params);
 
 	controller.AddDevice(device);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 	// Non-existing LUN
@@ -295,6 +297,6 @@ TEST(ScsiControllerTest, RequestSense)
 
 	device->SetReady(true);
 	EXPECT_CALL(controller, Status);
-	EXPECT_TRUE(device->Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(status::GOOD, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
+	device->Dispatch(scsi_command::eCmdRequestSense);
+	EXPECT_EQ(status::GOOD, controller.GetStatus()) << "Illegal CHECK CONDITION for non-existing LUN";
 }

@@ -48,6 +48,24 @@ TEST(AbstractControllerTest, Reset)
 	EXPECT_EQ(0, controller.GetLength());
 }
 
+TEST(AbstractControllerTest, Next)
+{
+	MockAbstractController controller(make_shared<MockBus>(), 0);
+
+	controller.SetNext(0x1234);
+	EXPECT_EQ(0x1234, controller.GetNext());
+	controller.IncrementNext();
+	EXPECT_EQ(0x1235, controller.GetNext());
+}
+
+TEST(AbstractControllerTest, Message)
+{
+	MockAbstractController controller(make_shared<MockBus>(), 0);
+
+	controller.SetMessage(0x12);
+	EXPECT_EQ(0x12, controller.GetMessage());
+}
+
 TEST(AbstractControllerTest, ByteTransfer)
 {
 	MockAbstractController controller(make_shared<MockBus>(), 0);
@@ -56,6 +74,16 @@ TEST(AbstractControllerTest, ByteTransfer)
 	EXPECT_FALSE(controller.IsByteTransfer());
 	controller.SetByteTransfer(true);
 	EXPECT_TRUE(controller.IsByteTransfer());
+}
+
+TEST(AbstractControllerTest, BytesToTransfer)
+{
+	MockAbstractController controller(make_shared<MockBus>(), 0);
+
+	controller.SetBytesToTransfer(0x1234);
+	EXPECT_EQ(0x1234, controller.GetBytesToTransfer());
+	controller.SetByteTransfer(false);
+	EXPECT_EQ(0, controller.GetBytesToTransfer());
 }
 
 TEST(AbstractControllerTest, GetMaxLuns)
@@ -78,35 +106,35 @@ TEST(AbstractControllerTest, ProcessPhase)
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 
 	controller.SetPhase(BUS::phase_t::selection);
-	EXPECT_CALL(controller, Selection());
+	EXPECT_CALL(controller, Selection);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::busfree);
-	EXPECT_CALL(controller, BusFree());
+	EXPECT_CALL(controller, BusFree);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::datain);
-	EXPECT_CALL(controller, DataIn());
+	EXPECT_CALL(controller, DataIn);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::dataout);
-	EXPECT_CALL(controller, DataOut());
+	EXPECT_CALL(controller, DataOut);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::command);
-	EXPECT_CALL(controller, Command());
+	EXPECT_CALL(controller, Command);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::status);
-	EXPECT_CALL(controller, Status());
+	EXPECT_CALL(controller, Status);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::msgin);
-	EXPECT_CALL(controller, MsgIn());
+	EXPECT_CALL(controller, MsgIn);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::msgout);
-	EXPECT_CALL(controller, MsgOut());
+	EXPECT_CALL(controller, MsgOut);
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::reselection);
@@ -162,7 +190,7 @@ TEST(AbstractControllerTest, GetOpcode)
 {
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	cmd[0] = static_cast<int>(scsi_command::eCmdInquiry);
 	EXPECT_EQ(scsi_command::eCmdInquiry, controller.GetOpcode());
@@ -174,7 +202,7 @@ TEST(AbstractControllerTest, GetLun)
 
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller.GetCmd();
 
 	cmd[1] = LUN << 5;
 	EXPECT_EQ(LUN, controller.GetLun());

@@ -151,14 +151,3 @@ TEST(StorageDeviceTest, GetFileSize)
 	device.SetFilename("/non_existing_file");
 	EXPECT_THROW(device.GetFileSize(), io_exception);
 }
-
-TEST(StorageDeviceTest, Dispatch)
-{
-    MockAbstractController controller(make_shared<MockBus>(), 0);
-	auto device = make_shared<NiceMock<MockStorageDevice>>();
-
-    controller.AddDevice(device);
-
-    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
-}
-

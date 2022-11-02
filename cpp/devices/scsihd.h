@@ -35,7 +35,7 @@ public:
 	void Open() override;
 
 	// Commands
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<uint8_t>&, int) const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
@@ -44,8 +44,6 @@ public:
 private:
 
 	string GetProductData() const;
-
-	using super = Disk;
 
 	scsi_defs::scsi_level scsi_level;
 };

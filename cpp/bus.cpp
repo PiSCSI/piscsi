@@ -14,6 +14,25 @@ using namespace std;
 
 //---------------------------------------------------------------------------
 //
+// Get the number of bytes for a command
+// TODO Add the byte count to the enum value/command name mapping and remove the comparisons
+//
+//---------------------------------------------------------------------------
+int BUS::GetCommandByteCount(uint8_t opcode)
+{
+    if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E || opcode == 0x9F) {
+        return 16;
+    } else if (opcode == 0xA0) {
+        return 12;
+    } else if (opcode >= 0x20 && opcode <= 0x7D) {
+        return 10;
+    } else {
+        return 6;
+    }
+}
+
+//---------------------------------------------------------------------------
+//
 //	Phase Acquisition
 //
 //---------------------------------------------------------------------------

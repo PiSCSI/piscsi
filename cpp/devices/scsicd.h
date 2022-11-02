@@ -25,12 +25,11 @@ public:
 	SCSICD(int, const unordered_set<uint32_t>&);
 	~SCSICD() override = default;
 
-	bool Dispatch(scsi_command) override;
+	bool Init(const unordered_map<string, string>&) override;
 
 	void Open() override;
 
-	// Commands
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	int Read(const vector<int>&, vector<uint8_t>&, uint64_t) override;
 
 protected:
@@ -39,10 +38,6 @@ protected:
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
-
-	using super = Disk;
-
-	Dispatcher<SCSICD> dispatcher;
 
 	int ReadTocInternal(const vector<int>&, vector<uint8_t>&);
 
