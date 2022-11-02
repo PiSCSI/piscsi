@@ -90,6 +90,11 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 {
 	params = default_params;
 
+	// Devices with image file support implicitly support the "file" parameter
+	if (SupportsFile()) {
+		params["file"] = "";
+	}
+
 	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
 		if (params.find(key) != params.end()) {

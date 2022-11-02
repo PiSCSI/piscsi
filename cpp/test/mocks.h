@@ -12,7 +12,7 @@
 #include <gmock/gmock.h>
 
 #include "test_shared.h"
-#include "bus.h"
+#include "hal/bus.h"
 #include "controllers/scsi_controller.h"
 #include "devices/primary_device.h"
 #include "devices/storage_device.h"

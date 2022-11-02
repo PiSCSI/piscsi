@@ -22,7 +22,7 @@ void TestSpecialDevice(const string& name)
 	EXPECT_EQ("", GetParam(device, "interfaces"));
 }
 
-TEST(CommandUtil, AddGetParam)
+TEST(ProtobufUtil, AddGetParam)
 {
 	PbCommand command;
 	SetParam(command, "key", "value");
@@ -40,7 +40,7 @@ TEST(CommandUtil, AddGetParam)
 	EXPECT_EQ("value", it->second);
 }
 
-TEST(CommandUtil, ParseParameters)
+TEST(ProtobufUtil, ParseParameters)
 {
 	PbDeviceDefinition device1;
 	ParseParameters(device1, "a=b:c=d:e");
@@ -48,11 +48,10 @@ TEST(CommandUtil, ParseParameters)
 	EXPECT_EQ("d", GetParam(device1, "c"));
 	EXPECT_EQ("", GetParam(device1, "e"));
 
-	// Old style parameters
+	// Old style parameter
 	PbDeviceDefinition device2;
 	ParseParameters(device2, "a");
 	EXPECT_EQ("a", GetParam(device2, "file"));
-	EXPECT_EQ("a", GetParam(device2, "interfaces"));
 
 	TestSpecialDevice("bridge");
 	TestSpecialDevice("daynaport");
@@ -60,7 +59,7 @@ TEST(CommandUtil, ParseParameters)
 	TestSpecialDevice("services");
 }
 
-TEST(CommandUtil, SetPatternParams)
+TEST(ProtobufUtil, SetPatternParams)
 {
 	PbCommand command1;
 	SetPatternParams(command1, "file");

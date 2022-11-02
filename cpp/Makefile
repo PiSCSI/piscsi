@@ -91,9 +91,7 @@ SRC_SHARED = \
 	protobuf_util.cpp \
 	protobuf_serializer.cpp
 
-SRC_RASCSI_CORE = \
-	bus.cpp
-SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
+SRC_RASCSI_CORE = $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
@@ -102,7 +100,6 @@ SRC_RASCSI = rascsi.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
-	bus.cpp \
 	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
@@ -113,16 +110,15 @@ SRC_RASCTL = rasctl.cpp
 
 SRC_RASDUMP = \
 	rasdump.cpp \
-	bus.cpp \
-	rasdump_fileio.cpp \
 	rascsi_version.cpp
+SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./rascsi ./rasctl
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump
+vpath %.cpp ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
