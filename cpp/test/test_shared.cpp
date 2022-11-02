@@ -23,9 +23,8 @@ using namespace filesystem;
 shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
 {
 	DeviceFactory device_factory;
-	auto controller_manager = make_shared<ControllerManager>(controller.GetBus());
 
-	auto device = device_factory.CreateDevice(*controller_manager, type, 0, extension);
+	auto device = device_factory.CreateDevice(type, 0, extension);
 	unordered_map<string, string> params;
 	device->Init(params);
 
@@ -37,16 +36,17 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
 		bool removable, const string& extension)
 {
-    NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-    auto device = CreateDevice(type, controller, extension);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+    auto device = CreateDevice(type, *controller, extension);
 
-    auto& cmd = controller.GetCmd();
+    auto& cmd = controller->GetCmd();
 
     // ALLOCATION LENGTH
     cmd[4] = 255;
-    EXPECT_CALL(controller, DataIn());
+    EXPECT_CALL(*controller, DataIn());
     device->Dispatch(scsi_command::eCmdInquiry);
-	const vector<uint8_t>& buffer = controller.GetBuffer();
+	const vector<uint8_t>& buffer = controller->GetBuffer();
 	EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
 	EXPECT_EQ(removable ? 0x80: 0x00, buffer[1]);
 	EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));

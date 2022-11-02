@@ -14,7 +14,6 @@
 #include "log.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
-#include "devices/device_factory.h"
 #include "devices/disk.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
@@ -53,7 +52,6 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 RascsiService service;
 shared_ptr<GPIOBUS> bus;
-DeviceFactory device_factory;
 shared_ptr<ControllerManager> controller_manager;
 RascsiImage rascsi_image;
 shared_ptr<RascsiResponse> rascsi_response;
@@ -101,8 +99,8 @@ bool Rascsi::InitBus() const
 	bus->Reset();
 
 	controller_manager = make_shared<ControllerManager>(bus);
-	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
-	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
+	rascsi_response = make_shared<RascsiResponse>(ScsiController::LUN_MAX);
+	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, *controller_manager);
 
 	return true;
 }
@@ -390,7 +388,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response->GetDevices(server_info, rascsi_image.GetDefaultFolder());
+	rascsi_response->GetDevices(*controller_manager, server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -441,7 +439,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response->GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
+			rascsi_response->GetDevicesInfo(*controller_manager, result, command, rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
@@ -453,7 +451,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case SERVER_INFO: {
-			result.set_allocated_server_info(rascsi_response->GetServerInfo(
+			result.set_allocated_server_info(rascsi_response->GetServerInfo(*controller_manager,
 					result, executor->GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());

@@ -28,7 +28,8 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(shared_ptr<BUS> bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
+ScsiController::ScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
+	: AbstractController(controller_manager, target_id, LUN_MAX)
 {
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
@@ -115,6 +116,13 @@ void ScsiController::BusFree()
 		identified_lun = -1;
 
 		SetByteTransfer(false);
+
+		if (shutdown_mode != rascsi_shutdown_mode::NONE) {
+			// Prepare the shutdown by flushing all caches
+			for (const auto& device : GetControllerManager()->GetAllDevices()) {
+				device->FlushCache();
+			}
+		}
 
 		// When the bus is free RaSCSI or the Pi may be shut down.
 		// This code has to be executed in the bus free phase and thus has to be located in the controller.

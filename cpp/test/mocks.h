@@ -103,6 +103,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(AbstractControllerTest, Length);
 	FRIEND_TEST(AbstractControllerTest, UpdateOffsetAndLength);
 	FRIEND_TEST(AbstractControllerTest, Offset);
+	FRIEND_TEST(ScsiControllerTest, Selection);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
@@ -153,7 +154,8 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(shared_ptr<MockBus> bus, int target_id) : AbstractController(bus, target_id, 32) {
+	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
+		: AbstractController(controller_manager, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
@@ -184,9 +186,10 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
-	explicit MockScsiController(shared_ptr<NiceMock<MockBus>> bus, int target_id) : ScsiController(bus, target_id) {}
-	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
-	explicit MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
+	MockScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
+		: ScsiController(controller_manager, target_id) {}
+	explicit MockScsiController(shared_ptr<ControllerManager> controller_manager)
+		: ScsiController(controller_manager, 0) {}
 	~MockScsiController() override = default;
 
 };

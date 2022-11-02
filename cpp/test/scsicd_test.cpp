@@ -112,13 +112,14 @@ TEST(ScsiCdTest, Open)
 
 TEST(ScsiCdTest, ReadToc)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	const unordered_set<uint32_t> sector_sizes;
 	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
 	const unordered_map<string, string> params;
 	cd->Init(params);
 
-	controller.AddDevice(cd);
+	controller->AddDevice(cd);
 
 	EXPECT_THAT([&] { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),

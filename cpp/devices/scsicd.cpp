@@ -162,7 +162,7 @@ void SCSICD::CreateDataTrack()
 
 void SCSICD::ReadToc()
 {
-	controller->SetLength(ReadTocInternal(controller->GetCmd(), controller->GetBuffer()));
+	GetController()->SetLength(ReadTocInternal(GetController()->GetCmd(), GetController()->GetBuffer()));
 
 	EnterDataInPhase();
 }

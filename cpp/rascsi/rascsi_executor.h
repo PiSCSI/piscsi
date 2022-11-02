@@ -24,9 +24,9 @@ class RascsiExecutor
 
 	RascsiImage& rascsi_image;
 
-	DeviceFactory& device_factory;
-
 	ControllerManager& controller_manager;
+
+	DeviceFactory device_factory;
 
 	ProtobufSerializer serializer;
 
@@ -34,10 +34,8 @@ class RascsiExecutor
 
 public:
 
-	RascsiExecutor(RascsiResponse& rascsi_response, RascsiImage& rascsi_image, DeviceFactory& device_factory,
-			ControllerManager& controller_manager)
-		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), device_factory(device_factory),
-		  controller_manager(controller_manager) {}
+	RascsiExecutor(RascsiResponse& rascsi_response, RascsiImage& rascsi_image, ControllerManager& controller_manager)
+		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }

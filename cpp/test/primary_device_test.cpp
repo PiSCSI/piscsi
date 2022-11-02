@@ -21,44 +21,47 @@ TEST(PrimaryDeviceTest, GetId)
 {
 	const int ID = 5;
 
-	MockAbstractController controller(make_shared<MockBus>(), ID);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, ID);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
 	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 	EXPECT_EQ(ID, device->GetId());
 }
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
-	EXPECT_CALL(controller, Status);
+	EXPECT_CALL(*controller, Status);
 	device->EnterStatusPhase();
 
-	EXPECT_CALL(controller, DataIn);
+	EXPECT_CALL(*controller, DataIn);
 	device->EnterDataInPhase();
 
-	EXPECT_CALL(controller, DataOut);
+	EXPECT_CALL(*controller, DataOut);
 	device->EnterDataOutPhase();
 }
 
 TEST(PrimaryDeviceTest, Reset)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -70,12 +73,13 @@ TEST(PrimaryDeviceTest, Reset)
 
 TEST(PrimaryDeviceTest, CheckReservation)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	EXPECT_TRUE(device->CheckReservation(0, scsi_command::eCmdTestUnitReady, false))
 		<< "Device must not be reserved for initiator ID 0";
@@ -102,12 +106,13 @@ TEST(PrimaryDeviceTest, CheckReservation)
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -117,7 +122,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 	EXPECT_TRUE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
 		<< "Device must not be reserved anymore for initiator ID 1";
 
-	ON_CALL(controller, GetInitiatorId).WillByDefault(Return(-1));
+	ON_CALL(*controller, GetInitiatorId).WillByDefault(Return(-1));
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
 		<< "Device must be reserved for unknown initiator";
@@ -129,12 +134,13 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 TEST(PrimaryDeviceTest, DiscardReservation)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -146,56 +152,58 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	device->SetReset(true);
 	device->SetAttn(true);
 	device->SetReady(false);
-	EXPECT_CALL(controller, DataIn).Times(0);
+	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
 			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
 
 	device->SetReset(false);
-	EXPECT_CALL(controller, DataIn).Times(0);
+	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
 			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
 
 	device->SetReset(true);
 	device->SetAttn(false);
-	EXPECT_CALL(controller, DataIn).Times(0);
+	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
 			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
 
 	device->SetReset(false);
 	device->SetAttn(true);
-	EXPECT_CALL(controller, DataIn).Times(0);
+	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
 			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
 
 	device->SetAttn(false);
-	EXPECT_CALL(controller, DataIn).Times(0);
+	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
 
 	device->SetReady(true);
-	EXPECT_CALL(controller, Status);
+	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdTestUnitReady);
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -266,14 +274,15 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
-	auto& cmd = controller.GetCmd();
+	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 
@@ -283,25 +292,26 @@ TEST(PrimaryDeviceTest, RequestSense)
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
 
 	device->SetReady(true);
-	EXPECT_CALL(controller, DataIn);
+	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdRequestSense);
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
-	auto& cmd = controller.GetCmd();
+	auto& cmd = controller->GetCmd();
 
-	EXPECT_CALL(controller, Status);
+	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdSendDiagnostic);
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
 
 	cmd[1] = 0x10;
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
@@ -328,25 +338,26 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN1 = 1;
 	const int LUN2 = 4;
 
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
 	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
 	const unordered_map<string, string> params;
 	device1->Init(params);
 	device2->Init(params);
 
-	controller.AddDevice(device1);
-	EXPECT_TRUE(controller.HasDeviceForLun(LUN1));
-	controller.AddDevice(device2);
-	EXPECT_TRUE(controller.HasDeviceForLun(LUN2));
+	controller->AddDevice(device1);
+	EXPECT_TRUE(controller->HasDeviceForLun(LUN1));
+	controller->AddDevice(device2);
+	EXPECT_TRUE(controller->HasDeviceForLun(LUN2));
 
-	auto& cmd = controller.GetCmd();
+	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
 	cmd[9] = 255;
 
-	EXPECT_CALL(controller, DataIn);
+	EXPECT_CALL(*controller, DataIn);
 	device1->Dispatch(scsi_command::eCmdReportLuns);
-	const vector<uint8_t>& buffer = controller.GetBuffer();
+	const vector<uint8_t>& buffer = controller->GetBuffer();
 	EXPECT_EQ(0, GetInt16(buffer, 0)) << "Wrong data length";
 	EXPECT_EQ(16, GetInt16(buffer, 2)) << "Wrong data length";
 	EXPECT_EQ(0, GetInt16(buffer, 8)) << "Wrong LUN1 number";
@@ -367,12 +378,13 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
 	EXPECT_THROW(device->Dispatch(static_cast<scsi_command>(0x1f)), scsi_exception) << "Unknown command";
 }

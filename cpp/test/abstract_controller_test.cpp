@@ -15,7 +15,8 @@ using namespace scsi_defs;
 
 TEST(AbstractControllerTest, AllocateCmd)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	EXPECT_EQ(16, controller.GetCmd().size());
 	controller.AllocateCmd(1234);
@@ -24,7 +25,8 @@ TEST(AbstractControllerTest, AllocateCmd)
 
 TEST(AbstractControllerTest, AllocateBuffer)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.AllocateBuffer(1);
 	EXPECT_LE(1, controller.GetBuffer().size());
@@ -34,22 +36,24 @@ TEST(AbstractControllerTest, AllocateBuffer)
 
 TEST(AbstractControllerTest, Reset)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 
-	controller.SetPhase(BUS::phase_t::status);
-	EXPECT_EQ(BUS::phase_t::status, controller.GetPhase());
-	controller.Reset();
-	EXPECT_TRUE(controller.IsBusFree());
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
-	EXPECT_EQ(0, controller.GetLength());
+	controller->SetPhase(BUS::phase_t::status);
+	EXPECT_EQ(BUS::phase_t::status, controller->GetPhase());
+	controller->Reset();
+	EXPECT_TRUE(controller->IsBusFree());
+	EXPECT_EQ(status::GOOD, controller->GetStatus());
+	EXPECT_EQ(0, controller->GetLength());
 }
 
 TEST(AbstractControllerTest, Next)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetNext(0x1234);
 	EXPECT_EQ(0x1234, controller.GetNext());
@@ -59,7 +63,8 @@ TEST(AbstractControllerTest, Next)
 
 TEST(AbstractControllerTest, Message)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetMessage(0x12);
 	EXPECT_EQ(0x12, controller.GetMessage());
@@ -67,7 +72,8 @@ TEST(AbstractControllerTest, Message)
 
 TEST(AbstractControllerTest, ByteTransfer)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetByteTransfer(false);
 	EXPECT_FALSE(controller.IsByteTransfer());
@@ -77,7 +83,8 @@ TEST(AbstractControllerTest, ByteTransfer)
 
 TEST(AbstractControllerTest, BytesToTransfer)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetBytesToTransfer(0x1234);
 	EXPECT_EQ(0x1234, controller.GetBytesToTransfer());
@@ -87,14 +94,16 @@ TEST(AbstractControllerTest, BytesToTransfer)
 
 TEST(AbstractControllerTest, GetMaxLuns)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	EXPECT_EQ(32, controller.GetMaxLuns());
 }
 
 TEST(AbstractControllerTest, Status)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetStatus(status::RESERVATION_CONFLICT);
 	EXPECT_EQ(status::RESERVATION_CONFLICT, controller.GetStatus());
@@ -102,7 +111,8 @@ TEST(AbstractControllerTest, Status)
 
 TEST(AbstractControllerTest, ProcessPhase)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::selection);
 	EXPECT_CALL(controller, Selection);
@@ -152,25 +162,26 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int ID = 1;
 	const int LUN = 4;
 
-	MockAbstractController controller(make_shared<MockBus>(), ID);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, ID);
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	auto device2 = make_shared<MockPrimaryDevice>(32);
 	auto device3 = make_shared<MockPrimaryDevice>(-1);
 
-	EXPECT_EQ(0, controller.GetLunCount());
-	EXPECT_EQ(ID, controller.GetTargetId());
-	EXPECT_TRUE(controller.AddDevice(device1));
-	EXPECT_FALSE(controller.AddDevice(device2));
-	EXPECT_FALSE(controller.AddDevice(device3));
-	EXPECT_TRUE(controller.GetLunCount() > 0);
-	EXPECT_TRUE(controller.HasDeviceForLun(LUN));
-	EXPECT_FALSE(controller.HasDeviceForLun(0));
-	EXPECT_NE(nullptr, controller.GetDeviceForLun(LUN));
-	EXPECT_EQ(nullptr, controller.GetDeviceForLun(0));
-	EXPECT_TRUE(controller.RemoveDevice(device1));
-	EXPECT_EQ(0, controller.GetLunCount());
-	EXPECT_FALSE(controller.RemoveDevice(device1));
+	EXPECT_EQ(0, controller->GetLunCount());
+	EXPECT_EQ(ID, controller->GetTargetId());
+	EXPECT_TRUE(controller->AddDevice(device1));
+	EXPECT_FALSE(controller->AddDevice(device2));
+	EXPECT_FALSE(controller->AddDevice(device3));
+	EXPECT_TRUE(controller->GetLunCount() > 0);
+	EXPECT_TRUE(controller->HasDeviceForLun(LUN));
+	EXPECT_FALSE(controller->HasDeviceForLun(0));
+	EXPECT_NE(nullptr, controller->GetDeviceForLun(LUN));
+	EXPECT_EQ(nullptr, controller->GetDeviceForLun(0));
+	EXPECT_TRUE(controller->RemoveDevice(device1));
+	EXPECT_EQ(0, controller->GetLunCount());
+	EXPECT_FALSE(controller->RemoveDevice(device1));
 }
 
 TEST(AbstractControllerTest, ExtractInitiatorId)
@@ -179,7 +190,8 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 	const int INITIATOR_ID = 7;
 	const int UNKNOWN_INITIATOR_ID = -1;
 
-	MockAbstractController controller(make_shared<MockBus>(), ID);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, ID);
 
 	EXPECT_EQ(INITIATOR_ID, controller.ExtractInitiatorId((1 << INITIATOR_ID) | ( 1 << ID)));
 	EXPECT_EQ(UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
@@ -187,7 +199,8 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 
 TEST(AbstractControllerTest, GetOpcode)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	auto& cmd = controller.GetCmd();
 
@@ -199,7 +212,8 @@ TEST(AbstractControllerTest, GetLun)
 {
 	const int LUN = 3;
 
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	auto& cmd = controller.GetCmd();
 
@@ -209,7 +223,8 @@ TEST(AbstractControllerTest, GetLun)
 
 TEST(AbstractControllerTest, Blocks)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.SetBlocks(1);
 	EXPECT_EQ(1, controller.GetBlocks());
@@ -219,7 +234,8 @@ TEST(AbstractControllerTest, Blocks)
 
 TEST(AbstractControllerTest, Length)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	EXPECT_FALSE(controller.HasValidLength());
 
@@ -230,7 +246,8 @@ TEST(AbstractControllerTest, Length)
 
 TEST(AbstractControllerTest, UpdateOffsetAndLength)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	EXPECT_FALSE(controller.HasValidLength());
 
@@ -240,7 +257,8 @@ TEST(AbstractControllerTest, UpdateOffsetAndLength)
 
 TEST(AbstractControllerTest, Offset)
 {
-	MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	MockAbstractController controller(controller_manager, 0);
 
 	controller.ResetOffset();
 	EXPECT_EQ(0, controller.GetOffset());

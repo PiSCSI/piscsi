@@ -35,7 +35,7 @@ const std::string SBC_Version::m_str_unknown_sbc       = "Unknown SBC";
 //     "Raspberry Pi 4 Model B" will match with both of the following:
 //         - Raspberry Pi 4 Model B Rev 1.4
 //         - Raspberry Pi 4 Model B Rev 1.3
-const std::map<std::string, SBC_Version::sbc_version_type, std::less<>> SBC_Version::m_proc_device_tree_mapping = {
+const std::map<std::string, SBC_Version::sbc_version_type> SBC_Version::m_proc_device_tree_mapping = {
     {"Raspberry Pi 1 Model ", sbc_version_type::sbc_raspberry_pi_1},
     {"Raspberry Pi 2 Model ", sbc_version_type::sbc_raspberry_pi_2_3},
     {"Raspberry Pi 3 Model ", sbc_version_type::sbc_raspberry_pi_2_3},

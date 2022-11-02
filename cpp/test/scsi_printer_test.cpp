@@ -16,8 +16,9 @@ using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
 	unordered_map<string, string> params;
 	EXPECT_TRUE(printer->Init(params));
@@ -31,12 +32,13 @@ TEST(ScsiPrinterTest, Init)
 
 TEST(ScsiPrinterTest, TestUnitReady)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-    EXPECT_CALL(controller, Status());
+    EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdTestUnitReady);
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
+    EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, Inquiry)
@@ -46,42 +48,46 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdReserve6);
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
+    EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdRelease6);
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
+    EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-    EXPECT_CALL(controller, Status()).Times(1);
+    EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdSendDiagnostic);
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
+    EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, Print)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-	auto& cmd = controller.GetCmd();
+	auto& cmd = controller->GetCmd();
 
-    EXPECT_CALL(controller, DataOut());
+    EXPECT_CALL(*controller, DataOut());
     printer->Dispatch(scsi_command::eCmdPrint);
 
     cmd[3] = 0xff;
@@ -94,18 +100,20 @@ TEST(ScsiPrinterTest, Print)
 
 TEST(ScsiPrinterTest, StopPrint)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
-    EXPECT_CALL(controller, Status());
+    EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdStopPrint);
-    EXPECT_EQ(status::GOOD, controller.GetStatus());
+    EXPECT_EQ(status::GOOD, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = CreateDevice(SCLP, controller);
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
@@ -117,8 +125,9 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto printer = dynamic_pointer_cast<SCSIPrinter>(CreateDevice(SCLP, controller));
+	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto printer = CreateDevice(SCLP, *controller);
 
 	vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf, buf.size()));
