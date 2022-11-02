@@ -47,6 +47,9 @@ private:
 
 	// TODO Get rid of static fields
 
+	// Processing flag
+	static inline volatile bool active;
+
 	// Some versions of spdlog do not support get_log_level(), so we have to remember the level
 	static inline string current_log_level = "info";
 

@@ -49,10 +49,9 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 //
 // Variable declarations
-// TODO Make these class fields
+// TODO Make these fields class fields
 //
 //---------------------------------------------------------------------------
-static volatile bool active;		// Processing flag
 RascsiService service;
 shared_ptr<GPIOBUS> bus;
 DeviceFactory device_factory;
