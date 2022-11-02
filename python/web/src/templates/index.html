@@ -439,7 +439,7 @@
     <ul>
         <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
         <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
-        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install Netatalk or Samba to use the File Server.") }}</li>
     </ul>
 </details>
 
@@ -447,8 +447,8 @@
     <p>
     <label for="upload_destination">{{ _("Target directory:") }}</label>
     <select name="destination" id="upload_destination">
-        <option value="images">Images - {{ env["image_dir"] }}</option>
-        <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
+        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
     </select>
     </p>
 </form>
@@ -489,15 +489,15 @@
         {{ _("Download File from the Web") }}
     </summary>
     <ul>
-        <li>{{ _("Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</li>
+        <li>{{ _("Install Netatalk or Samba to use the File Server.") }}</li>
     </ul>
 </details>
 
 <form action="/files/download_url" method="post">
     <label for="download_destination">{{ _("Target directory:") }}</label>
     <select name="destination" id="download_destination">
-        <option value="images">Images - {{ env["image_dir"] }}</option>
-        <option value="afp">AppleShare - {{ AFP_DIR }}</option>
+        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
+        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
     </select>
     <label for="download_url">{{ _("URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
@@ -560,6 +560,7 @@
     </summary>
     <ul>
         <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types#image-types") }}</li>
+        <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
     </ul>
 </details>
 
@@ -586,6 +587,24 @@
     {{ drive.name }}
     </option>
     {% endfor %}
+    </select>
+    <label for="drive_format">{{ _("Format as:") }}</label>
+    <select name="drive_format" id="drive_format">
+    <option value="">
+    {{ _("None") }}
+    </option>
+    <option value="Lido 7.56">
+    HFS + Lido
+    </option>
+    <option value="SpeedTools 3.6">
+    HFS + SpeedTools
+    </option>
+    <option value="FAT16">
+    FAT16
+    </option>
+    <option value="FAT32">
+    FAT32
+    </option>
     </select>
     <input type="submit" value="{{ _("Create") }}">
 </form>

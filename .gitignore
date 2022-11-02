@@ -7,7 +7,6 @@ core
 __pycache__
 current
 rascsi_interface_pb2.py
-src/raspberrypi/hfdisk/
 *~
 messages.pot
 messages.mo
@@ -30,3 +29,7 @@ s.sh
 
 # VSCode temp file
 settings.json
+
+# submodules
+hfdisk*
+mac-hard-disk-drivers
