@@ -1,0 +1,47 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI Reloaded
+// for Raspberry Pi
+//
+// Copyright (C) 2022 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
+#pragma once
+
+#include "rascsi/command_context.h"
+#include "rascsi_interface.pb.h"
+#include <deque>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Rascsi
+{
+	using optarg_value_type = pair<int, string>;
+	using optarg_queue_type = deque<optarg_value_type>;
+
+	static const int DEFAULT_PORT = 6868;
+	static const char COMPONENT_SEPARATOR = ':';
+
+public:
+
+	Rascsi() = default;
+	~Rascsi() = default;
+
+	int run(const vector<char *>&);
+
+private:
+
+	void Banner(const vector<char *>&) const;
+	bool InitBus();
+	void Reset();
+	bool ReadAccessToken(const char *);
+	void LogDevices(string_view) const;
+	bool ProcessId(const string&, int&, int&) const;
+	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&);
+	bool CreateInitialDevices(const optarg_queue_type&);
+
+	static bool ExecuteCommand(const CommandContext&, PbCommand&);
+};

@@ -114,15 +114,15 @@ SRC_RASCTL = rasctl.cpp
 SRC_RASDUMP = \
 	rasdump.cpp \
 	bus.cpp \
-	rasdump_fileio.cpp \
 	rascsi_version.cpp
+SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./rascsi ./rasctl
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump
+vpath %.cpp ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 

@@ -8,7 +8,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rasdump_fileio.h"
+#include "rasdump/rasdump_fileio.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <cassert>
