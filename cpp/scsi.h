@@ -9,6 +9,10 @@
 
 #pragma once
 
+#include <unordered_map>
+
+using namespace std;
+
 namespace scsi_defs {
 	enum class scsi_level : int {
 		SCSI_1_CCS = 1,
@@ -30,17 +34,20 @@ namespace scsi_defs {
 		COMMUNICATIONS = 9
 	};
 
-	// TODO Use a mapping of enum to structure with command byte count and enum name
 	enum class scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x04,
-		eCmdReassign = 0x07,
+		eCmdFormatUnit = 0x04,
+		eCmdReassignBlocks = 0x07,
 		eCmdRead6 = 0x08,
+		// Bridge specific command
+		eCmdGetMessage10 = 0x08,
 		// DaynaPort specific command
 		eCmdRetrieveStats = 0x09,
 		eCmdWrite6 = 0x0A,
+		// Bridge specific ommand
+		eCmdSendMessage10 = 0x0A,
 		eCmdPrint = 0x0A,
 		eCmdSeek6 = 0x0B,
 		// DaynaPort specific command
@@ -57,10 +64,8 @@ namespace scsi_defs {
 		eCmdModeSense6 = 0x1A,
 		eCmdStartStop = 0x1B,
 		eCmdStopPrint = 0x1B,
-		eCmdSendDiag = 0x1D,
-		eCmdRemoval = 0x1E,
-		// ICD specific command, evaluated by the controller
-		eCmdIcd = 0x1F,
+		eCmdSendDiagnostic = 0x1D,
+		eCmdPreventAllowMediumRemoval = 0x1E,
 		eCmdReadCapacity10 = 0x25,
 		eCmdRead10 = 0x28,
 		eCmdWrite10 = 0x2A,
@@ -113,5 +118,50 @@ namespace scsi_defs {
 		POWER_ON_OR_RESET = 0x29,
 		MEDIUM_NOT_PRESENT = 0x3a,
 		LOAD_OR_EJECT_FAILED = 0x53
+	};
+
+	static const unordered_map<scsi_command, const char *> command_names = {
+			{ scsi_command::eCmdTestUnitReady, "TestUnitReady" },
+			{ scsi_command::eCmdRezero, "Rezero" },
+			{ scsi_command::eCmdRequestSense, "RequestSense" },
+			{ scsi_command::eCmdFormatUnit, "FormatUnit" },
+			{ scsi_command::eCmdReassignBlocks, "ReassignBlocks" },
+			{ scsi_command::eCmdRead6, "Read6/GetMessage10" },
+			{ scsi_command::eCmdRetrieveStats, "RetrieveStats" },
+			{ scsi_command::eCmdWrite6, "Write6/Print/SendMessage10" },
+			{ scsi_command::eCmdSeek6, "Seek6" },
+			{ scsi_command::eCmdSetIfaceMode, "SetIfaceMode" },
+			{ scsi_command::eCmdSetMcastAddr, "SetMcastAddr" },
+			{ scsi_command::eCmdEnableInterface, "EnableInterface" },
+			{ scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer" },
+			{ scsi_command::eCmdInquiry, "Inquiry" },
+			{ scsi_command::eCmdModeSelect6, "ModeSelect6" },
+			{ scsi_command::eCmdReserve6, "Reserve6" },
+			{ scsi_command::eCmdRelease6, "Release6" },
+			{ scsi_command::eCmdModeSense6, "ModeSense6" },
+			{ scsi_command::eCmdStartStop, "StartStop" },
+			{ scsi_command::eCmdStopPrint, "StopPrint" },
+			{ scsi_command::eCmdSendDiagnostic, "SendDiagnostic" },
+			{ scsi_command::eCmdPreventAllowMediumRemoval, "PreventAllowMediumRemoval" },
+			{ scsi_command::eCmdReadCapacity10, "ReadCapacity10" },
+			{ scsi_command::eCmdRead10, "Read10" },
+			{ scsi_command::eCmdWrite10, "Write10" },
+			{ scsi_command::eCmdSeek10, "Seek10" },
+			{ scsi_command::eCmdVerify10, "Verify10" },
+			{ scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10" },
+			{ scsi_command::eCmdReadDefectData10, "ReadDefectData10" },
+			{ scsi_command::eCmdReadLong10, "ReadLong10" },
+			{ scsi_command::eCmdWriteLong10, "WriteLong10" },
+			{ scsi_command::eCmdReadToc, "ReadToc" },
+			{ scsi_command::eCmdGetEventStatusNotification, "GetEventStatusNotification" },
+			{ scsi_command::eCmdModeSelect10, "ModeSelect10" },
+			{ scsi_command::eCmdModeSense10, "ModeSense10" },
+			{ scsi_command::eCmdRead16, "Read16" },
+			{ scsi_command::eCmdWrite16, "Write16" },
+			{ scsi_command::eCmdVerify16, "Verify16" },
+			{ scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16" },
+			{ scsi_command::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16" },
+			{ scsi_command::eCmdWriteLong16, "WriteLong16" },
+			{ scsi_command::eCmdReportLuns, "ReportLuns" }
 	};
 };

@@ -18,8 +18,8 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
-	auto bus_ptr = make_shared<MockBus>();
-	ControllerManager controller_manager(bus_ptr);
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	PbResult result;
@@ -30,29 +30,32 @@ TEST(RascsiResponseTest, Operation_Count)
 
 void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 {
-	auto bus_ptr = make_shared<MockBus>();
-	ControllerManager controller_manager(bus_ptr);
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 
 	auto d = device_factory.CreateDevice(controller_manager, type, 0, "");
+	const unordered_map<string, string> params;
+	d->Init(params);
 	EXPECT_TRUE(controller_manager.AttachToScsiController(0, d));
 
 	PbServerInfo info;
 	response.GetDevices(info, "image_folder");
 
 	EXPECT_EQ(1, info.devices_info().devices().size());
+
 	const auto& device = info.devices_info().devices()[0];
 	EXPECT_FALSE(device.properties().read_only());
 	EXPECT_FALSE(device.properties().protectable());
 	EXPECT_FALSE(device.properties().stoppable());
 	EXPECT_FALSE(device.properties().removable());
 	EXPECT_FALSE(device.properties().lockable());
-	EXPECT_EQ(0, device.params().size());
 	EXPECT_EQ(32, device.properties().luns());
 	EXPECT_EQ(0, device.block_size());
 	EXPECT_EQ(0, device.block_count());
 	EXPECT_EQ(default_param_count, device.properties().default_params().size());
+	EXPECT_EQ(default_param_count, device.params().size());
 	EXPECT_FALSE(device.properties().supports_file());
 	if (default_param_count) {
 		EXPECT_TRUE(device.properties().supports_params());
@@ -85,8 +88,8 @@ TEST(RascsiResponseTest, GetImageFile)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
-	auto bus_ptr = make_shared<MockBus>();
-	ControllerManager controller_manager(bus_ptr);
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager(bus);
 	DeviceFactory device_factory;
 	RascsiResponse response(device_factory, controller_manager, 32);
 	unordered_set<int> ids;

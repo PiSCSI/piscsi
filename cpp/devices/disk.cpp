@@ -14,44 +14,13 @@
 //
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "rascsi_exceptions.h"
-#include "dispatcher.h"
 #include "scsi_command_util.h"
 #include "disk.h"
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
-
-const unordered_map<uint32_t, uint32_t> Disk::shift_counts = { { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };
-
-Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
-{
-	// REZERO implementation is identical with Seek
-	dispatcher.Add(scsi_command::eCmdRezero, "Rezero", &Disk::Seek);
-	dispatcher.Add(scsi_command::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	// REASSIGN BLOCKS implementation is identical with Seek
-	dispatcher.Add(scsi_command::eCmdReassign, "ReassignBlocks", &Disk::Seek);
-	dispatcher.Add(scsi_command::eCmdRead6, "Read6", &Disk::Read6);
-	dispatcher.Add(scsi_command::eCmdWrite6, "Write6", &Disk::Write6);
-	dispatcher.Add(scsi_command::eCmdSeek6, "Seek6", &Disk::Seek6);
-	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	dispatcher.Add(scsi_command::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	dispatcher.Add(scsi_command::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	dispatcher.Add(scsi_command::eCmdRead10, "Read10", &Disk::Read10);
-	dispatcher.Add(scsi_command::eCmdWrite10, "Write10", &Disk::Write10);
-	dispatcher.Add(scsi_command::eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
-	dispatcher.Add(scsi_command::eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
-	dispatcher.Add(scsi_command::eCmdWriteLong16, "WriteLong16", &Disk::ReadWriteLong16);
-	dispatcher.Add(scsi_command::eCmdSeek10, "Seek10", &Disk::Seek10);
-	dispatcher.Add(scsi_command::eCmdVerify10, "Verify10", &Disk::Verify10);
-	dispatcher.Add(scsi_command::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache);
-	dispatcher.Add(scsi_command::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache);
-	dispatcher.Add(scsi_command::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	dispatcher.Add(scsi_command::eCmdRead16, "Read16", &Disk::Read16);
-	dispatcher.Add(scsi_command::eCmdWrite16, "Write16", &Disk::Write16);
-	dispatcher.Add(scsi_command::eCmdVerify16, "Verify16", &Disk::Verify16);
-	dispatcher.Add(scsi_command::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
-}
 
 Disk::~Disk()
 {
@@ -61,7 +30,40 @@ Disk::~Disk()
 	}
 }
 
-bool Disk::Dispatch(scsi_command cmd)
+bool Disk::Init(const unordered_map<string, string>& params)
+{
+	StorageDevice::Init(params);
+
+	// REZERO implementation is identical with Seek
+	AddCommand(scsi_command::eCmdRezero, [this] { Seek(); });
+	AddCommand(scsi_command::eCmdFormatUnit, [this] { FormatUnit(); });
+	// REASSIGN BLOCKS implementation is identical with Seek
+	AddCommand(scsi_command::eCmdReassignBlocks, [this] { Seek(); });
+	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
+	AddCommand(scsi_command::eCmdWrite6, [this] { Write6(); });
+	AddCommand(scsi_command::eCmdSeek6, [this] { Seek6(); });
+	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [this]{ PreventAllowMediumRemoval(); });
+	AddCommand(scsi_command::eCmdReadCapacity10, [this] { ReadCapacity10(); });
+	AddCommand(scsi_command::eCmdRead10, [this] { Read10(); });
+	AddCommand(scsi_command::eCmdWrite10, [this] { Write10(); });
+	AddCommand(scsi_command::eCmdReadLong10, [this] { ReadWriteLong10(); });
+	AddCommand(scsi_command::eCmdWriteLong10, [this] { ReadWriteLong10(); });
+	AddCommand(scsi_command::eCmdWriteLong16, [this] { ReadWriteLong16(); });
+	AddCommand(scsi_command::eCmdSeek10, [this] { Seek10(); });
+	AddCommand(scsi_command::eCmdVerify10, [this] { Verify10(); });
+	AddCommand(scsi_command::eCmdSynchronizeCache10, [this] { SynchronizeCache(); });
+	AddCommand(scsi_command::eCmdSynchronizeCache16, [this] { SynchronizeCache(); });
+	AddCommand(scsi_command::eCmdReadDefectData10, [this] { ReadDefectData10(); });
+	AddCommand(scsi_command::eCmdRead16,[this] { Read16(); });
+	AddCommand(scsi_command::eCmdWrite16, [this] { Write16(); });
+	AddCommand(scsi_command::eCmdVerify16, [this] { Verify16(); });
+	AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, [this] { ReadCapacity16_ReadLong16(); });
+
+	return true;
+}
+
+void Disk::Dispatch(scsi_command cmd)
 {
 	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
 	if (IsMediumChanged()) {
@@ -69,11 +71,11 @@ bool Disk::Dispatch(scsi_command cmd)
 
 		SetMediumChanged(false);
 
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		controller->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
-
-	// The superclass handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
+	else {
+		PrimaryDevice::Dispatch(cmd);
+	}
 }
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
@@ -109,11 +111,11 @@ void Disk::FormatUnit()
 
 void Disk::Read(access_mode mode)
 {
-	uint64_t start;
-	uint32_t blocks;
-	if (CheckAndGetStartAndCount(start, blocks, mode)) {
+	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+	if (valid) {
 		controller->SetBlocks(blocks);
 		controller->SetLength(Read(controller->GetCmd(), controller->GetBuffer(), start));
+
 		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
 
 		// Set next block
@@ -128,35 +130,38 @@ void Disk::Read(access_mode mode)
 
 void Disk::ReadWriteLong10()
 {
+	ValidateBlockAddress(RW10);
+
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (GetInt16(controller->GetCmd(), 7) != 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-
-	ValidateBlockAddress(RW10);
 
 	EnterStatusPhase();
 }
 
 void Disk::ReadWriteLong16()
 {
+	ValidateBlockAddress(RW16);
+
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (GetInt16(controller->GetCmd(), 12) != 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
-
-	ValidateBlockAddress(RW16);
 
 	EnterStatusPhase();
 }
 
 void Disk::Write(access_mode mode)
 {
-	uint64_t start;
-	uint32_t blocks;
-	if (CheckAndGetStartAndCount(start, blocks, mode)) {
+	if (IsProtected()) {
+		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
+	}
+
+	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+	if (valid) {
 		controller->SetBlocks(blocks);
-		controller->SetLength(WriteCheck(start));
+		controller->SetLength(GetSectorSizeInBytes());
 
 		// Set next block
 		controller->SetNext(start + 1);
@@ -170,9 +175,8 @@ void Disk::Write(access_mode mode)
 
 void Disk::Verify(access_mode mode)
 {
-	uint64_t start;
-	uint32_t blocks;
-	if (CheckAndGetStartAndCount(start, blocks, mode)) {
+	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
+	if (valid) {
 		// if BytChk=0
 		if ((controller->GetCmd(1) & 0x02) == 0) {
 			Seek();
@@ -261,7 +265,7 @@ void Disk::ReadDefectData10()
 
 bool Disk::Eject(bool force)
 {
-	const bool status = super::Eject(force);
+	const bool status = PrimaryDevice::Eject(force);
 	if (status) {
 		FlushCache();
 		cache.reset();
@@ -389,11 +393,8 @@ void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeab
 
 void Disk::AddErrorPage(map<int, vector<byte>>& pages, bool) const
 {
-	vector<byte> buf(12);
-
 	// Retry count is 0, limit time uses internal default value
-
-	pages[1] = buf;
+	pages[1] = vector<byte>(12);
 }
 
 void Disk::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
@@ -491,16 +492,10 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 
 int Disk::Read(const vector<int>&, vector<uint8_t>& buf, uint64_t block)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__)
+	assert(block < GetBlockCount());
 
 	CheckReady();
 
-	// Error if the total number of blocks is exceeded
-	if (block >= GetBlockCount()) {
-		 throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// leave it to the cache
 	if (!cache->ReadSector(buf, static_cast<uint32_t>(block))) {
 		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
@@ -508,40 +503,12 @@ int Disk::Read(const vector<int>&, vector<uint8_t>& buf, uint64_t block)
 	return GetSectorSizeInBytes();
 }
 
-int Disk::WriteCheck(uint64_t block)
-{
-	CheckReady();
-
-	// Error if the total number of blocks is exceeded
-	if (block >= GetBlockCount()) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-	}
-
-	// Error if write protected
-	if (IsProtected()) {
-		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
-	}
-
-	return GetSectorSizeInBytes();
-}
-
 void Disk::Write(const vector<int>&, const vector<uint8_t>& buf, uint64_t block)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__)
+	assert(block < GetBlockCount());
 
 	CheckReady();
 
-	// Error if the total number of blocks is exceeded
-	if (block >= GetBlockCount()) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
-	}
-
-	// Error if write protected
-	if (IsProtected()) {
-		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
-	}
-
-	// Leave it to the cache
 	if (!cache->WriteSector(buf, static_cast<uint32_t>(block))) {
 		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
 	}
@@ -556,8 +523,8 @@ void Disk::Seek()
 
 void Disk::Seek6()
 {
-	uint64_t start;
-	if (uint32_t blocks; CheckAndGetStartAndCount(start, blocks, SEEK6)) {
+	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(SEEK6);
+	if (valid) {
 		CheckReady();
 	}
 
@@ -566,8 +533,8 @@ void Disk::Seek6()
 
 void Disk::Seek10()
 {
-	uint64_t start;
-	if (uint32_t blocks; CheckAndGetStartAndCount(start, blocks, SEEK10)) {
+	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(SEEK10);
+	if (valid) {
 		CheckReady();
 	}
 
@@ -596,7 +563,6 @@ void Disk::ReadCapacity10()
 	// Create block length (1 << size)
 	SetInt32(buf, 4, 1 << size_shift_count);
 
-	// the size
 	controller->SetLength(8);
 
 	EnterDataInPhase();
@@ -623,7 +589,6 @@ void Disk::ReadCapacity16()
 	// Logical blocks per physical block: not reported (1 or more)
 	buf[13] = 0;
 
-	// the size
 	controller->SetLength(14);
 
 	EnterDataInPhase();
@@ -647,12 +612,6 @@ void Disk::ReadCapacity16_ReadLong16()
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Check/Get start sector and sector count for a READ/WRITE or READ/WRITE LONG operation
-//
-//---------------------------------------------------------------------------
-
 void Disk::ValidateBlockAddress(access_mode mode) const
 {
 	const uint64_t block = mode == RW16 ? GetInt64(controller->GetCmd(), 2) : GetInt32(controller->GetCmd(), 2);
@@ -664,8 +623,11 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	}
 }
 
-bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mode mode) const
+tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode) const
 {
+	uint64_t start;
+	uint32_t count;
+
 	if (mode == RW6 || mode == SEEK6) {
 		start = GetInt24(controller->GetCmd(), 1);
 
@@ -700,10 +662,10 @@ bool Disk::CheckAndGetStartAndCount(uint64_t& start, uint32_t& count, access_mod
 
 	// Do not process 0 blocks
 	if (!count && (mode != SEEK6 && mode != SEEK10)) {
-		return false;
+		return tuple(false, start, count);
 	}
 
-	return true;
+	return tuple(true, start, count);
 }
 
 uint32_t Disk::CalculateShiftCount(uint32_t size_in_bytes)

@@ -11,24 +11,34 @@
 
 #pragma once
 
+#include "scsi.h"
 #include "interfaces/scsi_primary_commands.h"
 #include "controllers/abstract_controller.h"
 #include "device.h"
-#include "dispatcher.h"
 #include <string>
+#include <unordered_map>
+#include <functional>
+
+using namespace std;
+using namespace scsi_defs;
 
 class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
+	using operation = function<void()>;
+
 public:
 
-	PrimaryDevice(PbDeviceType, int);
+	PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun) {}
 	~PrimaryDevice() override = default;
 
-	virtual bool Dispatch(scsi_command);
+	virtual bool Init(const unordered_map<string, string>&);
+
+	virtual void Dispatch(scsi_command);
 
 	int GetId() const override;
 
 	void SetController(AbstractController *);
+
 	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
 
 	int GetSendDelay() const { return send_delay; }
@@ -36,8 +46,6 @@ public:
 	bool CheckReservation(int, scsi_command, bool) const;
 	void DiscardReservation();
 
-	// Override for device specific initializations
-	virtual bool Init(const unordered_map<string, string>&) { return false; };
 	void Reset() override;
 
 	virtual void FlushCache() {
@@ -46,15 +54,17 @@ public:
 
 protected:
 
-	vector<byte> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
-	virtual vector<byte> InquiryInternal() const = 0;
+	void AddCommand(scsi_command, const operation&);
+
+	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
+	virtual vector<uint8_t> InquiryInternal() const = 0;
 	void CheckReady();
 
 	void SetSendDelay(int s) { send_delay = s; }
 
-	virtual void SendDiagnostic();
-	virtual void ReserveUnit();
-	virtual void ReleaseUnit();
+	void SendDiagnostic() override;
+	void ReserveUnit() override;
+	void ReleaseUnit() override;
 
 	void EnterStatusPhase() { controller->Status(); }
 	void EnterDataInPhase() { controller->DataIn(); }
@@ -74,7 +84,7 @@ private:
 
 	vector<byte> HandleRequestSense() const;
 
-	Dispatcher<PrimaryDevice> dispatcher;
+	unordered_map<scsi_command, operation> commands;
 
 	int send_delay = BUS::SEND_NO_DELAY;
 

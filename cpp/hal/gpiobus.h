@@ -342,8 +342,6 @@ class GPIOBUS : public BUS
     static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
     // Get the phase based on raw data
 
-    static int GetCommandByteCount(uint8_t opcode);
-
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
     bool PollSelectEvent();

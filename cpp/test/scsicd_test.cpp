@@ -32,11 +32,6 @@ TEST(ScsiCdTest, Inquiry)
 	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "RaSCSI  SCSI CD-ROM     ", 0x1f, true);
 }
 
-TEST(ScsiCdTest, Dispatch)
-{
-	TestDispatch(SCCD);
-}
-
 TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
@@ -120,6 +115,8 @@ TEST(ScsiCdTest, ReadToc)
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 	const unordered_set<uint32_t> sector_sizes;
 	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
+	const unordered_map<string, string> params;
+	cd->Init(params);
 
 	controller.AddDevice(cd);
 

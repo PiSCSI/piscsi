@@ -21,8 +21,9 @@ void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, con
 
 	// PF
 	if (!(cdb[1] & 0x10)) {
-		// Vendor-specific parameters (SCSI-1) are not supported
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+		// Vendor-specific parameters (SCSI-1) are not supported.
+		// Do not report an error in order to support Apple's HD SC Setup.
+		return;
 	}
 
 	// Skip block descriptors
@@ -62,7 +63,7 @@ void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, con
 		}
 
 		// Advance to the next page
-		int size = buf[offset + 1] + 2;
+		const int size = buf[offset + 1] + 2;
 
 		length -= size;
 		offset += size;
@@ -77,9 +78,7 @@ void scsi_command_util::EnrichFormatPage(map<int, vector<byte>>& pages, bool cha
 {
 	if (changeable) {
 		// The sector size is simulated to be changeable, see the MODE SELECT implementation for details
-		vector<byte>& format_page = pages[3];
-		format_page[12] = (byte)(sector_size >> 8);
-		format_page[13] = (byte)sector_size;
+		SetInt16(pages[3], 12, sector_size);
 	}
 }
 
@@ -88,15 +87,13 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 	// Page code 48 (30h) - Apple Vendor Mode Page
 	// Needed for SCCD for stock Apple driver support
 	// Needed for SCHD for stock Apple HD SC Setup
-	vector<byte> buf(30);
+	pages[48] = vector<byte>(30);
 
 	// No changeable area
 	if (!changeable) {
 		const char APPLE_DATA[] = "APPLE COMPUTER, INC   ";
-		memcpy(&buf.data()[2], APPLE_DATA, sizeof(APPLE_DATA));
+		memcpy(&pages[48].data()[2], APPLE_DATA, sizeof(APPLE_DATA));
 	}
-
-	pages[48] = buf;
 }
 
 int scsi_command_util::GetInt16(const vector<uint8_t>& buf, int offset)

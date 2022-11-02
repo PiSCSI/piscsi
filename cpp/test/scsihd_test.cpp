@@ -117,8 +117,3 @@ TEST(ScsiHdTest, ModeSelect)
 	buf[20] = 0x02;
 	EXPECT_NO_THROW(hd.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 255)) << "MODE SELECT(10) is supported";
 }
-
-TEST(ScsiHdTest, Dispatch)
-{
-	TestDispatch(SCHD);
-}

@@ -24,26 +24,22 @@
 #include "controllers/scsi_controller.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "host_services.h"
 #include <algorithm>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(int lun, const ControllerManager& manager)
-	: ModePageDevice(SCHS, lun), controller_manager(manager)
+bool HostServices::Init(const unordered_map<string, string>& params)
 {
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	ModePageDevice::Init(params);
+
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
 
 	SetReady(true);
-}
 
-bool HostServices::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
+	return true;
 }
 
 void HostServices::TestUnitReady()
@@ -52,7 +48,7 @@ void HostServices::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<byte> HostServices::InquiryInternal() const
+vector<uint8_t> HostServices::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }

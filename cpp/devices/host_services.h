@@ -22,12 +22,12 @@ class HostServices: public ModePageDevice
 
 public:
 
-	HostServices(int, const ControllerManager&);
+	HostServices(int lun, const ControllerManager& manager) : ModePageDevice(SCHS, lun), controller_manager(manager) {}
 	~HostServices() override = default;
 
-	bool Dispatch(scsi_command) override;
+	bool Init(const unordered_map<string, string>&) override;
 
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;
 
 protected:
@@ -48,10 +48,6 @@ private:
 	    uint8_t minute; // 0-59
 	    uint8_t second; // 0-59
 	};
-
-	using super = ModePageDevice;
-
-	Dispatcher<HostServices> dispatcher;
 
 	const ControllerManager& controller_manager;
 

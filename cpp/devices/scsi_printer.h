@@ -18,7 +18,7 @@
 
 using namespace std;
 
-class SCSIPrinter : public PrimaryDevice, ScsiPrinterCommands //NOSONAR Custom destructor cannot be removed
+class SCSIPrinter : public PrimaryDevice, private ScsiPrinterCommands
 {
 	static const int NOT_RESERVED = -2;
 
@@ -26,15 +26,17 @@ class SCSIPrinter : public PrimaryDevice, ScsiPrinterCommands //NOSONAR Custom d
 
 public:
 
-	explicit SCSIPrinter(int);
-	~SCSIPrinter() override;
-
-	bool Dispatch(scsi_command) override;
+	explicit SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun) {}
+	~SCSIPrinter() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
-	void Cleanup();
 
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
+
+	bool WriteByteSequence(vector<uint8_t>&, uint32_t) override;
+
+private:
+
 	void TestUnitReady() override;
 	void ReserveUnit() override { PrimaryDevice::ReserveUnit(); }
 	void ReleaseUnit() override { PrimaryDevice::ReleaseUnit(); }
@@ -42,13 +44,7 @@ public:
 	void Print() override;
 	void SynchronizeBuffer();
 
-	bool WriteByteSequence(vector<uint8_t>&, uint32_t) override;
-
-private:
-
-	using super = PrimaryDevice;
-
-	Dispatcher<SCSIPrinter> dispatcher;
+	void Cleanup();
 
 	string file_template;
 

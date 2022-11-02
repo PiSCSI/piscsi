@@ -29,11 +29,11 @@
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 
-#include <sys/stat.h>
+#include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "scsi_printer.h"
+#include <sys/stat.h>
 #include <filesystem>
 
 using namespace std;
@@ -41,18 +41,25 @@ using namespace filesystem;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
+bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 {
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdPrint, "Print", &SCSIPrinter::Print);
-	dispatcher.Add(scsi_command::eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	PrimaryDevice::Init(params);
+
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdPrint, [this] { Print(); });
+	AddCommand(scsi_command::eCmdSynchronizeBuffer, [this] { SynchronizeBuffer(); });
 	// STOP PRINT is identical with TEST UNIT READY, it just returns the status
-	dispatcher.Add(scsi_command::eCmdStopPrint, "StopPrint", &SCSIPrinter::TestUnitReady);
+	AddCommand(scsi_command::eCmdStopPrint, [this] { TestUnitReady(); });
 
 	// Required also in this class in order to fulfill the ScsiPrinterCommands interface contract
-	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
-	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
-	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
+	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
+	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
+
+	if (GetParam("cmd").find("%f") == string::npos) {
+		LOGERROR("Missing filename specifier %%f")
+		return false;
+	}
 
 	error_code error;
 	file_template = temp_directory_path(error); //NOSONAR Publicly writable directory is fine here
@@ -60,29 +67,8 @@ SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 
 	SupportsParams(true);
 	SetReady(true);
-}
-
-SCSIPrinter::~SCSIPrinter()
-{
-	Cleanup();
-}
-
-bool SCSIPrinter::Init(const unordered_map<string, string>& params)
-{
-	SetParams(params);
-
-	if (GetParam("cmd").find("%f") == string::npos) {
-		LOGERROR("Missing filename specifier %s", "%f")
-		return false;
-	}
 
 	return true;
-}
-
-bool SCSIPrinter::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
 void SCSIPrinter::TestUnitReady()
@@ -91,7 +77,7 @@ void SCSIPrinter::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<byte> SCSIPrinter::InquiryInternal() const
+vector<uint8_t> SCSIPrinter::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }

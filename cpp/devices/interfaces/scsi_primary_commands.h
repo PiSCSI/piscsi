@@ -24,6 +24,9 @@ public:
 	virtual void Inquiry() = 0;
 	virtual void ReportLuns() = 0;
 
-	// Implemented for all RaSCSI device types
+	// Optional commands implemented by all RaSCSI device types
 	virtual void RequestSense() = 0;
+	virtual void ReleaseUnit() = 0;
+	virtual void ReserveUnit() = 0;
+	virtual void SendDiagnostic() = 0;
 };

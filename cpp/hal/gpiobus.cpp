@@ -505,7 +505,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         }
     }
 
-    int command_byte_count = GetCommandByteCount(*buf);
+    const int command_byte_count = GetCommandByteCount(*buf);
 
     // Increment buffer pointer
     buf++;
@@ -965,24 +965,4 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
     mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
     mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
     return GetPhase(mci);
-}
-
-//---------------------------------------------------------------------------
-//
-// Get the number of bytes for a command
-//
-//---------------------------------------------------------------------------
-int GPIOBUS::GetCommandByteCount(uint8_t opcode)
-{
-    GPIO_FUNCTION_TRACE
-
-    if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E || opcode == 0x9F) {
-        return 16;
-    } else if (opcode == 0xA0) {
-        return 12;
-    } else if (opcode >= 0x20 && opcode <= 0x7D) {
-        return 10;
-    } else {
-        return 6;
-    }
 }

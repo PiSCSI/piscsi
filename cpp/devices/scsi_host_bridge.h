@@ -32,14 +32,13 @@ class SCSIBR : public PrimaryDevice, public ByteWriter
 
 public:
 
-	explicit SCSIBR(int);
+	explicit SCSIBR(int lun) : PrimaryDevice(SCBR, lun) {}
 	~SCSIBR() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
-	bool Dispatch(scsi_command) override;
 
 	// Commands
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	int GetMessage10(const vector<int>&, vector<uint8_t>&);
 	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
 	void TestUnitReady() override;
@@ -47,10 +46,6 @@ public:
 	void SendMessage10();
 
 private:
-
-	using super = PrimaryDevice;
-
-	Dispatcher<SCSIBR> dispatcher;
 
 	int GetMacAddr(vector<uint8_t>&) const;		// Get MAC address
 	void SetMacAddr(const vector<uint8_t>&);		// Set MAC address
