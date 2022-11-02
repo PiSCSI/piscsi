@@ -55,9 +55,6 @@ using namespace protobuf_util;
 static volatile bool active;		// Processing flag
 RascsiService service;
 shared_ptr<GPIOBUS> bus;
-// Some versions of spdlog do not support get_log_level(), so we have to remember the level
-string current_log_level = "info";
-string access_token;
 DeviceFactory device_factory;
 shared_ptr<ControllerManager> controller_manager;
 RascsiImage rascsi_image;

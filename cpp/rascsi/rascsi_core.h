@@ -44,4 +44,11 @@ private:
 	bool CreateInitialDevices(const optarg_queue_type&) const;
 
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
+
+	// TODO Get rid of static fields
+
+	// Some versions of spdlog do not support get_log_level(), so we have to remember the level
+	static inline string current_log_level = "info";
+
+	static inline string access_token;
 };
