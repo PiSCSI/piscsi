@@ -96,19 +96,19 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
-            {% if device.params %}
-            {% for key in device.params %}
-            {% if key == "interface" %}
-            ({{device.params[key]}})
-            {% elif key == "timeout" %}
-            ({{key}}:{{device.params[key]}})
-            {% else %}
-            {{device.params[key]}}
-            {% endif %}
-            {% endfor %}
-            {% elif device.file %}
-            {{ device.file }}
-            {% endif %}
+                {% if device.params %}
+                    {% for key in device.params %}
+                        {% if key == "interface" %}
+                            ({{device.params[key]}})
+                        {% elif key == "timeout" %}
+                            ({{key}}:{{device.params[key]}})
+                        {% else %}
+                            {{device.params[key]}}
+                        {% endif %}
+                    {% endfor %}
+                {% elif device.file %}
+                    <span class="filename">{{ device.file }}</span>
+                {% endif %}
             {% endif %}
             </td>
             <td align="center">

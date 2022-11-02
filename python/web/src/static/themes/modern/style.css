@@ -459,7 +459,7 @@ table#bus td:first-child {
   text-align: center;
 }
 
-table#bus td:nth-child(3) {
+table#bus span.filename {
   word-break: break-all;
 }
 
