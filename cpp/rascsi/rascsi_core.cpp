@@ -63,7 +63,6 @@ shared_ptr<ControllerManager> controller_manager;
 RascsiImage rascsi_image;
 shared_ptr<RascsiResponse> rascsi_response;
 shared_ptr<RascsiExecutor> executor;
-const ProtobufSerializer serializer;
 
 void Rascsi::Banner(const vector<char *>& args) const
 {
@@ -420,6 +419,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
 
 	PbResult result;
+	ProtobufSerializer serializer;
 
 	switch(command.operation()) {
 		case LOG_LEVEL: {
