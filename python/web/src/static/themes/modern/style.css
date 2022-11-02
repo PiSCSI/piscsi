@@ -466,6 +466,11 @@ table#bus td:first-child {
   text-align: center;
 }
 
+table#bus th:last-child,
+table#bus td:last-child {
+  text-align: right;
+}
+
 table#bus span.filename {
   word-break: break-all;
 }
@@ -559,6 +564,11 @@ section#images table td:first-child {
   width: 25%;
 }
 
+section#images table th:last-child,
+section#images table td:last-child {
+  text-align: right;
+}
+
 section#images p {
   margin-top: 1rem;
 }
@@ -624,6 +634,15 @@ section#images p {
  Index > Section: Attach peripheral devices
  ------------------------------------------------------------------------------
  */
+section#attach-devices table th:last-child,
+section#attach-devices table td:last-child {
+  text-align: right
+}
+
+section#attach-devices form {
+  display: block;
+}
+
 @media (max-width: 820px) {
   section#attach-devices table tr th:nth-child(2),
   section#attach-devices table tr td:nth-child(2) {
