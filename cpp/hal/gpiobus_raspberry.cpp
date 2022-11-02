@@ -16,7 +16,6 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "log.h"
-#include "os.h"
 #include <map>
 #include <string.h>
 #include <sys/epoll.h>
@@ -53,7 +52,7 @@ static uint32_t get_dt_ranges(const char *filename, uint32_t offset)
     uint32_t address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
-        if (array<BYTE, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
+        if (array<uint8_t, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
             address = (int)buf[0] << 24 | (int)buf[1] << 16 | (int)buf[2] << 8 | (int)buf[3] << 0;
         }
         fclose(fp);
@@ -395,7 +394,7 @@ void GPIOBUS_Raspberry::Cleanup()
 // Get data signals
 //
 //---------------------------------------------------------------------------
-BYTE GPIOBUS_Raspberry::GetDAT()
+uint8_t GPIOBUS_Raspberry::GetDAT()
 {
     GPIO_FUNCTION_TRACE
     uint32_t data = Acquire();
@@ -407,7 +406,7 @@ BYTE GPIOBUS_Raspberry::GetDAT()
            ((data >> (phys_to_gpio_map.at(board->pin_dt5) - 5)) & (1 << 5)) |
            ((data >> (phys_to_gpio_map.at(board->pin_dt6) - 6)) & (1 << 6)) |
            ((data >> (phys_to_gpio_map.at(board->pin_dt7) - 7)) & (1 << 7));
-    return (BYTE)data;
+    return (uint8_t)data;
 }
 
 //---------------------------------------------------------------------------
@@ -415,7 +414,7 @@ BYTE GPIOBUS_Raspberry::GetDAT()
 //	Set data signals
 //
 //---------------------------------------------------------------------------
-void GPIOBUS_Raspberry::SetDAT(BYTE dat)
+void GPIOBUS_Raspberry::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
     // Write to port

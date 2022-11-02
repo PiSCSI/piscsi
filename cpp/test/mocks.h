@@ -60,8 +60,39 @@ class MockBus : public BUS // NOSONAR Having many fields/methods cannot be avoid
     MOCK_METHOD(bool, GetSignal, (int), (const override));
     MOCK_METHOD(void, SetSignal, (int, bool), (override));
 
-    MockBus()           = default;
-    ~MockBus() override = default;
+	MOCK_METHOD(bool, Init, (mode_e), (override));
+	MOCK_METHOD(void, Reset, (), (override));
+	MOCK_METHOD(void, Cleanup, (), (override));
+	MOCK_METHOD(bool, GetBSY, (), (const override));
+	MOCK_METHOD(void, SetBSY, (bool), (override));
+	MOCK_METHOD(bool, GetSEL, (), (const override));
+	MOCK_METHOD(void, SetSEL, (bool), (override));
+	MOCK_METHOD(bool, GetATN, (), (const override));
+	MOCK_METHOD(void, SetATN, (bool), (override));
+	MOCK_METHOD(bool, GetACK, (), (const override));
+	MOCK_METHOD(void, SetACK, (bool), (override));
+	MOCK_METHOD(bool, GetRST, (), (const override));
+	MOCK_METHOD(void, SetRST, (bool), (override));
+	MOCK_METHOD(bool, GetMSG, (), (const override));
+	MOCK_METHOD(void, SetMSG, (bool), (override));
+	MOCK_METHOD(bool, GetCD, (), (const override));
+	MOCK_METHOD(void, SetCD, (bool), (override));
+	MOCK_METHOD(bool, GetIO, (), (override));
+	MOCK_METHOD(void, SetIO, (bool), (override));
+	MOCK_METHOD(bool, GetREQ, (), (const override));
+	MOCK_METHOD(void, SetREQ, (bool), (override));
+	MOCK_METHOD(uint8_t, GetDAT, (), (override));
+	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
+	MOCK_METHOD(bool, GetDP, (), (const override));
+	MOCK_METHOD(uint32_t, Acquire, (), (override));
+	MOCK_METHOD(int, CommandHandShake, (uint8_t *), (override));
+	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
+	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
+	MOCK_METHOD(bool, GetSignal, (int), (const override));
+	MOCK_METHOD(void, SetSignal, (int, bool), (override));
+
+	MockBus() = default;
+	~MockBus() override = default;
 };
 
 class MockPhaseHandler : public PhaseHandler
@@ -95,7 +126,8 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
 	FRIEND_TEST(AbstractControllerTest, GetLun);
-	FRIEND_TEST(AbstractControllerTest, SetLength);
+	FRIEND_TEST(AbstractControllerTest, Blocks);
+	FRIEND_TEST(AbstractControllerTest, Length);
 	FRIEND_TEST(AbstractControllerTest, UpdateOffsetAndLength);
 	FRIEND_TEST(AbstractControllerTest, Offset);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
@@ -122,7 +154,8 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
 	FRIEND_TEST(DiskTest, Write16);
 	FRIEND_TEST(DiskTest, Verify10);
 	FRIEND_TEST(DiskTest, Verify16);
-	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadCapacity10);
+	FRIEND_TEST(DiskTest, ReadCapacity16);
 	FRIEND_TEST(DiskTest, ReadLong10);
 	FRIEND_TEST(DiskTest, ReadLong16);
 	FRIEND_TEST(DiskTest, WriteLong10);
@@ -168,6 +201,7 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
 
 	// Permit access to all tests without the need for numerous FRIEND_TEST
 	vector<int>& GetCmd() { return AbstractController::GetCmd(); } //NOSONAR Hides function on purpose
+	shared_ptr<BUS> GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
 };
 
 class MockScsiController : public ScsiController
@@ -196,8 +230,9 @@ class MockScsiController : public ScsiController
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
+	explicit MockScsiController(shared_ptr<NiceMock<MockBus>> bus, int target_id) : ScsiController(bus, target_id) {}
 	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
-	MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
+	explicit MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
 	~MockScsiController() override = default;
 
 };
@@ -253,8 +288,9 @@ class MockModePageDevice : public ModePageDevice
     MOCK_METHOD(int, ModeSense6, (const vector<int> &, vector<BYTE> &), (const override));
     MOCK_METHOD(int, ModeSense10, (const vector<int> &, vector<BYTE> &), (const override));
 
-    explicit MockModePageDevice() : ModePageDevice("test", 0) {}
-    ~MockModePageDevice() override = default;
+	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 
 	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
@@ -296,8 +332,8 @@ public:
 
 	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<BYTE>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<BYTE>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
 	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}
@@ -320,7 +356,8 @@ class MockDisk : public Disk
 	FRIEND_TEST(DiskTest, Write16);
 	FRIEND_TEST(DiskTest, Verify10);
 	FRIEND_TEST(DiskTest, Verify16);
-	FRIEND_TEST(DiskTest, ReadCapacity);
+	FRIEND_TEST(DiskTest, ReadCapacity10);
+	FRIEND_TEST(DiskTest, ReadCapacity16);
 	FRIEND_TEST(DiskTest, ReadLong10);
 	FRIEND_TEST(DiskTest, ReadLong16);
 	FRIEND_TEST(DiskTest, WriteLong10);

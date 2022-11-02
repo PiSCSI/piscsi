@@ -14,6 +14,7 @@
 #include "config.h"
 #include "hal/board_type.h"
 #include "scsi.h"
+#include "bus.h"
 #include <array>
 #include <memory>
 #include <vector>
@@ -50,7 +51,7 @@
 #define GPIO_FUNCTION_TRACE
 #endif
 
-using namespace std; // NOSONAR Not relevant for rascsi
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -340,17 +341,17 @@ class GPIOBUS : public BUS
         return board;
     }
 
-    int CommandHandShake(BYTE *buf) override;
+    int CommandHandShake(uint8_t *buf) override;
     // Command receive handshake
-    int ReceiveHandShake(BYTE *buf, int count) override;
+    int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake
-    int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
+    int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake
 
     // Get the phase based on raw data
     static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
 
-    static int GetCommandByteCount(BYTE opcode);
+    static int GetCommandByteCount(uint8_t opcode);
 
     const string GetConnectDesc();
 

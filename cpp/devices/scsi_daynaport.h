@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "os.h"
-#include "disk.h"
+#include "interfaces/byte_writer.h"
+#include "primary_device.h"
 #include "ctapdriver.h"
 #include <string>
 #include <unordered_map>
@@ -41,7 +41,7 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort : public Disk
+class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
 {
 public:
 
@@ -49,19 +49,17 @@ public:
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
-	void Open() override;
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<BYTE>&, uint64_t) override;
-	bool WriteBytes(const vector<int>&, const vector<BYTE>&, uint64_t);
-	int WriteCheck(uint64_t block) override;
+	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
+	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
 
-	int RetrieveStats(const vector<int>&, vector<BYTE>&) const;
+	int RetrieveStats(const vector<int>&, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
-	void Read6() override;
-	void Write6() override;
+	void Read6();
+	void Write6();
 	void RetrieveStatistics();
 	void SetInterfaceMode();
 	void SetMcastAddr();
@@ -90,7 +88,7 @@ public:
 
 private:
 
-	using super = Disk;
+	using super = PrimaryDevice;
 
 	Dispatcher<SCSIDaynaPort> dispatcher;
 

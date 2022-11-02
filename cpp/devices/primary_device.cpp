@@ -55,7 +55,6 @@ int PrimaryDevice::GetId() const
 void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
-	ctrl = controller->GetCtrl();
 }
 
 void PrimaryDevice::TestUnitReady()
@@ -68,16 +67,16 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
+	if ((controller->GetCmd(1) & 0x01) || controller->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<byte> buf = InquiryInternal();
 
-	const size_t allocation_length = min(buf.size(), (size_t)GetInt16(ctrl->cmd, 3));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 3)));
 
 	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-	ctrl->length = (uint32_t)allocation_length;
+	controller->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
 	if (int lun = controller->GetEffectiveLun(); !controller->HasDeviceForLun(lun)) {
@@ -93,20 +92,20 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (ctrl->cmd[2]) {
+	if (controller->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const uint32_t allocation_length = GetInt32(ctrl->cmd, 6);
+	const uint32_t allocation_length = GetInt32(controller->GetCmd(), 6);
 
-	vector<BYTE>& buf = controller->GetBuffer();
-	fill_n(buf.begin(), min(buf.size(), (size_t)allocation_length), 0);
+	vector<uint8_t>& buf = controller->GetBuffer();
+	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
 	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
 		if (controller->HasDeviceForLun(lun)) {
 			size += 8;
-			buf[size + 7] = (BYTE)lun;
+			buf[size + 7] = (uint8_t)lun;
 		}
 	}
 
@@ -114,7 +113,7 @@ void PrimaryDevice::ReportLuns()
 
 	size += 8;
 
-	ctrl->length = min(allocation_length, size);
+	controller->SetLength(min(allocation_length, size));
 
 	EnterDataInPhase();
 }
@@ -139,10 +138,10 @@ void PrimaryDevice::RequestSense()
 
     vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), (size_t)ctrl->cmd[4]);
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(controller->GetCmd(4)));
 
     memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-    ctrl->length = (uint32_t)allocation_length;
+    controller->SetLength(static_cast<uint32_t>(allocation_length));
 
     EnterDataInPhase();
 }
@@ -150,12 +149,12 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (ctrl->cmd[1] & 0x10) {
+	if (controller->GetCmd(1) & 0x10) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not support parameter list
-	if ((ctrl->cmd[3] != 0) || (ctrl->cmd[4] != 0)) {
+	if ((controller->GetCmd(3) != 0) || (controller->GetCmd(4) != 0)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -229,13 +228,13 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (int)controller->GetStatus(),
-			(int)buf[2], (int)buf[12])
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(controller->GetStatus()),
+			static_cast<int>(buf[2]), static_cast<int>(buf[12]))
 
 	return buf;
 }
 
-bool PrimaryDevice::WriteByteSequence(vector<BYTE>&, uint32_t)
+bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
 {
 	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__)
 

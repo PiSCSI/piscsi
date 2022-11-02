@@ -23,8 +23,6 @@
 using namespace ras_util;
 using namespace scsi_command_util;
 
-const unordered_set<uint32_t> SCSIHD_NEC::sector_sizes = { 512 };
-
 void SCSIHD_NEC::Open()
 {
 	assert(!IsReady());
@@ -34,7 +32,7 @@ void SCSIHD_NEC::Open()
 	array<char, 512> root_sector;
 	ifstream in(GetFilename(), ios::binary);
 	in.read(root_sector.data(), root_sector.size());
-	if (!in.good() || size < (off_t)root_sector.size()) {
+	if (!in.good() || size < static_cast<off_t>(root_sector.size())) {
 		throw io_exception("Can't read NEC hard disk file root sector");
 	}
 
@@ -42,9 +40,9 @@ void SCSIHD_NEC::Open()
 	size = (size / 512) * 512;
 
 	// Determine parameters by extension
-	const auto [image_size, sector_size] = SetParameters(root_sector, (int)size);
+	const auto [image_size, sector_size] = SetParameters(root_sector, static_cast<int>(size));
 
-	SetSectorSizeShiftCount((uint32_t)size);
+	SetSectorSizeShiftCount(static_cast<uint32_t>(size));
 
 	SetBlockCount(image_size >> GetSectorSizeShiftCount());
 
@@ -53,7 +51,7 @@ void SCSIHD_NEC::Open()
 
 pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 {
-	array<BYTE, 512> root_sector = {};
+	array<uint8_t, 512> root_sector = {};
 	memcpy(root_sector.data(), data.data(), root_sector.size());
 
 	int image_size;
@@ -88,7 +86,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 			heads = GetInt16LittleEndian(&root_sector[0x118]);
 			sectors = GetInt16LittleEndian(&root_sector[0x11a]);
 			sector_size = GetInt16LittleEndian(&root_sector[0x11c]);
-			image_size = (int)((off_t)cylinders * heads * sectors * sector_size);
+			image_size = static_cast<int>(static_cast<off_t>(cylinders * heads * sectors * sector_size));
 		}
 		else {
 			throw io_exception("Invalid NEC image file format");
@@ -170,12 +168,12 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<byte>>& pages, bool changeable) co
 	pages[4] = buf;
 }
 
-int SCSIHD_NEC::GetInt16LittleEndian(const BYTE *buf)
+int SCSIHD_NEC::GetInt16LittleEndian(const uint8_t *buf)
 {
-	return ((int)buf[1] << 8) | buf[0];
+	return (static_cast<int>(buf[1]) << 8) | buf[0];
 }
 
-int SCSIHD_NEC::GetInt32LittleEndian(const BYTE *buf)
+int SCSIHD_NEC::GetInt32LittleEndian(const uint8_t *buf)
 {
-	return ((int)buf[3] << 24) | ((int)buf[2] << 16) | ((int)buf[1] << 8) | buf[0];
+	return (static_cast<int>(buf[3]) << 24) | (static_cast<int>(buf[2]) << 16) | (static_cast<int>(buf[1]) << 8) | buf[0];
 }

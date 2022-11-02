@@ -31,7 +31,7 @@ public:
 
 	// Commands
 	vector<byte> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<BYTE>&, uint64_t) override;
+	int Read(const vector<int>&, vector<uint8_t>&, uint64_t) override;
 
 protected:
 
@@ -44,7 +44,7 @@ private:
 
 	Dispatcher<SCSICD> dispatcher;
 
-	int ReadTocInternal(const vector<int>&, vector<BYTE>&);
+	int ReadTocInternal(const vector<int>&, vector<uint8_t>&);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
@@ -56,7 +56,7 @@ private:
 
 	void ReadToc() override;
 
-	void LBAtoMSF(uint32_t, BYTE *) const;			// LBA→MSF conversion
+	void LBAtoMSF(uint32_t, uint8_t *) const;			// LBA→MSF conversion
 
 	bool rawfile = false;					// RAW flag
 

@@ -43,9 +43,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    BYTE GetDAT() override;
+    uint8_t GetDAT() override;
     // Get DAT signal
-    void SetDAT(BYTE dat) override;
+    void SetDAT(uint8_t dat) override;
     // Set DAT signal
     // TODO: Restore these back to protected
 //   protected:
@@ -76,7 +76,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set GPIO output signal
-    void DrvConfig(DWORD drive) override;
+    void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
     // Map the physical pin number to the logical GPIO number

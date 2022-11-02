@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "os.h"
 #include "scsi.h"
+#include <cstdint>
 #include <array>
 #include <unordered_map>
 #include "hal/board_type.h"
@@ -87,14 +87,14 @@ public:
 	virtual bool GetREQ() const = 0;
 	virtual void SetREQ(bool ast) = 0;
 
-	virtual BYTE GetDAT() = 0;
-	virtual void SetDAT(BYTE dat) = 0;
+	virtual uint8_t GetDAT() = 0;
+	virtual void SetDAT(uint8_t dat) = 0;
 	virtual bool GetDP() const = 0;			// Get parity signal
 
 	virtual uint32_t Acquire() = 0;
-	virtual int CommandHandShake(BYTE *buf) = 0;
-	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
-	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
+	virtual int CommandHandShake(uint8_t *buf) = 0;
+	virtual int ReceiveHandShake(uint8_t *buf, int count) = 0;
+	virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
 
 	virtual bool GetSignal(board_type::pi_physical_pin_e pin) const = 0;
 										// Get SCSI input signal value

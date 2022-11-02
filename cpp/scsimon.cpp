@@ -8,7 +8,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "log.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"

@@ -39,10 +39,10 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 	const int ID = 3;
 	const int LUN = 0;
 
-	shared_ptr<MockBus> bus_ptr = make_shared<MockBus>();
+	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	MockAbstractController controller(bus_ptr, ID);
-	ControllerManager controller_manager(bus_ptr);
+	MockAbstractController controller(bus, ID);
+	ControllerManager controller_manager(bus);
 	RascsiImage rascsi_image;
 	RascsiResponse rascsi_response(device_factory, controller_manager, 32);
 	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, device_factory, controller_manager);
@@ -489,10 +489,10 @@ TEST_F(RascsiExecutorTest, ValidateImageFile)
 
 	string full_path;
 	auto device = dynamic_pointer_cast<StorageDevice>(device_factory.CreateDevice(controller_manager, SCHD, 0, "test"));
-	EXPECT_TRUE(executor.ValidateImageFile(context, device, "", full_path));
+	EXPECT_TRUE(executor.ValidateImageFile(context, *device, "", full_path));
 	EXPECT_TRUE(full_path.empty());
 
-	EXPECT_FALSE(executor.ValidateImageFile(context, device, "/non_existing_file", full_path));
+	EXPECT_FALSE(executor.ValidateImageFile(context, *device, "/non_existing_file", full_path));
 	EXPECT_TRUE(full_path.empty());
 }
 
@@ -589,47 +589,47 @@ TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 
 	auto device = make_shared<MockPrimaryDevice>(0);
 
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, ATTACH));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, DETACH));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, ATTACH));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, DETACH));
 
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, START));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, STOP));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, START));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, STOP));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, INSERT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 
 	device->SetStoppable(true);
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, STOP));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, INSERT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 
 	device->SetRemovable(true);
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 
 	device->SetProtectable(true);
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, EJECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, PROTECT));
+	EXPECT_FALSE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 
 	device->SetReady(true);
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, START));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, STOP));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, INSERT));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, EJECT));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, PROTECT));
-	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, device, UNPROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, START));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, STOP));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, INSERT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, EJECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, PROTECT));
+	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 }
 
 TEST_F(RascsiExecutorTest, ValidateIdAndLun)
@@ -661,26 +661,26 @@ TEST_F(RascsiExecutorTest, SetProductData)
 
 	auto device = make_shared<MockPrimaryDevice>(0);
 
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 
 	definition.set_vendor("123456789");
-	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	EXPECT_FALSE(executor.SetProductData(context, definition, *device));
 	definition.set_vendor("1");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 	definition.set_vendor("12345678");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 
 	definition.set_product("12345678901234567");
-	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	EXPECT_FALSE(executor.SetProductData(context, definition, *device));
 	definition.set_product("1");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 	definition.set_product("1234567890123456");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 
 	definition.set_revision("12345");
-	EXPECT_FALSE(executor.SetProductData(context, definition, device));
+	EXPECT_FALSE(executor.SetProductData(context, definition, *device));
 	definition.set_revision("1");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 	definition.set_revision("1234");
-	EXPECT_TRUE(executor.SetProductData(context, definition, device));
+	EXPECT_TRUE(executor.SetProductData(context, definition, *device));
 }

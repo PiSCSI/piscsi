@@ -31,10 +31,6 @@ TEST(GpioBusTest, GetCommandByteCount)
 	EXPECT_EQ(12, GPIOBUS::GetCommandByteCount(0xa0));
 	opcodes.insert(0xa0);
 
-	// TODO Opcode 0x05 must be removed from gpiobus.cpp
-	EXPECT_EQ(10, GPIOBUS::GetCommandByteCount(0x05));
-	opcodes.insert(0x05);
-
 	for (int i = 0x20; i <= 0x7d; i++) {
 		EXPECT_EQ(10, GPIOBUS::GetCommandByteCount(i));
 		opcodes.insert(i);

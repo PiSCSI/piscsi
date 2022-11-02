@@ -321,22 +321,23 @@ void GPIOBUS_Allwinner::Cleanup()
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-BYTE GPIOBUS_Allwinner::GetDAT()
+
+uint8_t GPIOBUS_Allwinner::GetDAT()
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0),
     // GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
     // TODO: This is crazy inefficient...
-    DWORD data = ((GetSignal(board->pin_dt0) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt1) ? 0x01 : 0x00) << 1) |
+    uint8_t data = ((GetSignal(board->pin_dt0) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt1) ? 0x01 : 0x00) << 1) |
                  ((GetSignal(board->pin_dt2) ? 0x01 : 0x00) << 2) | ((GetSignal(board->pin_dt3) ? 0x01 : 0x00) << 3) |
                  ((GetSignal(board->pin_dt4) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt5) ? 0x01 : 0x00) << 5) |
                  ((GetSignal(board->pin_dt6) ? 0x01 : 0x00) << 6) | ((GetSignal(board->pin_dt7) ? 0x01 : 0x00) << 7);
 
-    return (BYTE)data;
+    return (uint8_t)data;
     // return 0;
 }
 
-void GPIOBUS_Allwinner::SetDAT(BYTE dat)
+void GPIOBUS_Allwinner::SetDAT(uint8_t dat)
 {
     // TODO: This is crazy inefficient...
     PinSetSignal(board->pin_dt0, (dat & (1 << 0)) != 0 ? board_type::gpio_high_low_e::GPIO_STATE_HIGH
@@ -522,7 +523,7 @@ void GPIOBUS_Allwinner::PinSetSignal(board_type::pi_physical_pin_e pin, board_ty
     // LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
-void GPIOBUS_Allwinner::DrvConfig(DWORD drive)
+void GPIOBUS_Allwinner::DrvConfig(uint32_t drive)
 {
     (void)drive;
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)

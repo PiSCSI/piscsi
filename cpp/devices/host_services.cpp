@@ -59,8 +59,8 @@ vector<byte> HostServices::InquiryInternal() const
 
 void HostServices::StartStopUnit()
 {
-	const bool start = ctrl->cmd[4] & 0x01;
-	const bool load = ctrl->cmd[4] & 0x02;
+	const bool start = controller->GetCmd(4) & 0x01;
+	const bool load = controller->GetCmd(4) & 0x02;
 
 	if (!start) {
 		// Flush any caches
@@ -85,32 +85,32 @@ void HostServices::StartStopUnit()
 	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(const vector<int>& cdb, vector<BYTE>& buf) const
+int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const auto length = (int)min(buf.size(), (size_t)cdb[4]);
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
 	fill_n(buf.begin(), length, 0);
 
 	// 4 bytes basic information
 	int size = AddModePages(cdb, buf, 4, length, 255);
 
-	buf[0] = (BYTE)size;
+	buf[0] = (uint8_t)size;
 
 	return size;
 }
 
-int HostServices::ModeSense10(const vector<int>& cdb, vector<BYTE>& buf) const
+int HostServices::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const auto length = (int)min(buf.size(), (size_t)GetInt16(cdb, 7));
+	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
 	fill_n(buf.begin(), length, 0);
 
 	// 8 bytes basic information

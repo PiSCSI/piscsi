@@ -69,7 +69,9 @@ TEST(HostServicesTest, StartStopUnit)
 
     // START
     cmd[4] = 0x01;
-    EXPECT_THROW(services->Dispatch(scsi_command::eCmdStartStop), scsi_exception);
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))));
 }
 
 TEST(HostServicesTest, ModeSense6)
@@ -79,27 +81,31 @@ TEST(HostServicesTest, ModeSense6)
 
     vector<int>& cmd = controller.GetCmd();
 
-    EXPECT_THROW(services->Dispatch(scsi_command::eCmdModeSense6), scsi_exception)
-        << "Unsupported mode page was returned";
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
-    EXPECT_THROW(services->Dispatch(scsi_command::eCmdModeSense6), scsi_exception)
-        << "Block descriptors are not supported";
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;
     // ALLOCATION LENGTH
     cmd[4] = 255;
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense6));
-    vector<BYTE> &buffer = controller.GetBuffer();
-    // Major version 1
-    EXPECT_EQ(0x01, buffer[6]);
-    // Minor version 0
-    EXPECT_EQ(0x00, buffer[7]);
-    // Year
-    EXPECT_NE(0x00, buffer[9]);
-    // Day
-    EXPECT_NE(0x00, buffer[10]);
+	vector<uint8_t>& buffer = controller.GetBuffer();
+	// Major version 1
+	EXPECT_EQ(0x01, buffer[6]);
+	// Minor version 0
+	EXPECT_EQ(0x00, buffer[7]);
+	// Year
+	EXPECT_NE(0x00, buffer[9]);
+	// Day
+	EXPECT_NE(0x00, buffer[10]);
 
     // ALLOCATION LENGTH
     cmd[4] = 2;
@@ -116,27 +122,31 @@ TEST(HostServicesTest, ModeSense10)
 
     vector<int>& cmd = controller.GetCmd();
 
-    EXPECT_THROW(services->Dispatch(scsi_command::eCmdModeSense10), scsi_exception)
-        << "Unsupported mode page was returned";
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
-    EXPECT_THROW(services->Dispatch(scsi_command::eCmdModeSense10), scsi_exception)
-        << "Block descriptors are not supported";
+	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;
     // ALLOCATION LENGTH
     cmd[8] = 255;
     EXPECT_CALL(controller, DataIn());
     EXPECT_TRUE(services->Dispatch(scsi_command::eCmdModeSense10));
-    vector<BYTE> &buffer = controller.GetBuffer();
-    // Major version 1
-    EXPECT_EQ(0x01, buffer[10]);
-    // Minor version 0
-    EXPECT_EQ(0x00, buffer[11]);
-    // Year
-    EXPECT_NE(0x00, buffer[13]);
-    // Day
-    EXPECT_NE(0x00, buffer[14]);
+	vector<uint8_t>& buffer = controller.GetBuffer();
+	// Major version 1
+	EXPECT_EQ(0x01, buffer[10]);
+	// Minor version 0
+	EXPECT_EQ(0x00, buffer[11]);
+	// Year
+	EXPECT_NE(0x00, buffer[13]);
+	// Day
+	EXPECT_NE(0x00, buffer[14]);
 
     // ALLOCATION LENGTH
     cmd[8] = 2;

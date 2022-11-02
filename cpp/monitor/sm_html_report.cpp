@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <fstream>
-#include "os.h"
 #include "log.h"
 #include "sm_reports.h"
 #include "rascsi_version.h"

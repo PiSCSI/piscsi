@@ -41,8 +41,8 @@ public:
 
 	// Access
 	bool Save() const;							// Save and release all
-	bool ReadSector(vector<BYTE>&, uint32_t);				// Sector Read
-	bool WriteSector(const vector<BYTE>&, uint32_t);		// Sector Write
+	bool ReadSector(vector<uint8_t>&, uint32_t);				// Sector Read
+	bool WriteSector(const vector<uint8_t>&, uint32_t);		// Sector Write
 
 private:
 

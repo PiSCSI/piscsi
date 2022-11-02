@@ -35,7 +35,7 @@ inline bool GetCd(const data_capture *sample)  { return bus->GetPinRaw(sample->d
 inline bool GetIo(const data_capture *sample)  { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_io); }
 inline bool GetReq(const data_capture *sample) { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_req); }
 inline bool GetDp(const data_capture *sample)  { return bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dp); }
-inline BYTE GetData(const data_capture *sample)
+inline uint8_t GetData(const data_capture *sample)
 {
 	uint32_t result = 0;
 	result |= (bus->GetPinRaw(sample->data, bus->GetBoard()->pin_dt0) != 0) ? (1 << 0) : 0;

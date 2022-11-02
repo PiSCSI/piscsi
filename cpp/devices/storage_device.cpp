@@ -15,8 +15,6 @@
 using namespace std;
 using namespace filesystem;
 
-unordered_map<string, id_set> StorageDevice::reserved_files;
-
 StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, lun)
 {
 	SupportsFile(true);

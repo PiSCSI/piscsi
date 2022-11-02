@@ -11,7 +11,7 @@
 
 #include "rascsi_interface.pb.h"
 #include <dirent.h>
-#include <list>
+#include <array>
 #include <string>
 
 using namespace std;
@@ -51,7 +51,7 @@ private:
 
 	int max_luns;
 
-	const list<string> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
+	const array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;

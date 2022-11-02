@@ -42,7 +42,7 @@ public:
 	void Print() override;
 	void SynchronizeBuffer();
 
-	bool WriteByteSequence(vector<BYTE>&, uint32_t) override;
+	bool WriteByteSequence(vector<uint8_t>&, uint32_t) override;
 
 private:
 

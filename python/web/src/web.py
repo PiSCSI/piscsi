@@ -59,7 +59,7 @@ from web_utils import (
 )
 from settings import (
     WEB_DIR,
-    AFP_DIR,
+    FILE_SERVER_DIR,
     MAX_FILE_SIZE,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
@@ -251,7 +251,7 @@ def index():
         drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
-        AFP_DIR=AFP_DIR,
+        FILE_SERVER_DIR=FILE_SERVER_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
@@ -864,8 +864,8 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "afp":
-        destination_dir = AFP_DIR
+    if destination == "file_server":
+        destination_dir = FILE_SERVER_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
@@ -895,8 +895,8 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    if destination == "afp":
-        destination_dir = AFP_DIR
+    if destination == "file_server":
+        destination_dir = FILE_SERVER_DIR
     else:
         server_info = ractl_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
@@ -913,6 +913,7 @@ def create_file():
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
     drive_name = request.form.get("drive_name")
+    drive_format = request.form.get("drive_format")
 
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
@@ -921,6 +922,68 @@ def create_file():
     process = file_cmd.create_new_image(str(file_name), file_type, size)
     if not process["status"]:
         return response(error=True, message=process["msg"])
+
+    message_postfix = ""
+
+    # Formatting and injecting driver, if one is choosen
+    if drive_format:
+        volume_name = f"HD {size / 1024 / 1024:0.0f}M"
+        known_formats = [
+                "Lido 7.56",
+                "SpeedTools 3.6",
+                "FAT16",
+                "FAT32",
+                ]
+        message_postfix = f" ({drive_format})"
+
+        if drive_format not in known_formats:
+            return response(
+                error=True,
+                message=_(
+                    "%(drive_format)s is not a valid hard disk format.",
+                    drive_format=drive_format,
+                )
+            )
+        elif drive_format.startswith("FAT"):
+            if drive_format == "FAT16":
+                fat_size = "16"
+            elif drive_format == "FAT32":
+                fat_size = "32"
+            else:
+                return response(
+                    error=True,
+                    message=_(
+                        "%(drive_format)s is not a valid hard disk format.",
+                        drive_format=drive_format,
+                    )
+                )
+
+            process = file_cmd.partition_disk(full_file_name, volume_name, "FAT")
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            process = file_cmd.format_fat(
+                    full_file_name,
+                    # FAT volume labels are max 11 chars
+                    volume_name[:11],
+                    fat_size,
+                    )
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+        else:
+            driver_base_path = Path(f"{WEB_DIR}/../../../mac-hard-disk-drivers")
+            process = file_cmd.partition_disk(full_file_name, volume_name, "HFS")
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            process = file_cmd.format_hfs(
+                    full_file_name,
+                    volume_name,
+                    driver_base_path / Path(drive_format.replace(" ", "-") + ".img"),
+                    )
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
@@ -937,15 +1000,20 @@ def create_file():
         return response(
             status_code=201,
             message=_(
-                "Image file with properties created: %(file_name)s",
+                "Image file with properties created: %(file_name)s%(drive_format)s",
                 file_name=full_file_name,
+                drive_format=message_postfix,
             ),
             image=full_file_name,
         )
 
     return response(
         status_code=201,
-        message=_("Image file created: %(file_name)s", file_name=full_file_name),
+        message=_(
+            "Image file created: %(file_name)s%(drive_format)s",
+            file_name=full_file_name,
+            drive_format=message_postfix,
+        ),
         image=full_file_name,
     )
 

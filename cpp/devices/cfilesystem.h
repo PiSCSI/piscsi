@@ -106,48 +106,48 @@ namespace Human68k {
 	const static int MEDIA_REMOTE = 0xF3;		///< Remote drive
 
 	struct namests_t {
-		BYTE wildcard;			///< Wildcard character length
-		BYTE drive;			///< Drive number
-		BYTE path[65];			///< Path (subdirectory +/)
-		BYTE name[8];			///< File name (PADDING 0x20)
-		BYTE ext[3];			///< Extension (PADDING 0x20)
-		BYTE add[10];			///< File name addition (PADDING 0x00)
+		uint8_t wildcard;			///< Wildcard character length
+		uint8_t drive;			///< Drive number
+		uint8_t path[65];			///< Path (subdirectory +/)
+		uint8_t name[8];			///< File name (PADDING 0x20)
+		uint8_t ext[3];			///< Extension (PADDING 0x20)
+		uint8_t add[10];			///< File name addition (PADDING 0x00)
 
-		void GetCopyPath(BYTE* szPath) const;
-		void GetCopyFilename(BYTE* szFilename) const;
+		void GetCopyPath(uint8_t* szPath) const;
+		void GetCopyFilename(uint8_t* szFilename) const;
 	};
 
 	struct files_t {
-		BYTE fatr;			///< + 0 search attribute; read-only
-		//		BYTE drive;	///< + 1 drive number; read-only
+		uint8_t fatr;			///< + 0 search attribute; read-only
+		//		uint8_t drive;	///< + 1 drive number; read-only
 		uint32_t sector;			///< + 2 directory sector; DOS _FILES first address substitute
 		//		uint16_t cluster;	///< + 6 directory cluster; details unknown (unused)
 		uint16_t offset;			///< + 8 directory entry; write-only
-		//		BYTE name[8];	///< +10 working file name; write-only (unused)
-		//		BYTE ext[3];	///< +18 working extension; write-only (unused)
-		BYTE attr;			///< +21 file attribute; write-only
+		//		uint8_t name[8];	///< +10 working file name; write-only (unused)
+		//		uint8_t ext[3];	///< +18 working extension; write-only (unused)
+		uint8_t attr;			///< +21 file attribute; write-only
 		uint16_t time;			///< +22 last change time of day; write-only
 		uint16_t date;			///< +24 last change date; write-only
 		uint32_t size;			///< +26 file size; write-only
-		BYTE full[23];			///< +30 full name; write-only
+		uint8_t full[23];			///< +30 full name; write-only
 	};
 
 	struct fcb_t {
-		//		BYTE pad00[6];	///< + 0~+ 5	(unused)
+		//		uint8_t pad00[6];	///< + 0~+ 5	(unused)
 		uint32_t fileptr;			///< + 6~+ 9	file pointer
-		//		BYTE pad01[4];	///< +10~+13	(unused)
+		//		uint8_t pad01[4];	///< +10~+13	(unused)
 		uint16_t mode;			///< +14~+15	open mode
-		//		BYTE pad02[16];	///< +16~+31	(unused)
+		//		uint8_t pad02[16];	///< +16~+31	(unused)
 		//		uint32_t zero;	///< +32~+35	zeros are written when opened (unused)
-		//		BYTE name[8];	///< +36~+43	file name (PADDING 0x20) (unused)
-		//		BYTE ext[3];	///< +44~+46	extension (PADDING 0x20) (unused)
-		BYTE attr;			///< +47	file attribute
-		//		BYTE add[10];	///< +48~+57	file name addition (PADDING 0x00) (unused)
+		//		uint8_t name[8];	///< +36~+43	file name (PADDING 0x20) (unused)
+		//		uint8_t ext[3];	///< +44~+46	extension (PADDING 0x20) (unused)
+		uint8_t attr;			///< +47	file attribute
+		//		uint8_t add[10];	///< +48~+57	file name addition (PADDING 0x00) (unused)
 		uint16_t time;			///< +58~+59	last change time of day
 		uint16_t date;			///< +60~+61	last change date
 		//		uint16_t cluster;	///< +62~+63	cluster number (unused)
 		uint32_t size;			///< +64~+67	file size
-		//		BYTE pad03[28];	///< +68~+95	FAT cache (unused)
+		//		uint8_t pad03[28];	///< +68~+95	FAT cache (unused)
 	};
 
 	struct capacity_t {
@@ -158,32 +158,32 @@ namespace Human68k {
 	};
 
 	struct ctrldrive_t {
-		BYTE status;			///< +13	status
-		BYTE pad[3];			///< Padding
+		uint8_t status;			///< +13	status
+		uint8_t pad[3];			///< Padding
 	};
 
 	struct dpb_t {
 		uint16_t sector_size;		///< + 0	Number of bytes in one sector
-		BYTE cluster_size;		///< + 2	Number sectors in one cluster -1
-		BYTE shift;			///< + 3	Number of cluster→sector shifts
+		uint8_t cluster_size;		///< + 2	Number sectors in one cluster -1
+		uint8_t shift;			///< + 3	Number of cluster→sector shifts
 		uint16_t fat_sector;		///< + 4	FAT first sector number
-		BYTE fat_max;			///< + 6	FAT storage quantity
-		BYTE fat_size;			///< + 7	FAT controlled sector number (excluding duplicates)
+		uint8_t fat_max;			///< + 6	FAT storage quantity
+		uint8_t fat_size;			///< + 7	FAT controlled sector number (excluding duplicates)
 		uint16_t file_max;			///< + 8	Number of files in the root directory
 		uint16_t data_sector;		///< +10	First sector number of data storage
 		uint16_t cluster_max;		///< +12	Total number of clusters +1
 		uint16_t root_sector;		///< +14	First sector number of root directory
 		//	uint32_t driverentry;	///< +16	Device driver pointer (unused)
-		BYTE media;			///< +20	Media identifier
-		//	BYTE flag;		///< +21	Flag used by DPB (unused)
+		uint8_t media;			///< +20	Media identifier
+		//	uint8_t flag;		///< +21	Flag used by DPB (unused)
 	};
 
 	/// Directory entry struct
 	struct dirent_t {
-		BYTE name[8];			///< + 0	File name (PADDING 0x20)
-		BYTE ext[3];			///< + 8	Extension (PADDING 0x20)
-		BYTE attr;			///< +11	File attribute
-		BYTE add[10];			///< +12	File name addition (PADDING 0x00)
+		uint8_t name[8];			///< + 0	File name (PADDING 0x20)
+		uint8_t ext[3];			///< + 8	Extension (PADDING 0x20)
+		uint8_t attr;			///< +11	File attribute
+		uint8_t add[10];			///< +12	File name addition (PADDING 0x00)
 		uint16_t time;			///< +22	Last change time of day
 		uint16_t date;			///< +24	Last change date
 		uint16_t cluster;			///< +26	Cluster number
@@ -192,7 +192,7 @@ namespace Human68k {
 
 	/// IOCTRL parameter union
 	union ioctrl_t {
-		BYTE buffer[8];			///< Access in byte units
+		uint8_t buffer[8];			///< Access in byte units
 		uint32_t param;			///< Parameter (First 4 bytes)
 		uint16_t media;			///< Media byte (First 2 bytes)
 	};
@@ -203,7 +203,7 @@ namespace Human68k {
 	so setting to a length longer than HUMAN68K_PATH_MAX
 	*/
 	struct argument_t {
-		BYTE buf[256];			///< Command line argument
+		uint8_t buf[256];			///< Command line argument
 	};
 }
 
@@ -423,15 +423,15 @@ public:
 	void SetHost(const TCHAR* szHost);					///< Set the name of the host
 	const TCHAR* GetHost() const { return m_szHost; }	///< Get the name of the host
 	void ConvertHuman(int nCount = -1);					///< Convert the Human68k name
-	void CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
+	void CopyHuman(const uint8_t* szHuman);					///< Copy the Human68k name
 	bool isReduce() const;							///< Inspect if the Human68k name is generated
 	bool isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
-	const BYTE* GetHuman() const { return m_szHuman; }	///< Get Human68k file name
-	const BYTE* GetHumanLast() const
+	const uint8_t* GetHuman() const { return m_szHuman; }	///< Get Human68k file name
+	const uint8_t* GetHumanLast() const
 	{ return m_pszHumanLast; }				///< Get Human68k file name
-	const BYTE* GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
+	const uint8_t* GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
 	void SetEntryName();							///< Set Human68k directory entry
-	void SetEntryAttribute(BYTE nHumanAttribute)
+	void SetEntryAttribute(uint8_t nHumanAttribute)
 	{ m_dirHuman.attr = nHumanAttribute; }			///< Set Human68k directory entry
 	void  SetEntrySize(uint32_t nHumanSize)
 	{ m_dirHuman.size = nHumanSize; }				///< Set Human68k directory entry
@@ -449,16 +449,16 @@ public:
 										///< Determine Human68k directory entry match
 
 	// Path name operations
-	static const BYTE* SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
+	static const uint8_t* SeparateExt(const uint8_t* szHuman);			///< Extract extension from Human68k file name
 
 private:
-	static BYTE* CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
+	static uint8_t* CopyName(uint8_t* pWrite, const uint8_t* pFirst, const uint8_t* pLast);
 										///< Copy Human68k file name elements
 
-	const BYTE* m_pszHumanLast = nullptr;		///< Last position of the Human68k internal name of the relevant entry
-	const BYTE* m_pszHumanExt = nullptr;		///< Position of the extension of the Human68k internal name of the relevant entry
+	const uint8_t* m_pszHumanLast = nullptr;		///< Last position of the Human68k internal name of the relevant entry
+	const uint8_t* m_pszHumanExt = nullptr;		///< Position of the extension of the Human68k internal name of the relevant entry
 	bool m_bCorrect = false;			///< TRUE if the relevant entry of the Human68k internal name is correct
-	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
+	uint8_t m_szHuman[24];			///< Human68k internal name of the relevant entry
 	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];		///< The host name of the relevant entry (variable length)
 };
@@ -510,14 +510,14 @@ public:
 
 	void Clean();								///< Initialialize for reuse
 
-	void SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
+	void SetHuman(const uint8_t* szHuman);					///< Directly specify the name on the Human68k side
 	void SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
-	bool isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
-	bool isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	bool isSameHuman(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
+	bool isSameChild(const uint8_t* szHuman) const;				///< Compare the name on the Human68k side
 	const TCHAR* GetHost() const { return m_szHost; }	///< Obtain the name on the host side
-	const CHostFilename* FindFilename(const BYTE* szHuman, uint32_t nHumanAttribute = Human68k::AT_ALL) const;
+	const CHostFilename* FindFilename(const uint8_t* szHuman, uint32_t nHumanAttribute = Human68k::AT_ALL) const;
 										///< Find file name
-	const CHostFilename* FindFilenameWildcard(const BYTE* szHuman, uint32_t nHumanAttribute, find_t* pFind) const;
+	const CHostFilename* FindFilenameWildcard(const uint8_t* szHuman, uint32_t nHumanAttribute, find_t* pFind) const;
 										///< Find file name (with support for wildcards)
 	bool isRefresh() const;							///< Check that the file change has been done
 	void Refresh();							///< Refresh file
@@ -531,14 +531,14 @@ public:
 private:
 	static ring_t* Alloc(size_t nLength);					///< Allocate memory for the file name
 	static void Free(ring_t* pRing);					///< Release memory for the file name
-	static int Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast);
+	static int Compare(const uint8_t* pFirst, const uint8_t* pLast, const uint8_t* pBufFirst, const uint8_t* pBufLast);
 										///< Compare string (with support for wildcards)
 
 	CRing m_cRing;								///< For CHostFilename linking
 	time_t m_tBackup = 0;					///< For time stamp restoration
 	bool m_bRefresh = true;						///< Refresh flag
 	uint32_t m_nId = 0;								///< Unique ID (When the value has changed, it means an update has been made)
-	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
+	uint8_t m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
 	TCHAR m_szHost[FILEPATH_MAX];						///< The host side name for the relevant entry
 
 	static uint32_t g_nId;							///< Counter for the unique ID generation
@@ -595,9 +595,9 @@ public:
 	uint16_t GetDate() const { return m_dirHuman.date; }			///< Get Human68k date
 	uint16_t GetTime() const { return m_dirHuman.time; }			///< Get Human68k time
 	uint32_t GetSize() const { return m_dirHuman.size; }		///< Get Human68k file size
-	const BYTE* GetHumanFilename() const { return m_szHumanFilename; }///< Get Human68k file name
-	const BYTE* GetHumanResult() const { return m_szHumanResult; }	///< Get Human68k file name search results
-	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
+	const uint8_t* GetHumanFilename() const { return m_szHumanFilename; }///< Get Human68k file name
+	const uint8_t* GetHumanResult() const { return m_szHumanResult; }	///< Get Human68k file name search results
+	const uint8_t* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 private:
 	uint32_t m_nKey = 0;						///< FILES buffer address for Human68k; 0 is unused
@@ -605,9 +605,9 @@ private:
 	uint32_t m_nHumanAttribute = 0;			///< Human68k search attribute
 	CHostPath::find_t m_findNext = {};		///< Next search location data
 	Human68k::dirent_t m_dirHuman = {};		///< Search results: Human68k file data
-	BYTE m_szHumanFilename[24] = {};		///< Human68k file name
-	BYTE m_szHumanResult[24] = {};			///< Search results: Human68k file name
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};	///< Human68k path name
+	uint8_t m_szHumanFilename[24] = {};		///< Human68k file name
+	uint8_t m_szHumanResult[24] = {};			///< Search results: Human68k file name
+	uint8_t m_szHumanPath[HUMAN68K_PATH_MAX] = {};	///< Human68k path name
 	TCHAR m_szHostResult[FILEPATH_MAX] = {};	///< Search results: host's full path name
 };
 
@@ -657,13 +657,13 @@ public:
 	bool isUpdate() const { return m_bUpdate; }			///< Get update state
 	bool SetMode(uint32_t nHumanMode);						///< Set file open mode
 	void SetFilename(const TCHAR* szFilename);					///< Set file name
-	void SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
-	const BYTE* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
+	void SetHumanPath(const uint8_t* szHumanPath);					///< Set Human68k path name
+	const uint8_t* GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 	bool Create(uint32_t nHumanAttribute, bool bForce);	///< Create file
 	bool Open();									///< Open file
-	uint32_t Read(BYTE* pBuffer, uint32_t nSize);					///< Read file
-	uint32_t Write(const BYTE* pBuffer, uint32_t nSize);					///< Write file
+	uint32_t Read(uint8_t* pBuffer, uint32_t nSize);					///< Read file
+	uint32_t Write(const uint8_t* pBuffer, uint32_t nSize);					///< Write file
 	bool Truncate() const;								///< Truncate file
 	uint32_t Seek(uint32_t nOffset, Human68k::seek_t nHumanSeek);		///< Seek file
 	bool TimeStamp(uint32_t nHumanTime) const;						///< Set file time stamp
@@ -675,7 +675,7 @@ private:
 	FILE* m_pFile = nullptr;						///< Host side file object
 	const char* m_pszMode = nullptr;				///< Host side file open mode
 	bool m_bFlag = false;							///< Host side file open flag
-	BYTE m_szHumanPath[HUMAN68K_PATH_MAX] = {};		///< Human68k path name
+	uint8_t m_szHumanPath[HUMAN68K_PATH_MAX] = {};		///< Human68k path name
 	TCHAR m_szFilename[FILEPATH_MAX] = {};			///< Host side file name
 };
 
@@ -726,7 +726,7 @@ public:
 	bool isWriteProtect() const { return m_bWriteProtect; }
 	bool isEnable() const { return m_bEnable; }		///< Is it accessible?
 	bool isMediaOffline() const;
-	BYTE GetMediaByte() const;
+	uint8_t GetMediaByte() const;
 	uint32_t GetStatus() const;
 	void SetEnable(bool);						///< Set media status
 	bool CheckMedia();							///< Check if media was changed
@@ -739,17 +739,17 @@ public:
 
 	// Cache operations
 	void CleanCache() const;							///< Update all cache
-	void CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
-	void CleanCacheChild(const BYTE* szHumanPath) const;	///< Update all cache below the specified path
-	void DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
-	CHostPath* FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
+	void CleanCache(const uint8_t* szHumanPath);				///< Update cache for the specified path
+	void CleanCacheChild(const uint8_t* szHumanPath) const;	///< Update all cache below the specified path
+	void DeleteCache(const uint8_t* szHumanPath);				///< Delete the cache for the specified path
+	CHostPath* FindCache(const uint8_t* szHuman);				///< Inspect if the specified path is cached
 	CHostPath* CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
 	CHostPath* MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
 	bool Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
 
 private:
 	// Path name operations
-	static const BYTE*  SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer);
+	static const uint8_t*  SeparateCopyFilename(const uint8_t* szHuman, uint8_t* szBuffer);
 										///< Split and copy the first element of the Human68k full path name
 
 	/// For memory management
@@ -791,9 +791,9 @@ public:
 	// Cache operations
 	void CleanCache() const;							///< Update all cache
 	void CleanCache(uint32_t nUnit) const;						///< Update cache for the specified unit
-	void CleanCache(uint32_t nUnit, const BYTE* szHumanPath) const;	///< Update cache for the specified path
-	void CleanCacheChild(uint32_t nUnit, const BYTE* szHumanPath) const;	///< Update cache below the specified path
-	void DeleteCache(uint32_t nUnit, const BYTE* szHumanPath) const;	///< Delete cache for the specified path
+	void CleanCache(uint32_t nUnit, const uint8_t* szHumanPath) const;	///< Update cache for the specified path
+	void CleanCacheChild(uint32_t nUnit, const uint8_t* szHumanPath) const;	///< Update cache below the specified path
+	void DeleteCache(uint32_t nUnit, const uint8_t* szHumanPath) const;	///< Delete cache for the specified path
 	bool Find(uint32_t nUnit, CHostFiles* pFiles) const;				///< Find host side name (path + file name (can be abbreviated) + attribute)
 	void ShellNotify(uint32_t nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
@@ -802,7 +802,7 @@ public:
 	bool isWriteProtect(uint32_t nUnit) const;
 	bool isEnable(uint32_t nUnit) const;					///< Is it accessible?
 	bool isMediaOffline(uint32_t nUnit) const;
-	BYTE GetMediaByte(uint32_t nUnit) const;
+	uint8_t GetMediaByte(uint32_t nUnit) const;
 	uint32_t GetStatus(uint32_t nUnit) const;					///< Get drive status
 	bool CheckMedia(uint32_t nUnit) const;						///< Media change check
 	void Eject(uint32_t nUnit) const;
@@ -875,9 +875,9 @@ public:
 	int Open(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
 										///< $4A - Open file
 	int Close(uint32_t nUnit, uint32_t nKey, const Human68k::fcb_t* pFcb);		///< $4B - Close file
-	int Read(uint32_t nKey, Human68k::fcb_t* pFcb, BYTE* pAddress, uint32_t nSize);
+	int Read(uint32_t nKey, Human68k::fcb_t* pFcb, uint8_t* pAddress, uint32_t nSize);
 										///< $4C - Read file
-	int Write(uint32_t nKey, Human68k::fcb_t* pFcb, const BYTE* pAddress, uint32_t nSize);
+	int Write(uint32_t nKey, Human68k::fcb_t* pFcb, const uint8_t* pAddress, uint32_t nSize);
 										///< $4D - Write file
 	int Seek(uint32_t nKey, Human68k::fcb_t* pFcb, uint32_t nSeek, int nOffset);	///< $4E - Seek file
 	uint32_t TimeStamp(uint32_t nUnit, uint32_t nKey, Human68k::fcb_t* pFcb, uint32_t nHumanTime);
@@ -885,7 +885,7 @@ public:
 	int GetCapacity(uint32_t nUnit, Human68k::capacity_t* pCapacity) const;		///< $50 - Get capacity
 	int CtrlDrive(uint32_t nUnit, Human68k::ctrldrive_t* pCtrlDrive) const;		///< $51 - Inspect / control drive status
 	int GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const;				///< $52 - Get DPB
-	int DiskRead(uint32_t nUnit, BYTE* pBuffer, uint32_t nSector, uint32_t nSize);	///< $53 - Read sectors
+	int DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint32_t nSize);	///< $53 - Read sectors
 	int DiskWrite(uint32_t nUnit) const;						///< $54 - Write sectors
 	int Ioctrl(uint32_t nUnit, uint32_t nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
 	int Flush(uint32_t nUnit) const;							///< $56 - Flush

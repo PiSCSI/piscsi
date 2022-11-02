@@ -58,13 +58,13 @@ PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 SSL_CERTS_PATH="/etc/ssl/certs"
 SSL_KEYS_PATH="/etc/ssl/private"
-HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
-LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
 SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+FILE_SHARE_PATH="$HOME/shared_files"
+FILE_SHARE_NAME="Pi File Server"
 
 set -e
 
@@ -106,7 +106,10 @@ function installPackages() {
         unar \
         disktype \
         libgmock-dev \
-        man2html
+        man2html \
+        hfsutils \
+        dosfstools \
+        kpartx
 }
 
 # install Debian packges for RaSCSI standalone
@@ -593,98 +596,30 @@ function createDriveCustom() {
     createDrive "$driveSize" "$driveName"
 }
 
-# Creates an HFS file system
-function formatDrive() {
-    diskPath="$1"
-    volumeName="$2"
-
-    if [ ! -x $HFS_FORMAT ]; then
-        # Install hfsutils to have hformat to format HFS
-        sudo apt-get install hfsutils --assume-yes </dev/null
-    fi
-
-    if [ ! -x $HFDISK_BIN ]; then
-        # Clone, compile and install 'hfdisk', partition tool
-        git clone git://www.codesrc.com/git/hfdisk.git
-        cd hfdisk || exit 1
+# Clone, compile and install 'hfdisk', partition tool
+function installHfdisk() {
+    HFDISK_VERSION="2022.11"
+    if [ ! -x "$HFDISK_BIN" ]; then
+        cd "$BASE" || exit 1
+        wget -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
+        tar -xzvf "hfdisk-$HFDISK_VERSION.tar.gz"
+        rm "hfdisk-$HFDISK_VERSION.tar.gz"
+        cd "hfdisk-$HFDISK_VERSION" || exit 1
         make
 
-        sudo cp hfdisk /usr/bin/hfdisk
-    fi
+        sudo cp hfdisk "$HFDISK_BIN"
 
-    # Inject hfdisk commands to create Drive with correct partitions
-    # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-    # i                         initialize partition map
-    # continue with default first block
-    # C                         Create 1st partition with type specified next) 
-    # continue with default
-    # 32                        32 blocks (required for HFS+)
-    # Driver_Partition          Partition Name
-    # Apple_Driver              Partition Type  (available types: Apple_Driver, Apple_Driver43, Apple_Free, Apple_HFS...)
-    # C                         Create 2nd partition with type specified next
-    # continue with default first block
-    # continue with default block size (rest of the disk)
-    # ${volumeName}             Partition name provided by user
-    # Apple_HFS                 Partition Type
-    # w                         Write partition map to disk
-    # y                         Confirm partition table
-    # p                         Print partition map
-    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
-    partitionOk=$?
-
-    if [ $partitionOk -eq 0 ]; then
-        if [ ! -f "$LIDO_DRIVER" ];then
-            echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
-            return 1
-        fi
-
-        # Burn Lido driver to the disk
-        dd if="$LIDO_DRIVER" of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
-
-        driverInstalled=$?
-        if [ $driverInstalled -eq 0 ]; then
-            # Format the partition with HFS file system
-            $HFS_FORMAT -l "${volumeName}" "$diskPath" 1
-            hfsFormattedOk=$?
-            if [ $hfsFormattedOk -eq 0 ]; then
-                echo "Disk created with success."
-            else
-                echo "Unable to format HFS partition."
-                return 4
-            fi
-        else
-            echo "Unable to install Lido Driver."
-            return 3
-        fi
-    else
-        echo "Unable to create the partition."
-        return 2
+        echo "Installed $HFDISK_BIN"
     fi
 }
 
-# Creates an image file
-function createDrive() {
-    if [ $# -ne 2 ]; then
-        echo "To create a Drive, volume size and volume name must be provided"
-        echo "$ createDrive 600 \"RaSCSI Drive\""
-        echo "Drive wasn't created."
-        return
-    fi
-
-    driveSize=$1
-    driveName=$2
-    mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}M.hda"
-
-    if [ ! -f "$drivePath" ]; then
-        echo "Creating a ${driveSize}MiB Drive"
-        truncate --size "${driveSize}m" "$drivePath"
-
-        echo "Formatting drive with HFS"
-        formatDrive "$drivePath" "$driveName"
-
-    else
-        echo "Error: drive already exists"
+# Fetch HFS drivers that the Web Interface uses
+function fetchHardDiskDrivers() {
+    if [ ! -f "$BASE/mac-hard-disk-drivers" ]; then
+        cd "$BASE" || exit 1
+        wget https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
+        unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
+        rm mac-hard-disk-drivers.zip
     fi
 }
 
@@ -837,14 +772,12 @@ function setupWirelessNetworking() {
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="2-220801"
-    AFP_SHARE_PATH="$HOME/afpshare"
-    AFP_SHARE_NAME="Pi File Server"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
         echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
-        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "This installation process will overwrite existing binaries and configurations."
         echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
         echo
         echo "Do you want to proceed with the installation? [y/N]"
@@ -854,13 +787,27 @@ function installNetatalk() {
         fi
     fi
 
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    fi
+
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
+    tar -xzvf "netatalk-$NETATALK_VERSION.tar.gz"
+    rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+    ./debian_install.sh -j="${CORES:-1}" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -936,6 +883,65 @@ function installMacproxy {
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
+}
+
+# Installs and configures Samba (SMB server)
+function installSamba() {
+    SAMBA_CONFIG_PATH="/etc/samba"
+
+    if [ -d "$SAMBA_CONFIG_PATH" ]; then
+        echo
+        echo "Samba configuration dir $SAMBA_CONFIG_PATH already exists."
+        echo "This installation process may overwrite existing binaries and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
+
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    elif [ -d "$FILE_SHARE_PATH" ]; then
+        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
+    else
+        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$FILE_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        chmod -Rv 775 "$FILE_SHARE_PATH"
+    fi
+
+    echo ""
+    echo "Installing dependencies..."
+    sudo apt-get update || true
+    sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
+    echo ""
+    echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
+    if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Allow Windows XP clients and earlier to connect to the server
+        sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
+        echo "server min prototol = NT1"
+    fi
+    if [[ `sudo grep -c "\[Pi File Server\]" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Define a shared directory with full read/write privileges, while aggressively hiding dot files
+        echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    fi
+
+    sudo systemctl restart smbd
+
+    echo "Please create a Samba password for user $USER"
+    sudo smbpasswd -a "$USER"
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
@@ -1183,6 +1189,8 @@ function runChoice() {
               stopOldWebInterface
               updateRaScsiGit
               installPackages
+              installHfdisk
+              fetchHardDiskDrivers
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1255,16 +1263,19 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver"
-              createDrive600M
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver - Complete!"
+              echo "Installing / Updating RaSCSI Control Board UI"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Stop and disable the RaSCSI OLED service if it is running"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
+              sudoCheck
+              preparePythonCommon
+              installRaScsiCtrlBoard
+              showRaScsiCtrlBoardStatus
+              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
           ;;
           5)
-              echo "Creating an HFS formatted drive image with LIDO driver"
-              createDriveCustom
-              echo "Creating an HFS formatted drive image with LIDO driver - Complete!"
-          ;;
-          6)
               echo "Configuring wired network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
@@ -1274,7 +1285,7 @@ function runChoice() {
               setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
-          7)
+          6)
               echo "Configuring wifi network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1285,9 +1296,21 @@ function runChoice() {
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
-          8)
+          7)
+              echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
+          ;;
+          8)
+              echo "Installing SMB File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable Samba systemd services"
+              echo " - Create a directory in the current user's home directory where shared files will be stored"
+              echo " - Create a Samba user for the current user"
+              sudoCheck
+              installSamba
+              echo "Installing SMB File Server - Complete!"
           ;;
           9)
               echo "Installing Web Proxy Server"
@@ -1328,6 +1351,8 @@ function runChoice() {
               createCfgDir
               updateRaScsiGit
               installPackages
+              installHfdisk
+              fetchHardDiskDrivers
               preparePythonCommon
               cachePipPackages
               installRaScsiWebInterface
@@ -1353,19 +1378,6 @@ function runChoice() {
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
           14)
-              echo "Installing / Updating RaSCSI Control Board UI"
-              echo "This script will make the following changes to your system:"
-              echo "- Install additional packages with apt-get"
-              echo "- Add and modify systemd services"
-              echo "- Stop and disable the RaSCSI OLED service if it is running"
-              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
-              sudoCheck
-              preparePythonCommon
-              installRaScsiCtrlBoard
-              showRaScsiCtrlBoardStatus
-              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
-          ;;
-          15)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
@@ -1383,7 +1395,7 @@ function readChoice() {
    choice=-1
 
    until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
-       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
+       echo -n "Enter your choice (0-14) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1395,27 +1407,24 @@ function showMenu() {
     echo ""
     echo "Choose among the following options:"
     echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
-    echo "  1) install or update RaSCSI Service + Web Interface"
-    echo "  2) install or update RaSCSI Service"
-    echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
-    echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
-    echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  4) 600 MiB drive (suggested size)"
-    echo "  5) custom drive size (up to 4000 MiB)"
+    echo "  1) Install or update RaSCSI Service + Web Interface"
+    echo "  2) Install or update RaSCSI Service"
+    echo "  3) Install or update RaSCSI OLED Screen (requires hardware)"
+    echo "  4) Install or update RaSCSI Control Board UI (requires hardware)"
     echo "NETWORK BRIDGE ASSISTANT"
-    echo "  6) configure network bridge for Ethernet (DHCP)"
-    echo "  7) configure network bridge for WiFi (static IP + NAT)" 
+    echo "  5) Configure network bridge for Ethernet (DHCP)"
+    echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
-    echo "  8) install AppleShare File Server (Netatalk)"
-    echo "  9) install Web Proxy Server (Macproxy)"
+    echo "  7) Install AppleShare File Server (Netatalk)"
+    echo "  8) Install SMB File Server (Samba)"
+    echo "  9) Install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) compile and install RaSCSI stand-alone"
-    echo " 11) configure the RaSCSI Web Interface stand-alone"
-    echo " 12) enable or disable RaSCSI back-end authentication"
-    echo " 13) enable or disable RaSCSI Web Interface authentication"
+    echo " 10) Compile and install RaSCSI stand-alone"
+    echo " 11) Configure the RaSCSI Web Interface stand-alone"
+    echo " 12) Enable or disable RaSCSI back-end authentication"
+    echo " 13) Enable or disable RaSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 14) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 15) share the images dir over AppleShare (requires Netatalk)"
+    echo " 14) Share the images dir over AppleShare (requires Netatalk)"
 }
 
 # parse arguments passed to the script
@@ -1431,8 +1440,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 14 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 14"
                 exit 1
             fi
             RUN_CHOICE=$VALUE

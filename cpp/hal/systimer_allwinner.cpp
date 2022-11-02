@@ -13,7 +13,6 @@
 #include <sys/mman.h>
 
 #include "hal/gpiobus.h"
-#include "os.h"
 
 #include "config.h"
 #include "log.h"
@@ -99,14 +98,14 @@ void SysTimer_AllWinner::disable_hs_timer()
             sysbus_regs->bus_soft_rst_reg0)
 }
 
-DWORD SysTimer_AllWinner::GetTimerLow()
+uint32_t SysTimer_AllWinner::GetTimerLow()
 {
     // RaSCSI expects the timer to count UP, but the Allwinner HS timer counts
     // down. So, we subtract the current timer value from UINT32_MAX
     return UINT32_MAX - (hsitimer_regs->hs_tmr_curnt_lo_reg / 200);
 }
 
-DWORD SysTimer_AllWinner::GetTimerHigh()
+uint32_t SysTimer_AllWinner::GetTimerHigh()
 {
     return (uint32_t)0;
 }
@@ -116,7 +115,7 @@ DWORD SysTimer_AllWinner::GetTimerHigh()
 //	Sleep in nanoseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_AllWinner::SleepNsec(DWORD nsec)
+void SysTimer_AllWinner::SleepNsec(uint32_t nsec)
 {
     // If time is less than one HS timer clock tick, don't do anything
     if (nsec < 20) {
@@ -127,7 +126,7 @@ void SysTimer_AllWinner::SleepNsec(DWORD nsec)
     // one clock tick every 5 ns.
     auto clockticks = (uint32_t)std::ceil(nsec / 5);
 
-    DWORD enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;
+    uint32_t enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;
 
     LOGTRACE("%s entertime: %08X ns: %d clockticks: %d", __PRETTY_FUNCTION__, enter_time, nsec, clockticks)
     while ((enter_time - hsitimer_regs->hs_tmr_curnt_lo_reg) < clockticks)
@@ -141,7 +140,7 @@ void SysTimer_AllWinner::SleepNsec(DWORD nsec)
 //	Sleep in microseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_AllWinner::SleepUsec(DWORD usec)
+void SysTimer_AllWinner::SleepUsec(uint32_t usec)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
 
@@ -150,7 +149,7 @@ void SysTimer_AllWinner::SleepUsec(DWORD usec)
         return;
     }
 
-    DWORD enter_time = GetTimerLow();
+    uint32_t enter_time = GetTimerLow();
     while ((GetTimerLow() - enter_time) < usec)
         ;
 }

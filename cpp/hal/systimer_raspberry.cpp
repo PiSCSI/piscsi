@@ -18,7 +18,6 @@
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
-#include "os.h"
 
 #include "config.h"
 #include "log.h"
@@ -69,8 +68,8 @@ void SysTimer_Raspberry::Init()
     std::array<uint32_t, 32> maxclock = {32, 0, 0x00030004, 8, 0, 4, 0, 0};
 
     // Save the base address
-    systaddr = (DWORD *)map + SYST_OFFSET / sizeof(DWORD);
-    armtaddr = (DWORD *)map + ARMT_OFFSET / sizeof(DWORD);
+    systaddr = (uint32_t *)map + SYST_OFFSET / sizeof(uint32_t);
+    armtaddr = (uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t);
 
     // Change the ARM timer to free run mode
     armtaddr[ARMT_CTRL] = 0x00000282;
@@ -88,7 +87,7 @@ void SysTimer_Raspberry::Init()
 //	Get system timer low byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer_Raspberry::GetTimerLow()
+uint32_t SysTimer_Raspberry::GetTimerLow()
 {
     return systaddr[SYST_CLO];
 }
@@ -98,7 +97,7 @@ DWORD SysTimer_Raspberry::GetTimerLow()
 //	Get system timer high byte
 //
 //---------------------------------------------------------------------------
-DWORD SysTimer_Raspberry::GetTimerHigh()
+uint32_t SysTimer_Raspberry::GetTimerHigh()
 {
     return systaddr[SYST_CHI];
 }
@@ -108,7 +107,7 @@ DWORD SysTimer_Raspberry::GetTimerHigh()
 //	Sleep in nanoseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_Raspberry::SleepNsec(DWORD nsec)
+void SysTimer_Raspberry::SleepNsec(uint32_t nsec)
 {
     // If time is 0, don't do anything
     if (nsec == 0) {
@@ -116,7 +115,7 @@ void SysTimer_Raspberry::SleepNsec(DWORD nsec)
     }
 
     // Calculate the timer difference
-    DWORD diff = corefreq * nsec / 1000;
+    uint32_t diff = corefreq * nsec / 1000;
 
     // Return if the difference in time is too small
     if (diff == 0) {
@@ -124,7 +123,7 @@ void SysTimer_Raspberry::SleepNsec(DWORD nsec)
     }
 
     // Start
-    DWORD start = armtaddr[ARMT_FREERUN];
+    uint32_t start = armtaddr[ARMT_FREERUN];
 
     // Loop until timer has elapsed
     while ((armtaddr[ARMT_FREERUN] - start) < diff)
@@ -136,14 +135,14 @@ void SysTimer_Raspberry::SleepNsec(DWORD nsec)
 //	Sleep in microseconds
 //
 //---------------------------------------------------------------------------
-void SysTimer_Raspberry::SleepUsec(DWORD usec)
+void SysTimer_Raspberry::SleepUsec(uint32_t usec)
 {
     // If time is 0, don't do anything
     if (usec == 0) {
         return;
     }
 
-    DWORD now = GetTimerLow();
+    uint32_t now = GetTimerLow();
     while ((GetTimerLow() - now) < usec)
         ;
 }

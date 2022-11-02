@@ -137,29 +137,39 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
     controller.AddDevice(device);
 
-    device->SetReset(true);
-    device->SetAttn(true);
-    device->SetReady(false);
-    EXPECT_CALL(controller, DataIn()).Times(0);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
+	device->SetReset(true);
+	device->SetAttn(true);
+	device->SetReady(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
+			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
 
-    device->SetReset(false);
-    EXPECT_CALL(controller, DataIn()).Times(0);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
+	device->SetReset(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
+			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
 
-    device->SetReset(true);
-    device->SetAttn(false);
-    EXPECT_CALL(controller, DataIn()).Times(0);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
+	device->SetReset(true);
+	device->SetAttn(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
+			Property(&scsi_exception::get_asc, asc::POWER_ON_OR_RESET))));
 
-    device->SetReset(false);
-    device->SetAttn(true);
-    EXPECT_CALL(controller, DataIn()).Times(0);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
+	device->SetReset(false);
+	device->SetAttn(true);
+	EXPECT_CALL(controller, DataIn()).Times(0);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::UNIT_ATTENTION),
+			Property(&scsi_exception::get_asc, asc::NOT_READY_TO_READY_CHANGE))));
 
-    device->SetAttn(false);
-    EXPECT_CALL(controller, DataIn()).Times(0);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdTestUnitReady), scsi_exception);
+	device->SetAttn(false);
+	EXPECT_CALL(controller, DataIn()).Times(0);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdTestUnitReady); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
+			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
 
 	device->SetReady(true);
 	EXPECT_CALL(controller, Status());
@@ -212,11 +222,17 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	cmd[1] = 0x01;
 	EXPECT_CALL(*controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_exception) << "EVPD bit is not supported";
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "EVPD bit is not supported";
 
 	cmd[2] = 0x01;
 	EXPECT_CALL(*controller, DataIn()).Times(0);
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdInquiry), scsi_exception) << "PAGE CODE field is not supported";
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "PAGE CODE field is not supported";
 
 	cmd[1] = 0x00;
 	cmd[2] = 0x00;
@@ -240,8 +256,10 @@ TEST(PrimaryDeviceTest, RequestSense)
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 
-    device->SetReady(false);
-    EXPECT_THROW(device->Dispatch(scsi_command::eCmdRequestSense), scsi_exception);
+	device->SetReady(false);
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRequestSense); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
+			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
 
 	device->SetReady(true);
 	EXPECT_CALL(controller, DataIn());
@@ -263,16 +281,22 @@ TEST(PrimaryDeviceTest, SendDiagnostic)
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
 	cmd[1] = 0x10;
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdSendDiag), scsi_exception)
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiag); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
 	cmd[1] = 0;
 
 	cmd[3] = 1;
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdSendDiag), scsi_exception)
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiag); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 	cmd[3] = 0;
 	cmd[4] = 1;
-	EXPECT_THROW(device->Dispatch(scsi_command::eCmdSendDiag), scsi_exception)
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiag); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
 }
 
@@ -296,7 +320,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 	EXPECT_CALL(controller, DataIn());
 	EXPECT_TRUE(device1->Dispatch(scsi_command::eCmdReportLuns));
-	const vector<BYTE>& buffer = controller.GetBuffer();
+	const vector<uint8_t>& buffer = controller.GetBuffer();
 	EXPECT_EQ(0x00, buffer[0]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[1]) << "Wrong data length";
 	EXPECT_EQ(0x00, buffer[2]) << "Wrong data length";
@@ -318,9 +342,11 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	EXPECT_EQ(0x00, buffer[22]) << "Wrong LUN2 number";
 	EXPECT_EQ(LUN2, buffer[23]) << "Wrong LUN2 number";
 
-    cmd[2] = 0x01;
-    EXPECT_THROW(device1->Dispatch(scsi_command::eCmdReportLuns), scsi_exception)
-        << "Only SELECT REPORT mode 0 is supported";
+	cmd[2] = 0x01;
+	EXPECT_THAT([&] { device1->Dispatch(scsi_command::eCmdReportLuns); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Only SELECT REPORT mode 0 is supported";
 }
 
 TEST(PrimaryDeviceTest, UnknownCommand)
@@ -345,8 +371,8 @@ TEST(PrimaryDeviceTest, Dispatch)
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-    vector<BYTE> data;
-    MockPrimaryDevice device(0);
+	vector<uint8_t> data;
+	MockPrimaryDevice device(0);
 
 	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device does not support writing byte sequences";
 }

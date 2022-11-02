@@ -161,13 +161,13 @@ bool SBC_Version::IsBananaPi()
 
 // The following functions are only used on the Raspberry Pi
 //	(imported from bcm_host.c)
-DWORD SBC_Version::GetDeviceTreeRanges(const char *filename, DWORD offset)
+uint32_t SBC_Version::GetDeviceTreeRanges(const char *filename, uint32_t offset)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
-    DWORD address = ~0;
+    uint32_t address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
-        if (std::array<BYTE, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
+        if (std::array<uint8_t, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
             address = (int)buf[0] << 24 | (int)buf[1] << 16 | (int)buf[2] << 8 | (int)buf[3] << 0;
         }
         fclose(fp);
@@ -176,25 +176,25 @@ DWORD SBC_Version::GetDeviceTreeRanges(const char *filename, DWORD offset)
 }
 
 #if defined __linux__
-DWORD SBC_Version::GetPeripheralAddress(void)
+uint32_t SBC_Version::GetPeripheralAddress(void)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
-    DWORD address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 4);
+    uint32_t address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 4);
     if (address == 0) {
         address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 8);
     }
-    address = (address == (DWORD)~0) ? 0x20000000 : address;
+    address = (address == (uint32_t)~0) ? 0x20000000 : address;
 
     LOGDEBUG("Peripheral address : 0x%8x\n", address)
 
     return address;
 }
 #elif defined __NetBSD__
-DWORD SBC_Version::GetPeripheralAddress(void)
+uint32_t SBC_Version::GetPeripheralAddress(void)
 {
     char buf[1024];
     size_t len = sizeof(buf);
-    DWORD address;
+    uint32_t address;
 
     if (sysctlbyname("hw.model", buf, &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf) {
         // Failed to get CPU model || Not BCM2835
@@ -208,7 +208,7 @@ DWORD SBC_Version::GetPeripheralAddress(void)
     return address;
 }
 #else
-DWORD SBC_Version::GetPeripheralAddress(void)
+uint32_t SBC_Version::GetPeripheralAddress(void)
 {
     return 0;
 }

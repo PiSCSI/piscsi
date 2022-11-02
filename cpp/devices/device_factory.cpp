@@ -169,9 +169,9 @@ const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceTyp
 	return it != default_params.end() ? it->second : empty_map;
 }
 
-list<string> DeviceFactory::GetNetworkInterfaces() const
+vector<string> DeviceFactory::GetNetworkInterfaces() const
 {
-	list<string> network_interfaces;
+	vector<string> network_interfaces;
 
 #ifdef __linux__
 	ifaddrs *addrs;

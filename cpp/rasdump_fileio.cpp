@@ -60,7 +60,7 @@ bool Fileio::Open(const char *fname, OpenMode mode)
 	return Open(fname, mode, false);
 }
 
-bool Fileio::Read(BYTE *buffer, int size) const
+bool Fileio::Read(uint8_t *buffer, int size) const
 {
 	assert(buffer);
 	assert(size > 0);
@@ -69,7 +69,7 @@ bool Fileio::Read(BYTE *buffer, int size) const
 	return read(handle, buffer, size) == size;
 }
 
-bool Fileio::Write(const BYTE *buffer, int size) const
+bool Fileio::Write(const uint8_t *buffer, int size) const
 {
 	assert(buffer);
 	assert(size > 0);

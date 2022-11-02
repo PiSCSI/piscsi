@@ -67,5 +67,5 @@ private:
 	bool medium_changed = false;
 
 	// The list of image files in use and the IDs and LUNs using these files
-	static unordered_map<string, id_set> reserved_files;
+	static inline unordered_map<string, id_set> reserved_files;
 };
