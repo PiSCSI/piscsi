@@ -78,6 +78,10 @@ function initialChecks() {
 
 # checks that the current user has sudoers privileges
 function sudoCheck() {
+    if [[ $HEADLESS ]]; then
+        echo "Skipping password check in headless mode"
+        return 0
+    fi
     echo "Input your password to allow this script to make the above changes."
     sudo -v
 }
@@ -614,9 +618,9 @@ function installHfdisk() {
 
 # Fetch HFS drivers that the Web Interface uses
 function fetchHardDiskDrivers() {
-    if [ ! -f "$BASE/mac-hard-disk-drivers" ]; then
+    if [ ! -d "$BASE/mac-hard-disk-drivers" ]; then
         cd "$BASE" || exit 1
-        wget https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
+        wget -r https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
         unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
         rm mac-hard-disk-drivers.zip
     fi
