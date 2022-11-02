@@ -192,7 +192,7 @@ bool Rascsi::ProcessId(const string& id_spec, int& id, int& unit) const
 	return true;
 }
 
-bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process)
+bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
 {
 	int block_size = 0;
 	string name;
@@ -215,7 +215,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'z':
 			{
 				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(optarg_value_type(opt ,optarg_str));
+				post_process.emplace_back(opt ,optarg_str);
 				continue;
 			}
 			case 'b': {
@@ -251,7 +251,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			{
 				// Encountered filename
 				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(optarg_value_type(opt, optarg_str));
+				post_process.emplace_back(opt, optarg_str);
 				continue;
 			}
 
