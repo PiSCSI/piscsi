@@ -15,6 +15,7 @@ using namespace std;
 //---------------------------------------------------------------------------
 //
 // Get the number of bytes for a command
+// TODO Add the byte count to the enum value/command name mapping and remove the comparisons
 //
 //---------------------------------------------------------------------------
 int BUS::GetCommandByteCount(uint8_t opcode)
