@@ -98,16 +98,16 @@ bool Rascsi::InitBus() const
 	// GPIOBUS creation
 	bus = GPIOBUS_Factory::Create();
 
-	controller_manager = make_shared<ControllerManager>(bus);
-	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
-	executor  = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
-
 	// GPIO Initialization
 	if (!bus->Init()) {
 		return false;
 	}
 
 	bus->Reset();
+
+	controller_manager = make_shared<ControllerManager>(bus);
+	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
+	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
 
 	return true;
 }
