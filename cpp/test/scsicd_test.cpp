@@ -123,7 +123,7 @@ TEST(ScsiCdTest, ReadToc)
 
 	controller.AddDevice(cd);
 
-	EXPECT_THAT([&cd]() { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
 			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
 

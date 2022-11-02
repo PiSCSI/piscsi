@@ -14,11 +14,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "disk_track.h"
 #include "disk_cache.h"
 #include <cstdlib>
 #include <cassert>
+#include <algorithm>
 
 DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff)
 	: sec_path(path), sec_size(size), sec_blocks(blocks), imgoffset(imgoff)
@@ -29,15 +29,9 @@ DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff
 
 bool DiskCache::Save() const
 {
-	// Save track
-	for (const cache_t& c : cache) {
-		// Save if this is a valid track
-		if (c.disktrk && !c.disktrk->Save(sec_path)) {
-			return false;
-		}
-	}
-
-	return true;
+	// Save valid tracks
+	return none_of(cache.begin(), cache.end(), [this](const cache_t& c)
+			{ return c.disktrk != nullptr && !c.disktrk->Save(sec_path); });
 }
 
 shared_ptr<DiskTrack> DiskCache::GetTrack(uint32_t block)
@@ -52,7 +46,7 @@ shared_ptr<DiskTrack> DiskCache::GetTrack(uint32_t block)
 	return Assign(track);
 }
 
-bool DiskCache::ReadSector(vector<BYTE>& buf, uint32_t block)
+bool DiskCache::ReadSector(vector<uint8_t>& buf, uint32_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {
@@ -63,7 +57,7 @@ bool DiskCache::ReadSector(vector<BYTE>& buf, uint32_t block)
 	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-bool DiskCache::WriteSector(const vector<BYTE>& buf, uint32_t block)
+bool DiskCache::WriteSector(const vector<uint8_t>& buf, uint32_t block)
 {
 	shared_ptr<DiskTrack> disktrk = GetTrack(block);
 	if (disktrk == nullptr) {
@@ -97,7 +91,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 	for (size_t i = 0; i < cache.size(); i++) {
 		if (cache[i].disktrk == nullptr) {
 			// Try loading
-			if (Load((int)i, track, nullptr)) {
+			if (Load(static_cast<int>(i), track, nullptr)) {
 				// Success loading
 				cache[i].serial = serial;
 				return cache[i].disktrk;
@@ -134,7 +128,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 	shared_ptr<DiskTrack> disktrk = cache[c].disktrk;
 	cache[c].disktrk.reset();
 
-	if (Load((int)c, track, disktrk)) {
+	if (Load(static_cast<int>(c), track, disktrk)) {
 		// Successful loading
 		cache[c].serial = serial;
 		return cache[c].disktrk;
@@ -151,7 +145,7 @@ shared_ptr<DiskTrack> DiskCache::Assign(int track)
 //---------------------------------------------------------------------------
 bool DiskCache::Load(int index, int track, shared_ptr<DiskTrack> disktrk)
 {
-	assert(index >= 0 && index < (int)cache.size());
+	assert(index >= 0 && index < static_cast<int>(cache.size()));
 	assert(track >= 0);
 	assert(cache[index].disktrk == nullptr);
 

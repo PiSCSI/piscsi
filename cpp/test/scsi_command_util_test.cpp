@@ -19,11 +19,13 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	const int LENGTH = 26;
 
 	vector<int> cdb(6);
-	vector<BYTE> buf(LENGTH);
+	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Vendor-specific parameters are not supported";
 
 	cdb[0] = 0x15;
@@ -33,22 +35,30 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	buf[9] = 0x00;
 	buf[10] = 0x02;
 	buf[11] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 256); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[12] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[12] = 0x03;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
 	buf[24] = 0x02;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH - 1, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Not enough command parameters";
 
 	ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 512);
@@ -59,11 +69,13 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	const int LENGTH = 30;
 
 	vector<int> cdb(10);
-	vector<BYTE> buf(LENGTH);
+	vector<uint8_t> buf(LENGTH);
 
 	// PF (vendor-specific parameter format)
 	cdb[1] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Vendor-specific parameters are not supported";
 
 	// PF (standard parameter format)
@@ -72,22 +84,30 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	buf[13] = 0x00;
 	buf[14] = 0x02;
 	buf[15] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 256); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Page 0
 	buf[16] = 0x00;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Unsupported page 0 was not rejected";
 
 	// Page 3 (Format Device Page)
 	buf[16] = 0x03;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Requested sector size does not match current sector size";
 
 	// Match the requested to the current sector size
 	buf[28] = 0x02;
-	EXPECT_THROW(ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512), scsi_exception)
+	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH - 1, 512); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
 		<< "Not enough command parameters";
 
 	ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 512);
@@ -129,7 +149,7 @@ TEST(ScsiCommandUtilTest, AddAppleVendorModePage)
 
 TEST(ScsiCommandUtilTest, GetInt16)
 {
-	vector<BYTE> b = { 0xfe, 0xdc };
+	vector<uint8_t> b = { 0xfe, 0xdc };
 	EXPECT_EQ(0xfedc, GetInt16(b, 0));
 
 	vector<int> v = { 0x12, 0x34 };
@@ -164,7 +184,7 @@ TEST(ScsiCommandUtilTest, SetInt16)
 
 TEST(ScsiCommandUtilTest, SetInt32)
 {
-	vector<BYTE> buf(4);
+	vector<uint8_t> buf(4);
 	SetInt32(buf, 0, 0x12345678);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);
@@ -181,7 +201,7 @@ TEST(ScsiCommandUtilTest, SetInt32)
 
 TEST(ScsiCommandUtilTest, SetInt64)
 {
-	vector<BYTE> buf(8);
+	vector<uint8_t> buf(8);
 	SetInt64(buf, 0, 0x1234567887654321);
 	EXPECT_EQ(0x12, buf[0]);
 	EXPECT_EQ(0x34, buf[1]);

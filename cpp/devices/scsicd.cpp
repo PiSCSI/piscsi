@@ -123,9 +123,9 @@ void SCSICD::OpenIso()
 					+ to_string(size) + " bytes");
 		}
 
-		SetBlockCount((uint32_t)(size / 2352));
+		SetBlockCount(static_cast<uint32_t>(size / 2352));
 	} else {
-		SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
+		SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 	}
 
 	CreateDataTrack();
@@ -144,7 +144,7 @@ void SCSICD::OpenPhysical()
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 
 	CreateDataTrack();
 }
@@ -154,7 +154,7 @@ void SCSICD::CreateDataTrack()
 	// Create only one data track
 	assert(!tracks.size());
 	auto track = make_unique<CDTrack>();
-	track->Init(1, 0, (int)GetBlockCount() - 1);
+	track->Init(1, 0, static_cast<int>(GetBlockCount()) - 1);
 	track->SetPath(false, GetFilename());
 	tracks.push_back(move(track));
 	dataindex = 0;
@@ -162,7 +162,7 @@ void SCSICD::CreateDataTrack()
 
 void SCSICD::ReadToc()
 {
-	controller->SetLength(ReadTocInternal(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(ReadTocInternal(controller->GetCmd(), controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
@@ -222,12 +222,12 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 	}
 }
 
-int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
+int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
 {
 	CheckReady();
 
 	// Search for the track
-	const int index = SearchTrack((int)block);
+	const int index = SearchTrack(static_cast<int>(block));
 
 	// If invalid, out of range
 	if (index < 0) {
@@ -254,7 +254,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<BYTE>& buf, uint64_t block)
 	return super::Read(cdb, buf, block);
 }
 
-int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
+int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 {
 	CheckReady();
 
@@ -296,8 +296,8 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 			// Returns the final LBA+1 because it is AA
 			buf[0] = 0x00;
 			buf[1] = 0x0a;
-			buf[2] = (BYTE)tracks[0]->GetTrackNo();
-			buf[3] = (BYTE)last;
+			buf[2] = (uint8_t)tracks[0]->GetTrackNo();
+			buf[3] = (uint8_t)last;
 			buf[6] = 0xaa;
 			const uint32_t lba = tracks[tracks.size() - 1]->GetLast() + 1;
 			if (msf) {
@@ -316,8 +316,8 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 
 	// Create header
 	SetInt16(buf, 0, (loop << 3) + 2);
-	buf[2] = (BYTE)tracks[0]->GetTrackNo();
-	buf[3] = (BYTE)last;
+	buf[2] = (uint8_t)tracks[0]->GetTrackNo();
+	buf[3] = (uint8_t)last;
 
 	int offset = 4;
 
@@ -333,7 +333,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 		}
 
 		// track number
-		buf[offset + 2] = (BYTE)tracks[index]->GetTrackNo();
+		buf[offset + 2] = (uint8_t)tracks[index]->GetTrackNo();
 
 		// track address
 		if (msf) {
@@ -356,7 +356,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<BYTE>& buf)
 //	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
-void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
+void SCSICD::LBAtoMSF(uint32_t lba, uint8_t *msf) const
 {
 	// 75 and 75*60 get the remainder
 	uint32_t m = lba / (75 * 60);
@@ -376,9 +376,9 @@ void SCSICD::LBAtoMSF(uint32_t lba, BYTE *msf) const
 	assert(s < 60);
 	assert(f < 75);
 	msf[0] = 0x00;
-	msf[1] = (BYTE)m;
-	msf[2] = (BYTE)s;
-	msf[3] = (BYTE)f;
+	msf[1] = (uint8_t)m;
+	msf[2] = (uint8_t)s;
+	msf[3] = (uint8_t)f;
 }
 
 void SCSICD::ClearTrack()
@@ -403,7 +403,7 @@ int SCSICD::SearchTrack(uint32_t lba) const
 		// Listen to the track
 		assert(tracks[i]);
 		if (tracks[i]->IsValid(lba)) {
-			return (int)i;
+			return static_cast<int>(i);
 		}
 	}
 

@@ -17,7 +17,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "log.h"
 #include "cfilesystem.h"
 #include <dirent.h>
@@ -107,12 +106,12 @@ static char* U2S(const char *utf8)
 /// A 66 byte buffer is required for writing.
 //
 //---------------------------------------------------------------------------
-void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
+void Human68k::namests_t::GetCopyPath(uint8_t* szPath) const
 {
 	assert(szPath);
 
-	BYTE* p = szPath;
-	for (BYTE c : path) {
+	uint8_t* p = szPath;
+	for (uint8_t c : path) {
 		if (c == '\0')
 			break;
 		if (c == 0x09) {
@@ -132,16 +131,16 @@ void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 /// A 23 byte buffer is required for writing.
 //
 //---------------------------------------------------------------------------
-void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
+void Human68k::namests_t::GetCopyFilename(uint8_t* szFilename) const
 {
 	assert(szFilename);
 
 	size_t i;
-	BYTE* p = szFilename;
+	uint8_t* p = szFilename;
 
 	// Transfer the base file name
 	for (i = 0; i < 8; i++) {
-		BYTE c = name[i];
+		uint8_t c = name[i];
 		if (c == ' ') {
 			// Check that the file name continues after a space is detected
 			/// TODO: Should change this function to be compatible with 8+3 chars and TwentyOne
@@ -165,7 +164,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	if (i >= 8) {
 		// Transfer the extraneous part
 		for (i = 0; i < 10; i++) {
-			const BYTE c = add[i];
+			const uint8_t c = add[i];
 			if (c == '\0')
 				break;
 			*p++ = c;
@@ -177,7 +176,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	if (ext[0] != ' ' || ext[1] != ' ' || ext[2] != ' ') {
 		*p++ = '.';
 		for (i = 0; i < 3; i++) {
-			const BYTE c = ext[i];
+			const uint8_t c = ext[i];
 			if (c == ' ') {
 				// Check that the file extension continues after a space is detected
 				/// TODO: Should change this function to be compatible with 8+3 chars and TwentyOne
@@ -290,7 +289,7 @@ bool CHostDrv::isMediaOffline() const
 // Get media bytes
 //
 //---------------------------------------------------------------------------
-BYTE CHostDrv::GetMediaByte() const
+uint8_t CHostDrv::GetMediaByte() const
 {
 	return Human68k::MEDIA_REMOTE;
 }
@@ -474,7 +473,7 @@ void CHostDrv::CleanCache() const
 /// Update the cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostDrv::CleanCache(const BYTE* szHumanPath)
+void CHostDrv::CleanCache(const uint8_t* szHumanPath)
 {
 	assert(szHumanPath);
 
@@ -490,7 +489,7 @@ void CHostDrv::CleanCache(const BYTE* szHumanPath)
 /// Update the cache below and including the specified path
 //
 //---------------------------------------------------------------------------
-void CHostDrv::CleanCacheChild(const BYTE* szHumanPath) const
+void CHostDrv::CleanCacheChild(const uint8_t* szHumanPath) const
 {
 	assert(szHumanPath);
 
@@ -507,7 +506,7 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath) const
 /// Delete the cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostDrv::DeleteCache(const BYTE* szHumanPath)
+void CHostDrv::DeleteCache(const uint8_t* szHumanPath)
 {
 	auto p = FindCache(szHumanPath);
 	if (p) {
@@ -526,7 +525,7 @@ void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 /// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
-CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
+CHostPath* CHostDrv::FindCache(const uint8_t* szHuman)
 {
 	assert(szHuman);
 
@@ -602,7 +601,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	assert(m_szBase);
 	assert(strlen(m_szBase) < FILEPATH_MAX);
 
-	BYTE szHumanPath[HUMAN68K_PATH_MAX];	// Path names are entered in order from the route
+	uint8_t szHumanPath[HUMAN68K_PATH_MAX];	// Path names are entered in order from the route
 	szHumanPath[0] = '\0';
 	size_t nHumanPath = 0;
 
@@ -611,7 +610,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	size_t nHostPath = strlen(szHostPath);
 
 	CHostPath* pPath;
-	const BYTE* p = pFiles->GetHumanPath();
+	const uint8_t* p = pFiles->GetHumanPath();
 	for (;;) {
 		// Add path separators
 		if (nHumanPath + 1 >= HUMAN68K_PATH_MAX)
@@ -624,7 +623,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 		szHostPath[nHostPath] = '\0';
 
 		// Insert one file
-		BYTE szHumanFilename[24];		// File name part
+		uint8_t szHumanFilename[24];		// File name part
 		p = SeparateCopyFilename(p, szHumanFilename);
 		if (p == nullptr)
 			return nullptr;				// Error: Failed to read file name
@@ -767,13 +766,13 @@ void CHostFilename::SetHost(const TCHAR* szHost)
 /// Copy the Human68k file name elements
 //
 //---------------------------------------------------------------------------
-BYTE* CHostFilename::CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast)	// static
+uint8_t* CHostFilename::CopyName(uint8_t* pWrite, const uint8_t* pFirst, const uint8_t* pLast)	// static
 {
 	assert(pWrite);
 	assert(pFirst);
 	assert(pLast);
 
-	for (const BYTE* p = pFirst; p < pLast; p++) {
+	for (const uint8_t* p = pFirst; p < pLast; p++) {
 		*pWrite++ = *p;
 	}
 
@@ -812,42 +811,42 @@ void CHostFilename::ConvertHuman(int nCount)
 		nMax = 8;
 
 	// Preparations to adjust the base name segment
-	BYTE szNumber[8];
-	BYTE* pNumber = nullptr;
+	uint8_t szNumber[8];
+	uint8_t* pNumber = nullptr;
 	if (nCount >= 0) {
 		pNumber = &szNumber[8];
 		for (uint32_t i = 0; i < 5; i++) {	// Max 5+1 digits (always leave the first 2 bytes of the base name)
 			int n = nCount % 36;
 			nMax--;
 			pNumber--;
-			*pNumber = (BYTE)(n + (n < 10 ? '0' : 'A' - 10));
+			*pNumber = (uint8_t)(n + (n < 10 ? '0' : 'A' - 10));
 			nCount /= 36;
 			if (nCount == 0)
 				break;
 		}
 		nMax--;
 		pNumber--;
-		auto c = (BYTE)((nOption >> 24) & 0x7F);
+		auto c = (uint8_t)((nOption >> 24) & 0x7F);
 		if (c == 0)
 			c = XM6_HOST_FILENAME_MARK;
 		*pNumber = c;
 	}
 
 	// Char conversion
-	BYTE szHuman[FILEPATH_MAX];
-	const BYTE* pFirst = szHuman;
-	BYTE* pLast;
-	BYTE* pExt = nullptr;
+	uint8_t szHuman[FILEPATH_MAX];
+	const uint8_t* pFirst = szHuman;
+	uint8_t* pLast;
+	uint8_t* pExt = nullptr;
 
 	{
 		char szHost[FILEPATH_MAX];
 		strcpy(szHost, m_szHost);
-		auto pRead = (const BYTE*)szHost;
-		BYTE* pWrite = szHuman;
+		auto pRead = (const uint8_t*)szHost;
+		uint8_t* pWrite = szHuman;
 		const auto pPeriod = SeparateExt(pRead);
 
 		for (bool bFirst = true;; bFirst = false) {
-			BYTE c = *pRead++;
+			uint8_t c = *pRead++;
 			switch (c) {
 				case ' ':
 					if (nOption & WINDRV_OPT_REDUCED_SPACE)
@@ -938,11 +937,11 @@ void CHostFilename::ConvertHuman(int nCount)
 	// The above example becomes "This.Long.Filename.txt" after conversion
 
 	// Evaluate first char
-	const BYTE* pCut = pFirst;
-	const BYTE* pStop = pExt - nMax;	// Allow for up to 17 bytes for extension (leave base name)
+	const uint8_t* pCut = pFirst;
+	const uint8_t* pStop = pExt - nMax;	// Allow for up to 17 bytes for extension (leave base name)
 	if (pFirst < pExt) {
 		pCut++;		// 1 byte always uses the base name
-		BYTE c = *pFirst;
+		uint8_t c = *pFirst;
 		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
 			pCut++;		// Base name. At least 2 bytes.
 			pStop++;	// File extension. Max 16 bytes.
@@ -952,15 +951,15 @@ void CHostFilename::ConvertHuman(int nCount)
 		pStop = pFirst;
 
 	// Evaluate base name
-	pCut = (const BYTE*)strchr((const char*)pCut, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
+	pCut = (const uint8_t*)strchr((const char*)pCut, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pCut == nullptr)
 		pCut = pLast;
 	if ((size_t)(pCut - pFirst) > nMax)
 		pCut = pFirst + nMax;	// Execute Shift-JIS 2 byte evaluation/adjustment later. Not allowed to do it here.
 
 	// Evaluate extension
-	const BYTE* pSecond = pExt;
-	const BYTE* p;
+	const uint8_t* pSecond = pExt;
+	const uint8_t* p;
 	for (p = pExt - 1; pStop < p; p--) {
 		if (*p == '.')
 			pSecond = p;	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
@@ -972,7 +971,7 @@ void CHostFilename::ConvertHuman(int nCount)
 		pCut = pFirst + nMax - nExt;
 	// If in the middle of a 2 byte char, shorten even further
 	for (p = pFirst; p < pCut; p++) {
-		BYTE c = *p;
+		uint8_t c = *p;
 		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
 			p++;
 			if (p >= pCut) {
@@ -983,7 +982,7 @@ void CHostFilename::ConvertHuman(int nCount)
 	}
 
 	// Joining the name
-	BYTE* pWrite = m_szHuman;
+	uint8_t* pWrite = m_szHuman;
 	pWrite = CopyName(pWrite, pFirst, pCut);	// Transfer the base name
 	if (pNumber)
 		pWrite = CopyName(pWrite, pNumber, &szNumber[8]);	// Transfer the adjustment char
@@ -1019,7 +1018,7 @@ void CHostFilename::ConvertHuman(int nCount)
 /// Duplicates the file name segment data, then executes the correspoding initialization with ConvertHuman().
 //
 //---------------------------------------------------------------------------
-void CHostFilename::CopyHuman(const BYTE* szHuman)
+void CHostFilename::CopyHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
 	assert(strlen((const char*)szHuman) < 23);
@@ -1040,7 +1039,7 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 void CHostFilename::SetEntryName()
 {
 	// Set file name
-	const BYTE* p = m_szHuman;
+	const uint8_t* p = m_szHuman;
 	size_t i;
 	for (i = 0; i < 8; i++) {
 		if (p < m_pszHumanExt)
@@ -1059,7 +1058,7 @@ void CHostFilename::SetEntryName()
 	if (*p == '.')
 		p++;
 	for (i = 0; i < 3; i++) {
-		BYTE c = *p;
+		uint8_t c = *p;
 		if (c)
 			p++;
 		m_dirHuman.ext[i] = c;
@@ -1083,7 +1082,7 @@ bool CHostFilename::isReduce() const
 //---------------------------------------------------------------------------
 int CHostFilename::CheckAttribute(uint32_t nHumanAttribute) const
 {
-	BYTE nAttribute = m_dirHuman.attr;
+	uint8_t nAttribute = m_dirHuman.attr;
 	if ((nAttribute & (Human68k::AT_ARCHIVE | Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0)
 		nAttribute |= Human68k::AT_ARCHIVE;
 
@@ -1095,15 +1094,15 @@ int CHostFilename::CheckAttribute(uint32_t nHumanAttribute) const
 /// Split the extension from Human68k file name
 //
 //---------------------------------------------------------------------------
-const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
+const uint8_t* CHostFilename::SeparateExt(const uint8_t* szHuman)		// static
 {
 	// Obtain the file name length
 	const size_t nLength = strlen((const char*)szHuman);
-	const BYTE* pFirst = szHuman;
-	const BYTE* pLast = pFirst + nLength;
+	const uint8_t* pFirst = szHuman;
+	const uint8_t* pLast = pFirst + nLength;
 
 	// Confirm the position of the Human68k extension
-	auto pExt = (const BYTE*)strrchr((const char*)pFirst, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
+	auto pExt = (const uint8_t*)strrchr((const char*)pFirst, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pExt == nullptr)
 		pExt = pLast;
 	// Special handling of the pattern where the file name is 20~22 chars, and the 19th char is '.' or ends with '.'
@@ -1186,7 +1185,7 @@ void CHostPath::Clean()
 /// Specify Human68k side names directly
 //
 //---------------------------------------------------------------------------
-void CHostPath::SetHuman(const BYTE* szHuman)
+void CHostPath::SetHuman(const uint8_t* szHuman)
 {
 	assert(szHuman);
 	assert(strlen((const char*)szHuman) < HUMAN68K_PATH_MAX);
@@ -1212,7 +1211,7 @@ void CHostPath::SetHost(const TCHAR* szHost)
 /// Compare arrays (supports wildcards)
 //
 //---------------------------------------------------------------------------
-int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast)
+int CHostPath::Compare(const uint8_t* pFirst, const uint8_t* pLast, const uint8_t* pBufFirst, const uint8_t* pBufLast)
 {
 	assert(pFirst);
 	assert(pLast);
@@ -1222,10 +1221,10 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 	// Compare chars
 	bool bSkip0 = false;
 	bool bSkip1 = false;
-	for (const BYTE* p = pFirst; p < pLast; p++) {
+	for (const uint8_t* p = pFirst; p < pLast; p++) {
 		// Read 1 char
-		BYTE c = *p;
-		BYTE d = '\0';
+		uint8_t c = *p;
+		uint8_t d = '\0';
 		if (pBufFirst < pBufLast)
 			d = *pBufFirst++;
 
@@ -1289,7 +1288,7 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 /// Compare Human68k side name
 //
 //---------------------------------------------------------------------------
-bool CHostPath::isSameHuman(const BYTE* szHuman) const
+bool CHostPath::isSameHuman(const uint8_t* szHuman) const
 {
 	assert(szHuman);
 
@@ -1305,7 +1304,7 @@ bool CHostPath::isSameHuman(const BYTE* szHuman) const
 	return Compare(m_szHuman, m_szHuman + nLength, szHuman, szHuman + n) == 0;
 }
 
-bool CHostPath::isSameChild(const BYTE* szHuman) const
+bool CHostPath::isSameChild(const uint8_t* szHuman) const
 {
 	assert(szHuman);
 
@@ -1330,14 +1329,14 @@ bool CHostPath::isSameChild(const BYTE* szHuman) const
 /// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
-const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, uint32_t nHumanAttribute) const
+const CHostFilename* CHostPath::FindFilename(const uint8_t* szHuman, uint32_t nHumanAttribute) const
 {
 	assert(szHuman);
 
 	// Calulate number of chars
-	const BYTE* pFirst = szHuman;
+	const uint8_t* pFirst = szHuman;
 	size_t nLength = strlen((const char*)pFirst);
-	const BYTE* pLast = pFirst + nLength;
+	const uint8_t* pLast = pFirst + nLength;
 
 	// Find something that matches perfectly with either of the stored file names
 	const ring_t* p = (ring_t*)m_cRing.Next();
@@ -1345,8 +1344,8 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, uint32_t nHuma
 		if (p->f.CheckAttribute(nHumanAttribute) == 0)
 			continue;
 		// Calulate number of chars
-		const BYTE* pBufFirst = p->f.GetHuman();
-		const BYTE* pBufLast = p->f.GetHumanLast();
+		const uint8_t* pBufFirst = p->f.GetHuman();
+		const uint8_t* pBufLast = p->f.GetHumanLast();
 		// Check number of chars
 		if (size_t nBufLength = pBufLast - pBufFirst; nLength != nBufLength)
 			continue;
@@ -1367,15 +1366,15 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, uint32_t nHuma
 /// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
-const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, uint32_t nHumanAttribute, find_t* pFind) const
+const CHostFilename* CHostPath::FindFilenameWildcard(const uint8_t* szHuman, uint32_t nHumanAttribute, find_t* pFind) const
 {
 	assert(szHuman);
 	assert(pFind);
 
 	// Split the base file name and Human68k file extension
-	const BYTE* pFirst = szHuman;
-	const BYTE* pLast = pFirst + strlen((const char*)pFirst);
-	const BYTE* pExt = CHostFilename::SeparateExt(pFirst);
+	const uint8_t* pFirst = szHuman;
+	const uint8_t* pLast = pFirst + strlen((const char*)pFirst);
+	const uint8_t* pExt = CHostFilename::SeparateExt(pFirst);
 
 	// Move to the start position
 	auto p = (const ring_t*)m_cRing.Next();
@@ -1416,9 +1415,9 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, uint32
 			continue;
 
 		// Split the base file name and Human68k file extension
-		const BYTE* pBufFirst = p->f.GetHuman();
-		const BYTE* pBufLast = p->f.GetHumanLast();
-		const BYTE* pBufExt = p->f.GetHumanExt();
+		const uint8_t* pBufFirst = p->f.GetHuman();
+		const uint8_t* pBufLast = p->f.GetHumanLast();
+		const uint8_t* pBufExt = p->f.GetHumanExt();
 
 		// Compare base file name
 		if (Compare(pFirst, pExt, pBufFirst, pBufExt))
@@ -1575,7 +1574,7 @@ void CHostPath::Refresh()
 		if (stat(S2U(szPath), &sb))
 			continue;
 
-		BYTE nHumanAttribute = Human68k::AT_ARCHIVE;
+		uint8_t nHumanAttribute = Human68k::AT_ARCHIVE;
 		if (S_ISDIR(sb.st_mode))
 			nHumanAttribute = Human68k::AT_DIRECTORY;
 		if ((sb.st_mode & 0200) == 0)
@@ -1772,7 +1771,7 @@ void CHostEntry::CleanCache(uint32_t nUnit) const
 /// Update the cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCache(uint32_t nUnit, const BYTE* szHumanPath) const
+void CHostEntry::CleanCache(uint32_t nUnit, const uint8_t* szHumanPath) const
 {
 	assert(szHumanPath);
 	assert(nUnit < DRIVE_MAX);
@@ -1786,7 +1785,7 @@ void CHostEntry::CleanCache(uint32_t nUnit, const BYTE* szHumanPath) const
 /// Update all cache for the specified path and below
 //
 //---------------------------------------------------------------------------
-void CHostEntry::CleanCacheChild(uint32_t nUnit, const BYTE* szHumanPath) const
+void CHostEntry::CleanCacheChild(uint32_t nUnit, const uint8_t* szHumanPath) const
 {
 	assert(szHumanPath);
 	assert(nUnit < DRIVE_MAX);
@@ -1800,7 +1799,7 @@ void CHostEntry::CleanCacheChild(uint32_t nUnit, const BYTE* szHumanPath) const
 /// Delete cache for the specified path
 //
 //---------------------------------------------------------------------------
-void CHostEntry::DeleteCache(uint32_t nUnit, const BYTE* szHumanPath) const
+void CHostEntry::DeleteCache(uint32_t nUnit, const uint8_t* szHumanPath) const
 {
 	assert(szHumanPath);
 	assert(nUnit < DRIVE_MAX);
@@ -1880,7 +1879,7 @@ bool CHostEntry::isMediaOffline(uint32_t nUnit) const
 /// Get media byte
 //
 //---------------------------------------------------------------------------
-BYTE CHostEntry::GetMediaByte(uint32_t nUnit) const
+uint8_t CHostEntry::GetMediaByte(uint32_t nUnit) const
 {
 	assert(nUnit < DRIVE_MAX);
 	assert(m_pDrv[nUnit]);
@@ -1990,15 +1989,15 @@ bool CHostEntry::GetCapacityCache(uint32_t nUnit, Human68k::capacity_t* pCapacit
 /// If the array ends with a '/' treat it as an empty array and don't trow an error.
 //
 //---------------------------------------------------------------------------
-const BYTE* CHostDrv::SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer)		// static
+const uint8_t* CHostDrv::SeparateCopyFilename(const uint8_t* szHuman, uint8_t* szBuffer)		// static
 {
 	assert(szHuman);
 	assert(szBuffer);
 
 	const size_t nMax = 22;
-	const BYTE* p = szHuman;
+	const uint8_t* p = szHuman;
 
-	BYTE c = *p++;				// Read
+	uint8_t c = *p++;				// Read
 	if (c != '/' && c != '\\')
 		return nullptr;			// Error: Invalid path name
 
@@ -2263,7 +2262,7 @@ void CHostFcb::SetFilename(const TCHAR* szFilename)
 	strcpy(m_szFilename, szFilename);
 }
 
-void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
+void CHostFcb::SetHumanPath(const uint8_t* szHumanPath)
 {
 	assert(szHumanPath);
 	assert(strlen((const char*)szHumanPath) < HUMAN68K_PATH_MAX);
@@ -2327,12 +2326,12 @@ bool CHostFcb::Open()
 /// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
-uint32_t CHostFcb::Read(BYTE* pBuffer, uint32_t nSize)
+uint32_t CHostFcb::Read(uint8_t* pBuffer, uint32_t nSize)
 {
 	assert(pBuffer);
 	assert(m_pFile);
 
-	size_t nResult = fread(pBuffer, sizeof(BYTE), nSize, m_pFile);
+	size_t nResult = fread(pBuffer, sizeof(uint8_t), nSize, m_pFile);
 	if (ferror(m_pFile))
 		nResult = (size_t)-1;
 
@@ -2347,12 +2346,12 @@ uint32_t CHostFcb::Read(BYTE* pBuffer, uint32_t nSize)
 /// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
-uint32_t CHostFcb::Write(const BYTE* pBuffer, uint32_t nSize)
+uint32_t CHostFcb::Write(const uint8_t* pBuffer, uint32_t nSize)
 {
 	assert(pBuffer);
 	assert(m_pFile);
 
-	size_t nResult = fwrite(pBuffer, sizeof(BYTE), nSize, m_pFile);
+	size_t nResult = fwrite(pBuffer, sizeof(uint8_t), nSize, m_pFile);
 	if (ferror(m_pFile))
 		nResult = (size_t)-1;
 
@@ -2752,7 +2751,7 @@ int CFileSys::RemoveDir(uint32_t nUnit, const Human68k::namests_t* pNamests) con
 		return FS_DIRNOTFND;
 
 	// Delete cache
-	BYTE szHuman[HUMAN68K_PATH_MAX + 24];
+	uint8_t szHuman[HUMAN68K_PATH_MAX + 24];
 	assert(strlen((const char*)f.GetHumanPath()) +
 		strlen((const char*)f.GetHumanFilename()) < HUMAN68K_PATH_MAX + 24);
 	strcpy((char*)szHuman, (const char*)f.GetHumanPath());
@@ -3006,7 +3005,7 @@ int CFileSys::Files(uint32_t nUnit, uint32_t nKey, const Human68k::namests_t* pN
 	}
 
 	// Store search results
-	pFiles->attr = (BYTE)pHostFiles->GetAttribute();
+	pFiles->attr = (uint8_t)pHostFiles->GetAttribute();
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
@@ -3054,7 +3053,7 @@ int CFileSys::NFiles(uint32_t nUnit, uint32_t nKey, Human68k::files_t* pFiles)
 	assert(pFiles->offset == 0);
 
 	// Store search results
-	pFiles->attr = (BYTE)pHostFiles->GetAttribute();
+	pFiles->attr = (uint8_t)pHostFiles->GetAttribute();
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
@@ -3245,7 +3244,7 @@ int CFileSys::Close(uint32_t nUnit, uint32_t nKey, const Human68k::fcb_t* /* pFc
 /// Clean exit when 0 bytes are read.
 //
 //---------------------------------------------------------------------------
-int CFileSys::Read(uint32_t nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, uint32_t nSize)
+int CFileSys::Read(uint32_t nKey, Human68k::fcb_t* pFcb, uint8_t* pBuffer, uint32_t nSize)
 {
 	assert(nKey);
 	assert(pFcb);
@@ -3284,7 +3283,7 @@ int CFileSys::Read(uint32_t nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, uint32_t
 /// Truncate file if 0 bytes are written.
 //
 //---------------------------------------------------------------------------
-int CFileSys::Write(uint32_t nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, uint32_t nSize)
+int CFileSys::Write(uint32_t nKey, Human68k::fcb_t* pFcb, const uint8_t* pBuffer, uint32_t nSize)
 {
 	assert(nKey);
 	assert(pFcb);
@@ -3462,7 +3461,7 @@ int CFileSys::CtrlDrive(uint32_t nUnit, Human68k::ctrldrive_t* pCtrlDrive) const
 	switch (pCtrlDrive->status) {
 		case 0:		// Inspect status
 		case 9:		// Inspect status 2
-			pCtrlDrive->status = (BYTE)m_cEntry.GetStatus(nUnit);
+			pCtrlDrive->status = (uint8_t)m_cEntry.GetStatus(nUnit);
 			return pCtrlDrive->status;
 
 		case 1:		// Eject
@@ -3501,7 +3500,7 @@ int CFileSys::GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const
 		return FS_FATAL_INVALIDUNIT;
 
 	Human68k::capacity_t cap;
-	BYTE media = Human68k::MEDIA_REMOTE;
+	uint8_t media = Human68k::MEDIA_REMOTE;
 	if (nUnit < m_nUnits) {
 		media = m_cEntry.GetMediaByte(nUnit);
 
@@ -3549,11 +3548,11 @@ int CFileSys::GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const
 	// Set DPB
 	pDpb->sector_size = cap.bytes;		// Bytes per sector
 	pDpb->cluster_size =
-		(BYTE)(cap.sectors - 1);				// Sectors per cluster - 1
-	pDpb->shift = (BYTE)nShift;					// Number of cluster → sector shifts
+		(uint8_t)(cap.sectors - 1);				// Sectors per cluster - 1
+	pDpb->shift = (uint8_t)nShift;					// Number of cluster → sector shifts
 	pDpb->fat_sector = (uint16_t)nFat;				// First FAT sector number
 	pDpb->fat_max = 1;							// Number of FAT memory spaces
-	pDpb->fat_size = (BYTE)cap.sectors;			// Number of sectors controlled by FAT (excluding copies)
+	pDpb->fat_size = (uint8_t)cap.sectors;			// Number of sectors controlled by FAT (excluding copies)
 	pDpb->file_max =
 		(uint16_t)(cap.sectors * cap.bytes / 0x20);	// Number of files in the root directory
 	pDpb->data_sector = (uint16_t)nData;			// First sector number of data memory
@@ -3572,7 +3571,7 @@ int CFileSys::GetDPB(uint32_t nUnit, Human68k::dpb_t* pDpb) const
 /// Buffer size is hard coded to $200 byte.
 //
 //---------------------------------------------------------------------------
-int CFileSys::DiskRead(uint32_t nUnit, BYTE* pBuffer, uint32_t nSector, uint32_t nSize)
+int CFileSys::DiskRead(uint32_t nUnit, uint8_t* pBuffer, uint32_t nSector, uint32_t nSize)
 {
 	assert(pBuffer);
 
@@ -3828,14 +3827,14 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 	// Initialize number of drives
 	m_nDrives = 0;
 
-	const BYTE* pp = pArgument->buf;
+	const uint8_t* pp = pArgument->buf;
 	pp += strlen((const char*)pp) + 1;
 
 	uint32_t nOption = m_nOptionDefault;
 	for (;;) {
 		assert(pp < pArgument->buf + sizeof(*pArgument));
-		const BYTE* p = pp;
-		BYTE c = *p++;
+		const uint8_t* p = pp;
+		uint8_t c = *p++;
 		if (c == '\0')
 			break;
 

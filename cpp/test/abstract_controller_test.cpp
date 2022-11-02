@@ -110,12 +110,12 @@ TEST(AbstractControllerTest, ProcessPhase)
 	controller.ProcessPhase();
 
 	controller.SetPhase(BUS::phase_t::reselection);
-	EXPECT_THAT([&controller]() { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
 			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 
 	controller.SetPhase(BUS::phase_t::reserved);
-	EXPECT_THAT([&controller]() { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
 			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 }
@@ -143,6 +143,7 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	EXPECT_EQ(nullptr, controller.GetDeviceForLun(0));
 	EXPECT_TRUE(controller.RemoveDevice(device1));
 	EXPECT_EQ(0, controller.GetLunCount());
+	EXPECT_FALSE(controller.RemoveDevice(device1));
 }
 
 TEST(AbstractControllerTest, ExtractInitiatorId)
@@ -163,8 +164,8 @@ TEST(AbstractControllerTest, GetOpcode)
 
 	vector<int>& cmd = controller.GetCmd();
 
-	cmd[0] = 0x12;
-	EXPECT_EQ(0x12, (int)controller.GetOpcode());
+	cmd[0] = static_cast<int>(scsi_command::eCmdInquiry);
+	EXPECT_EQ(scsi_command::eCmdInquiry, controller.GetOpcode());
 }
 
 TEST(AbstractControllerTest, GetLun)
@@ -179,7 +180,17 @@ TEST(AbstractControllerTest, GetLun)
 	EXPECT_EQ(LUN, controller.GetLun());
 }
 
-TEST(AbstractControllerTest, SetLength)
+TEST(AbstractControllerTest, Blocks)
+{
+	MockAbstractController controller(make_shared<MockBus>(), 0);
+
+	controller.SetBlocks(1);
+	EXPECT_EQ(1, controller.GetBlocks());
+	controller.DecrementBlocks();
+	EXPECT_EQ(0, controller.GetBlocks());
+}
+
+TEST(AbstractControllerTest, Length)
 {
 	MockAbstractController controller(make_shared<MockBus>(), 0);
 

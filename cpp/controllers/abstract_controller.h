@@ -25,12 +25,6 @@ class PrimaryDevice;
 
 class AbstractController : public PhaseHandler
 {
-	friend class PrimaryDevice;
-	friend class ScsiController;
-
-	// Logical units of this controller mapped to their LUN numbers
-	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
-
 public:
 
 	enum class rascsi_shutdown_mode {
@@ -38,21 +32,6 @@ public:
 		STOP_RASCSI,
 		STOP_PI,
 		RESTART_PI
-	};
-
-	using ctrl_t = struct _ctrl_t {
-		// Command data, dynamically resized if required
-		vector<int> cmd = vector<int>(16);
-
-		scsi_defs::status status;		// Status data
-		int message;					// Message data
-
-		// Transfer
-		vector<BYTE> buffer;			// Transfer data buffer
-		uint32_t blocks;				// Number of transfer blocks
-		uint64_t next;					// Next record
-		uint32_t offset;				// Transfer offset
-		uint32_t length;				// Transfer remaining length
 	};
 
 	AbstractController(shared_ptr<BUS> bus, int target_id, int max_luns) : target_id(target_id), bus(bus), max_luns(max_luns) {}
@@ -70,17 +49,18 @@ public:
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }
-	int GetLunCount() const { return (int)luns.size(); }
+	int GetLunCount() const { return static_cast<int>(luns.size()); }
 
 	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
 	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
 	bool AddDevice(shared_ptr<PrimaryDevice>);
-	bool RemoveDevice(const shared_ptr<PrimaryDevice>);
+	bool RemoveDevice(shared_ptr<PrimaryDevice>);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
 
+	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
-	vector<BYTE>& GetBuffer() { return ctrl.buffer; }
+	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
@@ -88,26 +68,56 @@ public:
 	uint32_t GetBlocks() const { return ctrl.blocks; }
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 	void DecrementBlocks() { --ctrl.blocks; }
-
+	uint64_t GetNext() const { return ctrl.next; }
+	void SetNext(uint64_t n) { ctrl.next = n; }
+	void IncrementNext() { ++ctrl.next; }
+	int GetMessage() const { return ctrl.message; }
+	void SetMessage(int m) { ctrl.message = m; }
+	vector<int>& GetCmd() { return ctrl.cmd; }
+	int GetCmd(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
+	uint32_t GetBytesToTransfer() const { return bytes_to_transfer; }
+	void SetBytesToTransfer(uint32_t b) { bytes_to_transfer = b; }
 
 protected:
+
+	inline shared_ptr<BUS> GetBus() const { return bus; }
 
 	scsi_defs::scsi_command GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
 
 	void ProcessPhase();
 
-	vector<int>& GetCmd() { return ctrl.cmd; }
 	void AllocateCmd(size_t);
 
+	// TODO These should probably be extracted into a new TransferHandler class
 	bool HasValidLength() const { return ctrl.length != 0; }
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
 private:
+
+	using ctrl_t = struct _ctrl_t {
+		// Command data, dynamically resized if required
+		vector<int> cmd = vector<int>(16);
+
+		scsi_defs::status status;		// Status data
+		int message;					// Message data
+
+		// Transfer
+		vector<uint8_t> buffer;			// Transfer data buffer
+		uint32_t blocks;				// Number of transfer blocks
+		uint64_t next;					// Next record
+		uint32_t offset;				// Transfer offset
+		uint32_t length;				// Transfer remaining length
+	};
+
+	ctrl_t ctrl = {};
+
+	// Logical units of this controller mapped to their LUN numbers
+	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
 	int target_id;
 
@@ -117,7 +127,4 @@ private:
 
 	bool is_byte_transfer = false;
 	uint32_t bytes_to_transfer = 0;
-
-	ctrl_t ctrl = {};
-	ctrl_t* GetCtrl() { return &ctrl; }
 };

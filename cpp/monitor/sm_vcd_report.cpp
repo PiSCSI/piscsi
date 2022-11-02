@@ -9,7 +9,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
 #include "log.h"
 #include <sstream>
 #include <iostream>
@@ -49,16 +48,16 @@ const int PIN_PHASE = 0;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static BYTE prev_value[32] = {0xFF};
+static uint8_t prev_value[32] = {0xFF};
 
 extern double ns_per_loop;
 
-static BYTE get_pin_value(uint32_t data, int pin)
+static uint8_t get_pin_value(uint32_t data, int pin)
 {
     return (data >> pin) & 1;
 }
 
-static BYTE get_data_field(uint32_t data)
+static uint8_t get_data_field(uint32_t data)
 {
     const uint32_t data_out =
         ((data >> (PIN_DT0 - 0)) & (1 << 7)) |
@@ -70,21 +69,21 @@ static BYTE get_data_field(uint32_t data)
         ((data >> (PIN_DT6 - 6)) & (1 << 1)) |
         ((data >> (PIN_DT7 - 7)) & (1 << 0));
 
-    return (BYTE)data_out;
+    return (uint8_t)data_out;
 }
 
 static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
 {
     const BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if (prev_value[pin] != (int)new_value) {
-        prev_value[pin] = (int)new_value;
+    if (prev_value[pin] != static_cast<int>(new_value)) {
+        prev_value[pin] = static_cast<int>(new_value);
         fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }
 
 static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    const BYTE new_value = get_pin_value(data, pin);
+    const uint8_t new_value = get_pin_value(data, pin);
     if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << new_value << symbol << endl;
@@ -93,7 +92,7 @@ static void vcd_output_if_changed_bool(ofstream& fp, uint32_t data, int pin, cha
 
 static void vcd_output_if_changed_byte(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-	const BYTE new_value = get_data_field(data);
+	const uint8_t new_value = get_data_field(data);
     if (prev_value[pin] != new_value) {
         prev_value[pin] = new_value;
         fp << "b"

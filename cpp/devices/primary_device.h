@@ -29,7 +29,7 @@ public:
 	int GetId() const override;
 
 	void SetController(AbstractController *);
-	virtual bool WriteByteSequence(vector<BYTE>&, uint32_t);
+	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
 
 	int GetSendDelay() const { return send_delay; }
 
@@ -60,8 +60,8 @@ protected:
 	void EnterDataInPhase() { controller->DataIn(); }
 	void EnterDataOutPhase() { controller->DataOut(); }
 
+	// TODO Try to replace this raw pointer, maybe by a weak_ptr
 	AbstractController *controller = nullptr;
-	AbstractController::ctrl_t *ctrl = nullptr;
 
 private:
 

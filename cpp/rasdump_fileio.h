@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "os.h"
+#include <cstdint>
 #include <cstdlib>
 
 class Fileio
@@ -29,8 +29,8 @@ public:
 	Fileio& operator=(const Fileio&) = default;
 
 	bool Open(const char *fname, OpenMode mode);
-	bool Read(BYTE *buffer, int size) const;
-	bool Write(const BYTE *buffer, int size) const;
+	bool Read(uint8_t *buffer, int size) const;
+	bool Write(const uint8_t *buffer, int size) const;
 	off_t GetFileSize() const;
 	void Close();
 

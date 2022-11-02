@@ -13,7 +13,7 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length,
+void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length,
 		int sector_size)
 {
 	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
@@ -99,91 +99,91 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 	pages[48] = buf;
 }
 
-int scsi_command_util::GetInt16(const vector<BYTE>& buf, int offset)
+int scsi_command_util::GetInt16(const vector<uint8_t>& buf, int offset)
 {
-	assert(buf.size() > (size_t)offset + 1);
+	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	return ((int)buf[offset] << 8) | buf[offset + 1];
+	return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
 }
 
 int scsi_command_util::GetInt16(const vector<int>& buf, int offset)
 {
-	assert(buf.size() > (size_t)offset + 1);
+	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
 	return (buf[offset] << 8) | buf[offset + 1];
 }
 
 int scsi_command_util::GetInt24(const vector<int>& buf, int offset)
 {
-	assert(buf.size() > (size_t)offset + 2);
+	assert(buf.size() > static_cast<size_t>(offset) + 2);
 
 	return (buf[offset] << 16) | (buf[offset + 1] << 8) | buf[offset + 2];
 }
 
 uint32_t scsi_command_util::GetInt32(const vector<int>& buf, int offset)
 {
-	assert(buf.size() > (size_t)offset + 3);
+	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	return ((uint32_t)buf[offset] << 24) | ((uint32_t)buf[offset + 1] << 16) |
-			((uint32_t)buf[offset + 2] << 8) | (uint32_t)buf[offset + 3];
+	return (static_cast<uint32_t>(buf[offset]) << 24) | (static_cast<uint32_t>(buf[offset + 1]) << 16) |
+			(static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
 }
 
 uint64_t scsi_command_util::GetInt64(const vector<int>& buf, int offset)
 {
-	assert(buf.size() > (size_t)offset + 7);
+	assert(buf.size() > static_cast<size_t>(offset) + 7);
 
-	return ((uint64_t)buf[offset] << 56) | ((uint64_t)buf[offset + 1] << 48) |
-			((uint64_t)buf[offset + 2] << 40) | ((uint64_t)buf[offset + 3] << 32) |
-			((uint64_t)buf[offset + 4] << 24) | ((uint64_t)buf[offset + 5] << 16) |
-			((uint64_t)buf[offset + 6] << 8) | (uint64_t)buf[offset + 7];
+	return (static_cast<uint64_t>(buf[offset]) << 56) | (static_cast<uint64_t>(buf[offset + 1]) << 48) |
+			(static_cast<uint64_t>(buf[offset + 2]) << 40) | (static_cast<uint64_t>(buf[offset + 3]) << 32) |
+			(static_cast<uint64_t>(buf[offset + 4]) << 24) | (static_cast<uint64_t>(buf[offset + 5]) << 16) |
+			(static_cast<uint64_t>(buf[offset + 6]) << 8) | static_cast<uint64_t>(buf[offset + 7]);
 }
 
 void scsi_command_util::SetInt16(vector<byte>& buf, int offset, int value)
 {
-	assert(buf.size() > (size_t)offset + 1);
+	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	buf[offset] = (byte)(value >> 8);
-	buf[offset + 1] = (byte)value;
+	buf[offset] = static_cast<byte>(value >> 8);
+	buf[offset + 1] = static_cast<byte>(value);
 }
 
 void scsi_command_util::SetInt32(vector<byte>& buf, int offset, uint32_t value)
 {
-	assert(buf.size() > (size_t)offset + 3);
+	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	buf[offset] = (byte)(value >> 24);
-	buf[offset + 1] = (byte)(value >> 16);
-	buf[offset + 2] = (byte)(value >> 8);
-	buf[offset + 3] = (byte)value;
+	buf[offset] = static_cast<byte>(value >> 24);
+	buf[offset + 1] = static_cast<byte>(value >> 16);
+	buf[offset + 2] = static_cast<byte>(value >> 8);
+	buf[offset + 3] = static_cast<byte>(value);
 }
 
-void scsi_command_util::SetInt16(vector<BYTE>& buf, int offset, int value)
+void scsi_command_util::SetInt16(vector<uint8_t>& buf, int offset, int value)
 {
-	assert(buf.size() > (size_t)offset + 1);
+	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
-	buf[offset] = (BYTE)(value >> 8);
-	buf[offset + 1] = (BYTE)value;
+	buf[offset] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 1] = static_cast<uint8_t>(value);
 }
 
-void scsi_command_util::SetInt32(vector<BYTE>& buf, int offset, uint32_t value)
+void scsi_command_util::SetInt32(vector<uint8_t>& buf, int offset, uint32_t value)
 {
-	assert(buf.size() > (size_t)offset + 3);
+	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
-	buf[offset] = (BYTE)(value >> 24);
-	buf[offset + 1] = (BYTE)(value >> 16);
-	buf[offset + 2] = (BYTE)(value >> 8);
-	buf[offset + 3] = (BYTE)value;
+	buf[offset] = static_cast<uint8_t>(value >> 24);
+	buf[offset + 1] = static_cast<uint8_t>(value >> 16);
+	buf[offset + 2] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 3] = static_cast<uint8_t>(value);
 }
 
-void scsi_command_util::SetInt64(vector<BYTE>& buf, int offset, uint64_t value)
+void scsi_command_util::SetInt64(vector<uint8_t>& buf, int offset, uint64_t value)
 {
-	assert(buf.size() > (size_t)offset + 7);
+	assert(buf.size() > static_cast<size_t>(offset) + 7);
 
-	buf[offset] = (BYTE)(value >> 56);
-	buf[offset + 1] = (BYTE)(value >> 48);
-	buf[offset + 2] = (BYTE)(value >> 40);
-	buf[offset + 3] = (BYTE)(value >> 32);
-	buf[offset + 4] = (BYTE)(value >> 24);
-	buf[offset + 5] = (BYTE)(value >> 16);
-	buf[offset + 6] = (BYTE)(value >> 8);
-	buf[offset + 7] = (BYTE)value;
+	buf[offset] = static_cast<uint8_t>(value >> 56);
+	buf[offset + 1] = static_cast<uint8_t>(value >> 48);
+	buf[offset + 2] = static_cast<uint8_t>(value >> 40);
+	buf[offset + 3] = static_cast<uint8_t>(value >> 32);
+	buf[offset + 4] = static_cast<uint8_t>(value >> 24);
+	buf[offset + 5] = static_cast<uint8_t>(value >> 16);
+	buf[offset + 6] = static_cast<uint8_t>(value >> 8);
+	buf[offset + 7] = static_cast<uint8_t>(value);
 }

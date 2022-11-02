@@ -34,7 +34,7 @@ bool ModePageDevice::Dispatch(scsi_command cmd)
 	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
 }
 
-int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int offset, int length, int max_size) const
+int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
 	int max_length = length - offset;
 	if (max_length < 0) {
@@ -88,11 +88,11 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 		result[off + 1] = (byte)(page0.size() - 2);
 	}
 
-	if ((int)result.size() > max_size) {
+	if (static_cast<int>(result.size()) > max_size) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	auto size = (int)min((size_t)max_length, result.size());
+	auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
 	memcpy(&buf.data()[offset], result.data(), size);
 
 	// Do not return more than the requested number of bytes
@@ -101,42 +101,42 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<BYTE>& buf, int 
 
 void ModePageDevice::ModeSense6()
 {
-	controller->SetLength(ModeSense6(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(ModeSense6(controller->GetCmd(), controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
 
 void ModePageDevice::ModeSense10()
 {
-	controller->SetLength(ModeSense10(ctrl->cmd, controller->GetBuffer()));
+	controller->SetLength(ModeSense10(controller->GetCmd(), controller->GetBuffer()));
 
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<BYTE>&, int) const
+void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<uint8_t>&, int) const
 {
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 void ModePageDevice::ModeSelect6()
 {
-	controller->SetLength(SaveParametersCheck(ctrl->cmd[4]));
+	controller->SetLength(SaveParametersCheck(controller->GetCmd(4)));
 
 	EnterDataOutPhase();
 }
 
 void ModePageDevice::ModeSelect10()
 {
-	const size_t length = min(controller->GetBuffer().size(), (size_t)GetInt16(ctrl->cmd, 7));
+	const size_t length = min(controller->GetBuffer().size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 7)));
 
-	controller->SetLength(SaveParametersCheck((uint32_t)length));
+	controller->SetLength(SaveParametersCheck(static_cast<uint32_t>(length)));
 
 	EnterDataOutPhase();
 }
 
 int ModePageDevice::SaveParametersCheck(int length) const
 {
-	if (!SupportsSaveParameters() && (ctrl->cmd[1] & 0x01)) {
+	if (!SupportsSaveParameters() && (controller->GetCmd(1) & 0x01)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

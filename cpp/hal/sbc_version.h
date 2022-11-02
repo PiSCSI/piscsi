@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #pragma once
-#include "os.h"
+
 #include <map>
 #include <string>
 
@@ -47,7 +47,7 @@ class SBC_Version
 
     static const std::string *GetString();
 
-    static DWORD GetPeripheralAddress();
+    static uint32_t GetPeripheralAddress();
 
   private:
     static sbc_version_type m_sbc_version;
@@ -66,5 +66,5 @@ class SBC_Version
 
     static const std::string m_device_tree_model_path;
 
-    static DWORD GetDeviceTreeRanges(const char *filename, DWORD offset);
+    static uint32_t GetDeviceTreeRanges(const char *filename, uint32_t offset);
 };

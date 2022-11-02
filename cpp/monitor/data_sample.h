@@ -32,10 +32,10 @@ inline bool GetCd(const data_capture *sample) { return BUS::GetPinRaw(sample->da
 inline bool GetIo(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_IO); }
 inline bool GetReq(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_REQ); }
 inline bool GetDp(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_DP); }
-inline BYTE GetData(const data_capture *sample)
+inline uint8_t GetData(const data_capture *sample)
 {
 	uint32_t data = sample->data;
-	return (BYTE)((data >> (PIN_DT0 - 0)) & (1 << 0)) |
+	return (uint8_t)((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		   ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
 		   ((data >> (PIN_DT2 - 2)) & (1 << 2)) |
 		   ((data >> (PIN_DT3 - 3)) & (1 << 3)) |

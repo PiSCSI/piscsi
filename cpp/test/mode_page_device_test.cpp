@@ -27,31 +27,39 @@ TEST(ModePageDeviceTest, SupportsSaveParameters)
 TEST(ModePageDeviceTest, AddModePages)
 {
 	vector<int> cdb(6);
-	vector<BYTE> buf(512);
+	vector<uint8_t> buf(512);
 	MockModePageDevice device;
 
 	// Page 0
 	cdb[2] = 0x00;
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, 255), scsi_exception)
+	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, 255); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
 		<< "Data were returned for non-existing mode page 0";
 
 	// All pages, non changeable
 	cdb[2] = 0x3f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception) << "Maximum size was ignored";
+	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Maximum size was ignored";
 
 	// All pages, changeable
 	cdb[2]= 0x7f;
 	EXPECT_EQ(0, device.AddModePages(cdb, buf, 0, 0, 255));
 	EXPECT_EQ(3, device.AddModePages(cdb, buf, 0, 3, 255));
-	EXPECT_THROW(device.AddModePages(cdb, buf, 0, 12, -1), scsi_exception) << "Maximum size was ignored";
+	EXPECT_THAT([&] { device.AddModePages(cdb, buf, 0, 12, -1); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+		<< "Maximum size was ignored";
 }
 
 TEST(ModePageDeviceTest, Page0)
 {
 	vector<int> cdb(6);
-	vector<BYTE> buf(512);
+	vector<uint8_t> buf(512);
 	MockPage0ModePageDevice device;
 
 	cdb[2] = 0x3f;
@@ -106,11 +114,15 @@ TEST(ModePageDeviceTest, ModeSelect)
 {
 	MockModePageDevice device;
 	vector<int> cmd;
-	vector<BYTE> buf;
+	vector<uint8_t> buf;
 
-	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0), scsi_exception)
+	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect6, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(6) default implementation";
-	EXPECT_THROW(device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0), scsi_exception)
+	EXPECT_THAT([&] { device.ModeSelect(scsi_command::eCmdModeSelect10, cmd, buf, 0); }, Throws<scsi_exception>(AllOf(
+			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
+			Property(&scsi_exception::get_asc, asc::INVALID_COMMAND_OPERATION_CODE))))
 		<< "Unexpected MODE SELECT(10) default implementation";
 }
 
@@ -127,7 +139,7 @@ TEST(ModePageDeviceTest, ModeSelect6)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
 
     cmd[1] = 0x01;
-	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
     	<< "Saving parameters is not supported by base class";
@@ -146,7 +158,7 @@ TEST(ModePageDeviceTest, ModeSelect10)
     EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
 
     cmd[1] = 0x01;
-	EXPECT_THAT([&device]() { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
 			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
     	<< "Saving parameters is not supported for by base class";

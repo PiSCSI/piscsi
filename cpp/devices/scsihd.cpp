@@ -74,7 +74,7 @@ void SCSIHD::Open()
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
-	SetBlockCount((uint32_t)(size >> GetSectorSizeShiftCount()));
+	SetBlockCount(static_cast<uint32_t>(size >> GetSectorSizeShiftCount()));
 
 	FinalizeSetup(0);
 }
@@ -84,7 +84,7 @@ vector<byte> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<BYTE>& buf, int length) const
+void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length) const
 {
 	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }

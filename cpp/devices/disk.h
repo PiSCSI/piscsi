@@ -53,9 +53,9 @@ public:
 
 	// Command helpers
 	virtual int WriteCheck(uint64_t);
-	virtual void Write(const vector<int>&, const vector<BYTE>&, uint64_t);
+	virtual void Write(const vector<int>&, const vector<uint8_t>&, uint64_t);
 
-	virtual int Read(const vector<int>&, vector<BYTE>& , uint64_t);
+	virtual int Read(const vector<int>&, vector<uint8_t>& , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }
@@ -95,8 +95,8 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	bool CheckAndGetStartAndCount(uint64_t&, uint32_t&, access_mode) const;
 
-	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
-	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
+	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
+	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 
 	static const unordered_map<uint32_t, uint32_t> shift_counts;
 

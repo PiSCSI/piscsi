@@ -332,17 +332,17 @@ class GPIOBUS : public BUS
     // Set REQ signal
     bool GetDP() const override;
     // Get Data parity signal
-    int CommandHandShake(BYTE *buf) override;
+    int CommandHandShake(uint8_t *buf) override;
     // Command receive handshake
-    int ReceiveHandShake(BYTE *buf, int count) override;
+    int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake
-    int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
+    int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake
 
     static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
     // Get the phase based on raw data
 
-    static int GetCommandByteCount(BYTE opcode);
+    static int GetCommandByteCount(uint8_t opcode);
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt

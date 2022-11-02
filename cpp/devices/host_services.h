@@ -56,8 +56,8 @@ private:
 	const ControllerManager& controller_manager;
 
 	void StartStopUnit();
-	int ModeSense6(const vector<int>&, vector<BYTE>&) const override;
-	int ModeSense10(const vector<int>&, vector<BYTE>&) const override;
+	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
+	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 
 	void AddRealtimeClockPage(map<int, vector<byte>>&, bool) const;
 };
