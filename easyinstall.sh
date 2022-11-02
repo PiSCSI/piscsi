@@ -132,8 +132,6 @@ function installPackagesStandalone() {
 # cache the pip packages
 function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
     sudo pip3 install -r ./requirements.txt
     popd
 }
@@ -145,8 +143,6 @@ function compileRaScsi() {
     echo "Compiling with ${CORES:-1} simultaneous cores..."
     make clean </dev/null
 
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
     make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
 }
 
