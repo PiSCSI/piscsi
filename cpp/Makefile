@@ -91,9 +91,7 @@ SRC_SHARED = \
 	protobuf_util.cpp \
 	protobuf_serializer.cpp
 
-SRC_RASCSI_CORE = \
-	bus.cpp
-SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
+SRC_RASCSI_CORE = $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
@@ -102,7 +100,6 @@ SRC_RASCSI = rascsi.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
-	bus.cpp \
 	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
@@ -113,7 +110,6 @@ SRC_RASCTL = rasctl.cpp
 
 SRC_RASDUMP = \
 	rasdump.cpp \
-	bus.cpp \
 	rascsi_version.cpp
 SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')

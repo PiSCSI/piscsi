@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "bus.h"
+#include "hal/bus.h"
 
 TEST(BusTest, GetCommandByteCount)
 {

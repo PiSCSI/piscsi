@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "bus.h"
+#include "hal/bus.h"
 #include <vector>
 
 using namespace std;

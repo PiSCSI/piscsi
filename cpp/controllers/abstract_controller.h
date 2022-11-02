@@ -12,7 +12,7 @@
 #pragma once
 
 #include "scsi.h"
-#include "bus.h"
+#include "hal/bus.h"
 #include "phase_handler.h"
 #include <unordered_set>
 #include <unordered_map>
