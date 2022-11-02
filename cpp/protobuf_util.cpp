@@ -27,13 +27,9 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 		return;
 	}
 
-	// Old style parameters, for backwards compatibility only.
-	// Only one of these parameters will be used by rascsi, depending on the device type.
+	// Old style parameter (filename), for backwards compatibility only
 	if (params.find(KEY_VALUE_SEPARATOR) == string::npos) {
 		SetParam(device, "file", params);
-		if (params != "bridge" && params != "daynaport" && params != "printer" && params != "services") {
-			SetParam(device, "interfaces", params);
-		}
 
 		return;
 	}
