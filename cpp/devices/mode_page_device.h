@@ -42,10 +42,10 @@ private:
 	virtual int ModeSense6(const vector<int>&, vector<uint8_t>&) const = 0;
 	virtual int ModeSense10(const vector<int>&, vector<uint8_t>&) const = 0;
 
-	void ModeSense6();
-	void ModeSense10();
+	void ModeSense6() const;
+	void ModeSense10() const;
 	void ModeSelect6();
 	void ModeSelect10();
 
-	void SaveParametersCheck(int);
+	void SaveParametersCheck(int) const;
 };

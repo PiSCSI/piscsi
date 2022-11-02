@@ -47,7 +47,7 @@ private:
 	    uint8_t second; // 0-59
 	};
 
-	void StartStopUnit();
+	void StartStopUnit() const;
 	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
 	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 

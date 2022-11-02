@@ -52,7 +52,7 @@ vector<uint8_t> HostServices::InquiryInternal() const
 	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit()
+void HostServices::StartStopUnit() const
 {
 	const bool start = GetController()->GetCmd(4) & 0x01;
 	const bool load = GetController()->GetCmd(4) & 0x02;

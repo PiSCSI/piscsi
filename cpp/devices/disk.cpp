@@ -128,7 +128,7 @@ void Disk::Read(access_mode mode)
 	}
 }
 
-void Disk::ReadWriteLong10()
+void Disk::ReadWriteLong10() const
 {
 	ValidateBlockAddress(RW10);
 
@@ -140,7 +140,7 @@ void Disk::ReadWriteLong10()
 	EnterStatusPhase();
 }
 
-void Disk::ReadWriteLong16()
+void Disk::ReadWriteLong16() const
 {
 	ValidateBlockAddress(RW16);
 
@@ -152,7 +152,7 @@ void Disk::ReadWriteLong16()
 	EnterStatusPhase();
 }
 
-void Disk::Write(access_mode mode)
+void Disk::Write(access_mode mode) const
 {
 	if (IsProtected()) {
 		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
@@ -252,7 +252,7 @@ void Disk::SynchronizeCache()
 	EnterStatusPhase();
 }
 
-void Disk::ReadDefectData10()
+void Disk::ReadDefectData10() const
 {
 	const size_t allocation_length = min(static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7)),
 			static_cast<size_t>(4));

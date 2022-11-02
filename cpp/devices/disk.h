@@ -67,7 +67,7 @@ private:
 	void StartStopUnit();
 	void PreventAllowMediumRemoval();
 	void SynchronizeCache();
-	void ReadDefectData10();
+	void ReadDefectData10() const;
 	virtual void Read6() { Read(RW6); }
 	void Read10() override { Read(RW10); }
 	void Read16() override { Read(RW16); }
@@ -83,10 +83,10 @@ private:
 	void FormatUnit() override;
 	void Seek6();
 	void Read(access_mode);
-	void Write(access_mode);
+	void Write(access_mode) const;
 	void Verify(access_mode);
-	void ReadWriteLong10();
-	void ReadWriteLong16();
+	void ReadWriteLong10() const;
+	void ReadWriteLong16() const;
 	void ReadCapacity16_ReadLong16();
 
 	void ValidateBlockAddress(access_mode) const;
