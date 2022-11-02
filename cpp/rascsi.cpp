@@ -72,8 +72,8 @@ shared_ptr<RascsiResponse> rascsi_response;
 shared_ptr<RascsiExecutor> executor;
 const ProtobufSerializer serializer;
 
-typedef std::pair<int, string> optarg_value_type;
-typedef std::deque<optarg_value_type> optarg_queue_type;
+using optarg_value_type = std::pair<int,string>;
+using optarg_queue_type = std::deque<optarg_value_type>;
 
 void Banner(int argc, char* argv[])
 {
