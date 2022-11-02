@@ -35,13 +35,13 @@ public:
 private:
 
 	void Banner(const vector<char *>&) const;
-	bool InitBus();
-	void Reset();
-	bool ReadAccessToken(const char *);
+	bool InitBus() const;
+	void Reset() const;
+	bool ReadAccessToken(const char *) const;
 	void LogDevices(string_view) const;
 	bool ProcessId(const string&, int&, int&) const;
 	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&);
-	bool CreateInitialDevices(const optarg_queue_type&);
+	bool CreateInitialDevices(const optarg_queue_type&) const;
 
-	static bool ExecuteCommand(const CommandContext&, PbCommand&);
+	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
 };

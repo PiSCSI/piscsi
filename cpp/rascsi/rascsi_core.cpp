@@ -90,7 +90,7 @@ void Rascsi::Banner(const vector<char *>& args) const
 	}
 }
 
-bool Rascsi::InitBus()
+bool Rascsi::InitBus() const
 {
 #ifdef USE_SEL_EVENT_ENABLE
 	SBC_Version::Init();
@@ -122,14 +122,14 @@ void Cleanup()
 	bus->Cleanup();
 }
 
-void Rascsi::Reset()
+void Rascsi::Reset() const
 {
 	controller_manager->ResetAllControllers();
 
 	bus->Reset();
 }
 
-bool Rascsi::ReadAccessToken(const char *filename)
+bool Rascsi::ReadAccessToken(const char *filename) const
 {
 	struct stat st;
 	if (stat(filename, &st) || !S_ISREG(st.st_mode)) {
@@ -205,7 +205,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(args.size(), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
 			// The following options can not be processed until AFTER
 			// the 'bus' object is created and configured
@@ -221,7 +221,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'z':
 			{
 				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.push_back(optarg_value_type(opt ,optarg_str));
+				post_process.emplace_back(optarg_value_type(opt ,optarg_str));
 				continue;
 			}
 			case 'b': {
@@ -257,7 +257,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			{
 				// Encountered filename
 				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.push_back(optarg_value_type(opt, optarg_str));
+				post_process.emplace_back(optarg_value_type(opt, optarg_str));
 				continue;
 			}
 
@@ -273,7 +273,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 	return true;
 }
 
-bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue)
+bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 {
 	PbCommand command;
 	int id = -1;
@@ -405,7 +405,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue)
 	return true;
 }
 
-bool Rascsi::ExecuteCommand(const CommandContext& context, PbCommand& command)
+bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& command)
 {
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
