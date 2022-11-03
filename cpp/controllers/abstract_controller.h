@@ -85,7 +85,7 @@ public:
 protected:
 
 	shared_ptr<ControllerManager> GetControllerManager() const { return controller_manager.lock(); }
-	inline shared_ptr<BUS> GetBus() const { return controller_manager.lock()->GetBus(); }
+	inline BUS& GetBus() const { return controller_manager.lock()->GetBus(); }
 
 	scsi_defs::scsi_command GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
