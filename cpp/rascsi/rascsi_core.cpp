@@ -142,11 +142,9 @@ void Rascsi::LogDevices(string_view devices) const
 	}
 }
 
-void Rascsi::TerminationHandler(int signum)
+void Rascsi::TerminationHandler(int)
 {
 	Cleanup();
-
-	exit(signum);
 }
 
 bool Rascsi::ProcessId(const string& id_spec, int& id, int& unit) const
