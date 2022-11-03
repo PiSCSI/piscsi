@@ -205,10 +205,11 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'F':
 			case 'z':
 			{
-				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(opt ,optarg_str);
+				const string optarg_str = optarg == nullptr ? "" : optarg;
+				post_process.emplace_back(opt, optarg_str);
 				continue;
 			}
+
 			case 'b': {
 				if (!GetAsInt(optarg, block_size)) {
 					cerr << "Invalid block size " << optarg << endl;
