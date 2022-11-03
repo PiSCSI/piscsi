@@ -87,6 +87,7 @@ div.header div.title {
 div.header div.title h1 {
   margin: 0;
   color: #f9f9f9;
+  font-size: 1.25rem;
 }
 
 div.header div.title a {
@@ -127,10 +128,6 @@ div.header div.authentication-disabled {
 
   div.header div.title {
     background: var(--dark);
-  }
-
-  div.header div.title h1 {
-    font-size: 1.25rem;
   }
 
   div.header div.title a {
@@ -208,7 +205,8 @@ div.header div.authentication-disabled {
   }
 
   div.header div.title a h1 {
-    font-size: 32px;
+    font-size: 1.5rem;
+    padding: 0.25rem;
   }
 
   @supports (-webkit-background-clip: text) {
