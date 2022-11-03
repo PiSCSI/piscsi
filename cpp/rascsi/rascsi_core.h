@@ -36,7 +36,7 @@ public:
 	Rascsi() = default;
 	~Rascsi() = default;
 
-	int run(const vector<char *>&);
+	int run(const vector<char *>&) const;
 
 private:
 

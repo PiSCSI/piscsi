@@ -527,7 +527,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	return true;
 }
 
-int Rascsi::run(const vector<char *>& args)
+int Rascsi::run(const vector<char *>& args) const
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
