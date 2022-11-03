@@ -42,8 +42,7 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	MockAbstractController controller(controller_manager, ID);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, *controller_manager);
+	auto executor = make_shared<MockRascsiExecutor>(rascsi_image, *controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	MockCommandContext context;
@@ -153,8 +152,7 @@ TEST_F(RascsiExecutorTest, ProcessCmd)
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	MockAbstractController controller(controller_manager, 0);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	auto executor = make_shared<MockRascsiExecutor>(rascsi_response, rascsi_image, *controller_manager);
+	auto executor = make_shared<MockRascsiExecutor>(rascsi_image, *controller_manager);
 	PbCommand command1;
 	PbCommand command2;
 	MockCommandContext context;
@@ -218,8 +216,7 @@ TEST_F(RascsiExecutorTest, SetLogLevel)
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	MockAbstractController controller(controller_manager, 0);
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 
 	EXPECT_TRUE(executor.SetLogLevel("trace"));
 	EXPECT_TRUE(executor.SetLogLevel("debug"));
@@ -238,8 +235,7 @@ TEST_F(RascsiExecutorTest, Attach)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	PbDeviceDefinition definition;
 	MockCommandContext context;
 
@@ -319,8 +315,7 @@ TEST_F(RascsiExecutorTest, Insert)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	PbDeviceDefinition definition;
 	MockCommandContext context;
 
@@ -379,8 +374,7 @@ TEST_F(RascsiExecutorTest, Detach)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
@@ -405,8 +399,7 @@ TEST_F(RascsiExecutorTest, DetachAll)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
@@ -422,8 +415,7 @@ TEST_F(RascsiExecutorTest, ShutDown)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	EXPECT_FALSE(executor.ShutDown(context, ""));
@@ -438,8 +430,7 @@ TEST_F(RascsiExecutorTest, SetReservedIds)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 
 	string error = executor.SetReservedIds("xyz");
 	EXPECT_FALSE(error.empty());
@@ -478,8 +469,7 @@ TEST_F(RascsiExecutorTest, ValidateImageFile)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	string full_path;
@@ -496,8 +486,7 @@ TEST_F(RascsiExecutorTest, ValidateLunSetup)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	PbCommand command;
 
 	auto device1 = command.add_devices();
@@ -524,8 +513,7 @@ TEST_F(RascsiExecutorTest, VerifyExistingIdAndLun)
 	DeviceFactory device_factory;
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
@@ -539,8 +527,7 @@ TEST_F(RascsiExecutorTest, CreateDevice)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	EXPECT_EQ(nullptr, executor.CreateDevice(context, UNDEFINED, 0, ""));
@@ -556,8 +543,7 @@ TEST_F(RascsiExecutorTest, SetSectorSize)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	unordered_set<uint32_t> sizes;
@@ -575,8 +561,7 @@ TEST_F(RascsiExecutorTest, ValidateOperationAgainstDevice)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 
 	auto device = make_shared<MockPrimaryDevice>(0);
@@ -628,8 +613,7 @@ TEST_F(RascsiExecutorTest, ValidateIdAndLun)
 {
 	ControllerManager controller_manager(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, controller_manager);
+	RascsiExecutor executor(rascsi_image, controller_manager);
 	MockCommandContext context;
 
 	EXPECT_FALSE(executor.ValidateIdAndLun(context, -1, 0));
@@ -644,8 +628,7 @@ TEST_F(RascsiExecutorTest, SetProductData)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiImage rascsi_image;
-	RascsiResponse rascsi_response;
-	RascsiExecutor executor(rascsi_response, rascsi_image, *controller_manager);
+	RascsiExecutor executor(rascsi_image, *controller_manager);
 	MockCommandContext context;
 	PbDeviceDefinition definition;
 

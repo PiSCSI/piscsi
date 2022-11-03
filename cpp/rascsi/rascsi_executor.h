@@ -9,9 +9,9 @@
 
 #pragma once
 
+#include "rascsi/rascsi_response.h"
 #include "protobuf_serializer.h"
 
-class RascsiResponse;
 class RascsiImage;
 class DeviceFactory;
 class ControllerManager;
@@ -22,8 +22,8 @@ class RascsiExecutor
 {
 public:
 
-	RascsiExecutor(const RascsiResponse& rascsi_response, RascsiImage& rascsi_image, ControllerManager& controller_manager)
-		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), controller_manager(controller_manager) {}
+	RascsiExecutor(RascsiImage& rascsi_image, ControllerManager& controller_manager)
+		: rascsi_image(rascsi_image), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
@@ -55,7 +55,7 @@ public:
 
 private:
 
-	const RascsiResponse& rascsi_response;
+	RascsiResponse rascsi_response;
 
 	RascsiImage& rascsi_image;
 

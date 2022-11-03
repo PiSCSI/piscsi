@@ -14,7 +14,6 @@
 #include "devices/primary_device.h"
 #include "devices/disk.h"
 #include "rascsi_service.h"
-#include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_exceptions.h"
 #include "localizer.h"
