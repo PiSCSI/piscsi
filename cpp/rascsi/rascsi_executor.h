@@ -55,15 +55,15 @@ public:
 
 private:
 
-	RascsiResponse rascsi_response;
+	const RascsiResponse rascsi_response;
 
 	RascsiImage& rascsi_image;
 
 	ControllerManager& controller_manager;
 
-	DeviceFactory device_factory;
+	const DeviceFactory device_factory;
 
-	ProtobufSerializer serializer;
+	const ProtobufSerializer serializer;
 
 	unordered_set<int> reserved_ids;
 };
