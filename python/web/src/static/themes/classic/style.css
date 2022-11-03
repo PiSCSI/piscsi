@@ -51,11 +51,11 @@ div.footer div.theme-change-hint {
     margin-bottom: 15px;
 }
 
-div.logged_in {
+div.logged-in {
   background-color: green;
 }
 
-div.logged_out {
+div.logged-out {
   background-color: red;
 }
 
