@@ -340,6 +340,9 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 			case 1:
 				// Encountered filename
 				break;
+
+			default:
+				return false;
 		}
 
 		// Set up the device data
