@@ -62,20 +62,3 @@ TEST(ControllerManagerTest, AttachToScsiController)
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
 	EXPECT_FALSE(controller_manager->AttachToScsiController(ID, device1));
 }
-
-TEST(ControllerManagerTest, ResetAllControllers)
-{
-	const int ID = 2;
-
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
-	DeviceFactory device_factory;
-
-	auto device = device_factory.CreateDevice(SCHS, 0, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
-	auto controller = controller_manager->FindController(ID);
-	EXPECT_NE(nullptr, controller);
-
-	controller->SetStatus(status::RESERVATION_CONFLICT);
-	controller_manager->Reset();
-	EXPECT_EQ(status::GOOD, controller->GetStatus());
-}
