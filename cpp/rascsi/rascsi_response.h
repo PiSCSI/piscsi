@@ -48,7 +48,7 @@ private:
 
 	int max_luns;
 
-	const array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
+	const inline static array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;
