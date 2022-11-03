@@ -22,6 +22,8 @@ using namespace ras_util;
 
 void RascsiService::Cleanup() const
 {
+	running = false;
+
 	if (service_socket != -1) {
 		close(service_socket);
 	}
