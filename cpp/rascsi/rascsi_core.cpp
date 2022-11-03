@@ -562,14 +562,14 @@ int Rascsi::run(const vector<char *>& args) const
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init(&ExecuteCommand, port)) {
-		return EXIT_FAILURE;
-	}
-
 	// We need to wait to create the devices until after the bus/controller/etc
 	// objects have been created.
 	if (!CreateInitialDevices(optarg_queue)) {
 		Cleanup();
+		return EXIT_FAILURE;
+	}
+
+	if (!service.Init(&ExecuteCommand, port)) {
 		return EXIT_FAILURE;
 	}
 
