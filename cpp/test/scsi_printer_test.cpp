@@ -16,7 +16,8 @@ using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -32,7 +33,8 @@ TEST(ScsiPrinterTest, Init)
 
 TEST(ScsiPrinterTest, TestUnitReady)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -48,7 +50,8 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -59,7 +62,8 @@ TEST(ScsiPrinterTest, ReserveUnit)
 
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -70,7 +74,8 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -81,7 +86,8 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 
 TEST(ScsiPrinterTest, Print)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -100,7 +106,8 @@ TEST(ScsiPrinterTest, Print)
 
 TEST(ScsiPrinterTest, StopPrint)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -111,7 +118,8 @@ TEST(ScsiPrinterTest, StopPrint)
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
@@ -125,7 +133,8 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 

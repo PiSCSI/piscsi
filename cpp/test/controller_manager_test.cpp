@@ -17,7 +17,8 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN1 = 0;
 	const int LUN2 = 3;
 
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(SCHS, -1, "");
@@ -51,7 +52,8 @@ TEST(ControllerManagerTest, AttachToScsiController)
 	const int LUN1 = 3;
 	const int LUN2 = 0;
 
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	DeviceFactory device_factory;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");

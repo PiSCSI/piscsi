@@ -18,7 +18,8 @@ TEST(ScsiControllerTest, GetInitiatorId)
 {
 	const int ID = 2;
 
-	auto controller_manager = make_shared<ControllerManager>(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.Process(ID);
@@ -30,7 +31,7 @@ TEST(ScsiControllerTest, GetInitiatorId)
 TEST(ScsiControllerTest, Process)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -57,7 +58,8 @@ TEST(ScsiControllerTest, Process)
 
 TEST(ScsiControllerTest, BusFree)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::busfree);
@@ -90,7 +92,7 @@ TEST(ScsiControllerTest, BusFree)
 TEST(ScsiControllerTest, Selection)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockScsiController>(controller_manager, 0);
 
 	controller->SetPhase(BUS::phase_t::selection);
@@ -147,7 +149,7 @@ TEST(ScsiControllerTest, Selection)
 TEST(ScsiControllerTest, Command)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::command);
@@ -175,7 +177,7 @@ TEST(ScsiControllerTest, Command)
 TEST(ScsiControllerTest, MsgIn)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -191,7 +193,7 @@ TEST(ScsiControllerTest, MsgIn)
 TEST(ScsiControllerTest, MsgOut)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -207,7 +209,7 @@ TEST(ScsiControllerTest, MsgOut)
 TEST(ScsiControllerTest, DataIn)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -228,7 +230,7 @@ TEST(ScsiControllerTest, DataIn)
 TEST(ScsiControllerTest, DataOut)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -249,7 +251,7 @@ TEST(ScsiControllerTest, DataOut)
 TEST(ScsiControllerTest, Error)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	auto controller_manager = make_shared<ControllerManager>(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockScsiController controller(controller_manager, 0);
 
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
@@ -292,7 +294,8 @@ TEST(ScsiControllerTest, Error)
 
 TEST(ScsiControllerTest, RequestSense)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockScsiController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;

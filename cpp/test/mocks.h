@@ -162,7 +162,7 @@ public:
 
 	// Permit access to all tests without the need for numerous FRIEND_TEST
 	vector<int>& GetCmd() { return AbstractController::GetCmd(); } //NOSONAR Hides function on purpose
-	shared_ptr<BUS> GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
+	BUS& GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
 };
 
 class MockScsiController : public ScsiController

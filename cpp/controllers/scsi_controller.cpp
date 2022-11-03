@@ -52,17 +52,13 @@ void ScsiController::Reset()
 
 BUS::phase_t ScsiController::Process(int id)
 {
-	// Get bus information
 	GetBus().Acquire();
 
-	// Check to see if the reset signal was asserted
 	if (GetBus().GetRST()) {
 		LOGWARN("RESET signal received!")
 
-		// Reset the controller
 		Reset();
 
-		// Reset the bus
 		GetBus().Reset();
 
 		return GetPhase();

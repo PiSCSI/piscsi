@@ -27,7 +27,8 @@ TEST(RascsiResponseTest, Operation_Count)
 
 void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	DeviceFactory device_factory;
 	RascsiResponse response;
 
@@ -104,7 +105,8 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	const int LUN2 = 5;
 	const int LUN3 = 6;
 
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	RascsiResponse response;
 	PbCommand command;
 	PbResult result;
@@ -161,7 +163,8 @@ TEST(RascsiResponseTest, GetDeviceTypesInfo)
 
 TEST(RascsiResponseTest, GetServerInfo)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	RascsiResponse response;
 	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };

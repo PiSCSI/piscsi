@@ -330,9 +330,7 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 
 TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 {
-	auto bus = make_shared<MockBus>();
 	DeviceFactory device_factory;
-	ControllerManager controller_manager(bus);
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "printer");
 

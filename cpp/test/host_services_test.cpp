@@ -22,7 +22,8 @@ void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto services = CreateDevice(SCHS, *controller);
 
@@ -38,7 +39,8 @@ TEST(HostServicesTest, Inquiry)
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto services = CreateDevice(SCHS, *controller);
 
@@ -73,7 +75,8 @@ TEST(HostServicesTest, StartStopUnit)
 
 TEST(HostServicesTest, ModeSense6)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
@@ -117,7 +120,8 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
