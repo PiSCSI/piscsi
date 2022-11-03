@@ -11,7 +11,6 @@
 
 #include "rascsi/command_context.h"
 #include "rascsi_interface.pb.h"
-#include <deque>
 #include <vector>
 #include <string>
 
