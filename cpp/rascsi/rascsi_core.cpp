@@ -21,7 +21,6 @@
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
-#include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
