@@ -36,7 +36,6 @@ private:
 
 	void Banner(const vector<char *>&) const;
 	bool InitBus() const;
-	void Reset() const;
 	bool ReadAccessToken(const char *) const;
 	void LogDevices(string_view) const;
 	bool ProcessId(const string&, int&, int&) const;

@@ -76,6 +76,6 @@ TEST(ControllerManagerTest, ResetAllControllers)
 	EXPECT_NE(nullptr, controller);
 
 	controller->SetStatus(status::RESERVATION_CONFLICT);
-	controller_manager->ResetAllControllers();
+	controller_manager->Reset();
 	EXPECT_EQ(status::GOOD, controller->GetStatus());
 }

@@ -74,11 +74,13 @@ void ControllerManager::DeleteAllControllers()
 	controllers.clear();
 }
 
-void ControllerManager::ResetAllControllers() const
+void ControllerManager::Reset()
 {
 	for (const auto& [id, controller] : controllers) {
 		controller->Reset();
 	}
+
+	bus->Reset();
 }
 
 shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const

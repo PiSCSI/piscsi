@@ -114,13 +114,6 @@ void Cleanup()
 	bus->Cleanup();
 }
 
-void Rascsi::Reset() const
-{
-	controller_manager->ResetAllControllers();
-
-	bus->Reset();
-}
-
 bool Rascsi::ReadAccessToken(const char *filename) const
 {
 	struct stat st;
@@ -590,8 +583,8 @@ int Rascsi::run(const vector<char *>& args) const
 	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
 
-	// Reset
-	Reset();
+	// Reset controllers and bus
+	controller_manager->Reset();
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
