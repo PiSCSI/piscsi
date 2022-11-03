@@ -25,7 +25,7 @@ class RascsiResponse
 {
 public:
 
-	explicit RascsiResponse(int max_luns) : max_luns(max_luns) {}
+	RascsiResponse() = default;
 	~RascsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
@@ -45,8 +45,6 @@ public:
 private:
 
 	DeviceFactory device_factory;
-
-	int max_luns;
 
 	const inline static array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 

@@ -26,7 +26,8 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 {
 	auto properties = make_unique<PbDeviceProperties>();
 
-	properties->set_luns(max_luns);
+	// Currently there is only a SCSI controller, i.e. there can always be 32 LUNs
+	properties->set_luns(32);
 	properties->set_read_only(device.IsReadOnly());
 	properties->set_protectable(device.IsProtectable());
 	properties->set_stoppable(device.IsStoppable());

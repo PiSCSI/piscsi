@@ -18,7 +18,7 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto info = response.GetOperationInfo(result, 0);
@@ -29,7 +29,7 @@ void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	DeviceFactory device_factory;
-	RascsiResponse response(32);
+	RascsiResponse response;
 
 	auto d = device_factory.CreateDevice(type, 0, "");
 	const unordered_map<string, string> params;
@@ -69,7 +69,7 @@ TEST(RascsiResponseTest, GetDevices)
 
 TEST(RascsiResponseTest, GetImageFile)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbImageFile image_file;
 
 	EXPECT_FALSE(response.GetImageFile(image_file, "default_folder", ""));
@@ -82,7 +82,7 @@ TEST(RascsiResponseTest, GetImageFile)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	unordered_set<int> ids;
 	PbResult result;
 
@@ -105,7 +105,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	const int LUN3 = 6;
 
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbCommand command;
 	PbResult result;
 
@@ -151,7 +151,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 
 TEST(RascsiResponseTest, GetDeviceTypesInfo)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetDeviceTypesInfo(result);
@@ -162,7 +162,7 @@ TEST(RascsiResponseTest, GetDeviceTypesInfo)
 TEST(RascsiResponseTest, GetServerInfo)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
-	RascsiResponse response(32);
+	RascsiResponse response;
 	const unordered_set<int> ids = { 1, 3 };
 	PbResult result;
 
@@ -179,7 +179,7 @@ TEST(RascsiResponseTest, GetServerInfo)
 
 TEST(RascsiResponseTest, GetVersionInfo)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetVersionInfo(result);
@@ -191,7 +191,7 @@ TEST(RascsiResponseTest, GetVersionInfo)
 
 TEST(RascsiResponseTest, GetLogLevelInfo)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetLogLevelInfo(result, "level");
@@ -202,7 +202,7 @@ TEST(RascsiResponseTest, GetLogLevelInfo)
 
 TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetNetworkInterfacesInfo(result);
@@ -212,7 +212,7 @@ TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 
 TEST(RascsiResponseTest, GetMappingInfo)
 {
-	RascsiResponse response(32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetMappingInfo(result);

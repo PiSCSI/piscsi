@@ -84,7 +84,7 @@ bool Rascsi::InitBus() const
 	bus->Reset();
 
 	controller_manager = make_shared<ControllerManager>(bus);
-	rascsi_response = make_shared<RascsiResponse>(ScsiController::LUN_MAX);
+	rascsi_response = make_shared<RascsiResponse>();
 	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, *controller_manager);
 
 	return true;
