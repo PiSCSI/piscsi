@@ -20,21 +20,9 @@ class CommandContext;
 
 class RascsiExecutor
 {
-	RascsiResponse& rascsi_response;
-
-	RascsiImage& rascsi_image;
-
-	ControllerManager& controller_manager;
-
-	DeviceFactory device_factory;
-
-	ProtobufSerializer serializer;
-
-	unordered_set<int> reserved_ids;
-
 public:
 
-	RascsiExecutor(RascsiResponse& rascsi_response, RascsiImage& rascsi_image, ControllerManager& controller_manager)
+	RascsiExecutor(const RascsiResponse& rascsi_response, RascsiImage& rascsi_image, ControllerManager& controller_manager)
 		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
@@ -65,4 +53,17 @@ public:
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, PrimaryDevice&);
 
+private:
+
+	const RascsiResponse& rascsi_response;
+
+	RascsiImage& rascsi_image;
+
+	ControllerManager& controller_manager;
+
+	DeviceFactory device_factory;
+
+	ProtobufSerializer serializer;
+
+	unordered_set<int> reserved_ids;
 };

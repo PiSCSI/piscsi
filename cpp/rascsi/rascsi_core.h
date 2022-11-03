@@ -59,7 +59,7 @@ private:
 
 	static inline RascsiImage rascsi_image;
 
-	static inline RascsiResponse rascsi_response;
+	const static inline RascsiResponse rascsi_response;
 
 	static inline shared_ptr<GPIOBUS> bus;
 
