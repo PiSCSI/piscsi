@@ -42,7 +42,7 @@
 </form>
 </p>
 
-<table id="bus" border="black" cellpadding="3" summary="List of attached devices">
+<table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
         <tr>
             <th scope="col">{{ _("ID") }}</th>
@@ -163,10 +163,10 @@
 </table>
 
 <p>
-    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+    <form action="/scsi/detach_all" method="post" id="detach-all-devices" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
         <input type="submit" value="{{ _("Detach All Devices") }}">
     </form>
-    <form action="/scsi/info" method="post">
+    <form action="/scsi/info" method="post" id="show-device-info">
         <input type="submit" value="{{ _("Show Device Info") }}">
     </form>
 </p>
@@ -174,7 +174,7 @@
 
 <hr/>
 
-<section id="images">
+<section id="files">
 <details>
     <summary class="heading">
         {{ _("Image File Management") }}
@@ -196,7 +196,7 @@
     </ul>
 </details>
 
-<table border="black" cellpadding="3" summary="List of files in the image directory">
+<table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
             <th scope="col">{{ _("File") }}</th>

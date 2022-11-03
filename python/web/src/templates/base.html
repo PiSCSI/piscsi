@@ -39,40 +39,46 @@
     <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 </head>
 
-<body class="{{ body_class }}">
+<body class="{{ body_class }}{% if env["logged_in"] %} logged-in{% endif %}">
     <div class="header">
         {% if env["auth_active"] %}
-        {% if env["username"] %}
-        <div align="center" class="login-status logged_in">
-            <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
-            <span class="separator">-</span>
-            <a href="/logout">{{ _("Log Out") }}</a>
-        </div>
+            {% if env["logged_in"] %}
+                <div align="center" class="login-status logged-in">
+                    <span class="logged-in-as-text">{{ _("Logged in as <em>%(username)s</em>", username=env["username"]) }}</span>
+                    <span class="separator">-</span>
+                    <a href="/logout">{{ _("Log Out") }}</a>
+                </div>
+            {% else %}
+                <div align="center" class="login-status logged-out">
+                    <form method="POST" action="/login">
+                        <div class="login-form-title">{{ _("Log In to Use Web Interface") }}</div>
+                        <span>
+                            <label for="username">{{ _("Username") }}</label>
+                            <input type="text" name="username" id="username">
+                        </span>
+                        <span>
+                            <label for="password">{{ _("Password") }}</label>
+                            <input type="password" name="password" id="password">
+                        </span>
+                        <input type="submit" value="Login">
+                    </form>
+                </div>
+            {% endif %}
         {% else %}
-        <div align="center" class="login-status logged_out">
-            <form method="POST" action="/login">
-                <div>{{ _("Log In to Use Web Interface") }}</div>
-                <label for="username">{{ _("Username") }}</label>
-                <input type="text" name="username" placeholder="Username" id="username">
-                <label for="password">{{ _("Password") }}</label>
-                <input type="password" name="password" placeholder="Password" id="password">
-                <input type="submit" value="Login">
-            </form>
-        </div>
+            <div align="center" class="login-status authentication-disabled">
+                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
+            </div>
         {% endif %}
-        {% else %}
-        <div align="center" class="login-status authentication-disabled logged_out">
-            {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
-        </div>
-        {% endif %}
+
         <div align="center" class="title">
             <a href="/">
                 <h1>{{ _("RaSCSI Reloaded") }}</h1>
             </a>
         </div>
+
         <div class="hostname">
-            <span>IP: {{ env["ip_addr"] }}</span>
-            <span>Hostname: {{ env["host"] }}</span>
+            <span>{{ _("IP") }}: {{ env["ip_addr"] }}</span>
+            <span>{{ _("Hostname") }}: {{ env["host"] }}</span>
         </div>
     </div>
 

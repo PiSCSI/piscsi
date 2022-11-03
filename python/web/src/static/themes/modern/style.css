@@ -38,11 +38,25 @@ body {
   font-size: var(--font-size);
 }
 
-@media (max-width: 820px) {
-  body {
-    font-size: 0.85rem;
-  }
+body:not(.logged-in) section:not(#current-config) {
+  display: none;
 }
+
+body:not(.logged-in) section#current-config form#config-actions,
+body:not(.logged-in) section#current-config form#config-save {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config table#attached-devices th:last-child,
+body:not(.logged-in) section#current-config table#attached-devices td:last-child,
+body:not(.logged-in) section#current-config table#attached-devices form {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config form#detach-all-devices {
+  display: none;
+}
+
 
 /*
  ------------------------------------------------------------------------------
@@ -50,17 +64,13 @@ body {
  ------------------------------------------------------------------------------
  */
 div.header {
-  background: #1d1d1d;
-  color: #fff;
-  padding: 1rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 div.header div.title {
   order: 1;
   text-align: left;
+  flex-grow: 1;
 }
 
 div.header div.title h1 {
@@ -80,17 +90,16 @@ div.header div.login-status {
   order: 10;
 }
 
-div.header div.login-status a {
-  color: #fff;
+div.header div.login-status form {
+    display: flex;
 }
 
-div.header div.login-status span.logged-in-as-text em {
+div.header span.logged-in-as-text em {
   font-weight: bold;
   font-style: normal;
 }
 
-div.header div.login-status.logged_out form div,
-div.header div.login-status.logged_out form label {
+div.header div.login-form-title {
   display: none;
 }
 
@@ -101,39 +110,86 @@ div.header div.authentication-disabled {
 }
 
 @media (max-width: 820px) {
-  div.header {
+  body:not(.logged-in) div.header {
     flex-wrap: wrap;
   }
 
-  div.header div.title,
-  div.header div.login-status {
-    flex: 0 0 100%;
-    text-align: left;
-  }
-
   div.header div.title {
-    background: none;
-    padding: 0;
-    text-align: center;
+    background: var(--dark);
   }
 
   div.header div.title h1 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
-  div.header div.login-status {
-    text-align: center;
-    margin-top: 0.5rem;
+  div.header div.title a {
+    display: block;
+    background: url(/static/logo.png) no-repeat;
+    background-size: auto 2rem;
+    background-position: 1rem center;
+    padding: 1rem 1rem 1rem 3.5rem;
   }
 
-  div.header div.login-status.logged_out form input:not([type="submit"]) {
-    width: 6rem;
+  div.header div.login-status.logged-out {
+    flex: 0 0 100%;
+  }
+
+  div.header div.login-status.logged-out form {
+    align-items: end;
+    padding: 1rem;
+    background: var(--light);
+    border-bottom: 1px solid #ccc;
+  }
+
+  div.header div.login-status.logged-out form span {
+    display: block;
+    padding: 0 0.1rem;
+    flex-grow: 1;
+  }
+
+  div.header div.login-status.logged-out form label {
+    display: block;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+  }
+
+  div.header div.login-status.logged-out form input[type="submit"] {
+    flex-grow: 0.5;
+  }
+
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 100%;
+  }
+
+  div.header div.login-status.logged-in {
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+  }
+
+  div.header div.login-status.logged-in span.logged-in-as-text,
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+
+  div.header div.login-status.logged-in a {
+    margin-right: 1rem;
+    color: var(--secondary);
+    text-decoration: none;
   }
 }
 
 @media (min-width: 821px) {
+  div.header {
+    background: var(--dark);
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    color: #fff;
+  }
+
   div.header div.title a {
-    display: block;
+    display: inline-block;
     background: url(/static/logo.png) no-repeat;
     background-size: auto 40px;
     background-position: left center;
@@ -152,39 +208,46 @@ div.header div.authentication-disabled {
     }
   }
 
-  div.header div.login-status span.logged-in-as-text {
-    margin-right: 1rem;
+  div.header div.login-status.logged-out form label,
+  div.header div.login-status.logged-out form input {
+    margin-left: 0.5rem;
   }
 
-  div.header div.login-status span.separator {
-    display: none;
-  }
-
-  div.header div.login-status.logged_out form input:not([type="submit"]) {
-    width: 10rem;
-    background: #1d1d1d;
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 8rem;
+    background: var(--dark);
     border-color: var(--secondary);
     color: #fff;
   }
 
-  div.header div.login-status.logged_out form input::-webkit-credentials-auto-fill-button {
+  div.header div.login-status.logged-out form input::-webkit-credentials-auto-fill-button {
     background-color: #ccc;
   }
 
-  div.header div.login-status.logged_out form input[type="submit"] {
+  div.header div.login-status.logged-out form input[type="submit"] {
     background: var(--secondary);
     border-color: var(--secondary);
     color: #fff;
   }
 
-  div.header div.login-status.logged_in a {
+  div.header div.login-status.logged-in a {
     background: var(--danger) url(icons/log-out.svg) no-repeat right 0.5rem center;
     background-size: var(--icon-size);
     border-radius: var(--border-radius);
-    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
     display: inline-block;
     text-decoration: none;
+    color: #fff;
   }
+
+  div.header div.login-status.logged-in span.logged-in-as-text {
+    margin-right: 1rem;
+  }
+
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+
 }
 
 /*
@@ -193,7 +256,7 @@ div.header div.authentication-disabled {
  ------------------------------------------------------------------------------
  */
 div.footer {
-  background: #1d1d1d;
+  background: var(--dark);
   padding: 1rem;
   color: #fff;
 }
@@ -225,6 +288,7 @@ table th,
 table td {
   padding: 0.5rem;
   text-align: left;
+  height: 2.5rem;
 }
 
 table th {
@@ -286,7 +350,7 @@ label {
 
   select {
     display: inline-block;
-    padding: 0.25rem 2.25rem 0.25em 0.75rem;
+    padding: 0.275rem 2.25rem 0.275em 0.75rem;
     -moz-padding-start: calc(0.75rem - 3px);
     background-color: #fff;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -461,45 +525,57 @@ section > details ul {
  Index > Section: Current RaSCSI configuration
  ------------------------------------------------------------------------------
  */
-table#bus th:first-child,
-table#bus td:first-child {
+table#attached-devices th:first-child,
+table#attached-devices td:first-child {
   text-align: center;
 }
 
-table#bus th:last-child,
-table#bus td:last-child {
-  text-align: right;
+table#attached-devices th:last-child,
+table#attached-devices td:last-child {
+  text-align: center;
 }
 
-table#bus span.filename {
+  table#attached-devices tr td:nth-child(5) form {
+    display: inline-block;
+    max-width: 4.5rem;
+    text-align: center;
+    width: 100%;
+  }
+
+  table#attached-devices tr td:nth-child(5) input[type="submit"] {
+    width: 100%;
+  }
+
+
+table#attached-devices span.filename {
   word-break: break-all;
 }
 
-table#bus td:nth-child(3) label {
+table#attached-devices td:nth-child(3) label {
   display: none;
 }
 
-table#bus td:nth-child(3) form {
+table#attached-devices td:nth-child(3) form {
   display: flex;
   align-items: center;
 }
 
-table#bus td:nth-child(3) form select {
+table#attached-devices td:nth-child(3) form select {
   flex-grow: 1;
   margin-right: 0.5rem;
 }
 
-table#bus tr.reserved td {
+table#attached-devices tr.reserved td {
   background-color: #ffe9e9;
 }
 
 @media (max-width: 820px) {
-  table#bus select {
+  table#attached-devices select {
     width: 100%;
   }
 
-  table#bus tr th:nth-child(4),
-  table#bus tr td:nth-child(4) {
+  table#attached-devices tr th:nth-child(4),
+  table#attached-devices tr td:nth-child(4) {
     display: none;
   }
 }
@@ -519,8 +595,8 @@ table#bus tr.reserved td {
     width: 10rem;
   }
 
-  table#bus tr.device-assigned td:nth-child(2),
-  table#bus tr.reserved td:nth-child(2) {
+  table#attached-devices tr.device-assigned td:nth-child(2),
+  table#attached-devices tr.reserved td:nth-child(2) {
     background-image: url(icons/device-other.svg);
     background-repeat: no-repeat;
     background-position: 1rem center;
@@ -528,28 +604,28 @@ table#bus tr.reserved td {
     padding-left: 3rem;
   }
 
-  table#bus tr.reserved td:nth-child(2) {
+  table#attached-devices tr.reserved td:nth-child(2) {
     background-image: url(icons/device-reserved.svg);
   }
 
-  table#bus tr.device-sccd td:nth-child(2),
-  table#bus tr.device-scmo td:nth-child(2) {
+  table#attached-devices tr.device-sccd td:nth-child(2),
+  table#attached-devices tr.device-scmo td:nth-child(2) {
     background-image: url(icons/device-optical.svg);
   }
 
-  table#bus tr.device-scdp td:nth-child(2) {
+  table#attached-devices tr.device-scdp td:nth-child(2) {
     background-image: url(icons/device-network.svg);
   }
 
-  table#bus tr.device-schd td:nth-child(2) {
+  table#attached-devices tr.device-schd td:nth-child(2) {
     background-image: url(icons/device-hard-drive.svg);
   }
 
-  table#bus tr.device-scrm td:nth-child(2) {
+  table#attached-devices tr.device-scrm td:nth-child(2) {
     background-image: url(icons/device-removable.svg);
   }
 
-  table#bus tr.device-sclp td:nth-child(2) {
+  table#attached-devices tr.device-sclp td:nth-child(2) {
     background-image: url(icons/device-printer.svg);
   }
 }
@@ -559,13 +635,13 @@ table#bus tr.reserved td {
  Index > Section:Image/file management
  ------------------------------------------------------------------------------
  */
-section#images table td:first-child {
+section#files table#images td:first-child {
   word-break: break-all;
   width: 25%;
 }
 
-section#images table th:last-child,
-section#images table td:last-child {
+section#files table#images th:last-child,
+section#files table#images td:last-child {
   text-align: right;
 }
 
@@ -574,12 +650,12 @@ section#images p {
 }
 
 @media (max-width: 820px) {
-  section#images table tr th:nth-child(2),
-  section#images table tr td:nth-child(2) {
+  section#files table#images tr th:nth-child(2),
+  section#files table#images tr td:nth-child(2) {
     display: none;
   }
 
-  section#images form.file-attach {
+  section#files table#images form.file-attach {
     width: 100%;
     margin-bottom: 0.5rem;
     padding-bottom: 0.5rem;
@@ -588,10 +664,10 @@ section#images p {
 }
 
 @media (min-width: 821px) {
-  section#images form.file-copy input[type="submit"],
-  section#images form.file-rename input[type="submit"],
-  section#images form.file-delete input[type="submit"],
-  section#images form.file-info input[type="submit"] {
+  section#files table#images form.file-copy input[type="submit"],
+  section#files table#images form.file-rename input[type="submit"],
+  section#files table#images form.file-delete input[type="submit"],
+  section#files table#images form.file-info input[type="submit"] {
     background-repeat: no-repeat;
     background-position: center;
     background-size: 1rem;
@@ -599,30 +675,30 @@ section#images p {
     width: 2.5rem;
   }
 
-  section#images form.file-attach input[type="submit"],
+  section#files table#images form.file-attach input[type="submit"],
   section#attach-devices form.device-attach input[type="submit"] {
     background: #efefef url(icons/file-device-attach.svg) no-repeat 0.5rem center;
     background-size: 1rem;
     padding-left: 2rem;
   }
 
-  section#images form.file-copy input[type="submit"] {
+  section#files table#images form.file-copy input[type="submit"] {
     background-image: url(icons/file-copy.svg);
   }
 
-  section#images form.file-rename input[type="submit"] {
+  section#files table#images form.file-rename input[type="submit"] {
     background-image: url(icons/file-rename.svg);
   }
 
-  section#images form.file-delete input[type="submit"] {
+  section#files table#images form.file-delete input[type="submit"] {
     background-image: url(icons/file-delete.svg);
   }
 
-  section#images form.file-info input[type="submit"] {
+  section#files table#images form.file-info input[type="submit"] {
     background-image: url(icons/file-info.svg);
   }
 
-  section#images form.file-extract input[type="submit"] {
+  section#files table#images form.file-extract input[type="submit"] {
     background: #efefef url(icons/file-extract.svg) no-repeat 0.5rem center;
     background-size: 1rem;
     padding-left: 2rem;

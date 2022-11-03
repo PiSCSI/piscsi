@@ -89,6 +89,7 @@ def get_env_info():
         "running_env": sys_cmd.running_env(),
         "username": username,
         "auth_active": auth_active(AUTH_GROUP)["status"],
+        "logged_in": username and auth_active(AUTH_GROUP)["status"],
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
