@@ -581,9 +581,6 @@ int Rascsi::run(const vector<char *>& args) const
 	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
 
-	// Reset controllers and bus
-	controller_manager->Reset();
-
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
