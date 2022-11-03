@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "devices/device_factory.h"
+#include "devices/primary_device.h"
 #include "rascsi_interface.pb.h"
 #include <dirent.h>
 #include <array>
@@ -17,11 +19,10 @@
 using namespace std;
 using namespace rascsi_interface;
 
-class DeviceFactory;
-class Device;
-
 class RascsiResponse
 {
+	using id_set = pair<int, int>;
+
 public:
 
 	RascsiResponse() = default;

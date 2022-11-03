@@ -12,6 +12,7 @@
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_image.h"
+#include "rascsi/rascsi_response.h"
 #include "rascsi_interface.pb.h"
 #include <vector>
 #include <string>
@@ -21,7 +22,6 @@ using namespace std;
 // TODO Only BUS should be known
 class GPIOBUS;
 class ControllerManager;
-class RascsiResponse;
 class RascsiExecutor;
 
 class Rascsi
@@ -59,11 +59,11 @@ private:
 
 	static inline RascsiImage rascsi_image;
 
+	static inline RascsiResponse rascsi_response;
+
 	static inline shared_ptr<GPIOBUS> bus;
 
 	static inline shared_ptr<ControllerManager> controller_manager;
-
-	static inline shared_ptr<RascsiResponse> rascsi_response;
 
 	static inline shared_ptr<RascsiExecutor> executor;
 

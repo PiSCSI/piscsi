@@ -24,7 +24,6 @@
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
-#include "rascsi/rascsi_response.h"
 #include "rascsi/rascsi_core.h"
 #include "rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -84,8 +83,7 @@ bool Rascsi::InitBus() const
 	bus->Reset();
 
 	controller_manager = make_shared<ControllerManager>(bus);
-	rascsi_response = make_shared<RascsiResponse>();
-	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, *controller_manager);
+	executor = make_shared<RascsiExecutor>(rascsi_response, rascsi_image, *controller_manager);
 
 	return true;
 }
@@ -370,7 +368,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response->GetDevices(controller_manager->GetAllDevices(), server_info, rascsi_image.GetDefaultFolder());
+	rascsi_response.GetDevices(controller_manager->GetAllDevices(), server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -421,20 +419,20 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response->GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
+			rascsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
 					rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
-			result.set_allocated_device_types_info(rascsi_response->GetDeviceTypesInfo(result).release());
+			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case SERVER_INFO: {
-			result.set_allocated_server_info(rascsi_response->GetServerInfo(controller_manager->GetAllDevices(),
+			result.set_allocated_server_info(rascsi_response.GetServerInfo(controller_manager->GetAllDevices(),
 					result, executor->GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());
@@ -443,19 +441,19 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case VERSION_INFO: {
-			result.set_allocated_version_info(rascsi_response->GetVersionInfo(result).release());
+			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
-			result.set_allocated_log_level_info(rascsi_response->GetLogLevelInfo(result, current_log_level).release());
+			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEFAULT_IMAGE_FILES_INFO: {
-			result.set_allocated_image_files_info(rascsi_response->GetAvailableImages(result,
+			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
@@ -468,7 +466,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = rascsi_response->GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
+				const bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
@@ -482,26 +480,26 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case NETWORK_INTERFACES_INFO: {
-			result.set_allocated_network_interfaces_info(rascsi_response->GetNetworkInterfacesInfo(result).release());
+			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case MAPPING_INFO: {
-			result.set_allocated_mapping_info(rascsi_response->GetMappingInfo(result).release());
+			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case OPERATION_INFO: {
-			result.set_allocated_operation_info(rascsi_response->GetOperationInfo(result,
+			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
 					rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
-			result.set_allocated_reserved_ids_info(rascsi_response->GetReservedIds(result,
+			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result,
 					executor->GetReservedIds()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
