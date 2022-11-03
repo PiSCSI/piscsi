@@ -83,7 +83,8 @@ bool Rascsi::InitBus() const
 	bus->Reset();
 
 	controller_manager = make_shared<ControllerManager>(*bus);
-	executor = make_shared<RascsiExecutor>(rascsi_image, *controller_manager);
+	auto c = controller_manager;
+	executor = make_shared<RascsiExecutor>(rascsi_image, *c);
 
 	return true;
 }
