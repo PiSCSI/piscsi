@@ -50,9 +50,10 @@ private:
 	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
 	bool CreateInitialDevices(const optarg_queue_type&) const;
 
+	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
 
-	// TODO Get rid of static fields
+	// TODO These fields should not be static
 
 	static inline RascsiService service;
 
