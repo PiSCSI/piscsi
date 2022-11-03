@@ -25,8 +25,6 @@
 #include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
 #include "rascsi/rascsi_response.h"
-#include "rascsi/rascsi_image.h"
-#include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_core.h"
 #include "rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -43,19 +41,6 @@ using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
-
-//---------------------------------------------------------------------------
-//
-// Variable declarations
-// TODO Make these fields class fields
-//
-//---------------------------------------------------------------------------
-RascsiService service;
-shared_ptr<GPIOBUS> bus;
-shared_ptr<ControllerManager> controller_manager;
-RascsiImage rascsi_image;
-shared_ptr<RascsiResponse> rascsi_response;
-shared_ptr<RascsiExecutor> executor;
 
 void Rascsi::Banner(const vector<char *>& args) const
 {
@@ -105,7 +90,7 @@ bool Rascsi::InitBus() const
 	return true;
 }
 
-void Cleanup()
+void Rascsi::Cleanup()
 {
 	executor->DetachAll();
 
@@ -157,7 +142,7 @@ void Rascsi::LogDevices(string_view devices) const
 	}
 }
 
-void TerminationHandler(int signum)
+void Rascsi::TerminationHandler(int signum)
 {
 	Cleanup();
 
@@ -543,7 +528,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	return true;
 }
 
-int Rascsi::run(const vector<char *>& args) const
+int Rascsi::run(const vector<char *>& args)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
