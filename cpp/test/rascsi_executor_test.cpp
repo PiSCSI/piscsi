@@ -39,7 +39,6 @@ TEST_F(RascsiExecutorTest, ProcessDeviceCmd)
 	const int ID = 3;
 	const int LUN = 0;
 
-	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	MockAbstractController controller(controller_manager, ID);
 	RascsiImage rascsi_image;
