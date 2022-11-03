@@ -649,7 +649,7 @@ int Rascsi::run(const vector<char *>& args) const
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
 		// Identify the responsible controller
-		shared_ptr<AbstractController> controller = controller_manager->IdentifyController(id_data);
+		auto controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
