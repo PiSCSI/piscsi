@@ -73,11 +73,9 @@ bool Rascsi::InitBus() const
 	SBC_Version::Init();
 #endif
 
-	// GPIOBUS creation
 	bus = GPIOBUS_Factory::Create();
 
-	// GPIO Initialization
-	if (!bus->Init()) {
+	if (!bus->Init(BUS::mode_e::TARGET)) {
 		return false;
 	}
 
