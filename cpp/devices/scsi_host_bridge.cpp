@@ -267,7 +267,7 @@ void SCSIBR::GetMessage10()
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10()
+void SCSIBR::SendMessage10() const
 {
 	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
 	if (GetController()->GetLength() <= 0) {

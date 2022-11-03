@@ -44,8 +44,8 @@ private:
 
 	void ModeSense6() const;
 	void ModeSense10() const;
-	void ModeSelect6();
-	void ModeSelect10();
+	void ModeSelect6() const;
+	void ModeSelect10() const;
 
 	void SaveParametersCheck(int) const;
 };

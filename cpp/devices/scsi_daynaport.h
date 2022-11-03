@@ -59,10 +59,10 @@ public:
 
 	void TestUnitReady() override;
 	void Read6();
-	void Write6();
-	void RetrieveStatistics();
-	void SetInterfaceMode();
-	void SetMcastAddr();
+	void Write6() const;
+	void RetrieveStatistics() const;
+	void SetInterfaceMode() const;
+	void SetMcastAddr() const;
 	void EnableInterface();
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;

@@ -116,12 +116,12 @@ void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<u
 	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
-void ModePageDevice::ModeSelect6()
+void ModePageDevice::ModeSelect6() const
 {
 	SaveParametersCheck(GetController()->GetCmd(4));
 }
 
-void ModePageDevice::ModeSelect10()
+void ModePageDevice::ModeSelect10() const
 {
 	const auto length = min(GetController()->GetBuffer().size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7)));
 

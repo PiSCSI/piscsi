@@ -324,7 +324,7 @@ void SCSIDaynaPort::Read6()
 	EnterDataInPhase();
 }
 
-void SCSIDaynaPort::Write6()
+void SCSIDaynaPort::Write6() const
 {
 	// Ensure a sufficient buffer size (because it is not transfer for each block)
 	GetController()->AllocateBuffer(DAYNAPORT_BUFFER_SIZE);
@@ -354,7 +354,7 @@ void SCSIDaynaPort::Write6()
 	EnterDataOutPhase();
 }
 
-void SCSIDaynaPort::RetrieveStatistics()
+void SCSIDaynaPort::RetrieveStatistics() const
 {
 	GetController()->SetLength(RetrieveStats(GetController()->GetCmd(), GetController()->GetBuffer()));
 
@@ -391,7 +391,7 @@ void SCSIDaynaPort::RetrieveStatistics()
 //             value.
 //
 //---------------------------------------------------------------------------
-void SCSIDaynaPort::SetInterfaceMode()
+void SCSIDaynaPort::SetInterfaceMode() const
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -421,7 +421,7 @@ void SCSIDaynaPort::SetInterfaceMode()
 	}
 }
 
-void SCSIDaynaPort::SetMcastAddr()
+void SCSIDaynaPort::SetMcastAddr() const
 {
 	GetController()->SetLength(GetController()->GetCmd(4));
 	if (GetController()->GetLength() == 0) {
