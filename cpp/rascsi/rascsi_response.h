@@ -18,7 +18,6 @@ using namespace std;
 using namespace rascsi_interface;
 
 class DeviceFactory;
-class ControllerManager;
 class Device;
 
 class RascsiResponse
@@ -31,11 +30,11 @@ public:
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
 	unique_ptr<PbImageFilesInfo> GetAvailableImages(PbResult&, const string&, const string&, const string&, int) const;
 	unique_ptr<PbReservedIdsInfo> GetReservedIds(PbResult&, const unordered_set<int>&) const;
-	void GetDevices(const ControllerManager&, PbServerInfo&, const string&) const;
-	void GetDevicesInfo(const ControllerManager&, PbResult&, const PbCommand&, const string&) const;
+	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
+	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
 	unique_ptr<PbDeviceTypesInfo> GetDeviceTypesInfo(PbResult&) const;
 	unique_ptr<PbVersionInfo> GetVersionInfo(PbResult&) const;
-	unique_ptr<PbServerInfo> GetServerInfo(const ControllerManager&, PbResult&, const unordered_set<int>&,
+	unique_ptr<PbServerInfo> GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
 			const string&, const string&, const string&, const string&, int) const;
 	unique_ptr<PbNetworkInterfacesInfo> GetNetworkInterfacesInfo(PbResult&) const;
 	unique_ptr<PbMappingInfo> GetMappingInfo(PbResult&) const;
@@ -57,7 +56,7 @@ private:
 	unique_ptr<PbOperationMetaData> CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	unique_ptr<PbOperationParameter> AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false) const;
-	set<id_set> MatchDevices(const ControllerManager&, PbResult&, const PbCommand&) const;
+	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
 	static string GetNextImageFile(const dirent *, const string&);
 };

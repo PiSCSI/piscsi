@@ -370,7 +370,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response->GetDevices(*controller_manager, server_info, rascsi_image.GetDefaultFolder());
+	rascsi_response->GetDevices(controller_manager->GetAllDevices(), server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -421,7 +421,8 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response->GetDevicesInfo(*controller_manager, result, command, rascsi_image.GetDefaultFolder());
+			rascsi_response->GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
+					rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
@@ -433,7 +434,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case SERVER_INFO: {
-			result.set_allocated_server_info(rascsi_response->GetServerInfo(*controller_manager,
+			result.set_allocated_server_info(rascsi_response->GetServerInfo(controller_manager->GetAllDevices(),
 					result, executor->GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());

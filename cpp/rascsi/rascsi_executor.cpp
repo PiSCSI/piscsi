@@ -157,7 +157,8 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(controller_manager, result, cmd, rascsi_image.GetDefaultFolder());
+		rascsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, cmd,
+				rascsi_image.GetDefaultFolder());
 		serializer.SerializeMessage(context.GetFd(), result);
 		return true;
 	}

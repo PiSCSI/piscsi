@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "controllers/controller_manager.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
 #include "protobuf_util.h"
@@ -216,21 +215,19 @@ unique_ptr<PbReservedIdsInfo> RascsiResponse::GetReservedIds(PbResult& result, c
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(const ControllerManager& controller_manager, PbServerInfo& server_info,
+void RascsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbServerInfo& server_info,
 		const string& default_folder) const
 {
-	for (const auto& device : controller_manager.GetAllDevices()) {
+	for (const auto& device : devices) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 		GetDevice(*device, *pb_device, default_folder);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(const ControllerManager& controller_manager, PbResult& result,
+void RascsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
 		const PbCommand& command, const string& default_folder) const
 {
 	set<id_set> id_sets;
-
-	const auto& devices = controller_manager.GetAllDevices();
 
 	// If no device list was provided in the command get information on all devices
 	if (!command.devices_size()) {
@@ -240,7 +237,7 @@ void RascsiResponse::GetDevicesInfo(const ControllerManager& controller_manager,
 	}
 	// Otherwise get information on the devices provided in the command
 	else {
-		id_sets = MatchDevices(controller_manager, result, command);
+		id_sets = MatchDevices(devices, result, command);
 		if (id_sets.empty()) {
 			return;
 		}
@@ -272,9 +269,9 @@ unique_ptr<PbDeviceTypesInfo> RascsiResponse::GetDeviceTypesInfo(PbResult& resul
 	return device_types_info;
 }
 
-unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(const ControllerManager& controller_manager, PbResult& result,
-		const unordered_set<int>& reserved_ids, const string& current_log_level, const string& default_folder,
-		const string& folder_pattern, const string& file_pattern, int scan_depth) const
+unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
+		PbResult& result, const unordered_set<int>& reserved_ids, const string& current_log_level,
+		const string& default_folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	auto server_info = make_unique<PbServerInfo>();
 
@@ -284,7 +281,7 @@ unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(const ControllerManager& 
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result).release());
 	server_info->set_allocated_mapping_info(GetMappingInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
-	GetDevices(controller_manager, *server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
+	GetDevices(devices, *server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids).release());
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth).release()); //NOSONAR The allocated memory is managed by protobuf
 
@@ -497,14 +494,14 @@ unique_ptr<PbOperationParameter> RascsiResponse::AddOperationParameter(PbOperati
 	return parameter;
 }
 
-set<id_set> RascsiResponse::MatchDevices(const ControllerManager& controller_manager, PbResult& result,
+set<id_set> RascsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
 		const PbCommand& command) const
 {
 	set<id_set> id_sets;
 
 	for (const auto& device : command.devices()) {
 		bool has_device = false;
-		for (const auto& d : controller_manager.GetAllDevices()) {
+		for (const auto& d : devices) {
 			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
 				id_sets.insert(make_pair(device.id(), device.unit()));
 				has_device = true;

@@ -37,7 +37,7 @@ void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 	EXPECT_TRUE(controller_manager->AttachToScsiController(0, d));
 
 	PbServerInfo info;
-	response.GetDevices(*controller_manager, info, "image_folder");
+	response.GetDevices(controller_manager->GetAllDevices(), info, "image_folder");
 
 	EXPECT_EQ(1, info.devices_info().devices().size());
 
@@ -109,14 +109,14 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	PbCommand command;
 	PbResult result;
 
-	response.GetDevicesInfo(*controller_manager, result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	EXPECT_TRUE(result.devices_info().devices().empty());
 
 	auto device1 = make_shared<MockHostServices>(LUN1);
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
 
-	response.GetDevicesInfo(*controller_manager, result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices1 = result.devices_info().devices();
 	EXPECT_EQ(1, devices1.size());
@@ -127,7 +127,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN2);
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
 
-	response.GetDevicesInfo(*controller_manager, result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices2 = result.devices_info().devices();
 	EXPECT_EQ(2, devices2.size()) << "Data for all devices must be returned";
@@ -135,7 +135,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	auto requested_device = command.add_devices();
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN1);
-	response.GetDevicesInfo(*controller_manager, result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices3 = result.devices_info().devices();
 	EXPECT_EQ(1, devices3.size()) << "Only data for the specified ID and LUN must be returned";
@@ -145,7 +145,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN3);
-	response.GetDevicesInfo(*controller_manager, result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_FALSE(result.status()) << "Only data for the specified ID and LUN must be returned";
 }
 
@@ -163,10 +163,11 @@ TEST(RascsiResponseTest, GetServerInfo)
 {
 	auto controller_manager = make_shared<ControllerManager>(make_shared<MockBus>());
 	RascsiResponse response;
+	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };
 	PbResult result;
 
-	const auto& info = response.GetServerInfo(*controller_manager, result, ids, "log_level", "default_folder", "", "", 1234);
+	const auto& info = response.GetServerInfo(devices, result, ids, "log_level", "default_folder", "", "", 1234);
 	EXPECT_TRUE(result.status());
 	EXPECT_EQ(rascsi_major_version, info->version_info().major_version());
 	EXPECT_EQ(rascsi_minor_version, info->version_info().minor_version());
