@@ -20,7 +20,7 @@ using namespace std;
 class Rascsi
 {
 	using optarg_value_type = pair<int, string>;
-	using optarg_queue_type = deque<optarg_value_type>;
+	using optarg_queue_type = vector<optarg_value_type>;
 
 	static const int DEFAULT_PORT = 6868;
 	static const char COMPONENT_SEPARATOR = ':';
