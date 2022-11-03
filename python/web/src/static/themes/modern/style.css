@@ -21,9 +21,20 @@
  General layout
  ------------------------------------------------------------------------------
  */
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 div.content {
+  flex-grow: 1;
   padding: 1rem;
   margin: auto;
+  width: 100%;
 }
 
 hr {
@@ -256,6 +267,7 @@ div.header div.authentication-disabled {
  ------------------------------------------------------------------------------
  */
 div.footer {
+  flex-shrink: 0;
   background: var(--dark);
   padding: 1rem;
   color: #fff;
