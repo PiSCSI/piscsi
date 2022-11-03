@@ -543,9 +543,6 @@ int Rascsi::run(const vector<char *>& args) const
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
-	setvbuf(stdout, nullptr, _IONBF, 0);
-
 	Banner(args);
 
 	int port = DEFAULT_PORT;
