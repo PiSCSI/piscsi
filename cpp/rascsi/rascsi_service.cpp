@@ -18,6 +18,7 @@
 #include <csignal>
 
 using namespace rascsi_interface;
+using namespace ras_util;
 
 void RascsiService::Cleanup() const
 {
@@ -76,7 +77,7 @@ void RascsiService::Execute() const
 #endif
 
 	// Set the affinity to a specific processor core
-	ras_util::FixCpu(2);
+	FixCpu(2);
 
 	// Wait for the execution to start
 	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
