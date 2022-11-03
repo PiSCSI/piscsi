@@ -549,7 +549,7 @@ int Rascsi::run(const vector<char *>& args) const
 	int port = DEFAULT_PORT;
 	optarg_queue_type optarg_queue;
 	if (!ParseArguments(args, port, optarg_queue)) {
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	// Note that current_log_level may have been modified by ParseArguments()
@@ -559,18 +559,18 @@ int Rascsi::run(const vector<char *>& args) const
 	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
-		return EPERM;
+		return EXIT_FAILURE;
 	}
 
 	if (!service.Init(&ExecuteCommand, port)) {
-		return EPERM;
+		return EXIT_FAILURE;
 	}
 
 	// We need to wait to create the devices until after the bus/controller/etc
 	// objects have been created.
 	if (!CreateInitialDevices(optarg_queue)) {
 		Cleanup();
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	// Signal handler to detach all devices on a KILL or TERM signal
@@ -691,5 +691,5 @@ int Rascsi::run(const vector<char *>& args) const
 		active = false;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
