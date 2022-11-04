@@ -507,6 +507,8 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
 
     const int command_byte_count = GetCommandByteCount(*buf);
     if (command_byte_count == 0) {
+    	EnableIRQ();
+
     	return 0;
     }
 
