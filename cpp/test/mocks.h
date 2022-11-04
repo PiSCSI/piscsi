@@ -57,7 +57,7 @@ public:
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
-	MOCK_METHOD(int, CommandHandShake, (uint8_t *, int), (override));
+	MOCK_METHOD(int, CommandHandShake, (uint8_t *), (override));
 	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
@@ -92,7 +92,6 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
 			scsi_defs::scsi_level, const std::string&, int, bool);
 
-	FRIEND_TEST(AbstractControllerTest, GetCommandByteCount);
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);

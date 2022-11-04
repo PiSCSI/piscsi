@@ -100,7 +100,7 @@ protected:
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
-	static int GetCommandByteCount(uint8_t);
+    static int GetCommandByteCount(uint8_t);
 
 private:
 

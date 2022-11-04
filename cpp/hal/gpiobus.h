@@ -332,9 +332,9 @@ class GPIOBUS : public BUS
     // Set REQ signal
     bool GetDP() const override;
     // Get Data parity signal
-    int CommandHandShake(uint8_t *buf, int) override;
+    int CommandHandShake(uint8_t *, int) override;
     // Command receive handshake
-    int ReceiveHandShake(uint8_t *buf, int count) override;
+    int ReceiveHandShake(uint8_t *, int) override;
     // Data receive handshake
     int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake

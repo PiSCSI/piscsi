@@ -158,6 +158,5 @@ int AbstractController::GetCommandByteCount(uint8_t opcode)
 {
 	const auto& mapping = command_mapping.find(static_cast<scsi_command>(opcode));
 
-	return mapping != command_mapping.end() ? mapping->second.first : 0;
+	return mapping != command_mapping.end() ? mapping->second.first : 6;
 }
-

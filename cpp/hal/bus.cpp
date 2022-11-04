@@ -11,7 +11,6 @@
 #include "bus.h"
 
 using namespace std;
-using namespace scsi_defs;
 
 //---------------------------------------------------------------------------
 //

@@ -95,8 +95,8 @@ public:
 	virtual bool GetDP() const = 0;			// Get parity signal
 
 	virtual uint32_t Acquire() = 0;
-	virtual int CommandHandShake(uint8_t *buf, int) = 0;
-	virtual int ReceiveHandShake(uint8_t *buf, int count) = 0;
+	virtual int CommandHandShake(uint8_t *, int) = 0;
+	virtual int ReceiveHandShake(uint8_t *, int) = 0;
 	virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
 
 	virtual bool GetSignal(int pin) const = 0;
