@@ -153,3 +153,11 @@ int AbstractController::ExtractInitiatorId(int id_data) const
 
 	return initiator_id;
 }
+
+int AbstractController::GetCommandByteCount(uint8_t opcode)
+{
+	const auto& mapping = command_mapping.find(static_cast<scsi_command>(opcode));
+
+	return mapping != command_mapping.end() ? mapping->second.first : 0;
+}
+

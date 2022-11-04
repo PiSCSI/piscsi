@@ -92,6 +92,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
 			scsi_defs::scsi_level, const std::string&, int, bool);
 
+	FRIEND_TEST(AbstractControllerTest, GetCommandByteCount);
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
 	FRIEND_TEST(AbstractControllerTest, Reset);
 	FRIEND_TEST(AbstractControllerTest, ProcessPhase);

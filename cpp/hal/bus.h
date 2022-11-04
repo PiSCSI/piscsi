@@ -44,8 +44,6 @@ public:
 	BUS() = default;
 	virtual ~BUS() = default;
 
-    static int GetCommandByteCount(uint8_t);
-
 	virtual bool Init(mode_e mode) = 0;
 	virtual void Reset() = 0;
 	virtual void Cleanup() = 0;
