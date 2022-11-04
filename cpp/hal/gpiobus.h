@@ -15,6 +15,7 @@
 #include "scsi.h"
 #include "bus.h"
 #include <array>
+#include <vector>
 
 #ifdef __linux__
 #include <linux/gpio.h>
@@ -332,7 +333,7 @@ class GPIOBUS : public BUS
     // Set REQ signal
     bool GetDP() const override;
     // Get Data parity signal
-    int CommandHandShake(uint8_t *buf) override;
+    int CommandHandShake(vector<uint8_t>&) override;
     // Command receive handshake
     int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake

@@ -199,7 +199,7 @@ void ScsiController::Command()
 		GetBus().SetCD(true);
 		GetBus().SetIO(false);
 
-		const int actual_count = GetBus().CommandHandShake(GetBuffer().data());
+		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
 			LOGTRACE("ID %d LUN %d received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
 

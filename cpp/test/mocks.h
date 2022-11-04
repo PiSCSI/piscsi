@@ -57,7 +57,7 @@ public:
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
-	MOCK_METHOD(int, CommandHandShake, (uint8_t *), (override));
+	MOCK_METHOD(int, CommandHandShake, (vector<uint8_t>&), (override));
 	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));

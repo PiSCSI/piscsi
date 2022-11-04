@@ -431,7 +431,7 @@ bool GPIOBUS::GetDP() const
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(uint8_t *buf)
+int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
     GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
@@ -451,7 +451,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
     // Get data
-    *buf = GetDAT();
+    buf[0] = GetDAT();
 
     // Disable REQ signal
     SetSignal(PIN_REQ, OFF);
@@ -480,7 +480,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
     // semantics. I fact, these semantics have become a standard in the Atari world.
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-    if (*buf == 0x1F) {
+    if (buf[0] == 0x1F) {
         SetSignal(PIN_REQ, ON);
 
         ret = WaitSignal(PIN_ACK, ON);
@@ -488,7 +488,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get the actual SCSI command
-        *buf = GetDAT();
+        buf[0] = GetDAT();
 
         SetSignal(PIN_REQ, OFF);
 
@@ -505,19 +505,20 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         }
     }
 
-    const int command_byte_count = GetCommandByteCount(*buf);
+    const int command_byte_count = GetCommandByteCount(buf[0]);
     if (command_byte_count == 0) {
     	EnableIRQ();
 
     	return 0;
     }
 
-    // Increment buffer pointer
-    buf++;
+    int offset = 0;
 
     int bytes_received;
     for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
-        // Assert REQ signal
+    	++offset;
+
+    	// Assert REQ signal
         SetSignal(PIN_REQ, ON);
 
         // Wait for ACK signal
@@ -527,7 +528,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get data
-        *buf = GetDAT();
+        buf[offset] = GetDAT();
 
         // Clear the REQ signal
         SetSignal(PIN_REQ, OFF);
@@ -544,9 +545,6 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         if (!ret) {
             break;
         }
-
-        // Advance the buffer pointer to receive the next byte
-        buf++;
     }
 
     EnableIRQ();
