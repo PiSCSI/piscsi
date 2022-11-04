@@ -431,7 +431,7 @@ bool GPIOBUS::GetDP() const
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(uint8_t *buf, int command_byte_count)
+int GPIOBUS::CommandHandShake(uint8_t *buf)
 {
     GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
@@ -504,6 +504,8 @@ int GPIOBUS::CommandHandShake(uint8_t *buf, int command_byte_count)
             return 0;
         }
     }
+
+    const int command_byte_count = GetCommandByteCount(*buf);
 
     // Increment buffer pointer
     buf++;

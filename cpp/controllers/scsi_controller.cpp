@@ -199,8 +199,8 @@ void ScsiController::Command()
 		GetBus().SetCD(true);
 		GetBus().SetIO(false);
 
-		const int command_byte_count = GetCommandByteCount(GetBuffer()[0]);
-		const int actual_count = GetBus().CommandHandShake(GetBuffer().data(), command_byte_count);
+		const int actual_count = GetBus().CommandHandShake(GetBuffer().data());
+		const int command_byte_count = BUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
@@ -936,7 +936,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 void ScsiController::ProcessCommand()
 {
-	const uint32_t len = GetCommandByteCount(GetBuffer()[0]);
+	uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 	stringstream s;
 	s << setfill('0') << setw(2) << hex;
