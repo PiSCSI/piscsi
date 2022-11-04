@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
@@ -116,7 +117,7 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 	}
 
 	luns[device->GetLun()] = device;
-	device->SetController(this);
+	device->SetController(shared_from_this());
 
 	return true;
 }

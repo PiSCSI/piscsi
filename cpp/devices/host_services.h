@@ -15,19 +15,17 @@
 #include <vector>
 #include <map>
 
-class ControllerManager;
-
 class HostServices: public ModePageDevice
 {
 
 public:
 
-	HostServices(int, const ControllerManager&);
+	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
 	~HostServices() override = default;
 
-	bool Dispatch(scsi_command) override;
+	bool Init(const unordered_map<string, string>&) override;
 
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	void TestUnitReady() override;
 
 protected:
@@ -49,13 +47,7 @@ private:
 	    uint8_t second; // 0-59
 	};
 
-	using super = ModePageDevice;
-
-	Dispatcher<HostServices> dispatcher;
-
-	const ControllerManager& controller_manager;
-
-	void StartStopUnit();
+	void StartStopUnit() const;
 	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
 	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 

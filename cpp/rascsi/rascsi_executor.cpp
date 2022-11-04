@@ -14,7 +14,6 @@
 #include "devices/primary_device.h"
 #include "devices/disk.h"
 #include "rascsi_service.h"
-#include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_exceptions.h"
 #include "localizer.h"
@@ -157,7 +156,8 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(result, cmd, rascsi_image.GetDefaultFolder());
+		rascsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, cmd,
+				rascsi_image.GetDefaultFolder());
 		serializer.SerializeMessage(context.GetFd(), result);
 		return true;
 	}
@@ -318,7 +318,7 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		params.erase("file");
 	}
 
-	if (device->SupportsParams() && !device->Init(params)) {
+	if (!device->Init(params)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(device->GetType()),
 				to_string(id), to_string(lun));
 	}
@@ -389,7 +389,7 @@ bool RascsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 
 	storage_device->SetProtected(pb_device.protected_());
 	storage_device->ReserveFile(full_path, storage_device->GetId(), storage_device->GetLun());
-	storage_device->MediumChanged();
+	storage_device->SetMediumChanged(true);
 
 	return true;
 }
@@ -522,7 +522,7 @@ string RascsiExecutor::SetReservedIds(string_view ids)
     if (!reserved_ids.empty()) {
     	string s;
     	bool isFirst = true;
-    	for (auto const& reserved_id : reserved) {
+    	for (const auto& reserved_id : reserved) {
     		if (!isFirst) {
     			s += ", ";
     		}
@@ -668,7 +668,7 @@ bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& context, const PbDeviceType type,
 		int lun, const string& filename) const
 {
-	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
+	auto device = device_factory.CreateDevice(type, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);

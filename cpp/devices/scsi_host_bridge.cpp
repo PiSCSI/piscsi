@@ -16,9 +16,9 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
 #include <array>
@@ -27,21 +27,18 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
+bool SCSIBR::Init(const unordered_map<string, string>& params)
 {
+	PrimaryDevice::Init(params);
+
 	// Create host file system
 	fs.Reset();
 
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	dispatcher.Add(scsi_command::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdGetMessage10, [this] { GetMessage10(); });
+	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
 
 	SupportsParams(true);
-}
-
-bool SCSIBR::Init(const unordered_map<string, string>& params)
-{
-	SetParams(params);
 
 #ifdef __linux__
 	// TAP Driver Generation
@@ -71,31 +68,25 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch(scsi_command cmd)
+vector<uint8_t> SCSIBR::InquiryInternal() const
 {
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
-}
-
-vector<byte> SCSIBR::InquiryInternal() const
-{
-	vector<byte> buf = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<uint8_t> buf = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
 
 	// The bridge returns more additional bytes than the other devices
 	buf.resize(0x1F + 8 + 5);
 
-	buf[4] = byte{0x1F + 8};
+	buf[4] = 0x1F + 8;
 
 	// Optional function valid flag
-	buf[36] = byte{'0'};
+	buf[36] = '0';
 
 	// TAP Enable
 	if (m_bTapEnable) {
-		buf[37] = byte{'1'};
+		buf[37] = '1';
 	}
 
 	// CFileSys Enable
-	buf[38] = byte{'1'};
+	buf[38] = '1';
 
 	return buf;
 }
@@ -255,16 +246,16 @@ bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf, uint32_t)
 void SCSIBR::GetMessage10()
 {
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	controller->AllocateBuffer(0x1000000);
+	GetController()->AllocateBuffer(0x1000000);
 
-	controller->SetLength(GetMessage10(controller->GetCmd(), controller->GetBuffer()));
-	if (controller->GetLength() <= 0) {
+	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
+	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Set next block
-	controller->SetBlocks(1);
-	controller->SetNext(1);
+	GetController()->SetBlocks(1);
+	GetController()->SetNext(1);
 
 	EnterDataInPhase();
 }
@@ -276,19 +267,19 @@ void SCSIBR::GetMessage10()
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10()
+void SCSIBR::SendMessage10() const
 {
-	controller->SetLength(GetInt24(controller->GetCmd(), 6));
-	if (controller->GetLength() <= 0) {
+	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
+	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	controller->AllocateBuffer(0x1000000);
+	GetController()->AllocateBuffer(0x1000000);
 
 	// Set next block
-	controller->SetBlocks(1);
-	controller->SetNext(1);
+	GetController()->SetBlocks(1);
+	GetController()->SetNext(1);
 
 	EnterDataOutPhase();
 }

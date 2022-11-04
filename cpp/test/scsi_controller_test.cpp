@@ -19,7 +19,9 @@ TEST(ScsiControllerTest, GetInitiatorId)
 {
 	const int ID = 2;
 
-	MockScsiController controller(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.Process(ID);
 	EXPECT_EQ(ID, controller.GetInitiatorId());
@@ -30,7 +32,8 @@ TEST(ScsiControllerTest, GetInitiatorId)
 TEST(ScsiControllerTest, Process)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
@@ -56,7 +59,9 @@ TEST(ScsiControllerTest, Process)
 
 TEST(ScsiControllerTest, BusFree)
 {
-	MockScsiController controller(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::busfree);
 	controller.BusFree();
@@ -88,63 +93,65 @@ TEST(ScsiControllerTest, BusFree)
 TEST(ScsiControllerTest, Selection)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockScsiController>(controller_manager, 0);
 
-	controller.SetPhase(BUS::phase_t::selection);
+	controller->SetPhase(BUS::phase_t::selection);
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(true));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(true));
 	EXPECT_CALL(*bus, GetATN).Times(0);
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::selection, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::selection, controller->GetPhase());
 
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(true));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(false));
 	EXPECT_CALL(*bus, GetATN).Times(0);
-	EXPECT_CALL(controller, Status);
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::selection, controller.GetPhase());
+	EXPECT_CALL(*controller, Status);
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::selection, controller->GetPhase());
 
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(false));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(false));
 	EXPECT_CALL(*bus, GetATN).Times(0);
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::selection, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::selection, controller->GetPhase());
 
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(false));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(true));
 	ON_CALL(*bus, GetATN).WillByDefault(Return(false));
 	EXPECT_CALL(*bus, GetATN);
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::command, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::command, controller->GetPhase());
 
-	controller.SetPhase(BUS::phase_t::selection);
+	controller->SetPhase(BUS::phase_t::selection);
 	ON_CALL(*bus, GetSEL).WillByDefault(Return(false));
 	ON_CALL(*bus, GetBSY).WillByDefault(Return(true));
 	ON_CALL(*bus, GetATN).WillByDefault(Return(true));
 	EXPECT_CALL(*bus, GetATN);
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::msgout, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::msgout, controller->GetPhase());
 
-	controller.SetPhase(BUS::phase_t::reserved);
+	controller->SetPhase(BUS::phase_t::reserved);
 	ON_CALL(*bus, GetDAT).WillByDefault(Return(0));
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::reserved, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::reserved, controller->GetPhase());
 
 	ON_CALL(*bus, GetDAT).WillByDefault(Return(1));
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::reserved, controller.GetPhase()) << "There is no device that can be selected";
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::reserved, controller->GetPhase()) << "There is no device that can be selected";
 
 	auto device = make_shared<MockPrimaryDevice>(0);
-	controller.AddDevice(device);
+	controller->AddDevice(device);
 	EXPECT_CALL(*bus, SetBSY(true));
-	controller.Selection();
-	EXPECT_EQ(BUS::phase_t::selection, controller.GetPhase());
+	controller->Selection();
+	EXPECT_EQ(BUS::phase_t::selection, controller->GetPhase());
 }
 
 TEST(ScsiControllerTest, Command)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::command);
 	EXPECT_CALL(controller, Status);
@@ -171,7 +178,8 @@ TEST(ScsiControllerTest, Command)
 TEST(ScsiControllerTest, MsgIn)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
 	EXPECT_CALL(*bus, SetMSG(true));
@@ -186,7 +194,8 @@ TEST(ScsiControllerTest, MsgIn)
 TEST(ScsiControllerTest, MsgOut)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
 	EXPECT_CALL(*bus, SetMSG(true));
@@ -201,7 +210,8 @@ TEST(ScsiControllerTest, MsgOut)
 TEST(ScsiControllerTest, DataIn)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
 	controller.SetLength(0);
@@ -221,7 +231,8 @@ TEST(ScsiControllerTest, DataIn)
 TEST(ScsiControllerTest, DataOut)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	controller.SetPhase(BUS::phase_t::reserved);
 	controller.SetLength(0);
@@ -241,7 +252,8 @@ TEST(ScsiControllerTest, DataOut)
 TEST(ScsiControllerTest, Error)
 {
 	auto bus = make_shared<NiceMock<MockBus>>();
-	MockScsiController controller(bus, 0);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	MockScsiController controller(controller_manager, 0);
 
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
 	controller.SetPhase(BUS::phase_t::reserved);
@@ -283,19 +295,23 @@ TEST(ScsiControllerTest, Error)
 
 TEST(ScsiControllerTest, RequestSense)
 {
-	MockScsiController controller(make_shared<NiceMock<MockBus>>());
+	auto bus = make_shared<NiceMock<MockBus>>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockScsiController>(controller_manager, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
+	const unordered_map<string, string> params;
+	device->Init(params);
 
-    controller.AddDevice(device);
+	controller->AddDevice(device);
 
-	vector<int>& cmd = controller.GetCmd();
+	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
 	cmd[4] = 255;
 	// Non-existing LUN
 	cmd[1] = 0x20;
 
 	device->SetReady(true);
-	EXPECT_CALL(controller, Status);
-	EXPECT_TRUE(device->Dispatch(scsi_command::eCmdRequestSense));
-	EXPECT_EQ(status::GOOD, controller.GetStatus()) << "Illegal CHECK CONDITION for non-exsting LUN";
+	EXPECT_CALL(*controller, Status);
+	device->Dispatch(scsi_command::eCmdRequestSense);
+	EXPECT_EQ(status::GOOD, controller->GetStatus()) << "Wrong CHECK CONDITION for non-existing LUN";
 }

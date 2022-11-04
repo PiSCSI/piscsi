@@ -14,14 +14,14 @@
 #include <vector>
 #include <map>
 
-class ModePageDevice: public PrimaryDevice
+// TODO Maybe this should better be a mixin class because not all storage devicess have mode pages
+class ModePageDevice : public PrimaryDevice
 {
 public:
 
-	ModePageDevice(PbDeviceType, int);
-	~ModePageDevice() override = default;
+	using PrimaryDevice::PrimaryDevice;
 
-	bool Dispatch(scsi_command) override;
+	bool Init(const unordered_map<string, string>&) override;
 
 	virtual void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<uint8_t>&, int) const;
 
@@ -37,19 +37,15 @@ protected:
 
 private:
 
-	using super = PrimaryDevice;
-
-	Dispatcher<ModePageDevice> dispatcher;
-
 	bool supports_save_parameters = false;
 
 	virtual int ModeSense6(const vector<int>&, vector<uint8_t>&) const = 0;
 	virtual int ModeSense10(const vector<int>&, vector<uint8_t>&) const = 0;
 
-	void ModeSense6();
-	void ModeSense10();
-	void ModeSelect6();
-	void ModeSelect10();
+	void ModeSense6() const;
+	void ModeSense10() const;
+	void ModeSelect6() const;
+	void ModeSelect10() const;
 
-	int SaveParametersCheck(int) const;
+	void SaveParametersCheck(int) const;
 };

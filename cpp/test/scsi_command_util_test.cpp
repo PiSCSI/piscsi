@@ -21,12 +21,9 @@ TEST(ScsiCommandUtilTest, ModeSelect6)
 	vector<int> cdb(6);
 	vector<uint8_t> buf(LENGTH);
 
-	// PF (vendor-specific parameter format)
+	// PF (vendor-specific parameter format) must not fail but be ignored
 	cdb[1] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
-		<< "Vendor-specific parameters are not supported";
+	ModeSelect(scsi_command::eCmdModeSelect6, cdb, buf, LENGTH, 0);
 
 	cdb[0] = 0x15;
 	// PF (standard parameter format)
@@ -71,12 +68,9 @@ TEST(ScsiCommandUtilTest, ModeSelect10)
 	vector<int> cdb(10);
 	vector<uint8_t> buf(LENGTH);
 
-	// PF (vendor-specific parameter format)
+	// PF (vendor-specific parameter format) must not fail but be ignored
 	cdb[1] = 0x00;
-	EXPECT_THAT([&] { ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_PARAMETER_LIST))))
-		<< "Vendor-specific parameters are not supported";
+	ModeSelect(scsi_command::eCmdModeSelect10, cdb, buf, LENGTH, 0);
 
 	// PF (standard parameter format)
 	cdb[1] = 0x10;

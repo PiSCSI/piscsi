@@ -78,36 +78,34 @@ TEST(ModePageDeviceTest, AddVendorPage)
 	EXPECT_TRUE(pages.empty()) << "There must not be any default vendor page";
 }
 
-TEST(ModePageDeviceTest, Dispatch)
-{
-    MockAbstractController controller(make_shared<MockBus>(), 0);
-	auto device = make_shared<NiceMock<MockModePageDevice>>();
-
-    controller.AddDevice(device);
-
-    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
-}
-
 TEST(ModePageDeviceTest, ModeSense6)
 {
-    MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
+	const unordered_map<string, string> params;
+	device->Init(params);
 
-    controller.AddDevice(device);
+    controller->AddDevice(device);
 
-    EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense6));
+    EXPECT_CALL(*controller, DataIn());
+    device->Dispatch(scsi_command::eCmdModeSense6);
 }
 
 TEST(ModePageDeviceTest, ModeSense10)
 {
-    MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
+	const unordered_map<string, string> params;
+	device->Init(params);
 
-    controller.AddDevice(device);
+    controller->AddDevice(device);
 
-    EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSense10));
+    EXPECT_CALL(*controller, DataIn());
+    device->Dispatch(scsi_command::eCmdModeSense10);
 }
 
 TEST(ModePageDeviceTest, ModeSelect)
@@ -128,15 +126,19 @@ TEST(ModePageDeviceTest, ModeSelect)
 
 TEST(ModePageDeviceTest, ModeSelect6)
 {
-    MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockModePageDevice>();
+	const unordered_map<string, string> params;
+	device->Init(params);
 
-    controller.AddDevice(device);
+    controller->AddDevice(device);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller->GetCmd();
 
-    EXPECT_CALL(controller, DataOut());
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect6));
+    EXPECT_CALL(*controller, DataOut());
+    device->Dispatch(scsi_command::eCmdModeSelect6);
 
     cmd[1] = 0x01;
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
@@ -147,15 +149,19 @@ TEST(ModePageDeviceTest, ModeSelect6)
 
 TEST(ModePageDeviceTest, ModeSelect10)
 {
-    MockAbstractController controller(make_shared<MockBus>(), 0);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto device = make_shared<MockModePageDevice>();
+	const unordered_map<string, string> params;
+	device->Init(params);
 
-    controller.AddDevice(device);
+    controller->AddDevice(device);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller->GetCmd();
 
-    EXPECT_CALL(controller, DataOut());
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdModeSelect10));
+    EXPECT_CALL(*controller, DataOut());
+    device->Dispatch(scsi_command::eCmdModeSelect10);
 
     cmd[1] = 0x01;
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(

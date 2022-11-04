@@ -49,7 +49,7 @@ void SCSIMO::Open()
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	super::ValidateFile();
+	Disk::ValidateFile();
 
 	SetUpCache(0);
 
@@ -59,7 +59,7 @@ void SCSIMO::Open()
 	}
 }
 
-vector<byte> SCSIMO::InquiryInternal() const
+vector<uint8_t> SCSIMO::InquiryInternal() const
 {
 	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }

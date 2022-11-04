@@ -10,30 +10,47 @@
 #include "log.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "primary_device.h"
 
 using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun)
+bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 {
 	// Mandatory SCSI primary commands
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	dispatcher.Add(scsi_command::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdInquiry, [this] { Inquiry(); });
+	AddCommand(scsi_command::eCmdReportLuns, [this] { ReportLuns(); });
 
 	// Optional commands supported by all RaSCSI devices
-	dispatcher.Add(scsi_command::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
-	dispatcher.Add(scsi_command::eCmdReserve6, "ReserveUnit", &PrimaryDevice::ReserveUnit);
-	dispatcher.Add(scsi_command::eCmdRelease6, "ReleaseUnit", &PrimaryDevice::ReleaseUnit);
-	dispatcher.Add(scsi_command::eCmdSendDiag, "SendDiagnostic", &PrimaryDevice::SendDiagnostic);
+	AddCommand(scsi_command::eCmdRequestSense, [this] { RequestSense(); });
+	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
+	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
+	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
+
+	SetParams(params);
+
+	return true;
 }
 
-bool PrimaryDevice::Dispatch(scsi_command cmd)
+void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
 {
-	return dispatcher.Dispatch(this, cmd);
+	commands[opcode] = execute;
+}
+
+void PrimaryDevice::Dispatch(scsi_command cmd)
+{
+	if (const auto& it = commands.find(cmd); it != commands.end()) {
+		LOGDEBUG("Executing %s ($%02X)", command_names.find(cmd)->second, static_cast<int>(cmd))
+
+		it->second();
+	}
+	else {
+		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetId(), GetLun(), static_cast<int>(cmd))
+
+		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	}
 }
 
 void PrimaryDevice::Reset()
@@ -45,14 +62,14 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	if (controller == nullptr) {
+	if (GetController() == nullptr) {
 		LOGERROR("Device is missing its controller")
 	}
 
-	return controller != nullptr ? controller->GetTargetId() : -1;
+	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
 
-void PrimaryDevice::SetController(AbstractController *c)
+void PrimaryDevice::SetController(shared_ptr<AbstractController> c)
 {
 	controller = c;
 }
@@ -67,23 +84,23 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((controller->GetCmd(1) & 0x01) || controller->GetCmd(2)) {
+	if ((GetController()->GetCmd(1) & 0x01) || GetController()->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	vector<byte> buf = InquiryInternal();
+	vector<uint8_t> buf = InquiryInternal();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 3)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 3)));
 
-	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-	controller->SetLength(static_cast<uint32_t>(allocation_length));
+	memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
+	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
-	if (int lun = controller->GetEffectiveLun(); !controller->HasDeviceForLun(lun)) {
+	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
-		controller->GetBuffer().data()[0] = 0x7f;
+		GetController()->GetBuffer().data()[0] = 0x7f;
 	}
 
 	EnterDataInPhase();
@@ -92,18 +109,18 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (controller->GetCmd(2)) {
+	if (GetController()->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const uint32_t allocation_length = GetInt32(controller->GetCmd(), 6);
+	const uint32_t allocation_length = GetInt32(GetController()->GetCmd(), 6);
 
-	vector<uint8_t>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = GetController()->GetBuffer();
 	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
-	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
-		if (controller->HasDeviceForLun(lun)) {
+	for (int lun = 0; lun < GetController()->GetMaxLuns(); lun++) {
+		if (GetController()->HasDeviceForLun(lun)) {
 			size += 8;
 			buf[size + 7] = (uint8_t)lun;
 		}
@@ -113,35 +130,35 @@ void PrimaryDevice::ReportLuns()
 
 	size += 8;
 
-	controller->SetLength(min(allocation_length, size));
+	GetController()->SetLength(min(allocation_length, size));
 
 	EnterDataInPhase();
 }
 
 void PrimaryDevice::RequestSense()
 {
-	int lun = controller->GetEffectiveLun();
+	int lun = GetController()->GetEffectiveLun();
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-	if (!controller->HasDeviceForLun(lun)) {
+	if (!GetController()->HasDeviceForLun(lun)) {
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
-		assert(controller->HasDeviceForLun(0));
+		assert(GetController()->HasDeviceForLun(0));
 
 		lun = 0;
 
 		// Do not raise an exception here because the rest of the code must be executed
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+		GetController()->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 
-		controller->SetStatus(status::GOOD);
+		GetController()->SetStatus(status::GOOD);
 	}
 
-    vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
+    vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(controller->GetCmd(4)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmd(4)));
 
-    memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-    controller->SetLength(static_cast<uint32_t>(allocation_length));
+    memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
+    GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
     EnterDataInPhase();
 }
@@ -149,12 +166,12 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (controller->GetCmd(1) & 0x10) {
+	if (GetController()->GetCmd(1) & 0x10) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not support parameter list
-	if ((controller->GetCmd(3) != 0) || (controller->GetCmd(4) != 0)) {
+	if ((GetController()->GetCmd(3) != 0) || (GetController()->GetCmd(4) != 0)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -187,9 +204,9 @@ void PrimaryDevice::CheckReady()
 	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__)
 }
 
-vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
+vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
 {
-	vector<byte> buf(0x1F + 5);
+	vector<uint8_t> buf(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... SCSI device type
@@ -197,11 +214,12 @@ vector<byte> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bo
 	// buf[2] ... SCSI compliance level of command system
 	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
-	buf[0] = (byte)type;
-	buf[1] = (byte)(is_removable ? 0x80 : 0x00);
-	buf[2] = (byte)level;
-	buf[3] = (byte)(level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS);
-	buf[4] = (byte)0x1F;
+	buf[0] = static_cast<uint8_t>(type);
+	buf[1] = is_removable ? 0x80 : 0x00;
+	buf[2] = static_cast<uint8_t>(level);
+	buf[3] = level >= scsi_level::SCSI_2 ?
+			static_cast<uint8_t>(scsi_level::SCSI_2) : static_cast<uint8_t>(scsi_level::SCSI_1_CCS);
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
@@ -228,7 +246,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(controller->GetStatus()),
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(GetController()->GetStatus()),
 			static_cast<int>(buf[2]), static_cast<int>(buf[12]))
 
 	return buf;
@@ -243,7 +261,7 @@ bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
 
 void PrimaryDevice::ReserveUnit()
 {
-	reserving_initiator = controller->GetInitiatorId();
+	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
 		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator)
@@ -280,7 +298,7 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 		return true;
 	}
 	// PREVENT ALLOW MEDIUM REMOVAL is permitted if the prevent bit is 0
-	if (cmd == scsi_command::eCmdRemoval && !prevent_removal) {
+	if (cmd == scsi_command::eCmdPreventAllowMediumRemoval && !prevent_removal) {
 		return true;
 	}
 

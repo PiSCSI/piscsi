@@ -112,7 +112,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 	return make_pair(image_size, sector_size);
 }
 
-vector<byte> SCSIHD_NEC::InquiryInternal() const
+vector<uint8_t> SCSIHD_NEC::InquiryInternal() const
 {
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }

@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "controllers/controller_manager.h"
+#include "log.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
 #include "protobuf_util.h"
@@ -25,7 +25,8 @@ unique_ptr<PbDeviceProperties> RascsiResponse::GetDeviceProperties(const Device&
 {
 	auto properties = make_unique<PbDeviceProperties>();
 
-	properties->set_luns(max_luns);
+	// Currently there is only a SCSI controller, i.e. there can always be 32 LUNs
+	properties->set_luns(32);
 	properties->set_read_only(device.IsReadOnly());
 	properties->set_protectable(device.IsProtectable());
 	properties->set_stoppable(device.IsStoppable());
@@ -52,7 +53,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	auto type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	const auto device = device_factory.CreateDevice(controller_manager, type, 0, "");
+	const auto device = device_factory.CreateDevice(type, 0, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(*device).release());
 } //NOSONAR The allocated memory is managed by protobuf
 
@@ -214,19 +215,19 @@ unique_ptr<PbReservedIdsInfo> RascsiResponse::GetReservedIds(PbResult& result, c
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info, const string& default_folder) const
+void RascsiResponse::GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbServerInfo& server_info,
+		const string& default_folder) const
 {
-	for (const auto& device : controller_manager.GetAllDevices()) {
+	for (const auto& device : devices) {
 		PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 		GetDevice(*device, *pb_device, default_folder);
 	}
 }
 
-void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const string& default_folder) const
+void RascsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
+		const PbCommand& command, const string& default_folder) const
 {
 	set<id_set> id_sets;
-
-	const auto& devices = controller_manager.GetAllDevices();
 
 	// If no device list was provided in the command get information on all devices
 	if (!command.devices_size()) {
@@ -236,7 +237,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 	}
 	// Otherwise get information on the devices provided in the command
 	else {
-		id_sets = MatchDevices(result, command);
+		id_sets = MatchDevices(devices, result, command);
 		if (id_sets.empty()) {
 			return;
 		}
@@ -268,9 +269,9 @@ unique_ptr<PbDeviceTypesInfo> RascsiResponse::GetDeviceTypesInfo(PbResult& resul
 	return device_types_info;
 }
 
-unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(PbResult& result, const unordered_set<int>& reserved_ids,
-		const string& current_log_level, const string& default_folder, const string& folder_pattern,
-		const string& file_pattern, int scan_depth) const
+unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
+		PbResult& result, const unordered_set<int>& reserved_ids, const string& current_log_level,
+		const string& default_folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	auto server_info = make_unique<PbServerInfo>();
 
@@ -280,7 +281,7 @@ unique_ptr<PbServerInfo> RascsiResponse::GetServerInfo(PbResult& result, const u
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result).release());
 	server_info->set_allocated_mapping_info(GetMappingInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
-	GetDevices(*server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
+	GetDevices(devices, *server_info, default_folder); //NOSONAR The allocated memory is managed by protobuf
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids).release());
 	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth).release()); //NOSONAR The allocated memory is managed by protobuf
 
@@ -493,13 +494,14 @@ unique_ptr<PbOperationParameter> RascsiResponse::AddOperationParameter(PbOperati
 	return parameter;
 }
 
-set<id_set> RascsiResponse::MatchDevices(PbResult& result, const PbCommand& command) const
+set<id_set> RascsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>& devices, PbResult& result,
+		const PbCommand& command) const
 {
 	set<id_set> id_sets;
 
 	for (const auto& device : command.devices()) {
 		bool has_device = false;
-		for (const auto& d : controller_manager.GetAllDevices()) {
+		for (const auto& d : devices) {
 			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
 				id_sets.insert(make_pair(device.id(), device.unit()));
 				has_device = true;

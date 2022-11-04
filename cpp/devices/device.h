@@ -64,11 +64,10 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	// The default parameters
 	unordered_map<string, string> default_params;
 
-	// Sense Key, ASC and ASCQ
+	// Sense Key and ASC
 	//	MSB		Reserved (0x00)
 	//			Sense Key
 	//			Additional Sense Code (ASC)
-	//	LSB		Additional Sense Code Qualifier(ASCQ)
 	int status_code = 0;
 
 protected:

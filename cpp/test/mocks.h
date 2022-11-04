@@ -12,7 +12,7 @@
 #include <gmock/gmock.h>
 
 #include "test_shared.h"
-#include "bus.h"
+#include "hal/bus.h"
 #include "controllers/scsi_controller.h"
 #include "devices/host_services.h"
 #include "devices/primary_device.h"
@@ -23,6 +23,7 @@
 #include "devices/scsimo.h"
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_executor.h"
+#include <fcntl.h>
 
 using namespace testing;
 
@@ -130,6 +131,7 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
 	FRIEND_TEST(AbstractControllerTest, Length);
 	FRIEND_TEST(AbstractControllerTest, UpdateOffsetAndLength);
 	FRIEND_TEST(AbstractControllerTest, Offset);
+	FRIEND_TEST(ScsiControllerTest, Selection);
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, TestUnitReady);
 	FRIEND_TEST(PrimaryDeviceTest, RequestSense);
@@ -194,14 +196,15 @@ class MockAbstractController : public AbstractController // NOSONAR Having many 
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
 
-	explicit MockAbstractController(shared_ptr<MockBus> bus, int target_id) : AbstractController(bus, target_id, 32) {
+	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
+		: AbstractController(controller_manager, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
 
 	// Permit access to all tests without the need for numerous FRIEND_TEST
 	vector<int>& GetCmd() { return AbstractController::GetCmd(); } //NOSONAR Hides function on purpose
-	shared_ptr<BUS> GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
+	BUS& GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
 };
 
 class MockScsiController : public ScsiController
@@ -230,9 +233,10 @@ class MockScsiController : public ScsiController
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
-	explicit MockScsiController(shared_ptr<NiceMock<MockBus>> bus, int target_id) : ScsiController(bus, target_id) {}
-	explicit MockScsiController(shared_ptr<MockBus> bus, int target_id) : ScsiController(bus, target_id) {}
-	explicit MockScsiController(shared_ptr<MockBus> bus) : ScsiController(bus, 0) {}
+	MockScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
+		: ScsiController(controller_manager, target_id) {}
+	explicit MockScsiController(shared_ptr<ControllerManager> controller_manager)
+		: ScsiController(controller_manager, 0) {}
 	~MockScsiController() override = default;
 
 };
@@ -271,7 +275,7 @@ class MockPrimaryDevice : public PrimaryDevice
     MOCK_METHOD(void, Reset, (), ());
     MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 
 	explicit MockPrimaryDevice(int lun) : PrimaryDevice(UNDEFINED, lun) {}
 	~MockPrimaryDevice() override = default;
@@ -288,7 +292,7 @@ class MockModePageDevice : public ModePageDevice
     MOCK_METHOD(int, ModeSense6, (const vector<int> &, vector<BYTE> &), (const override));
     MOCK_METHOD(int, ModeSense10, (const vector<int> &, vector<BYTE> &), (const override));
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
 
@@ -330,7 +334,7 @@ class MockStorageDevice : public StorageDevice
 
 public:
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
 	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
 	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
@@ -378,7 +382,7 @@ class MockDisk : public Disk
     MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
     MOCK_METHOD(void, FlushCache, (), (override));
 
-	MOCK_METHOD(vector<byte>, InquiryInternal, (), (const));
+	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, FlushCache, (), (override));
 	MOCK_METHOD(void, Open, (), (override));
 

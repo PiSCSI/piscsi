@@ -40,7 +40,7 @@ public:
 
 protected:
 
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 
 	void AddFormatPage(map<int, vector<byte>>&, bool) const override;
 	void AddDrivePage(map<int, vector<byte>>&, bool) const override;

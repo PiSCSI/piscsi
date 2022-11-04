@@ -9,6 +9,7 @@
 
 #include "rascsi_exceptions.h"
 #include "storage_device.h"
+#include <sys/stat.h>
 #include <unistd.h>
 #include <filesystem>
 
@@ -49,13 +50,6 @@ void StorageDevice::ValidateFile()
 	SetReady(true);
 }
 
-void StorageDevice::MediumChanged()
-{
-	assert(IsRemovable());
-
-	medium_changed = true;
-}
-
 void StorageDevice::ReserveFile(const string& file, int id, int lun) const
 {
 	assert(!file.empty());
@@ -71,7 +65,7 @@ void StorageDevice::UnreserveFile()
 	filename = "";
 }
 
-pair<int, int> StorageDevice::GetIdsForReservedFile(const string& file)
+id_set StorageDevice::GetIdsForReservedFile(const string& file)
 {
 	if (const auto& it = reserved_files.find(file); it != reserved_files.end()) {
 		return make_pair(it->second.first, it->second.second);

@@ -56,7 +56,7 @@ string SCSIHD::GetProductData() const
 
 void SCSIHD::FinalizeSetup(off_t image_offset)
 {
-	super::ValidateFile();
+	Disk::ValidateFile();
 
 	// For non-removable media drives set the default product name based on the drive capacity
 	if (!IsRemovable()) {
@@ -79,7 +79,7 @@ void SCSIHD::Open()
 	FinalizeSetup(0);
 }
 
-vector<byte> SCSIHD::InquiryInternal() const
+vector<uint8_t> SCSIHD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
 }

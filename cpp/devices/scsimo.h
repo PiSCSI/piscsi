@@ -29,7 +29,7 @@ public:
 
 	void Open() override;
 
-	vector<byte> InquiryInternal() const override;
+	vector<uint8_t> InquiryInternal() const override;
 	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<uint8_t>&, int) const override;
 
 protected:
@@ -39,8 +39,6 @@ protected:
 	void AddVendorPage(map<int, vector<byte>>&, int, bool) const override;
 
 private:
-
-	using super = Disk;
 
 	void AddOptionPage(map<int, vector<byte>>&, bool) const;
 

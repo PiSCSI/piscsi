@@ -23,7 +23,7 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 
 	// If there is no LUN yet the first LUN must be LUN 0
 	if (device->GetLun() == 0) {
-		controller = make_shared<ScsiController>(bus, id);
+		controller = make_shared<ScsiController>(shared_from_this(), id);
 
 		if (controller->AddDevice(device)) {
 			controllers[id] = controller;
@@ -72,13 +72,6 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 void ControllerManager::DeleteAllControllers()
 {
 	controllers.clear();
-}
-
-void ControllerManager::ResetAllControllers() const
-{
-	for (const auto& [id, controller] : controllers) {
-		controller->Reset();
-	}
 }
 
 shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const

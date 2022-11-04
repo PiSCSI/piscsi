@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "controller_manager.h"
 #include "abstract_controller.h"
 #include "scsi.h"
 #include <array>
@@ -53,7 +54,7 @@ public:
 	// Maximum number of logical units
 	static inline const int LUN_MAX = 32;
 
-	ScsiController(shared_ptr<BUS>, int);
+	explicit ScsiController(shared_ptr<ControllerManager>, int);
 	~ScsiController() override = default;
 
 	void Reset() override;

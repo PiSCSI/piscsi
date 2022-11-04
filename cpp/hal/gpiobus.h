@@ -351,7 +351,6 @@ class GPIOBUS : public BUS
     // Get the phase based on raw data
     static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
 
-    static int GetCommandByteCount(uint8_t opcode);
 
     const string GetConnectDesc();
 

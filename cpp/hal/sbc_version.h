@@ -62,7 +62,7 @@ class SBC_Version
     static const std::string m_str_bananapi_m4;
     static const std::string m_str_unknown_sbc;
 
-    static const std::map<std::string, sbc_version_type> m_proc_device_tree_mapping;
+    static const std::map<std::string, sbc_version_type, std::less<>> m_proc_device_tree_mapping;
 
     static const std::string m_device_tree_model_path;
 

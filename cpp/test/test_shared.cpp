@@ -7,6 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
+#include "mocks.h"
+#include "controllers/controller_manager.h"
+#include "rascsi_exceptions.h"
+#include "rascsi_version.h"
 #include "test_shared.h"
 #include <unistd.h>
 #include <vector>
@@ -19,9 +23,10 @@ using namespace filesystem;
 shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
 {
 	DeviceFactory device_factory;
-	auto controller_manager = make_shared<ControllerManager>(controller.GetBus());
 
-	auto device = device_factory.CreateDevice(*controller_manager, type, 0, extension);
+	auto device = device_factory.CreateDevice(type, 0, extension);
+	unordered_map<string, string> params;
+	device->Init(params);
 
     controller.AddDevice(device);
 
@@ -31,16 +36,18 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
 		bool removable, const string& extension)
 {
-    NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-    auto device = CreateDevice(type, controller, extension);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+    auto device = CreateDevice(type, *controller, extension);
 
-    vector<int>& cmd = controller.GetCmd();
+    auto& cmd = controller->GetCmd();
 
     // ALLOCATION LENGTH
     cmd[4] = 255;
-    EXPECT_CALL(controller, DataIn());
-    EXPECT_TRUE(device->Dispatch(scsi_command::eCmdInquiry));
-	const vector<uint8_t>& buffer = controller.GetBuffer();
+    EXPECT_CALL(*controller, DataIn());
+    device->Dispatch(scsi_command::eCmdInquiry);
+	const vector<uint8_t>& buffer = controller->GetBuffer();
 	EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
 	EXPECT_EQ(removable ? 0x80: 0x00, buffer[1]);
 	EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));
@@ -56,14 +63,6 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
 		product_data = ident;
 	}
 	EXPECT_TRUE(!memcmp(product_data.c_str(), &buffer[8], 28));
-}
-
-void TestDispatch(PbDeviceType type)
-{
-	NiceMock<MockAbstractController> controller(make_shared<MockBus>(), 0);
-	auto device = CreateDevice(type, controller);
-
-    EXPECT_FALSE(device->Dispatch(scsi_command::eCmdIcd)) << "Command is not supported by this class";
 }
 
 pair<int, path> OpenTempFile()

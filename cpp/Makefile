@@ -32,7 +32,7 @@ endif
 # Depending on the GCC version the compilation flags differ
 GCCVERSION10 := $(shell expr `$(CXX) -dumpversion` \>= 10)
 
-CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP -I../BPI-WiringPi2/wiringPi
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
@@ -96,9 +96,7 @@ SRC_SHARED = \
 	protobuf_util.cpp \
 	protobuf_serializer.cpp
 
-SRC_RASCSI_CORE = \
-	bus.cpp
-SRC_RASCSI_CORE += $(shell find ./rascsi -name '*.cpp')
+SRC_RASCSI_CORE = $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
@@ -107,7 +105,6 @@ SRC_RASCSI = rascsi.cpp
 
 SRC_SCSIMON = \
 	scsimon.cpp \
-	bus.cpp \
 	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
@@ -118,22 +115,20 @@ SRC_RASCTL = rasctl.cpp
 
 SRC_RASDUMP = \
 	rasdump.cpp \
-	bus.cpp \
-	rasdump_fileio.cpp \
 	rascsi_version.cpp
+SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 
 SRC_SCSILOOP= \
 	scsiloop.cpp \
-	bus.cpp \
 	rasutil.cpp \
 	rascsi_version.cpp
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl
-vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl
+vpath %.h ./ ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump 
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -197,23 +192,21 @@ docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/s
 $(SRC_SHARED) $(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE): $(OBJ_PROTOBUF)
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI)  -lpthread -lpcap -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(LIB_BPI_WIRINGPI) -lpthread 
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) -lpthread 
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(LIB_BPI_WIRINGPI) -lpthread
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(LIB_BPI_WIRINGPI) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 $(BINDIR)/$(SCSILOOP): $(SRC_PROTOBUF) $(OBJ_SCSILOOP) | $(BINDIR)
-	echo SCSILOOP SRC: $(SRC_SCSILOOP)
-	echo SCSILOOP OBJ:  $(OBJ_SCSILOOP)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSILOOP) -lpthread
 
 # Phony rules for building individual utilities

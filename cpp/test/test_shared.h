@@ -27,8 +27,6 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, MockAbstractController&, co
 void TestInquiry(PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, const string&,
 		int, bool, const string& = "");
 
-void TestDispatch(PbDeviceType);
-
 pair<int, path> OpenTempFile();
 path CreateTempFile(int);
 

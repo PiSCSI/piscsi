@@ -16,7 +16,6 @@
 
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "scsicd.h"
 #include <array>
 #include <fstream>
@@ -27,18 +26,19 @@ using namespace scsi_command_util;
 SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD, lun)
 {
 	SetSectorSizes(sector_sizes);
+}
 
-	dispatcher.Add(scsi_command::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+bool SCSICD::Init(const unordered_map<string, string>& params)
+{
+	Disk::Init(params);
+
+	AddCommand(scsi_command::eCmdReadToc, [this] { ReadToc(); });
 
 	SetReadOnly(true);
 	SetRemovable(true);
 	SetLockable(true);
-}
 
-bool SCSICD::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
+	return true;
 }
 
 void SCSICD::Open()
@@ -72,7 +72,7 @@ void SCSICD::Open()
 		}
 	}
 
-	super::ValidateFile();
+	Disk::ValidateFile();
 
 	SetUpCache(0, rawfile);
 
@@ -162,19 +162,19 @@ void SCSICD::CreateDataTrack()
 
 void SCSICD::ReadToc()
 {
-	controller->SetLength(ReadTocInternal(controller->GetCmd(), controller->GetBuffer()));
+	GetController()->SetLength(ReadTocInternal(GetController()->GetCmd(), GetController()->GetBuffer()));
 
 	EnterDataInPhase();
 }
 
-vector<byte> SCSICD::InquiryInternal() const
+vector<uint8_t> SCSICD::InquiryInternal() const
 {
 	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 }
 
 void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
 {
-	super::SetUpModePages(pages, page, changeable);
+	Disk::SetUpModePages(pages, page, changeable);
 
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
@@ -251,7 +251,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
 
 	// Base class
 	assert(dataindex >= 0);
-	return super::Read(cdb, buf, block);
+	return Disk::Read(cdb, buf, block);
 }
 
 int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)

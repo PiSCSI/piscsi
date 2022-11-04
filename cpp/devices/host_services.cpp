@@ -20,30 +20,25 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
-#include "dispatcher.h"
 #include "host_services.h"
 #include <algorithm>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-HostServices::HostServices(int lun, const ControllerManager& manager)
-	: ModePageDevice(SCHS, lun), controller_manager(manager)
+bool HostServices::Init(const unordered_map<string, string>& params)
 {
-	dispatcher.Add(scsi_command::eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
-	dispatcher.Add(scsi_command::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	ModePageDevice::Init(params);
+
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
 
 	SetReady(true);
-}
 
-bool HostServices::Dispatch(scsi_command cmd)
-{
-	// The superclass class handles the less specific commands
-	return dispatcher.Dispatch(this, cmd) ? true : super::Dispatch(cmd);
+	return true;
 }
 
 void HostServices::TestUnitReady()
@@ -52,31 +47,26 @@ void HostServices::TestUnitReady()
 	EnterStatusPhase();
 }
 
-vector<byte> HostServices::InquiryInternal() const
+vector<uint8_t> HostServices::InquiryInternal() const
 {
 	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit()
+void HostServices::StartStopUnit() const
 {
-	const bool start = controller->GetCmd(4) & 0x01;
-	const bool load = controller->GetCmd(4) & 0x02;
+	const bool start = GetController()->GetCmd(4) & 0x01;
+	const bool load = GetController()->GetCmd(4) & 0x02;
 
 	if (!start) {
-		// Flush any caches
-		for (const auto& device : controller_manager.GetAllDevices()) {
-			device->FlushCache();
-		}
-
 		if (load) {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
+			GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
+			GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 	}
 	else if (load) {
-		controller->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
+		GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
 	}
 	else {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -96,7 +86,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 	fill_n(buf.begin(), length, 0);
 
 	// 4 bytes basic information
-	int size = AddModePages(cdb, buf, 4, length, 255);
+	const int size = AddModePages(cdb, buf, 4, length, 255);
 
 	buf[0] = (uint8_t)size;
 
@@ -114,7 +104,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) cons
 	fill_n(buf.begin(), length, 0);
 
 	// 8 bytes basic information
-	int size = AddModePages(cdb, buf, 8, length, 65535);
+	const int size = AddModePages(cdb, buf, 8, length, 65535);
 
 	SetInt16(buf, 0, size);
 
@@ -130,7 +120,7 @@ void HostServices::SetUpModePages(map<int, vector<byte>>& pages, int page, bool 
 
 void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool changeable) const
 {
-	vector<byte> buf(10);
+	pages[32] = vector<byte>(10);
 
 	if (!changeable) {
 		time_t t = time(nullptr);
@@ -148,8 +138,6 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 		// Ignore leap second for simplicity
 		datetime.second = (uint8_t)(localtime.tm_sec < 60 ? localtime.tm_sec : 59);
 
-		memcpy(&buf[2], &datetime, sizeof(datetime));
+		memcpy(&pages[32][2], &datetime, sizeof(datetime));
 	}
-
-	pages[32] = buf;
 }

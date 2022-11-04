@@ -48,6 +48,7 @@ public:
 	// Basic Functions
 	virtual bool Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type ) = 0;
 
+    static int GetCommandByteCount(uint8_t);
 	virtual void Reset() = 0;
 	virtual void Cleanup() = 0;
 	phase_t GetPhase();

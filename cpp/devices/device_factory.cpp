@@ -14,7 +14,6 @@
 #include "scsi_printer.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
-#include "rascsi_exceptions.h"
 #include "host_services.h"
 #include "rasutil.h"
 #include "device_factory.h"
@@ -22,6 +21,7 @@
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <net/if.h>
+#include <unistd.h>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -77,8 +77,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 	return UNDEFINED;
 }
 
-shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& controller_manager, PbDeviceType type,
-		int lun, const string& filename)
+shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun, const string& filename) const
 {
 	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
@@ -94,7 +93,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_shared<SCSIHD>(lun, sector_sizes[SCHD], false,
+			device = make_shared<SCSIHD>(lun, sector_sizes.find(SCHD)->second, false,
 					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
@@ -107,17 +106,17 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	}
 
 	case SCRM:
-		device = make_shared<SCSIHD>(lun, sector_sizes[SCRM], true);
+		device = make_shared<SCSIHD>(lun, sector_sizes.find(SCRM)->second, true);
 		device->SetProduct("SCSI HD (REM.)");
 		break;
 
 	case SCMO:
-		device = make_shared<SCSIMO>(lun, sector_sizes[SCMO]);
+		device = make_shared<SCSIMO>(lun, sector_sizes.find(SCMO)->second);
 		device->SetProduct("SCSI MO");
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(lun, sector_sizes[SCCD]);
+		device = make_shared<SCSICD>(lun, sector_sizes.find(SCCD)->second);
 		device->SetProduct("SCSI CD-ROM");
 		break;
 
@@ -125,7 +124,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
-		device->SetDefaultParams(default_params[SCBR]);
+		device->SetDefaultParams(default_params.find(SCBR)->second);
 		break;
 
 	case SCDP:
@@ -134,11 +133,11 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
-		device->SetDefaultParams(default_params[SCDP]);
+		device->SetDefaultParams(default_params.find(SCDP)->second);
 		break;
 
 	case SCHS:
-		device = make_shared<HostServices>(lun, controller_manager);
+		device = make_shared<HostServices>(lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 		device->SetVendor("RaSCSI");
 		device->SetProduct("Host Services");
@@ -147,7 +146,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(const ControllerManager& c
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
-		device->SetDefaultParams(default_params[SCLP]);
+		device->SetDefaultParams(default_params.find(SCLP)->second);
 		break;
 
 	default:
