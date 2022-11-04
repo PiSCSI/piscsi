@@ -21,7 +21,8 @@
  General layout
  ------------------------------------------------------------------------------
  */
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -49,7 +50,7 @@ body {
   font-size: var(--font-size);
 }
 
-body:not(.logged-in) section:not(#current-config):not(#manual) {
+body:not(.logged-in) section:not(#current-config, #manual) {
   display: none;
 }
 
@@ -67,7 +68,6 @@ body:not(.logged-in) section#current-config table#attached-devices form {
 body:not(.logged-in) section#current-config form#detach-all-devices {
   display: none;
 }
-
 
 /*
  ------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ div.header div.login-status {
 }
 
 div.header div.login-status form {
-    display: flex;
+  display: flex;
 }
 
 div.header span.logged-in-as-text em {
@@ -211,7 +211,15 @@ div.header div.authentication-disabled {
 
   @supports (-webkit-background-clip: text) {
     div.header div.title a:hover h1 {
-      background: linear-gradient(to right, rgb(101 204 51 / 100%) 0%, rgb(255 204 51 / 100%) 10%, rgb(255 153 51 / 100%) 20%, rgb(205 51 50 / 100%) 55%, rgb(152 50 153 / 100%) 100%);
+      background: linear-gradient(
+        to right,
+        rgb(101 204 51 / 100%) 0%,
+        rgb(255 204 51 / 100%) 10%,
+        rgb(255 153 51 / 100%) 20%,
+        rgb(205 51 50 / 100%) 55%,
+        rgb(152 50 153 / 100%) 100%
+      );
+      /* stylelint-disable-line */
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -256,7 +264,6 @@ div.header div.authentication-disabled {
   div.header div.login-status.logged-in span.separator {
     display: none;
   }
-
 }
 
 /*
@@ -354,8 +361,6 @@ label {
     background-color: #fff;
     background-clip: padding-box;
     appearance: none;
-    appearance: none;
-    appearance: none;
   }
 
   select {
@@ -367,8 +372,6 @@ label {
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 16px 12px;
-    appearance: none;
-    appearance: none;
     appearance: none;
   }
 }
@@ -500,7 +503,7 @@ div.flash > div.warning {
  ------------------------------------------------------------------------------
  */
 section > details {
-  margin: 1rem auto 1rem;
+  margin: 1rem auto;
 }
 
 div.content > section:first-child > details {
@@ -529,7 +532,6 @@ section > details ul {
   }
 }
 
-
 /*
  ------------------------------------------------------------------------------
  Index > Section: Current RaSCSI configuration
@@ -545,17 +547,16 @@ table#attached-devices td:last-child {
   text-align: center;
 }
 
-  table#attached-devices tr td:nth-child(5) form {
-    display: inline-block;
-    max-width: 4.5rem;
-    text-align: center;
-    width: 100%;
-  }
+table#attached-devices tr td:nth-child(5) form {
+  display: inline-block;
+  max-width: 4.5rem;
+  text-align: center;
+  width: 100%;
+}
 
-  table#attached-devices tr td:nth-child(5) input[type="submit"] {
-    width: 100%;
-  }
-
+table#attached-devices tr td:nth-child(5) input[type="submit"] {
+  width: 100%;
+}
 
 table#attached-devices span.filename {
   word-break: break-all;
@@ -726,7 +727,7 @@ section#files p {
  */
 section#attach-devices table th:last-child,
 section#attach-devices table td:last-child {
-  text-align: right
+  text-align: right;
 }
 
 section#attach-devices form {
