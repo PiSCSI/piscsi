@@ -655,6 +655,10 @@ section#files table#images td:last-child {
   text-align: right;
 }
 
+section#files table#images tr.directory-empty td {
+  text-align: center;
+}
+
 section#files p {
   margin-top: 1rem;
 }
