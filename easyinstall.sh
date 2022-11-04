@@ -616,7 +616,7 @@ function installHfdisk() {
 function fetchHardDiskDrivers() {
     if [ ! -d "$BASE/mac-hard-disk-drivers" ]; then
         cd "$BASE" || exit 1
-        wget -r https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
+        wget -r https://www.dropbox.com/s/gcs4v5pcmk7rxtb/mac-hard-disk-drivers.zip?dl=0
         unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
         rm mac-hard-disk-drivers.zip
     fi
