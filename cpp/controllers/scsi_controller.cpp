@@ -200,6 +200,13 @@ void ScsiController::Command()
 		GetBus().SetIO(false);
 
 		const int actual_count = GetBus().CommandHandShake(GetBuffer().data());
+		if (actual_count == 0) {
+			LOGTRACE("ID %d LUN %d received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
+
+			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			return;
+		}
+
 		const int command_byte_count = BUS::GetCommandByteCount(GetBuffer()[0]);
 
 		// If not able to receive all, move to the status phase
