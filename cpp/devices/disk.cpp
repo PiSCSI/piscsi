@@ -71,7 +71,7 @@ void Disk::Dispatch(scsi_command cmd)
 
 		SetMediumChanged(false);
 
-		controller->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		GetController()->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 	}
 	else {
 		PrimaryDevice::Dispatch(cmd);
@@ -102,7 +102,7 @@ void Disk::FormatUnit()
 	CheckReady();
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
-	if ((controller->GetCmd(1) & 0x10) != 0 && controller->GetCmd(4) != 0) {
+	if ((GetController()->GetCmd(1) & 0x10) != 0 && GetController()->GetCmd(4) != 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -113,13 +113,13 @@ void Disk::Read(access_mode mode)
 {
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
-		controller->SetBlocks(blocks);
-		controller->SetLength(Read(controller->GetCmd(), controller->GetBuffer(), start));
+		GetController()->SetBlocks(blocks);
+		GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), start));
 
-		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, controller->GetLength())
+		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, GetController()->GetLength())
 
 		// Set next block
-		controller->SetNext(start + 1);
+		GetController()->SetNext(start + 1);
 
 		EnterDataInPhase();
 	}
@@ -128,31 +128,31 @@ void Disk::Read(access_mode mode)
 	}
 }
 
-void Disk::ReadWriteLong10()
+void Disk::ReadWriteLong10() const
 {
 	ValidateBlockAddress(RW10);
 
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
-	if (GetInt16(controller->GetCmd(), 7) != 0) {
+	if (GetInt16(GetController()->GetCmd(), 7) != 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	EnterStatusPhase();
 }
 
-void Disk::ReadWriteLong16()
+void Disk::ReadWriteLong16() const
 {
 	ValidateBlockAddress(RW16);
 
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
-	if (GetInt16(controller->GetCmd(), 12) != 0) {
+	if (GetInt16(GetController()->GetCmd(), 12) != 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	EnterStatusPhase();
 }
 
-void Disk::Write(access_mode mode)
+void Disk::Write(access_mode mode) const
 {
 	if (IsProtected()) {
 		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
@@ -160,11 +160,11 @@ void Disk::Write(access_mode mode)
 
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
-		controller->SetBlocks(blocks);
-		controller->SetLength(GetSectorSizeInBytes());
+		GetController()->SetBlocks(blocks);
+		GetController()->SetLength(GetSectorSizeInBytes());
 
 		// Set next block
-		controller->SetNext(start + 1);
+		GetController()->SetNext(start + 1);
 
 		EnterDataOutPhase();
 	}
@@ -178,17 +178,17 @@ void Disk::Verify(access_mode mode)
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
 		// if BytChk=0
-		if ((controller->GetCmd(1) & 0x02) == 0) {
+		if ((GetController()->GetCmd(1) & 0x02) == 0) {
 			Seek();
 			return;
 		}
 
 		// Test reading
-		controller->SetBlocks(blocks);
-		controller->SetLength(Read(controller->GetCmd(), controller->GetBuffer(), start));
+		GetController()->SetBlocks(blocks);
+		GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), start));
 
 		// Set next block
-		controller->SetNext(start + 1);
+		GetController()->SetNext(start + 1);
 
 		EnterDataOutPhase();
 	}
@@ -199,8 +199,8 @@ void Disk::Verify(access_mode mode)
 
 void Disk::StartStopUnit()
 {
-	const bool start = controller->GetCmd(4) & 0x01;
-	const bool load = controller->GetCmd(4) & 0x02;
+	const bool start = GetController()->GetCmd(4) & 0x01;
+	const bool load = GetController()->GetCmd(4) & 0x02;
 
 	if (load) {
 		LOGTRACE(start ? "Loading medium" : "Ejecting medium")
@@ -236,7 +236,7 @@ void Disk::PreventAllowMediumRemoval()
 {
 	CheckReady();
 
-	const bool lock = controller->GetCmd(4) & 0x01;
+	const bool lock = GetController()->GetCmd(4) & 0x01;
 
 	LOGTRACE(lock ? "Locking medium" : "Unlocking medium")
 
@@ -252,13 +252,14 @@ void Disk::SynchronizeCache()
 	EnterStatusPhase();
 }
 
-void Disk::ReadDefectData10()
+void Disk::ReadDefectData10() const
 {
-	const size_t allocation_length = min(static_cast<size_t>(GetInt16(controller->GetCmd(), 7)), static_cast<size_t>(4));
+	const size_t allocation_length = min(static_cast<size_t>(GetInt16(GetController()->GetCmd(), 7)),
+			static_cast<size_t>(4));
 
 	// The defect list is empty
-	fill_n(controller->GetBuffer().begin(), allocation_length, 0);
-	controller->SetLength(static_cast<uint32_t>(allocation_length));
+	fill_n(GetController()->GetBuffer().begin(), allocation_length, 0);
+	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
 	EnterDataInPhase();
 }
@@ -549,7 +550,7 @@ void Disk::ReadCapacity10()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	vector<uint8_t>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = GetController()->GetBuffer();
 
 	// Create end of logical block address (blocks-1)
 	uint64_t capacity = GetBlockCount() - 1;
@@ -563,7 +564,7 @@ void Disk::ReadCapacity10()
 	// Create block length (1 << size)
 	SetInt32(buf, 4, 1 << size_shift_count);
 
-	controller->SetLength(8);
+	GetController()->SetLength(8);
 
 	EnterDataInPhase();
 }
@@ -576,7 +577,7 @@ void Disk::ReadCapacity16()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
-	vector<uint8_t>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = GetController()->GetBuffer();
 
 	// Create end of logical block address (blocks-1)
 	SetInt64(buf, 0, GetBlockCount() - 1);
@@ -589,7 +590,7 @@ void Disk::ReadCapacity16()
 	// Logical blocks per physical block: not reported (1 or more)
 	buf[13] = 0;
 
-	controller->SetLength(14);
+	GetController()->SetLength(14);
 
 	EnterDataInPhase();
 }
@@ -597,7 +598,7 @@ void Disk::ReadCapacity16()
 void Disk::ReadCapacity16_ReadLong16()
 {
 	// The service action determines the actual command
-	switch (controller->GetCmd(1) & 0x1f) {
+	switch (GetController()->GetCmd(1) & 0x1f) {
 	case 0x10:
 		ReadCapacity16();
 		break;
@@ -614,7 +615,7 @@ void Disk::ReadCapacity16_ReadLong16()
 
 void Disk::ValidateBlockAddress(access_mode mode) const
 {
-	const uint64_t block = mode == RW16 ? GetInt64(controller->GetCmd(), 2) : GetInt32(controller->GetCmd(), 2);
+	const uint64_t block = mode == RW16 ? GetInt64(GetController()->GetCmd(), 2) : GetInt32(GetController()->GetCmd(), 2);
 
 	if (block > GetBlockCount()) {
 		LOGTRACE("%s", ("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
@@ -629,21 +630,21 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	uint32_t count;
 
 	if (mode == RW6 || mode == SEEK6) {
-		start = GetInt24(controller->GetCmd(), 1);
+		start = GetInt24(GetController()->GetCmd(), 1);
 
-		count = controller->GetCmd(4);
+		count = GetController()->GetCmd(4);
 		if (!count) {
 			count= 0x100;
 		}
 	}
 	else {
-		start = mode == RW16 ? GetInt64(controller->GetCmd(), 2) : GetInt32(controller->GetCmd(), 2);
+		start = mode == RW16 ? GetInt64(GetController()->GetCmd(), 2) : GetInt32(GetController()->GetCmd(), 2);
 
 		if (mode == RW16) {
-			count = GetInt32(controller->GetCmd(), 10);
+			count = GetInt32(GetController()->GetCmd(), 10);
 		}
 		else if (mode != SEEK6 && mode != SEEK10) {
-			count = GetInt16(controller->GetCmd(), 7);
+			count = GetInt16(GetController()->GetCmd(), 7);
 		}
 		else {
 			count = 0;

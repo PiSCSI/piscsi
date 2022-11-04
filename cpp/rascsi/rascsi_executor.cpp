@@ -14,7 +14,6 @@
 #include "devices/primary_device.h"
 #include "devices/disk.h"
 #include "rascsi_service.h"
-#include "rascsi_response.h"
 #include "rascsi_image.h"
 #include "rascsi_exceptions.h"
 #include "localizer.h"
@@ -157,7 +156,8 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		// A new command with an empty device list is required here in order to return data for all devices
 		PbCommand cmd;
 		PbResult result;
-		rascsi_response.GetDevicesInfo(result, cmd, rascsi_image.GetDefaultFolder());
+		rascsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, cmd,
+				rascsi_image.GetDefaultFolder());
 		serializer.SerializeMessage(context.GetFd(), result);
 		return true;
 	}
@@ -668,7 +668,7 @@ bool RascsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 shared_ptr<PrimaryDevice> RascsiExecutor::CreateDevice(const CommandContext& context, const PbDeviceType type,
 		int lun, const string& filename) const
 {
-	auto device = device_factory.CreateDevice(controller_manager, type, lun, filename);
+	auto device = device_factory.CreateDevice(type, lun, filename);
 	if (device == nullptr) {
 		if (type == UNDEFINED) {
 			context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, filename);

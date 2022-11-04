@@ -37,7 +37,7 @@ public:
 
 	int GetId() const override;
 
-	void SetController(AbstractController *);
+	void SetController(shared_ptr<AbstractController>);
 
 	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
 
@@ -66,12 +66,11 @@ protected:
 	void ReserveUnit() override;
 	void ReleaseUnit() override;
 
-	void EnterStatusPhase() { controller->Status(); }
-	void EnterDataInPhase() { controller->DataIn(); }
-	void EnterDataOutPhase() { controller->DataOut(); }
+	void EnterStatusPhase() const { controller.lock()->Status(); }
+	void EnterDataInPhase() const { controller.lock()->DataIn(); }
+	void EnterDataOutPhase() const { controller.lock()->DataOut(); }
 
-	// TODO Try to replace this raw pointer, maybe by a weak_ptr
-	AbstractController *controller = nullptr;
+	inline shared_ptr<AbstractController> GetController() const { return controller.lock(); }
 
 private:
 
@@ -83,6 +82,8 @@ private:
 	void Inquiry() override;
 
 	vector<byte> HandleRequestSense() const;
+
+	weak_ptr<AbstractController> controller;
 
 	unordered_map<scsi_command, operation> commands;
 

@@ -62,14 +62,14 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	if (controller == nullptr) {
+	if (GetController() == nullptr) {
 		LOGERROR("Device is missing its controller")
 	}
 
-	return controller != nullptr ? controller->GetTargetId() : -1;
+	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
 
-void PrimaryDevice::SetController(AbstractController *c)
+void PrimaryDevice::SetController(shared_ptr<AbstractController> c)
 {
 	controller = c;
 }
@@ -84,23 +84,23 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((controller->GetCmd(1) & 0x01) || controller->GetCmd(2)) {
+	if ((GetController()->GetCmd(1) & 0x01) || GetController()->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<uint8_t> buf = InquiryInternal();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(controller->GetCmd(), 3)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 3)));
 
-	memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-	controller->SetLength(static_cast<uint32_t>(allocation_length));
+	memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
+	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
-	if (int lun = controller->GetEffectiveLun(); !controller->HasDeviceForLun(lun)) {
+	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, GetId())
 
 		// Signal that the requested LUN does not exist
-		controller->GetBuffer().data()[0] = 0x7f;
+		GetController()->GetBuffer().data()[0] = 0x7f;
 	}
 
 	EnterDataInPhase();
@@ -109,18 +109,18 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (controller->GetCmd(2)) {
+	if (GetController()->GetCmd(2)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	const uint32_t allocation_length = GetInt32(controller->GetCmd(), 6);
+	const uint32_t allocation_length = GetInt32(GetController()->GetCmd(), 6);
 
-	vector<uint8_t>& buf = controller->GetBuffer();
+	vector<uint8_t>& buf = GetController()->GetBuffer();
 	fill_n(buf.begin(), min(buf.size(), static_cast<size_t>(allocation_length)), 0);
 
 	uint32_t size = 0;
-	for (int lun = 0; lun < controller->GetMaxLuns(); lun++) {
-		if (controller->HasDeviceForLun(lun)) {
+	for (int lun = 0; lun < GetController()->GetMaxLuns(); lun++) {
+		if (GetController()->HasDeviceForLun(lun)) {
 			size += 8;
 			buf[size + 7] = (uint8_t)lun;
 		}
@@ -130,35 +130,35 @@ void PrimaryDevice::ReportLuns()
 
 	size += 8;
 
-	controller->SetLength(min(allocation_length, size));
+	GetController()->SetLength(min(allocation_length, size));
 
 	EnterDataInPhase();
 }
 
 void PrimaryDevice::RequestSense()
 {
-	int lun = controller->GetEffectiveLun();
+	int lun = GetController()->GetEffectiveLun();
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-	if (!controller->HasDeviceForLun(lun)) {
+	if (!GetController()->HasDeviceForLun(lun)) {
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
-		assert(controller->HasDeviceForLun(0));
+		assert(GetController()->HasDeviceForLun(0));
 
 		lun = 0;
 
 		// Do not raise an exception here because the rest of the code must be executed
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+		GetController()->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 
-		controller->SetStatus(status::GOOD);
+		GetController()->SetStatus(status::GOOD);
 	}
 
-    vector<byte> buf = controller->GetDeviceForLun(lun)->HandleRequestSense();
+    vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(controller->GetCmd(4)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmd(4)));
 
-    memcpy(controller->GetBuffer().data(), buf.data(), allocation_length);
-    controller->SetLength(static_cast<uint32_t>(allocation_length));
+    memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
+    GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
     EnterDataInPhase();
 }
@@ -166,12 +166,12 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (controller->GetCmd(1) & 0x10) {
+	if (GetController()->GetCmd(1) & 0x10) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Do not support parameter list
-	if ((controller->GetCmd(3) != 0) || (controller->GetCmd(4) != 0)) {
+	if ((GetController()->GetCmd(3) != 0) || (GetController()->GetCmd(4) != 0)) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
@@ -246,7 +246,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	buf[12] = (byte)(GetStatusCode() >> 8);
 	buf[13] = (byte)GetStatusCode();
 
-	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(controller->GetStatus()),
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, static_cast<int>(GetController()->GetStatus()),
 			static_cast<int>(buf[2]), static_cast<int>(buf[12]))
 
 	return buf;
@@ -261,7 +261,7 @@ bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
 
 void PrimaryDevice::ReserveUnit()
 {
-	reserving_initiator = controller->GetInitiatorId();
+	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
 		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator)

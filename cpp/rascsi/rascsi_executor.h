@@ -9,9 +9,9 @@
 
 #pragma once
 
+#include "rascsi/rascsi_response.h"
 #include "protobuf_serializer.h"
 
-class RascsiResponse;
 class RascsiImage;
 class DeviceFactory;
 class ControllerManager;
@@ -20,24 +20,10 @@ class CommandContext;
 
 class RascsiExecutor
 {
-	RascsiResponse& rascsi_response;
-
-	RascsiImage& rascsi_image;
-
-	DeviceFactory& device_factory;
-
-	ControllerManager& controller_manager;
-
-	ProtobufSerializer serializer;
-
-	unordered_set<int> reserved_ids;
-
 public:
 
-	RascsiExecutor(RascsiResponse& rascsi_response, RascsiImage& rascsi_image, DeviceFactory& device_factory,
-			ControllerManager& controller_manager)
-		: rascsi_response(rascsi_response), rascsi_image(rascsi_image), device_factory(device_factory),
-		  controller_manager(controller_manager) {}
+	RascsiExecutor(RascsiImage& rascsi_image, ControllerManager& controller_manager)
+		: rascsi_image(rascsi_image), controller_manager(controller_manager) {}
 	~RascsiExecutor() = default;
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
@@ -67,4 +53,17 @@ public:
 	static bool ValidateIdAndLun(const CommandContext&, int, int);
 	static bool SetProductData(const CommandContext&, const PbDeviceDefinition&, PrimaryDevice&);
 
+private:
+
+	const RascsiResponse rascsi_response;
+
+	RascsiImage& rascsi_image;
+
+	ControllerManager& controller_manager;
+
+	const DeviceFactory device_factory;
+
+	const ProtobufSerializer serializer;
+
+	unordered_set<int> reserved_ids;
 };

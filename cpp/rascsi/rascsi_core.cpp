@@ -15,19 +15,15 @@
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
-#include "devices/disk.h"
+#include "devices/storage_device.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
-#include "rascsi_exceptions.h"
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
-#include "rascsi/rascsi_response.h"
-#include "rascsi/rascsi_image.h"
-#include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_core.h"
 #include "rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -44,20 +40,6 @@ using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
-
-//---------------------------------------------------------------------------
-//
-// Variable declarations
-// TODO Make these fields class fields
-//
-//---------------------------------------------------------------------------
-RascsiService service;
-shared_ptr<GPIOBUS> bus;
-DeviceFactory device_factory;
-shared_ptr<ControllerManager> controller_manager;
-RascsiImage rascsi_image;
-shared_ptr<RascsiResponse> rascsi_response;
-shared_ptr<RascsiExecutor> executor;
 
 void Rascsi::Banner(const vector<char *>& args) const
 {
@@ -100,27 +82,21 @@ bool Rascsi::InitBus() const
 
 	bus->Reset();
 
-	controller_manager = make_shared<ControllerManager>(bus);
-	rascsi_response = make_shared<RascsiResponse>(device_factory, *controller_manager, ScsiController::LUN_MAX);
-	executor = make_shared<RascsiExecutor>(*rascsi_response, rascsi_image, device_factory, *controller_manager);
+	auto b = bus;
+	controller_manager = make_shared<ControllerManager>(*b);
+	auto c = controller_manager;
+	executor = make_shared<RascsiExecutor>(rascsi_image, *c);
 
 	return true;
 }
 
-void Cleanup()
+void Rascsi::Cleanup()
 {
 	executor->DetachAll();
 
 	service.Cleanup();
 
 	bus->Cleanup();
-}
-
-void Rascsi::Reset() const
-{
-	controller_manager->ResetAllControllers();
-
-	bus->Reset();
 }
 
 bool Rascsi::ReadAccessToken(const char *filename) const
@@ -166,11 +142,9 @@ void Rascsi::LogDevices(string_view devices) const
 	}
 }
 
-void TerminationHandler(int signum)
+void Rascsi::TerminationHandler(int)
 {
 	Cleanup();
-
-	exit(signum);
 }
 
 bool Rascsi::ProcessId(const string& id_spec, int& id, int& unit) const
@@ -214,10 +188,11 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'F':
 			case 'z':
 			{
-				string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(opt ,optarg_str);
+				const string optarg_str = optarg == nullptr ? "" : optarg;
+				post_process.emplace_back(opt, optarg_str);
 				continue;
 			}
+
 			case 'b': {
 				if (!GetAsInt(optarg, block_size)) {
 					cerr << "Invalid block size " << optarg << endl;
@@ -348,6 +323,9 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 			case 1:
 				// Encountered filename
 				break;
+
+			default:
+				return false;
 		}
 
 		// Set up the device data
@@ -390,7 +368,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response->GetDevices(server_info, rascsi_image.GetDefaultFolder());
+	rascsi_response.GetDevices(controller_manager->GetAllDevices(), server_info, rascsi_image.GetDefaultFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -441,19 +419,20 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case DEVICES_INFO: {
-			rascsi_response->GetDevicesInfo(result, command, rascsi_image.GetDefaultFolder());
+			rascsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
+					rascsi_image.GetDefaultFolder());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
-			result.set_allocated_device_types_info(rascsi_response->GetDeviceTypesInfo(result).release());
+			result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case SERVER_INFO: {
-			result.set_allocated_server_info(rascsi_response->GetServerInfo(
+			result.set_allocated_server_info(rascsi_response.GetServerInfo(controller_manager->GetAllDevices(),
 					result, executor->GetReservedIds(), current_log_level, rascsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					rascsi_image.GetDepth()).release());
@@ -462,19 +441,19 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case VERSION_INFO: {
-			result.set_allocated_version_info(rascsi_response->GetVersionInfo(result).release());
+			result.set_allocated_version_info(rascsi_response.GetVersionInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
-			result.set_allocated_log_level_info(rascsi_response->GetLogLevelInfo(result, current_log_level).release());
+			result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case DEFAULT_IMAGE_FILES_INFO: {
-			result.set_allocated_image_files_info(rascsi_response->GetAvailableImages(result,
+			result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 					rascsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
@@ -487,7 +466,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = rascsi_response->GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
+				const bool status = rascsi_response.GetImageFile(*image_file.get(), rascsi_image.GetDefaultFolder(), filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
@@ -501,26 +480,26 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case NETWORK_INTERFACES_INFO: {
-			result.set_allocated_network_interfaces_info(rascsi_response->GetNetworkInterfacesInfo(result).release());
+			result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case MAPPING_INFO: {
-			result.set_allocated_mapping_info(rascsi_response->GetMappingInfo(result).release());
+			result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case OPERATION_INFO: {
-			result.set_allocated_operation_info(rascsi_response->GetOperationInfo(result,
+			result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
 					rascsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
-			result.set_allocated_reserved_ids_info(rascsi_response->GetReservedIds(result,
+			result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result,
 					executor->GetReservedIds()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
@@ -552,15 +531,12 @@ int Rascsi::run(const vector<char *>& args) const
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
-	setvbuf(stdout, nullptr, _IONBF, 0);
-
 	Banner(args);
 
 	int port = DEFAULT_PORT;
 	optarg_queue_type optarg_queue;
 	if (!ParseArguments(args, port, optarg_queue)) {
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	// Note that current_log_level may have been modified by ParseArguments()
@@ -570,18 +546,18 @@ int Rascsi::run(const vector<char *>& args) const
 	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
-		return EPERM;
-	}
-
-	if (!service.Init(&ExecuteCommand, port)) {
-		return EPERM;
+		return EXIT_FAILURE;
 	}
 
 	// We need to wait to create the devices until after the bus/controller/etc
 	// objects have been created.
 	if (!CreateInitialDevices(optarg_queue)) {
 		Cleanup();
-		return -1;
+		return EXIT_FAILURE;
+	}
+
+	if (!service.Init(&ExecuteCommand, port)) {
+		return EXIT_FAILURE;
 	}
 
 	// Signal handler to detach all devices on a KILL or TERM signal
@@ -591,9 +567,6 @@ int Rascsi::run(const vector<char *>& args) const
 	termination_handler.sa_flags = 0;
 	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
-
-	// Reset
-	Reset();
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
@@ -658,7 +631,7 @@ int Rascsi::run(const vector<char *>& args) const
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
 		// Identify the responsible controller
-		shared_ptr<AbstractController> controller = controller_manager->IdentifyController(id_data);
+		auto controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
@@ -702,5 +675,5 @@ int Rascsi::run(const vector<char *>& args) const
 		active = false;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

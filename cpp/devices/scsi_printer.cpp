@@ -84,19 +84,19 @@ vector<uint8_t> SCSIPrinter::InquiryInternal() const
 
 void SCSIPrinter::Print()
 {
-	const uint32_t length = GetInt24(controller->GetCmd(), 2);
+	const uint32_t length = GetInt24(GetController()->GetCmd(), 2);
 
 	LOGTRACE("Receiving %d byte(s) to be printed", length)
 
-	if (length > controller->GetBuffer().size()) {
-		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(controller->GetBuffer().size()) +
+	if (length > GetController()->GetBuffer().size()) {
+		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected").c_str())
 
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	controller->SetLength(length);
-	controller->SetByteTransfer(true);
+	GetController()->SetLength(length);
+	GetController()->SetByteTransfer(true);
 
 	EnterDataOutPhase();
 }

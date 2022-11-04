@@ -18,10 +18,7 @@ using namespace rascsi_interface;
 
 TEST(RascsiResponseTest, Operation_Count)
 {
-	auto bus = make_shared<MockBus>();
-	ControllerManager controller_manager(bus);
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto info = response.GetOperationInfo(result, 0);
@@ -31,17 +28,17 @@ TEST(RascsiResponseTest, Operation_Count)
 void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 {
 	auto bus = make_shared<MockBus>();
-	ControllerManager controller_manager(bus);
+	auto controller_manager = make_shared<ControllerManager>(*bus);
 	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 
-	auto d = device_factory.CreateDevice(controller_manager, type, 0, "");
+	auto d = device_factory.CreateDevice(type, 0, "");
 	const unordered_map<string, string> params;
 	d->Init(params);
-	EXPECT_TRUE(controller_manager.AttachToScsiController(0, d));
+	EXPECT_TRUE(controller_manager->AttachToScsiController(0, d));
 
 	PbServerInfo info;
-	response.GetDevices(info, "image_folder");
+	response.GetDevices(controller_manager->GetAllDevices(), info, "image_folder");
 
 	EXPECT_EQ(1, info.devices_info().devices().size());
 
@@ -73,9 +70,7 @@ TEST(RascsiResponseTest, GetDevices)
 
 TEST(RascsiResponseTest, GetImageFile)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbImageFile image_file;
 
 	EXPECT_FALSE(response.GetImageFile(image_file, "default_folder", ""));
@@ -88,10 +83,7 @@ TEST(RascsiResponseTest, GetImageFile)
 
 TEST(RascsiResponseTest, GetReservedIds)
 {
-	auto bus = make_shared<MockBus>();
-	ControllerManager controller_manager(bus);
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	unordered_set<int> ids;
 	PbResult result;
 
@@ -113,20 +105,20 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	const int LUN2 = 5;
 	const int LUN3 = 6;
 
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	RascsiResponse response;
 	PbCommand command;
 	PbResult result;
 
-	response.GetDevicesInfo(result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	EXPECT_TRUE(result.devices_info().devices().empty());
 
-	auto device1 = make_shared<MockHostServices>(LUN1, controller_manager);
-	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device1));
+	auto device1 = make_shared<MockHostServices>(LUN1);
+	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
 
-	response.GetDevicesInfo(result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices1 = result.devices_info().devices();
 	EXPECT_EQ(1, devices1.size());
@@ -135,9 +127,9 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	EXPECT_EQ(LUN1, devices1[0].unit());
 
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN2);
-	EXPECT_TRUE(controller_manager.AttachToScsiController(ID, device2));
+	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
 
-	response.GetDevicesInfo(result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices2 = result.devices_info().devices();
 	EXPECT_EQ(2, devices2.size()) << "Data for all devices must be returned";
@@ -145,7 +137,7 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 	auto requested_device = command.add_devices();
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN1);
-	response.GetDevicesInfo(result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices3 = result.devices_info().devices();
 	EXPECT_EQ(1, devices3.size()) << "Only data for the specified ID and LUN must be returned";
@@ -155,15 +147,13 @@ TEST(RascsiResponseTest, GetDevicesInfo)
 
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN3);
-	response.GetDevicesInfo(result, command, "");
+	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_FALSE(result.status()) << "Only data for the specified ID and LUN must be returned";
 }
 
 TEST(RascsiResponseTest, GetDeviceTypesInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetDeviceTypesInfo(result);
@@ -173,13 +163,14 @@ TEST(RascsiResponseTest, GetDeviceTypesInfo)
 
 TEST(RascsiResponseTest, GetServerInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	RascsiResponse response;
+	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };
 	PbResult result;
 
-	const auto& info = response.GetServerInfo(result, ids, "log_level", "default_folder", "", "", 1234);
+	const auto& info = response.GetServerInfo(devices, result, ids, "log_level", "default_folder", "", "", 1234);
 	EXPECT_TRUE(result.status());
 	EXPECT_EQ(rascsi_major_version, info->version_info().major_version());
 	EXPECT_EQ(rascsi_minor_version, info->version_info().minor_version());
@@ -192,9 +183,7 @@ TEST(RascsiResponseTest, GetServerInfo)
 
 TEST(RascsiResponseTest, GetVersionInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetVersionInfo(result);
@@ -206,9 +195,7 @@ TEST(RascsiResponseTest, GetVersionInfo)
 
 TEST(RascsiResponseTest, GetLogLevelInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetLogLevelInfo(result, "level");
@@ -219,9 +206,7 @@ TEST(RascsiResponseTest, GetLogLevelInfo)
 
 TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetNetworkInterfacesInfo(result);
@@ -231,9 +216,7 @@ TEST(RascsiResponseTest, GetNetworkInterfacesInfo)
 
 TEST(RascsiResponseTest, GetMappingInfo)
 {
-	ControllerManager controller_manager(make_shared<MockBus>());
-	DeviceFactory device_factory;
-	RascsiResponse response(device_factory, controller_manager, 32);
+	RascsiResponse response;
 	PbResult result;
 
 	const auto& info = response.GetMappingInfo(result);

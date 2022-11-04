@@ -246,16 +246,16 @@ bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf, uint32_t)
 void SCSIBR::GetMessage10()
 {
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	controller->AllocateBuffer(0x1000000);
+	GetController()->AllocateBuffer(0x1000000);
 
-	controller->SetLength(GetMessage10(controller->GetCmd(), controller->GetBuffer()));
-	if (controller->GetLength() <= 0) {
+	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
+	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Set next block
-	controller->SetBlocks(1);
-	controller->SetNext(1);
+	GetController()->SetBlocks(1);
+	GetController()->SetNext(1);
 
 	EnterDataInPhase();
 }
@@ -267,19 +267,19 @@ void SCSIBR::GetMessage10()
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10()
+void SCSIBR::SendMessage10() const
 {
-	controller->SetLength(GetInt24(controller->GetCmd(), 6));
-	if (controller->GetLength() <= 0) {
+	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
+	if (GetController()->GetLength() <= 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)
-	controller->AllocateBuffer(0x1000000);
+	GetController()->AllocateBuffer(0x1000000);
 
 	// Set next block
-	controller->SetBlocks(1);
-	controller->SetNext(1);
+	GetController()->SetBlocks(1);
+	GetController()->SetNext(1);
 
 	EnterDataOutPhase();
 }

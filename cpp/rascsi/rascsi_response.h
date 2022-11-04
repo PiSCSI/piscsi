@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "devices/device_factory.h"
+#include "devices/primary_device.h"
 #include "rascsi_interface.pb.h"
 #include <dirent.h>
 #include <array>
@@ -17,27 +19,24 @@
 using namespace std;
 using namespace rascsi_interface;
 
-class DeviceFactory;
-class ControllerManager;
-class Device;
-
 class RascsiResponse
 {
+	using id_set = pair<int, int>;
+
 public:
 
-	RascsiResponse(DeviceFactory& device_factory, const ControllerManager& controller_manager, int max_luns)
-		: device_factory(device_factory), controller_manager(controller_manager), max_luns(max_luns) {}
+	RascsiResponse() = default;
 	~RascsiResponse() = default;
 
 	bool GetImageFile(PbImageFile&, const string&, const string&) const;
 	unique_ptr<PbImageFilesInfo> GetAvailableImages(PbResult&, const string&, const string&, const string&, int) const;
 	unique_ptr<PbReservedIdsInfo> GetReservedIds(PbResult&, const unordered_set<int>&) const;
-	void GetDevices(PbServerInfo&, const string&) const;
-	void GetDevicesInfo(PbResult&, const PbCommand&, const string&) const;
+	void GetDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbServerInfo&, const string&) const;
+	void GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&, const string&) const;
 	unique_ptr<PbDeviceTypesInfo> GetDeviceTypesInfo(PbResult&) const;
 	unique_ptr<PbVersionInfo> GetVersionInfo(PbResult&) const;
-	unique_ptr<PbServerInfo> GetServerInfo(PbResult&, const unordered_set<int>&, const string&, const string&, const string&,
-			const string&, int) const;
+	unique_ptr<PbServerInfo> GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
+			const string&, const string&, const string&, const string&, int) const;
 	unique_ptr<PbNetworkInterfacesInfo> GetNetworkInterfacesInfo(PbResult&) const;
 	unique_ptr<PbMappingInfo> GetMappingInfo(PbResult&) const;
 	unique_ptr<PbLogLevelInfo> GetLogLevelInfo(PbResult&, const string&) const;
@@ -45,13 +44,9 @@ public:
 
 private:
 
-	DeviceFactory& device_factory;
+	DeviceFactory device_factory;
 
-	const ControllerManager& controller_manager;
-
-	int max_luns;
-
-	const array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
+	const inline static array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;
@@ -62,7 +57,7 @@ private:
 	unique_ptr<PbOperationMetaData> CreateOperation(PbOperationInfo&, const PbOperation&, const string&) const;
 	unique_ptr<PbOperationParameter> AddOperationParameter(PbOperationMetaData&, const string&, const string&,
 			const string& = "", bool = false) const;
-	set<id_set> MatchDevices(PbResult&, const PbCommand&) const;
+	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
 	static string GetNextImageFile(const dirent *, const string&);
 };

@@ -15,14 +15,12 @@
 #include <vector>
 #include <map>
 
-class ControllerManager;
-
 class HostServices: public ModePageDevice
 {
 
 public:
 
-	HostServices(int lun, const ControllerManager& manager) : ModePageDevice(SCHS, lun), controller_manager(manager) {}
+	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
 	~HostServices() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
@@ -49,9 +47,7 @@ private:
 	    uint8_t second; // 0-59
 	};
 
-	const ControllerManager& controller_manager;
-
-	void StartStopUnit();
+	void StartStopUnit() const;
 	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
 	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
 

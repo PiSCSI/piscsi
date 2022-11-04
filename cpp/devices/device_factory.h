@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021-2022 Uwe Seimet
 //
-// The DeviceFactory singleton creates devices based on their type and the image file extension
+// The DeviceFactory creates devices based on their type and the image file extension
 //
 //---------------------------------------------------------------------------
 
@@ -20,19 +20,18 @@
 using namespace std;
 using namespace rascsi_interface;
 
-class ControllerManager;
 class PrimaryDevice;
 
 class DeviceFactory
 {
-	const string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
+	const inline static string DEFAULT_IP = "10.10.20.1/24"; //NOSONAR This hardcoded IP address is safe
 
 public:
 
 	DeviceFactory();
 	~DeviceFactory() = default;
 
-	shared_ptr<PrimaryDevice> CreateDevice(const ControllerManager&, PbDeviceType, int, const string&);
+	shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, int, const string&) const;
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
