@@ -78,6 +78,10 @@ function initialChecks() {
 
 # checks that the current user has sudoers privileges
 function sudoCheck() {
+    if [[ $HEADLESS ]]; then
+        echo "Skipping password check in headless mode"
+        return 0
+    fi
     echo "Input your password to allow this script to make the above changes."
     sudo -v
 }
@@ -128,8 +132,6 @@ function installPackagesStandalone() {
 # cache the pip packages
 function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
     sudo pip3 install -r ./requirements.txt
     popd
 }
@@ -141,8 +143,6 @@ function compileRaScsi() {
     echo "Compiling with ${CORES:-1} simultaneous cores..."
     make clean </dev/null
 
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
     make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
 }
 
@@ -614,9 +614,9 @@ function installHfdisk() {
 
 # Fetch HFS drivers that the Web Interface uses
 function fetchHardDiskDrivers() {
-    if [ ! -f "$BASE/mac-hard-disk-drivers" ]; then
+    if [ ! -d "$BASE/mac-hard-disk-drivers" ]; then
         cd "$BASE" || exit 1
-        wget https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/mac-hard-disk-drivers.zip
+        wget -r https://www.dropbox.com/s/gcs4v5pcmk7rxtb/mac-hard-disk-drivers.zip?dl=0
         unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
         rm mac-hard-disk-drivers.zip
     fi
