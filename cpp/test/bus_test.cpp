@@ -54,6 +54,7 @@ TEST(BusTest, GetCommandByteCount)
 	EXPECT_EQ(16, BUS::GetCommandByteCount(0x91));
 	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9e));
 	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9f));
+	EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));
 }
 
 TEST(BusTest, GetPhase)
