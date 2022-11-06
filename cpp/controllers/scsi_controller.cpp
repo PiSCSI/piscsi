@@ -211,8 +211,8 @@ void ScsiController::Command()
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
-			LOGERROR("%s Command byte count mismatch: expected %d bytes, received %d byte(s)", __PRETTY_FUNCTION__,
-					command_byte_count, actual_count)
+			LOGERROR("Command byte count mismatch for command $%02X: expected %d bytes, received %d byte(s)",
+					GetBuffer()[0], command_byte_count, actual_count)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
