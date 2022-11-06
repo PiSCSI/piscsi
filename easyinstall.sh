@@ -120,7 +120,8 @@ function installPackages() {
         man2html \
         hfsutils \
         dosfstools \
-        kpartx
+        kpartx \
+        clang
 }
 
 # install Debian packges for RaSCSI standalone
@@ -135,9 +136,8 @@ function installPackagesStandalone() {
         libpcap-dev \
         libprotobuf-dev \
         protobuf-compiler \
-        disktype \
         libgmock-dev \
-        man2html
+        clang
 }
 
 # cache the pip packages
