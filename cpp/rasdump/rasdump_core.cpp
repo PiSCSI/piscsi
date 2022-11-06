@@ -12,9 +12,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus.h"
-#include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
-#include "hal/sbc_version.h"
 #include "rascsi_version.h"
 #include "rasdump/rasdump_core.h"
 #include <sys/stat.h>
@@ -65,12 +63,7 @@ bool RasDump::Init()
 		return false;
 	}
 
-	// TODO This should be in GPIOBUS_Factory::Create
-#ifdef USE_SEL_EVENT_ENABLE
-	SBC_Version::Init();
-#endif
-
-	bus = GPIOBUS_Factory::Create();
+	bus = make_unique<GPIOBUS>();
 
 	return bus->Init(BUS::mode_e::INITIATOR);
 }

@@ -10,8 +10,6 @@
 
 #include "log.h"
 #include "hal/gpiobus.h"
-#include "hal/gpiobus_factory.h"
-#include "hal/sbc_version.h"
 #include "rascsi_version.h"
 #include <sys/time.h>
 #include <climits>
@@ -127,11 +125,7 @@ bool ScsiMon::Init()
         return false;
     }
 
-#ifdef USE_SEL_EVENT_ENABLE
-	SBC_Version::Init();
-#endif
-
-    bus = GPIOBUS_Factory::Create();
+    bus = make_unique<GPIOBUS>();
     if (!bus->Init()) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;

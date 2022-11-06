@@ -17,8 +17,6 @@
 #include "devices/device_factory.h"
 #include "devices/storage_device.h"
 #include "hal/gpiobus.h"
-#include "hal/gpiobus_factory.h"
-#include "hal/sbc_version.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include "protobuf_serializer.h"
@@ -68,14 +66,7 @@ void Rascsi::Banner(const vector<char *>& args) const
 
 bool Rascsi::InitBus() const
 {
-#ifdef USE_SEL_EVENT_ENABLE
-	SBC_Version::Init();
-#endif
-
-	// GPIOBUS creation
-	bus = GPIOBUS_Factory::Create();
-
-	// GPIO Initialization
+	bus = make_unique<GPIOBUS>();
 	if (!bus->Init()) {
 		return false;
 	}

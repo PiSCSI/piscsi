@@ -12,56 +12,129 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer.h"
-#include "hal/systimer_allwinner.h"
-#include "hal/systimer_raspberry.h"
-#include <sys/mman.h>
-
 #include "hal/gpiobus.h"
-#include "hal/sbc_version.h"
-
 #include "config.h"
-#include "log.h"
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <array>
 
-bool SysTimer::initialized   = false;
-bool SysTimer::is_allwinnner = false;
-bool SysTimer::is_raspberry  = false;
+//---------------------------------------------------------------------------
+//
+//	System timer address
+//
+//---------------------------------------------------------------------------
+volatile uint32_t* SysTimer::systaddr;
 
-std::unique_ptr<PlatformSpecificTimer> SysTimer::systimer_ptr;
+//---------------------------------------------------------------------------
+//
+//	ARM timer address
+//
+//---------------------------------------------------------------------------
+volatile uint32_t* SysTimer::armtaddr;
 
-void SysTimer::Init()
+//---------------------------------------------------------------------------
+//
+//	Core frequency
+//
+//---------------------------------------------------------------------------
+volatile uint32_t SysTimer::corefreq;
+
+//---------------------------------------------------------------------------
+//
+//	Initialize the system timer
+//
+//---------------------------------------------------------------------------
+void SysTimer::Init(uint32_t *syst, uint32_t *armt)
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+	// RPI Mailbox property interface
+	// Get max clock rate
+	//  Tag: 0x00030004
+	//
+	//  Request: Length: 4
+	//   Value: u32: clock id
+	//  Response: Length: 8
+	//   Value: u32: clock id, u32: rate (in Hz)
+	//
+	// Clock id
+	//  0x000000004: CORE
+	array<uint32_t, 32> maxclock = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 
-    if (!initialized) {
-        if (SBC_Version::IsRaspberryPi()) {
-            systimer_ptr = make_unique<SysTimer_Raspberry>();
-            is_raspberry = true;
-        } else if (SBC_Version::IsBananaPi()) {
-            systimer_ptr  = make_unique<SysTimer_AllWinner>();
-            is_allwinnner = true;
-        }
-        systimer_ptr->Init();
-        initialized = true;
-    }
+	// Save the base address
+	systaddr = syst;
+	armtaddr = armt;
+
+	// Change the ARM timer to free run mode
+	armtaddr[ARMT_CTRL] = 0x00000282;
+
+	// Get the core frequency
+	corefreq = 0;
+	int fd = open("/dev/vcio", O_RDONLY);
+	if (fd >= 0) {
+		ioctl(fd, _IOWR(100, 0, char *), maxclock);
+		corefreq = maxclock[6] / 1000000;
+	}
+	close(fd);
 }
 
-// Get system timer low byte
-uint32_t SysTimer::GetTimerLow()
-{
-    return systimer_ptr->GetTimerLow();
+//---------------------------------------------------------------------------
+//
+//	Get system timer low byte
+//
+//---------------------------------------------------------------------------
+uint32_t SysTimer::GetTimerLow() {
+	return systaddr[SYST_CLO];
 }
-// Get system timer high byte
-uint32_t SysTimer::GetTimerHigh()
-{
-    return systimer_ptr->GetTimerHigh();
+
+//---------------------------------------------------------------------------
+//
+//	Get system timer high byte
+//
+//---------------------------------------------------------------------------
+uint32_t SysTimer::GetTimerHigh() {
+	return systaddr[SYST_CHI];
 }
-// Sleep for N nanoseconds
+
+//---------------------------------------------------------------------------
+//
+//	Sleep in nanoseconds
+//
+//---------------------------------------------------------------------------
 void SysTimer::SleepNsec(uint32_t nsec)
 {
-    systimer_ptr->SleepNsec(nsec);
+	// If time is 0, don't do anything
+	if (nsec == 0) {
+		return;
+	}
+
+	// Calculate the timer difference
+	uint32_t diff = corefreq * nsec / 1000;
+
+	// Return if the difference in time is too small
+	if (diff == 0) {
+		return;
+	}
+
+	// Start
+	uint32_t start = armtaddr[ARMT_FREERUN];
+
+	// Loop until timer has elapsed
+	while ((armtaddr[ARMT_FREERUN] - start) < diff);
 }
-// Sleep for N microseconds
+
+//---------------------------------------------------------------------------
+//
+//	Sleep in microseconds
+//
+//---------------------------------------------------------------------------
 void SysTimer::SleepUsec(uint32_t usec)
 {
-    systimer_ptr->SleepUsec(usec);
+	// If time is 0, don't do anything
+	if (usec == 0) {
+		return;
+	}
+
+	uint32_t now = GetTimerLow();
+	while ((GetTimerLow() - now) < usec);
 }
