@@ -175,6 +175,8 @@ void RasDump::Selection() const
 
 void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
+	LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
+
 	Selection();
 
 	WaitPhase(BUS::phase_t::command);
@@ -182,6 +184,8 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 	// Send command. Success if the transmission result is the same as the number of requests
 	cdb[0] = static_cast<uint8_t>(cmd);
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
+		BusFree();
+
 		throw rasdump_exception(command_mapping.find(cmd)->second.second + string(" failed"));
 	}
 }
@@ -222,10 +226,21 @@ void RasDump::MessageIn() const
 	}
 }
 
+void RasDump::BusFree() const
+{
+	bus->Reset();
+}
+
 void RasDump::TestUnitReady() const
 {
 	vector<uint8_t> cdb(6);
 	Command(scsi_command::eCmdTestUnitReady, cdb);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 void RasDump::RequestSense()
@@ -235,6 +250,12 @@ void RasDump::RequestSense()
 	Command(scsi_command::eCmdRequestSense, cdb);
 
 	DataIn(256);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 void RasDump::Inquiry()
@@ -244,6 +265,12 @@ void RasDump::Inquiry()
 	Command(scsi_command::eCmdInquiry, cdb);
 
 	DataIn(256);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 void RasDump::ReadCapacity()
@@ -252,6 +279,12 @@ void RasDump::ReadCapacity()
 	Command(scsi_command::eCmdReadCapacity10, cdb);
 
 	DataIn(8);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
@@ -266,6 +299,12 @@ void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
 	Command(scsi_command::eCmdRead10, cdb);
 
 	DataIn(length);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
@@ -280,6 +319,12 @@ void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
 	Command(scsi_command::eCmdWrite10, cdb);
 
 	DataOut(length);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
 }
 
 int RasDump::run(const vector<char *>& args)
@@ -342,8 +387,6 @@ int RasDump::DumpRestore()
 
 	Inquiry();
 
-	Status();
-
 	// Display INQUIRY information
 	array<char, 17> str = {};
 	memcpy(str.data(), &buffer[8], 8);
@@ -365,8 +408,8 @@ int RasDump::DumpRestore()
 	const int capacity = ((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]) + 1;
 
 	cout << "Number of sectors: " << capacity << "\n"
-			<< "Sector size:     " << sector_size << " bytes\n"
-			<< "Capacity:         " << sector_size * capacity / 1024 / 1024 << " MiB, " << sector_size * capacity << " bytes\n" << flush;
+			<< "Sector size:       " << sector_size << " bytes\n"
+			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB, " << sector_size * capacity << " bytes\n" << flush;
 
 	if (restore) {
 		off_t size;

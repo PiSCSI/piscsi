@@ -49,6 +49,7 @@ private:
 	void DataOut(int);
 	void Status() const;
 	void MessageIn() const;
+	void BusFree() const;
 	void TestUnitReady() const;
 	void RequestSense();
 	void Inquiry();
