@@ -55,8 +55,11 @@ private:
 	void ReadCapacity();
 	void Read10(uint32_t, uint32_t, uint32_t);
 	void Write10(uint32_t, uint32_t, uint32_t);
+
 	// TODO Use ras_util after removing its dependencies on protobuf interface
 	static bool GetAsInt(const string&, int&);
+	// TODO Share this code
+	bool SetLogLevel(const string&) const;
 
 	static void KillHandler(int);
 

@@ -11,10 +11,12 @@
 //
 //---------------------------------------------------------------------------
 
+#include "log.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
 #include "rasdump/rasdump_core.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include <sys/stat.h>
 #include <csignal>
 #include <unistd.h>
@@ -23,6 +25,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace spdlog;
 using namespace scsi_defs;
 
 RasDump::~RasDump()
@@ -43,11 +46,12 @@ bool RasDump::Banner(const vector<char *>& args) const
 			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
-		cout << "Usage: " << args[0] << " -i ID [-b BID] -f FILE [-r]\n"
+		cout << "Usage: " << args[0] << " -i ID [-b BID] -f FILE [-l] [-r]\n"
 				<< " ID is target device SCSI ID (0-7).\n"
 				<< " BID is RaSCSI board SCSI ID (0-7). Default is 7.\n"
 				<< " FILE is HDS file path.\n"
-				<< " -r is restore operation.\n" << flush;
+				<< " -l is the log level. Default is off.\n"
+				<< " -r means to restore. Default is to dump.\n" << flush;
 
 		return false;
 	}
@@ -85,6 +89,10 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 
 			case 'f':
 				filename = optarg;
+				break;
+
+			case 'l':
+				SetLogLevel(optarg);
 				break;
 
 			case 'r':
@@ -277,6 +285,8 @@ int RasDump::run(const vector<char *>& args)
 		return EXIT_SUCCESS;
 	}
 
+	SetLogLevel("off");
+
 	if (!Init()) {
 		cerr << "Error: Initializing. Are you root?" << endl;
 
@@ -453,6 +463,37 @@ bool RasDump::GetAsInt(const string& value, int& result)
 	catch(const out_of_range&) {
 		return false;
 	}
+
+	return true;
+}
+
+bool RasDump::SetLogLevel(const string& log_level) const
+{
+	if (log_level == "trace") {
+		set_level(level::trace);
+	}
+	else if (log_level == "debug") {
+		set_level(level::debug);
+	}
+	else if (log_level == "info") {
+		set_level(level::info);
+	}
+	else if (log_level == "warn") {
+		set_level(level::warn);
+	}
+	else if (log_level == "err") {
+		set_level(level::err);
+	}
+	else if (log_level == "off") {
+		set_level(level::off);
+	}
+	else {
+		LOGWARN("Invalid log level '%s'", log_level.c_str())
+
+		return false;
+	}
+
+	LOGINFO("Set log level to '%s'", log_level.c_str())
 
 	return true;
 }
