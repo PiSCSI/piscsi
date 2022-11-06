@@ -341,7 +341,7 @@ class GPIOBUS : public BUS
         return board;
     }
 
-    int CommandHandShake(uint8_t *buf) override;
+    int CommandHandShake(vector<uint8_t>&) override;
     // Command receive handshake
     int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake

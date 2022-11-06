@@ -509,7 +509,7 @@ uint32_t GPIOBUS::GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(uint8_t *buf)
+int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
     GPIO_FUNCTION_TRACE
     // Only works in TARGET mode
@@ -529,7 +529,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
     SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
     // Get data
-    *buf = GetDAT();
+    buf[0] = GetDAT();
 
     // Disable REQ signal
     SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_LOW);
@@ -558,15 +558,15 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
     // semantics. I fact, these semantics have become a standard in the Atari world.
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-    if (*buf == 0x1F) {
-        SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
+    if (buf[0] == 0x1F) {
+        SetSignal(PIN_REQ, ON);
 
         ret = WaitSignal(board->pin_ack, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
 
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get the actual SCSI command
-        *buf = GetDAT();
+        buf[0] = GetDAT();
 
         SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_LOW);
 
@@ -583,14 +583,20 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         }
     }
 
-    const int command_byte_count = GetCommandByteCount(*buf);
+    const int command_byte_count = GetCommandByteCount(buf[0]);
+    if (command_byte_count == 0) {
+    	EnableIRQ();
 
-    // Increment buffer pointer
-    buf++;
+    	return 0;
+    }
+
+    int offset = 0;
 
     int bytes_received;
     for (bytes_received = 1; bytes_received < command_byte_count; bytes_received++) {
-        // Assert REQ signal
+    	++offset;
+
+    	// Assert REQ signal
         SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
 
         // Wait for ACK signal
@@ -600,7 +606,7 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
         // Get data
-        *buf = GetDAT();
+        buf[offset] = GetDAT();
 
         // Clear the REQ signal
         SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_LOW);
@@ -617,9 +623,6 @@ int GPIOBUS::CommandHandShake(uint8_t *buf)
         if (!ret) {
             break;
         }
-
-        // Advance the buffer pointer to receive the next byte
-        buf++;
     }
 
     EnableIRQ();
