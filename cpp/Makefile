@@ -115,7 +115,8 @@ SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
-
+SRC_RASCSI_TEST += $(shell find ./rasdump -name '*.cpp')
+SRC_RASCSI_TEST += $(shell find ./monitor -name '*.cpp')
 
 vpath %.h ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump
 vpath %.cpp ./ ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump ./test

@@ -11,11 +11,11 @@
 #include "log.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
+#include "hal/sbc_version.h"
 #include "rascsi_version.h"
 #include <sys/time.h>
 #include <climits>
 #include <csignal>
-#include <sstream>
 #include <iostream>
 #include <getopt.h>
 #include <sched.h>
@@ -25,53 +25,20 @@
 
 using namespace std;
 
-static const int _MAX_FNAME = 256;
-
-//---------------------------------------------------------------------------
-//
-//	Variable declarations
-//
-//---------------------------------------------------------------------------
-static volatile bool running; // Running flag
-unique_ptr<GPIOBUS> bus;			      // GPIO Bus
-
-uint32_t buff_size = 1000000;
-data_capture *data_buffer;
-uint32_t data_idx = 0;
-
+// TODO Should not be global and not be used by sm_vcd_report
 double ns_per_loop;
 
-bool print_help = false;
-bool import_data = false;
-
-// We don't really need to support 256 character file names - this causes
-// all kinds of compiler warnings when the log filename can be up to 256
-// characters. _MAX_FNAME/2 is just an arbitrary value.
-char file_base_name[_MAX_FNAME / 2] = "log";
-char vcd_file_name[_MAX_FNAME];
-char json_file_name[_MAX_FNAME];
-char html_file_name[_MAX_FNAME];
-char input_file_name[_MAX_FNAME];
-
-//---------------------------------------------------------------------------
-//
-//	Signal Processing
-//
-//---------------------------------------------------------------------------
-void KillHandler(int)
+void ScsiMon::KillHandler(int)
 {
-    // Stop instruction
     running = false;
 }
 
-void ScsiMon::parse_arguments(const vector<char *>& args)
+void ScsiMon::ParseArguments(const vector<char *>& args)
 {
     int opt;
 
-    while ((opt = getopt(args.size(), args.data(), "-Hhb:i:")) != -1)
-    {
-        switch (opt)
-        {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Hhb:i:")) != -1) {
+        switch (opt) {
         // The three options below are kind of a compound option with two letters
         case 'h':
         case 'H':
@@ -81,11 +48,11 @@ void ScsiMon::parse_arguments(const vector<char *>& args)
             buff_size = atoi(optarg);
             break;
         case 'i':
-            strncpy(input_file_name, optarg, sizeof(input_file_name)-1);
+        	input_file_name = optarg;
             import_data = true;
             break;
         case 1:
-            strncpy(file_base_name, optarg, sizeof(file_base_name) - 5);
+        	file_base_name = optarg;
             break;
         default:
             cout << "default: " << optarg << endl;
@@ -96,22 +63,18 @@ void ScsiMon::parse_arguments(const vector<char *>& args)
     /* Process any remaining command line arguments (not options). */
     if (optind < static_cast<int>(args.size())) {
         while (optind < static_cast<int>(args.size()))
-            strncpy(file_base_name, args[optind++], sizeof(file_base_name)-1);
+            file_base_name = args[optind++];
     }
 
-    strcpy(vcd_file_name, file_base_name);
-    strcat(vcd_file_name, ".vcd");
-    strcpy(json_file_name, file_base_name);
-    strcat(json_file_name, ".json");
-    strcpy(html_file_name, file_base_name);
-    strcat(html_file_name, ".html");
+    vcd_file_name = file_base_name;
+    vcd_file_name += ".vcd";
+    json_file_name = file_base_name;
+    json_file_name += ".json";
+    html_file_name = file_base_name;
+    html_file_name += ".html";
 }
-//---------------------------------------------------------------------------
-//
-//	Copyright text
-//
-//---------------------------------------------------------------------------
-void ScsiMon::print_copyright_text()
+
+void ScsiMon::PrintCopyrightText() const
 {
     LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ")
     LOGINFO("version %s (%s, %s)",
@@ -124,12 +87,7 @@ void ScsiMon::print_copyright_text()
     LOGINFO(" ")
 }
 
-//---------------------------------------------------------------------------
-//
-//	Help text
-//
-//---------------------------------------------------------------------------
-void ScsiMon::print_help_text(const vector<char *>& args)
+void ScsiMon::PrintHelpText(const vector<char *>& args) const
 {
     LOGINFO("%s -i [input file json] -b [buffer size] [output file]", args[0])
     LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data")
@@ -139,15 +97,10 @@ void ScsiMon::print_help_text(const vector<char *>& args)
     LOGINFO("                              will be appended to this file name")
 }
 
-//---------------------------------------------------------------------------
-//
-//	Banner Output
-//
-//---------------------------------------------------------------------------
-void ScsiMon::Banner()
+void ScsiMon::Banner() const
 {
     if (import_data) {
-        LOGINFO("Reading input file: %s", input_file_name)
+        LOGINFO("Reading input file: %s", input_file_name.c_str())
     }
     else {
         LOGINFO("Reading live data from the GPIO pins")
@@ -156,16 +109,11 @@ void ScsiMon::Banner()
     LOGINFO("    Data buffer size: %u", buff_size)
     LOGINFO(" ")
     LOGINFO("Generating output files:")
-    LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name)
-    LOGINFO("   %s - JSON file with raw data", json_file_name)
-    LOGINFO("   %s - HTML file with summary of commands", html_file_name)
+    LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name.c_str())
+    LOGINFO("   %s - JSON file with raw data", json_file_name.c_str())
+    LOGINFO("   %s - HTML file with summary of commands", html_file_name.c_str())
 }
 
-//---------------------------------------------------------------------------
-//
-//	Initialization
-//
-//---------------------------------------------------------------------------
 bool ScsiMon::Init()
 {
     // Interrupt handler settings
@@ -179,15 +127,16 @@ bool ScsiMon::Init()
         return false;
     }
 
-    // GPIO Initialization
+#ifdef USE_SEL_EVENT_ENABLE
+	SBC_Version::Init();
+#endif
+
     bus = GPIOBUS_Factory::Create();
-    if (!bus->Init())
-    {
+    if (!bus->Init()) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;
     }
 
-    // Bus Reset
     bus->Reset();
 
     // Other
@@ -196,26 +145,24 @@ bool ScsiMon::Init()
     return true;
 }
 
-void ScsiMon::Cleanup()
+void ScsiMon::Cleanup() const
 {
     if (!import_data) {
         LOGINFO("Stopping data collection....")
     }
     LOGINFO(" ")
-    LOGINFO("Generating %s...", vcd_file_name)
-    scsimon_generate_value_change_dump(vcd_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s...", json_file_name)
-    scsimon_generate_json(json_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s...", html_file_name)
-    scsimon_generate_html(html_file_name, data_buffer, data_idx);
+    LOGINFO("Generating %s...", vcd_file_name.c_str())
+    scsimon_generate_value_change_dump(vcd_file_name.c_str(), data_buffer, data_idx);
+    LOGINFO("Generating %s...", json_file_name.c_str())
+    scsimon_generate_json(json_file_name.c_str(), data_buffer, data_idx);
+    LOGINFO("Generating %s...", html_file_name.c_str())
+    scsimon_generate_html(html_file_name.c_str(), data_buffer, data_idx);
 
-    // Cleanup the Bus
     bus->Cleanup();
 }
 
-void ScsiMon::Reset()
+void ScsiMon::Reset() const
 {
-    // Reset the bus
     bus->Reset();
 }
 
@@ -225,7 +172,7 @@ void ScsiMon::Reset()
 //
 //---------------------------------------------------------------------------
 #ifdef __linux__
-void ScsiMon::FixCpu(int cpu)
+void ScsiMon::FixCpu(int cpu) const
 {
     // Get the number of CPUs
     cpu_set_t cpuset;
@@ -248,14 +195,8 @@ static uint32_t high_bits = 0x0;
 static uint32_t low_bits = 0xFFFFFFFF;
 #endif
 
-//---------------------------------------------------------------------------
-//
-//	Main processing
-//
-//---------------------------------------------------------------------------
 int ScsiMon::run(const vector<char *>& args)
 {
-
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::trace);
 #else
@@ -263,14 +204,13 @@ int ScsiMon::run(const vector<char *>& args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    print_copyright_text();
-    parse_arguments(args);
+    PrintCopyrightText();
+    ParseArguments(args);
 
 #ifdef DEBUG
     uint32_t prev_high = high_bits;
     uint32_t prev_low = low_bits;
 #endif
-    ostringstream s;
     uint32_t prev_sample = 0xFFFFFFFF;
     uint32_t this_sample = 0;
     timeval start_time;
@@ -279,23 +219,20 @@ int ScsiMon::run(const vector<char *>& args)
     timeval time_diff;
     uint64_t elapsed_us;
 
-    if (print_help)
-    {
-        print_help_text(args);
+    if (print_help) {
+        PrintHelpText(args);
         exit(0);
     }
 
-    // Output the Banner
     Banner();
 
     data_buffer = (data_capture *)calloc(buff_size, sizeof(data_capture_t));
 
-    if (import_data)
-    {
-        data_idx = scsimon_read_json(input_file_name, data_buffer, buff_size);
+    if (import_data) {
+        data_idx = scsimon_read_json(input_file_name.c_str(), data_buffer, buff_size);
         if (data_idx > 0)
         {
-            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name)
+            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name.c_str())
             Cleanup();
         }
         exit(0);
@@ -334,41 +271,33 @@ int ScsiMon::run(const vector<char *>& args)
     LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
 
     // Main Loop
-    while (running)
-    {
+    while (running) {
         // Work initialization
         this_sample = (bus->Acquire() & ALL_SCSI_PINS);
         loop_count++;
-        if (loop_count > LLONG_MAX - 1)
-        {
+        if (loop_count > LLONG_MAX - 1) {
             LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")
             running = false;
         }
-        if (data_idx >= (buff_size - 2))
-        {
+
+        if (data_idx >= (buff_size - 2)) {
             LOGINFO("Internal data buffer is full. SCSIMON is terminating.")
             running = false;
         }
 
-        if (this_sample != prev_sample)
-        {
-
+        if (this_sample != prev_sample) {
 #ifdef DEBUG
             // This is intended to be a debug check to see if every pin is set
             // high and low at some point.
             high_bits |= this_sample;
             low_bits &= this_sample;
-            if ((high_bits != prev_high) || (low_bits != prev_low))
-            {
+            if ((high_bits != prev_high) || (low_bits != prev_low)) {
                 LOGDEBUG("   %08X    %08X\n", high_bits, low_bits)
             }
             prev_high = high_bits;
             prev_low = low_bits;
-            if ((data_idx % 1000) == 0)
-            {
-                s.str("");
-                s << "Collected " << data_idx << " samples...";
-                LOGDEBUG("%s", s.str().c_str())
+            if ((data_idx % 1000) == 0) {
+                LOGDEBUG("%s", ("Collected " + to_string(data_idx) + " samples...").c_str())
             }
 #endif
             data_buffer[data_idx].data = this_sample;
@@ -381,8 +310,7 @@ int ScsiMon::run(const vector<char *>& args)
     }
 
     // Collect one last sample, otherwise it looks like the end of the data was cut off
-    if (data_idx < buff_size)
-    {
+    if (data_idx < buff_size) {
         data_buffer[data_idx].data = this_sample;
         data_buffer[data_idx].timestamp = loop_count;
         data_idx++;
@@ -393,18 +321,13 @@ int ScsiMon::run(const vector<char *>& args)
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec * 1000000) + time_diff.tv_usec);
-    s.str("");
-    s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
-    LOGINFO("%s", s.str().c_str())
-    s.str("");
-    s << "Collected " << data_idx << " changes";
-    LOGINFO("%s", s.str().c_str())
+    LOGINFO("%s", ("Elapsed time: " + to_string(elapsed_us) + " microseconds (" + to_string(elapsed_us / 1000000)
+    		+ " seconds").c_str())
+    LOGINFO("%s", ("Collected " + to_string(data_idx) + " changes").c_str())
 
-    // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.
-    ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
-    s.str("");
-    s << "Read the SCSI bus " << loop_count << " times with an average of " << ns_per_loop << " ns for each read";
-    LOGINFO("%s", s.str().c_str())
+    ns_per_loop = (double)(elapsed_us * 1000) / (double)loop_count;
+    LOGINFO("%s", ("Read the SCSI bus " + to_string(loop_count) + " times with an average of "
+    		+ to_string(ns_per_loop) + " ns for each read").c_str())
 
     Cleanup();
 
