@@ -447,7 +447,7 @@ int RasDump::DumpRestore()
 			printf("\033[21D");
 			printf("\033[0K");
 		}
-		printf("%3d%%(%7d/%7d)", ((i + 1) * 100 / dnum), i * duni, capacity);
+		printf("%3d%% (%7d/%7d)", ((i + 1) * 100 / dnum), i * duni, capacity);
 		fflush(stdout);
 
 		if (restore) {
