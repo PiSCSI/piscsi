@@ -409,7 +409,8 @@ int RasDump::DumpRestore()
 
 	cout << "Number of sectors: " << capacity << "\n"
 			<< "Sector size:       " << sector_size << " bytes\n"
-			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB, " << sector_size * capacity << " bytes\n" << flush;
+			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
+			<< sector_size * capacity << " bytes)\n" << flush;
 
 	if (restore) {
 		off_t size;
