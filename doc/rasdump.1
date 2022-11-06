@@ -6,6 +6,7 @@ rasdump \- SCSI disk dumping tool for RaSCSI
 \fB\-i\fR \fIID\fR
 [\fB\-b\fR \fIBID\fR]
 \fB\-f\fR \fIFILE\fR
+\fB\-l\fR \fILOG_LEVEL\fR
 [\fB\-r\fR]
 .SH DESCRIPTION
 .B rasdump
@@ -24,12 +25,15 @@ SCSI ID of the RaSCSI device
 .BR \-f\fI " "\fIFILE
 Path to the dump file
 .TP
+.BR \-l\fI " "\fILOG_LEVEL
+Log level, either off, err, warn, info, debug, trace. Default is off.
+.TP
 .BR \-r\fI
 Restoration mode
 
 .SH EXAMPLES
 
 .SH SEE ALSO
-rasctl(1), rascsi(1), scsimon(1), sasidump(1)
+rasctl(1), rascsi(1), scsimon(1)
  
 Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
