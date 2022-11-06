@@ -77,7 +77,7 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 	int opt;
 
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:r")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:l:r")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				GetAsInt(optarg, target_id);
@@ -92,7 +92,10 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 				break;
 
 			case 'l':
-				SetLogLevel(optarg);
+				if (!SetLogLevel(optarg)) {
+					cerr << "Error: Invalid log level '" << optarg << "'" << endl;
+					return false;
+				}
 				break;
 
 			case 'r':
