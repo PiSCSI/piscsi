@@ -368,7 +368,7 @@ int RasDump::run(const vector<char *>& args)
 int RasDump::DumpRestore()
 {
 	fstream fs;
-	fs.open(filename, (restore? ios::in : ios::out) | ios::binary);
+	fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
 	if (fs.fail()) {
 		throw rasdump_exception("Can't open image file '" + filename + "'");
@@ -438,7 +438,7 @@ int RasDump::DumpRestore()
 	if (restore) {
 		cout <<"Restore progress: " << flush;
 	} else {
-		cout << "Dump progress:    " << flush;
+		cout << "Dump progress: " << flush;
 	}
 
 	int i;
@@ -453,7 +453,8 @@ int RasDump::DumpRestore()
 		if (restore) {
 			fs.read((char *)buffer.data(), dsiz);
 			Write10(i * duni, duni, dsiz);
-		} else {
+		}
+		else {
 			Read10(i * duni, duni, dsiz);
 			fs.write((const char *)buffer.data(), dsiz);
 		}
@@ -477,7 +478,8 @@ int RasDump::DumpRestore()
 			if (!fs.fail()) {
 				Write10(i * duni, dnum, dsiz);
 			}
-		} else {
+		}
+		else {
 			Read10(i * duni, dnum, dsiz);
 			fs.write((const char *)buffer.data(), dsiz);
 		}
