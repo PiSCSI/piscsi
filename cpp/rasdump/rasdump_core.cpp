@@ -329,6 +329,8 @@ int RasDump::DumpRestore()
 
 	Inquiry();
 
+	Status();
+
 	// Display INQUIRY information
 	array<char, 17> str = {};
 	memcpy(str.data(), &buffer[8], 8);
