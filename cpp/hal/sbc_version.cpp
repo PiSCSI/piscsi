@@ -17,14 +17,18 @@
 
 SBC_Version::sbc_version_type SBC_Version::m_sbc_version = sbc_version_type::sbc_unknown;
 
+// TODO: THESE NEED TO BE VALIDATED!!!!
 const std::string SBC_Version::m_str_raspberry_pi_1    = "Raspberry Pi 1";
 const std::string SBC_Version::m_str_raspberry_pi_2_3  = "Raspberry Pi 2/3";
 const std::string SBC_Version::m_str_raspberry_pi_4    = "Raspberry Pi 4";
+const std::string SBC_Version::m_str_bananapi_m1_plus  = "Banana Pi M1 Plus";
 const std::string SBC_Version::m_str_bananapi_m2_berry = "Banana Pi M2 Berry/Ultra";
 const std::string SBC_Version::m_str_bananapi_m2_zero  = "Banana Pi M2 Zero";
 const std::string SBC_Version::m_str_bananapi_m2_plus  = "Banana Pi BPI-M2-Plus H3";
 const std::string SBC_Version::m_str_bananapi_m3       = "Banana Pi M3";
 const std::string SBC_Version::m_str_bananapi_m4       = "Banana Pi M4";
+const std::string SBC_Version::m_str_bananapi_m5       = "Banana Pi M5";
+const std::string SBC_Version::m_str_bananapi_m64      = "Banana Pi M64";
 const std::string SBC_Version::m_str_unknown_sbc       = "Unknown SBC";
 
 // The strings in this table should align with the 'model' embedded

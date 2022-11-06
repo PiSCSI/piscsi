@@ -30,13 +30,13 @@
 //
 //---------------------------------------------------------------------------
 
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <iomanip>
 
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_allwinner.h"
@@ -155,8 +155,10 @@ bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
 {
     GPIOBUS::Init(mode, rascsi_type);
     SysTimer::Init();
-    // Hard-coding to banana pi m2 plus for now
-    phys_to_gpio_map = make_shared<Banana_Pi_Gpio_Mapping>(banana_pi_m2p_map);
+
+    sbc_version      = SBC_Version::GetSbcVersion();
+    phys_to_gpio_map = BPI_GPIO::GetBpiGpioMapping(sbc_version);
+
     for (auto const &pair : phys_to_gpio_map->phys_to_gpio_map) {
         LOGDEBUG("{ %d, : %d}", (int)pair.first, pair.second)
 
@@ -321,7 +323,6 @@ void GPIOBUS_Allwinner::Cleanup()
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-
 // bool GPIOBUSS_Allwinner::SetupSelEvent(){
 
 //     // GPIO chip open
@@ -371,7 +372,6 @@ void GPIOBUS_Allwinner::Cleanup()
 //     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 // }
 
-
 uint8_t GPIOBUS_Allwinner::GetDAT()
 {
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
@@ -379,9 +379,9 @@ uint8_t GPIOBUS_Allwinner::GetDAT()
     // GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
     // TODO: This is crazy inefficient...
     uint8_t data = ((GetSignal(board->pin_dt0) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt1) ? 0x01 : 0x00) << 1) |
-                 ((GetSignal(board->pin_dt2) ? 0x01 : 0x00) << 2) | ((GetSignal(board->pin_dt3) ? 0x01 : 0x00) << 3) |
-                 ((GetSignal(board->pin_dt4) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt5) ? 0x01 : 0x00) << 5) |
-                 ((GetSignal(board->pin_dt6) ? 0x01 : 0x00) << 6) | ((GetSignal(board->pin_dt7) ? 0x01 : 0x00) << 7);
+                   ((GetSignal(board->pin_dt2) ? 0x01 : 0x00) << 2) | ((GetSignal(board->pin_dt3) ? 0x01 : 0x00) << 3) |
+                   ((GetSignal(board->pin_dt4) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt5) ? 0x01 : 0x00) << 5) |
+                   ((GetSignal(board->pin_dt6) ? 0x01 : 0x00) << 6) | ((GetSignal(board->pin_dt7) ? 0x01 : 0x00) << 7);
 
     return (uint8_t)data;
     // return 0;
@@ -443,7 +443,7 @@ void GPIOBUS_Allwinner::SetMode(board_type::pi_physical_pin_e pin, board_type::g
 bool GPIOBUS_Allwinner::GetSignal(board_type::pi_physical_pin_e pin) const
 {
     GPIO_FUNCTION_TRACE
-    int gpio_num         = phys_to_gpio_map->phys_to_gpio_map.at(pin);
+    int gpio_num = phys_to_gpio_map->phys_to_gpio_map.at(pin);
     // int sunxi_gpio_state = sunxi_input_gpio(gpio_num);
 
     uint32_t regval = 0;
@@ -463,14 +463,6 @@ bool GPIOBUS_Allwinner::GetSignal(board_type::pi_physical_pin_e pin) const
     regval &= 1;
 
     int sunxi_gpio_state = regval;
-
-
-
-
-
-
-
-
 
     LOGDEBUG("%s GPIO %d is set to %d", __PRETTY_FUNCTION__, gpio_num, sunxi_gpio_state);
 
@@ -588,7 +580,7 @@ void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, board_type
 #else
 
     // Note: this will throw an exception if an invalid pin is specified
-    int gpio_num = phys_to_gpio_map->phys_to_gpio_map.at(pin);
+    int gpio_num           = phys_to_gpio_map->phys_to_gpio_map.at(pin);
     int pull_up_down_state = 0;
 
     switch (mode) {
@@ -652,8 +644,8 @@ void GPIOBUS_Allwinner::DrvConfig(uint32_t drive)
 uint32_t GPIOBUS_Allwinner::Acquire()
 {
     // (void)sunxi_capture_all_gpio();
-// uint32_t GPIOBUS_Allwinner::sunxi_capture_all_gpio()
-// {
+    // uint32_t GPIOBUS_Allwinner::sunxi_capture_all_gpio()
+    // {
     GPIO_FUNCTION_TRACE
 
     uint32_t value = 0;
@@ -670,9 +662,6 @@ uint32_t GPIOBUS_Allwinner::Acquire()
         // LOGDEBUG("Bank %d value %08X", bank, regval);
     }
     // return value;
-
-
-    
 
     return 0;
 }
@@ -779,10 +768,10 @@ void GPIOBUS_Allwinner::sunxi_setup_gpio(int gpio, int direction, int pud)
     (void)pud;
     return;
 #else
-    uint32_t regval          = 0;
-    int bank                 = GPIO_BANK(gpio);       // gpio >> 5
-    int index                = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
-    int offset               = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+    uint32_t regval = 0;
+    int bank        = GPIO_BANK(gpio);       // gpio >> 5
+    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
+    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
     LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -964,7 +953,6 @@ int GPIOBUS_Allwinner::bpi_piGpioLayout(void)
 //   return -1;
 // }
 
-
 void GPIOBUS_Allwinner::set_pullupdn(int gpio, int pud)
 {
     GPIO_FUNCTION_TRACE
@@ -990,7 +978,6 @@ void GPIOBUS_Allwinner::set_pullupdn(int gpio, int pud)
     *(gpio_map + PULLUPDN_OFFSET) &= ~3;
     *(gpio_map + clk_offset) = 0;
 }
-
 
 void GPIOBUS_Allwinner::short_wait(void)
 {

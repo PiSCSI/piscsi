@@ -11,13 +11,14 @@
 
 #pragma once
 
-#include <map>
 #include "config.h"
-#include "hal/gpiobus.h"
 #include "hal/board_type.h"
+#include "hal/gpiobus.h"
 #include "hal/pi_defs/bpi-gpio.h"
+#include "hal/sbc_version.h"
 #include "log.h"
 #include "scsi.h"
+#include <map>
 
 //---------------------------------------------------------------------------
 //
@@ -28,11 +29,11 @@ class GPIOBUS_Allwinner : public GPIOBUS
 {
   public:
     // Basic Functions
-    GPIOBUS_Allwinner()  = default;
+    GPIOBUS_Allwinner()           = default;
     ~GPIOBUS_Allwinner() override = default;
     // Destructor
-    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e 
-                rascsi_type = board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
+    bool Init(mode_e mode = mode_e::TARGET, board_type::rascsi_board_type_e rascsi_type =
+                                                board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
 
     void Cleanup() override;
 
@@ -48,7 +49,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     void SetDAT(uint8_t dat) override;
     // Set DAT signal
     // TODO: Restore these back to protected
-//   protected:
+    //   protected:
     // SCSI I/O signal control
     void MakeTable() override;
     // Create work data
@@ -57,7 +58,7 @@ class GPIOBUS_Allwinner : public GPIOBUS
     void SetMode(board_type::pi_physical_pin_e pin, board_type::gpio_direction_e mode) override;
     // Set SCSI I/O mode
     bool GetSignal(board_type::pi_physical_pin_e pin) const override;
- 
+
     // Get SCSI input signal value
     void SetSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast) override;
     // Set SCSI output signal value
@@ -90,14 +91,10 @@ class GPIOBUS_Allwinner : public GPIOBUS
 
     volatile uint32_t *pads = nullptr; // PADS register
 
- volatile uint32_t *gpio_map;
+    volatile uint32_t *gpio_map;
 
-
-
-int bpi_piGpioLayout (void);
-// int bpi_get_rpi_info(rpi_info *info);
-
-    
+    int bpi_piGpioLayout(void);
+    // int bpi_get_rpi_info(rpi_info *info);
 
 #if !defined(__x86_64__) && !defined(__X86__)
     volatile uint32_t *level = nullptr; // GPIO input level
@@ -141,10 +138,8 @@ int bpi_piGpioLayout (void);
     array<uint32_t, 256> tblDatSet = {}; // Table setting table
 #endif
 
-
-uint32_t sunxi_readl(volatile uint32_t *addr);
-void sunxi_writel(volatile uint32_t *addr, uint32_t val);
-
+    uint32_t sunxi_readl(volatile uint32_t *addr);
+    void sunxi_writel(volatile uint32_t *addr, uint32_t val);
 
     int sunxi_setup(void);
 
@@ -157,72 +152,68 @@ void sunxi_writel(volatile uint32_t *addr, uint32_t val);
 
     int bpi_found = -1;
 
-struct BPIBoards
-{
-  const char *name;
-  int gpioLayout;
-  int model;
-  int rev;
-  int mem;
-  int maker;
-  int warranty;
-  int *pinToGpio;
-  int *physToGpio;
-  int *pinTobcm;
-} ;
+    struct BPIBoards {
+        const char *name;
+        int gpioLayout;
+        int model;
+        int rev;
+        int mem;
+        int maker;
+        int warranty;
+        int *pinToGpio;
+        int *physToGpio;
+        int *pinTobcm;
+    };
 
+    typedef BPIBoards BpiBoardsType;
+    static BpiBoardsType bpiboard[];
 
-typedef BPIBoards BpiBoardsType;
-static BpiBoardsType bpiboard[];
+    typedef struct sunxi_gpio {
+        unsigned int CFG[4];
+        unsigned int DAT;
+        unsigned int DRV[2];
+        unsigned int PULL[2];
+    } sunxi_gpio_t;
 
+    /* gpio interrupt control */
+    typedef struct sunxi_gpio_int {
+        unsigned int CFG[3];
+        unsigned int CTL;
+        unsigned int STA;
+        unsigned int DEB;
+    } sunxi_gpio_int_t;
 
+    typedef struct sunxi_gpio_reg {
+        struct sunxi_gpio gpio_bank[9];
+        unsigned char res[0xbc];
+        struct sunxi_gpio_int gpio_int;
+    } sunxi_gpio_reg_t;
 
-typedef struct sunxi_gpio {
-    unsigned int CFG[4];
-    unsigned int DAT;
-    unsigned int DRV[2];
-    unsigned int PULL[2];
-} sunxi_gpio_t;
+    volatile uint32_t *pio_map;
+    volatile uint32_t *r_pio_map;
 
-/* gpio interrupt control */
-typedef struct sunxi_gpio_int {
-    unsigned int CFG[3];
-    unsigned int CTL;
-    unsigned int STA;
-    unsigned int DEB;
-} sunxi_gpio_int_t;
+    volatile uint32_t *r_gpio_map;
 
-typedef struct sunxi_gpio_reg {
-    struct sunxi_gpio gpio_bank[9];
-    unsigned char res[0xbc];
-    struct sunxi_gpio_int gpio_int;
-} sunxi_gpio_reg_t;
+    uint8_t *gpio_mmap_reg;
+    uint32_t sunxi_capture_all_gpio();
+    void set_pullupdn(int gpio, int pud);
 
- volatile uint32_t *pio_map;
- volatile uint32_t *r_pio_map;
+    // These definitions are from c_gpio.c and should be removed at some point!!
+    const int SETUP_OK           = 0;
+    const int SETUP_DEVMEM_FAIL  = 1;
+    const int SETUP_MALLOC_FAIL  = 2;
+    const int SETUP_MMAP_FAIL    = 3;
+    const int SETUP_CPUINFO_FAIL = 4;
+    const int SETUP_NOT_RPI_FAIL = 5;
+    const int INPUT              = 1; // is really 0 for control register!;
+    const int OUTPUT             = 0; // is really 1 for control register!;
+    const int ALT0               = 4;
+    const int HIGH               = 1;
+    const int LOW                = 0;
+    const int PUD_OFF            = 0;
+    const int PUD_DOWN           = 1;
+    const int PUD_UP             = 2;
+    void short_wait(void);
 
- volatile uint32_t *r_gpio_map;
-
- uint8_t* gpio_mmap_reg;
-uint32_t sunxi_capture_all_gpio();
-void set_pullupdn(int gpio, int pud);
-
-// These definitions are from c_gpio.c and should be removed at some point!!
-const int SETUP_OK           = 0;
-const int SETUP_DEVMEM_FAIL  = 1;
-const int SETUP_MALLOC_FAIL  = 2;
-const int SETUP_MMAP_FAIL    = 3;
-const int SETUP_CPUINFO_FAIL = 4;
-const int SETUP_NOT_RPI_FAIL = 5;
-const int INPUT  = 1; // is really 0 for control register!;
-const int OUTPUT = 0; // is really 1 for control register!;
-const int ALT0 =   4;
-const int HIGH = 1;
-const int LOW  = 0;
-const int PUD_OFF  = 0;
-const int PUD_DOWN = 1;
-const int PUD_UP   = 2;
-void short_wait(void);
-
-
+    SBC_Version::sbc_version_type sbc_version;
 };

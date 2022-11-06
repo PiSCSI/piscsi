@@ -23,6 +23,7 @@ SOFTWARE.
 
 #pragma once
 #include "hal/board_type.h"
+#include "hal/sbc_version.h"
 #include <map>
 #include <string>
 
@@ -378,12 +379,17 @@ extern const Banana_Pi_Gpio_Mapping banana_pi_m2u_map;
 extern const Banana_Pi_Gpio_Mapping banana_pi_m3_map;
 extern const Banana_Pi_Gpio_Mapping banana_pi_m64_map;
 
+extern int physToGpio_BPI_M1P[64];
+extern int physToGpio_BPI_M2[64];
+extern int physToGpio_BPI_M2M[64];
+extern int physToGpio_BPI_M2M_1P1[64];
+extern int physToGpio_BPI_M2P[64];
+extern int physToGpio_BPI_M2U[64];
+extern int physToGpio_BPI_M3[64];
+extern int physToGpio_BPI_M64[64];
 
-extern int physToGpio_BPI_M1P [64];
-extern int physToGpio_BPI_M2 [64];
-extern int physToGpio_BPI_M2M [64];
-extern int physToGpio_BPI_M2M_1P1 [64];
-extern int physToGpio_BPI_M2P [64];
-extern int physToGpio_BPI_M2U [64];
-extern int physToGpio_BPI_M3 [64];
-extern int physToGpio_BPI_M64 [64];
+class BPI_GPIO
+{
+  public:
+    static shared_ptr<Banana_Pi_Gpio_Mapping> GetBpiGpioMapping(SBC_Version::sbc_version_type sbc_version);
+};
