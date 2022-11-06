@@ -46,6 +46,9 @@ logo="""
 echo -e $logo
 }
 
+COMPILER="g++"
+CONNECT_TYPE="FULLSPEC"
+CORES=1
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
@@ -88,6 +91,10 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
         build-essential \
         git \
@@ -118,6 +125,10 @@ function installPackages() {
 
 # install Debian packges for RaSCSI standalone
 function installPackagesStandalone() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
         build-essential \
         libspdlog-dev \
@@ -140,10 +151,10 @@ function cachePipPackages(){
 function compileRaScsi() {
     cd "$CPP_PATH" || exit 1
 
-    echo "Compiling with ${CORES:-1} simultaneous cores..."
+    echo "Compiling with $CORES simultaneous cores..."
     make clean </dev/null
 
-    make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+    make CXX="$COMPILER" -j "$CORES" all CONNECT_TYPE="$CONNECT_TYPE" </dev/null
 }
 
 function cleanupOutdatedManPage() {
@@ -163,7 +174,7 @@ function installRaScsi() {
     cleanupOutdatedManPage "sasidump.1"
 
     # install
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+    sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
 
     # update launch parameters
     if [[ -f $SECRET_FILE ]]; then
@@ -806,7 +817,7 @@ function installNetatalk() {
     rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="${CORES:-1}" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
+    ./debian_install.sh -j="$CORES" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -1171,7 +1182,7 @@ function enableWebInterfaceAuth {
 function runChoice() {
   case $1 in
           1)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface"
+              echo "Installing / Updating RaSCSI Service ($CONNECT_TYPE) + Web Interface"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
@@ -1212,10 +1223,10 @@ function runChoice() {
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface - Complete!"
+              echo "Installing / Updating RaSCSI Service ($CONNECT_TYPE) + Web Interface - Complete!"
           ;;
           2)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC})"
+              echo "Installing / Updating RaSCSI Service ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
@@ -1247,7 +1258,7 @@ function runChoice() {
               showRaScsiCtrlBoardStatus
               showRaScsiStatus
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
+              echo "Installing / Updating RaSCSI Service ($CONNECT_TYPE) - Complete!"
           ;;
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
@@ -1322,7 +1333,7 @@ function runChoice() {
               echo "Installing Web Proxy Server - Complete!"
           ;;
           10)
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
+              echo "Configuring RaSCSI stand-alone ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Create directories and change permissions"
@@ -1335,7 +1346,7 @@ function runChoice() {
               stopRaScsi
               compileRaScsi
               installRaScsi
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
+              echo "Configuring RaSCSI stand-alone ($CONNECT_TYPE) - Complete!"
               echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
           ;;
           11)
@@ -1403,9 +1414,10 @@ function readChoice() {
 
 # Shows the interactive main menu of the script
 function showMenu() {
+    echo "Board Type: $CONNECT_TYPE | Compiler: $COMPILER | Compiler Cores: $CORES"
     echo ""
     echo "Choose among the following options:"
-    echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
+    echo "INSTALL/UPDATE RASCSI"
     echo "  1) Install or update RaSCSI Service + Web Interface"
     echo "  2) Install or update RaSCSI Service"
     echo "  3) Install or update RaSCSI OLED Screen (requires hardware)"
@@ -1461,6 +1473,12 @@ while [ "$1" != "" ]; do
             ;;
         -h | --headless)
             HEADLESS=1
+            ;;
+        -l | --with_clang)
+            COMPILER="clang++"
+            ;;
+        -s | --skip_packages)
+            SKIP_PACKAGES=1
             ;;
         *)
             echo "ERROR: Unknown parameter \"$PARAM\""
