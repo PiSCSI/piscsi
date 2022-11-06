@@ -151,10 +151,10 @@ function cachePipPackages(){
 function compileRaScsi() {
     cd "$CPP_PATH" || exit 1
 
-    echo "Compiling with $CORES simultaneous cores..."
+    echo "Compiling $CONNECT_TYPE with $COMPILER on $CORES simultaneous cores..."
     make clean </dev/null
 
-    make CXX="$COMPILER" -j "$CORES" all CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+    make CXX="$COMPILER" CONNECT_TYPE="$CONNECT_TYPE" -j "$CORES" all </dev/null
 }
 
 function cleanupOutdatedManPage() {
