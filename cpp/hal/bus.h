@@ -12,6 +12,7 @@
 #include "scsi.h"
 #include <cstdint>
 #include <array>
+#include <vector>
 #include <unordered_map>
 
 using namespace std;
@@ -97,7 +98,7 @@ public:
 	virtual bool GetDP() const = 0;			// Get parity signal
 
 	virtual uint32_t Acquire() = 0;
-	virtual int CommandHandShake(uint8_t *buf) = 0;
+	virtual int CommandHandShake(vector<uint8_t>&) = 0;
 	virtual int ReceiveHandShake(uint8_t *buf, int count) = 0;
 	virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
 

@@ -57,7 +57,7 @@ public:
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));
 	MOCK_METHOD(uint32_t, Acquire, (), (override));
-	MOCK_METHOD(int, CommandHandShake, (uint8_t *), (override));
+	MOCK_METHOD(int, CommandHandShake, (vector<uint8_t>&), (override));
 	MOCK_METHOD(int, ReceiveHandShake, (uint8_t *, int), (override));
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
@@ -159,10 +159,6 @@ public:
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
-
-	// Permit access to all tests without the need for numerous FRIEND_TEST
-	vector<int>& GetCmd() { return AbstractController::GetCmd(); } //NOSONAR Hides function on purpose
-	BUS& GetBus() { return AbstractController::GetBus(); } //NOSONAR Hides function on purpose
 };
 
 class MockScsiController : public ScsiController

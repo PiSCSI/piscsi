@@ -42,7 +42,7 @@ void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
 void PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	if (const auto& it = commands.find(cmd); it != commands.end()) {
-		LOGDEBUG("Executing %s ($%02X)", command_names.find(cmd)->second, static_cast<int>(cmd))
+		LOGDEBUG("Executing %s ($%02X)", command_mapping.find(cmd)->second.second, static_cast<int>(cmd))
 
 		it->second();
 	}

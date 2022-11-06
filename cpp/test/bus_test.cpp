@@ -12,33 +12,49 @@
 
 TEST(BusTest, GetCommandByteCount)
 {
-	unordered_set<int> opcodes;
-
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x88));
-	opcodes.insert(0x88);
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x8a));
-	opcodes.insert(0x8a);
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x8f));
-	opcodes.insert(0x8f);
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x91));
-	opcodes.insert(0x91);
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9e));
-	opcodes.insert(0x9e);
-	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9f));
-	opcodes.insert(0x9f);
+	EXPECT_EQ(41, scsi_defs::command_mapping.size());
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x00));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x01));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x03));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x04));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x07));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x08));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x09));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x0a));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x0b));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x0c));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x0d));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x0e));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x10));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x12));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x15));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x16));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x17));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x1a));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x1b));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x1d));
+	EXPECT_EQ(6, BUS::GetCommandByteCount(0x1e));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x25));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x28));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x2a));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x2b));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x2f));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x35));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x37));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x3e));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x3f));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x43));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x4a));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x55));
+	EXPECT_EQ(10, BUS::GetCommandByteCount(0x5a));
 	EXPECT_EQ(12, BUS::GetCommandByteCount(0xa0));
-	opcodes.insert(0xa0);
-
-	for (int i = 0x20; i <= 0x7d; i++) {
-		EXPECT_EQ(10, BUS::GetCommandByteCount(i));
-		opcodes.insert(i);
-	}
-
-	for (int i = 0; i < 256; i++) {
-		if (opcodes.find(i) == opcodes.end()) {
-			EXPECT_EQ(6, BUS::GetCommandByteCount(i));
-		}
-	}
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x88));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x8a));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x8f));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x91));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9e));
+	EXPECT_EQ(16, BUS::GetCommandByteCount(0x9f));
+	EXPECT_EQ(0, BUS::GetCommandByteCount(0x1f));
 }
 
 TEST(BusTest, GetPhase)
