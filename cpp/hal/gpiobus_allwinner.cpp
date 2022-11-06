@@ -965,6 +965,32 @@ int GPIOBUS_Allwinner::bpi_piGpioLayout(void)
 // }
 
 
+void GPIOBUS_Allwinner::set_pullupdn(int gpio, int pud)
+{
+    GPIO_FUNCTION_TRACE
+    int clk_offset = PULLUPDNCLK_OFFSET + (gpio / 32);
+    int shift      = (gpio % 32);
+
+#ifdef BPI
+    if (bpi_found == 1) {
+        gpio = *(pinTobcm_BP + gpio);
+        return sunxi_set_pullupdn(gpio, pud);
+    }
+#endif
+    if (pud == PUD_DOWN)
+        *(gpio_map + PULLUPDN_OFFSET) = (*(gpio_map + PULLUPDN_OFFSET) & ~3) | PUD_DOWN;
+    else if (pud == PUD_UP)
+        *(gpio_map + PULLUPDN_OFFSET) = (*(gpio_map + PULLUPDN_OFFSET) & ~3) | PUD_UP;
+    else // pud == PUD_OFF
+        *(gpio_map + PULLUPDN_OFFSET) &= ~3;
+
+    short_wait();
+    *(gpio_map + clk_offset) = 1 << shift;
+    short_wait();
+    *(gpio_map + PULLUPDN_OFFSET) &= ~3;
+    *(gpio_map + clk_offset) = 0;
+}
+
 
 void GPIOBUS_Allwinner::short_wait(void)
 {
