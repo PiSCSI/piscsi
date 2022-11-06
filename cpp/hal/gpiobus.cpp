@@ -78,21 +78,8 @@ bool GPIOBUS::Init(mode_e mode, board_type::rascsi_board_type_e rascsi_type)
     GPIO_FUNCTION_TRACE
 
     // Figure out what type of board is connected.
-    switch (rascsi_type) {
-    case board_type::rascsi_board_type_e::BOARD_TYPE_AIBOM:
-        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_aibom);
-        break;
-    case board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC:
-        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_fullspec);
-        break;
-    case board_type::rascsi_board_type_e::BOARD_TYPE_GAMERNIUM:
-        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_gamernium);
-        break;
-    case board_type::rascsi_board_type_e::BOARD_TYPE_STANDARD:
-        board = make_shared<board_type::Rascsi_Board_Type>(board_type::board_definition_standard);
-        break;
-    }
-    LOGINFO("Detected board type: %s", board->connect_desc.c_str());
+    board = board_type::BoardType::GetRascsiBoardSettings(rascsi_type);
+    LOGINFO("Connection type: %s", board->connect_desc.c_str());
 
     // Save operation mode
     actmode = mode;
@@ -143,7 +130,7 @@ void GPIOBUS::InitializeGpio()
     // Initialize all signals
     LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
-    for (auto cur_signal : SignalTable){
+    for (auto cur_signal : SignalTable) {
         PinSetSignal(cur_signal, board_type::gpio_high_low_e::GPIO_STATE_LOW);
         PinConfig(cur_signal, board_type::gpio_direction_e::GPIO_INPUT);
         PullConfig(cur_signal, pullmode);

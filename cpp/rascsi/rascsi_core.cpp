@@ -37,6 +37,7 @@
 #include <fstream>
 #include <list>
 
+using namespace board_type;
 using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
@@ -77,7 +78,7 @@ bool Rascsi::InitBus() const
 	bus = GPIOBUS_Factory::Create();
 
 	// GPIO Initialization
-	if (!bus->Init(BUS::mode_e::TARGET, board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC)) {
+	if (!bus->Init(BUS::mode_e::TARGET, board_connection)) {
 		return false;
 	}
 
@@ -174,7 +175,7 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:c:C:v")) != -1) {
 		switch (opt) {
 			// The following options can not be processed until AFTER
 			// the 'bus' object is created and configured
@@ -193,6 +194,14 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 				post_process.emplace_back(opt, optarg_str);
 				continue;
 			}
+
+			case 'c':
+				board_connection = BoardType::ParseConnectionType(optarg);
+				if(board_connection == rascsi_board_type_e::BOARD_TYPE_INVALID){
+					cerr << "Invalid connection specified" << endl;
+					return false;
+				}
+				continue;
 
 			case 'b': {
 				if (!GetAsInt(optarg, block_size)) {

@@ -74,4 +74,6 @@ private:
 	static inline string current_log_level = "info";
 
 	static inline string access_token;
+
+	static inline board_type::rascsi_board_type_e board_connection;
 };

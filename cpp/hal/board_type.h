@@ -12,6 +12,9 @@
 #pragma once
 
 #include <string>
+#include <memory>
+
+using namespace std;
 
 namespace board_type
 {
@@ -138,17 +141,26 @@ struct Rascsi_Board_Struct {
 
 typedef struct Rascsi_Board_Struct Rascsi_Board_Type;
 
-// Operation modes definition
-enum class rascsi_board_type_e {
-    BOARD_TYPE_AIBOM,
-    BOARD_TYPE_FULLSPEC,
-    BOARD_TYPE_GAMERNIUM,
-    BOARD_TYPE_STANDARD,
+// Connection types
+enum class rascsi_board_type_e : int {
+    BOARD_TYPE_NOT_SPECIFIED = -2,
+    BOARD_TYPE_INVALID       = -1,
+    BOARD_TYPE_VIRTUAL       = 0,
+    BOARD_TYPE_AIBOM         = 1,
+    BOARD_TYPE_FULLSPEC      = 2,
+    BOARD_TYPE_GAMERNIUM     = 3,
+    BOARD_TYPE_STANDARD      = 4,
 };
 
 extern const Rascsi_Board_Type board_definition_aibom;
 extern const Rascsi_Board_Type board_definition_fullspec;
 extern const Rascsi_Board_Type board_definition_gamernium;
 extern const Rascsi_Board_Type board_definition_standard;
+class BoardType
+{
+  public:
+    static rascsi_board_type_e ParseConnectionType(char *conn);
+    static shared_ptr<Rascsi_Board_Type> GetRascsiBoardSettings(rascsi_board_type_e);
+};
 
 } // namespace board_type
