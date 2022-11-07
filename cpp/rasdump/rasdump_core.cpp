@@ -165,24 +165,9 @@ void RasDump::Selection() const
 
 	bus->SetSEL(true);
 
-	// Wait for busy for up to 2 s
-	int count = 10000;
-	do {
-		// Wait 20 ms
-		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
-		nanosleep(&ts, nullptr);
-		bus->Acquire();
-		if (bus->GetBSY()) {
-			break;
-		}
-	} while (count--);
+	WaitForBusy();
 
 	bus->SetSEL(false);
-
-	// Success if the target is busy
-	if(!bus->GetBSY()) {
-		throw rasdump_exception("SELECTION failed");
-	}
 }
 
 void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
@@ -352,6 +337,26 @@ void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
 	MessageIn();
 
 	BusFree();
+}
+
+void RasDump::WaitForBusy() const
+{
+	// Wait for busy for up to 2 s
+	int count = 10000;
+	do {
+		// Wait 20 ms
+		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
+		nanosleep(&ts, nullptr);
+		bus->Acquire();
+		if (bus->GetBSY()) {
+			break;
+		}
+	} while (count--);
+
+	// Success if the target is busy
+	if(!bus->GetBSY()) {
+		throw rasdump_exception("SELECTION failed");
+	}
 }
 
 int RasDump::run(const vector<char *>& args)

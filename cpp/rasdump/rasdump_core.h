@@ -56,6 +56,7 @@ private:
 	void ReadCapacity();
 	void Read10(uint32_t, uint32_t, uint32_t);
 	void Write10(uint32_t, uint32_t, uint32_t);
+	void WaitForBusy() const;
 
 	// TODO Use ras_util after removing its dependencies on protobuf interface
 	static bool GetAsInt(const string&, int&);
