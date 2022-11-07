@@ -552,9 +552,6 @@ int Rascsi::run(const vector<char *>& args) const
 		return EXIT_FAILURE;
 	}
 
-	// Override stdout buffering, so that logs are written immediately and not when the process exists
-	setvbuf(stdout, nullptr, _IONBF, 0);
-
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
 	termination_handler.sa_handler = TerminationHandler;
