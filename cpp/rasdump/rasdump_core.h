@@ -25,9 +25,8 @@ class rasdump_exception : public runtime_error
 
 class RasDump //NOSONAR Destructor is required for resource management
 {
-	// 64 KB buffer
-	// TODO Make buffer size configurable
-	static const int BUFSIZE = 1024 * 64;
+
+	const static int DEFAULT_BUFFER_SIZE = 1024 * 64;
 
 public:
 
@@ -59,14 +58,12 @@ private:
 
 	// TODO Use ras_util after removing its dependencies on protobuf interface
 	static bool GetAsInt(const string&, int&);
-	// TODO Share this code
-	bool SetLogLevel(const string&) const;
 
 	static void KillHandler(int);
 
 	unique_ptr<BUS> bus;
 
-	vector<uint8_t> buffer = vector<uint8_t>(BUFSIZE);
+	vector<uint8_t> buffer;
 
 	int target_id = -1;
 

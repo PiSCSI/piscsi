@@ -7,8 +7,6 @@
 // Copyright (C) 2016-2020 GIMONS
 // Copyright (C) 2022 Uwe Seimet
 //
-// [ HDD dump utility (initiator mode) ]
-//
 //---------------------------------------------------------------------------
 
 #include "log.h"
@@ -46,11 +44,12 @@ bool RasDump::Banner(const vector<char *>& args) const
 			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
-		cout << "Usage: " << args[0] << " -i ID [-b BID] -f FILE [-l] [-r]\n"
+		cout << "Usage: " << args[0] << " -i ID [-b BID] -f FILE [-l] [-r] [-s BUFFER_SIZE]\n"
 				<< " ID is target device SCSI ID (0-7).\n"
 				<< " BID is RaSCSI board SCSI ID (0-7). Default is 7.\n"
 				<< " FILE is HDS file path.\n"
-				<< " -l is the log level. Default is off.\n"
+				<< " BUFFER_SIZE is the transfer buffer size, at least 64 KiB. Default is 64 KiB.\n"
+				<< " -v Use verbose logging.\n"
 				<< " -r means to restore. Default is to dump.\n" << flush;
 
 		return false;
@@ -76,8 +75,10 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 {
 	int opt;
 
+	int buffer_size = DEFAULT_BUFFER_SIZE;
+
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:l:r")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:s:rv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				GetAsInt(optarg, target_id);
@@ -91,11 +92,15 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 				filename = optarg;
 				break;
 
-			case 'l':
-				if (!SetLogLevel(optarg)) {
-					cerr << "Error: Invalid log level '" << optarg << "'" << endl;
-					return false;
+			case 's':
+				if (!GetAsInt(optarg, buffer_size) || buffer_size < DEFAULT_BUFFER_SIZE) {
+					cerr << "Error: Buffer size must be at least 64 KiB";
 				}
+
+				break;
+
+			case 'v':
+				set_level(level::debug);
 				break;
 
 			case 'r':
@@ -126,6 +131,8 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 		cerr << "Error: Missing filename" << endl;
 		return false;
 	}
+
+	buffer = vector<uint8_t>(buffer_size);
 
 	return true;
 }
@@ -333,8 +340,6 @@ int RasDump::run(const vector<char *>& args)
 		return EXIT_SUCCESS;
 	}
 
-	SetLogLevel("off");
-
 	if (!Init()) {
 		cerr << "Error: Initializing. Are you root?" << endl;
 
@@ -432,9 +437,9 @@ int RasDump::DumpRestore()
 	}
 
 	// Dump by buffer size
-	const int duni = BUFSIZE / sector_size;
-	int dsiz = BUFSIZE;
-	int dnum = (capacity * sector_size) / BUFSIZE;
+	int dsiz = static_cast<int>(buffer.size());
+	const int duni = dsiz / sector_size;
+	int dnum = (capacity * sector_size) / dsiz;
 
 	if (restore) {
 		cout <<"Restore progress: " << flush;
@@ -515,35 +520,3 @@ bool RasDump::GetAsInt(const string& value, int& result)
 
 	return true;
 }
-
-bool RasDump::SetLogLevel(const string& log_level) const
-{
-	if (log_level == "trace") {
-		set_level(level::trace);
-	}
-	else if (log_level == "debug") {
-		set_level(level::debug);
-	}
-	else if (log_level == "info") {
-		set_level(level::info);
-	}
-	else if (log_level == "warn") {
-		set_level(level::warn);
-	}
-	else if (log_level == "err") {
-		set_level(level::err);
-	}
-	else if (log_level == "off") {
-		set_level(level::off);
-	}
-	else {
-		LOGWARN("Invalid log level '%s'", log_level.c_str())
-
-		return false;
-	}
-
-	LOGINFO("Set log level to '%s'", log_level.c_str())
-
-	return true;
-}
-
