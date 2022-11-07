@@ -167,6 +167,11 @@ void RasDump::Selection() const
 
 	WaitForBusy();
 
+	// TODO Send identify message for LUN selection
+	//bus->SetATN(true);
+	//buffer[0] = 0x80 | target_lun;
+	//MessageOut()
+
 	bus->SetSEL(false);
 }
 
@@ -175,11 +180,6 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 	LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
 
 	Selection();
-
-	// TODO Send identify message for LUN selection
-	//bus->SetATN(true);
-	//buffer[0] = 0x80 | target_lun;
-	//MessageOut()
 
 	WaitPhase(BUS::phase_t::command);
 
