@@ -584,12 +584,12 @@ void ScsiController::Receive()
 
 	// Length != 0 if received
 	if (HasValidLength()) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, GetLength())
+		LOGTRACE("%s Length is %d byte(s)", __PRETTY_FUNCTION__, GetLength())
 
 		// If not able to receive all, move to status phase
 		if (int len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength());
 			len != static_cast<int>(GetLength())) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
+			LOGERROR("%s Not able to receive %d byte(s) of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
