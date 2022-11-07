@@ -692,7 +692,7 @@ void ScsiController::ReceiveBytes()
 
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
+			LOGERROR("%s Not able to receive %d byte(s) of data, only received %d",
 					__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
