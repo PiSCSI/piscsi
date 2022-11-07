@@ -428,8 +428,8 @@ int RasDump::DumpRestore()
 	memcpy(str.data(), &buffer[32], 4);
 	cout << "Revision:  " << str.data() << "\n" << flush;
 
-	const device_type type = static_cast<device_type>(buffer[0]);
-	if (type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+	if (auto type = static_cast<device_type>(buffer[0]);
+		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
 		throw rasdump_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
 	}
 
@@ -467,7 +467,7 @@ int RasDump::DumpRestore()
 	}
 
 	// Dump by buffer size
-	int dsiz = static_cast<int>(buffer.size());
+	auto dsiz = static_cast<int>(buffer.size());
 	const int duni = dsiz / sector_size;
 	int dnum = (capacity * sector_size) / dsiz;
 
