@@ -167,7 +167,7 @@ void RasDump::Selection() const
 
 	WaitForBusy();
 
-	// TODO Send identify message for LUN selection
+	// TODO Send IDENTIFY message for LUN selection
 	//buffer[0] = 0x80 | target_lun;
 	//bus->SetATN(true);
 	//MessageOut()
