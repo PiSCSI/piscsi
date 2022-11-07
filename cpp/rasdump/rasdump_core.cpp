@@ -280,7 +280,7 @@ void RasDump::Inquiry()
 	BusFree();
 }
 
-void RasDump::ReadCapacity()
+pair<uint64_t, uint32_t> RasDump::ReadCapacity()
 {
 	vector<uint8_t> cdb(10);
 	Command(scsi_command::eCmdReadCapacity10, cdb);
@@ -292,6 +292,40 @@ void RasDump::ReadCapacity()
 	MessageIn();
 
 	BusFree();
+
+	uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
+			(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
+
+	int sector_size_offset = 4;
+
+	if (static_cast<int32_t>(capacity) == -1) {
+		cdb.resize(16);
+		// READ CAPACITY(16), not READ LONG(16)
+		cdb[1] = 0x10;
+		Command(scsi_command::eCmdReadCapacity16_ReadLong16, cdb);
+
+		DataIn(14);
+
+		Status();
+
+		MessageIn();
+
+		BusFree();
+
+		capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
+				(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
+				(static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
+				(static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
+
+		sector_size_offset = 8;
+	}
+
+	const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
+			(static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
+			(static_cast<uint32_t>(buffer[sector_size_offset +2]) << 8) |
+			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
+
+	return make_pair(capacity, sector_size);
 }
 
 void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
@@ -430,10 +464,7 @@ int RasDump::DumpRestore()
 
 	RequestSense();
 
-	ReadCapacity();
-
-	const int sector_size = (buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7];
-	const int capacity = ((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]) + 1;
+	const auto [capacity, sector_size] = ReadCapacity();
 
 	cout << "Number of sectors: " << capacity << "\n"
 			<< "Sector size:       " << sector_size << " bytes\n"

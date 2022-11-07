@@ -55,7 +55,7 @@ private:
 	void TestUnitReady() const;
 	void RequestSense();
 	void Inquiry();
-	void ReadCapacity();
+	pair<uint64_t, uint32_t> ReadCapacity();
 	void Read10(uint32_t, uint32_t, uint32_t);
 	void Write10(uint32_t, uint32_t, uint32_t);
 	void WaitForBusy() const;
