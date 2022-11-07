@@ -46,7 +46,7 @@ logo="""
 echo -e $logo
 }
 
-COMPILER="g++"
+COMPILER="clang++-11"
 CONNECT_TYPE="FULLSPEC"
 CORES=1
 USER=$(whoami)
@@ -121,7 +121,7 @@ function installPackages() {
         hfsutils \
         dosfstools \
         kpartx \
-        clang
+        clang-11
 }
 
 # install Debian packges for RaSCSI standalone
@@ -132,12 +132,13 @@ function installPackagesStandalone() {
     fi
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
         build-essential \
+        git \
         libspdlog-dev \
         libpcap-dev \
         libprotobuf-dev \
         protobuf-compiler \
         libgmock-dev \
-        clang
+        clang-11
 }
 
 # cache the pip packages
@@ -1239,7 +1240,7 @@ function runChoice() {
               createImagesDir
               createCfgDir
               updateRaScsiGit
-              installPackages
+              installPackagesStandalone
               stopRaScsiScreen
               stopRaScsi
               compileRaScsi
@@ -1474,8 +1475,8 @@ while [ "$1" != "" ]; do
         -h | --headless)
             HEADLESS=1
             ;;
-        -l | --with_clang)
-            COMPILER="clang++"
+        -g | --with_gcc)
+            COMPILER="g++"
             ;;
         -s | --skip_packages)
             SKIP_PACKAGES=1
