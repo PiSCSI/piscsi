@@ -164,10 +164,10 @@ void RasDump::Selection() const
 	bus->SetDAT(data);
 	bus->SetSEL(true);
 
-	// Wait for busy
+	// Wait for busy for up to 2 s
 	int count = 10000;
 	do {
-		// Wait 20 microseconds
+		// Wait 20 ms
 		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
 		nanosleep(&ts, nullptr);
 		bus->Acquire();
