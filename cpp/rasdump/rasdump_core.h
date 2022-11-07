@@ -44,15 +44,15 @@ private:
 	void ParseArguments(const vector<char *>&);
 	int DumpRestore();
 	void WaitPhase(BUS::phase_t) const;
-	void Selection() const;
-	void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
+	void Selection();
+	void Command(scsi_defs::scsi_command, vector<uint8_t>&);
 	void DataIn(int);
 	void DataOut(int);
 	void Status() const;
 	void MessageIn() const;
 	void MessageOut();
 	void BusFree() const;
-	void TestUnitReady() const;
+	void TestUnitReady();
 	void RequestSense();
 	void Inquiry();
 	pair<uint64_t, uint32_t> ReadCapacity();

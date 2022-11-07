@@ -140,6 +140,8 @@ void RasDump::ParseArguments(const vector<char *>& args)
 
 void RasDump::WaitPhase(BUS::phase_t phase) const
 {
+	LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
+
 	// Timeout (3000ms)
 	const uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
@@ -149,11 +151,11 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 		}
 	}
 
-	throw rasdump_exception("Expected bus phase " + string(BUS::GetPhaseStrRaw(phase)) + ", actual phase is "
+	throw rasdump_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
 			+ string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
-void RasDump::Selection() const
+void RasDump::Selection()
 {
 	// Set initiator and target ID
 	auto data = static_cast<uint8_t>(1 << initiator_id);
@@ -161,18 +163,20 @@ void RasDump::Selection() const
 	bus->SetDAT(data);
 
 	bus->SetSEL(true);
+	//bus->SetATN(true);
 
 	WaitForBusy();
 
+	bus->SetSEL(false);
+
 	// TODO Send IDENTIFY message for LUN selection
 	//buffer[0] = 0x80 | target_lun;
-	//bus->SetATN(true);
 	//MessageOut();
 
-	bus->SetSEL(false);
+	//bus->SetATN(false);
 }
 
-void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
+void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb)
 {
 	LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
 
@@ -240,7 +244,7 @@ void RasDump::BusFree() const
 	bus->Reset();
 }
 
-void RasDump::TestUnitReady() const
+void RasDump::TestUnitReady()
 {
 	vector<uint8_t> cdb(6);
 	Command(scsi_command::eCmdTestUnitReady, cdb);
