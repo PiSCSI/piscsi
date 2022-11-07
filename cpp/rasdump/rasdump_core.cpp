@@ -44,8 +44,9 @@ bool RasDump::Banner(const vector<char *>& args) const
 			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
-		cout << "Usage: " << args[0] << " -i ID [-b BID] -f FILE [-l] [-r] [-s BUFFER_SIZE]\n"
+		cout << "Usage: " << args[0] << " -i ID [-u LUN] [-b BID] -f FILE [-l] [-r] [-s BUFFER_SIZE]\n"
 				<< " ID is target device SCSI ID (0-7).\n"
+				<< " LUN is target device LUN (0-7).\n"
 				<< " BID is RaSCSI board SCSI ID (0-7). Default is 7.\n"
 				<< " FILE is HDS file path.\n"
 				<< " BUFFER_SIZE is the transfer buffer size, at least 64 KiB. Default is 64 KiB.\n"
@@ -78,14 +79,20 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 	int buffer_size = DEFAULT_BUFFER_SIZE;
 
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:s:rv")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:s:u:rv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
-				GetAsInt(optarg, target_id);
+				if (!GetAsInt(optarg, target_id) || target_id > 7) {
+					cerr << "Error: Invalid target ID " << target_id << endl;
+					return false;
+				}
 				break;
 
 			case 'b':
-				GetAsInt(optarg, initiator_id);
+				if (!GetAsInt(optarg, initiator_id) || initiator_id > 7) {
+					cerr << "Error: Invalid RaSCSI ID " << initiator_id << endl;
+					return false;
+				}
 				break;
 
 			case 'f':
@@ -99,6 +106,13 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 
 				break;
 
+			case 'u':
+				if (!GetAsInt(optarg, target_lun) || target_lun > 7) {
+					cerr << "Error: Invalid target LUN " << initiator_id << endl;
+					return false;
+				}
+				break;
+
 			case 'v':
 				set_level(level::debug);
 				break;
@@ -110,16 +124,6 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 			default:
 				break;
 		}
-	}
-
-	if (target_id < 0 || target_id > 7) {
-		cerr << "Error: Invalid target ID " << target_id << endl;
-		return false;
-	}
-
-	if (initiator_id < 0 || initiator_id > 7) {
-		cerr << "Error: Invalid RaSCSI ID " << initiator_id << endl;
-		return false;
 	}
 
 	if (target_id == initiator_id) {
@@ -189,7 +193,9 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 	WaitPhase(BUS::phase_t::command);
 
 	// Send command. Success if the transmission result is the same as the number of requests
+	// TODO Use identify message for LUN selection
 	cdb[0] = static_cast<uint8_t>(cmd);
+	cdb[1] |= target_lun << 5;
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 		BusFree();
 
@@ -402,6 +408,11 @@ int RasDump::DumpRestore()
 	str.fill(0);
 	memcpy(str.data(), &buffer[32], 4);
 	cout << "Revision:  " << str.data() << "\n" << flush;
+
+	const device_type type = static_cast<device_type>(buffer[0]);
+	if (type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+		throw rasdump_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
+	}
 
 	TestUnitReady();
 

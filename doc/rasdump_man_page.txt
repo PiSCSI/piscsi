@@ -6,7 +6,7 @@ NAME
        rasdump - SCSI disk dumping tool for RaSCSI
 
 SYNOPSIS
-       rasdump -i ID [-b BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
+       rasdump -i ID -u LUN [-b BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
 
 DESCRIPTION
        rasdump samples the data on physical SCSI storage media, including hard
@@ -18,17 +18,19 @@ DESCRIPTION
        Set its own ID with the BID option. Defaults to 7 if ommitted.
 
 OPTIONS
-       -i ID  SCSI ID of the target device
+       -i ID  SCSI ID of the target device.
 
-       -b BID SCSI ID of the RaSCSI device
+       -u LUN LUN (logical unit) of the target device. Default is 0.
+
+       -b BID SCSI ID of the RaSCSI device.
 
        -f FILE
-              Path to the dump file
+              Path to the dump file.
 
        -s BUFFER_SIZE
               The transfer buffer size, at least 64 KiB. Default is 64 KiB.
 
-       -r     Restoration mode
+       -r     Run in restore mode.
 
        -v     Enable verbose logging.
 

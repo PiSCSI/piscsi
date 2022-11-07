@@ -4,6 +4,7 @@ rasdump \- SCSI disk dumping tool for RaSCSI
 .SH SYNOPSIS
 .B rasdump
 \fB\-i\fR \fIID\fR
+\fB\-u\fR \fILUN\fR
 [\fB\-b\fR \fIBID\fR]
 \fB\-f\fR \fIFILE\fR
 [\fB\-s\fR \fIBUFFER_SIZE\fR]
@@ -18,19 +19,22 @@ Set its own ID with the BID option. Defaults to 7 if ommitted.
 .SH OPTIONS
 .TP
 .BR \-i\fI " "\fIID
-SCSI ID of the target device
+SCSI ID of the target device.
+.TP
+.BR \-u\fI " "\fILUN
+LUN (logical unit) of the target device. Default is 0.
 .TP
 .BR \-b\fI " "\fIBID
-SCSI ID of the RaSCSI device
+SCSI ID of the RaSCSI device.
 .TP
 .BR \-f\fI " "\fIFILE
-Path to the dump file
+Path to the dump file.
 .TP
 .BR \-s\fI " "\fIBUFFER_SIZE
 The transfer buffer size, at least 64 KiB. Default is 64 KiB.
 .TP
 .BR \-r\fI
-Restoration mode
+Run in restore mode.
 .TP
 .BR \-v\fI
 Enable verbose logging.
