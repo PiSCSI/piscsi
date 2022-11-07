@@ -416,13 +416,13 @@ public:
 	static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
 										// Get the phase based on raw data
 
-	#ifdef USE_SEL_EVENT_ENABLE
+#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
-	bool PollSelectEvent();
+	bool PollSelectEvent() override;
 										// SEL signal event polling
-	void ClearSelectEvent();
+	void ClearSelectEvent() override;
 										// Clear SEL signal event
-#endif	// USE_SEL_EVENT_ENABLE
+#endif
 
 private:
 	// SCSI I/O signal control
