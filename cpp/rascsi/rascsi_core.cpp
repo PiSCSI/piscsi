@@ -525,9 +525,6 @@ int Rascsi::run(const vector<char *>& args) const
 
 	Banner(args);
 
-	// Override stdout buffering, so that logs are written immediately and not when the process exists
-	setvbuf(stdout, nullptr, _IONBF, 0);
-
 	int port = DEFAULT_PORT;
 	optarg_queue_type optarg_queue;
 	if (!ParseArguments(args, port, optarg_queue)) {
@@ -554,6 +551,9 @@ int Rascsi::run(const vector<char *>& args) const
 	if (!service.Init(&ExecuteCommand, port)) {
 		return EXIT_FAILURE;
 	}
+
+	// Override stdout buffering, so that logs are written immediately and not when the process exists
+	setvbuf(stdout, nullptr, _IONBF, 0);
 
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
