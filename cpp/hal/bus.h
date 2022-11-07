@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "config.h"
 #include "scsi.h"
 #include <cstdint>
 #include <array>
