@@ -518,7 +518,7 @@ void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
 	}
 	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
 			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
-		throw rasdump_exception("Invalid unit (0-31)");
+		throw rasdump_exception("Invalid unit (0-7)");
 	}
 }
 
