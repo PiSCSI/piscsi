@@ -441,9 +441,10 @@ int RasDump::DumpRestore()
 			<< sector_size * capacity << " bytes)\n\n" << flush;
 
 	if (restore) {
-		off_t size;
+		cout << "Starting restore\n" << flush;
 
 		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
+		off_t size;
 		if (struct stat st; !stat(filename.c_str(), &st)) {
 			size = st.st_size;
 		}
@@ -457,6 +458,9 @@ int RasDump::DumpRestore()
 		} else if (size < (off_t)(sector_size * capacity)) {
 			throw rasdump_exception("File size is smaller than disk size");
 		}
+	}
+	else {
+		cout << "Starting dump\n" << flush;
 	}
 
 	// Dump by buffer size
