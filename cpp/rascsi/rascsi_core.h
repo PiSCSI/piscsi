@@ -19,8 +19,7 @@
 
 using namespace std;
 
-// TODO Only BUS should be known
-class GPIOBUS;
+class BUS;
 class ControllerManager;
 class RascsiExecutor;
 
@@ -61,7 +60,7 @@ private:
 
 	const static inline RascsiResponse rascsi_response;
 
-	static inline shared_ptr<GPIOBUS> bus;
+	static inline shared_ptr<BUS> bus;
 
 	static inline shared_ptr<ControllerManager> controller_manager;
 

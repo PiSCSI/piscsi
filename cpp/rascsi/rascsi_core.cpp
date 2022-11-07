@@ -16,6 +16,7 @@
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
 #include "devices/storage_device.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
@@ -66,12 +67,10 @@ void Rascsi::Banner(const vector<char *>& args) const
 
 bool Rascsi::InitBus() const
 {
-	bus = make_unique<GPIOBUS>();
-	if (!bus->Init()) {
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+	if (bus == nullptr) {
 		return false;
 	}
-
-	bus->Reset();
 
 	auto b = bus;
 	controller_manager = make_shared<ControllerManager>(*b);

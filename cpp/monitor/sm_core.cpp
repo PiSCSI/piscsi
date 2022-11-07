@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "rascsi_version.h"
 #include <sys/time.h>
@@ -125,15 +126,12 @@ bool ScsiMon::Init()
         return false;
     }
 
-    bus = make_unique<GPIOBUS>();
-    if (!bus->Init()) {
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+    if (bus == nullptr) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;
     }
 
-    bus->Reset();
-
-    // Other
     running = false;
 
     return true;
@@ -258,7 +256,7 @@ int ScsiMon::run(const vector<char *>& args)
 
     // Start execution
     running = true;
-    bus->SetACT(false);
+    bus->SetACK(false);
 
     (void)gettimeofday(&start_time, nullptr);
 

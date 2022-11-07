@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "hal/gpiobus.h"
+#include "hal/bus.h"
 #include "monitor/data_sample.h"
 #include <vector>
 #include <memory>
@@ -41,8 +41,7 @@ private:
 
 	static inline volatile bool running;
 
-	// TODO Use BUS, not GPIOBUS
-	unique_ptr<GPIOBUS> bus;
+	unique_ptr<BUS> bus;
 
 	uint32_t buff_size = 1000000;
 

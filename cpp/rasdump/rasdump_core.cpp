@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
+#include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
@@ -67,9 +68,7 @@ bool RasDump::Init()
 		return false;
 	}
 
-	bus = make_unique<GPIOBUS>();
-
-	return bus->Init(BUS::mode_e::INITIATOR);
+	return GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR) != nullptr;
 }
 
 bool RasDump::ParseArguments(const vector<char *>& args)
