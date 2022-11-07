@@ -27,7 +27,8 @@ class RasDump //NOSONAR Destructor is required for resource management
 {
 	static const char COMPONENT_SEPARATOR = ':';
 
-	static const int DEFAULT_BUFFER_SIZE = 1024 * 64;
+	static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
+	static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
 public:
 

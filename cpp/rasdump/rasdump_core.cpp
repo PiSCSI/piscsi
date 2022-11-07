@@ -50,7 +50,8 @@ bool RasDump::Banner(const vector<char *>& args) const
 				<< " LUN is the optional target device LUN (0-7). Default is 0.\n"
 				<< " BID is the RaSCSI board ID (0-7). Default is 7.\n"
 				<< " FILE is the dump file path.\n"
-				<< " BUFFER_SIZE is the transfer buffer size, at least 64 KiB. Default is 64 KiB.\n"
+				<< " BUFFER_SIZE is the transfer buffer size, at least "
+				<< to_string(MINIMUM_BUFFER_SIZE / 1024) << " KiB. Default is 1 MiB.\n"
 				<< " -v Enable verbose logging.\n"
 				<< " -r Restore instead of dump.\n" << flush;
 
@@ -93,8 +94,8 @@ void RasDump::ParseArguments(const vector<char *>& args)
 				break;
 
 			case 's':
-				if (!GetAsInt(optarg, buffer_size) || buffer_size < DEFAULT_BUFFER_SIZE) {
-					throw rasdump_exception("Buffer size must be at least 64 KiB");
+				if (!GetAsInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
+					throw rasdump_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
 				}
 
 				break;
@@ -431,7 +432,7 @@ int RasDump::DumpRestore()
 	cout << "Number of sectors: " << capacity << "\n"
 			<< "Sector size:       " << sector_size << " bytes\n"
 			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
-			<< sector_size * capacity << " bytes)\n" << flush;
+			<< sector_size * capacity << " bytes)\n\n" << flush;
 
 	if (restore) {
 		off_t size;
@@ -457,21 +458,8 @@ int RasDump::DumpRestore()
 	const int duni = dsiz / sector_size;
 	int dnum = (capacity * sector_size) / dsiz;
 
-	if (restore) {
-		cout <<"Restore progress: " << flush;
-	} else {
-		cout << "Dump progress: " << flush;
-	}
-
 	int i;
 	for (i = 0; i < dnum; i++) {
-		if (i > 0) {
-			cout << "\033[22D\033[0K";
-		}
-
-		printf("%3d%% (%7d/%7d)", ((i + 1) * 100 / dnum), i * duni, capacity);
-		fflush(stdout);
-
 		if (restore) {
 			fs.read((char *)buffer.data(), dsiz);
 			Write10(i * duni, duni, dsiz);
@@ -484,10 +472,8 @@ int RasDump::DumpRestore()
 		if (fs.fail()) {
 			throw rasdump_exception("File I/O failed");
 		}
-	}
 
-	if (dnum > 0) {
-		cout << "\033[22D\033[0K";
+		cout << ((i + 1) * 100 / dnum) << "%" << " (" << ( i + 1) * duni << "/" << capacity << ")\n" << flush;
 	}
 
 	// Rounding on capacity
@@ -508,10 +494,9 @@ int RasDump::DumpRestore()
 		if (fs.fail()) {
 			throw rasdump_exception("File I/O failed");
 		}
-	}
 
-	// Completion Message
-	printf("%3d%%(%7d/%7d)\n", 100, capacity, capacity);
+		cout << "100% (" << capacity << "/" << capacity << ")\n" << flush;
+	}
 
 	return EXIT_SUCCESS;
 }
