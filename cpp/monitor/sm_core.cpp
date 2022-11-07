@@ -180,12 +180,7 @@ bool ScsiMon::Init()
     }
 
     // GPIO Initialization
-    bus = GPIOBUS_Factory::Create();
-    if (!bus->Init())
-    {
-        LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
-        return false;
-    }
+    bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET, board_type::rascsi_board_type_e::BOARD_TYPE_STANDARD);
 
     // Bus Reset
     bus->Reset();

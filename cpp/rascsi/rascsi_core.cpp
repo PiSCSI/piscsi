@@ -75,15 +75,7 @@ bool Rascsi::InitBus() const
 #endif
 
 	// GPIOBUS creation
-	bus = GPIOBUS_Factory::Create();
-
-	// GPIO Initialization
-	if (!bus->Init(BUS::mode_e::TARGET, board_connection)) {
-		return false;
-	}
-
-	bus->Reset();
-
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET, board_connection);
 	auto b = bus;
 	controller_manager = make_shared<ControllerManager>(*b);
 	auto c = controller_manager;

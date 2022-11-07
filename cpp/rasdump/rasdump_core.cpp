@@ -106,12 +106,7 @@ bool RasDump::Init()
 		return false;
 	}
 
-	bus = GPIOBUS_Factory::Create();
-
-	// GPIO Initialization
-	if (!bus->Init(BUS::mode_e::INITIATOR)) {
-		return false;
-	}
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR, board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC);
 
 	// Work Intitialization
 	targetid = -1;

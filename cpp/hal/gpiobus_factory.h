@@ -20,5 +20,5 @@ using namespace std;
 class GPIOBUS_Factory
 {
   public:
-    static unique_ptr<GPIOBUS> Create();
+    static unique_ptr<GPIOBUS> Create(BUS::mode_e, board_type::rascsi_board_type_e);
 };

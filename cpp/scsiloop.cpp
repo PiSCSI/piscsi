@@ -84,13 +84,7 @@ bool InitBus()
 #endif
 
     // GPIOBUS creation
-    bus = GPIOBUS_Factory::Create();
-
-    // GPIO Initialization
-    // TODO: process command line option to specify board type
-    if (!bus->Init(BUS::mode_e::TARGET, board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC)) {
-        return false;
-    }
+    bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET, board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC);
 
     bus->Reset();
 
