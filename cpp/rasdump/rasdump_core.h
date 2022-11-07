@@ -40,7 +40,7 @@ public:
 private:
 
 	bool Banner(const vector<char *>&) const;
-	bool Init();
+	bool Init() const;
 	void ParseArguments(const vector<char *>&);
 	int DumpRestore();
 	void WaitPhase(BUS::phase_t) const;

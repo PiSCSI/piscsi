@@ -65,7 +65,7 @@ bool RasDump::Banner(const vector<char *>& args) const
 	return true;
 }
 
-bool RasDump::Init()
+bool RasDump::Init() const
 {
 	// Interrupt handler setting
 	if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR ||
@@ -503,7 +503,7 @@ int RasDump::DumpRestore()
 	// Dump by buffer size
 	auto dsiz = static_cast<int>(buffer.size());
 	const int duni = dsiz / sector_size;
-	int dnum = (capacity * sector_size) / dsiz;
+	int dnum = static_cast<int>((capacity * sector_size) / dsiz);
 
 	int i;
 	for (i = 0; i < dnum; i++) {
