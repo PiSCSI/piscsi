@@ -25,8 +25,9 @@ class rasdump_exception : public runtime_error
 
 class RasDump //NOSONAR Destructor is required for resource management
 {
+	static const char COMPONENT_SEPARATOR = ':';
 
-	const static int DEFAULT_BUFFER_SIZE = 1024 * 64;
+	static const int DEFAULT_BUFFER_SIZE = 1024 * 64;
 
 public:
 
@@ -39,7 +40,7 @@ private:
 
 	bool Banner(const vector<char *>&) const;
 	bool Init();
-	bool ParseArguments(const vector<char *>&);
+	void ParseArguments(const vector<char *>&);
 	int DumpRestore();
 	void WaitPhase(BUS::phase_t) const;
 	void Selection() const;
@@ -58,7 +59,9 @@ private:
 	void Write10(uint32_t, uint32_t, uint32_t);
 	void WaitForBusy() const;
 
-	// TODO Use ras_util after removing its dependencies on protobuf interface
+	// TODO Use ras_util after removing its dependencies on protobuf interface.
+	// Not required in case rasdump is integrated into rascsi.
+	static void ProcessId(const string&, int&, int&);
 	static bool GetAsInt(const string&, int&);
 
 	static void KillHandler(int);

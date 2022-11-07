@@ -3,9 +3,8 @@
 rasdump \- SCSI disk dumping tool for RaSCSI
 .SH SYNOPSIS
 .B rasdump
-\fB\-i\fR \fIID\fR
-\fB\-u\fR \fILUN\fR
-[\fB\-b\fR \fIBID\fR]
+\fB\-t\fR \fIID[:LUN]\fR
+[\fB\-i\fR \fIBID\fR]
 \fB\-f\fR \fIFILE\fR
 [\fB\-s\fR \fIBUFFER_SIZE\fR]
 [\fB\-r\fR]
@@ -18,13 +17,10 @@ Set its own ID with the BID option. Defaults to 7 if ommitted.
 
 .SH OPTIONS
 .TP
-.BR \-i\fI " "\fIID
-SCSI ID of the target device.
+.BR \-t\fI " "\fIID[:LUN]
+SCSI ID and optional LUN of the target device.
 .TP
-.BR \-u\fI " "\fILUN
-LUN (logical unit) of the target device. Default is 0.
-.TP
-.BR \-b\fI " "\fIBID
+.BR \-i\fI " "\fIBID
 SCSI ID of the RaSCSI device.
 .TP
 .BR \-f\fI " "\fIFILE

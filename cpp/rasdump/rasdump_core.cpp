@@ -45,10 +45,10 @@ bool RasDump::Banner(const vector<char *>& args) const
 			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
-		cout << "Usage: " << args[0] << " -i ID [-u LUN] [-b BID] -f FILE [-l] [-r] [-s BUFFER_SIZE]\n"
-				<< " ID is the target device SCSI ID (0-7).\n"
-				<< " LUN is the target device LUN (0-7). Default is 0.\n"
-				<< " BID is the RaSCSI board SCSI ID (0-7). Default is 7.\n"
+		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"
+				<< " ID is the target device ID (0-7).\n"
+				<< " LUN is the optional target device LUN (0-7). Default is 0.\n"
+				<< " BID is the RaSCSI board ID (0-7). Default is 7.\n"
 				<< " FILE is the dump file path.\n"
 				<< " BUFFER_SIZE is the transfer buffer size, at least 64 KiB. Default is 64 KiB.\n"
 				<< " -v Enable verbose logging.\n"
@@ -73,26 +73,18 @@ bool RasDump::Init()
 	return bus != nullptr;
 }
 
-bool RasDump::ParseArguments(const vector<char *>& args)
+void RasDump::ParseArguments(const vector<char *>& args)
 {
 	int opt;
 
 	int buffer_size = DEFAULT_BUFFER_SIZE;
 
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:b:f:s:u:rv")) != -1) {
-		switch (tolower(opt)) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:u:rv")) != -1) {
+		switch (opt) {
 			case 'i':
-				if (!GetAsInt(optarg, target_id) || target_id > 7) {
-					cerr << "Error: Invalid target ID " << target_id << endl;
-					return false;
-				}
-				break;
-
-			case 'b':
 				if (!GetAsInt(optarg, initiator_id) || initiator_id > 7) {
-					cerr << "Error: Invalid RaSCSI ID " << initiator_id << endl;
-					return false;
+					throw rasdump_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
 				}
 				break;
 
@@ -102,15 +94,18 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 
 			case 's':
 				if (!GetAsInt(optarg, buffer_size) || buffer_size < DEFAULT_BUFFER_SIZE) {
-					cerr << "Error: Buffer size must be at least 64 KiB";
+					throw rasdump_exception("Buffer size must be at least 64 KiB");
 				}
 
 				break;
 
+			case 't':
+				ProcessId(optarg, target_id, target_lun);
+				break;
+
 			case 'u':
 				if (!GetAsInt(optarg, target_lun) || target_lun > 7) {
-					cerr << "Error: Invalid target LUN " << initiator_id << endl;
-					return false;
+					throw rasdump_exception("Invalid target LUN " + to_string(target_lun) + " (0-7)");
 				}
 				break;
 
@@ -128,18 +123,14 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 	}
 
 	if (target_id == initiator_id) {
-		cerr << "Error: Target ID and RaSCSI ID must not be identical" << endl;
-		return false;
+		throw rasdump_exception("Target ID and RaSCSI board ID must not be identical");
 	}
 
 	if (filename.empty()) {
-		cerr << "Error: Missing filename" << endl;
-		return false;
+		throw rasdump_exception("Missing filename");
 	}
 
 	buffer = vector<uint8_t>(buffer_size);
-
-	return true;
 }
 
 void RasDump::WaitPhase(BUS::phase_t phase) const
@@ -373,16 +364,14 @@ int RasDump::run(const vector<char *>& args)
 		return EPERM;
 	}
 
-	if (!ParseArguments(args)) {
-		return EINVAL;
-	}
+	try {
+		ParseArguments(args);
 
 #ifndef USE_SEL_EVENT_ENABLE
-	cerr << "Error: No RaSCSI hardware support" << endl;
-	return EXIT_FAILURE;
+		cerr << "Error: No RaSCSI hardware support" << endl;
+		return EXIT_FAILURE;
 #endif
 
-	try {
 		return DumpRestore();
 	}
 	catch(const rasdump_exception& e) {
@@ -409,8 +398,8 @@ int RasDump::DumpRestore()
 	nanosleep(&ts, nullptr);
 	bus->SetRST(false);
 
-	cout << "Target ID: " << target_id << "\n";
-	cout << "RaSCSI ID: " << initiator_id << "\n" << flush;
+	cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
+	cout << "RaSCSI board ID: " << initiator_id << "\n" << flush;
 
 	Inquiry();
 
@@ -455,7 +444,7 @@ int RasDump::DumpRestore()
 			throw rasdump_exception("Can't determine file size");
 		}
 
-		cout << "Restore file size: " << size << " bytes";
+		cout << "Restore file size: " << size << " bytes\n";
 		if (size > (off_t)(sector_size * capacity)) {
 			cout << "WARNING: File size is larger than disk size\n" << flush;
 		} else if (size < (off_t)(sector_size * capacity)) {
@@ -477,9 +466,9 @@ int RasDump::DumpRestore()
 	int i;
 	for (i = 0; i < dnum; i++) {
 		if (i > 0) {
-			printf("\033[21D");
-			printf("\033[0K");
+			cout << "\033[22D\033[0K";
 		}
+
 		printf("%3d%% (%7d/%7d)", ((i + 1) * 100 / dnum), i * duni, capacity);
 		fflush(stdout);
 
@@ -498,8 +487,7 @@ int RasDump::DumpRestore()
 	}
 
 	if (dnum > 0) {
-		printf("\033[21D");
-		printf("\033[0K");
+		cout << "\033[22D\033[0K";
 	}
 
 	// Rounding on capacity
@@ -526,6 +514,21 @@ int RasDump::DumpRestore()
 	printf("%3d%%(%7d/%7d)\n", 100, capacity, capacity);
 
 	return EXIT_SUCCESS;
+}
+
+void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
+{
+	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
+		if (!GetAsInt(id_spec, id) || id >= 8) {
+			throw rasdump_exception("Invalid device ID (0-7)");
+		}
+
+		lun = 0;
+	}
+	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
+			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
+		throw rasdump_exception("Invalid unit (0-31)");
+	}
 }
 
 bool RasDump::GetAsInt(const string& value, int& result)
