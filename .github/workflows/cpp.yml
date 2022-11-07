@@ -1,0 +1,122 @@
+name: C++ Tests/Analysis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'cpp/**'
+      - '.github/workflows/cpp.yml'
+
+env:
+  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: cpp
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get install ${{ env.APT_PACKAGES }}
+
+      - name: Build unit tests
+        run: make -j $(nproc) test
+
+      - name: Run unit tests
+        run: (set -o pipefail && bin/fullspec/rascsi_test | tee rascsi_test_log.txt)
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: rascsi_test_log.txt
+          path: cpp/rascsi_test_log.txt
+
+  sonarcloud:
+    runs-on: ubuntu-22.04
+    if: github.repository == 'akuker/RASCSI'
+    env:
+      SOURCES: cpp
+      BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
+      SONAR_SCANNER_VERSION: 4.7.0.2747
+      SONAR_SERVER_URL: "https://sonarcloud.io"
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_PROJECT_KEY: "akuker_RASCSI"
+      SONAR_ORGANIZATION: "rascsi"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Install dependencies
+        run: sudo apt-get install ${{ env.APT_PACKAGES }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - uses: actions/cache@v3
+        name: Cache SonarCloud setup
+        id: sonar-install-cache
+        with:
+          path: ~/.sonar
+          key: sonar-with-build-wrapper-${{ env.SONAR_SCANNER_VERSION }}
+
+      - name: Set up SonarCloud scanner
+        if: steps.sonar-install-cache.outputs.cache-hit != 'true'
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo /tmp/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }}
+          unzip -o /tmp/sonar-scanner.zip -d $HOME/.sonar/
+
+      - name: Set up SonarCloud build wrapper
+        if: steps.sonar-install-cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
+        run: |
+          curl -sSLo /tmp/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
+          unzip -o /tmp/build-wrapper-linux-x86.zip -d $HOME/.sonar/
+
+      - name: Generate coverage
+        run: >-
+          (mkdir -p ${{ env.BUILD_WRAPPER_OUT_DIR }} || true) &&
+          $HOME/.sonar/build-wrapper-linux-x86/build-wrapper-linux-x86-64
+          --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }}
+          make -j $(nproc) -C $SOURCES coverage
+
+      - name: Run gcov
+        working-directory: cpp
+        run: gcov --preserve-paths $(find -name '*.gcno')
+
+      - uses: actions/cache@v3
+        name: Cache SonarCloud scan cache
+        id: sonar-scan-cache
+        with:
+          path: ~/.sonar_cache/
+          key: sonar-scan-cache-${{ env.SONAR_SCANNER_VERSION }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          restore-keys: |
+            sonar-scan-cache-${{ env.SONAR_SCANNER_VERSION }}-${{ github.ref_name }}
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          (mkdir -p $HOME/.sonar_cache || true) &&
+          $HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin/sonar-scanner
+          --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"
+          --define sonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+          --define sonar.organization=${{ env.SONAR_ORGANIZATION }}
+          --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          --define sonar.cfamily.gcov.reportsPath=.
+          --define sonar.cfamily.cache.enabled=true
+          --define sonar.cfamily.cache.path="$HOME/.sonar_cache/"
+          --define sonar.coverage.exclusions="cpp/**/test/**"
+          --define sonar.cpd.exclusions="cpp/**/test/**"
+          --define sonar.inclusions="cpp/**,python/**"
+          --define sonar.python.version=3.7,3.9
