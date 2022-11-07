@@ -68,7 +68,9 @@ bool RasDump::Init()
 		return false;
 	}
 
-	return GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR) != nullptr;
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
+
+	return bus != nullptr;
 }
 
 bool RasDump::ParseArguments(const vector<char *>& args)
@@ -380,8 +382,6 @@ int RasDump::run(const vector<char *>& args)
 	return EXIT_FAILURE;
 #endif
 
-	bus->Reset();
-
 	try {
 		return DumpRestore();
 	}
@@ -402,8 +402,6 @@ int RasDump::DumpRestore()
 	if (fs.fail()) {
 		throw rasdump_exception("Can't open image file '" + filename + "'");
 	}
-
-	bus->Reset();
 
 	// Assert RST for 1 ms
 	bus->SetRST(true);
