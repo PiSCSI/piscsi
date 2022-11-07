@@ -155,7 +155,7 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 			+ string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
-void RasDump::Selection()
+void RasDump::Selection() const
 {
 	// Set initiator and target ID
 	auto data = static_cast<uint8_t>(1 << initiator_id);
@@ -176,7 +176,7 @@ void RasDump::Selection()
 	//bus->SetATN(false);
 }
 
-void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb)
+void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
 	LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
 
@@ -244,7 +244,7 @@ void RasDump::BusFree() const
 	bus->Reset();
 }
 
-void RasDump::TestUnitReady()
+void RasDump::TestUnitReady() const
 {
 	vector<uint8_t> cdb(6);
 	Command(scsi_command::eCmdTestUnitReady, cdb);
