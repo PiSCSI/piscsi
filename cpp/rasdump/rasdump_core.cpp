@@ -158,10 +158,11 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 
 void RasDump::Selection() const
 {
-	// ID setting and SEL assert
+	// Set initiator and target ID
 	auto data = static_cast<uint8_t>(1 << initiator_id);
 	data |= (1 << target_id);
 	bus->SetDAT(data);
+
 	bus->SetSEL(true);
 
 	// Wait for busy for up to 2 s
