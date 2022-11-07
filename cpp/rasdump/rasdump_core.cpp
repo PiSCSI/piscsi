@@ -45,13 +45,13 @@ bool RasDump::Banner(const vector<char *>& args) const
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
 		cout << "Usage: " << args[0] << " -i ID [-u LUN] [-b BID] -f FILE [-l] [-r] [-s BUFFER_SIZE]\n"
-				<< " ID is target device SCSI ID (0-7).\n"
-				<< " LUN is target device LUN (0-7).\n"
-				<< " BID is RaSCSI board SCSI ID (0-7). Default is 7.\n"
-				<< " FILE is HDS file path.\n"
+				<< " ID is the target device SCSI ID (0-7).\n"
+				<< " LUN is the target device LUN (0-7). Default is 0.\n"
+				<< " BID is the RaSCSI board SCSI ID (0-7). Default is 7.\n"
+				<< " FILE is the dump file path.\n"
 				<< " BUFFER_SIZE is the transfer buffer size, at least 64 KiB. Default is 64 KiB.\n"
-				<< " -v Use verbose logging.\n"
-				<< " -r means to restore. Default is to dump.\n" << flush;
+				<< " -v Enable verbose logging.\n"
+				<< " -r Restore instead of dump.\n" << flush;
 
 		return false;
 	}
