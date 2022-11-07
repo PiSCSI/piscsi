@@ -36,6 +36,8 @@ void RasDump::CleanUp()
 
 void RasDump::KillHandler(int)
 {
+	CleanUp();
+
 	exit(EXIT_SUCCESS);
 }
 
