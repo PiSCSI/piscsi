@@ -23,7 +23,7 @@ class rasdump_exception : public runtime_error
 	using runtime_error::runtime_error;
 };
 
-class RasDump //NOSONAR Destructor is required for resource management
+class RasDump
 {
 	static const char COMPONENT_SEPARATOR = ':';
 
@@ -33,7 +33,7 @@ class RasDump //NOSONAR Destructor is required for resource management
 public:
 
 	RasDump() = default;
-	~RasDump();
+	~RasDump() = default;
 
 	int run(const vector<char *>&);
 
@@ -65,9 +65,11 @@ private:
 	static void ProcessId(const string&, int&, int&);
 	static bool GetAsInt(const string&, int&);
 
+	static void CleanUp();
 	static void KillHandler(int);
 
-	unique_ptr<BUS> bus;
+	// A static instance is needed because of the signal handler
+	static inline unique_ptr<BUS> bus;
 
 	vector<uint8_t> buffer;
 

@@ -27,7 +27,7 @@ using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
 
-RasDump::~RasDump()
+void RasDump::CleanUp()
 {
 	if (bus != nullptr) {
 		bus->Cleanup();
@@ -378,8 +378,12 @@ int RasDump::run(const vector<char *>& args)
 	catch(const rasdump_exception& e) {
 		cerr << "Error: " << e.what() << endl;
 
+		CleanUp();
+
 		return EXIT_FAILURE;
 	}
+
+	CleanUp();
 
 	return EXIT_SUCCESS;
 }
