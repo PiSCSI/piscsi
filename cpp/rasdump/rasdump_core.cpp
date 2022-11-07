@@ -9,6 +9,8 @@
 //
 //---------------------------------------------------------------------------
 
+// TODO Evaluate CHECK CONDITION
+
 #include "log.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
