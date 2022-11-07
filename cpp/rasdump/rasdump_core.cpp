@@ -191,10 +191,14 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 	Selection();
 
+	// TODO Send identify message for LUN selection
+	//bus->SetATN(true);
+	//buffer[0] = 0x80 | target_lun;
+	//MessageOut()
+
 	WaitPhase(BUS::phase_t::command);
 
 	// Send command. Success if the transmission result is the same as the number of requests
-	// TODO Use identify message for LUN selection
 	cdb[0] = static_cast<uint8_t>(cmd);
 	cdb[1] |= target_lun << 5;
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
@@ -237,6 +241,15 @@ void RasDump::MessageIn() const
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
 		throw rasdump_exception("MESSAGE IN failed");
+	}
+}
+
+void RasDump::MessageOut()
+{
+	WaitPhase(BUS::phase_t::msgout);
+
+	if (!bus->SendHandShake(buffer.data(), 1, BUS::SEND_NO_DELAY)) {
+		throw rasdump_exception("MESSAGE OUT failed");
 	}
 }
 
