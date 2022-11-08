@@ -122,8 +122,15 @@ div.header div.authentication-disabled {
 }
 
 @media (max-width: 820px) {
+  div.header {
+    /* Safari 14 iOS and iPad OS */
+    min-height: 3.5rem;
+  }
+
   body:not(.logged-in) div.header {
     flex-wrap: wrap;
+    /* Safari 14 iOS and iPad OS */
+    min-height: 8.875rem;
   }
 
   div.header div.title {
@@ -164,6 +171,8 @@ div.header div.authentication-disabled {
 
   div.header div.login-status.logged-out form input[type="submit"] {
     flex-grow: 0.5;
+    /* Safari 14 iOS and iPad OS */
+    margin-top: auto;
   }
 
   div.header div.login-status.logged-out form input:not([type="submit"]) {
