@@ -6,6 +6,7 @@ import logging
 from grp import getgrall
 from os import path
 from pathlib import Path
+from user_agents import parse
 
 from flask import request, make_response
 from flask_babel import _
@@ -295,3 +296,30 @@ def upload_with_dropzonejs(image_dir):
             return make_response(_("Transferred file corrupted!"), 500)
 
     return make_response(_("File upload successful!"), 200)
+
+
+def browser_supports_modern_themes():
+    """
+    Determines if the browser supports the HTML/CSS/JS features used in non-legacy themes.
+    """
+    user_agent = parse(request.user_agent.string)
+
+    # TODO: Determine minimum supported mobile/tablet UAs
+    if user_agent.is_mobile or user_agent.is_tablet:
+        return True
+
+    # Minimum supported browser versions
+    supported_browsers = [
+        ('Safari', 14),
+        ('Chrome', 100),
+        ('Firefox', 100),
+        ('Edge', 100),
+    ]
+
+    current_browser = user_agent.browser.family
+    current_version = user_agent.browser.version[0]
+
+    for supported_browser, supported_version in supported_browsers:
+        if current_browser == supported_browser and current_version >= supported_version:
+            return True
+    return False

@@ -56,6 +56,7 @@ from web_utils import (
     is_bridge_configured,
     is_safe_path,
     upload_with_dropzonejs,
+    browser_supports_modern_themes,
 )
 from settings import (
     WEB_DIR,
@@ -67,6 +68,7 @@ from settings import (
     LANGUAGES,
     TEMPLATE_THEMES,
     TEMPLATE_THEME_DEFAULT,
+    TEMPLATE_THEME_LEGACY,
 )
 
 
@@ -136,18 +138,18 @@ def response(
             flash(message, category)
 
     if template:
-        theme_support = True
-        if theme_support and session.get("theme") and session["theme"] in TEMPLATE_THEMES:
+        if session.get("theme") and session["theme"] in TEMPLATE_THEMES:
             theme = session["theme"]
-        else:
+        elif browser_supports_modern_themes():
             theme = TEMPLATE_THEME_DEFAULT
+        else:
+            theme = TEMPLATE_THEME_LEGACY
 
         kwargs["env"] = get_env_info()
         kwargs["body_class"] = f"page-{PurePath(template).stem.lower()}"
         kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
         kwargs["current_theme"] = theme
         kwargs["available_themes"] = TEMPLATE_THEMES
-        kwargs["theme_support"] = theme_support
         return render_template(template, **kwargs)
 
     if redirect_url:

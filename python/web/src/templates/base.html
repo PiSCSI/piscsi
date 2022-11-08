@@ -102,15 +102,13 @@
         {% block content %}{% endblock content %}
     </div>
     <div align="center" class="footer">
-        {% if theme_support %}
-            <div class="theme-change-hint">
-                {% if current_theme == "classic" %}
-                    {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="modern") }}
-                {% else %}
-                    {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="classic") }}
-                {% endif %}
-            </div>
-        {% endif %}
+        <div class="theme-change-hint">
+            {% if current_theme == "classic" %}
+                {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="modern") }}
+            {% else %}
+                {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="classic") }}
+            {% endif %}
+        </div>
 
         <div>
             {% if env["netatalk_configured"] == 1 %}
