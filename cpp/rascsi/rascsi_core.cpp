@@ -498,6 +498,8 @@ int Rascsi::run(const vector<char *>& args) const
 	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
+		cerr << "Error: Can't initialize bus" << endl;
+
 		return EXIT_FAILURE;
 	}
 
