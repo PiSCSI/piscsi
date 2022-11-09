@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
-#include "rascsi_exceptions.h"
+#include "shared/log.h"
+#include "shared/rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
 

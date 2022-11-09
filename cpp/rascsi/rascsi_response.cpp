@@ -7,11 +7,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_version.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "protobuf_util.h"
-#include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rascsi_response.h"
 #include <filesystem>

@@ -13,7 +13,7 @@
 
 #include "hal/systimer.h"
 #include "hal/gpiobus.h"
-#include "config.h"
+#include "shared/config.h"
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>

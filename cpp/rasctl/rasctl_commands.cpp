@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_exceptions.h"
-#include "protobuf_util.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "rasctl_commands.h"
 #include <unistd.h>
 #include <netdb.h>

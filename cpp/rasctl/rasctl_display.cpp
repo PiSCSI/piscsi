@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/rasutil.h"
 #include "rascsi_interface.pb.h"
-#include "rasutil.h"
 #include "rasctl_display.h"
 #include <sstream>
 #include <list>

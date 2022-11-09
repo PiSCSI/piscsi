@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "hal/bus.h"
 #include "phase_handler.h"
 #include "controller_manager.h"

@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_version.h"
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rascsi_version.h"
 #include "device.h"
 #include <cassert>
 #include <sstream>

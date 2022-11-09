@@ -9,8 +9,8 @@
 
 #include "spdlog/spdlog.h"
 #include "mocks.h"
-#include "rascsi_exceptions.h"
-#include "protobuf_util.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"

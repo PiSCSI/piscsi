@@ -7,9 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/protobuf_util.h"
 #include "devices/disk.h"
-#include "protobuf_util.h"
 #include "command_context.h"
 #include "rascsi_image.h"
 #include <unistd.h>

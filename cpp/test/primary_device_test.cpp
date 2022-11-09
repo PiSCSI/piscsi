@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "scsi.h"
-#include "rascsi_exceptions.h"
+#include "shared/scsi.h"
+#include "shared/rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "devices/device_factory.h"
 #include "devices/scsi_command_util.h"

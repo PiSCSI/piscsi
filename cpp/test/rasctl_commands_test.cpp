@@ -11,8 +11,8 @@
 
 #include <gtest/gtest.h>
 
-#include "protobuf_util.h"
-#include "rascsi_exceptions.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl/rasctl_commands.h"
 

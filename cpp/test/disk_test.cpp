@@ -8,10 +8,10 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "scsi.h"
+#include "shared/scsi.h"
+#include "shared/rascsi_exceptions.h"
 #include "devices/disk.h"
 #include "devices/scsi_command_util.h"
-#include "rascsi_exceptions.h"
 
 using namespace scsi_defs;
 using namespace scsi_command_util;

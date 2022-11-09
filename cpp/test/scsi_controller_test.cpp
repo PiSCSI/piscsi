@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "scsi.h"
-#include "rascsi_exceptions.h"
+#include "shared/scsi.h"
+#include "shared/rascsi_exceptions.h"
 #include "controllers/scsi_controller.h"
 
 using namespace scsi_defs;

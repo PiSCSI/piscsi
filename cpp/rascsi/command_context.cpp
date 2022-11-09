@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
 #include "rascsi_interface.pb.h"
 #include "command_context.h"
 #include <iostream>

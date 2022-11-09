@@ -8,19 +8,19 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
-#include "rascsi_version.h"
+#include "monitor/sm_reports.h"
+#include "monitor/sm_core.h"
+#include "monitor/data_sample.h"
 #include <sys/time.h>
 #include <climits>
 #include <csignal>
 #include <iostream>
 #include <getopt.h>
 #include <sched.h>
-#include "monitor/sm_reports.h"
-#include "monitor/sm_core.h"
-#include "monitor/data_sample.h"
 
 using namespace std;
 

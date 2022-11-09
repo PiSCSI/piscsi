@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "shared/protobuf_util.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_util.h"
 
 using namespace rascsi_interface;
 using namespace protobuf_util;

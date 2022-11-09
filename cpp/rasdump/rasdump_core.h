@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "hal/bus.h"
 #include <string>
 #include <vector>

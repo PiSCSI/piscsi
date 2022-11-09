@@ -12,10 +12,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rascsi_exceptions.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "rascsi_exceptions.h"
 #include "devices/interfaces/byte_writer.h"
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"

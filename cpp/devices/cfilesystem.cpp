@@ -17,7 +17,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
 #include "cfilesystem.h"
 #include <dirent.h>
 #include <iconv.h>

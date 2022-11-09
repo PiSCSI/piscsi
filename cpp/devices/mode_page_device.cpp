@@ -9,8 +9,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
-#include "rascsi_exceptions.h"
+#include "shared/log.h"
+#include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "mode_page_device.h"
 #include <cstddef>

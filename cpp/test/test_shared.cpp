@@ -8,9 +8,9 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include "shared/rascsi_exceptions.h"
+#include "shared/rascsi_version.h"
 #include "controllers/controller_manager.h"
-#include "rascsi_exceptions.h"
-#include "rascsi_version.h"
 #include "test_shared.h"
 #include <unistd.h>
 #include <vector>

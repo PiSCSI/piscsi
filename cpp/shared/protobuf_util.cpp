@@ -7,10 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/protobuf_serializer.h"
+#include "shared/protobuf_util.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_serializer.h"
-#include "protobuf_util.h"
 #include <sstream>
 
 using namespace std;

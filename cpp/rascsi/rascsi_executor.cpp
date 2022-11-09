@@ -7,7 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
@@ -15,11 +18,8 @@
 #include "devices/disk.h"
 #include "rascsi_service.h"
 #include "rascsi_image.h"
-#include "rascsi_exceptions.h"
 #include "localizer.h"
-#include "protobuf_util.h"
 #include "command_context.h"
-#include "rasutil.h"
 #include "rascsi_executor.h"
 #include <sstream>
 

@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_exceptions.h"
+#include "shared/rascsi_exceptions.h"
 #include "storage_device.h"
 #include <sys/stat.h>
 #include <unistd.h>

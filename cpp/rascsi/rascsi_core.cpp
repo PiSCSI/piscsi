@@ -6,12 +6,15 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) 2020-2022 Contributors to the RaSCSI project
-//	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
 
-#include "config.h"
-#include "log.h"
+#include "shared/config.h"
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_serializer.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_version.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
@@ -19,12 +22,8 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "rascsi_version.h"
-#include "protobuf_serializer.h"
-#include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
 #include "rascsi/rascsi_core.h"
-#include "rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <netinet/in.h>
 #include <csignal>

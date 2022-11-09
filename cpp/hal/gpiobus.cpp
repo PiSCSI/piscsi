@@ -15,8 +15,8 @@
 #include <sys/time.h>
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "config.h"
-#include "log.h"
+#include "shared/config.h"
+#include "shared/log.h"
 #include <array>
 #ifdef __linux__
 #include <sys/epoll.h>

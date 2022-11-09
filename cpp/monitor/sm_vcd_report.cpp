@@ -9,13 +9,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
+#include "hal/gpiobus.h"
+#include "data_sample.h"
+#include "sm_reports.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include "data_sample.h"
-#include "sm_reports.h"
-#include "hal/gpiobus.h"
 
 using namespace std;
 

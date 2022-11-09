@@ -10,10 +10,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_version.h"
-#include "protobuf_util.h"
-#include "rasutil.h"
-#include "rascsi_exceptions.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
+#include "shared/rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "rasctl/rasctl_parser.h"
 #include "rasctl/rasctl_commands.h"

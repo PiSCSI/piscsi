@@ -9,13 +9,13 @@
 //
 //---------------------------------------------------------------------------
 
-// TODO Evaluate CHECK CONDITION
+// TODO Evaluate CHECK CONDITION after sending a command
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "rascsi_version.h"
 #include "rasdump/rasdump_core.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <sys/stat.h>

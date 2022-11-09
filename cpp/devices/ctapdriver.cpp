@@ -9,13 +9,13 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/rascsi_exceptions.h"
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>
 #include "ctapdriver.h"
-#include "log.h"
-#include "rasutil.h"
-#include "rascsi_exceptions.h"
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sstream>
