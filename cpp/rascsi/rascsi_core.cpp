@@ -14,6 +14,7 @@
 #include "shared/rasutil.h"
 #include "shared/protobuf_serializer.h"
 #include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "shared/rascsi_version.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
@@ -88,37 +89,30 @@ void Rascsi::Cleanup()
 	bus->Cleanup();
 }
 
-bool Rascsi::ReadAccessToken(const char *filename) const
+void Rascsi::ReadAccessToken(const string& filename) const
 {
 	struct stat st;
-	if (stat(filename, &st) || !S_ISREG(st.st_mode)) {
-		cerr << "Can't access token file '" << optarg << "'" << endl;
-		return false;
+	if (stat(filename.c_str(), &st) || !S_ISREG(st.st_mode)) {
+		throw parser_exception("Can't access token file '" + filename + "'");
 	}
 
 	if (st.st_uid || st.st_gid || (st.st_mode & (S_IROTH | S_IWOTH | S_IRGRP | S_IWGRP))) {
-		cerr << "Access token file '" << optarg << "' must be owned by root and readable by root only" << endl;
-		return false;
+		throw parser_exception("Access token file '" + filename + "' must be owned by root and readable by root only");
 	}
 
 	ifstream token_file(filename);
 	if (token_file.fail()) {
-		cerr << "Can't open access token file '" << optarg << "'" << endl;
-		return false;
+		throw parser_exception("Can't open access token file '" + filename + "'");
 	}
 
 	getline(token_file, access_token);
 	if (token_file.fail()) {
-		cerr << "Can't read access token file '" << optarg << "'" << endl;
-		return false;
+		throw parser_exception("Can't read access token file '" + filename + "'");
 	}
 
 	if (access_token.empty()) {
-		cerr << "Access token file '" << optarg << "' must not be empty" << endl;
-		return false;
+		throw ("Access token file '" + filename + "' must not be empty");
 	}
-
-	return true;
 }
 
 void Rascsi::LogDevices(string_view devices) const
@@ -138,7 +132,7 @@ void Rascsi::TerminationHandler(int signum)
 	exit(signum);
 }
 
-bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
+void Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
 {
 	int block_size = 0;
 	string name;
@@ -166,9 +160,8 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			}
 
 			case 'b': {
-				if (!GetAsInt(optarg, block_size)) {
-					cerr << "Invalid block size " << optarg << endl;
-					return false;
+				if (!GetAsUnsignedInt(optarg, block_size)) {
+					throw parser_exception("Invalid block size " + string(optarg));
 				}
 				continue;
 			}
@@ -178,16 +171,13 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 				continue;
 
 			case 'p':
-				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					return false;
+				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
+					throw parser_exception("Invalid port " + string(optarg) + ", port must be between 1 and 65535");
 				}
 				continue;
 
 			case 'P':
-				if (!ReadAccessToken(optarg)) {
-					return false;
-				}
+				ReadAccessToken(optarg);
 				continue;
 
 			case 'v':
@@ -203,18 +193,16 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			}
 
 			default:
-				return false;
+				throw parser_exception("Parser error");
 		}
 
 		if (optopt) {
-			return false;
+			throw parser_exception("Praser error");
 		}
 	}
-
-	return true;
 }
 
-bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
+void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 {
 	PbCommand command;
 	int id = -1;
@@ -241,11 +229,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 			case 'd':
 			case 'D': {
-				const string error = ProcessId(value, ScsiController::LUN_MAX, id, lun);
-				if (!error.empty()) {
-					cerr << error << endl;
-					return false;
-				}
+				ProcessId(value, ScsiController::LUN_MAX, id, lun);
 				continue;
 			}
 
@@ -254,18 +238,16 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				continue;
 
 			case 'F': {
-				if (const string result = rascsi_image.SetDefaultFolder(value); !result.empty()) {
-					cerr << result << endl;
-					return false;
+				if (const string error = rascsi_image.SetDefaultFolder(value); !error.empty()) {
+					throw parser_exception(error);
 				}
 				continue;
 			}
 
 			case 'R':
 				int depth;
-				if (!GetAsInt(value, depth) || depth < 0) {
-					cerr << "Invalid image file scan depth " << value << endl;
-					return false;
+				if (!GetAsUnsignedInt(value, depth)) {
+					throw parser_exception("Invalid image file scan depth " + value);
 				}
 				rascsi_image.SetDepth(depth);
 				continue;
@@ -277,8 +259,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 			case 'r': {
 					string error = executor->SetReservedIds(value);
 					if (!error.empty()) {
-						cerr << error << endl;
-						return false;
+						throw parser_exception(error);
 					}
 				}
 				continue;
@@ -287,8 +268,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 					string t = value;
 					transform(t.begin(), t.end(), t.begin(), ::toupper);
 					if (!PbDeviceType_Parse(t, &type)) {
-						cerr << "Illegal device type '" << value << "'" << endl;
-						return false;
+						throw parser_exception("Illegal device type '" + value + "'");
 					}
 				}
 				continue;
@@ -298,7 +278,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				break;
 
 			default:
-				return false;
+				throw parser_exception("Parser error");
 		}
 
 		// Set up the device data
@@ -336,7 +316,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	command.set_operation(ATTACH);
 
 	if (CommandContext context(locale); !executor->ProcessCmd(context, command)) {
-		return false;
+		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
 	}
 
 	// Display and log the device list
@@ -346,8 +326,6 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << flush;
-
-	return true;
 }
 
 bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& command)
@@ -508,7 +486,12 @@ int Rascsi::run(const vector<char *>& args) const
 
 	int port = DEFAULT_PORT;
 	optarg_queue_type optarg_queue;
-	if (!ParseArguments(args, port, optarg_queue)) {
+	try {
+		ParseArguments(args, port, optarg_queue);
+	}
+	catch(const parser_exception& e) {
+		cerr << "Error: " << e.what() << endl;
+
 		return EXIT_FAILURE;
 	}
 
@@ -522,10 +505,16 @@ int Rascsi::run(const vector<char *>& args) const
 		return EXIT_FAILURE;
 	}
 
-	// We need to wait to create the devices until after the bus/controller/etc
-	// objects have been created.
-	if (!CreateInitialDevices(optarg_queue)) {
+	// We need to wait to create the devices until after the bus/controller/etc objects have been created
+	// TODO Try to resolve dependencies so that this work-around can be removed
+	try {
+		CreateInitialDevices(optarg_queue);
+	}
+	catch(const parser_exception& e) {
+		cerr << "Error: " << e.what() << endl;
+
 		Cleanup();
+
 		return EXIT_FAILURE;
 	}
 

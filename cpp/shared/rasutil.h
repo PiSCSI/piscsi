@@ -18,8 +18,8 @@ namespace ras_util
 	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';
 
-	bool GetAsInt(const string&, int&);
-	string ProcessId(const string&, int, int&, int&);
+	bool GetAsUnsignedInt(const string&, int&);
+	void ProcessId(const string&, int, int&, int&);
 	string Banner(const string&);
 
 	string GetExtensionLowerCase(const string&);

@@ -41,11 +41,11 @@ private:
 	void Banner(const vector<char *>&) const;
 	bool InitBus() const;
 	static void Cleanup();
-	bool ReadAccessToken(const char *) const;
+	void ReadAccessToken(const string&) const;
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
-	bool CreateInitialDevices(const optarg_queue_type&) const;
+	void ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
+	void CreateInitialDevices(const optarg_queue_type&) const;
 
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);

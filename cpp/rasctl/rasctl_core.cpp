@@ -91,9 +91,11 @@ int RasCtl::run(const vector<char *>& args) const
 			case 'i': {
 				int id;
 				int lun;
-				const string error = ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
-				if (!error.empty()) {
-					cerr << "Error: Invalid device ID or LUN " << optarg << endl;
+				try {
+					ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
+				}
+				catch(const parser_exception& e) {
+					cerr << "Error: " << e.what() << endl;
 					exit(EXIT_FAILURE);
 				}
 				device->set_id(id);
@@ -108,7 +110,7 @@ int RasCtl::run(const vector<char *>& args) const
 
 			case 'b':
 				int block_size;
-				if (!GetAsInt(optarg, block_size)) {
+				if (!GetAsUnsignedInt(optarg, block_size)) {
 					cerr << "Error: Invalid block size " << optarg << endl;
 					exit(EXIT_FAILURE);
 				}
@@ -233,7 +235,7 @@ int RasCtl::run(const vector<char *>& args) const
 				break;
 
 			case 'p':
-				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
+				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}

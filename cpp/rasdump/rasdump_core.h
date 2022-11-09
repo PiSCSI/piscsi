@@ -18,11 +18,6 @@
 
 using namespace std;
 
-class rasdump_exception : public runtime_error
-{
-	using runtime_error::runtime_error;
-};
-
 class RasDump
 {
 	static const int MINIMUM_BUFFER_SIZE = 1024 * 64;

@@ -236,7 +236,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				address = inet.substr(0, separatorPos);
 
 				int m;
-				if (!GetAsInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
+				if (!GetAsUnsignedInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
 					LOGERROR("Invalid CIDR netmask notation '%s'", inet.substr(separatorPos + 1).c_str())
 
 					close(m_hTAP);

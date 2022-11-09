@@ -13,6 +13,7 @@
 
 #include "shared/log.h"
 #include "shared/rasutil.h"
+#include "shared/rascsi_exceptions.h"
 #include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
@@ -86,11 +87,11 @@ void RasDump::ParseArguments(const vector<char *>& args)
 	int buffer_size = DEFAULT_BUFFER_SIZE;
 
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:u:rv")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rv")) != -1) {
 		switch (opt) {
 			case 'i':
-				if (!GetAsInt(optarg, initiator_id) || initiator_id > 7) {
-					throw rasdump_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
+				if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
+					throw parser_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
 				}
 				break;
 
@@ -99,24 +100,14 @@ void RasDump::ParseArguments(const vector<char *>& args)
 				break;
 
 			case 's':
-				if (!GetAsInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-					throw rasdump_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
+				if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
+					throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
 				}
 
 				break;
 
-			case 't': {
-					const string error = ProcessId(optarg, 8, target_id, target_lun);
-					if (!error.empty()) {
-						throw rasdump_exception(error);
-					}
-				}
-				break;
-
-			case 'u':
-				if (!GetAsInt(optarg, target_lun) || target_lun > 7) {
-					throw rasdump_exception("Invalid target LUN " + to_string(target_lun) + " (0-7)");
-				}
+			case 't':
+				ProcessId(optarg, 8, target_id, target_lun);
 				break;
 
 			case 'v':
@@ -133,11 +124,11 @@ void RasDump::ParseArguments(const vector<char *>& args)
 	}
 
 	if (target_id == initiator_id) {
-		throw rasdump_exception("Target ID and RaSCSI board ID must not be identical");
+		throw parser_exception("Target ID and RaSCSI board ID must not be identical");
 	}
 
 	if (filename.empty()) {
-		throw rasdump_exception("Missing filename");
+		throw parser_exception("Missing filename");
 	}
 
 	buffer = vector<uint8_t>(buffer_size);
@@ -156,7 +147,7 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 		}
 	}
 
-	throw rasdump_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
+	throw parser_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
 			+ string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
@@ -195,7 +186,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 		BusFree();
 
-		throw rasdump_exception(command_mapping.find(cmd)->second.second + string(" failed"));
+		throw parser_exception(command_mapping.find(cmd)->second.second + string(" failed"));
 	}
 }
 
@@ -204,7 +195,7 @@ void RasDump::DataIn(int length)
 	WaitPhase(BUS::phase_t::datain);
 
 	if (!bus->ReceiveHandShake(buffer.data(), length)) {
-		throw rasdump_exception("DATA IN failed");
+		throw parser_exception("DATA IN failed");
 	}
 }
 
@@ -213,7 +204,7 @@ void RasDump::DataOut(int length)
 	WaitPhase(BUS::phase_t::dataout);
 
 	if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-		throw rasdump_exception("DATA OUT failed");
+		throw parser_exception("DATA OUT failed");
 	}
 }
 
@@ -222,7 +213,7 @@ void RasDump::Status() const
 	WaitPhase(BUS::phase_t::status);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-		throw rasdump_exception("STATUS failed");
+		throw parser_exception("STATUS failed");
 	}
 }
 
@@ -231,7 +222,7 @@ void RasDump::MessageIn() const
 	WaitPhase(BUS::phase_t::msgin);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-		throw rasdump_exception("MESSAGE IN failed");
+		throw parser_exception("MESSAGE IN failed");
 	}
 }
 
@@ -240,7 +231,7 @@ void RasDump::MessageOut()
 	WaitPhase(BUS::phase_t::msgout);
 
 	if (!bus->SendHandShake(buffer.data(), 1, BUS::SEND_NO_DELAY)) {
-		throw rasdump_exception("MESSAGE OUT failed");
+		throw parser_exception("MESSAGE OUT failed");
 	}
 }
 
@@ -395,7 +386,7 @@ void RasDump::WaitForBusy() const
 
 	// Success if the target is busy
 	if(!bus->GetBSY()) {
-		throw rasdump_exception("SELECTION failed");
+		throw parser_exception("SELECTION failed");
 	}
 }
 
@@ -422,7 +413,7 @@ int RasDump::run(const vector<char *>& args)
 
 		return DumpRestore();
 	}
-	catch(const rasdump_exception& e) {
+	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
 
 		CleanUp();
@@ -441,7 +432,7 @@ int RasDump::DumpRestore()
 	fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
 	if (fs.fail()) {
-		throw rasdump_exception("Can't open image file '" + filename + "'");
+		throw parser_exception("Can't open image file '" + filename + "'");
 	}
 
 	// Assert RST for 1 ms
@@ -468,7 +459,7 @@ int RasDump::DumpRestore()
 
 	if (auto type = static_cast<device_type>(buffer[0]);
 		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
-		throw rasdump_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
+		throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
 	}
 
 	TestUnitReady();
@@ -491,14 +482,14 @@ int RasDump::DumpRestore()
 			size = st.st_size;
 		}
 		else {
-			throw rasdump_exception("Can't determine file size");
+			throw parser_exception("Can't determine file size");
 		}
 
 		cout << "Restore file size: " << size << " bytes\n";
 		if (size > (off_t)(sector_size * capacity)) {
 			cout << "WARNING: File size is larger than disk size\n" << flush;
 		} else if (size < (off_t)(sector_size * capacity)) {
-			throw rasdump_exception("File size is smaller than disk size");
+			throw parser_exception("File size is smaller than disk size");
 		}
 	}
 	else {
@@ -522,7 +513,7 @@ int RasDump::DumpRestore()
 		}
 
 		if (fs.fail()) {
-			throw rasdump_exception("File I/O failed");
+			throw parser_exception("File I/O failed");
 		}
 
 		cout << ((i + 1) * 100 / dnum) << "%" << " (" << ( i + 1) * duni << "/" << capacity << ")\n" << flush;
@@ -544,7 +535,7 @@ int RasDump::DumpRestore()
 		}
 
 		if (fs.fail()) {
-			throw rasdump_exception("File I/O failed");
+			throw parser_exception("File I/O failed");
 		}
 
 		cout << "100% (" << capacity << "/" << capacity << ")\n" << flush;

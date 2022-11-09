@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "rascsi_exceptions.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
 #include <sstream>
@@ -14,7 +15,7 @@
 
 using namespace std;
 
-bool ras_util::GetAsInt(const string& value, int& result)
+bool ras_util::GetAsUnsignedInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
 		return false;
@@ -34,21 +35,19 @@ bool ras_util::GetAsInt(const string& value, int& result)
 	return true;
 }
 
-string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
+void ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
 {
 	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id >= 8) {
-			return "Invalid device ID (0-7)";
+		if (!GetAsUnsignedInt(id_spec, id) || id >= 8) {
+			throw parser_exception("Invalid device ID (0-7)");
 		}
 
 		lun = 0;
 	}
-	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
-		return "Invalid LUN (0-" + to_string(max_luns - 1) + ")";
+	else if (!GetAsUnsignedInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
+			!GetAsUnsignedInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
+		throw parser_exception("Invalid LUN (0-" + to_string(max_luns - 1) + ")");
 	}
-
-	return "";
 }
 
 string ras_util::Banner(const string& app)
