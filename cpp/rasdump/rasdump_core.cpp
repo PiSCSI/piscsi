@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 // TODO Evaluate CHECK CONDITION after sending a command
+// TODO Support LUNS > 7
 
 #include "shared/log.h"
 #include "shared/rasutil.h"
@@ -163,12 +164,6 @@ void RasDump::Selection() const
 	WaitForBusy();
 
 	bus->SetSEL(false);
-
-	// TODO Send IDENTIFY message for LUN selection
-	//buffer[0] = 0x80 | target_lun;
-	//MessageOut();
-
-	//bus->SetATN(false);
 }
 
 void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
@@ -222,15 +217,6 @@ void RasDump::MessageIn() const
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
 		throw parser_exception("MESSAGE IN failed");
-	}
-}
-
-void RasDump::MessageOut()
-{
-	WaitPhase(BUS::phase_t::msgout);
-
-	if (!bus->SendHandShake(buffer.data(), 1, BUS::SEND_NO_DELAY)) {
-		throw parser_exception("MESSAGE OUT failed");
 	}
 }
 
@@ -498,7 +484,7 @@ int RasDump::DumpRestore()
 	// Dump by buffer size
 	auto dsiz = static_cast<int>(buffer.size());
 	const int duni = dsiz / sector_size;
-	int dnum = static_cast<int>((capacity * sector_size) / dsiz);
+	auto dnum = static_cast<int>((capacity * sector_size) / dsiz);
 
 	int i;
 	for (i = 0; i < dnum; i++) {
