@@ -154,9 +154,9 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 void RasDump::Selection() const
 {
 	// Set initiator and target ID
-	auto data = static_cast<uint8_t>(1 << initiator_id);
-	data |= (1 << target_id);
-	bus->SetDAT(data);
+	auto data = static_cast<byte>(1 << initiator_id);
+	data |= static_cast<byte>(1 << target_id);
+	bus->SetDAT(static_cast<uint8_t>(data));
 
 	bus->SetSEL(true);
 
@@ -175,7 +175,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 	// Send command. Success if the transmission result is the same as the number of requests
 	cdb[0] = static_cast<uint8_t>(cmd);
-	cdb[1] |= target_lun << 5;
+	cdb[1] |= static_cast<uint8_t>(static_cast<byte>(target_lun << 5));
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 		BusFree();
 
