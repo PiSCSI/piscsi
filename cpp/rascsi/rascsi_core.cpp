@@ -33,8 +33,10 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
@@ -96,8 +98,14 @@ void Rascsi::ReadAccessToken(const string& filename) const
 		throw parser_exception("Can't access token file '" + filename + "'");
 	}
 
-	if (st.st_uid || st.st_gid || (st.st_mode & (S_IROTH | S_IWOTH | S_IRGRP | S_IWGRP))) {
-		throw parser_exception("Access token file '" + filename + "' must be owned by root and readable by root only");
+	if (st.st_uid || st.st_gid) {
+		throw parser_exception("Access token file '" + filename + "' must be owned by root");
+	}
+
+	const auto perms = filesystem::status(filename).permissions();
+	if ((perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
+			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
+		throw parser_exception("Access token file '" + filename + "' must be readable and writable by root only");
 	}
 
 	ifstream token_file(filename);
