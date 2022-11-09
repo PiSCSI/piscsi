@@ -44,6 +44,7 @@
 #include "hal/systimer.h"
 #include "log.h"
 
+
 extern int wiringPiMode;
 
 #pragma GCC diagnostic push
@@ -242,10 +243,15 @@ bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
     // 	// Show the user that this app is running
     // 	SetControl(PIN_ENB, ENB_ON);
 
-    //     // if(!SetupPollSelectEvent()){
-    //     //     LOGERROR("Failed to setup SELECT poll event");
-    //     //     return false;
-    //     // }
+        if(!SetupSelEvent()){
+            LOGERROR("Failed to setup SELECT poll event");
+            return false;
+        }
+        LOGINFO("SetupSelEvent OK!")
+    usleep(5000000);
+
+InitializeGpio();
+
 
     return true;
 
@@ -323,54 +329,115 @@ void GPIOBUS_Allwinner::Cleanup()
     LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
 }
 
-// bool GPIOBUSS_Allwinner::SetupSelEvent(){
+bool GPIOBUS_Allwinner::SetupSelEvent()
+{
+    
+    int gpio_pin = phys_to_gpio_map->phys_to_gpio_map.at(board->pin_sel);
 
-//     // GPIO chip open
-//     LOGTRACE("%s GPIO chip open", __PRETTY_FUNCTION__);
-//     int gpio_fd = open("/dev/gpiochip0", 0);
-//     if (gpio_fd == -1) {
-//         LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
-//         return false;
-//     }
+    // GPIO chip open
+    LOGTRACE("%s GPIO chip open Pin: %d [GPIO %d]", __PRETTY_FUNCTION__, (int)board->pin_sel, gpio_pin);
+    std::string gpio_dev = "/dev/gpiochip0";
+    if (GPIO_BANK(gpio_pin) >= 11) {
+        gpio_dev = "/dev/gpiochip1";
+        LOGWARN("gpiochip1 support isn't implemented yet....");
+        LOGWARN("THIS PROBABLY WONT WORK!");
+    }
 
-//     // Event request setting
-//     LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, phys_to_gpio_map.at(board->pin_sel));
-//     strcpy(selevreq.consumer_label, "RaSCSI");
-//     selevreq.lineoffset  = phys_to_gpio_map->phys_to_gpio_map.at(board->pin_sel);
-//     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
-// #if SIGNAL_CONTROL_MODE < 2
-//     selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
-//     LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_FALLING_EDGE", __PRETTY_FUNCTION__);
-// #else
-//     selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
-//     LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_RISING_EDGE", __PRETTY_FUNCTION__);
-// #endif // SIGNAL_CONTROL_MODE
+    int gpio_fd = open(gpio_dev.c_str(), 0);
+    if (gpio_fd == -1) {
+        LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
+        return false;
+    }
 
-//     // Get event request
-//     if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-//         LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd);
-//         LOGERROR("Unable to register event request. Is RaSCSI already running?")
-//         LOGERROR("[%08X] %s", errno, strerror(errno));
-//         close(gpio_fd);
-//         return false;
-//     }
+    // Event request setting
+    LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, gpio_pin);
+    strcpy(selevreq.consumer_label, "RaSCSI");
+    selevreq.lineoffset  = gpio_pin;
+    selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
+#if SIGNAL_CONTROL_MODE < 2
+    selevreq.eventflags = GPIOEVENT_REQUEST_FALLING_EDGE;
+    LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_FALLING_EDGE", __PRETTY_FUNCTION__);
+#else
+    selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
+    LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_RISING_EDGE", __PRETTY_FUNCTION__);
+#endif // SIGNAL_CONTROL_MODE
 
-//     // Close GPIO chip file handle
-//     LOGTRACE("%s Close GPIO chip file handle", __PRETTY_FUNCTION__);
-//     close(gpio_fd);
+    // Get event request
+    if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
+        LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd);
+        LOGERROR("Unable to register event request. Is RaSCSI already running?")
+        LOGERROR("[%08X] %s", errno, strerror(errno));
+        close(gpio_fd);
+        return false;
+    }
 
-//     // epoll initialization
-//     LOGTRACE("%s epoll initialization", __PRETTY_FUNCTION__);
-//     epfd = epoll_create(1);
-//     if (epfd == -1) {
-//         LOGERROR("Unable to create the epoll event");
-//         return false;
-//     }
-//     memset(&ev, 0, sizeof(ev));
-//     ev.events  = EPOLLIN | EPOLLPRI;
-//     ev.data.fd = selevreq.fd;
-//     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
-// }
+    // Close GPIO chip file handle
+    LOGTRACE("%s Close GPIO chip file handle", __PRETTY_FUNCTION__);
+    close(gpio_fd);
+
+    // epoll initialization
+    LOGTRACE("%s epoll initialization", __PRETTY_FUNCTION__);
+    epfd = epoll_create(1);
+    if (epfd == -1) {
+        LOGERROR("Unable to create the epoll event");
+        return false;
+    }
+    epoll_event ev = {};
+    memset(&ev, 0, sizeof(ev));
+    ev.events  = EPOLLIN | EPOLLPRI;
+    ev.data.fd = selevreq.fd;
+    if(epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev) < 0){
+        
+        return false;
+    }
+
+return true;
+    //     // GPIO chip open
+    //     LOGTRACE("%s GPIO chip open", __PRETTY_FUNCTION__);
+    //     int gpio_fd = open("/dev/gpiochip0", 0);
+    //     if (gpio_fd == -1) {
+    //         LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
+    //         return false;
+    //     }
+
+    //     // Event request setting
+    //     LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, phys_to_gpio_map.at(board->pin_sel));
+    //     strcpy(selevreq.consumer_label, "RaSCSI");
+    //     selevreq.lineoffset  = phys_to_gpio_map->phys_to_gpio_map.at(board->pin_sel);
+    //     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
+    // #if SIGNAL_CONTROL_MODE < 2
+    //     selevreq.eventflags  = GPIOEVENT_REQUEST_FALLING_EDGE;
+    //     LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_FALLING_EDGE", __PRETTY_FUNCTION__);
+    // #else
+    //     selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
+    //     LOGTRACE("%s eventflags = GPIOEVENT_REQUEST_RISING_EDGE", __PRETTY_FUNCTION__);
+    // #endif // SIGNAL_CONTROL_MODE
+
+    //     // Get event request
+    //     if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
+    //         LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd);
+    //         LOGERROR("Unable to register event request. Is RaSCSI already running?")
+    //         LOGERROR("[%08X] %s", errno, strerror(errno));
+    //         close(gpio_fd);
+    //         return false;
+    //     }
+
+    //     // Close GPIO chip file handle
+    //     LOGTRACE("%s Close GPIO chip file handle", __PRETTY_FUNCTION__);
+    //     close(gpio_fd);
+
+    //     // epoll initialization
+    //     LOGTRACE("%s epoll initialization", __PRETTY_FUNCTION__);
+    //     epfd = epoll_create(1);
+    //     if (epfd == -1) {
+    //         LOGERROR("Unable to create the epoll event");
+    //         return false;
+    //     }
+    //     memset(&ev, 0, sizeof(ev));
+    //     ev.events  = EPOLLIN | EPOLLPRI;
+    //     ev.data.fd = selevreq.fd;
+    //     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
+}
 
 uint8_t GPIOBUS_Allwinner::GetDAT()
 {
@@ -511,30 +578,29 @@ void GPIOBUS_Allwinner::SetSignal(board_type::pi_physical_pin_e pin, board_type:
 //
 // TODO: maybe this should be moved to SCSI_Bus?
 //---------------------------------------------------------------------------
-bool GPIOBUS_Allwinner::WaitSignal(board_type::pi_physical_pin_e pin, board_type::gpio_high_low_e ast)
+bool GPIOBUS_Allwinner::WaitSignal(board_type::pi_physical_pin_e hw_pin, board_type::gpio_high_low_e ast)
 {
     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 
-    // {
-    // 	// Get current time
-    // 	uint32_t now = SysTimer::instance().GetTimerLow();
+    // Get current time
+    uint32_t now = SysTimer::GetTimerLow();
 
-    // 	// Calculate timeout (3000ms)
-    // 	uint32_t timeout = 3000 * 1000;
+    // Calculate timeout (3000ms)
+    uint32_t timeout = 3000 * 1000;
 
-    // 	// end immediately if the signal has changed
-    // 	do {
-    // 		// Immediately upon receiving a reset
-    // 		Acquire();
-    // 		if (GetRST()) {
-    // 			return false;
-    // 		}
+    // end immediately if the signal has changed
+    do {
+        // Immediately upon receiving a reset
+        Acquire();
+        if (GetRST()) {
+            return false;
+        }
 
-    // 		// Check for the signal edge
-    //         if (((signals >> pin) ^ ~ast) & 1) {
-    // 			return true;
-    // 		}
-    // 	} while ((SysTimer::instance().GetTimerLow() - now) < timeout);
+        // Check for the signal edge
+        if (((GetSignal(hw_pin)) ^ !board->gpio_state_to_bool(ast)) == true) {
+            return true;
+        }
+    } while ((SysTimer::GetTimerLow() - now) < timeout);
 
     // We timed out waiting for the signal
     return false;
@@ -574,7 +640,8 @@ void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, board_type
 {
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
-    (void)pin;
+        (void)
+        pin;
     (void)mode;
     return;
 #else

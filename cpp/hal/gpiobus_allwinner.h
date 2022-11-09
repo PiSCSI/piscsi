@@ -83,6 +83,8 @@ class GPIOBUS_Allwinner : public GPIOBUS
     // Map the physical pin number to the logical GPIO number
     shared_ptr<Banana_Pi_Gpio_Mapping> phys_to_gpio_map;
 
+    bool SetupSelEvent();
+
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
 #endif
@@ -122,11 +124,12 @@ class GPIOBUS_Allwinner : public GPIOBUS
 
     array<uint32_t, 12> signals = {0}; // All bus signals
 
-#ifdef USE_SEL_EVENT_ENABLE
-    struct gpioevent_request selevreq = {}; // SEL signal event request
+// // TODO: PUT THIS BACK (PROBABLY)
+// // #ifdef USE_SEL_EVENT_ENABLE
+//     struct gpioevent_request selevreq = {}; // SEL signal event request
 
-    int epfd; // epoll file descriptor
-#endif        // USE_SEL_EVENT_ENABLE
+//     int epfd; // epoll file descriptor
+// // #endif        // USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table

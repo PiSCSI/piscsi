@@ -598,6 +598,7 @@ int Rascsi::run(const vector<char *>& args) const
 			}
 			continue;
 		}
+		LOGINFO("GOT SEL");
 
 		// Get the bus
 		bus->Acquire();

@@ -51,6 +51,12 @@
 #define GPIO_FUNCTION_TRACE
 #endif
 
+
+#define USE_SEL_EVENT_ENABLE
+
+
+#define SIGNAL_CONTROL_MODE 0
+
 using namespace std;
 
 //---------------------------------------------------------------------------
