@@ -45,9 +45,9 @@ void Rascsi::Banner(const vector<char *>& args) const
 	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
-		cout << "\nUsage: " << args[0] << " [-idn[:m] FILE] ...\n\n";
-		cout << " n is SCSI device ID (0-7).\n";
-		cout << " m is the optional logical unit (LUN) (0-31).\n";
+		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
+		cout << " ID is SCSI device ID (0-7).\n";
+		cout << " LUN is the optional logical unit (0-31).\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
