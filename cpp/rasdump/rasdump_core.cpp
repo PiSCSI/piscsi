@@ -105,8 +105,12 @@ void RasDump::ParseArguments(const vector<char *>& args)
 
 				break;
 
-			case 't':
-				ProcessId(optarg, target_id, target_lun);
+			case 't': {
+					const string error = ProcessId(optarg, 8, target_id, target_lun);
+					if (!error.empty()) {
+						throw rasdump_exception(error);
+					}
+				}
 				break;
 
 			case 'u':
@@ -547,19 +551,4 @@ int RasDump::DumpRestore()
 	}
 
 	return EXIT_SUCCESS;
-}
-
-void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
-{
-	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id >= 8) {
-			throw rasdump_exception("Invalid device ID (0-7)");
-		}
-
-		lun = 0;
-	}
-	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
-		throw rasdump_exception("Invalid unit (0-7)");
-	}
 }

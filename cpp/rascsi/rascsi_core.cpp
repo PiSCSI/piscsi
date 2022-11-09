@@ -138,25 +138,6 @@ void Rascsi::TerminationHandler(int signum)
 	exit(signum);
 }
 
-bool Rascsi::ProcessId(const string& id_spec, int& id, int& unit) const
-{
-	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
-			cerr << optarg << ": Invalid device ID (0-7)" << endl;
-			return false;
-		}
-
-		unit = 0;
-	}
-	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= ScsiController::LUN_MAX) {
-		cerr << optarg << ": Invalid unit (0-" << (ScsiController::LUN_MAX - 1) << ")" << endl;
-		return false;
-	}
-
-	return true;
-}
-
 bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
 {
 	int block_size = 0;
@@ -261,7 +242,9 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 
 			case 'd':
 			case 'D': {
-				if (!ProcessId(value, id, unit)) {
+				const string error = ProcessId(value, ScsiController::LUN_MAX, id, unit);
+				if (!error.empty()) {
+					cerr << error << endl;
 					return false;
 				}
 				continue;

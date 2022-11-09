@@ -45,7 +45,6 @@ private:
 	bool ReadAccessToken(const char *) const;
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	bool ProcessId(const string&, int&, int&) const;
 	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
 	bool CreateInitialDevices(const optarg_queue_type&) const;
 
