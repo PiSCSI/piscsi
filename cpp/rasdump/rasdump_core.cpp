@@ -174,8 +174,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 	WaitPhase(BUS::phase_t::command);
 
 	cdb[0] = static_cast<uint8_t>(cmd);
-	const byte lun = static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5);
-	cdb[1] = static_cast<uint8_t>(lun);
+	cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 		BusFree();
 
