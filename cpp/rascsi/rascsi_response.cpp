@@ -12,7 +12,7 @@
 #include "shared/rascsi_version.h"
 #include "devices/disk.h"
 #include "devices/device_factory.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rascsi_response.h"
 #include <filesystem>
 

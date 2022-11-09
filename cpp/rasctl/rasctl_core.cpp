@@ -15,7 +15,7 @@
 #include "shared/protobuf_util.h"
 #include "shared/rascsi_exceptions.h"
 #include "shared/rascsi_version.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rasctl/rasctl_parser.h"
 #include "rasctl/rasctl_commands.h"
 #include "rasctl/rasctl_core.h"

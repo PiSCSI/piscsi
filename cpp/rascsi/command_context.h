@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "localizer.h"
 #include "shared/protobuf_serializer.h"
 #include <string>

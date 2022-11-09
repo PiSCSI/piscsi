@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/protobuf_util.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <sstream>
 #include <list>

@@ -12,7 +12,7 @@
 #pragma once
 
 #include "google/protobuf/message.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <string>
 #include <list>
 
@@ -21,6 +21,8 @@ using namespace rascsi_interface;
 
 namespace protobuf_util
 {
+	static const char KEY_VALUE_SEPARATOR = '=';
+
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	string GetParam(const PbCommand&, const string&);
 	string GetParam(const PbDeviceDefinition&, const string&);

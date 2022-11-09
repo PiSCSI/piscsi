@@ -13,7 +13,7 @@
 #include "shared/rascsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_response.h"
 #include "rascsi/rascsi_image.h"

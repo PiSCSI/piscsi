@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include "shared/rasutil.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #ifdef __linux__
 #include <sched.h>
 #endif

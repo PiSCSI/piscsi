@@ -13,7 +13,7 @@
 #include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_image.h"
 #include "rascsi/rascsi_response.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <vector>
 #include <string>
 

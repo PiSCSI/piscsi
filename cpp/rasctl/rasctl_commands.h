@@ -10,7 +10,7 @@
 #pragma once
 
 #include "shared/protobuf_serializer.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <string>
 

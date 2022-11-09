@@ -11,7 +11,7 @@
 #include "shared/rascsi_version.h"
 #include "controllers/controller_manager.h"
 #include "devices/device_factory.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rascsi/rascsi_response.h"
 
 using namespace rascsi_interface;

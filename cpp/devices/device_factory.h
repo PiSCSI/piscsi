@@ -15,7 +15,7 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 
 using namespace std;
 using namespace rascsi_interface;

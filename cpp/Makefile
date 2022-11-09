@@ -66,12 +66,12 @@ RSYSLOG_LOG  = /var/log/rascsi.log
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../doc
-COVERAGE_DIR = ./coverage
+COVERAGE_DIR = coverage
 COVERAGE_FILE = rascsi.dat
-OS_FILES = ./os_integration
+OS_FILES = os_integration
 
-OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
-BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
+OBJDIR := obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
+BINDIR := bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 
 BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
@@ -79,11 +79,11 @@ BIN_ALL = \
 	$(BINDIR)/$(SCSIMON) \
 	$(BINDIR)/$(RASDUMP)
 
-SRC_PROTOC = \
-	rascsi_interface.proto
+SRC_PROTOC = rascsi_interface.proto
+
+SRC_GENERATED = $(GENERATED_DIR)/rascsi_interface.pb.cpp
 
 SRC_PROTOBUF = \
-	rascsi_interface.pb.cpp \
 	shared/protobuf_util.cpp \
 	shared/protobuf_serializer.cpp
 
@@ -129,26 +129,31 @@ OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
+OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 
-GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
+GENERATED_DIR := generated
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
-	echo "-- Creating directory $@"
+	@echo "-- Creating directory $@"
 	mkdir -p $@
 
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(SRC_PROTOBUF): $(SRC_PROTOC)
-	echo "-- Generating protobuf-based source files"
-	protoc --cpp_out=. $(SRC_PROTOC)
-	mv rascsi_interface.pb.cc $@
+$(SRC_GENERATED) : $(SRC_PROTOC)
+	@echo "-- Generating protobuf-based source files"
+	mkdir -p $(GENERATED_DIR)
+	protoc --cpp_out=$(GENERATED_DIR) $(SRC_PROTOC)
+	mv $(GENERATED_DIR)/rascsi_interface.pb.cc $@
+
+$(OBJ_GENERATED) : $(SRC_GENERATED)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 ## Build Targets:
 ##   all      : Rebuild all of the executable files and re-generate 
@@ -176,14 +181,13 @@ lcov: test
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/rasdump_man_page.txt
 
-$(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE) $(SRC_RASDUMP) $(SRC_SCSIMON) : $(OBJ_PROTOBUF)
+$(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE) : $(OBJ_GENERATED)
 
-$(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) \
-	-lpthread -lpcap -lprotobuf -lstdc++fs
+$(BINDIR)/$(RASCSI): $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs
 
-$(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
+$(BINDIR)/$(RASCTL): $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED)
@@ -191,24 +195,23 @@ $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) \
-	-lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+$(BINDIR)/$(RASCSI_TEST): $(SRC_GENERATED) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON)
-$(RASCSI)  : $(BINDIR)/$(RASCSI) 
-$(RASCTL)  : $(BINDIR)/$(RASCTL) 
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(RASCSI_TEST)
+$(RASCSI) : $(BINDIR)/$(RASCSI) 
+$(RASCTL) : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
-
+$(RASCSI_TEST): $(BINDIR)/$(RASCSI_TEST)
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF) $(COVERAGE_DIR) $(COVERAGE_FILE)
+	rm -rf $(OBJDIR) $(BINDIR) $(GENERATED_DIR) $(COVERAGE_DIR) $(COVERAGE_FILE)
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location

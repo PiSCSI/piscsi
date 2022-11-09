@@ -19,8 +19,6 @@ using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
-static const char KEY_VALUE_SEPARATOR = '=';
-
 void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& params)
 {
 	if (params.empty()) {

@@ -11,7 +11,7 @@
 
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <dirent.h>
 #include <array>
 #include <string>
