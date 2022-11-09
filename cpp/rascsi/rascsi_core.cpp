@@ -217,7 +217,6 @@ void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 		locale = "en";
 	}
 
-
 	opterr = 1;
 	for (const auto& [option, value] : optarg_queue) {
 		switch (option) {

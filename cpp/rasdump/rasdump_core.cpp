@@ -47,8 +47,7 @@ void RasDump::KillHandler(int)
 
 bool RasDump::Banner(const vector<char *>& args) const
 {
-	cout << "RaSCSI hard disk dump utility version " << rascsi_get_version_string()
-			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
+	cout << ras_util::Banner("RaSCSI hard disk dump/restore utility");
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
 		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"
