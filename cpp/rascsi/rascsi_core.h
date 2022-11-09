@@ -51,6 +51,9 @@ private:
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
 
+	// A static instance is needed because of the signal handler
+	static inline shared_ptr<BUS> bus;
+
 	// TODO These fields should not be static
 
 	static inline RascsiService service;
@@ -58,8 +61,6 @@ private:
 	static inline RascsiImage rascsi_image;
 
 	const static inline RascsiResponse rascsi_response;
-
-	static inline shared_ptr<BUS> bus;
 
 	static inline shared_ptr<ControllerManager> controller_manager;
 
