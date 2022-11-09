@@ -111,7 +111,7 @@ void Rascsi::ReadAccessToken(const string& filename) const
 	}
 
 	if (access_token.empty()) {
-		throw ("Access token file '" + filename + "' must not be empty");
+		throw parser_exception("Access token file '" + filename + "' must not be empty");
 	}
 }
 
