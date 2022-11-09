@@ -237,12 +237,11 @@ void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				locale = value.c_str();
 				continue;
 
-			case 'F': {
+			case 'F':
 				if (const string error = rascsi_image.SetDefaultFolder(value); !error.empty()) {
 					throw parser_exception(error);
 				}
 				continue;
-			}
 
 			case 'R':
 				int depth;
@@ -256,11 +255,9 @@ void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				name = value;
 				continue;
 
-			case 'r': {
-					string error = executor->SetReservedIds(value);
-					if (!error.empty()) {
-						throw parser_exception(error);
-					}
+			case 'r':
+				if (const string error = executor->SetReservedIds(value); !error.empty()) {
+					throw parser_exception(error);
 				}
 				continue;
 
