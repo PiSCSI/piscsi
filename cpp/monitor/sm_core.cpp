@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
+#include "shared/rasutil.h"
 #include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
@@ -23,6 +24,7 @@
 #include <sched.h>
 
 using namespace std;
+using namespace ras_util;
 
 // TODO Should not be global and not be used by sm_vcd_report
 double ns_per_loop;
@@ -157,30 +159,6 @@ void ScsiMon::Reset() const
 {
     bus->Reset();
 }
-
-//---------------------------------------------------------------------------
-//
-//	Pin the thread to a specific CPU (Only applies to Linux)
-//
-//---------------------------------------------------------------------------
-#ifdef __linux__
-void ScsiMon::FixCpu(int cpu) const
-{
-    // Get the number of CPUs
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-    int cpus = CPU_COUNT(&cpuset);
-
-    // Set the thread affinity
-    if (cpu < cpus)
-    {
-        CPU_ZERO(&cpuset);
-        CPU_SET(cpu, &cpuset);
-        sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
-    }
-}
-#endif
 
 #ifdef DEBUG
 static uint32_t high_bits = 0x0;
