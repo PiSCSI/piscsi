@@ -159,7 +159,6 @@ void RasDump::Selection() const
 	bus->SetDAT(data);
 
 	bus->SetSEL(true);
-	//bus->SetATN(true);
 
 	WaitForBusy();
 
