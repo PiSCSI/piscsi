@@ -491,7 +491,7 @@ int Rascsi::run(const vector<char *>& args) const
 		return EXIT_FAILURE;
 	}
 
-	// The current_log_level may have been updated by ParseArguments()
+	// current_log_level may have been updated by ParseArguments()
 	executor->SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
