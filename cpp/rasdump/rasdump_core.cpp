@@ -412,50 +412,14 @@ int RasDump::run(const vector<char *>& args)
 
 int RasDump::DumpRestore()
 {
+	const auto [capacity, sector_size] = GetDeviceInfo();
+
 	fstream fs;
 	fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
 	if (fs.fail()) {
 		throw parser_exception("Can't open image file '" + filename + "'");
 	}
-
-	// Assert RST for 1 ms
-	bus->SetRST(true);
-	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
-	nanosleep(&ts, nullptr);
-	bus->SetRST(false);
-
-	cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
-	cout << "RaSCSI board ID: " << initiator_id << "\n" << flush;
-
-	Inquiry();
-
-	// Display INQUIRY information
-	array<char, 17> str = {};
-	memcpy(str.data(), &buffer[8], 8);
-	cout << "Vendor:    " << str.data() << "\n";
-	str.fill(0);
-	memcpy(str.data(), &buffer[16], 16);
-	cout << "Product:   " << str.data() << "\n";
-	str.fill(0);
-	memcpy(str.data(), &buffer[32], 4);
-	cout << "Revision:  " << str.data() << "\n" << flush;
-
-	if (auto type = static_cast<device_type>(buffer[0]);
-		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
-		throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
-	}
-
-	TestUnitReady();
-
-	RequestSense();
-
-	const auto [capacity, sector_size] = ReadCapacity();
-
-	cout << "Number of sectors: " << capacity << "\n"
-			<< "Sector size:       " << sector_size << " bytes\n"
-			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
-			<< sector_size * capacity << " bytes)\n\n" << flush;
 
 	if (restore) {
 		cout << "Starting restore\n" << flush;
@@ -526,4 +490,47 @@ int RasDump::DumpRestore()
 	}
 
 	return EXIT_SUCCESS;
+}
+
+pair<uint64_t, uint32_t> RasDump::GetDeviceInfo()
+{
+	// Assert RST for 1 ms
+	bus->SetRST(true);
+	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
+	nanosleep(&ts, nullptr);
+	bus->SetRST(false);
+
+	cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
+	cout << "RaSCSI board ID: " << initiator_id << "\n" << flush;
+
+	Inquiry();
+
+	// Display INQUIRY information
+	array<char, 17> str = {};
+	memcpy(str.data(), &buffer[8], 8);
+	cout << "Vendor:    " << str.data() << "\n";
+	str.fill(0);
+	memcpy(str.data(), &buffer[16], 16);
+	cout << "Product:   " << str.data() << "\n";
+	str.fill(0);
+	memcpy(str.data(), &buffer[32], 4);
+	cout << "Revision:  " << str.data() << "\n" << flush;
+
+	if (auto type = static_cast<device_type>(buffer[0]);
+		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+		throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
+	}
+
+	TestUnitReady();
+
+	RequestSense();
+
+	const auto [capacity, sector_size] = ReadCapacity();
+
+	cout << "Number of sectors: " << capacity << "\n"
+			<< "Sector size:       " << sector_size << " bytes\n"
+			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
+			<< sector_size * capacity << " bytes)\n\n" << flush;
+
+	return make_pair(capacity, sector_size);
 }

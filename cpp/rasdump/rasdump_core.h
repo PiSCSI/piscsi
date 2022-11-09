@@ -36,6 +36,7 @@ private:
 	bool Init() const;
 	void ParseArguments(const vector<char *>&);
 	int DumpRestore();
+	pair<uint64_t, uint32_t> GetDeviceInfo();
 	void WaitPhase(BUS::phase_t) const;
 	void Selection() const;
 	void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
