@@ -45,7 +45,7 @@ string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lu
 	}
 	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
 			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
-		return "Invalid unit (0-" + to_string(max_luns - 1) + ")";
+		return "Invalid LUN (0-" + to_string(max_luns - 1) + ")";
 	}
 
 	return "";

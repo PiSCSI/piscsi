@@ -25,12 +25,11 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-f\fR \fIFILE|PARAM\fR]
 [\fB\-g\fR \fILOG_LEVEL\fR]
 [\fB\-h\fR \fIHOST\fR]
-[\fB\-i\fR \fIID\fR
+[\fB\-i\fR \fIID[:LUN]\fR
 [\fB\-n\fR \fINAME\fR]
 [\fB\-p\fR \fIPORT\fR]
 [\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-t\fR \fITYPE\fR]
-[\fB\-u\fR \fIUNIT\fR]
 [\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 [\fB\-z\fR \fILOCALE\fR]
 .SH DESCRIPTION
@@ -120,8 +119,8 @@ Copy an image file in the default image folder.
 .BR \-z\fI " "\fILOCALE
 Overrides the default locale for client-facing error messages.
 .TP
-.BR \-i\fI " " \fIID
-ID is the SCSI ID that you want to control. (0-7)
+.BR \-i\fI " " \fIID[:LUN]
+The SCSI ID and optional LUN that you want to control. (0-7:0-31)
 .TP 
 .BR \-c\fI " " \fICMD
 Command is the operation being requested. Options are:
