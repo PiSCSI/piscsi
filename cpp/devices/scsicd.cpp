@@ -156,7 +156,7 @@ void SCSICD::CreateDataTrack()
 	auto track = make_unique<CDTrack>();
 	track->Init(1, 0, static_cast<int>(GetBlockCount()) - 1);
 	track->SetPath(false, GetFilename());
-	tracks.push_back(move(track));
+	tracks.push_back(std::move(track));
 	dataindex = 0;
 }
 

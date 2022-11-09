@@ -3,22 +3,20 @@
 //	SCSI Target Emulator RaSCSI Reloaded
 //	for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSI bus ]
+//	Copyright (C) 2022 akuker
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
+#include "bus.h"
 #include <memory>
-
-#include "gpiobus.h"
 
 using namespace std;
 
 class GPIOBUS_Factory
 {
   public:
-    static unique_ptr<GPIOBUS> Create();
+
+    static unique_ptr<BUS> Create(BUS::mode_e);
 };

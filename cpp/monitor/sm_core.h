@@ -9,10 +9,14 @@
 
 #pragma once
 
+#include "hal/bus.h"
+#include "monitor/data_sample.h"
 #include <vector>
+#include <memory>
 
 using namespace std;
 
+// TODO Make static fields/methods non-static
 class ScsiMon
 {
 public:
@@ -24,12 +28,35 @@ public:
 
 private:
 
-	void parse_arguments(const vector<char *>&);
-	void print_copyright_text();
-	void print_help_text(const vector<char *>&);
-	void Banner();
+	void ParseArguments(const vector<char *>&);
+	void PrintCopyrightText() const;
+	void PrintHelpText(const vector<char *>&) const;
+	void Banner() const;
 	bool Init();
-	void Cleanup();
-	void Reset();
-	void FixCpu(int);
+	void Cleanup() const;
+	void Reset() const;
+	void FixCpu(int) const;
+
+	static void KillHandler(int);
+
+	static inline volatile bool running;
+
+	unique_ptr<BUS> bus;
+
+	uint32_t buff_size = 1000000;
+
+	data_capture *data_buffer = nullptr;
+
+	uint32_t data_idx = 0;
+
+	bool print_help = false;
+
+	bool import_data = false;
+
+	string file_base_name = "log";
+	string vcd_file_name;
+	string json_file_name;
+	string html_file_name;
+	string input_file_name;
+
 };

@@ -211,8 +211,8 @@ void ScsiController::Command()
 
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
-			LOGERROR("%s Command byte count mismatch: expected %d bytes, received %d byte(s)", __PRETTY_FUNCTION__,
-					command_byte_count, actual_count)
+			LOGERROR("Command byte count mismatch for command $%02X: expected %d bytes, received %d byte(s)",
+					GetBuffer()[0], command_byte_count, actual_count)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -584,12 +584,12 @@ void ScsiController::Receive()
 
 	// Length != 0 if received
 	if (HasValidLength()) {
-		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, GetLength())
+		LOGTRACE("%s Length is %d byte(s)", __PRETTY_FUNCTION__, GetLength())
 
 		// If not able to receive all, move to status phase
 		if (int len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength());
 			len != static_cast<int>(GetLength())) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
+			LOGERROR("%s Not able to receive %d byte(s) of data, only received %d",__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;
 		}
@@ -692,7 +692,7 @@ void ScsiController::ReceiveBytes()
 
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			LOGERROR("%s Not able to receive %d bytes of data, only received %d",
+			LOGERROR("%s Not able to receive %d byte(s) of data, only received %d",
 					__PRETTY_FUNCTION__, GetLength(), len)
 			Error(sense_key::ABORTED_COMMAND);
 			return;

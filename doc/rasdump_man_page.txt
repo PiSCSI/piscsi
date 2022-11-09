@@ -1,0 +1,42 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is rasdump.1. Re-run 'make docs' after updating\n\n
+rasdump(1)                  General Commands Manual                 rasdump(1)
+
+NAME
+       rasdump - SCSI disk dumping tool for RaSCSI
+
+SYNOPSIS
+       rasdump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
+
+DESCRIPTION
+       rasdump samples the data on physical SCSI storage media, including hard
+       drives and MO drives, and stores it to an image file. It can  also  re‐
+       store  from a dumped file onto physical SCSI storage media. Can be con‐
+       nected directly, through a STANDARD RaSCSI board, or a FULLSPEC  RaSCSI
+       board.
+
+       Set its own ID with the BID option. Defaults to 7 if ommitted.
+
+OPTIONS
+       -t ID[:LUN]
+              SCSI ID and optional LUN of the target device.
+
+       -i BID SCSI ID of the RaSCSI device.
+
+       -f FILE
+              Path to the dump file.
+
+       -s BUFFER_SIZE
+              The transfer buffer size, at least 64 KiB. Default is 64 KiB.
+
+       -r     Run in restore mode.
+
+       -v     Enable verbose logging.
+
+SEE ALSO
+       rasctl(1), rascsi(1), scsimon(1)
+
+       Full          documentation          is          available          at:
+       <https://www.github.com/akuker/RASCSI/wiki/>
+
+                                                                    rasdump(1)

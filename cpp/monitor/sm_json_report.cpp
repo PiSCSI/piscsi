@@ -43,7 +43,7 @@ uint32_t scsimon_read_json(const char *json_filename, data_capture *data_capture
             continue;
         strncpy(data, &data_str[strlen(data_label)], 8);
         data[8] = '\0';
-        data_uint = strtoul(data, &ptr, 16);
+        data_uint = static_cast<uint32_t>(strtoul(data, &ptr, 16));
 
         data_capture_array[sample_count].timestamp = timestamp_uint;
         data_capture_array[sample_count].data = data_uint;

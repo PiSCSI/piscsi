@@ -1,172 +1,121 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
-//	for Raspberry Pi
+// SCSI Target Emulator RaSCSI Reloaded
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	[ HDD dump utility (initiator mode) ]
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include <cerrno>
-#include <csignal>
-#include <unistd.h>
-#include "rasdump/rasdump_fileio.h"
-#include "rasdump/rasdump_core.h"
-#include "hal/gpiobus.h"
+// TODO Evaluate CHECK CONDITION
+
+#include "log.h"
 #include "hal/gpiobus_factory.h"
+#include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rascsi_version.h"
+#include "rasdump/rasdump_core.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include <sys/stat.h>
+#include <csignal>
+#include <unistd.h>
 #include <cstring>
 #include <iostream>
-#include <array>
+#include <fstream>
 
 using namespace std;
+using namespace spdlog;
+using namespace scsi_defs;
 
-//---------------------------------------------------------------------------
-//
-//	Constant Declaration
-//
-//---------------------------------------------------------------------------
-static const int BUFSIZE = 1024 * 64;			// Buffer size of about 64KB
-
-//---------------------------------------------------------------------------
-//
-//	Variable Declaration
-//
-//---------------------------------------------------------------------------
-unique_ptr<GPIOBUS> bus;		// GPIO Bus
-int targetid;					// Target ID
-int boardid;					// Board ID (own ID)
-string hdsfile;					// HDS file
-bool restore;					// Restore flag
-array<uint8_t, BUFSIZE> buffer;	// Work Buffer
-int result;						// Result Code
-
-//---------------------------------------------------------------------------
-//
-//	Cleanup() Function declaration
-//
-//---------------------------------------------------------------------------
-void Cleanup();
-
-//---------------------------------------------------------------------------
-//
-//	Signal processing
-//
-//---------------------------------------------------------------------------
-void KillHandler(int)
+void RasDump::CleanUp()
 {
-	// Stop running
-	Cleanup();
-	exit(0);
+	if (bus != nullptr) {
+		bus->Cleanup();
+	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Banner Output
-//
-//---------------------------------------------------------------------------
-bool RasDump::Banner(const vector<char *>& args)
+void RasDump::KillHandler(int)
 {
-	printf("RaSCSI hard disk dump utility ");
-	printf("version %s (%s, %s)\n",
-		rascsi_get_version_string().c_str(),
-		__DATE__,
-		__TIME__);
+	CleanUp();
 
-	if (args.size() < 2 || strcmp(args[1], "-h") == 0) {
-		printf("Usage: %s -i ID [-b BID] -f FILE [-r]\n", args[0]);
-		printf(" ID is target device SCSI ID {0|1|2|3|4|5|6|7}.\n");
-		printf(" BID is rascsi board SCSI ID {0|1|2|3|4|5|6|7}. Default is 7.\n");
-		printf(" FILE is HDS file path.\n");
-		printf(" -r is restore operation.\n");
+	exit(EXIT_SUCCESS);
+}
+
+bool RasDump::Banner(const vector<char *>& args) const
+{
+	cout << "RaSCSI hard disk dump utility version " << rascsi_get_version_string()
+			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
+
+	if (args.size() < 2 || string(args[1]) == "-h") {
+		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"
+				<< " ID is the target device ID (0-7).\n"
+				<< " LUN is the optional target device LUN (0-7). Default is 0.\n"
+				<< " BID is the RaSCSI board ID (0-7). Default is 7.\n"
+				<< " FILE is the dump file path.\n"
+				<< " BUFFER_SIZE is the transfer buffer size, at least "
+				<< to_string(MINIMUM_BUFFER_SIZE / 1024) << " KiB. Default is 1 MiB.\n"
+				<< " -v Enable verbose logging.\n"
+				<< " -r Restore instead of dump.\n" << flush;
+
 		return false;
 	}
 
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Initialization
-//
-//---------------------------------------------------------------------------
-bool RasDump::Init()
+bool RasDump::Init() const
 {
 	// Interrupt handler setting
-	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return false;
-	}
-	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return false;
-	}
-	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
+	if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR ||
+			signal(SIGTERM, KillHandler) == SIG_ERR) {
 		return false;
 	}
 
-	bus = GPIOBUS_Factory::Create();
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::INITIATOR);
 
-	// GPIO Initialization
-	if (!bus->Init(BUS::mode_e::INITIATOR)) {
-		return false;
-	}
-
-	// Work Intitialization
-	targetid = -1;
-	boardid = 7;
-	restore = false;
-
-	return true;
+	return bus != nullptr;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cleanup
-//
-//---------------------------------------------------------------------------
-void Cleanup()
-{
-	// Cleanup the bus
-	bus->Cleanup();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
-void RasDump::Reset()
-{
-	// Reset the bus signal line
-	bus->Reset();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Argument processing
-//
-//---------------------------------------------------------------------------
-bool RasDump::ParseArguments(const vector<char *>& args)
+void RasDump::ParseArguments(const vector<char *>& args)
 {
 	int opt;
-	const char *file = nullptr;
 
-	// Argument Parsing
+	int buffer_size = DEFAULT_BUFFER_SIZE;
+
 	opterr = 0;
-	while ((opt = getopt(args.size(), args.data(), "i:b:f:r")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:u:rv")) != -1) {
 		switch (opt) {
 			case 'i':
-				targetid = optarg[0] - '0';
-				break;
-
-			case 'b':
-				boardid = optarg[0] - '0';
+				if (!GetAsInt(optarg, initiator_id) || initiator_id > 7) {
+					throw rasdump_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
+				}
 				break;
 
 			case 'f':
-				file = optarg;
+				filename = optarg;
+				break;
+
+			case 's':
+				if (!GetAsInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
+					throw rasdump_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
+				}
+
+				break;
+
+			case 't':
+				ProcessId(optarg, target_id, target_lun);
+				break;
+
+			case 'u':
+				if (!GetAsInt(optarg, target_lun) || target_lun > 7) {
+					throw rasdump_exception("Invalid target LUN " + to_string(target_lun) + " (0-7)");
+				}
+				break;
+
+			case 'v':
+				set_level(level::debug);
 				break;
 
 			case 'r':
@@ -178,86 +127,259 @@ bool RasDump::ParseArguments(const vector<char *>& args)
 		}
 	}
 
-	// TARGET ID check
-	if (targetid < 0 || targetid > 7) {
-		fprintf(stderr,
-			"Error : Invalid target id range\n");
-		return false;
+	if (target_id == initiator_id) {
+		throw rasdump_exception("Target ID and RaSCSI board ID must not be identical");
 	}
 
-	// BOARD ID check
-	if (boardid < 0 || boardid > 7) {
-		fprintf(stderr,
-			"Error : Invalid board id range\n");
-		return false;
+	if (filename.empty()) {
+		throw rasdump_exception("Missing filename");
 	}
 
-	// Target and Board ID duplication check
-	if (targetid == boardid) {
-		fprintf(stderr,
-			"Error : Invalid target or board id\n");
-		return false;
-	}
-
-	// File Check
-	if (!file) {
-		fprintf(stderr,
-			"Error : Invalid file path\n");
-		return false;
-	}
-
-	hdsfile = file;
-
-	return true;
+	buffer = vector<uint8_t>(buffer_size);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Wait Phase
-//
-//---------------------------------------------------------------------------
-bool RasDump::WaitPhase(BUS::phase_t phase)
+void RasDump::WaitPhase(BUS::phase_t phase) const
 {
+	LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
+
 	// Timeout (3000ms)
 	const uint32_t now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus->Acquire();
 		if (bus->GetREQ() && bus->GetPhase() == phase) {
-			return true;
+			return;
 		}
 	}
 
-	return false;
+	throw rasdump_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
+			+ string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
-//---------------------------------------------------------------------------
-//
-//	Bus Free Phase
-//
-//---------------------------------------------------------------------------
-void RasDump::BusFree()
+void RasDump::Selection() const
 {
-	// Bus Reset
+	// Set initiator and target ID
+	auto data = static_cast<uint8_t>(1 << initiator_id);
+	data |= (1 << target_id);
+	bus->SetDAT(data);
+
+	bus->SetSEL(true);
+	//bus->SetATN(true);
+
+	WaitForBusy();
+
+	bus->SetSEL(false);
+
+	// TODO Send IDENTIFY message for LUN selection
+	//buffer[0] = 0x80 | target_lun;
+	//MessageOut();
+
+	//bus->SetATN(false);
+}
+
+void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
+{
+	LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
+
+	Selection();
+
+	WaitPhase(BUS::phase_t::command);
+
+	// Send command. Success if the transmission result is the same as the number of requests
+	cdb[0] = static_cast<uint8_t>(cmd);
+	cdb[1] |= target_lun << 5;
+	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
+		BusFree();
+
+		throw rasdump_exception(command_mapping.find(cmd)->second.second + string(" failed"));
+	}
+}
+
+void RasDump::DataIn(int length)
+{
+	WaitPhase(BUS::phase_t::datain);
+
+	if (!bus->ReceiveHandShake(buffer.data(), length)) {
+		throw rasdump_exception("DATA IN failed");
+	}
+}
+
+void RasDump::DataOut(int length)
+{
+	WaitPhase(BUS::phase_t::dataout);
+
+	if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
+		throw rasdump_exception("DATA OUT failed");
+	}
+}
+
+void RasDump::Status() const
+{
+	WaitPhase(BUS::phase_t::status);
+
+	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
+		throw rasdump_exception("STATUS failed");
+	}
+}
+
+void RasDump::MessageIn() const
+{
+	WaitPhase(BUS::phase_t::msgin);
+
+	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
+		throw rasdump_exception("MESSAGE IN failed");
+	}
+}
+
+void RasDump::MessageOut()
+{
+	WaitPhase(BUS::phase_t::msgout);
+
+	if (!bus->SendHandShake(buffer.data(), 1, BUS::SEND_NO_DELAY)) {
+		throw rasdump_exception("MESSAGE OUT failed");
+	}
+}
+
+void RasDump::BusFree() const
+{
 	bus->Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Selection Phase
-//
-//---------------------------------------------------------------------------
-bool RasDump::Selection(int id)
+void RasDump::TestUnitReady() const
 {
-	// ID setting and SEL assert
-	uint8_t data = 1 << boardid;
-	data |= (1 << id);
-	bus->SetDAT(data);
-	bus->SetSEL(true);
+	vector<uint8_t> cdb(6);
+	Command(scsi_command::eCmdTestUnitReady, cdb);
 
-	// wait for busy
+	Status();
+
+	MessageIn();
+
+	BusFree();
+}
+
+void RasDump::RequestSense()
+{
+	vector<uint8_t> cdb(6);
+	cdb[4] = 0xff;
+	Command(scsi_command::eCmdRequestSense, cdb);
+
+	DataIn(256);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
+}
+
+void RasDump::Inquiry()
+{
+	vector<uint8_t> cdb(6);
+	cdb[4] = 0xff;
+	Command(scsi_command::eCmdInquiry, cdb);
+
+	DataIn(256);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
+}
+
+pair<uint64_t, uint32_t> RasDump::ReadCapacity()
+{
+	vector<uint8_t> cdb(10);
+	Command(scsi_command::eCmdReadCapacity10, cdb);
+
+	DataIn(8);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
+
+	uint64_t capacity = (static_cast<uint32_t>(buffer[0]) << 24) | (static_cast<uint32_t>(buffer[1]) << 16) |
+			(static_cast<uint32_t>(buffer[2]) << 8) | static_cast<uint32_t>(buffer[3]);
+
+	int sector_size_offset = 4;
+
+	if (static_cast<int32_t>(capacity) == -1) {
+		cdb.resize(16);
+		// READ CAPACITY(16), not READ LONG(16)
+		cdb[1] = 0x10;
+		Command(scsi_command::eCmdReadCapacity16_ReadLong16, cdb);
+
+		DataIn(14);
+
+		Status();
+
+		MessageIn();
+
+		BusFree();
+
+		capacity = (static_cast<uint64_t>(buffer[0]) << 56) | (static_cast<uint64_t>(buffer[1]) << 48) |
+				(static_cast<uint64_t>(buffer[2]) << 40) | (static_cast<uint64_t>(buffer[3]) << 32) |
+				(static_cast<uint64_t>(buffer[4]) << 24) | (static_cast<uint64_t>(buffer[5]) << 16) |
+				(static_cast<uint64_t>(buffer[6]) << 8) | static_cast<uint64_t>(buffer[7]);
+
+		sector_size_offset = 8;
+	}
+
+	const uint32_t sector_size = (static_cast<uint32_t>(buffer[sector_size_offset]) << 24) |
+			(static_cast<uint32_t>(buffer[sector_size_offset + 1]) << 16) |
+			(static_cast<uint32_t>(buffer[sector_size_offset +2]) << 8) |
+			static_cast<uint32_t>(buffer[sector_size_offset + 3]);
+
+	return make_pair(capacity, sector_size);
+}
+
+void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
+{
+	vector<uint8_t> cdb(10);
+	cdb[2] = (uint8_t)(bstart >> 24);
+	cdb[3] = (uint8_t)(bstart >> 16);
+	cdb[4] = (uint8_t)(bstart >> 8);
+	cdb[5] = (uint8_t)bstart;
+	cdb[7] = (uint8_t)(blength >> 8);
+	cdb[8] = (uint8_t)blength;
+	Command(scsi_command::eCmdRead10, cdb);
+
+	DataIn(length);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
+}
+
+void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
+{
+	vector<uint8_t> cdb(10);
+	cdb[2] = (uint8_t)(bstart >> 24);
+	cdb[3] = (uint8_t)(bstart >> 16);
+	cdb[4] = (uint8_t)(bstart >> 8);
+	cdb[5] = (uint8_t)bstart;
+	cdb[7] = (uint8_t)(blength >> 8);
+	cdb[8] = (uint8_t)blength;
+	Command(scsi_command::eCmdWrite10, cdb);
+
+	DataOut(length);
+
+	Status();
+
+	MessageIn();
+
+	BusFree();
+}
+
+void RasDump::WaitForBusy() const
+{
+	// Wait for busy for up to 2 s
 	int count = 10000;
 	do {
-		// Wait 20 microseconds
+		// Wait 20 ms
 		const timespec ts = { .tv_sec = 0, .tv_nsec = 20 * 1000};
 		nanosleep(&ts, nullptr);
 		bus->Acquire();
@@ -266,733 +388,197 @@ bool RasDump::Selection(int id)
 		}
 	} while (count--);
 
-	// SEL negate
-	bus->SetSEL(false);
-
 	// Success if the target is busy
-	return bus->GetBSY();
+	if(!bus->GetBSY()) {
+		throw rasdump_exception("SELECTION failed");
+	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Command Phase
-//
-//---------------------------------------------------------------------------
-bool RasDump::Command(uint8_t *buf, int length)
-{
-	// Waiting for Phase
-	if (!WaitPhase(BUS::phase_t::command)) {
-		return false;
-	}
-
-	// Send Command
-	const int count = bus->SendHandShake(buf, length, BUS::SEND_NO_DELAY);
-
-	// Success if the transmission result is the same as the number
-	// of requests
-	if (count == length) {
-		return true;
-	}
-
-	// Return error
-	return false;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Data in phase
-//
-//---------------------------------------------------------------------------
-int RasDump::DataIn(uint8_t *buf, int length)
-{
-	// Wait for phase
-	if (!WaitPhase(BUS::phase_t::datain)) {
-		return -1;
-	}
-
-	// Data reception
-	return bus->ReceiveHandShake(buf, length);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Data out phase
-//
-//---------------------------------------------------------------------------
-int RasDump::DataOut(uint8_t *buf, int length)
-{
-	// Wait for phase
-	if (!WaitPhase(BUS::phase_t::dataout)) {
-		return -1;
-	}
-
-	// Data transmission
-	return bus->SendHandShake(buf, length, BUS::SEND_NO_DELAY);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Status Phase
-//
-//---------------------------------------------------------------------------
-int RasDump::Status()
-{
-	uint8_t buf[256];
-
-	// Wait for phase
-	if (!WaitPhase(BUS::phase_t::status)) {
-		return -2;
-	}
-
-	// Data reception
-	if (bus->ReceiveHandShake(buf, 1) == 1) {
-		return (int)buf[0];
-	}
-
-	// Return error
-	return -1;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Message in phase
-//
-//---------------------------------------------------------------------------
-int RasDump::MessageIn()
-{
-	uint8_t buf[256];
-
-	// Wait for phase
-	if (!WaitPhase(BUS::phase_t::msgin)) {
-		return -2;
-	}
-
-	// Data reception
-	if (bus->ReceiveHandShake(buf, 1) == 1) {
-		return (int)buf[0];
-	}
-
-	// Return error
-	return -1;
-}
-
-//---------------------------------------------------------------------------
-//
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
-int RasDump::TestUnitReady(int id)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x00;
-	if (!Command(cmd.data(), 6)) {
-		result = -2;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	REQUEST SENSE
-//
-//---------------------------------------------------------------------------
-int RasDump::RequestSense(int id, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x03;
-	cmd[4] = 0xff;
-	if (!Command(cmd.data(), 6)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAIN
-	memset(buf, 0x00, 256);
-	count = DataIn(buf, 256);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus Free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE
-//
-//---------------------------------------------------------------------------
-int RasDump::ModeSense(int id, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x1a;
-	cmd[2] = 0x3f;
-	cmd[4] = 0xff;
-	if (!Command(cmd.data(), 6)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAIN
-	memset(buf, 0x00, 256);
-	count = DataIn(buf, 256);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int RasDump::Inquiry(int id, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x12;
-	cmd[4] = 0xff;
-	if (!Command(cmd.data(), 6)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAIN
-	memset(buf, 0x00, 256);
-	count = DataIn(buf, 256);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ CAPACITY
-//
-//---------------------------------------------------------------------------
-int RasDump::ReadCapacity(int id, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x25;
-	if (!Command(cmd.data(), 10)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAIN
-	memset(buf, 0x00, 8);
-	count = DataIn(buf, 8);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ10
-//
-//---------------------------------------------------------------------------
-int RasDump::Read10(int id, uint32_t bstart, uint32_t blength, uint32_t length, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x28;
-	cmd[2] = (uint8_t)(bstart >> 24);
-	cmd[3] = (uint8_t)(bstart >> 16);
-	cmd[4] = (uint8_t)(bstart >> 8);
-	cmd[5] = (uint8_t)bstart;
-	cmd[7] = (uint8_t)(blength >> 8);
-	cmd[8] = (uint8_t)blength;
-	if (!Command(cmd.data(), 10)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAIN
-	count = DataIn(buf, length);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	WRITE10
-//
-//---------------------------------------------------------------------------
-int RasDump::Write10(int id, uint32_t bstart, uint32_t blength, uint32_t length, uint8_t *buf)
-{
-	array<uint8_t, 256> cmd = {};
-
-	// Result code initialization
-	result = 0;
-	int count = 0;
-
-	// SELECTION
-	if (!Selection(id)) {
-		result = -1;
-		goto exit;
-	}
-
-	// COMMAND
-	cmd[0] = 0x2a;
-	cmd[2] = (uint8_t)(bstart >> 24);
-	cmd[3] = (uint8_t)(bstart >> 16);
-	cmd[4] = (uint8_t)(bstart >> 8);
-	cmd[5] = (uint8_t)bstart;
-	cmd[7] = (uint8_t)(blength >> 8);
-	cmd[8] = (uint8_t)blength;
-	if (!Command(cmd.data(), 10)) {
-		result = -2;
-		goto exit;
-	}
-
-	// DATAOUT
-	count = DataOut(buf, length);
-	if (count <= 0) {
-		result = -3;
-		goto exit;
-	}
-
-	// STATUS
-	if (Status() < 0) {
-		result = -4;
-		goto exit;
-	}
-
-	// MESSAGE IN
-	if (MessageIn() < 0) {
-		result = -5;
-		goto exit;
-	}
-
-exit:
-	// Bus free
-	BusFree();
-
-	// Returns the number of transfers if successful
-	if (result == 0) {
-		return count;
-	}
-
-	return result;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Main process
-//
-//---------------------------------------------------------------------------
 int RasDump::run(const vector<char *>& args)
 {
-	int i;
-	char str[32];
-	uint32_t bsiz;
-	uint32_t bnum;
-	uint32_t duni;
-	uint32_t dsiz;
-	uint32_t dnum;
-	Fileio fio;
-	Fileio::OpenMode omode;
-	off_t size;
-
-	// Banner output
 	if (!Banner(args)) {
-		exit(0);
+		return EXIT_SUCCESS;
 	}
 
-	// Initialization
 	if (!Init()) {
-		fprintf(stderr, "Error : Initializing. Are you root?\n");
+		cerr << "Error: Initializing. Are you root?" << endl;
 
 		// Probably not root
-		exit(EPERM);
+		return EPERM;
 	}
 
-	// Prase Argument
-	if (!ParseArguments(args)) {
-		// Cleanup
-		Cleanup();
-
-		// Exit with invalid argument error
-		exit(EINVAL);
-	}
+	try {
+		ParseArguments(args);
 
 #ifndef USE_SEL_EVENT_ENABLE
-	cerr << "Error: No RaSCSI hardware support" << endl;
-	exit(EXIT_FAILURE);
+		cerr << "Error: No RaSCSI hardware support" << endl;
+		return EXIT_FAILURE;
 #endif
 
-	// Reset the SCSI bus
-	Reset();
-
-	// File Open
-	if (restore) {
-		omode = Fileio::OpenMode::ReadOnly;
-	} else {
-		omode = Fileio::OpenMode::WriteOnly;
+		return DumpRestore();
 	}
-	if (!fio.Open(hdsfile.c_str(), omode)) {
-		fprintf(stderr, "Error : Can't open hds file\n");
+	catch(const rasdump_exception& e) {
+		cerr << "Error: " << e.what() << endl;
 
-		// Cleanup
-		Cleanup();
-		exit(EPERM);
+		CleanUp();
+
+		return EXIT_FAILURE;
 	}
 
-	// Bus free
-	BusFree();
+	CleanUp();
 
-	// Assert reset signal
+	return EXIT_SUCCESS;
+}
+
+int RasDump::DumpRestore()
+{
+	fstream fs;
+	fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
+
+	if (fs.fail()) {
+		throw rasdump_exception("Can't open image file '" + filename + "'");
+	}
+
+	// Assert RST for 1 ms
 	bus->SetRST(true);
-	// Wait 1 ms
 	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
 	nanosleep(&ts, nullptr);
 	bus->SetRST(false);
 
-	// Start dump
-	printf("TARGET ID               : %d\n", targetid);
-	printf("BOARD ID                : %d\n", boardid);
+	cout << "Target device ID: " << target_id << ", LUN: " << target_lun << "\n";
+	cout << "RaSCSI board ID: " << initiator_id << "\n" << flush;
 
-	// TEST UNIT READY
-	int count = TestUnitReady(targetid);
-	if (count < 0) {
-		fprintf(stderr, "TEST UNIT READY ERROR %d\n", count);
-		goto cleanup_exit;
-	}
-
-	// REQUEST SENSE(for CHECK CONDITION)
-	count = RequestSense(targetid, buffer.data());
-	if (count < 0) {
-		fprintf(stderr, "REQUEST SENSE ERROR %d\n", count);
-		goto cleanup_exit;
-	}
-
-	// INQUIRY
-	count = Inquiry(targetid, buffer.data());
-	if (count < 0) {
-		fprintf(stderr, "INQUIRY ERROR %d\n", count);
-		goto cleanup_exit;
-	}
+	Inquiry();
 
 	// Display INQUIRY information
-	memset(str, 0x00, sizeof(str));
-	memcpy(str, &buffer[8], 8);
-	printf("Vendor                  : %s\n", str);
-	memset(str, 0x00, sizeof(str));
-	memcpy(str, &buffer[16], 16);
-	printf("Product                 : %s\n", str);
-	memset(str, 0x00, sizeof(str));
-	memcpy(str, &buffer[32], 4);
-	printf("Revison                 : %s\n", str);
+	array<char, 17> str = {};
+	memcpy(str.data(), &buffer[8], 8);
+	cout << "Vendor:    " << str.data() << "\n";
+	str.fill(0);
+	memcpy(str.data(), &buffer[16], 16);
+	cout << "Product:   " << str.data() << "\n";
+	str.fill(0);
+	memcpy(str.data(), &buffer[32], 4);
+	cout << "Revision:  " << str.data() << "\n" << flush;
 
-	// Get drive capacity
-	count = ReadCapacity(targetid, buffer.data());
-	if (count < 0) {
-		fprintf(stderr, "READ CAPACITY ERROR %d\n", count);
-		goto cleanup_exit;
+	if (auto type = static_cast<device_type>(buffer[0]);
+		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+		throw rasdump_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
 	}
 
-	// Display block size and number of blocks
-	bsiz =
-		(buffer[4] << 24) | (buffer[5] << 16) |
-		(buffer[6] << 8) | buffer[7];
-	bnum =
-		(buffer[0] << 24) | (buffer[1] << 16) |
-		(buffer[2] << 8) | buffer[3];
-	bnum++;
-	printf("Number of blocks        : %d Blocks\n", (int)bnum);
-	printf("Block length            : %d Bytes\n", (int)bsiz);
-	printf("Unit Capacity           : %d MBytes %d Bytes\n",
-		(int)(bsiz * bnum / 1024 / 1024),
-		(int)(bsiz * bnum));
+	TestUnitReady();
 
-	// Get the restore file size
+	RequestSense();
+
+	const auto [capacity, sector_size] = ReadCapacity();
+
+	cout << "Number of sectors: " << capacity << "\n"
+			<< "Sector size:       " << sector_size << " bytes\n"
+			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
+			<< sector_size * capacity << " bytes)\n\n" << flush;
+
 	if (restore) {
-		size = fio.GetFileSize();
-		printf("Restore file size       : %d bytes", (int)size);
-		if (size > (off_t)(bsiz * bnum)) {
-			printf("(WARNING : File size is larger than disk size)");
-		} else if (size < (off_t)(bsiz * bnum)) {
-			printf("(ERROR   : File size is smaller than disk size)\n");
-			goto cleanup_exit;
+		cout << "Starting restore\n" << flush;
+
+		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
+		off_t size;
+		if (struct stat st; !stat(filename.c_str(), &st)) {
+			size = st.st_size;
 		}
-		printf("\n");
+		else {
+			throw rasdump_exception("Can't determine file size");
+		}
+
+		cout << "Restore file size: " << size << " bytes\n";
+		if (size > (off_t)(sector_size * capacity)) {
+			cout << "WARNING: File size is larger than disk size\n" << flush;
+		} else if (size < (off_t)(sector_size * capacity)) {
+			throw rasdump_exception("File size is smaller than disk size");
+		}
+	}
+	else {
+		cout << "Starting dump\n" << flush;
 	}
 
 	// Dump by buffer size
-	duni = BUFSIZE;
-	duni /= bsiz;
-	dsiz = BUFSIZE;
-	dnum = bnum * bsiz;
-	dnum /= BUFSIZE;
+	auto dsiz = static_cast<int>(buffer.size());
+	const int duni = dsiz / sector_size;
+	int dnum = static_cast<int>((capacity * sector_size) / dsiz);
 
-	if (restore) {
-		printf("Restore progress        : ");
-	} else {
-		printf("Dump progress           : ");
-	}
-
-	for (i = 0; i < (int)dnum; i++) {
-		if (i > 0) {
-			printf("\033[21D");
-			printf("\033[0K");
-		}
-		printf("%3d%%(%7d/%7d)",
-			(int)((i + 1) * 100 / dnum),
-			(int)(i * duni),
-			(int)bnum);
-		fflush(stdout);
-
+	int i;
+	for (i = 0; i < dnum; i++) {
 		if (restore) {
-			if (fio.Read(buffer.data(), dsiz) && Write10(targetid, i * duni, duni, dsiz, buffer.data()) >= 0) {
-				continue;
-			}
-		} else {
-			if (Read10(targetid, i * duni, duni, dsiz, buffer.data()) >= 0 && fio.Write(buffer.data(), dsiz)) {
-				continue;
-			}
+			fs.read((char *)buffer.data(), dsiz);
+			Write10(i * duni, duni, dsiz);
+		}
+		else {
+			Read10(i * duni, duni, dsiz);
+			fs.write((const char *)buffer.data(), dsiz);
 		}
 
-		printf("\n");
-		printf("Error occured and aborted... %d\n", result);
-		goto cleanup_exit;
-	}
+		if (fs.fail()) {
+			throw rasdump_exception("File I/O failed");
+		}
 
-	if (dnum > 0) {
-		printf("\033[21D");
-		printf("\033[0K");
+		cout << ((i + 1) * 100 / dnum) << "%" << " (" << ( i + 1) * duni << "/" << capacity << ")\n" << flush;
 	}
 
 	// Rounding on capacity
-	dnum = bnum % duni;
-	dsiz = dnum * bsiz;
+	dnum = capacity % duni;
+	dsiz = dnum * sector_size;
 	if (dnum > 0) {
 		if (restore) {
-			if (fio.Read(buffer.data(), dsiz)) {
-				Write10(targetid, i * duni, dnum, dsiz, buffer.data());
-			}
-		} else {
-			if (Read10(targetid, i * duni, dnum, dsiz, buffer.data()) >= 0) {
-				fio.Write(buffer.data(), dsiz);
+			fs.read((char *)buffer.data(), dsiz);
+			if (!fs.fail()) {
+				Write10(i * duni, dnum, dsiz);
 			}
 		}
+		else {
+			Read10(i * duni, dnum, dsiz);
+			fs.write((const char *)buffer.data(), dsiz);
+		}
+
+		if (fs.fail()) {
+			throw rasdump_exception("File I/O failed");
+		}
+
+		cout << "100% (" << capacity << "/" << capacity << ")\n" << flush;
 	}
 
-	// Completion Message
-	printf("%3d%%(%7d/%7d)\n", 100, (int)bnum, (int)bnum);
+	return EXIT_SUCCESS;
+}
 
-cleanup_exit:
-	// File close
-	fio.Close();
+void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
+{
+	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
+		if (!GetAsInt(id_spec, id) || id >= 8) {
+			throw rasdump_exception("Invalid device ID (0-7)");
+		}
 
-	// Cleanup
-	Cleanup();
+		lun = 0;
+	}
+	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
+			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
+		throw rasdump_exception("Invalid unit (0-7)");
+	}
+}
 
-	// end
-	exit(0);
+bool RasDump::GetAsInt(const string& value, int& result)
+{
+	if (value.find_first_not_of("0123456789") != string::npos) {
+		return false;
+	}
+
+	try {
+		auto v = stoul(value);
+		result = (int)v;
+	}
+	catch(const invalid_argument&) {
+		return false;
+	}
+	catch(const out_of_range&) {
+		return false;
+	}
+
+	return true;
 }
