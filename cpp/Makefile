@@ -83,9 +83,14 @@ SRC_PROTOC = \
 	rascsi_interface.proto
 
 SRC_PROTOBUF = \
-	rascsi_interface.pb.cpp
+	rascsi_interface.pb.cpp \
+	shared/protobuf_util.cpp \
+	shared/protobuf_serializer.cpp
 
-SRC_SHARED = $(shell find ./shared -name '*.cpp')
+SRC_SHARED = \
+	shared/rascsi_version.cpp \
+	shared/rasutil.cpp
+
 SRC_RASCSI_CORE = $(shell find ./rascsi -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
@@ -180,11 +185,11 @@ $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHAR
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lprotobuf
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED)
 
-$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lprotobuf
+$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) \
