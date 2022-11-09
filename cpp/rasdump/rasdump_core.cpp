@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 // TODO Evaluate CHECK CONDITION after sending a command
-// TODO Support LUNS > 7
+// TODO Send IDENTIFY message in order to support LUNS > 7
 
 #include "shared/log.h"
 #include "shared/rasutil.h"
@@ -22,6 +22,7 @@
 #include "rasdump/rasdump_core.h"
 #include <sys/stat.h>
 #include <csignal>
+#include <cstddef>
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
