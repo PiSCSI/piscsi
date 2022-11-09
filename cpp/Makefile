@@ -93,9 +93,7 @@ SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
 
 SRC_RASCSI = rascsi.cpp
 
-SRC_SCSIMON = \
-	scsimon.cpp \
-	rascsi_version.cpp
+SRC_SCSIMON = scsimon.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
@@ -103,9 +101,7 @@ SRC_RASCTL_CORE = $(shell find ./rasctl -name '*.cpp')
 
 SRC_RASCTL = rasctl.cpp
 
-SRC_RASDUMP = \
-	rasdump.cpp \
-	rascsi_version.cpp
+SRC_RASDUMP = rasdump.cpp
 SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
 SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
 
@@ -134,7 +130,7 @@ GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -175,22 +171,24 @@ lcov: test
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/rasdump_man_page.txt
 
-$(SRC_SHARED) $(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE): $(OBJ_PROTOBUF)
+$(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE) $(SRC_RASDUMP) $(SRC_SCSIMON) : $(OBJ_PROTOBUF)
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) \
+	-lpthread -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lprotobuf
 
-$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lprotobuf
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_PROTOBUF) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) \
+	-lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 
 # Phony rules for building individual utilities

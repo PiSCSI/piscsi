@@ -14,6 +14,7 @@
 #include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
 #include <string>
+#include <list>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -27,4 +28,5 @@ namespace protobuf_util
 	void SetParam(PbDevice&, const string&, string_view);
 	void SetParam(PbDeviceDefinition&, const string&, string_view);
 	void SetPatternParams(PbCommand&, string_view);
+	string ListDevices(const list<PbDevice>&);
 }

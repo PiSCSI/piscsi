@@ -12,12 +12,12 @@
 // TODO Evaluate CHECK CONDITION after sending a command
 
 #include "shared/log.h"
+#include "shared/rasutil.h"
 #include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "rasdump/rasdump_core.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
 #include <sys/stat.h>
 #include <csignal>
 #include <unistd.h>
@@ -28,6 +28,7 @@
 using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
+using namespace ras_util;
 
 void RasDump::CleanUp()
 {
@@ -561,24 +562,4 @@ void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
 			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
 		throw rasdump_exception("Invalid unit (0-7)");
 	}
-}
-
-bool RasDump::GetAsInt(const string& value, int& result)
-{
-	if (value.find_first_not_of("0123456789") != string::npos) {
-		return false;
-	}
-
-	try {
-		auto v = stoul(value);
-		result = (int)v;
-	}
-	catch(const invalid_argument&) {
-		return false;
-	}
-	catch(const out_of_range&) {
-		return false;
-	}
-
-	return true;
 }

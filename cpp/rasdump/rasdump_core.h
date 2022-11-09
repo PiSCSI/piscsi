@@ -63,7 +63,6 @@ private:
 	// TODO Use ras_util after removing its dependencies on protobuf interface.
 	// Not required in case rasdump is integrated into rascsi.
 	static void ProcessId(const string&, int&, int&);
-	static bool GetAsInt(const string&, int&);
 
 	static void CleanUp();
 	static void KillHandler(int);
