@@ -25,7 +25,7 @@ class RascsiExecutor;
 
 class Rascsi
 {
-	using optarg_queue_type = vector<pair<int, string>>;
+	using optargs_type = vector<pair<int, string>>;
 
 	static const int DEFAULT_PORT = 6868;
 
@@ -44,8 +44,8 @@ private:
 	void ReadAccessToken(const string&) const;
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	void ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
-	void CreateInitialDevices(const optarg_queue_type&) const;
+	optargs_type ParseArguments(const vector<char *>&, int&) const;
+	void CreateInitialDevices(const optargs_type&) const;
 
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);

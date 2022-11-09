@@ -132,8 +132,9 @@ void Rascsi::TerminationHandler(int signum)
 	exit(signum);
 }
 
-void Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
+Rascsi::optargs_type Rascsi::ParseArguments(const vector<char *>& args, int& port) const
 {
+	optargs_type optargs;
 	int block_size = 0;
 	string name;
 
@@ -155,7 +156,7 @@ void Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'z':
 			{
 				const string optarg_str = optarg == nullptr ? "" : optarg;
-				post_process.emplace_back(opt, optarg_str);
+				optargs.emplace_back(opt, optarg_str);
 				continue;
 			}
 
@@ -188,7 +189,7 @@ void Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			{
 				// Encountered filename
 				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(opt, optarg_str);
+				optargs.emplace_back(opt, optarg_str);
 				continue;
 			}
 
@@ -200,9 +201,11 @@ void Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			throw parser_exception("Praser error");
 		}
 	}
+
+	return optargs;
 }
 
-void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
+void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 {
 	PbCommand command;
 	int id = -1;
@@ -218,7 +221,7 @@ void Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	}
 
 	opterr = 1;
-	for (const auto& [option, value] : optarg_queue) {
+	for (const auto& [option, value] : optargs) {
 		switch (option) {
 			case 'i':
 			case 'I':
@@ -481,9 +484,9 @@ int Rascsi::run(const vector<char *>& args) const
 	Banner(args);
 
 	int port = DEFAULT_PORT;
-	optarg_queue_type optarg_queue;
+	optargs_type optargs;
 	try {
-		ParseArguments(args, port, optarg_queue);
+		optargs = ParseArguments(args, port);
 	}
 	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
@@ -506,7 +509,7 @@ int Rascsi::run(const vector<char *>& args) const
 	// We need to wait to create the devices until after the bus/controller/etc objects have been created
 	// TODO Try to resolve dependencies so that this work-around can be removed
 	try {
-		CreateInitialDevices(optarg_queue);
+		CreateInitialDevices(optargs);
 	}
 	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
