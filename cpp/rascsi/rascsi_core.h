@@ -28,7 +28,6 @@ class Rascsi
 	using optarg_queue_type = vector<pair<int, string>>;
 
 	static const int DEFAULT_PORT = 6868;
-	static const char COMPONENT_SEPARATOR = ':';
 
 public:
 

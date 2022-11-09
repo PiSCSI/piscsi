@@ -7,17 +7,18 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
-#include "shared/protobuf_serializer.h"
-#include "shared/protobuf_util.h"
+#include "log.h"
+#include "rasutil.h"
+#include "protobuf_serializer.h"
+#include "protobuf_util.h"
 #include <sstream>
 
 using namespace std;
+using namespace ras_util;
 using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
-static const char COMPONENT_SEPARATOR = ':';
 static const char KEY_VALUE_SEPARATOR = '=';
 
 void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& params)

@@ -15,6 +15,7 @@ using namespace std;
 
 namespace ras_util
 {
+	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';
 
 	bool GetAsInt(const string&, int&);
