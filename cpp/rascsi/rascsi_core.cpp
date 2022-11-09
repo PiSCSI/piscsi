@@ -102,8 +102,8 @@ void Rascsi::ReadAccessToken(const string& filename) const
 		throw parser_exception("Access token file '" + filename + "' must be owned by root");
 	}
 
-	const auto perms = filesystem::status(filename).permissions();
-	if ((perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
+	if (const auto perms = filesystem::status(filename).permissions();
+		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
 			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
 		throw parser_exception("Access token file '" + filename + "' must be readable by root only");
 	}
