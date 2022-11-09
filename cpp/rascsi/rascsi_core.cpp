@@ -218,7 +218,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 {
 	PbCommand command;
 	int id = -1;
-	int unit = -1;
+	int lun = -1;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
@@ -233,16 +233,15 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	opterr = 1;
 	for (const auto& [option, value] : optarg_queue) {
 		switch (option) {
-			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				id = -1;
-				unit = -1;
+				lun = -1;
 				continue;
 
 			case 'd':
 			case 'D': {
-				const string error = ProcessId(value, ScsiController::LUN_MAX, id, unit);
+				const string error = ProcessId(value, ScsiController::LUN_MAX, id, lun);
 				if (!error.empty()) {
 					cerr << error << endl;
 					return false;
@@ -305,7 +304,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
 		device->set_id(id);
-		device->set_unit(unit);
+		device->set_unit(lun);
 		device->set_type(type);
 		device->set_block_size(block_size);
 
