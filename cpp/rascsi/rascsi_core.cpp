@@ -239,7 +239,10 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 
 			case 'd':
 			case 'D': {
-				ProcessId(value, ScsiController::LUN_MAX, id, lun);
+				const string error = ProcessId(value, ScsiController::LUN_MAX, id, lun);
+				if (!error.empty()) {
+					throw parser_exception(error);
+				}
 				continue;
 			}
 

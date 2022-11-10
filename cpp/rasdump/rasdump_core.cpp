@@ -107,8 +107,12 @@ void RasDump::ParseArguments(const vector<char *>& args)
 
 				break;
 
-			case 't':
-				ProcessId(optarg, 8, target_id, target_lun);
+			case 't': {
+					const string error = ProcessId(optarg, 8, target_id, target_lun);
+					if (!error.empty()) {
+						throw parser_exception(error);
+					}
+				}
 				break;
 
 			case 'v':

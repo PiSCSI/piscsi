@@ -91,11 +91,9 @@ int RasCtl::run(const vector<char *>& args) const
 			case 'i': {
 				int id;
 				int lun;
-				try {
-					ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
-				}
-				catch(const parser_exception& e) {
-					cerr << "Error: " << e.what() << endl;
+				const string error = ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
+				if (!error.empty()) {
+					cerr << "Error: " << error << endl;
 					exit(EXIT_FAILURE);
 				}
 				device->set_id(id);

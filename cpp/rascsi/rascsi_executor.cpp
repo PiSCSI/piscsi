@@ -177,10 +177,8 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		string l = log_level.substr(separator_pos + 1);
 		separator_pos = l.find(COMPONENT_SEPARATOR);
 		if (separator_pos != string::npos) {
-			try {
-				ProcessId(l, ScsiController::LUN_MAX, id, lun);
-			}
-			catch(const parser_exception& e) {
+			const string error = ProcessId(l, ScsiController::LUN_MAX, id, lun);
+			if (!error.empty()) {
 				LOGWARN("Invalid device ID/LUN specifier '%s'", l.c_str())
 				return false;
 			}
