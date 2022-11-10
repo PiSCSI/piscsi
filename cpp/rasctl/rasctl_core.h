@@ -9,9 +9,12 @@
 
 #pragma once
 
+#include "generated/rascsi_interface.pb.h"
 #include <vector>
+#include <string>
 
 using namespace std;
+using namespace rascsi_interface;
 
 class RasCtl
 {
@@ -25,4 +28,5 @@ class RasCtl
 private:
 
 	void Banner(const vector<char *>&) const;
+	void SetProductData(PbDeviceDefinition&, const string&) const;
 };
