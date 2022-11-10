@@ -235,7 +235,7 @@ void ScsiController::Command()
 
 void ScsiController::Execute()
 {
-	LOGDEBUG("++++ CMD ++++ Executing command $%02X", static_cast<int>(GetOpcode()))
+	LOGTRACE("%s ++++ CMD ++++ Executing command $%02X", __PRETTY_FUNCTION__, static_cast<int>(GetOpcode()))
 
 	// Initialization for data transfer
 	ResetOffset();
