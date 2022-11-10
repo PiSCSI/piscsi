@@ -175,7 +175,7 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		level = log_level.substr(0, separator_pos);
 
 		string l = log_level.substr(separator_pos + 1);
-		separator_pos = l.find(":");
+		separator_pos = l.find(COMPONENT_SEPARATOR);
 		if (separator_pos != string::npos) {
 			try {
 				ProcessId(l, ScsiController::LUN_MAX, id, lun);
