@@ -91,8 +91,7 @@ int RasCtl::run(const vector<char *>& args) const
 			case 'i': {
 				int id;
 				int lun;
-				const string error = ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
-				if (!error.empty()) {
+				if (const string error = ProcessId(optarg, ScsiController::LUN_MAX, id, lun); !error.empty()) {
 					cerr << "Error: " << error << endl;
 					exit(EXIT_FAILURE);
 				}
