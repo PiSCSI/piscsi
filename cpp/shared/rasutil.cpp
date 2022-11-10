@@ -36,8 +36,17 @@ bool ras_util::GetAsUnsignedInt(const string& value, int& result)
 
 string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
 {
+	id = -1;
+	lun = -1;
+
+	if (id_spec.empty()) {
+		return "Missing device ID";
+	}
+
 	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
 		if (!GetAsUnsignedInt(id_spec, id) || id >= 8) {
+			id = -1;
+
 			return "Invalid device ID (0-7)";
 		}
 
@@ -45,6 +54,9 @@ string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lu
 	}
 	else if (!GetAsUnsignedInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
 			!GetAsUnsignedInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
+		id = -1;
+		lun = -1;
+
 		return "Invalid LUN (0-" + to_string(max_luns - 1) + ")";
 	}
 
