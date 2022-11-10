@@ -189,8 +189,7 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		}
 	}
 
-	const auto& it = log_level_mapping.find(level);
-	if (it != log_level_mapping.end()) {
+	if (const auto& it = log_level_mapping.find(level); it != log_level_mapping.end()) {
 		set_level(it->second);
 	}
 	else {
