@@ -197,7 +197,7 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		return false;
 	}
 
-	PrimaryDevice::SetLogDevice(id, lun);
+	Device::SetLogDevice(id, lun);
 
 	if (id != -1) {
 		if (lun == -1) {
