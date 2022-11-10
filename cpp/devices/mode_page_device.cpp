@@ -9,11 +9,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "mode_page_device.h"
 #include <cstddef>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 using namespace scsi_defs;
@@ -43,14 +44,17 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	// Get page code (0x3f means all pages)
 	const int page = cdb[2] & 0x3f;
 
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page)
+	stringstream s;
+	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << static_cast<int>(page);
+	LogTrace(s.str());
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
 	SetUpModePages(pages, page, changeable);
 
 	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page)
+		s << "Unsupported mode page $" << page;
+		LogTrace(s.str());
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 

@@ -29,7 +29,6 @@
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_printer.h"
@@ -57,7 +56,7 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
 
 	if (GetParam("cmd").find("%f") == string::npos) {
-		LOGERROR("Missing filename specifier %%f")
+		LogTrace("Missing filename specifier %f");
 		return false;
 	}
 
@@ -86,11 +85,11 @@ void SCSIPrinter::Print()
 {
 	const uint32_t length = GetInt24(GetController()->GetCmd(), 2);
 
-	LOGTRACE("Receiving %d byte(s) to be printed", length)
+	LogTrace("Receiving " + to_string(length) + " byte(s) to be printed");
 
 	if (length > GetController()->GetBuffer().size()) {
-		LOGERROR("%s", ("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
-				" bytes, " + to_string(length) + " bytes expected").c_str())
+		LogError("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
+				" bytes, " + to_string(length) + " bytes expected");
 
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
@@ -104,7 +103,7 @@ void SCSIPrinter::Print()
 void SCSIPrinter::SynchronizeBuffer()
 {
 	if (!out.is_open()) {
-		LOGWARN("Nothing to print")
+		LogWarn("Nothing to print");
 
 		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
@@ -116,12 +115,12 @@ void SCSIPrinter::SynchronizeBuffer()
 
 	error_code error;
 
-	LOGTRACE("Printing file '%s' with %s byte(s)", filename.c_str(), to_string(file_size(path(filename), error)).c_str())
+	LogTrace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
 
-	LOGDEBUG("Executing '%s'", cmd.c_str())
+	LogDebug("Executing '" + cmd + "'");
 
 	if (system(cmd.c_str())) {
-		LOGERROR("Printing file '%s' failed, the printing system might not be configured", filename.c_str())
+		LogError("Printing file '" + filename + "' failed, the printing system might not be configured");
 
 		Cleanup();
 
@@ -142,7 +141,7 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 		// There is no C++ API that generates a file with a unique name
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
-			LOGERROR("Can't create printer output file for pattern '%s': %s", filename.c_str(), strerror(errno))
+			LogError("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
 			return false;
 		}
 		close(fd);
@@ -154,10 +153,10 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
-		LOGTRACE("Created printer output file '%s'", filename.c_str())
+		LogTrace("Created printer output file '" + filename + "'");
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer output file '%s'", length, filename.c_str())
+	LogTrace("Appending " + to_string(length) + " byte(s) to printer output file ''" + filename + "'");
 
 	out.write((const char*)buf.data(), length);
 

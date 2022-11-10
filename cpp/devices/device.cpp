@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_version.h"
 #include "device.h"
 #include <cassert>
@@ -145,4 +144,39 @@ bool Device::Eject(bool force)
 	stopped = true;
 
 	return true;
+}
+
+void Device::LogTrace(const string& error) const
+{
+	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
+		LOGTRACE("%s", error.c_str())
+	}
+}
+
+void Device::LogDebug(const string& error) const
+{
+	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
+		LOGDEBUG("%s", error.c_str())
+	}
+}
+
+void Device::LogInfo(const string& error) const
+{
+	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
+		LOGINFO("%s", error.c_str())
+	}
+}
+
+void Device::LogWarn(const string& error) const
+{
+	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
+		LOGWARN("%s", error.c_str())
+	}
+}
+
+void Device::LogError(const string& error) const
+{
+	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
+		LOGERROR("%s", error.c_str())
+	}
 }

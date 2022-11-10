@@ -14,10 +14,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "disk.h"
+#include <sstream>
+#include <iomanip>
 
 using namespace scsi_defs;
 using namespace scsi_command_util;
@@ -116,7 +117,7 @@ void Disk::Read(access_mode mode)
 		GetController()->SetBlocks(blocks);
 		GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), start));
 
-		LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, GetController()->GetLength())
+		LogTrace("Length is " + to_string(GetController()->GetLength()));
 
 		// Set next block
 		GetController()->SetNext(start + 1);
@@ -203,10 +204,10 @@ void Disk::StartStopUnit()
 	const bool load = GetController()->GetCmd(4) & 0x02;
 
 	if (load) {
-		LOGTRACE(start ? "Loading medium" : "Ejecting medium")
+		LogTrace(start ? "Loading medium" : "Ejecting medium");
 	}
 	else {
-		LOGTRACE(start ? "Starting unit" : "Stopping unit")
+		LogTrace(start ? "Starting unit" : "Stopping unit");
 
 		SetStopped(!start);
 	}
@@ -238,7 +239,7 @@ void Disk::PreventAllowMediumRemoval()
 
 	const bool lock = GetController()->GetCmd(4) & 0x01;
 
-	LOGTRACE(lock ? "Locking medium" : "Unlocking medium")
+	LogTrace(lock ? "Locking medium" : "Unlocking medium");
 
 	SetLocked(lock);
 
@@ -618,8 +619,8 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	const uint64_t block = mode == RW16 ? GetInt64(GetController()->GetCmd(), 2) : GetInt32(GetController()->GetCmd(), 2);
 
 	if (block > GetBlockCount()) {
-		LOGTRACE("%s", ("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
-				+ to_string(block)).c_str())
+		LogTrace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
+				+ to_string(block));
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 }
@@ -651,13 +652,16 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 		}
 	}
 
-	LOGTRACE("%s READ/WRITE/VERIFY/SEEK command record=$%08X blocks=%d", __PRETTY_FUNCTION__,
-			static_cast<uint32_t>(start), count)
+	stringstream s1;
+	stringstream s2;
+	s1 << "READ/WRITE/VERIFY/SEEK command record=" << setfill('0') << setw(8) << hex << start;
+	s2 << ", blocks=" << count;
+	LogTrace(s1.str() + s2.str());
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
-		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
-				+ to_string(start) + ", block count " + to_string(count)).c_str())
+		LogTrace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+				+ to_string(start) + ", block count " + to_string(count));
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
