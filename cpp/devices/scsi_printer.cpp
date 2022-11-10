@@ -29,8 +29,8 @@
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 
-#include "log.h"
-#include "rascsi_exceptions.h"
+#include "shared/log.h"
+#include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_printer.h"
 #include <sys/stat.h>

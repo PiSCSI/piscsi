@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "device_factory.h"
 #include "disk_track.h"
 #include "disk_cache.h"

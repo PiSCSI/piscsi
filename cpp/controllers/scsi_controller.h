@@ -14,10 +14,12 @@
 
 #pragma once
 
+#include "shared/scsi.h"
 #include "controller_manager.h"
 #include "abstract_controller.h"
-#include "scsi.h"
 #include <array>
+
+using namespace std;
 
 class PrimaryDevice;
 
@@ -46,7 +48,7 @@ class ScsiController : public AbstractController
 		// ATN message
 		bool atnmsg;
 		int msc;
-		std::array<uint8_t, 256> msb;
+		array<uint8_t, 256> msb;
 	};
 
 public:

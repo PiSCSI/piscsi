@@ -8,9 +8,9 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "rascsi_exceptions.h"
-#include "rascsi_interface.pb.h"
-#include "protobuf_serializer.h"
+#include "shared/protobuf_serializer.h"
+#include "shared/rascsi_exceptions.h"
+#include "generated/rascsi_interface.pb.h"
 #include <filesystem>
 
 using namespace filesystem;

@@ -6,12 +6,16 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) 2020-2022 Contributors to the RaSCSI project
-//	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
 
-#include "config.h"
-#include "log.h"
+#include "shared/config.h"
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_serializer.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
+#include "shared/rascsi_version.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
@@ -19,12 +23,8 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "rascsi_version.h"
-#include "protobuf_serializer.h"
-#include "protobuf_util.h"
 #include "rascsi/rascsi_executor.h"
 #include "rascsi/rascsi_core.h"
-#include "rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <netinet/in.h>
 #include <csignal>
@@ -33,8 +33,10 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include <filesystem>
 
 using namespace std;
+using namespace filesystem;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
@@ -46,9 +48,9 @@ void Rascsi::Banner(const vector<char *>& args) const
 	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
-		cout << "\nUsage: " << args[0] << " [-idn[:m] FILE] ...\n\n";
-		cout << " n is SCSI device ID (0-7).\n";
-		cout << " m is the optional logical unit (LUN) (0-31).\n";
+		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
+		cout << " ID is SCSI device ID (0-7).\n";
+		cout << " LUN is the optional logical unit (0-31).\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
@@ -89,37 +91,36 @@ void Rascsi::Cleanup()
 	bus->Cleanup();
 }
 
-bool Rascsi::ReadAccessToken(const char *filename) const
+void Rascsi::ReadAccessToken(const string& filename) const
 {
 	struct stat st;
-	if (stat(filename, &st) || !S_ISREG(st.st_mode)) {
-		cerr << "Can't access token file '" << optarg << "'" << endl;
-		return false;
+	if (stat(filename.c_str(), &st) || !S_ISREG(st.st_mode)) {
+		throw parser_exception("Can't access token file '" + filename + "'");
 	}
 
-	if (st.st_uid || st.st_gid || (st.st_mode & (S_IROTH | S_IWOTH | S_IRGRP | S_IWGRP))) {
-		cerr << "Access token file '" << optarg << "' must be owned by root and readable by root only" << endl;
-		return false;
+	if (st.st_uid || st.st_gid) {
+		throw parser_exception("Access token file '" + filename + "' must be owned by root");
+	}
+
+	if (const auto perms = filesystem::status(filename).permissions();
+		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
+			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
+		throw parser_exception("Access token file '" + filename + "' must be readable by root only");
 	}
 
 	ifstream token_file(filename);
 	if (token_file.fail()) {
-		cerr << "Can't open access token file '" << optarg << "'" << endl;
-		return false;
+		throw parser_exception("Can't open access token file '" + filename + "'");
 	}
 
 	getline(token_file, access_token);
 	if (token_file.fail()) {
-		cerr << "Can't read access token file '" << optarg << "'" << endl;
-		return false;
+		throw parser_exception("Can't read access token file '" + filename + "'");
 	}
 
 	if (access_token.empty()) {
-		cerr << "Access token file '" << optarg << "' must not be empty" << endl;
-		return false;
+		throw parser_exception("Access token file '" + filename + "' must not be empty");
 	}
-
-	return true;
 }
 
 void Rascsi::LogDevices(string_view devices) const
@@ -139,27 +140,9 @@ void Rascsi::TerminationHandler(int signum)
 	exit(signum);
 }
 
-bool Rascsi::ProcessId(const string& id_spec, int& id, int& unit) const
+Rascsi::optargs_type Rascsi::ParseArguments(const vector<char *>& args, int& port) const
 {
-	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id < 0 || id >= 8) {
-			cerr << optarg << ": Invalid device ID (0-7)" << endl;
-			return false;
-		}
-
-		unit = 0;
-	}
-	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= ScsiController::LUN_MAX) {
-		cerr << optarg << ": Invalid unit (0-" << (ScsiController::LUN_MAX - 1) << ")" << endl;
-		return false;
-	}
-
-	return true;
-}
-
-bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_type& post_process) const
-{
+	optargs_type optargs;
 	int block_size = 0;
 	string name;
 
@@ -181,14 +164,13 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			case 'z':
 			{
 				const string optarg_str = optarg == nullptr ? "" : optarg;
-				post_process.emplace_back(opt, optarg_str);
+				optargs.emplace_back(opt, optarg_str);
 				continue;
 			}
 
 			case 'b': {
-				if (!GetAsInt(optarg, block_size)) {
-					cerr << "Invalid block size " << optarg << endl;
-					return false;
+				if (!GetAsUnsignedInt(optarg, block_size)) {
+					throw parser_exception("Invalid block size " + string(optarg));
 				}
 				continue;
 			}
@@ -198,16 +180,13 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 				continue;
 
 			case 'p':
-				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					return false;
+				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
+					throw parser_exception("Invalid port " + string(optarg) + ", port must be between 1 and 65535");
 				}
 				continue;
 
 			case 'P':
-				if (!ReadAccessToken(optarg)) {
-					return false;
-				}
+				ReadAccessToken(optarg);
 				continue;
 
 			case 'v':
@@ -218,27 +197,27 @@ bool Rascsi::ParseArguments(const vector<char *>& args, int& port, optarg_queue_
 			{
 				// Encountered filename
 				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				post_process.emplace_back(opt, optarg_str);
+				optargs.emplace_back(opt, optarg_str);
 				continue;
 			}
 
 			default:
-				return false;
+				throw parser_exception("Parser error");
 		}
 
 		if (optopt) {
-			return false;
+			throw parser_exception("Praser error");
 		}
 	}
 
-	return true;
+	return optargs;
 }
 
-bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
+void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 {
 	PbCommand command;
 	int id = -1;
-	int unit = -1;
+	int lun = -1;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
@@ -249,22 +228,18 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 		locale = "en";
 	}
 
-
 	opterr = 1;
-	for (const auto& [option, value] : optarg_queue) {
+	for (const auto& [option, value] : optargs) {
 		switch (option) {
-			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				id = -1;
-				unit = -1;
+				lun = -1;
 				continue;
 
 			case 'd':
 			case 'D': {
-				if (!ProcessId(value, id, unit)) {
-					return false;
-				}
+				ProcessId(value, ScsiController::LUN_MAX, id, lun);
 				continue;
 			}
 
@@ -272,19 +247,16 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				locale = value.c_str();
 				continue;
 
-			case 'F': {
-				if (const string result = rascsi_image.SetDefaultFolder(value); !result.empty()) {
-					cerr << result << endl;
-					return false;
+			case 'F':
+				if (const string error = rascsi_image.SetDefaultFolder(value); !error.empty()) {
+					throw parser_exception(error);
 				}
 				continue;
-			}
 
 			case 'R':
 				int depth;
-				if (!GetAsInt(value, depth) || depth < 0) {
-					cerr << "Invalid image file scan depth " << value << endl;
-					return false;
+				if (!GetAsUnsignedInt(value, depth)) {
+					throw parser_exception("Invalid image file scan depth " + value);
 				}
 				rascsi_image.SetDepth(depth);
 				continue;
@@ -293,12 +265,9 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				name = value;
 				continue;
 
-			case 'r': {
-					string error = executor->SetReservedIds(value);
-					if (!error.empty()) {
-						cerr << error << endl;
-						return false;
-					}
+			case 'r':
+				if (const string error = executor->SetReservedIds(value); !error.empty()) {
+					throw parser_exception(error);
 				}
 				continue;
 
@@ -306,8 +275,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 					string t = value;
 					transform(t.begin(), t.end(), t.begin(), ::toupper);
 					if (!PbDeviceType_Parse(t, &type)) {
-						cerr << "Illegal device type '" << value << "'" << endl;
-						return false;
+						throw parser_exception("Illegal device type '" + value + "'");
 					}
 				}
 				continue;
@@ -317,13 +285,13 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 				break;
 
 			default:
-				return false;
+				throw parser_exception("Parser error");
 		}
 
 		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
 		device->set_id(id);
-		device->set_unit(unit);
+		device->set_unit(lun);
 		device->set_type(type);
 		device->set_block_size(block_size);
 
@@ -355,7 +323,7 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	command.set_operation(ATTACH);
 
 	if (CommandContext context(locale); !executor->ProcessCmd(context, command)) {
-		return false;
+		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
 	}
 
 	// Display and log the device list
@@ -365,8 +333,6 @@ bool Rascsi::CreateInitialDevices(const optarg_queue_type& optarg_queue) const
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << flush;
-
-	return true;
 }
 
 bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& command)
@@ -526,25 +492,38 @@ int Rascsi::run(const vector<char *>& args) const
 	Banner(args);
 
 	int port = DEFAULT_PORT;
-	optarg_queue_type optarg_queue;
-	if (!ParseArguments(args, port, optarg_queue)) {
+	optargs_type optargs;
+	try {
+		optargs = ParseArguments(args, port);
+	}
+	catch(const parser_exception& e) {
+		cerr << "Error: " << e.what() << endl;
+
 		return EXIT_FAILURE;
 	}
 
-	// Note that current_log_level may have been modified by ParseArguments()
+	// current_log_level may have been updated by ParseArguments()
 	executor->SetLogLevel(current_log_level);
 
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("rascsi stdout logger");
 
 	if (!InitBus()) {
+		cerr << "Error: Can't initialize bus" << endl;
+
 		return EXIT_FAILURE;
 	}
 
-	// We need to wait to create the devices until after the bus/controller/etc
-	// objects have been created.
-	if (!CreateInitialDevices(optarg_queue)) {
+	// We need to wait to create the devices until after the bus/controller/etc objects have been created
+	// TODO Try to resolve dependencies so that this work-around can be removed
+	try {
+		CreateInitialDevices(optargs);
+	}
+	catch(const parser_exception& e) {
+		cerr << "Error: " << e.what() << endl;
+
 		Cleanup();
+
 		return EXIT_FAILURE;
 	}
 

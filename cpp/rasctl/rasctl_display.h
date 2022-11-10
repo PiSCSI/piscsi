@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <string>
 #include <sstream>
 

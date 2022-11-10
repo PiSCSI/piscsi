@@ -8,11 +8,11 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/log.h"
+#include "shared/rascsi_version.h"
+#include "sm_reports.h"
 #include <iostream>
 #include <fstream>
-#include "log.h"
-#include "sm_reports.h"
-#include "rascsi_version.h"
 
 using namespace std;
 

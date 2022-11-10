@@ -8,11 +8,12 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/log.h"
 #include "sm_reports.h"
-#include "log.h"
 #include "string.h"
 #include <iostream>
 #include <fstream>
+
 using namespace std;
 
 const char timestamp_label[] = "\"timestamp\":\"0x";

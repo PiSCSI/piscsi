@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "interfaces/scsi_primary_commands.h"
 #include "controllers/abstract_controller.h"
 #include "device.h"

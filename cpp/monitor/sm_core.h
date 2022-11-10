@@ -35,7 +35,6 @@ private:
 	bool Init();
 	void Cleanup() const;
 	void Reset() const;
-	void FixCpu(int) const;
 
 	static void KillHandler(int);
 

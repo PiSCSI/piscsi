@@ -11,8 +11,7 @@ rascsi.dat
 obj
 bin
 coverage
-/rascsi_interface.pb.cpp
-/rascsi_interface.pb.h
+generated
 .project
 .cproject
 .settings

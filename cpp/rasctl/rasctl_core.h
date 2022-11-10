@@ -15,10 +15,7 @@ using namespace std;
 
 class RasCtl
 {
-	// Separator for the INQUIRY name components and for compound parameters
-	static const char COMPONENT_SEPARATOR = ':';
-
-public:
+	public:
 
 	RasCtl() = default;
 	~RasCtl() = default;

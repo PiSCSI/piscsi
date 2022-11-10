@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "config.h"
-#include "scsi.h"
+#include "shared/config.h"
+#include "shared/scsi.h"
 #include <cstdint>
 #include <array>
 #include <vector>

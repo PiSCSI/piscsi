@@ -14,7 +14,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
+#include "shared/log.h"
 #include "disk_track.h"
 #include <fstream>
 

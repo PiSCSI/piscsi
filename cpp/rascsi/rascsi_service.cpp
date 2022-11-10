@@ -7,12 +7,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include "log.h"
-#include "rascsi_exceptions.h"
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_serializer.h"
+#include "shared/rascsi_exceptions.h"
 #include "command_context.h"
-#include "protobuf_serializer.h"
 #include "localizer.h"
-#include "rasutil.h"
 #include "rascsi_service.h"
 #include <netinet/in.h>
 #include <csignal>

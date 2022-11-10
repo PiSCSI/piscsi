@@ -9,17 +9,20 @@
 //
 //---------------------------------------------------------------------------
 
-// TODO Evaluate CHECK CONDITION
+// TODO Evaluate CHECK CONDITION after sending a command
+// TODO Send IDENTIFY message in order to support LUNS > 7
 
-#include "log.h"
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/rascsi_exceptions.h"
+#include "shared/rascsi_version.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "rascsi_version.h"
 #include "rasdump/rasdump_core.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
 #include <sys/stat.h>
 #include <csignal>
+#include <cstddef>
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
@@ -28,6 +31,7 @@
 using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
+using namespace ras_util;
 
 void RasDump::CleanUp()
 {
@@ -45,8 +49,7 @@ void RasDump::KillHandler(int)
 
 bool RasDump::Banner(const vector<char *>& args) const
 {
-	cout << "RaSCSI hard disk dump utility version " << rascsi_get_version_string()
-			<< " (" << __DATE__ << ", " << __TIME__ << ")\n" << flush;
+	cout << ras_util::Banner("RaSCSI hard disk dump/restore utility");
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
 		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"
@@ -85,11 +88,11 @@ void RasDump::ParseArguments(const vector<char *>& args)
 	int buffer_size = DEFAULT_BUFFER_SIZE;
 
 	opterr = 0;
-	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:u:rv")) != -1) {
+	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rv")) != -1) {
 		switch (opt) {
 			case 'i':
-				if (!GetAsInt(optarg, initiator_id) || initiator_id > 7) {
-					throw rasdump_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
+				if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
+					throw parser_exception("Invalid RaSCSI board ID " + to_string(initiator_id) + " (0-7)");
 				}
 				break;
 
@@ -98,20 +101,14 @@ void RasDump::ParseArguments(const vector<char *>& args)
 				break;
 
 			case 's':
-				if (!GetAsInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
-					throw rasdump_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
+				if (!GetAsUnsignedInt(optarg, buffer_size) || buffer_size < MINIMUM_BUFFER_SIZE) {
+					throw parser_exception("Buffer size must be at least " + to_string(MINIMUM_BUFFER_SIZE / 1024) + "KiB");
 				}
 
 				break;
 
 			case 't':
-				ProcessId(optarg, target_id, target_lun);
-				break;
-
-			case 'u':
-				if (!GetAsInt(optarg, target_lun) || target_lun > 7) {
-					throw rasdump_exception("Invalid target LUN " + to_string(target_lun) + " (0-7)");
-				}
+				ProcessId(optarg, 8, target_id, target_lun);
 				break;
 
 			case 'v':
@@ -128,11 +125,11 @@ void RasDump::ParseArguments(const vector<char *>& args)
 	}
 
 	if (target_id == initiator_id) {
-		throw rasdump_exception("Target ID and RaSCSI board ID must not be identical");
+		throw parser_exception("Target ID and RaSCSI board ID must not be identical");
 	}
 
 	if (filename.empty()) {
-		throw rasdump_exception("Missing filename");
+		throw parser_exception("Missing filename");
 	}
 
 	buffer = vector<uint8_t>(buffer_size);
@@ -151,29 +148,22 @@ void RasDump::WaitPhase(BUS::phase_t phase) const
 		}
 	}
 
-	throw rasdump_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
+	throw parser_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is "
 			+ string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
 void RasDump::Selection() const
 {
 	// Set initiator and target ID
-	auto data = static_cast<uint8_t>(1 << initiator_id);
-	data |= (1 << target_id);
-	bus->SetDAT(data);
+	auto data = static_cast<byte>(1 << initiator_id);
+	data |= static_cast<byte>(1 << target_id);
+	bus->SetDAT(static_cast<uint8_t>(data));
 
 	bus->SetSEL(true);
-	//bus->SetATN(true);
 
 	WaitForBusy();
 
 	bus->SetSEL(false);
-
-	// TODO Send IDENTIFY message for LUN selection
-	//buffer[0] = 0x80 | target_lun;
-	//MessageOut();
-
-	//bus->SetATN(false);
 }
 
 void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
@@ -184,13 +174,12 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 	WaitPhase(BUS::phase_t::command);
 
-	// Send command. Success if the transmission result is the same as the number of requests
 	cdb[0] = static_cast<uint8_t>(cmd);
-	cdb[1] |= target_lun << 5;
+	cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
 	if (static_cast<int>(cdb.size()) != bus->SendHandShake(cdb.data(), static_cast<int>(cdb.size()), BUS::SEND_NO_DELAY)) {
 		BusFree();
 
-		throw rasdump_exception(command_mapping.find(cmd)->second.second + string(" failed"));
+		throw parser_exception(command_mapping.find(cmd)->second.second + string(" failed"));
 	}
 }
 
@@ -199,7 +188,7 @@ void RasDump::DataIn(int length)
 	WaitPhase(BUS::phase_t::datain);
 
 	if (!bus->ReceiveHandShake(buffer.data(), length)) {
-		throw rasdump_exception("DATA IN failed");
+		throw parser_exception("DATA IN failed");
 	}
 }
 
@@ -208,7 +197,7 @@ void RasDump::DataOut(int length)
 	WaitPhase(BUS::phase_t::dataout);
 
 	if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
-		throw rasdump_exception("DATA OUT failed");
+		throw parser_exception("DATA OUT failed");
 	}
 }
 
@@ -217,7 +206,7 @@ void RasDump::Status() const
 	WaitPhase(BUS::phase_t::status);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-		throw rasdump_exception("STATUS failed");
+		throw parser_exception("STATUS failed");
 	}
 }
 
@@ -226,16 +215,7 @@ void RasDump::MessageIn() const
 	WaitPhase(BUS::phase_t::msgin);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
-		throw rasdump_exception("MESSAGE IN failed");
-	}
-}
-
-void RasDump::MessageOut()
-{
-	WaitPhase(BUS::phase_t::msgout);
-
-	if (!bus->SendHandShake(buffer.data(), 1, BUS::SEND_NO_DELAY)) {
-		throw rasdump_exception("MESSAGE OUT failed");
+		throw parser_exception("MESSAGE IN failed");
 	}
 }
 
@@ -390,7 +370,7 @@ void RasDump::WaitForBusy() const
 
 	// Success if the target is busy
 	if(!bus->GetBSY()) {
-		throw rasdump_exception("SELECTION failed");
+		throw parser_exception("SELECTION failed");
 	}
 }
 
@@ -417,7 +397,7 @@ int RasDump::run(const vector<char *>& args)
 
 		return DumpRestore();
 	}
-	catch(const rasdump_exception& e) {
+	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
 
 		CleanUp();
@@ -432,13 +412,88 @@ int RasDump::run(const vector<char *>& args)
 
 int RasDump::DumpRestore()
 {
+	const auto [capacity, sector_size] = GetDeviceInfo();
+
 	fstream fs;
 	fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
 
 	if (fs.fail()) {
-		throw rasdump_exception("Can't open image file '" + filename + "'");
+		throw parser_exception("Can't open image file '" + filename + "'");
 	}
 
+	if (restore) {
+		cout << "Starting restore\n" << flush;
+
+		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
+		off_t size;
+		if (struct stat st; !stat(filename.c_str(), &st)) {
+			size = st.st_size;
+		}
+		else {
+			throw parser_exception("Can't determine file size");
+		}
+
+		cout << "Restore file size: " << size << " bytes\n";
+		if (size > (off_t)(sector_size * capacity)) {
+			cout << "WARNING: File size is larger than disk size\n" << flush;
+		} else if (size < (off_t)(sector_size * capacity)) {
+			throw parser_exception("File size is smaller than disk size");
+		}
+	}
+	else {
+		cout << "Starting dump\n" << flush;
+	}
+
+	// Dump by buffer size
+	auto dsiz = static_cast<int>(buffer.size());
+	const int duni = dsiz / sector_size;
+	auto dnum = static_cast<int>((capacity * sector_size) / dsiz);
+
+	int i;
+	for (i = 0; i < dnum; i++) {
+		if (restore) {
+			fs.read((char *)buffer.data(), dsiz);
+			Write10(i * duni, duni, dsiz);
+		}
+		else {
+			Read10(i * duni, duni, dsiz);
+			fs.write((const char *)buffer.data(), dsiz);
+		}
+
+		if (fs.fail()) {
+			throw parser_exception("File I/O failed");
+		}
+
+		cout << ((i + 1) * 100 / dnum) << "%" << " (" << ( i + 1) * duni << "/" << capacity << ")\n" << flush;
+	}
+
+	// Rounding on capacity
+	dnum = capacity % duni;
+	dsiz = dnum * sector_size;
+	if (dnum > 0) {
+		if (restore) {
+			fs.read((char *)buffer.data(), dsiz);
+			if (!fs.fail()) {
+				Write10(i * duni, dnum, dsiz);
+			}
+		}
+		else {
+			Read10(i * duni, dnum, dsiz);
+			fs.write((const char *)buffer.data(), dsiz);
+		}
+
+		if (fs.fail()) {
+			throw parser_exception("File I/O failed");
+		}
+
+		cout << "100% (" << capacity << "/" << capacity << ")\n" << flush;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+pair<uint64_t, uint32_t> RasDump::GetDeviceInfo()
+{
 	// Assert RST for 1 ms
 	bus->SetRST(true);
 	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000 * 1000};
@@ -463,7 +518,7 @@ int RasDump::DumpRestore()
 
 	if (auto type = static_cast<device_type>(buffer[0]);
 		type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
-		throw rasdump_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
+		throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
 	}
 
 	TestUnitReady();
@@ -477,108 +532,5 @@ int RasDump::DumpRestore()
 			<< "Capacity:          " << sector_size * capacity / 1024 / 1024 << " MiB ("
 			<< sector_size * capacity << " bytes)\n\n" << flush;
 
-	if (restore) {
-		cout << "Starting restore\n" << flush;
-
-		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
-		off_t size;
-		if (struct stat st; !stat(filename.c_str(), &st)) {
-			size = st.st_size;
-		}
-		else {
-			throw rasdump_exception("Can't determine file size");
-		}
-
-		cout << "Restore file size: " << size << " bytes\n";
-		if (size > (off_t)(sector_size * capacity)) {
-			cout << "WARNING: File size is larger than disk size\n" << flush;
-		} else if (size < (off_t)(sector_size * capacity)) {
-			throw rasdump_exception("File size is smaller than disk size");
-		}
-	}
-	else {
-		cout << "Starting dump\n" << flush;
-	}
-
-	// Dump by buffer size
-	auto dsiz = static_cast<int>(buffer.size());
-	const int duni = dsiz / sector_size;
-	int dnum = static_cast<int>((capacity * sector_size) / dsiz);
-
-	int i;
-	for (i = 0; i < dnum; i++) {
-		if (restore) {
-			fs.read((char *)buffer.data(), dsiz);
-			Write10(i * duni, duni, dsiz);
-		}
-		else {
-			Read10(i * duni, duni, dsiz);
-			fs.write((const char *)buffer.data(), dsiz);
-		}
-
-		if (fs.fail()) {
-			throw rasdump_exception("File I/O failed");
-		}
-
-		cout << ((i + 1) * 100 / dnum) << "%" << " (" << ( i + 1) * duni << "/" << capacity << ")\n" << flush;
-	}
-
-	// Rounding on capacity
-	dnum = capacity % duni;
-	dsiz = dnum * sector_size;
-	if (dnum > 0) {
-		if (restore) {
-			fs.read((char *)buffer.data(), dsiz);
-			if (!fs.fail()) {
-				Write10(i * duni, dnum, dsiz);
-			}
-		}
-		else {
-			Read10(i * duni, dnum, dsiz);
-			fs.write((const char *)buffer.data(), dsiz);
-		}
-
-		if (fs.fail()) {
-			throw rasdump_exception("File I/O failed");
-		}
-
-		cout << "100% (" << capacity << "/" << capacity << ")\n" << flush;
-	}
-
-	return EXIT_SUCCESS;
-}
-
-void RasDump::ProcessId(const string& id_spec, int& id, int& lun)
-{
-	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id >= 8) {
-			throw rasdump_exception("Invalid device ID (0-7)");
-		}
-
-		lun = 0;
-	}
-	else if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-			!GetAsInt(id_spec.substr(separator_pos + 1), lun) || lun >= 32) {
-		throw rasdump_exception("Invalid unit (0-7)");
-	}
-}
-
-bool RasDump::GetAsInt(const string& value, int& result)
-{
-	if (value.find_first_not_of("0123456789") != string::npos) {
-		return false;
-	}
-
-	try {
-		auto v = stoul(value);
-		result = (int)v;
-	}
-	catch(const invalid_argument&) {
-		return false;
-	}
-	catch(const out_of_range&) {
-		return false;
-	}
-
-	return true;
+	return make_pair(capacity, sector_size);
 }

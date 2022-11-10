@@ -14,6 +14,11 @@
 
 using namespace std;
 
+class parser_exception : public runtime_error
+{
+	using runtime_error::runtime_error;
+};
+
 class io_exception : public runtime_error
 {
 	using runtime_error::runtime_error;

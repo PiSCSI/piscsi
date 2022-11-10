@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "rascsi_exceptions.h"
+#include "shared/rascsi_exceptions.h"
 #include "devices/scsi_daynaport.h"
 
 TEST(ScsiDaynaportTest, Inquiry)

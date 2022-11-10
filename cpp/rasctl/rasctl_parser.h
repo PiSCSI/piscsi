@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <string>
 #include <unordered_map>
 

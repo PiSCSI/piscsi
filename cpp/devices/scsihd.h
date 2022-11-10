@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "disk.h"
 #include <string>
 #include <vector>

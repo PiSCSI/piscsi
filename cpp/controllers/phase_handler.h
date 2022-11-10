@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 
 class PhaseHandler
 {

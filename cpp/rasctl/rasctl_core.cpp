@@ -10,11 +10,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_version.h"
-#include "protobuf_util.h"
-#include "rasutil.h"
-#include "rascsi_exceptions.h"
-#include "rascsi_interface.pb.h"
+#include "controllers/scsi_controller.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
+#include "shared/rascsi_version.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rasctl/rasctl_parser.h"
 #include "rasctl/rasctl_commands.h"
 #include "rasctl/rasctl_core.h"
@@ -32,13 +33,12 @@ void RasCtl::Banner(const vector<char *>& args) const
 	if (args.size() < 2) {
 		cout << ras_util::Banner("Controller");
 
-		cout << "\nUsage: " << args[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
+		cout << "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cout << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
 		cout <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
 		cout << "[-e] [-E FILENAME] [-D] [-I] [-l] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]\n";
-		cout << " where  ID := {0-7}\n";
-		cout << "        UNIT := {0-31}, default is 0\n";
+		cout << " where  ID[:LUN] ID := {0-7}, LUN := {0-31}, default is 0\n";
 		cout << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}\n";
 		cout << "        TYPE := {schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}\n";
 		cout << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block\n";
@@ -86,25 +86,20 @@ int RasCtl::run(const vector<char *>& args) const
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
-			"e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:z:C:E:F:L:P::R:")) != -1) {
+			"e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
-				if (!GetAsInt(optarg, id)) {
-					cerr << "Error: Invalid device ID " << optarg << endl;
+				int lun;
+				try {
+					ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
+				}
+				catch(const parser_exception& e) {
+					cerr << "Error: " << e.what() << endl;
 					exit(EXIT_FAILURE);
 				}
 				device->set_id(id);
-				break;
-			}
-
-			case 'u': {
-				int unit;
-				if (!GetAsInt(optarg, unit)) {
-					cerr << "Error: Invalid unit " << optarg << endl;
-					exit(EXIT_FAILURE);
-				}
-				device->set_unit(unit);
+				device->set_unit(lun);
 				break;
 			}
 
@@ -115,7 +110,7 @@ int RasCtl::run(const vector<char *>& args) const
 
 			case 'b':
 				int block_size;
-				if (!GetAsInt(optarg, block_size)) {
+				if (!GetAsUnsignedInt(optarg, block_size)) {
 					cerr << "Error: Invalid block size " << optarg << endl;
 					exit(EXIT_FAILURE);
 				}
@@ -240,7 +235,7 @@ int RasCtl::run(const vector<char *>& args) const
 				break;
 
 			case 'p':
-				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
+				if (!GetAsUnsignedInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}

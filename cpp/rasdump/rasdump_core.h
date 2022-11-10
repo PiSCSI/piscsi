@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "hal/bus.h"
 #include <string>
 #include <vector>
@@ -18,15 +18,8 @@
 
 using namespace std;
 
-class rasdump_exception : public runtime_error
-{
-	using runtime_error::runtime_error;
-};
-
 class RasDump
 {
-	static const char COMPONENT_SEPARATOR = ':';
-
 	static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
 	static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
@@ -43,6 +36,7 @@ private:
 	bool Init() const;
 	void ParseArguments(const vector<char *>&);
 	int DumpRestore();
+	pair<uint64_t, uint32_t> GetDeviceInfo();
 	void WaitPhase(BUS::phase_t) const;
 	void Selection() const;
 	void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
@@ -50,7 +44,6 @@ private:
 	void DataOut(int);
 	void Status() const;
 	void MessageIn() const;
-	void MessageOut();
 	void BusFree() const;
 	void TestUnitReady() const;
 	void RequestSense();
@@ -59,11 +52,6 @@ private:
 	void Read10(uint32_t, uint32_t, uint32_t);
 	void Write10(uint32_t, uint32_t, uint32_t);
 	void WaitForBusy() const;
-
-	// TODO Use ras_util after removing its dependencies on protobuf interface.
-	// Not required in case rasdump is integrated into rascsi.
-	static void ProcessId(const string&, int&, int&);
-	static bool GetAsInt(const string&, int&);
 
 	static void CleanUp();
 	static void KillHandler(int);

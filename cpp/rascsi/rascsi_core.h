@@ -13,7 +13,7 @@
 #include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_image.h"
 #include "rascsi/rascsi_response.h"
-#include "rascsi_interface.pb.h"
+#include "generated/rascsi_interface.pb.h"
 #include <vector>
 #include <string>
 
@@ -25,10 +25,9 @@ class RascsiExecutor;
 
 class Rascsi
 {
-	using optarg_queue_type = vector<pair<int, string>>;
+	using optargs_type = vector<pair<int, string>>;
 
 	static const int DEFAULT_PORT = 6868;
-	static const char COMPONENT_SEPARATOR = ':';
 
 public:
 
@@ -42,15 +41,17 @@ private:
 	void Banner(const vector<char *>&) const;
 	bool InitBus() const;
 	static void Cleanup();
-	bool ReadAccessToken(const char *) const;
+	void ReadAccessToken(const string&) const;
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	bool ProcessId(const string&, int&, int&) const;
-	bool ParseArguments(const vector<char *>&, int&, optarg_queue_type&) const;
-	bool CreateInitialDevices(const optarg_queue_type&) const;
+	optargs_type ParseArguments(const vector<char *>&, int&) const;
+	void CreateInitialDevices(const optargs_type&) const;
 
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
+
+	// A static instance is needed because of the signal handler
+	static inline shared_ptr<BUS> bus;
 
 	// TODO These fields should not be static
 
@@ -59,8 +60,6 @@ private:
 	static inline RascsiImage rascsi_image;
 
 	const static inline RascsiResponse rascsi_response;
-
-	static inline shared_ptr<BUS> bus;
 
 	static inline shared_ptr<ControllerManager> controller_manager;
 

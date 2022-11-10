@@ -9,8 +9,8 @@
 
 #pragma once
 
+#include "shared/protobuf_serializer.h"
 #include "rascsi/rascsi_response.h"
-#include "protobuf_serializer.h"
 
 class RascsiImage;
 class DeviceFactory;

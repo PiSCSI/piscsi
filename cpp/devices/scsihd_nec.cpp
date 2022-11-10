@@ -10,12 +10,10 @@
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI NEC Compatible Hard Disk]
-//
 //---------------------------------------------------------------------------
 
-#include "rascsi_exceptions.h"
-#include "rasutil.h"
+#include "shared/rasutil.h"
+#include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsihd_nec.h"
 #include <fstream>

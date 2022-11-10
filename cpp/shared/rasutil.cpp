@@ -3,18 +3,19 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021-22 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
+#include "rascsi_exceptions.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
-using namespace rascsi_interface;
 
-bool ras_util::GetAsInt(const string& value, int& result)
+bool ras_util::GetAsUnsignedInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
 		return false;
@@ -34,6 +35,20 @@ bool ras_util::GetAsInt(const string& value, int& result)
 	return true;
 }
 
+void ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
+{
+	if (const size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR); separator_pos == string::npos) {
+		if (!GetAsUnsignedInt(id_spec, id) || id >= 8) {
+			throw parser_exception("Invalid device ID (0-7)");
+		}
+
+		lun = 0;
+	}
+	else if (!GetAsUnsignedInt(id_spec.substr(0, separator_pos), id) || id > 7 ||
+			!GetAsUnsignedInt(id_spec.substr(separator_pos + 1), lun) || lun >= max_luns) {
+		throw parser_exception("Invalid LUN (0-" + to_string(max_luns - 1) + ")");
+	}
+}
 
 string ras_util::Banner(const string& app)
 {
@@ -48,62 +63,13 @@ string ras_util::Banner(const string& app)
 	return s.str();
 }
 
-string ras_util::ListDevices(const list<PbDevice>& pb_devices)
-{
-	if (pb_devices.empty()) {
-		return "No devices currently attached.\n";
-	}
-
-	ostringstream s;
-	s << "+----+-----+------+-------------------------------------\n"
-			<< "| ID | LUN | TYPE | IMAGE FILE\n"
-			<< "+----+-----+------+-------------------------------------\n";
-
-	list<PbDevice> devices = pb_devices;
-	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
-
-	for (const auto& device : devices) {
-		string filename;
-		switch (device.type()) {
-			case SCBR:
-				filename = "X68000 HOST BRIDGE";
-				break;
-
-			case SCDP:
-				filename = "DaynaPort SCSI/Link";
-				break;
-
-			case SCHS:
-				filename = "Host Services";
-				break;
-
-			case SCLP:
-				filename = "SCSI Printer";
-				break;
-
-			default:
-				filename = device.file().name();
-				break;
-		}
-
-		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
-				<< (filename.empty() ? "NO MEDIUM" : filename)
-				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
-				<< '\n';
-	}
-
-	s << "+----+-----+------+-------------------------------------\n";
-
-	return s.str();
-}
-
 string ras_util::GetExtensionLowerCase(const string& filename)
 {
 	string ext;
 	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
-	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+	transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
 
 	return ext;
 }

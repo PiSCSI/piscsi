@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "rascsi_exceptions.h"
+#include "shared/rascsi_exceptions.h"
 
 using namespace scsi_defs;
 

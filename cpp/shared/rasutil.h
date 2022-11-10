@@ -3,25 +3,24 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
-//
-// Helper methods used by rascsi and rasctl
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include <list>
 #include <string>
-#include "rascsi_interface.pb.h"
 
 using namespace std;
 
 namespace ras_util
 {
-	bool GetAsInt(const string&, int&);
+	// Separator for compound options like ID:LUN
+	static const char COMPONENT_SEPARATOR = ':';
+
+	bool GetAsUnsignedInt(const string&, int&);
+	void ProcessId(const string&, int, int&, int&);
 	string Banner(const string&);
-	string ListDevices(const list<rascsi_interface::PbDevice>&);
 
 	string GetExtensionLowerCase(const string&);
 

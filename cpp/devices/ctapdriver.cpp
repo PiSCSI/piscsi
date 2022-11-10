@@ -9,13 +9,13 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/log.h"
+#include "shared/rasutil.h"
+#include "shared/rascsi_exceptions.h"
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>
 #include "ctapdriver.h"
-#include "log.h"
-#include "rasutil.h"
-#include "rascsi_exceptions.h"
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sstream>
@@ -236,7 +236,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				address = inet.substr(0, separatorPos);
 
 				int m;
-				if (!GetAsInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
+				if (!GetAsUnsignedInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
 					LOGERROR("Invalid CIDR netmask notation '%s'", inet.substr(separatorPos + 1).c_str())
 
 					close(m_hTAP);

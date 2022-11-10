@@ -9,7 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsi.h"
+#include "shared/scsi.h"
 #include "data_sample.h"
 
 const char *GetPhaseStr(const data_capture *sample)

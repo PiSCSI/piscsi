@@ -7,8 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_exceptions.h"
-#include "protobuf_util.h"
+#include "shared/rasutil.h"
+#include "shared/protobuf_util.h"
+#include "shared/rascsi_exceptions.h"
 #include "rasctl_commands.h"
 #include <unistd.h>
 #include <netdb.h>
@@ -17,10 +18,8 @@
 
 using namespace std;
 using namespace rascsi_interface;
+using namespace ras_util;
 using namespace protobuf_util;
-
-// Separator for the INQUIRY name components
-static const char COMPONENT_SEPARATOR = ':';
 
 bool RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
 		const string& image_params, const string& filename)

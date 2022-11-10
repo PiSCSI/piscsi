@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi_interface.pb.h"
-#include "rasutil.h"
+#include "shared/protobuf_util.h"
+#include "generated/rascsi_interface.pb.h"
 #include "rasctl_display.h"
 #include <sstream>
 #include <list>
@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace rascsi_interface;
-using namespace ras_util;
+using namespace protobuf_util;
 
 string RasctlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
 {

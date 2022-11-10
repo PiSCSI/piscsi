@@ -15,8 +15,8 @@
 
 #include <stdint.h>
 
-#include "config.h"
-#include "scsi.h"
+#include "shared/config.h"
+#include "shared/scsi.h"
 
 //===========================================================================
 //

@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/rasutil.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -15,7 +16,6 @@
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "host_services.h"
-#include "rasutil.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
 #include <sys/ioctl.h>

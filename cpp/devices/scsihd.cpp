@@ -13,8 +13,8 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/rascsi_exceptions.h"
 #include "scsihd.h"
-#include "rascsi_exceptions.h"
 #include "scsi_command_util.h"
 
 using namespace scsi_command_util;

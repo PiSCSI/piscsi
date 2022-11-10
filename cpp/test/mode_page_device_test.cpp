@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "rascsi_exceptions.h"
+#include "shared/rascsi_exceptions.h"
 #include "devices/mode_page_device.h"
 
 using namespace std;
