@@ -75,19 +75,6 @@ void ScsiMon::ParseArguments(const vector<char *>& args)
     html_file_name += ".html";
 }
 
-void ScsiMon::PrintCopyrightText() const
-{
-    LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ")
-    LOGINFO("version %s (%s, %s)",
-            rascsi_get_version_string().c_str(),
-            __DATE__,
-            __TIME__)
-    LOGINFO("Powered by XM6 TypeG Technology ")
-    LOGINFO("Copyright (C) 2016-2020 GIMONS")
-    LOGINFO("Copyright (C) 2020-2022 Contributors to the RaSCSI project")
-    LOGINFO(" ")
-}
-
 void ScsiMon::PrintHelpText(const vector<char *>& args) const
 {
     LOGINFO("%s -i [input file json] -b [buffer size] [output file]", args[0])
@@ -174,7 +161,8 @@ int ScsiMon::run(const vector<char *>& args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    PrintCopyrightText();
+    ras_util::Banner("SCSI Monitor Capture Tool");
+
     ParseArguments(args);
 
 #ifdef DEBUG

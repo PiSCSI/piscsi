@@ -29,7 +29,6 @@ public:
 private:
 
 	void ParseArguments(const vector<char *>&);
-	void PrintCopyrightText() const;
 	void PrintHelpText(const vector<char *>&) const;
 	void Banner() const;
 	bool Init();
