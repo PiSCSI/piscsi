@@ -9,14 +9,19 @@
 
 #pragma once
 
+#include "spdlog/spdlog.h"
 #include "shared/protobuf_serializer.h"
 #include "rascsi/rascsi_response.h"
+#include <unordered_set>
+#include <unordered_map>
 
 class RascsiImage;
 class DeviceFactory;
 class ControllerManager;
 class PrimaryDevice;
 class CommandContext;
+
+using namespace spdlog;
 
 class RascsiExecutor
 {
@@ -66,4 +71,13 @@ private:
 	const ProtobufSerializer serializer;
 
 	unordered_set<int> reserved_ids;
+
+	static inline const unordered_map<string, level::level_enum> log_level_mapping = {
+			{ "trace", level::trace },
+			{ "debug", level::debug },
+			{ "info", level::info },
+			{ "warn", level::warn },
+			{ "err", level::err },
+			{ "off", level::off }
+	};
 };

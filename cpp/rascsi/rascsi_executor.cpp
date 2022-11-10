@@ -191,23 +191,9 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		}
 	}
 
-	if (level == "trace") {
-		set_level(level::trace);
-	}
-	else if (level == "debug") {
-		set_level(level::debug);
-	}
-	else if (level == "info") {
-		set_level(level::info);
-	}
-	else if (level == "warn") {
-		set_level(level::warn);
-	}
-	else if (level == "err") {
-		set_level(level::err);
-	}
-	else if (level == "off") {
-		set_level(level::off);
+	const auto& it = log_level_mapping.find(level);
+	if (it != log_level_mapping.end()) {
+		set_level(it->second);
 	}
 	else {
 		LOGWARN("Invalid log level '%s'", log_level.c_str())
