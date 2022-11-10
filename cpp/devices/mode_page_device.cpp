@@ -45,7 +45,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	const int page = cdb[2] & 0x3f;
 
 	stringstream s;
-	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << static_cast<int>(page);
+	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << page;
 	LogTrace(s.str());
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
