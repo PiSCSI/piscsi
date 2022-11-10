@@ -43,10 +43,10 @@ void PrimaryDevice::AddCommand(scsi_command opcode, const operation& execute)
 void PrimaryDevice::Dispatch(scsi_command cmd)
 {
 	stringstream s;
-	s << setfill('0') << setw(2) << hex << static_cast<int>(cmd);
+	s << "$" << setfill('0') << setw(2) << hex << static_cast<int>(cmd);
 
 	if (const auto& it = commands.find(cmd); it != commands.end()) {
-		LogDebug("Executing " + string(command_mapping.find(cmd)->second.second) + " ($" + s.str() + ")");
+		LogDebug("Executing " + string(command_mapping.find(cmd)->second.second) + " (" + s.str() + ")");
 
 		it->second();
 	}
