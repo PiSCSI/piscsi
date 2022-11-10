@@ -149,17 +149,7 @@ void GPIOBUS::InitializeGpio()
 
     // Set the ENABLE signal
     // This is used to show that the application is running
-    LOGINFO("ENB OFF");
     PinConfig(board->pin_enb, board_type::gpio_direction_e::GPIO_OUTPUT);
-    PinSetSignal(board->pin_enb, board->EnbOff());
-    usleep(1000000);
-    LOGINFO("ENB OFF");
-    PinSetSignal(board->pin_enb, board->EnbOn());
-    usleep(1000000);
-    LOGINFO("ENB OFF");
-    PinSetSignal(board->pin_enb, board->EnbOff());
-    usleep(1000000);
-    LOGINFO("ENB OFF");
     PinSetSignal(board->pin_enb, board->EnbOn());
 
 }

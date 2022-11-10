@@ -44,7 +44,6 @@
 #include "hal/systimer.h"
 #include "log.h"
 
-
 extern int wiringPiMode;
 
 #pragma GCC diagnostic push
@@ -61,6 +60,9 @@ extern int wiringPiMode;
 
 #define GPIO_PUL_INDEX(pin) (((pin)&0x1F) >> 4)
 #define GPIO_PUL_OFFSET(pin) (((pin)&0x0F) << 1)
+
+#define GPIO_DRV_INDEX(pin) (((pin)&0x1F) >> 4)
+#define GPIO_DRV_OFFSET(pin) (((pin)&0x0F) << 1)
 
 #define SUNXI_R_GPIO_BASE 0x01F02000
 #define SUNXI_R_GPIO_REG_OFFSET 0xC00
@@ -189,149 +191,81 @@ bool GPIOBUS_Allwinner::Init(mode_e mode, board_type::rascsi_board_type_e rascsi
         return false;
     }
 
-    //     wiringPiSetup();
-    //     wiringPiMode = WPI_MODE_GPIO;
+    SaveGpioConfig();
 
-    // 	LOGTRACE("%s Set Drive Strength", __PRETTY_FUNCTION__);
-    // 	// Set Drive Strength to 16mA
-    // 	DrvConfig(7);
+    if (!SetupSelEvent()) {
+        LOGERROR("Failed to setup SELECT poll event");
+        return false;
+    }
+    LOGINFO("SetupSelEvent OK!")
+    DrvConfig(3);
+    // usleep(5000000);
 
-    // 	// Set pull up/pull down
-    // 	LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
-
-    // #if SIGNAL_CONTROL_MODE == 0
-    // 	int pullmode = GPIO_PULLNONE;
-    // #elif SIGNAL_CONTROL_MODE == 1
-    // 	int pullmode = GPIO_PULLUP;
-    // #else
-    // 	int pullmode = GPIO_PULLDOWN;
-    // #endif
-
-    // 	// Initialize all signals
-    // 	LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
-
-    // 	for (int i = 0; SignalTable[i] >= 0; i++) {
-    // 		int j = SignalTable[i];
-    // 		PinSetSignal(j, OFF);
-    // 		PinConfig(j, board_type::gpio_high_low_e::GPIO_INPUT);
-    // 		PullConfig(j, pullmode);
-    // 	}
-
-    // 	// Set control signals
-    // 	LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
-    // 	PinSetSignal(PIN_ACT, OFF);
-    // 	PinSetSignal(PIN_TAD, OFF);
-    // 	PinSetSignal(PIN_IND, OFF);
-    // 	PinSetSignal(PIN_DTD, OFF);
-    // 	PinConfig(PIN_ACT, board_type::gpio_high_low_e::GPIO_OUTPUT);
-    // 	PinConfig(PIN_TAD, board_type::gpio_high_low_e::GPIO_OUTPUT);
-    // 	PinConfig(PIN_IND, board_type::gpio_high_low_e::GPIO_OUTPUT);
-    // 	PinConfig(PIN_DTD, board_type::gpio_high_low_e::GPIO_OUTPUT);
-
-    // 	// Set the ENABLE signal
-    // 	// This is used to show that the application is running
-    // 	PinSetSignal(PIN_ENB, ENB_OFF);
-    // 	PinConfig(PIN_ENB, board_type::gpio_high_low_e::GPIO_OUTPUT);
-
-    // 	// Create work table
-
-    // 	LOGTRACE("%s MakeTable....", __PRETTY_FUNCTION__);
-    // 	MakeTable();
-
-    // 	// Finally, enable ENABLE
-    // 	LOGTRACE("%s Finally, enable ENABLE....", __PRETTY_FUNCTION__);
-    // 	// Show the user that this app is running
-    // 	SetControl(PIN_ENB, ENB_ON);
-
-        if(!SetupSelEvent()){
-            LOGERROR("Failed to setup SELECT poll event");
-            return false;
-        }
-        LOGINFO("SetupSelEvent OK!")
-    usleep(5000000);
-
-InitializeGpio();
-
+    InitializeGpio();
 
     return true;
 
-    // SetMode(PIN_IND, OUTPUT);
-    // SetMode(PIN_TAD, OUTPUT);
-    // SetMode(PIN_DTD, OUTPUT);
-    // PullConfig(PIN_IND, GPIO_PULLUP);
-    // PullConfig(PIN_IND, GPIO_PULLUP);
-    // PullConfig(PIN_IND, GPIO_PULLUP);
-
-    // SetMode(PIN_DT0, OUTPUT);
-    // SetMode(PIN_DT1, OUTPUT);
-    // SetMode(PIN_DT2, OUTPUT);
-    // SetMode(PIN_DT3, OUTPUT);
-    // SetMode(PIN_DT4, OUTPUT);
-    // SetMode(PIN_DT5, OUTPUT);
-    // SetMode(PIN_DT6, OUTPUT);
-    // SetMode(PIN_DT7, OUTPUT);
-    // SetMode(PIN_DP, OUTPUT);
-    // SetMode(PIN_IO, OUTPUT);
-    // SetMode(PIN_TAD, OUTPUT);
-    // SetMode(PIN_IND, OUTPUT);
-    //     PullConfig(PIN_DT0, GPIO_PULLNONE);
-    // PullConfig(PIN_DT1, GPIO_PULLNONE);
-    // PullConfig(PIN_DT2, GPIO_PULLNONE);
-    // PullConfig(PIN_DT3, GPIO_PULLNONE);
-    // PullConfig(PIN_DT4, GPIO_PULLNONE);
-    // PullConfig(PIN_DT5, GPIO_PULLNONE);
-    // PullConfig(PIN_DT6, GPIO_PULLNONE);
-    // PullConfig(PIN_DT7, GPIO_PULLNONE);
-    // PullConfig(PIN_DP, GPIO_PULLNONE);
-    // PullConfig(PIN_IO, GPIO_PULLNONE);
-    //     PullConfig(PIN_TAD, GPIO_PULLNONE);
-    //     PullConfig(PIN_IND, GPIO_PULLNONE);
 }
 
 void GPIOBUS_Allwinner::Cleanup()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-    munmap((void *)gpio_map, BLOCK_SIZE);
+    GPIO_FUNCTION_TRACE
 #if defined(__x86_64__) || defined(__X86__)
     return;
 #else
-    int i;
-    int pin;
+
+    SetENB(false);
+    SetACT(false);
+
+
+    RestoreGpioConfig();
+
+    munmap((void *)gpio_map, BLOCK_SIZE);
+    munmap((void *)r_gpio_map, BLOCK_SIZE);
 
     // Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
     close(selevreq.fd);
 #endif // USE_SEL_EVENT_ENABLE
+#endif
+}
 
-    // // Set control signals
-    // PinSetSignal(PIN_ENB, FALSE);
-    // PinSetSignal(PIN_ACT, FALSE);
-    // PinSetSignal(PIN_TAD, FALSE);
-    // PinSetSignal(PIN_IND, FALSE);
-    // PinSetSignal(PIN_DTD, FALSE);
-    // PinConfig(PIN_ACT, board_type::gpio_high_low_e::GPIO_INPUT);
-    // PinConfig(PIN_TAD, board_type::gpio_high_low_e::GPIO_INPUT);
-    // PinConfig(PIN_IND, board_type::gpio_high_low_e::GPIO_INPUT);
-    // PinConfig(PIN_DTD, board_type::gpio_high_low_e::GPIO_INPUT);
+void GPIOBUS_Allwinner::SaveGpioConfig()
+{
+    saved_gpio_config.resize(14);
 
-    // // Initialize all signals
-    // for (i = 0; SignalTable[i] >= 0; i++)
-    // {
-    // 	pin = SignalTable[i];
-    // 	PinSetSignal(pin, FALSE);
-    // 	PinConfig(pin, board_type::gpio_high_low_e::GPIO_INPUT);
-    // 	PullConfig(pin, GPIO_PULLNONE);
-    // }
+    for (auto this_bank : gpio_banks) {
+                int bank = this_bank;
+        if (this_bank < 11) {
+            // std::vector<sunxi_gpio_t> saved_gpio_config;
+            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank],
+                   sizeof(sunxi_gpio_t));
+        } else {
+            bank -= 11;
+            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank],
+                   sizeof(sunxi_gpio_t));
+        }
+    }
+}
 
-    // Set drive strength back to 8mA
-    DrvConfig(3);
-#endif // ifdef __x86_64__ || __X86__
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+void GPIOBUS_Allwinner::RestoreGpioConfig()
+{
+    for (auto this_bank : gpio_banks) {
+        int bank = this_bank;
+        if (this_bank < 11) {
+            // std::vector<sunxi_gpio_t> saved_gpio_config;
+            memcpy(&((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]),
+                   sizeof(sunxi_gpio_t));
+        } else {
+            bank -= 11;
+            memcpy(&((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]),
+                   sizeof(sunxi_gpio_t));
+        }
+    }
 }
 
 bool GPIOBUS_Allwinner::SetupSelEvent()
 {
-    
     int gpio_pin = phys_to_gpio_map->phys_to_gpio_map.at(board->pin_sel);
 
     // GPIO chip open
@@ -386,12 +320,11 @@ bool GPIOBUS_Allwinner::SetupSelEvent()
     memset(&ev, 0, sizeof(ev));
     ev.events  = EPOLLIN | EPOLLPRI;
     ev.data.fd = selevreq.fd;
-    if(epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev) < 0){
-        
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev) < 0) {
         return false;
     }
 
-return true;
+    return true;
     //     // GPIO chip open
     //     LOGTRACE("%s GPIO chip open", __PRETTY_FUNCTION__);
     //     int gpio_fd = open("/dev/gpiochip0", 0);
@@ -441,14 +374,21 @@ return true;
 
 uint8_t GPIOBUS_Allwinner::GetDAT()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    // LOGDEBUG("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(PIN_DT0),
-    // GetSignal(PIN_DT1),GetSignal(PIN_DT2),GetSignal(PIN_DT3),GetSignal(PIN_DT4),GetSignal(PIN_DT5),GetSignal(PIN_DT6),GetSignal(PIN_DT7),GetSignal(PIN_DP));
+    static uint8_t prev_data = 0;
+    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+    LOGINFO("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(board->pin_dt0),
+            GetSignal(board->pin_dt1), GetSignal(board->pin_dt2), GetSignal(board->pin_dt3), GetSignal(board->pin_dt4),
+            GetSignal(board->pin_dt5), GetSignal(board->pin_dt6), GetSignal(board->pin_dt7), GetSignal(board->pin_dp));
     // TODO: This is crazy inefficient...
     uint8_t data = ((GetSignal(board->pin_dt0) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt1) ? 0x01 : 0x00) << 1) |
                    ((GetSignal(board->pin_dt2) ? 0x01 : 0x00) << 2) | ((GetSignal(board->pin_dt3) ? 0x01 : 0x00) << 3) |
-                   ((GetSignal(board->pin_dt4) ? 0x01 : 0x00) << 0) | ((GetSignal(board->pin_dt5) ? 0x01 : 0x00) << 5) |
+                   ((GetSignal(board->pin_dt4) ? 0x01 : 0x00) << 4) | ((GetSignal(board->pin_dt5) ? 0x01 : 0x00) << 5) |
                    ((GetSignal(board->pin_dt6) ? 0x01 : 0x00) << 6) | ((GetSignal(board->pin_dt7) ? 0x01 : 0x00) << 7);
+
+    if (prev_data != data) {
+        LOGINFO("Data %02X", data);
+        prev_data = data;
+    }
 
     return (uint8_t)data;
     // return 0;
@@ -517,27 +457,30 @@ bool GPIOBUS_Allwinner::GetSignal(board_type::pi_physical_pin_e pin) const
     int bank        = GPIO_BANK(gpio_num); // gpio >> 5
     int num         = GPIO_NUM(gpio_num);  // gpio & 0x1F
 
-    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
-    sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
-    /* DK, for PL and PM */
-    if (bank >= 11) {
-        bank -= 11;
-        pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
-    }
+    LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, (int)gpio, (int)bank, (int)num);
 
-    regval = *(&pio->DAT);
-    regval = regval >> num;
-    regval &= 1;
+    regval = (signals[bank] >> num) & 0x1;
+    return regval != 0;
+    // sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
+    // /* DK, for PL and PM */
+    // if (bank >= 11) {
+    //     bank -= 11;
+    //     pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
+    // }
 
-    int sunxi_gpio_state = regval;
+    // regval = *(&pio->DAT);
+    // regval = regval >> num;
+    // regval &= 1;
 
-    LOGDEBUG("%s GPIO %d is set to %d", __PRETTY_FUNCTION__, gpio_num, sunxi_gpio_state);
+    // int sunxi_gpio_state = regval;
 
-    if (sunxi_gpio_state == HIGH) {
-        return true;
-    } else {
-        return false;
-    }
+    // LOGDEBUG("%s GPIO %d is set to %d", __PRETTY_FUNCTION__, gpio_num, sunxi_gpio_state);
+
+    // if (sunxi_gpio_state == LOW) {
+    //     return true;
+    // } else {
+    //     return false;
+    // }
     // return (digitalRead(pin) != 0);
 }
 
@@ -641,7 +584,7 @@ void GPIOBUS_Allwinner::PullConfig(board_type::pi_physical_pin_e pin, board_type
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
         (void)
-        pin;
+    pin;
     (void)mode;
     return;
 #else
@@ -704,8 +647,46 @@ void GPIOBUS_Allwinner::PinSetSignal(board_type::pi_physical_pin_e pin, board_ty
 
 void GPIOBUS_Allwinner::DrvConfig(uint32_t drive)
 {
-    (void)drive;
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
+    GPIO_FUNCTION_TRACE
+    // #ifndef __arm__
+
+    //     (void)drive;
+    //     return;
+
+    // #else
+
+    for (auto hw_pin : phys_to_gpio_map->phys_to_gpio_map) {
+        if (hw_pin.first == board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
+            continue;
+        }
+
+        int gpio = hw_pin.second;
+        LOGTRACE("Configuring HW Pin %d [GPIO %d] to drive strength %d", (int)hw_pin.first, gpio, drive);
+
+        uint32_t regval = 0;
+        int bank        = GPIO_BANK(gpio);       // gpio >> 5
+        int index       = GPIO_DRV_INDEX(gpio);  // (gpio & 0x1F) >> 3
+        int offset      = GPIO_DRV_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+        LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
+
+        sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
+        /* DK, for PL and PM */
+        if (bank >= 11) {
+            bank -= 11;
+            pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
+        }
+
+        // Get current register value
+        regval = *(&pio->DRV[0] + index);
+        // Clear the DRV value for that gpio
+        regval &= ~(0x7 << offset); // 0xf?
+        // Set the new DRV strength
+        regval |= (drive & 0b11) << offset;
+        // Save back to the register
+        *(&pio->DRV[0] + index) = regval;
+    }
+
+    // #endif // if __arm__
 }
 
 uint32_t GPIOBUS_Allwinner::Acquire()
@@ -821,6 +802,7 @@ int GPIOBUS_Allwinner::sunxi_setup(void)
     r_pio_map = r_gpio_map + (SUNXI_R_GPIO_REG_OFFSET >> 2);
     LOGTRACE("r_gpio_map[%p] r_pio_map[%p]", r_gpio_map, r_pio_map)
 
+    close(mem_fd);
     return SETUP_OK;
 #endif
 }

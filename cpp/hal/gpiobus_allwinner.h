@@ -219,4 +219,9 @@ class GPIOBUS_Allwinner : public GPIOBUS
     void short_wait(void);
 
     SBC_Version::sbc_version_type sbc_version;
+
+    void SaveGpioConfig();
+void RestoreGpioConfig();
+
+    std::vector<sunxi_gpio_t> saved_gpio_config;
 };
