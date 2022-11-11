@@ -1,4 +1,4 @@
-@import url("bootstrap-reboot.css");
+@import url("//cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap-reboot.min.css");
 
 :root {
   --success: var(--bs-success);
