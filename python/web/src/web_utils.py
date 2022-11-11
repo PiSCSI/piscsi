@@ -322,7 +322,7 @@ def browser_supports_modern_themes():
 
     current_ua_family = user_agent['user_agent']['family']
     current_ua_version = float(user_agent['user_agent']['major'])
-    logging.debug(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
+    logging.info(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
 
     for supported_browser, supported_version in supported_browsers:
         if current_ua_family == supported_browser and current_ua_version >= supported_version:
