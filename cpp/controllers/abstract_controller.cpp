@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
@@ -104,7 +103,6 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()))
 			throw scsi_exception(sense_key::ABORTED_COMMAND);
 			break;
 	}
