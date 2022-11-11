@@ -245,7 +245,7 @@ void ScsiController::Execute()
 {
 	stringstream s;
 	s << "++++ CMD ++++ Executing command $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
-	logger.Debug(s.str());
+	logger.Trace(s.str());
 
 	// Initialization for data transfer
 	ResetOffset();
