@@ -618,10 +618,10 @@ int Rascsi::run(const vector<char *>& args)
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				device_logger.Trace("Processing for initiator ID " + to_string(initiator_id));
+				device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
 			}
 			else {
-				device_logger.Trace("Processing for unknown initiator ID");
+				device_logger.Trace("++++ Starting processing for unknown initiator ID");
 			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
