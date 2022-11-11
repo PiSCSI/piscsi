@@ -240,12 +240,11 @@ void ScsiController::Command()
 void ScsiController::Execute()
 {
 	stringstream s;
-	s << "++++ CMD ++++ Executing command $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode())
-			<< ", CDB: $";
+	s << "++++ CMD ++++ Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $";
 	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<int>(GetOpcode())); i++) {
 		s << GetCmd(i);
 	}
-	logger.Trace(s.str());
+	logger.Debug(s.str());
 
 	// Initialization for data transfer
 	ResetOffset();
