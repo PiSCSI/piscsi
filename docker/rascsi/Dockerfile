@@ -16,10 +16,6 @@ USER pi
 WORKDIR /home/pi/RASCSI
 COPY --chown=pi:pi . .
 
-# Workaround for Bullseye amd64 compilation error
-# https://github.com/akuker/RASCSI/issues/821
-# RUN patch -p0 < docker/rascsi/cfilesystem.patch
-
 # Install RaSCSI standalone
 RUN ./easyinstall.sh --run_choice=10 --cores=`nproc`
 
