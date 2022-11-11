@@ -227,13 +227,9 @@ void ScsiController::Command()
 		AllocateCmd(command_byte_count);
 
 		// Command data transfer
-		stringstream s;
-		s << setfill('0') << setw(2) << hex;
 		for (int i = 0; i < command_byte_count; i++) {
 			GetCmd()[i] = GetBuffer()[i];
-			s << GetCmd(i);
 		}
-		logger.Trace("CDB: $" + s.str());
 
 		SetLength(0);
 
@@ -244,7 +240,11 @@ void ScsiController::Command()
 void ScsiController::Execute()
 {
 	stringstream s;
-	s << "++++ CMD ++++ Executing command $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
+	s << "++++ CMD ++++ Executing command $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode())
+			<< ", CDB: $";
+	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<int>(GetOpcode())); i++) {
+		s << GetCmd(i);
+	}
 	logger.Trace(s.str());
 
 	// Initialization for data transfer
