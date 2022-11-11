@@ -609,10 +609,10 @@ int Rascsi::run(const vector<char *>& args) const
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				LOGTRACE("Initiator ID %d", initiator_id);
+				device_logger.Trace("Bus activity for initiator ID " + to_string(initiator_id));
 			}
 			else {
-				LOGTRACE("Initiator ID is unknown");
+				device_logger.Trace("Bus activity for unknown initiator ID");
 			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {

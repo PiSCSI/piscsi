@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "devices/device_logger.h"
 #include "rascsi/command_context.h"
 #include "rascsi/rascsi_service.h"
 #include "rascsi/rascsi_image.h"
@@ -49,6 +50,8 @@ private:
 
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
+
+	DeviceLogger device_logger;
 
 	// A static instance is needed because of the signal handler
 	static inline shared_ptr<BUS> bus;
