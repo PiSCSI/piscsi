@@ -5,7 +5,8 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  	Copyright (C) akuker
+//  Copyright (C) akuker
+//  Copyright (C) 2022 Uwe Seimet
 //
 //  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
