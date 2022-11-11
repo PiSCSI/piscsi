@@ -16,6 +16,7 @@
 
 #include "shared/scsi.h"
 #include "controller_manager.h"
+#include "devices/device_logger.h"
 #include "abstract_controller.h"
 #include <array>
 
@@ -87,6 +88,8 @@ public:
 	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 private:
+
+	DeviceLogger logger;
 
 	// Execution start time
 	uint32_t execstart = 0;

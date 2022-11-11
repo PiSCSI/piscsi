@@ -57,7 +57,7 @@ protected:
 
 	void AddCommand(scsi_command, const operation&);
 
-	const DeviceLogger& GetLogger() const { return device_logger; }
+	const DeviceLogger& GetLogger() const { return logger; }
 
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
@@ -86,7 +86,7 @@ private:
 
 	vector<byte> HandleRequestSense() const;
 
-	DeviceLogger device_logger;
+	DeviceLogger logger;
 
 	weak_ptr<AbstractController> controller;
 
