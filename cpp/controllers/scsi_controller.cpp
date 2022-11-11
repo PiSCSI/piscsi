@@ -500,11 +500,9 @@ void ScsiController::Send()
 	assert(!GetBus().GetREQ());
 	assert(GetBus().GetIO());
 
-	logger.Trace("Sending data");
+	logger.Trace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
 
 	if (HasValidLength()) {
-		logger.Trace("Sending handhake with offset " + to_string(GetOffset()) + ", length " + to_string(GetLength()));
-
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
 		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
@@ -520,7 +518,6 @@ void ScsiController::Send()
 		return;
 	}
 
-	// Block subtraction, result initialization
 	DecrementBlocks();
 	bool result = true;
 
