@@ -54,13 +54,6 @@ void ScsiController::Reset()
 
 BUS::phase_t ScsiController::Process(int id)
 {
-	if (id != UNKNOWN_INITIATOR_ID) {
-		logger.Trace("Processing for initiator ID " + to_string(id));
-	}
-	else {
-		logger.Trace("Processing for unknown initiator ID");
-	}
-
 	GetBus().Acquire();
 
 	if (GetBus().GetRST()) {

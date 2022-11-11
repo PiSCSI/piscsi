@@ -494,7 +494,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	return true;
 }
 
-int Rascsi::run(const vector<char *>& args) const
+int Rascsi::run(const vector<char *>& args)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -613,7 +613,16 @@ int Rascsi::run(const vector<char *>& args) const
 		// Identify the responsible controller
 		auto controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
+			device_logger.SetIdAndLun(controller->GetTargetId(), -1);
+
 			initiator_id = controller->ExtractInitiatorId(id_data);
+
+			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
+				device_logger.Trace("Processing for initiator ID " + to_string(initiator_id));
+			}
+			else {
+				device_logger.Trace("Processing for unknown initiator ID");
+			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
 				phase = BUS::phase_t::selection;
