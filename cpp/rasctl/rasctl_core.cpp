@@ -291,31 +291,3 @@ int RasCtl::run(const vector<char *>& args) const
 
     return status ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-void RasCtl::SetProductData(PbDeviceDefinition& device, const string& data) const
-{
-	string vendor;
-	string product;
-	string revision;
-
-	string s = data;
-	if (size_t separator_pos = s.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		vendor = s.substr(0, separator_pos);
-		s = s.substr(separator_pos + 1);
-		separator_pos = s.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
-			product = s.substr(0, separator_pos);
-			revision = s.substr(separator_pos + 1);
-		}
-		else {
-			product = s;
-		}
-	}
-	else {
-		vendor = s;
-	}
-
-	device.set_vendor(vendor);
-	device.set_product(product);
-	device.set_revision(revision);
-}
