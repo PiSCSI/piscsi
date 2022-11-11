@@ -219,8 +219,6 @@ bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
 	assert(sec >= 0 && sec < 0x100);
 
-	LOGTRACE("Reading sector: %d", sec)
-
 	// Error if not initialized
 	if (!dt.init) {
 		return false;
