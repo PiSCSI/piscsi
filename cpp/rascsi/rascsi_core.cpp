@@ -154,6 +154,18 @@ void Rascsi::SetProductData(PbDeviceDefinition& device, const string& data) cons
 	}
 }
 
+PbDeviceType Rascsi::ParseDeviceType(const string& value) const
+{
+	string t = value;
+	PbDeviceType type;
+	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	if (!PbDeviceType_Parse(t, &type)) {
+		throw parser_exception("Illegal device type '" + value + "'");
+	}
+
+	return type;
+}
+
 void Rascsi::TerminationHandler(int signum)
 {
 	Cleanup();
@@ -294,13 +306,8 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 				}
 				continue;
 
-			case 't': {
-					string t = value;
-					transform(t.begin(), t.end(), t.begin(), ::toupper);
-					if (!PbDeviceType_Parse(t, &type)) {
-						throw parser_exception("Illegal device type '" + value + "'");
-					}
-				}
+			case 't':
+				type = ParseDeviceType(value);
 				continue;
 
 			case 1:

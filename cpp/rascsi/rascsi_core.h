@@ -45,6 +45,7 @@ private:
 	void ReadAccessToken(const string&) const;
 	void LogDevices(string_view) const;
 	void SetProductData(PbDeviceDefinition&, const string&) const;
+	PbDeviceType ParseDeviceType(const string&) const;
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(const vector<char *>&, int&) const;
 	void CreateInitialDevices(const optargs_type&) const;
