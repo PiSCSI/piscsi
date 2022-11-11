@@ -586,36 +586,32 @@ void ScsiController::Send()
 
 void ScsiController::Receive()
 {
-	logger.Trace("Receiving data");
+	// REQ is low
+	assert(!GetBus().GetREQ());
+	assert(!GetBus().GetIO());
+
+	logger.Trace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
+
+	if (HasValidLength()) {
+		// If not able to receive all, move to status phase
+		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
+			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
+					+ to_string(len));
+			Error(sense_key::ABORTED_COMMAND);
+			return;
+		}
+	}
 
 	if (IsByteTransfer()) {
 		ReceiveBytes();
 		return;
 	}
 
-	// REQ is low
-	assert(!GetBus().GetREQ());
-	assert(!GetBus().GetIO());
-
-	// Length != 0 if received
 	if (HasValidLength()) {
-		logger.Trace("Length is " + to_string(GetLength()) + " byte(s)");
-
-		// If not able to receive all, move to status phase
-		if (int len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength());
-			len != static_cast<int>(GetLength())) {
-			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
-					+ to_string(len));
-			Error(sense_key::ABORTED_COMMAND);
-			return;
-		}
-
 		UpdateOffsetAndLength();
-
 		return;
 	}
 
-	// Block subtraction, result initialization
 	DecrementBlocks();
 	bool result = true;
 
@@ -700,28 +696,12 @@ bool ScsiController::XferMsg(int msg)
 
 void ScsiController::ReceiveBytes()
 {
-	assert(!GetBus().GetREQ());
-	assert(!GetBus().GetIO());
-
 	if (HasValidLength()) {
-		logger.Trace("Length is " + to_string(GetLength()) + " byte(s)");
-
-		// If not able to receive all, move to status phase
-		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
-					+ to_string(len));
-			Error(sense_key::ABORTED_COMMAND);
-			return;
-		}
-
 		SetBytesToTransfer(GetLength());
-
 		UpdateOffsetAndLength();
-
 		return;
 	}
 
-	// Result initialization
 	bool result = true;
 
 	// Processing after receiving data (by phase)
