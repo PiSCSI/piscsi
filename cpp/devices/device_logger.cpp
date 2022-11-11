@@ -12,69 +12,54 @@
 
 using namespace std;
 
-void DeviceLogger::Trace(const string& error) const
+void DeviceLogger::Trace(const string& message) const
 {
-	if (IsLogDevice()) {
-		if (lun == -1) {
-			LOGTRACE("(ID %d) - %s", id, error.c_str())
-		}
-		else {
-			LOGTRACE("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
-		}
+	if (const string m = GetLogMessage(message); !m.empty()) {
+		LOGTRACE("%s", m.c_str())
 	}
 }
 
-void DeviceLogger::Debug(const string& error) const
+void DeviceLogger::Debug(const string& message) const
 {
-	if (IsLogDevice()) {
-		if (lun == -1) {
-			LOGDEBUG("(ID %d) - %s", id, error.c_str())
-		}
-		else {
-			LOGDEBUG("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
-		}
+	if (const string m = GetLogMessage(message); !m.empty()) {
+		LOGDEBUG("%s", m.c_str())
 	}
 }
 
-void DeviceLogger::Info(const string& error) const
+void DeviceLogger::Info(const string& message) const
 {
-	if (IsLogDevice()) {
-		if (lun == -1) {
-			LOGINFO("(ID %d) - %s", id, error.c_str())
-		}
-		else {
-			LOGINFO("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
-		}
+	if (const string m = GetLogMessage(message); !m.empty()) {
+		LOGINFO("%s", m.c_str())
 	}
 }
 
-void DeviceLogger::Warn(const string& error) const
+void DeviceLogger::Warn(const string& message) const
 {
-	if (IsLogDevice()) {
-		if (lun == -1) {
-			LOGWARN("(ID %d) - %s", id, error.c_str())
-		}
-		else {
-			LOGWARN("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
-		}
+	if (const string m = GetLogMessage(message); !m.empty()) {
+		LOGWARN("%s", m.c_str())
 	}
 }
 
-void DeviceLogger::Error(const string& error) const
+void DeviceLogger::Error(const string& message) const
 {
-	if (IsLogDevice()) {
-		if (lun == -1) {
-			LOGERROR("(ID %d) - %s", id, error.c_str())
-		}
-		else {
-			LOGERROR("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
-		}
+	if (const string m = GetLogMessage(message); !m.empty()) {
+		LOGERROR("%s", m.c_str())
 	}
 }
 
-bool DeviceLogger::IsLogDevice() const
+string DeviceLogger::GetLogMessage(const string& message) const
 {
-	return log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun));
+	if (log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun)))
+	{
+		if (lun == -1) {
+			return "(ID " + to_string(id) + ") - " + message;
+		}
+		else {
+			return "(ID:LUN " + to_string(id) + ":" + to_string(lun) + ") - " + message;
+		}
+	}
+
+	return "";
 }
 
 void DeviceLogger::SetIdAndLun(int i, int l)

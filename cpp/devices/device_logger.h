@@ -27,7 +27,7 @@ public:
 	void Warn(const string&) const;
 	void Error(const string&) const;
 
-	bool IsLogDevice() const;
+	string GetLogMessage(const string&) const;
 
 	void SetIdAndLun(int, int);
 
