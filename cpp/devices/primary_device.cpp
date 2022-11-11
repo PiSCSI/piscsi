@@ -79,7 +79,7 @@ void PrimaryDevice::SetController(shared_ptr<AbstractController> c)
 {
 	controller = c;
 
-	GetLogger().SetIdAndLun(c != nullptr ? c->GetTargetId() : -1, GetLun());
+	device_logger.SetIdAndLun(c != nullptr ? c->GetTargetId() : -1, GetLun());
 }
 
 void PrimaryDevice::TestUnitReady()

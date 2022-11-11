@@ -31,7 +31,7 @@ public:
 
 	void SetIdAndLun(int, int);
 
-	static void SetLogDevice(int, int);
+	static void SetLogIdAndLun(int, int);
 
 private:
 

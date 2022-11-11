@@ -58,7 +58,7 @@ void DeviceLogger::SetIdAndLun(int i, int l)
 	lun = l;
 }
 
-void DeviceLogger::SetLogDevice(int i, int l)
+void DeviceLogger::SetLogIdAndLun(int i, int l)
 {
 	log_device_id = i;
 	log_device_lun = l;
