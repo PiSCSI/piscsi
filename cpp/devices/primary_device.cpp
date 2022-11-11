@@ -103,7 +103,7 @@ void PrimaryDevice::Inquiry()
 
 	// Report if the device does not support the requested LUN
 	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
-		LogTrace("LUN " + to_string(lun) + " for device ID" + to_string(GetId()) + " is not available");
+		LogTrace("LUN is not available");
 
 		// Signal that the requested LUN does not exist
 		GetController()->GetBuffer().data()[0] = 0x7f;
@@ -273,11 +273,10 @@ void PrimaryDevice::ReserveUnit()
 	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
-		LogTrace("Reserved device ID " + to_string(GetId()) + ", LUN " + to_string(GetLun()) +
-				" for initiator ID " + to_string(reserving_initiator));
+		LogTrace("Reserved device for initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		LogTrace("Reserved device ID " + to_string(GetId()) + ", LUN " + to_string(GetLun()) + " for unknown initiator");
+		LogTrace("Reserved device for unknown initiator");
 	}
 
 	EnterStatusPhase();
@@ -286,12 +285,10 @@ void PrimaryDevice::ReserveUnit()
 void PrimaryDevice::ReleaseUnit()
 {
 	if (reserving_initiator != -1) {
-		LogTrace("Released device ID " + to_string(GetId()) + ", LUN " + to_string(GetLun()) +
-				" reserved by initiator ID " + to_string(reserving_initiator));
+		LogTrace("Released device reserved by initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		LogTrace("Released device ID " + to_string(GetId()) + ", LUN " + to_string(GetLun()) +
-				" reserved by unknown initiator");
+		LogTrace("Released device reserved by unknown initiator");
 	}
 
 	DiscardReservation();
@@ -315,12 +312,10 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 	}
 
 	if (initiator_id != -1) {
-		LogTrace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device ID " +
-				to_string(GetId()) + ", LUN " + to_string(GetLun()));
+		LogTrace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
 	}
 	else {
-		LogTrace("Unknown initiator tries to access reserved device ID " + to_string(GetId()) + ", LUN "
-				+ to_string(GetLun()));
+		LogTrace("Unknown initiator tries to access reserved device");
 	}
 
 	return false;

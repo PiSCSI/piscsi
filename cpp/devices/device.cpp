@@ -149,34 +149,34 @@ bool Device::Eject(bool force)
 void Device::LogTrace(const string& error) const
 {
 	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
-		LOGTRACE("%s", error.c_str())
+		LOGTRACE("(%d:%d) - %s", GetId(), lun, error.c_str())
 	}
 }
 
 void Device::LogDebug(const string& error) const
 {
 	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
-		LOGDEBUG("%s", error.c_str())
+		LOGDEBUG("(%d:%d) - %s", GetId(), lun, error.c_str())
 	}
 }
 
 void Device::LogInfo(const string& error) const
 {
 	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
-		LOGINFO("%s", error.c_str())
+		LOGINFO("(%d:%d) - %s", GetId(), lun, error.c_str())
 	}
 }
 
 void Device::LogWarn(const string& error) const
 {
 	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
-		LOGWARN("%s", error.c_str())
+		LOGWARN("(%d:%d) - %s", GetId(), lun, error.c_str())
 	}
 }
 
 void Device::LogError(const string& error) const
 {
 	if (log_device_id == -1 || (log_device_id == GetId() && (log_device_lun == -1 || log_device_lun == lun))) {
-		LOGERROR("%s", error.c_str())
+		LOGERROR("(%d:%d) - %s", GetId(), lun, error.c_str())
 	}
 }
