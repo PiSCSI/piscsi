@@ -216,7 +216,6 @@ void ScsiController::Command()
 		// If not able to receive all, move to the status phase
 		if (actual_count != command_byte_count) {
 			stringstream s;
-
 			s << "Command byte count mismatch for command $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
 			logger.Error(s.str() + ": expected " + to_string(command_byte_count) + " bytes, received"
 					+ to_string(actual_count) + " byte(s)");
@@ -224,9 +223,8 @@ void ScsiController::Command()
 			return;
 		}
 
-		AllocateCmd(command_byte_count);
-
 		// Command data transfer
+		AllocateCmd(command_byte_count);
 		for (int i = 0; i < command_byte_count; i++) {
 			GetCmd()[i] = GetBuffer()[i];
 		}
