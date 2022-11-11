@@ -239,9 +239,9 @@ void ScsiController::Execute()
 {
 	stringstream s;
 	s << "++++ CMD ++++ Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
-			<< setfill('0') << setw(2) << hex;
+			<< setfill('0') << hex;
 	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<int>(GetOpcode())); i++) {
-		s << GetCmd(i);
+		s << setw(2) << GetCmd(i);
 	}
 	logger.Debug(s.str());
 
