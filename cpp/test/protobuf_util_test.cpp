@@ -131,3 +131,15 @@ TEST(ProtobufUtil, SetProductData)
 	EXPECT_EQ("product", device.product());
 	EXPECT_EQ("revision", device.revision());
 }
+
+TEST(ProtobufUtil, SetIdAndLun)
+{
+	PbDeviceDefinition device;
+
+	EXPECT_NE("", SetIdAndLun(device, "", 32));
+	EXPECT_EQ("", SetIdAndLun(device, "1", 32));
+	EXPECT_EQ(1, device.id());
+	EXPECT_EQ("", SetIdAndLun(device, "2:0", 32));
+	EXPECT_EQ(2, device.id());
+	EXPECT_EQ(0, device.unit());
+}

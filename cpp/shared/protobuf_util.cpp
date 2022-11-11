@@ -117,6 +117,20 @@ void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& dat
 	}
 }
 
+string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& value, int max_luns)
+{
+	int id;
+	int lun;
+	if (const string error = ProcessId(value, max_luns, id, lun); !error.empty()) {
+		return error;
+	}
+
+	device.set_id(id);
+	device.set_unit(lun);
+
+	return "";
+}
+
 string protobuf_util::ListDevices(const list<PbDevice>& pb_devices)
 {
 	if (pb_devices.empty()) {

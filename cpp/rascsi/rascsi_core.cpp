@@ -228,12 +228,11 @@ Rascsi::optargs_type Rascsi::ParseArguments(const vector<char *>& args, int& por
 void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 {
 	PbCommand command;
-	int id = -1;
-	int lun = -1;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
 	string log_level;
+	string id_and_lun;
 
 	const char *locale = setlocale(LC_MESSAGES, "");
 	if (locale == nullptr || !strcmp(locale, "C")) {
@@ -245,17 +244,12 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 		switch (option) {
 			case 'i':
 			case 'I':
-				id = -1;
-				lun = -1;
 				continue;
 
 			case 'd':
-			case 'D': {
-				if (const string error = ProcessId(value, ScsiController::LUN_MAX, id, lun); !error.empty()) {
-					throw parser_exception(error);
-				}
+			case 'D':
+				id_and_lun = value;
 				continue;
-			}
 
 			case 'z':
 				locale = value.c_str();
@@ -297,10 +291,14 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 				throw parser_exception("Parser error");
 		}
 
-		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
-		device->set_id(id);
-		device->set_unit(lun);
+
+		if (!id_and_lun.empty()) {
+			if (const string error = SetIdAndLun(*device, id_and_lun, ScsiController::LUN_MAX); !error.empty()) {
+				throw parser_exception(error);
+			}
+		}
+
 		device->set_type(type);
 		device->set_block_size(block_size);
 
@@ -308,10 +306,10 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 
 		SetProductData(*device, name);
 
-		id = -1;
 		type = UNDEFINED;
 		block_size = 0;
 		name = "";
+		id_and_lun = "";
 	}
 
 	// Attach all specified devices

@@ -9,6 +9,7 @@
 
 #include "rascsi_version.h"
 #include "rasutil.h"
+#include <cassert>
 #include <sstream>
 #include <algorithm>
 
@@ -36,6 +37,8 @@ bool ras_util::GetAsUnsignedInt(const string& value, int& result)
 
 string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
 {
+	assert(max_luns > 0);
+
 	id = -1;
 	lun = -1;
 

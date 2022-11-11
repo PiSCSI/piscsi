@@ -28,5 +28,4 @@ class RasCtl
 private:
 
 	void Banner(const vector<char *>&) const;
-	string SetIdAndLun(PbDeviceDefinition&, const string&) const;
 };

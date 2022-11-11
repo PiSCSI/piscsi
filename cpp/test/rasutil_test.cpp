@@ -29,22 +29,12 @@ TEST(RasUtilTest, ProcessId)
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("8", 0, id, lun);
-	EXPECT_FALSE(error.empty());
-	EXPECT_EQ(-1, id);
-	EXPECT_EQ(-1, lun);
-
-	error = ProcessId("0:1", 0, id, lun);
-	EXPECT_FALSE(error.empty());
-	EXPECT_EQ(-1, id);
-	EXPECT_EQ(-1, lun);
-
 	error = ProcessId("0:32", 32, id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("-1:0", 32, id, lun);
+	error = ProcessId("-1:", 32, id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
