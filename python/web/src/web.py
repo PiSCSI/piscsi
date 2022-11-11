@@ -1226,9 +1226,9 @@ def change_language():
 @APP.route("/theme", methods=["GET", "POST"])
 def change_theme():
     if request.method == "GET":
-        theme = request.args.get("v")
+        theme = request.args.get("name")
     else:
-        theme = request.form.get("theme")
+        theme = request.form.get("name")
 
     if theme not in TEMPLATE_THEMES:
         return response(error=True, message=_("The requested theme does not exist."))

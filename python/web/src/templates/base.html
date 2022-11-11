@@ -104,9 +104,9 @@
     <div align="center" class="footer">
         <div class="theme-change-hint">
             {% if current_theme == "classic" %}
-                {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="modern") }}
+                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="modern") }}
             {% else %}
-                {{ _('Switch to the <a href="/theme?v=%(theme)s">%(theme)s theme</a>', theme="classic") }}
+                {{ _('Switch to the <a href="/theme?name=%(theme)s">%(theme)s theme</a>', theme="classic") }}
             {% endif %}
         </div>
 
