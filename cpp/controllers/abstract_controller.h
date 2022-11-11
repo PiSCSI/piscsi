@@ -28,6 +28,8 @@ class AbstractController : public PhaseHandler, public enable_shared_from_this<A
 {
 public:
 
+	static inline const int UNKNOWN_INITIATOR_ID = -1;
+
 	enum class rascsi_shutdown_mode {
 		NONE,
 		STOP_RASCSI,

@@ -35,8 +35,6 @@ class ScsiController : public AbstractController
 	// REQ/ACK offset(limited to 16)
 	static const uint8_t MAX_SYNC_OFFSET = 16;
 
-	static const int UNKNOWN_INITIATOR_ID = -1;
-
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	using scsi_t = struct _scsi_t {

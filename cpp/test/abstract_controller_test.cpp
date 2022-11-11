@@ -199,14 +199,13 @@ TEST(AbstractControllerTest, ExtractInitiatorId)
 {
 	const int ID = 1;
 	const int INITIATOR_ID = 7;
-	const int UNKNOWN_INITIATOR_ID = -1;
 
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, ID);
 
 	EXPECT_EQ(INITIATOR_ID, controller.ExtractInitiatorId((1 << INITIATOR_ID) | ( 1 << ID)));
-	EXPECT_EQ(UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
+	EXPECT_EQ(AbstractController::UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
 }
 
 TEST(AbstractControllerTest, GetOpcode)

@@ -596,7 +596,7 @@ int Rascsi::run(const vector<char *>& args) const
 			continue;
 		}
 
-		int initiator_id = -1;
+		int initiator_id = AbstractController::UNKNOWN_INITIATOR_ID;
 
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
@@ -607,6 +607,13 @@ int Rascsi::run(const vector<char *>& args) const
 		auto controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
 			initiator_id = controller->ExtractInitiatorId(id_data);
+
+			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
+				LOGTRACE("Initiator ID %d", initiator_id);
+			}
+			else {
+				LOGTRACE("Initiator ID is unknown");
+			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
 				phase = BUS::phase_t::selection;

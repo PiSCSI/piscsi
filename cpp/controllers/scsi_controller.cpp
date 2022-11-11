@@ -66,13 +66,6 @@ BUS::phase_t ScsiController::Process(int id)
 		return GetPhase();
 	}
 
-	if (id != UNKNOWN_INITIATOR_ID) {
-		logger.Trace("Initiator ID is " + to_string(id));
-	}
-	else {
-		logger.Trace("Initiator ID is unknown");
-	}
-
 	initiator_id = id;
 
 	try {
@@ -498,9 +491,9 @@ void ScsiController::Send()
 	assert(!GetBus().GetREQ());
 	assert(GetBus().GetIO());
 
-	logger.Trace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
-
 	if (HasValidLength()) {
+		logger.Trace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
+
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
 		if (const int len = GetBus().SendHandShake(GetBuffer().data() + GetOffset(), GetLength(),
@@ -584,9 +577,9 @@ void ScsiController::Receive()
 	assert(!GetBus().GetREQ());
 	assert(!GetBus().GetIO());
 
-	logger.Trace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
-
 	if (HasValidLength()) {
+		logger.Trace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
+
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
 			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
