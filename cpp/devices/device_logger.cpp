@@ -16,10 +16,10 @@ void DeviceLogger::Trace(const string& error) const
 {
 	if (IsLogDevice()) {
 		if (lun == -1) {
-			LOGTRACE("(%d) - %s", id, error.c_str())
+			LOGTRACE("(ID %d) - %s", id, error.c_str())
 		}
 		else {
-			LOGTRACE("(%d:%d) - %s", id, lun, error.c_str())
+			LOGTRACE("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
 		}
 	}
 }
@@ -28,10 +28,10 @@ void DeviceLogger::Debug(const string& error) const
 {
 	if (IsLogDevice()) {
 		if (lun == -1) {
-			LOGDEBUG("(%d) - %s", id, error.c_str())
+			LOGDEBUG("(ID %d) - %s", id, error.c_str())
 		}
 		else {
-			LOGDEBUG("(%d:%d) - %s", id, lun, error.c_str())
+			LOGDEBUG("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
 		}
 	}
 }
@@ -40,10 +40,10 @@ void DeviceLogger::Info(const string& error) const
 {
 	if (IsLogDevice()) {
 		if (lun == -1) {
-			LOGINFO("(%d) - %s", id, error.c_str())
+			LOGINFO("(ID %d) - %s", id, error.c_str())
 		}
 		else {
-			LOGINFO("(%d:%d) - %s", id, lun, error.c_str())
+			LOGINFO("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
 		}
 	}
 }
@@ -52,10 +52,10 @@ void DeviceLogger::Warn(const string& error) const
 {
 	if (IsLogDevice()) {
 		if (lun == -1) {
-			LOGWARN("(%d) - %s", id, error.c_str())
+			LOGWARN("(ID %d) - %s", id, error.c_str())
 		}
 		else {
-			LOGWARN("(%d:%d) - %s", id, lun, error.c_str())
+			LOGWARN("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
 		}
 	}
 }
@@ -64,10 +64,10 @@ void DeviceLogger::Error(const string& error) const
 {
 	if (IsLogDevice()) {
 		if (lun == -1) {
-			LOGERROR("(%d) - %s", id, error.c_str())
+			LOGERROR("(ID %d) - %s", id, error.c_str())
 		}
 		else {
-			LOGERROR("(%d:%d) - %s", id, lun, error.c_str())
+			LOGERROR("(ID:LUN %d:%d) - %s", id, lun, error.c_str())
 		}
 	}
 }
