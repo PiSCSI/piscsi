@@ -652,11 +652,9 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 		}
 	}
 
-	stringstream s1;
-	stringstream s2;
-	s1 << "READ/WRITE/VERIFY/SEEK command record=" << setfill('0') << setw(8) << hex << start;
-	s2 << ", blocks=" << count;
-	GetLogger().Trace(s1.str() + s2.str());
+	stringstream s;
+	s << "READ/WRITE/VERIFY/SEEK command, start block: $" << setfill('0') << setw(8) << hex << start;
+	GetLogger().Trace(s.str() + ", blocks: " + to_string(count));
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {

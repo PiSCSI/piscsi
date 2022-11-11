@@ -500,6 +500,8 @@ void ScsiController::Send()
 	assert(!GetBus().GetREQ());
 	assert(GetBus().GetIO());
 
+	logger.Trace("Sending data");
+
 	if (HasValidLength()) {
 		logger.Trace("Sending handhake with offset " + to_string(GetOffset()) + ", length " + to_string(GetLength()));
 
@@ -584,12 +586,12 @@ void ScsiController::Send()
 
 void ScsiController::Receive()
 {
+	logger.Trace("Receiving data");
+
 	if (IsByteTransfer()) {
 		ReceiveBytes();
 		return;
 	}
-
-	logger.Trace("Receive");
 
 	// REQ is low
 	assert(!GetBus().GetREQ());

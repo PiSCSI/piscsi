@@ -314,7 +314,9 @@ void SCSIDaynaPort::Read6()
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	GetLogger().Trace("READ(6) command record=" + to_string(record) + ", blocks=" + to_string(GetController()->GetBlocks()));
+	stringstream s;
+	s << "READ(6) command, record: $" << setfill('0') << setw(8) << hex << record;
+	GetLogger().Trace(s.str() + ", blocks: " + to_string(GetController()->GetBlocks()));
 
 	GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), record));
 	GetLogger().Trace("Length is " + to_string(GetController()->GetLength()));
