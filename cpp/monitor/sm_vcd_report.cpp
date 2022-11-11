@@ -12,6 +12,7 @@
 #include "shared/log.h"
 #include "hal/gpiobus.h"
 #include "data_sample.h"
+#include "sm_core.h"
 #include "sm_reports.h"
 #include <sstream>
 #include <iostream>
@@ -49,8 +50,6 @@ const int PIN_PHASE = 0;
 //
 //---------------------------------------------------------------------------
 static uint8_t prev_value[32] = {0xFF};
-
-extern double ns_per_loop;
 
 static uint8_t get_pin_value(uint32_t data, int pin)
 {
@@ -164,7 +163,7 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
 
     uint32_t i = 0;
     while (i < capture_count) {
-        vcd_ofstream << "#" << (uint64_t)((double)data_capture_array[i].timestamp * ns_per_loop) << endl;
+        vcd_ofstream << "#" << (uint64_t)((double)data_capture_array[i].timestamp * ScsiMon::ns_per_loop) << endl;
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_CD, SYMBOL_PIN_CD);

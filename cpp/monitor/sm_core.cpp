@@ -26,9 +26,6 @@
 using namespace std;
 using namespace ras_util;
 
-// TODO Should not be global and not be used by sm_vcd_report
-double ns_per_loop;
-
 void ScsiMon::KillHandler(int)
 {
     running = false;
