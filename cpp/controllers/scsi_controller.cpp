@@ -233,7 +233,7 @@ void ScsiController::Command()
 			GetCmd()[i] = GetBuffer()[i];
 			s << GetCmd(i);
 		}
-		logger.Trace("CDB=$" + s.str());
+		logger.Trace("CDB: $" + s.str());
 
 		SetLength(0);
 
@@ -837,7 +837,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 	assert(IsDataIn());
 
 	stringstream s;
-	s << "Command=$" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
+	s << "Command: $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
 	logger.Trace(s.str());
 
 	int lun = GetEffectiveLun();
