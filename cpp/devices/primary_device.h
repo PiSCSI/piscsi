@@ -15,6 +15,7 @@
 #include "interfaces/scsi_primary_commands.h"
 #include "controllers/abstract_controller.h"
 #include "device.h"
+#include "device_logger.h"
 #include <string>
 #include <unordered_map>
 #include <functional>
@@ -51,6 +52,8 @@ public:
 	virtual void FlushCache() {
 		// Devices with a cache have to implement this method
 	}
+
+	DeviceLogger logger;
 
 protected:
 

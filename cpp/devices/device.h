@@ -71,9 +71,6 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 	//			Additional Sense Code (ASC)
 	int status_code = 0;
 
-	static inline int log_device_id = -1;
-	static inline int log_device_lun = -1;
-
 protected:
 
 	Device(PbDeviceType, int);
@@ -94,12 +91,6 @@ protected:
 
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
-
-	void LogTrace(const string&) const;
-	void LogDebug(const string&) const;
-	void LogInfo(const string&) const;
-	void LogWarn(const string&) const;
-	void LogError(const string&) const;
 
 public:
 
@@ -148,6 +139,4 @@ public:
 	bool Start();
 	void Stop();
 	virtual bool Eject(bool);
-
-	static void SetLogDevice(int id, int lun) { log_device_id = id; log_device_lun = lun; }
 };

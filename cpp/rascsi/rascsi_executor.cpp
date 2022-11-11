@@ -13,6 +13,7 @@
 #include "shared/rascsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
+#include "devices/device_logger.h"
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "devices/disk.h"
@@ -197,7 +198,7 @@ bool RascsiExecutor::SetLogLevel(const string& log_level) const
 		return false;
 	}
 
-	Device::SetLogDevice(id, lun);
+	DeviceLogger::SetLogDevice(id, lun);
 
 	if (id != -1) {
 		if (lun == -1) {
