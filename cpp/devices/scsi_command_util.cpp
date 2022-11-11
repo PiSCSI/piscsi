@@ -7,14 +7,18 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
+#include "device_logger.h"
 #include "scsi_command_util.h"
+#include <cstring>
+#include <cassert>
+#include <sstream>
+#include <iomanip>
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length,
-		int sector_size)
+void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd, const vector<int>& cdb,
+		const vector<uint8_t>& buf, int length, int sector_size)
 {
 	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
 	assert(length >= 0);
@@ -52,14 +56,16 @@ void scsi_command_util::ModeSelect(scsi_command cmd, const vector<int>& cdb, con
 			if (GetInt16(buf, offset + 12) != sector_size) {
 				// With rascsi it is not possible to permanently (by formatting) change the sector size,
 				// because the size is an externally configurable setting only
-				LOGWARN("In order to change the sector size use the -b option when launching rascsi")
+				logger.Warn("In order to change the sector size use the -b option when launching rascsi");
 				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 
 			has_valid_page_code = true;
 		}
 		else {
-			LOGWARN("Unknown MODE SELECT page code: $%02X", page)
+			stringstream s;
+			s << "Unknown MODE SELECT page code: $" << setfill('0') << setw(2) << hex << page;
+			logger.Warn(s.str());
 		}
 
 		// Advance to the next page

@@ -56,7 +56,7 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
 
 	if (GetParam("cmd").find("%f") == string::npos) {
-		logger.Trace("Missing filename specifier %f");
+		GetLogger().Trace("Missing filename specifier %f");
 		return false;
 	}
 
@@ -85,10 +85,10 @@ void SCSIPrinter::Print()
 {
 	const uint32_t length = GetInt24(GetController()->GetCmd(), 2);
 
-	logger.Trace("Receiving " + to_string(length) + " byte(s) to be printed");
+	GetLogger().Trace("Receiving " + to_string(length) + " byte(s) to be printed");
 
 	if (length > GetController()->GetBuffer().size()) {
-		logger.Error("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
+		GetLogger().Error("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected");
 
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -103,7 +103,7 @@ void SCSIPrinter::Print()
 void SCSIPrinter::SynchronizeBuffer()
 {
 	if (!out.is_open()) {
-		logger.Warn("Nothing to print");
+		GetLogger().Warn("Nothing to print");
 
 		throw scsi_exception(sense_key::ABORTED_COMMAND);
 	}
@@ -115,12 +115,12 @@ void SCSIPrinter::SynchronizeBuffer()
 
 	error_code error;
 
-	logger.Trace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
+	GetLogger().Trace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
 
-	logger.Debug("Executing '" + cmd + "'");
+	GetLogger().Debug("Executing '" + cmd + "'");
 
 	if (system(cmd.c_str())) {
-		logger.Error("Printing file '" + filename + "' failed, the printing system might not be configured");
+		GetLogger().Error("Printing file '" + filename + "' failed, the printing system might not be configured");
 
 		Cleanup();
 
@@ -141,7 +141,7 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 		// There is no C++ API that generates a file with a unique name
 		const int fd = mkstemp(f.data());
 		if (fd == -1) {
-			logger.Error("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
+			GetLogger().Error("Can't create printer output file for pattern '" + filename + "': " + strerror(errno));
 			return false;
 		}
 		close(fd);
@@ -153,10 +153,10 @@ bool SCSIPrinter::WriteByteSequence(vector<uint8_t>& buf, uint32_t length)
 			throw scsi_exception(sense_key::ABORTED_COMMAND);
 		}
 
-		logger.Trace("Created printer output file '" + filename + "'");
+		GetLogger().Trace("Created printer output file '" + filename + "'");
 	}
 
-	logger.Trace("Appending " + to_string(length) + " byte(s) to printer output file ''" + filename + "'");
+	GetLogger().Trace("Appending " + to_string(length) + " byte(s) to printer output file ''" + filename + "'");
 
 	out.write((const char*)buf.data(), length);
 

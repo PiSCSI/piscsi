@@ -86,7 +86,7 @@ vector<uint8_t> SCSIHD::InquiryInternal() const
 
 void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length) const
 {
-	scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	scsi_command_util::ModeSelect(GetLogger(), cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }
 
 void SCSIHD::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const

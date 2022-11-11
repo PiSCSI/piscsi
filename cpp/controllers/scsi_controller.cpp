@@ -201,7 +201,7 @@ void ScsiController::Command()
 
 		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
-			LOGTRACE("ID %d LUN %d received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
+			LOGTRACE("ID %d, LUN %d received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			return;
@@ -453,7 +453,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun) || asc == asc::INVALID_LUN) {
 		if (!HasDeviceForLun(0)) {
-			LOGERROR("No LUN 0 for device %d", GetTargetId())
+			LOGERROR("No LUN 0 for ID %d", GetTargetId())
 
 			SetStatus(status);
 			SetMessage(0x00);

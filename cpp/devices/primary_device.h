@@ -53,11 +53,11 @@ public:
 		// Devices with a cache have to implement this method
 	}
 
-	DeviceLogger logger;
-
 protected:
 
 	void AddCommand(scsi_command, const operation&);
+
+	DeviceLogger GetLogger() const { return device_logger; }
 
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
@@ -85,6 +85,8 @@ private:
 	void Inquiry() override;
 
 	vector<byte> HandleRequestSense() const;
+
+	DeviceLogger device_logger;
 
 	weak_ptr<AbstractController> controller;
 

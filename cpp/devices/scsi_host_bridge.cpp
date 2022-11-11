@@ -43,7 +43,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	// TAP Driver Generation
 	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
-		logger.Error("Unable to open the TAP interface");
+		GetLogger().Error("Unable to open the TAP interface");
 		return false;
 	}
 #endif
