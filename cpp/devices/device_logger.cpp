@@ -15,35 +15,60 @@ using namespace std;
 void DeviceLogger::Trace(const string& error) const
 {
 	if (IsLogDevice()) {
-		LOGTRACE("(%d:%d) - %s", id, lun, error.c_str())
+		if (lun == -1) {
+			LOGTRACE("(%d) - %s", id, error.c_str())
+		}
+		else {
+			LOGTRACE("(%d:%d) - %s", id, lun, error.c_str())
+		}
 	}
 }
 
 void DeviceLogger::Debug(const string& error) const
 {
 	if (IsLogDevice()) {
-		LOGDEBUG("(%d:%d) - %s", id, lun, error.c_str())
+		if (lun == -1) {
+			LOGDEBUG("(%d) - %s", id, error.c_str())
+		}
+		else {
+			LOGDEBUG("(%d:%d) - %s", id, lun, error.c_str())
+		}
 	}
 }
 
 void DeviceLogger::Info(const string& error) const
 {
 	if (IsLogDevice()) {
-		LOGINFO("(%d:%d) - %s", id, lun, error.c_str())
+		if (lun == -1) {
+			LOGINFO("(%d) - %s", id, error.c_str())
+		}
+		else {
+			LOGINFO("(%d:%d) - %s", id, lun, error.c_str())
+		}
 	}
 }
 
 void DeviceLogger::Warn(const string& error) const
 {
 	if (IsLogDevice()) {
-		LOGWARN("(%d:%d) - %s", id, lun, error.c_str())
+		if (lun == -1) {
+			LOGWARN("(%d) - %s", id, error.c_str())
+		}
+		else {
+			LOGWARN("(%d:%d) - %s", id, lun, error.c_str())
+		}
 	}
 }
 
 void DeviceLogger::Error(const string& error) const
 {
 	if (IsLogDevice()) {
-		LOGERROR("(%d:%d) - %s", id, lun, error.c_str())
+		if (lun == -1) {
+			LOGERROR("(%d) - %s", id, error.c_str())
+		}
+		else {
+			LOGERROR("(%d:%d) - %s", id, lun, error.c_str())
+		}
 	}
 }
 
