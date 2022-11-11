@@ -201,7 +201,7 @@ void ScsiController::Command()
 
 		const int actual_count = GetBus().CommandHandShake(GetBuffer());
 		if (actual_count == 0) {
-			LOGTRACE("ID %d, LUN %d received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
+			LOGTRACE("(%d:%d) - Received unknown command: $%02X", GetTargetId(), GetEffectiveLun(), GetBuffer()[0])
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 			return;
@@ -264,7 +264,7 @@ void ScsiController::Execute()
 
 	// SCSI-2 4.4.3 Incorrect logical unit handling
 	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", GetEffectiveLun(), GetTargetId())
+		LOGTRACE("(%d:%d) - Reporting LUN as not supported", GetEffectiveLun(), GetTargetId())
 
 		GetBuffer().data()[0] = 0x7f;
 
@@ -342,8 +342,6 @@ void ScsiController::MsgIn()
 
 void ScsiController::MsgOut()
 {
-	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetTargetId())
-
 	if (!IsMsgOut()) {
 		LOGTRACE("Message Out Phase")
 
