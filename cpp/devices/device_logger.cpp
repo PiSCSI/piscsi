@@ -51,3 +51,15 @@ bool DeviceLogger::IsLogDevice() const
 {
 	return log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun));
 }
+
+void DeviceLogger::SetIdAndLun(int i, int l)
+{
+	id = i;
+	lun = l;
+}
+
+void DeviceLogger::SetLogDevice(int i, int l)
+{
+	log_device_id = i;
+	log_device_lun = l;
+}

@@ -29,9 +29,9 @@ public:
 
 	bool IsLogDevice() const;
 
-	void SetIdAndLun(int i, int l) { id = i; lun = l; }
+	void SetIdAndLun(int, int);
 
-	static void SetLogDevice(int i, int l) { log_device_id = i; log_device_lun = l; }
+	static void SetLogDevice(int, int);
 
 private:
 
