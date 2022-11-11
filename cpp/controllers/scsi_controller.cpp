@@ -586,7 +586,6 @@ void ScsiController::Send()
 
 void ScsiController::Receive()
 {
-	// REQ is low
 	assert(!GetBus().GetREQ());
 	assert(!GetBus().GetIO());
 
