@@ -40,6 +40,11 @@ using namespace filesystem;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
+{
+	SupportsParams(true);
+}
+
 bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
@@ -64,7 +69,6 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	file_template = temp_directory_path(error); //NOSONAR Publicly writable directory is fine here
 	file_template += PRINTER_FILE_PATTERN;
 
-	SupportsParams(true);
 	SetReady(true);
 
 	return true;

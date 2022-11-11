@@ -32,7 +32,7 @@ class SCSIBR : public PrimaryDevice, public ByteWriter
 
 public:
 
-	explicit SCSIBR(int lun) : PrimaryDevice(SCBR, lun) {}
+	explicit SCSIBR(int);
 	~SCSIBR() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

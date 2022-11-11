@@ -26,6 +26,11 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
+{
+	SupportsParams(true);
+}
+
 bool SCSIBR::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
@@ -36,8 +41,6 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
 	AddCommand(scsi_command::eCmdGetMessage10, [this] { GetMessage10(); });
 	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
-
-	SupportsParams(true);
 
 #ifdef __linux__
 	// TAP Driver Generation

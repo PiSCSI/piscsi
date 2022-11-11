@@ -26,7 +26,7 @@ class SCSIPrinter : public PrimaryDevice, private ScsiPrinterCommands
 
 public:
 
-	explicit SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun) {}
+	explicit SCSIPrinter(int);
 	~SCSIPrinter() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

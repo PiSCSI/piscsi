@@ -45,7 +45,7 @@ class SCSIDaynaPort : public PrimaryDevice, public ByteWriter
 {
 public:
 
-	explicit SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun) {}
+	explicit SCSIDaynaPort(int);
 	~SCSIDaynaPort() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

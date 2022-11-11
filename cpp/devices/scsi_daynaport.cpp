@@ -33,6 +33,11 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+SCSIDaynaPort::SCSIDaynaPort(int lun) : PrimaryDevice(SCDP, lun)
+{
+	SupportsParams(true);
+}
+
 bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
@@ -48,8 +53,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	// The Daynaport needs to have a delay after the size/flags field of the read response.
 	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
-
-	SupportsParams(true);
 
 	m_bTapEnable = m_tap.Init(GetParams());
 	if(!m_bTapEnable){
