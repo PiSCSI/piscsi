@@ -87,17 +87,12 @@ int RasCtl::run(const vector<char *>& args) const
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
 			"e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
-			case 'i': {
-				int id;
-				int lun;
-				if (const string error = ProcessId(optarg, ScsiController::LUN_MAX, id, lun); !error.empty()) {
+			case 'i':
+				if (const string error = SetIdAndLun(*device, optarg); !error.empty()) {
 					cerr << "Error: " << error << endl;
 					exit(EXIT_FAILURE);
 				}
-				device->set_id(id);
-				device->set_unit(lun);
 				break;
-			}
 
 			case 'C':
 				command.set_operation(CREATE_IMAGE);
@@ -290,4 +285,18 @@ int RasCtl::run(const vector<char *>& args) const
 	}
 
     return status ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+string RasCtl::SetIdAndLun(PbDeviceDefinition& device, const string& value) const
+{
+	int id;
+	int lun;
+	if (const string error = ProcessId(value, ScsiController::LUN_MAX, id, lun); !error.empty()) {
+		return error;
+	}
+
+	device.set_id(id);
+	device.set_unit(lun);
+
+	return "";
 }
