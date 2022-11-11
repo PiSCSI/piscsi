@@ -595,15 +595,7 @@ int Rascsi::run(const vector<char *>& args)
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus->GetBSY()) {
-			const uint32_t now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-				bus->Acquire();
-				if (!bus->GetBSY()) {
-					break;
-				}
-			}
-		}
+		WaitForNotBusy();
 
 		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
@@ -672,4 +664,18 @@ int Rascsi::run(const vector<char *>& args)
 	}
 
 	return EXIT_SUCCESS;
+}
+
+void Rascsi::WaitForNotBusy() const
+{
+	if (bus->GetBSY()) {
+		const uint32_t now = SysTimer::GetTimerLow();
+
+		while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
+			bus->Acquire();
+			if (!bus->GetBSY()) {
+				break;
+			}
+		}
+	}
 }

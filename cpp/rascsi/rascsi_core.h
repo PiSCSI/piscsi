@@ -49,6 +49,7 @@ private:
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(const vector<char *>&, int&) const;
 	void CreateInitialDevices(const optargs_type&) const;
+	void WaitForNotBusy() const;
 
 	// TODO Should not be static and should be moved to RascsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
