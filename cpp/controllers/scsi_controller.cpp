@@ -54,7 +54,7 @@ void ScsiController::Reset()
 
 BUS::phase_t ScsiController::Process(int id)
 {
-	if (id != AbstractController::UNKNOWN_INITIATOR_ID) {
+	if (id != UNKNOWN_INITIATOR_ID) {
 		logger.Trace("Bus activity for initiator ID " + to_string(id));
 	}
 	else {
