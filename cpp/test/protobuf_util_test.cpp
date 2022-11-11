@@ -106,3 +106,40 @@ TEST(ProtobufUtil, ListDevices)
 	EXPECT_NE(string::npos, device_list.find("Host Services"));
 	EXPECT_NE(string::npos, device_list.find("SCSI Printer"));
 }
+
+TEST(ProtobufUtil, SetProductData)
+{
+	PbDeviceDefinition device;
+
+	SetProductData(device, "");
+	EXPECT_EQ("", device.vendor());
+	EXPECT_EQ("", device.product());
+	EXPECT_EQ("", device.revision());
+
+	SetProductData(device, "vendor");
+	EXPECT_EQ("vendor", device.vendor());
+	EXPECT_EQ("", device.product());
+	EXPECT_EQ("", device.revision());
+
+	SetProductData(device, "vendor:product");
+	EXPECT_EQ("vendor", device.vendor());
+	EXPECT_EQ("product", device.product());
+	EXPECT_EQ("", device.revision());
+
+	SetProductData(device, "vendor:product:revision");
+	EXPECT_EQ("vendor", device.vendor());
+	EXPECT_EQ("product", device.product());
+	EXPECT_EQ("revision", device.revision());
+}
+
+TEST(ProtobufUtil, SetIdAndLun)
+{
+	PbDeviceDefinition device;
+
+	EXPECT_NE("", SetIdAndLun(device, "", 32));
+	EXPECT_EQ("", SetIdAndLun(device, "1", 32));
+	EXPECT_EQ(1, device.id());
+	EXPECT_EQ("", SetIdAndLun(device, "2:0", 32));
+	EXPECT_EQ(2, device.id());
+	EXPECT_EQ(0, device.unit());
+}

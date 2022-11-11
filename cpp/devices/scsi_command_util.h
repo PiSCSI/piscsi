@@ -17,9 +17,11 @@
 
 using namespace std;
 
+class DeviceLogger;
+
 namespace scsi_command_util
 {
-	void ModeSelect(scsi_defs::scsi_command, const vector<int>&, const vector<uint8_t>&, int, int);
+	void ModeSelect(const DeviceLogger&, scsi_defs::scsi_command, const vector<int>&, const vector<uint8_t>&, int, int);
 	void EnrichFormatPage(map<int, vector<byte>>&, bool, int);
 	void AddAppleVendorModePage(map<int, vector<byte>>&, bool);
 

@@ -26,6 +26,10 @@ using namespace scsi_command_util;
 SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD, lun)
 {
 	SetSectorSizes(sector_sizes);
+
+	SetReadOnly(true);
+	SetRemovable(true);
+	SetLockable(true);
 }
 
 bool SCSICD::Init(const unordered_map<string, string>& params)
@@ -33,10 +37,6 @@ bool SCSICD::Init(const unordered_map<string, string>& params)
 	Disk::Init(params);
 
 	AddCommand(scsi_command::eCmdReadToc, [this] { ReadToc(); });
-
-	SetReadOnly(true);
-	SetRemovable(true);
-	SetLockable(true);
 
 	return true;
 }

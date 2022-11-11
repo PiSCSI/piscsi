@@ -4,7 +4,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .SH SYNOPSIS
 .B rascsi
 [\fB\-F\fR \fIFOLDER\fR]
-[\fB\-L\fR \fILOG_LEVEL\fR]
+[\fB\-L\fR \fILOG_LEVEL[:ID:[LUN]]\fR]
 [\fB\-P\fR \fIACCESS_TOKEN_FILE\fR]
 [\fB\-R\fR \fISCAN_DEPTH\fR]
 [\fB\-h\fR]
@@ -52,8 +52,8 @@ The optional block size, either 512, 1024, 2048 or 4096 bytes. Default size is 5
 .BR \-F\fI " " \fIFOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
 .TP
-.BR \-L\fI " " \fILOG_LEVEL
-The rascsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
+.BR \-L\fI " " \fILOG_LEVEL[:ID:[LUN]]
+The rascsi log level (trace, debug, info, warn, err, off). The default log level is 'info' for all devices unless a particular device ID and an optional LUN was provided.
 .TP
 .BR \-P\fI " " \fIACCESS_TOKEN_FILE
 Enable authentication and read the access token from the specified file. The access token file must be owned by root and must be readable by root only.

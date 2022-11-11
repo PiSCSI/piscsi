@@ -140,9 +140,6 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "test.hda");
 
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCHD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -179,8 +176,6 @@ void TestRemovableDrive(PbDeviceType type, const string& filename, const string&
 {
 	DeviceFactory device_factory;
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, filename);
-	const unordered_map<string, string> params;
-	device->Init(params);
 
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(type, device->GetType());
@@ -218,10 +213,6 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "test.iso");
-
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCCD, device->GetType());
 	EXPECT_TRUE(device->SupportsFile());
@@ -247,10 +238,6 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "bridge");
-
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCBR, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -276,10 +263,6 @@ TEST(DeviceFactoryTest, SCDP_Device_Defaults)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "daynaport");
-
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCDP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -304,10 +287,6 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "services");
-
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCHS, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());
@@ -333,10 +312,6 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(UNDEFINED, 0, "printer");
-
-	const unordered_map<string, string> params;
-	device->Init(params);
-
 	EXPECT_NE(nullptr, device);
 	EXPECT_EQ(SCLP, device->GetType());
 	EXPECT_FALSE(device->SupportsFile());

@@ -5,8 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2021 Contributors to the RaSCSI project
-//	[ Send Control Command ]
+//	Copyright (C) 2020-2022 Contributors to the RaSCSI project
 //
 //---------------------------------------------------------------------------
 
@@ -88,20 +87,12 @@ int RasCtl::run(const vector<char *>& args) const
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(),
 			"e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
-			case 'i': {
-				int id;
-				int lun;
-				try {
-					ProcessId(optarg, ScsiController::LUN_MAX, id, lun);
-				}
-				catch(const parser_exception& e) {
-					cerr << "Error: " << e.what() << endl;
+			case 'i':
+				if (const string error = SetIdAndLun(*device, optarg, ScsiController::LUN_MAX); !error.empty()) {
+					cerr << "Error: " << error << endl;
 					exit(EXIT_FAILURE);
 				}
-				device->set_id(id);
-				device->set_unit(lun);
 				break;
-			}
 
 			case 'C':
 				command.set_operation(CREATE_IMAGE);
@@ -206,32 +197,8 @@ int RasCtl::run(const vector<char *>& args) const
 				image_params = optarg;
 				break;
 
-			case 'n': {
-					string vendor;
-					string product;
-					string revision;
-
-					string s = optarg;
-					if (size_t separator_pos = s.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-						vendor = s.substr(0, separator_pos);
-						s = s.substr(separator_pos + 1);
-						separator_pos = s.find(COMPONENT_SEPARATOR);
-						if (separator_pos != string::npos) {
-							product = s.substr(0, separator_pos);
-							revision = s.substr(separator_pos + 1);
-						}
-						else {
-							product = s;
-						}
-					}
-					else {
-						vendor = s;
-					}
-
-					device->set_vendor(vendor);
-					device->set_product(product);
-					device->set_revision(revision);
-				}
+			case 'n':
+				SetProductData(*device, optarg);
 				break;
 
 			case 'p':

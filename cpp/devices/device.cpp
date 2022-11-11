@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_version.h"
 #include "device.h"
 #include <cassert>

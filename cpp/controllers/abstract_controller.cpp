@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
@@ -104,7 +103,6 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			LOGERROR("Cannot process phase %s", BUS::GetPhaseStrRaw(GetPhase()))
 			throw scsi_exception(sense_key::ABORTED_COMMAND);
 			break;
 	}
@@ -136,7 +134,7 @@ bool AbstractController::HasDeviceForLun(int lun) const
 
 int AbstractController::ExtractInitiatorId(int id_data) const
 {
-	int initiator_id = -1;
+	int initiator_id = UNKNOWN_INITIATOR_ID;
 
 	if (int tmp = id_data - (1 << target_id); tmp) {
 		initiator_id = 0;

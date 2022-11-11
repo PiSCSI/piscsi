@@ -6,14 +6,12 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) 2020 akuker
-//	[ Logging utilities ]
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/sink.h"
 
 static const int LOGBUF_SIZE = 512;
 

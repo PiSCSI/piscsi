@@ -16,7 +16,6 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/rascsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_host_bridge.h"
@@ -26,6 +25,11 @@
 using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
+
+SCSIBR::SCSIBR(int lun) : PrimaryDevice(SCBR, lun)
+{
+	SupportsParams(true);
+}
 
 bool SCSIBR::Init(const unordered_map<string, string>& params)
 {
@@ -38,13 +42,11 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdGetMessage10, [this] { GetMessage10(); });
 	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
 
-	SupportsParams(true);
-
 #ifdef __linux__
 	// TAP Driver Generation
 	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
-		LOGERROR("Unable to open the TAP interface")
+		GetLogger().Error("Unable to open the TAP interface");
 		return false;
 	}
 #endif

@@ -26,10 +26,11 @@ public:
 
 	int run(const vector<char *>&);
 
+	inline static double ns_per_loop;
+
 private:
 
 	void ParseArguments(const vector<char *>&);
-	void PrintCopyrightText() const;
 	void PrintHelpText(const vector<char *>&) const;
 	void Banner() const;
 	bool Init();
@@ -57,5 +58,4 @@ private:
 	string json_file_name;
 	string html_file_name;
 	string input_file_name;
-
 };

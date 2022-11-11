@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "shared/log.h"
 #include "generated/rascsi_interface.pb.h"
 #include <unordered_map>
 #include <string>
@@ -72,6 +73,8 @@ class Device //NOSONAR The number of fields and methods is justified, the comple
 
 protected:
 
+	Device(PbDeviceType, int);
+
 	void SetReady(bool b) { ready = b; }
 	bool IsReset() const { return reset; }
 	void SetReset(bool b) { reset = b; }
@@ -88,8 +91,6 @@ protected:
 
 	string GetParam(const string&) const;
 	void SetParams(const unordered_map<string, string>&);
-
-	Device(PbDeviceType, int);
 
 public:
 

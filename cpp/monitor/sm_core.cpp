@@ -26,9 +26,6 @@
 using namespace std;
 using namespace ras_util;
 
-// TODO Should not be global and not be used by sm_vcd_report
-double ns_per_loop;
-
 void ScsiMon::KillHandler(int)
 {
     running = false;
@@ -73,19 +70,6 @@ void ScsiMon::ParseArguments(const vector<char *>& args)
     json_file_name += ".json";
     html_file_name = file_base_name;
     html_file_name += ".html";
-}
-
-void ScsiMon::PrintCopyrightText() const
-{
-    LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ")
-    LOGINFO("version %s (%s, %s)",
-            rascsi_get_version_string().c_str(),
-            __DATE__,
-            __TIME__)
-    LOGINFO("Powered by XM6 TypeG Technology ")
-    LOGINFO("Copyright (C) 2016-2020 GIMONS")
-    LOGINFO("Copyright (C) 2020-2022 Contributors to the RaSCSI project")
-    LOGINFO(" ")
 }
 
 void ScsiMon::PrintHelpText(const vector<char *>& args) const
@@ -174,7 +158,8 @@ int ScsiMon::run(const vector<char *>& args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    PrintCopyrightText();
+    ras_util::Banner("SCSI Monitor Capture Tool");
+
     ParseArguments(args);
 
 #ifdef DEBUG

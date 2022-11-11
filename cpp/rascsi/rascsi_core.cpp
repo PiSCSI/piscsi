@@ -133,6 +133,18 @@ void Rascsi::LogDevices(string_view devices) const
 	}
 }
 
+PbDeviceType Rascsi::ParseDeviceType(const string& value) const
+{
+	string t = value;
+	PbDeviceType type;
+	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	if (!PbDeviceType_Parse(t, &type)) {
+		throw parser_exception("Illegal device type '" + value + "'");
+	}
+
+	return type;
+}
+
 void Rascsi::TerminationHandler(int signum)
 {
 	Cleanup();
@@ -216,12 +228,11 @@ Rascsi::optargs_type Rascsi::ParseArguments(const vector<char *>& args, int& por
 void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 {
 	PbCommand command;
-	int id = -1;
-	int lun = -1;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
 	string log_level;
+	string id_and_lun;
 
 	const char *locale = setlocale(LC_MESSAGES, "");
 	if (locale == nullptr || !strcmp(locale, "C")) {
@@ -233,15 +244,12 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 		switch (option) {
 			case 'i':
 			case 'I':
-				id = -1;
-				lun = -1;
 				continue;
 
 			case 'd':
-			case 'D': {
-				ProcessId(value, ScsiController::LUN_MAX, id, lun);
+			case 'D':
+				id_and_lun = value;
 				continue;
-			}
 
 			case 'z':
 				locale = value.c_str();
@@ -271,13 +279,8 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 				}
 				continue;
 
-			case 't': {
-					string t = value;
-					transform(t.begin(), t.end(), t.begin(), ::toupper);
-					if (!PbDeviceType_Parse(t, &type)) {
-						throw parser_exception("Illegal device type '" + value + "'");
-					}
-				}
+			case 't':
+				type = ParseDeviceType(value);
 				continue;
 
 			case 1:
@@ -288,35 +291,25 @@ void Rascsi::CreateInitialDevices(const optargs_type& optargs) const
 				throw parser_exception("Parser error");
 		}
 
-		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
-		device->set_id(id);
-		device->set_unit(lun);
+
+		if (!id_and_lun.empty()) {
+			if (const string error = SetIdAndLun(*device, id_and_lun, ScsiController::LUN_MAX); !error.empty()) {
+				throw parser_exception(error);
+			}
+		}
+
 		device->set_type(type);
 		device->set_block_size(block_size);
 
 		ParseParameters(*device, value);
 
-		if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-			device->set_vendor(name.substr(0, separator_pos));
-			name = name.substr(separator_pos + 1);
-			separator_pos = name.find(COMPONENT_SEPARATOR);
-			if (separator_pos != string::npos) {
-				device->set_product(name.substr(0, separator_pos));
-				device->set_revision(name.substr(separator_pos + 1));
-			}
-			else {
-				device->set_product(name);
-			}
-		}
-		else {
-			device->set_vendor(name);
-		}
+		SetProductData(*device, name);
 
-		id = -1;
 		type = UNDEFINED;
 		block_size = 0;
 		name = "";
+		id_and_lun = "";
 	}
 
 	// Attach all specified devices
@@ -485,7 +478,7 @@ bool Rascsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	return true;
 }
 
-int Rascsi::run(const vector<char *>& args) const
+int Rascsi::run(const vector<char *>& args)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -579,22 +572,14 @@ int Rascsi::run(const vector<char *>& args) const
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus->GetBSY()) {
-			const uint32_t now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
-				bus->Acquire();
-				if (!bus->GetBSY()) {
-					break;
-				}
-			}
-		}
+		WaitForNotBusy();
 
 		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
 
-		int initiator_id = -1;
+		int initiator_id = AbstractController::UNKNOWN_INITIATOR_ID;
 
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
@@ -604,7 +589,16 @@ int Rascsi::run(const vector<char *>& args) const
 		// Identify the responsible controller
 		auto controller = controller_manager->IdentifyController(id_data);
 		if (controller != nullptr) {
+			device_logger.SetIdAndLun(controller->GetTargetId(), -1);
+
 			initiator_id = controller->ExtractInitiatorId(id_data);
+
+			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
+				device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+			}
+			else {
+				device_logger.Trace("++++ Starting processing for unknown initiator ID");
+			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
 				phase = BUS::phase_t::selection;
@@ -647,4 +641,20 @@ int Rascsi::run(const vector<char *>& args) const
 	}
 
 	return EXIT_SUCCESS;
+}
+
+void Rascsi::WaitForNotBusy() const
+{
+	if (bus->GetBSY()) {
+		const uint32_t now = SysTimer::GetTimerLow();
+
+		// Wait for 3s
+		while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
+			bus->Acquire();
+
+			if (!bus->GetBSY()) {
+				break;
+			}
+		}
+	}
 }

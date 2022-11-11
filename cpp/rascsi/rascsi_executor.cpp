@@ -13,6 +13,7 @@
 #include "shared/rascsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
+#include "devices/device_logger.h"
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "devices/disk.h"
@@ -167,31 +168,49 @@ bool RascsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 
 bool RascsiExecutor::SetLogLevel(const string& log_level) const
 {
-	if (log_level == "trace") {
-		set_level(level::trace);
+	int id = -1;
+	int lun = -1;
+	string level = log_level;
+
+	if (size_t separator_pos = log_level.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+		level = log_level.substr(0, separator_pos);
+
+		const string l = log_level.substr(separator_pos + 1);
+		separator_pos = l.find(COMPONENT_SEPARATOR);
+		if (separator_pos != string::npos) {
+			const string error = ProcessId(l, ScsiController::LUN_MAX, id, lun);
+			if (!error.empty()) {
+				LOGWARN("Invalid device ID/LUN specifier '%s'", l.c_str())
+				return false;
+			}
+		}
+		else if (!GetAsUnsignedInt(l, id)) {
+			LOGWARN("Invalid device ID specifier '%s'", l.c_str())
+			return false;
+		}
 	}
-	else if (log_level == "debug") {
-		set_level(level::debug);
-	}
-	else if (log_level == "info") {
-		set_level(level::info);
-	}
-	else if (log_level == "warn") {
-		set_level(level::warn);
-	}
-	else if (log_level == "err") {
-		set_level(level::err);
-	}
-	else if (log_level == "off") {
-		set_level(level::off);
+
+	if (const auto& it = log_level_mapping.find(level); it != log_level_mapping.end()) {
+		set_level(it->second);
 	}
 	else {
 		LOGWARN("Invalid log level '%s'", log_level.c_str())
-
 		return false;
 	}
 
-	LOGINFO("Set log level to '%s'", log_level.c_str())
+	DeviceLogger::SetLogIdAndLun(id, lun);
+
+	if (id != -1) {
+		if (lun == -1) {
+			LOGINFO("Set log level for device ID %d to '%s'", id, level.c_str())
+		}
+		else {
+			LOGINFO("Set log level for device ID %d, LUN %d to '%s'", id, lun, level.c_str())
+		}
+	}
+	else {
+		LOGINFO("Set log level to '%s'", level.c_str())
+	}
 
 	return true;
 }

@@ -15,6 +15,7 @@
 #include "interfaces/scsi_primary_commands.h"
 #include "controllers/abstract_controller.h"
 #include "device.h"
+#include "device_logger.h"
 #include <string>
 #include <unordered_map>
 #include <functional>
@@ -56,6 +57,8 @@ protected:
 
 	void AddCommand(scsi_command, const operation&);
 
+	const DeviceLogger& GetLogger() const { return logger; }
+
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
 	void CheckReady();
@@ -82,6 +85,8 @@ private:
 	void Inquiry() override;
 
 	vector<byte> HandleRequestSense() const;
+
+	DeviceLogger logger;
 
 	weak_ptr<AbstractController> controller;
 

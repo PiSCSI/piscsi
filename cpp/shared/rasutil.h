@@ -19,7 +19,7 @@ namespace ras_util
 	static const char COMPONENT_SEPARATOR = ':';
 
 	bool GetAsUnsignedInt(const string&, int&);
-	void ProcessId(const string&, int, int&, int&);
+	string ProcessId(const string&, int, int&, int&);
 	string Banner(const string&);
 
 	string GetExtensionLowerCase(const string&);
