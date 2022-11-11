@@ -75,7 +75,7 @@ bool DiskTrack::Load(const string& path)
 
 	if (dt.buffer == nullptr) {
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
+			LOGWARN("posix_memalign failed")
 		}
 		dt.length = length;
 	}
@@ -88,7 +88,7 @@ bool DiskTrack::Load(const string& path)
 	if (dt.length != static_cast<uint32_t>(length)) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__)
+			LOGWARN("posix_memalign failed")
         }
 		dt.length = length;
 	}
@@ -219,7 +219,7 @@ bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
 	assert(sec >= 0 && sec < 0x100);
 
-	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
+	LOGTRACE("Reading sector: %d", sec)
 
 	// Error if not initialized
 	if (!dt.init) {
