@@ -671,8 +671,10 @@ void Rascsi::WaitForNotBusy() const
 	if (bus->GetBSY()) {
 		const uint32_t now = SysTimer::GetTimerLow();
 
+		// Wait for 3s
 		while ((SysTimer::GetTimerLow() - now) < 3'000'000) {
 			bus->Acquire();
+
 			if (!bus->GetBSY()) {
 				break;
 			}
