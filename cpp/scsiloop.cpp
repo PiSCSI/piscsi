@@ -64,7 +64,7 @@ using namespace spdlog;
 shared_ptr<GPIOBUS> bus;
 string current_log_level = "debug"; // Some versions of spdlog do not support get_log_level()
 
-string connection_type = "hard-coded fullspec";
+// string connection_type = "hard-coded fullspec";
 
             int local_pin_dtd = -1;
         int local_pin_tad = -1;
@@ -73,7 +73,8 @@ string connection_type = "hard-coded fullspec";
 void Banner(int argc, char *argv[])
 {
     cout << ras_util::Banner("Reloaded");
-    cout << "Connect type: " << connection_type << '\n' << flush;
+    cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
+    cout << "Board type: " << SBC_Version::GetString() << endl << flush;
 
     if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)) {
         cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
@@ -101,10 +102,10 @@ bool InitBus()
     SBC_Version::Init();
 #endif
 
-    // GPIOBUS creation
-    bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
-
-    bus->Reset();
+	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+	if (bus == nullptr) {
+		return false;
+	}
 
     return true;
 }
@@ -491,38 +492,38 @@ void print_all()
 void set_dtd_out()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_dtd, DTD_OUT);
+    bus->SetControl(local_pin_dtd, DTD_OUT);
 }
 
 // Set transceivers IC1 and IC2 to INPUT
 void set_dtd_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_dtd, DTD_IN);
+    bus->SetControl(local_pin_dtd, DTD_IN);
 }
 // Set transceiver IC4 to OUTPUT
 void set_ind_out()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_ind, IND_OUT);
+    bus->SetControl(local_pin_ind, IND_OUT);
 }
 // Set transceiver IC4 to INPUT
 void set_ind_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_ind, IND_IN);
+    bus->SetControl(local_pin_ind, IND_IN);
 }
 // Set transceiver IC3 to OUTPUT
 void set_tad_out()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_tad, TAD_OUT);
+    bus->SetControl(local_pin_tad, TAD_OUT);
 }
 // Set transceiver IC3 to INPUT
 void set_tad_in()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
-    bus->PinSetSignal(local_pin_tad, TAD_IN);
+    bus->SetControl(local_pin_tad, TAD_IN);
 }
 
 // Set the specified transciever to an OUTPUT. All of the other transceivers
@@ -579,7 +580,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     int err_count  = 0;
-    int sleep_time = 50000; // 5ms
+    int sleep_time = 500000; // 5ms
 
     LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
@@ -587,7 +588,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 
     // Set all GPIOs high (initialize to a known state)
     for (auto cur_gpio : loopback_conn_table) {
-        bus->PinSetSignal(cur_gpio.this_pin, ON);
+        // bus->SetSignal(cur_gpio.this_pin, OFF);
         bus->SetMode(cur_gpio.this_pin, GPIO_INPUT);
     }
 
@@ -597,7 +598,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     // ############################################
     // set the test gpio low
     bus->SetMode(gpio_rec.this_pin, GPIO_OUTPUT);
-    bus->PinSetSignal(gpio_rec.this_pin, OFF);
+    bus->SetSignal(gpio_rec.this_pin, ON);
 
     usleep(sleep_time);
 
@@ -611,13 +612,13 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
-            if (cur_val != false) {
+            if (cur_val != ON) {
                 LOGERROR("Test commanded GPIO %d [%s] to be low, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
             }
         } else if (cur_gpio.this_pin == gpio_rec.connected_pin) {
-            if (cur_val != false) {
+            if (cur_val != ON) {
                 LOGERROR("GPIO %d [%s] should be driven low, but %d [%s] did not affect it", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_gpio.connected_pin,
                          pin_name_lookup.at(cur_gpio.connected_pin).c_str());
@@ -625,7 +626,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
                 err_count++;
             }
         } else {
-            if (cur_val != true) {
+            if (cur_val != OFF) {
                 LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
@@ -648,19 +649,24 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
-            if (cur_val != false) {
+            if (cur_val != ON) {
                 LOGERROR("Test commanded GPIO %d [%s] to be low, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
             }
         } else {
-            if (cur_val != true) {
+            if (cur_val != OFF) {
                 LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
+                LOGINFO("TRY IT AGAIN")
+                bus->Acquire();
+                auto new_val = bus->GetSignal(cur_gpio.this_pin);
+                LOGINFO("Connected pin is %d (%s)", new_val, (new_val) ? "OFF" : "ON")
             }
         }
     }
+    // exit(1);
 
     // Set the transceiver back to output
     set_output_channel(gpio_rec.dir_ctrl_pin);
@@ -669,7 +675,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     // #############################################
     // set the test gpio high
     bus->SetMode(gpio_rec.this_pin, GPIO_OUTPUT);
-    bus->PinSetSignal(gpio_rec.this_pin, ON);
+    bus->SetSignal(gpio_rec.this_pin, OFF);
 
     usleep(sleep_time);
 
@@ -682,13 +688,13 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         LOGTRACE("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
-            if (cur_val != true) {
+            if (cur_val != OFF) {
                 LOGERROR("Test commanded GPIO %d [%s] to be high, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
             }
         } else {
-            if (cur_val != true) {
+            if (cur_val != OFF) {
                 LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
@@ -710,9 +716,56 @@ void run_loopback_test()
     init_loopback();
     loopback_setup();
 
+
+//     int sleep_time = 500000;
+//     while(1){
+
+//     LOGINFO("Setting all dir to out");
+//     set_dtd_out();
+//     set_ind_out();
+//     set_tad_out();
+
+//     usleep(sleep_time);
+//     LOGINFO("ON")
+//     for (auto cur_gpio : loopback_conn_table) {
+//         bus->SetSignal(cur_gpio.this_pin, ON);
+//         usleep(sleep_time);
+//     }
+
+//     LOGINFO("OFF");
+//     for (auto cur_gpio : loopback_conn_table) {
+//         bus->SetSignal(cur_gpio.this_pin, OFF);
+//         usleep(sleep_time);
+//     }
+
+//     usleep(5000000);
+
+//     LOGINFO("Setting all dir to IN");
+//     set_dtd_in();
+//     set_ind_in();
+//     set_tad_in();
+
+//     usleep(sleep_time);
+//     LOGINFO("ON")
+//     for (auto cur_gpio : loopback_conn_table) {
+//         bus->SetSignal(cur_gpio.this_pin, ON);
+//         usleep(sleep_time);
+//     }
+
+//     LOGINFO("OFF");
+//     for (auto cur_gpio : loopback_conn_table) {
+//         bus->SetSignal(cur_gpio.this_pin, OFF);
+//         usleep(sleep_time);
+//     }
+
+// }
+
+
+
     for (auto cur_gpio : loopback_conn_table) {
         printf(CYAN "Testing GPIO %2d [%s]:" WHITE, (int)cur_gpio.this_pin,
                pin_name_lookup.at(cur_gpio.this_pin).c_str());
         test_gpio_pin(cur_gpio);
+        // exit(1);
     }
 }
