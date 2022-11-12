@@ -45,14 +45,14 @@
 <table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
         <tr>
-            <th scope="col">{{ _("ID") }}</th>
+            <th class="id" scope="col">{{ _("ID") }}</th>
             {% if units %}
-            <th scope="col">{{ _("LUN") }}</th>
+            <th class="unit" scope="col">{{ _("LUN") }}</th>
             {% endif %}
-            <th scope="col">{{ _("Device") }}</th>
-            <th scope="col">{{ _("Parameters") }}</th>
-            <th scope="col">{{ _("Product") }}</th>
-            <th scope="col">{{ _("Actions") }}</th>
+            <th class="name" scope="col">{{ _("Device") }}</th>
+            <th class="parameters" scope="col">{{ _("Parameters") }}</th>
+            <th class="product" scope="col">{{ _("Product") }}</th>
+            <th class="actions" scope="col">{{ _("Actions") }}</th>
         </tr>
         {% for device in devices | sort(attribute='id') %}
         {% if device["id"] in reserved_scsi_ids %}
@@ -63,12 +63,12 @@
         <tr class="free">
         {% endif %}
             {% if device["id"] not in reserved_scsi_ids %}
-            <td align="center">{{ device.id }}</td>
+            <td class="id" align="center">{{ device.id }}</td>
             {% if units %}
-            <td align="center">{{ device.unit }}</td>
+            <td class="unit" align="center">{{ device.unit }}</td>
             {% endif %}
-            <td align="center">{{ device.device_name }}</td>
-            <td>
+            <td class="name" align="center">{{ device.device_name }}</td>
+            <td class="parameters">
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -111,7 +111,7 @@
                 {% endif %}
             {% endif %}
             </td>
-            <td align="center">
+            <td class="product" align="center">
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.vendor }}
                 {% endif %}
@@ -120,7 +120,7 @@
                 {{ device.revision }}
                 {% endif %}
             </td>
-            <td align="center">
+            <td class="actions" align="center">
                 {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
@@ -143,14 +143,14 @@
                 {% endif %}
             </td>
             {% else %}
-            <td class="inactive">{{ device.id }}</td>
+            <td class="id inactive">{{ device.id }}</td>
             {% if units %}
-            <td class="inactive"></td>
+            <td class="units inactive"></td>
             {% endif %}
-            <td class="inactive">{{ _("Reserved ID") }}</td>
-            <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
-            <td class="inactive"></td>
-            <td class="inactive">
+            <td class="name inactive">{{ _("Reserved ID") }}</td>
+            <td class="parameters inactive">{{ RESERVATIONS[device.id] }}</td>
+            <td class="product inactive"></td>
+            <td class="actions inactive">
                 <form action="/scsi/release" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input type="submit" value="{{ _("Release") }}">
