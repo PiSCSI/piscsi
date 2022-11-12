@@ -20,7 +20,7 @@
 
 using namespace std;
 
-class BUS;
+class GPIOBUS;
 class ControllerManager;
 class RascsiExecutor;
 
@@ -56,7 +56,7 @@ private:
 	DeviceLogger device_logger;
 
 	// A static instance is needed because of the signal handler
-	static inline shared_ptr<BUS> bus;
+	static inline shared_ptr<GPIOBUS> bus;
 
 	// TODO These fields should not be static
 

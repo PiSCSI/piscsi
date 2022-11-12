@@ -37,3 +37,8 @@ BUS::phase_t GetPhase(const data_capture *sample)
 	mci |= GetIo(sample) ? 0x01 : 0x00;
 	return BUS::GetPhase(mci);
 }
+
+// TODO: This will only work for Raspberry Pi! 
+bool TempGetPinRaw(uint32_t data, int gpio){
+	return ((data & (1 << gpio)) != 0);
+}

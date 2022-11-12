@@ -223,12 +223,12 @@ int ScsiMon::run(const vector<char *>& args)
 
     (void)gettimeofday(&start_time, nullptr);
 
-    LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
+    // LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
 
     // Main Loop
     while (running) {
         // Work initialization
-        this_sample = (bus->Acquire() & ALL_SCSI_PINS);
+        this_sample = bus->Acquire();
         loop_count++;
         if (loop_count > LLONG_MAX - 1) {
             LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")

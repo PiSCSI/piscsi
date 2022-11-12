@@ -22,16 +22,18 @@ using data_capture_t = struct data_capture
 
 #define GET_PIN(SAMPLE, PIN) ((bool)((SAMPLE->data >> PIN) & 1))
 
-inline bool GetBsy(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_BSY); }
-inline bool GetSel(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_SEL); }
-inline bool GetAtn(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_ATN); }
-inline bool GetAck(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_ACK); }
-inline bool GetRst(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_RST); }
-inline bool GetMsg(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_MSG); }
-inline bool GetCd(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_CD); }
-inline bool GetIo(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_IO); }
-inline bool GetReq(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_REQ); }
-inline bool GetDp(const data_capture *sample) { return BUS::GetPinRaw(sample->data, PIN_DP); }
+bool TempGetPinRaw(uint32_t, int);
+
+inline bool GetBsy(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_BSY); }
+inline bool GetSel(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_SEL); }
+inline bool GetAtn(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_ATN); }
+inline bool GetAck(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_ACK); }
+inline bool GetRst(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_RST); }
+inline bool GetMsg(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_MSG); }
+inline bool GetCd(const data_capture *sample)  { return TempGetPinRaw(sample->data, PIN_CD); }
+inline bool GetIo(const data_capture *sample)  { return TempGetPinRaw(sample->data, PIN_IO); }
+inline bool GetReq(const data_capture *sample) { return TempGetPinRaw(sample->data, PIN_REQ); }
+inline bool GetDp(const data_capture *sample)  { return TempGetPinRaw(sample->data, PIN_DP); }
 inline uint8_t GetData(const data_capture *sample)
 {
 	uint32_t data = sample->data;

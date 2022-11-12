@@ -11,10 +11,12 @@
 
 #pragma once
 
-#include "shared/config.h"
+#include "hal/board_type.h"
 #include "shared/scsi.h"
-#include "bus.h"
+#include "hal/bus.h"
 #include <array>
+#include <memory>
+#include <vector>
 
 #ifdef __linux__
 #include <linux/gpio.h>
@@ -42,7 +44,18 @@
 #error Invalid connection type or none specified
 #endif
 
-using namespace std; //NOSONAR Not relevant for rascsi
+#define ENABLE_GPIO_TRACE
+#ifdef ENABLE_GPIO_TRACE
+#define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
+#else
+#define GPIO_FUNCTION_TRACE
+#endif
+
+#ifndef USE_SEL_EVENT_ENABLE
+#define USE_SEL_EVENT_ENABLE
+#endif
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -118,25 +131,6 @@ using namespace std; //NOSONAR Not relevant for rascsi
 //
 //---------------------------------------------------------------------------
 
-#define ALL_SCSI_PINS \
-    ((1<<PIN_DT0)|\
-    (1<<PIN_DT1)|\
-    (1<<PIN_DT2)|\
-    (1<<PIN_DT3)|\
-    (1<<PIN_DT4)|\
-    (1<<PIN_DT5)|\
-    (1<<PIN_DT6)|\
-    (1<<PIN_DT7)|\
-    (1<<PIN_DP)|\
-    (1<<PIN_ATN)|\
-    (1<<PIN_RST)|\
-    (1<<PIN_ACK)|\
-    (1<<PIN_REQ)|\
-    (1<<PIN_MSG)|\
-    (1<<PIN_CD)|\
-    (1<<PIN_IO)|\
-    (1<<PIN_BSY)|\
-    (1<<PIN_SEL))
 
 //---------------------------------------------------------------------------
 //
@@ -206,49 +200,6 @@ const static int IRPT_DIS_IRQ_B =	9;
 const static int QA7_CORE0_TINTC = 	16;
 const static int GPIO_IRQ =			(32 + 20);	// GPIO3
 
-#define GPIO_INEDGE ((1 << PIN_BSY) | \
-					 (1 << PIN_SEL) | \
-					 (1 << PIN_ATN) | \
-					 (1 << PIN_ACK) | \
-					 (1 << PIN_RST))
-
-#define GPIO_MCI	((1 << PIN_MSG) | \
-					 (1 << PIN_CD) | \
-					 (1 << PIN_IO))
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (GIC)
-//
-//---------------------------------------------------------------------------
-const static uint32_t ARM_GICD_BASE =	0xFF841000;
-const static uint32_t ARM_GICC_BASE =	0xFF842000;
-const static uint32_t ARM_GIC_END =		0xFF847FFF;
-const static int GICD_CTLR =		0x000;
-const static int GICD_IGROUPR0 =	0x020;
-const static int GICD_ISENABLER0 =	0x040;
-const static int GICD_ICENABLER0 =	0x060;
-const static int GICD_ISPENDR0 =	0x080;
-const static int GICD_ICPENDR0 =	0x0A0;
-const static int GICD_ISACTIVER0 =	0x0C0;
-const static int GICD_ICACTIVER0 =	0x0E0;
-const static int GICD_IPRIORITYR0 =	0x100;
-const static int GICD_ITARGETSR0 =	0x200;
-const static int GICD_ICFGR0 =		0x300;
-const static int GICD_SGIR =		0x3C0;
-const static int GICC_CTLR =		0x000;
-const static int GICC_PMR =			0x001;
-const static int GICC_IAR =			0x003;
-const static int GICC_EOIR =		0x004;
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (GIC IRQ)
-//
-//---------------------------------------------------------------------------
-const static int GIC_IRQLOCAL0 =	(16 + 14);
-const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
-
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (Control signals)
@@ -310,178 +261,140 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 //	Class definition
 //
 //---------------------------------------------------------------------------
-class GPIOBUS final : public BUS
+class GPIOBUS : public BUS
 {
-public:
-	// Basic Functions
-	GPIOBUS()= default;
-	~GPIOBUS() override = default;
-										// Destructor
+  public:
+    static GPIOBUS *create();
+
+    // Basic Functions
+    GPIOBUS()           = default;
+    ~GPIOBUS() override = default;
+    // Destructor
 	bool Init(mode_e mode = mode_e::TARGET) override;
-										// Initialization
-	void Reset() override;
-										// Reset
-	void Cleanup() override;
-										// Cleanup
+    // Initialization
+    virtual void Reset() override = 0;
+    // Reset
+    virtual void Cleanup() override = 0;
+    // Cleanup
 
-	//---------------------------------------------------------------------------
-	//
-	//	Bus signal acquisition
-	//
-	//---------------------------------------------------------------------------
-	inline uint32_t Acquire() override
-	{
-	#if defined(__x86_64__) || defined(__X86__)
-		// Only used for development/debugging purposes. Isn't really applicable
-		// to any real-world RaSCSI application
-		return 0;
-	#else
-		signals = *level;
+    virtual uint32_t Acquire() override = 0;
 
-	#if SIGNAL_CONTROL_MODE < 2
-		// Invert if negative logic (internal processing is unified to positive logic)
-		signals = ~signals;
-	#endif	// SIGNAL_CONTROL_MODE
+     virtual void SetENB(bool ast) =0;
+    // Set ENB signal
 
-		return signals;
-	#endif // ifdef __x86_64__ || __X86__
-	}
+    virtual  bool GetBSY() const override =0;
+    // Get BSY signal
+     virtual void SetBSY(bool ast) override =0;
+    // Set BSY signal
 
-	void SetENB(bool ast);
-										// Set ENB signal
+     virtual bool GetSEL() const override =0;
+    // Get SEL signal
+     virtual void SetSEL(bool ast) override =0;
+    // Set SEL signal
 
-	bool GetBSY() const override;
-										// Get BSY signal
-	void SetBSY(bool ast) override;
-										// Set BSY signal
+     virtual bool GetATN() const override =0;
+    // Get ATN signal
+     virtual void SetATN(bool ast) override =0;
+    // Set ATN signal
 
-	bool GetSEL() const override;
-										// Get SEL signal
-	void SetSEL(bool ast) override;
-										// Set SEL signal
+     virtual bool GetACK() const override =0;
+    // Get ACK signal
+     virtual void SetACK(bool ast) override =0;
+    // Set ACK signal
 
-	bool GetATN() const override;
-										// Get ATN signal
-	void SetATN(bool ast) override;
-										// Set ATN signal
+     virtual bool GetACT() const =0;
+    // Get ACT signal
+     virtual void SetACT(bool ast) =0;
+    // Set ACT signal
 
-	bool GetACK() const override;
-										// Get ACK signal
-	void SetACK(bool ast) override;
-										// Set ACK signal
+     virtual bool GetRST() const override =0;
+    // Get RST signal
+     virtual void SetRST(bool ast) override =0;
+    // Set RST signal
 
-	bool GetACT() const;
-										// Get ACT signal
-	void SetACT(bool ast);
-										// Set ACT signal
+     virtual bool GetMSG() const override =0;
+    // Get MSG signal
+    virtual  void SetMSG(bool ast) override =0;
+    // Set MSG signal
 
-	bool GetRST() const override;
-										// Get RST signal
-	void SetRST(bool ast) override;
-										// Set RST signal
+     virtual bool GetCD() const override =0;
+    // Get CD signal
+     virtual void SetCD(bool ast) override =0;
+    // Set CD signal
 
-	bool GetMSG() const override;
-										// Get MSG signal
-	void SetMSG(bool ast) override;
-										// Set MSG signal
+     virtual bool GetIO() override =0;
+    // Get IO signal
+    virtual  void SetIO(bool ast) override =0;
+    // Set IO signal
 
-	bool GetCD() const override;
-										// Get CD signal
-	void SetCD(bool ast) override;
-										// Set CD signal
+     virtual bool GetREQ() const override =0;
+    // Get REQ signal
+	 virtual void SetREQ(bool ast) override =0;
+    // Set REQ signal
 
-	bool GetIO() override;
-										// Get IO signal
-	void SetIO(bool ast) override;
-										// Set IO signal
-
-	bool GetREQ() const override;
-										// Get REQ signal
-	void SetREQ(bool ast) override;
-										// Set REQ signal
-
-	uint8_t GetDAT() override;
+	 virtual uint8_t GetDAT() override =0;
 										// Get DAT signal
-	void SetDAT(uint8_t dat) override;
+	 virtual void SetDAT(uint8_t dat) override =0;
 										// Set DAT signal
-	bool GetDP() const override;
-										// Get Data parity signal
-	int CommandHandShake(vector<uint8_t>&) override;
-										// Command receive handshake
-	int ReceiveHandShake(uint8_t *buf, int count) override;
-										// Data receive handshake
-	int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
-										// Data transmission handshake
+     virtual bool GetDP() const override =0;
+    // Get Data parity signal
 
-	static BUS::phase_t GetPhaseRaw(uint32_t raw_data);
-										// Get the phase based on raw data
+    // Extract as specific pin field from a raw data capture
+     virtual uint32_t GetPinRaw(uint32_t raw_data, int pin_num) override = 0;
+
+    int CommandHandShake(vector<uint8_t>&) override;
+    // Command receive handshake
+    int ReceiveHandShake(uint8_t *buf, int count) override;
+    // Data receive handshake
+    int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
+    // Data transmission handshake
+
+    // Get the phase based on raw data
+    virtual BUS::phase_t GetPhaseRaw(uint32_t raw_data) = 0;
+
+	// virtual phase_t GetPhase() const override;
+
 
 #ifdef USE_SEL_EVENT_ENABLE
-	// SEL signal interrupt
-	bool PollSelectEvent() override;
-										// SEL signal event polling
-	void ClearSelectEvent() override;
+    // SEL signal interrupt
+    bool PollSelectEvent();
+    // SEL signal event polling
+    void ClearSelectEvent();
+    // Clear SEL signal event
 										// Clear SEL signal event
 #endif
 
-private:
-	// SCSI I/O signal control
-	void MakeTable();
-										// Create work data
-	void SetControl(int pin, bool ast);
-										// Set Control Signal
-	void SetMode(int pin, int mode);
-										// Set SCSI I/O mode
-	bool GetSignal(int pin) const override;
-										// Get SCSI input signal value
-	void SetSignal(int pin, bool ast) override;
-										// Set SCSI output signal value
-	bool WaitSignal(int pin, int ast);
-										// Wait for a signal to change
-	// Interrupt control
-	void DisableIRQ();
-										// IRQ Disabled
-	void EnableIRQ();
-										// IRQ Enabled
+protected:
+    // SCSI I/O signal control
+    virtual void MakeTable() = 0;
+    // Create work data
+    virtual void SetControl(int pin, bool ast) = 0;
+    // Set Control Signal
+    virtual void SetMode(int pin, int mode) = 0;
+    // Set SCSI I/O mode
+    bool GetSignal(int pin) const override = 0;
+    // Set Control Signal
+    void SetSignal(int pin, bool ast) override = 0;
+    // Set SCSI I/O mode
+    bool WaitSignal(int pin, bool ast);
+    // Wait for a signal to change
+    // Interrupt control
+    virtual void DisableIRQ() = 0;
+    // IRQ Disabled
+    virtual void EnableIRQ() = 0;
+    // IRQ Enabled
 
-	//  GPIO pin functionality settings
-	void PinConfig(int pin, int mode);
-										// GPIO pin direction setting
-	void PullConfig(int pin, int mode);
-										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, bool ast);
-										// Set GPIO output signal
-	void DrvConfig(uint32_t drive);
-										// Set GPIO drive strength
+    //  GPIO pin functionality settings
+    virtual void PinConfig(int pin, int mode) = 0;
+    // GPIO pin direction setting
+    virtual void PullConfig(int pin, int mode) = 0;
+    // GPIO pin pull up/down resistor setting
+    virtual void PinSetSignal(int pin, bool ast) = 0;
+    // Set GPIO output signal
+    virtual void DrvConfig(uint32_t drive) = 0;
+    // Set GPIO drive strength
 
-
-	mode_e actmode = mode_e::TARGET;	// Operation mode
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	uint32_t baseaddr = 0;				// Base address
-#endif
-
-	int rpitype = 0;					// Type of Raspberry Pi
-
-	volatile uint32_t *gpio = nullptr;	// GPIO register
-
-	volatile uint32_t *pads = nullptr;	// PADS register
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	volatile uint32_t *level = nullptr;	// GPIO input level
-#endif
-
-	volatile uint32_t *irpctl = nullptr;	// Interrupt control register
-
-	volatile uint32_t irptenb;			// Interrupt enabled state
-
-	volatile uint32_t *qa7regs = nullptr;	// QA7 register
-
-	volatile int tintcore;				// Interupt control target CPU.
-
-	volatile uint32_t tintctl;			// Interupt control
-
-	volatile uint32_t giccpmr;			// GICC priority setting
+    mode_e actmode = mode_e::TARGET; // Operation mode
 
 #if !defined(__x86_64__) && !defined(__X86__)
 	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
@@ -508,7 +421,4 @@ private:
 
 	array<uint32_t, 256> tblDatSet = {};	// Table setting table
 #endif
-
-	static const array<int, 19> SignalTable;	// signal table
 };
-

@@ -10,669 +10,466 @@
 //
 //---------------------------------------------------------------------------
 
-#include <sys/mman.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
 #include "hal/gpiobus.h"
+#include "hal/sbc_version.h"
 #include "hal/systimer.h"
-#include "shared/config.h"
 #include "shared/log.h"
 #include <array>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/time.h>
 #ifdef __linux__
 #include <sys/epoll.h>
 #endif
 
+// #if defined CONNECT_TYPE_STANDARD
+// #include "hal/gpiobus_standard.h"
+// #elif defined CONNECT_TYPE_FULLSPEC
+// #include "hal/gpiobus_fullspec.h"
+// #elif defined CONNECT_TYPE_AIBOM
+// #include "hal/gpiobus_aibom.h"
+// #elif defined CONNECT_TYPE_GAMERNIUM
+// #include "hal/gpiobus_gamernium.h"
+// #else
+// #error Invalid connection type or none specified
+// #endif
+
 using namespace std;
 
-#ifdef __linux__
-//---------------------------------------------------------------------------
-//
-//	imported from bcm_host.c
-//
-//---------------------------------------------------------------------------
-static uint32_t get_dt_ranges(const char *filename, uint32_t offset)
-{
-	uint32_t address = ~0;
-	if (FILE *fp = fopen(filename, "rb"); fp) {
-		fseek(fp, offset, SEEK_SET);
-		if (array<uint8_t, 4> buf; fread(buf.data(), 1, buf.size(), fp) == buf.size()) {
-			address = (int)buf[0] << 24 | (int)buf[1] << 16 | (int)buf[2] << 8 | (int)buf[3] << 0;
-		}
-		fclose(fp);
-	}
-	return address;
-}
-
-uint32_t bcm_host_get_peripheral_address()
-{
-	uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
-	if (address == 0) {
-		address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
-	}
-	address = (address == (uint32_t)~0) ? 0x20000000 : address;
-	return address;
-}
-#endif
-
-#ifdef __NetBSD__
-// Assume the Raspberry Pi series and estimate the address from CPU
-uint32_t bcm_host_get_peripheral_address()
-{
-	array<char, 1024> buf;
-	size_t len = buf.size();
-	uint32_t address;
-
-	if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) ||
-	    strstr(buf, "ARM1176JZ-S") != buf.data()) {
-		// Failed to get CPU model || Not BCM2835
-        // use the address of BCM283[67]
-		address = 0x3f000000;
-	} else {
-		// Use BCM2835 address
-		address = 0x20000000;
-	}
-	printf("Peripheral address : 0x%lx\n", address);
-	return address;
-}
-#endif
 
 bool GPIOBUS::Init(mode_e mode)
 {
-	// Save operation mode
-	actmode = mode;
+    GPIO_FUNCTION_TRACE
 
-#if defined(__x86_64__) || defined(__X86__)
-	return true;
-#else
-	int i;
-#ifdef USE_SEL_EVENT_ENABLE
-	epoll_event ev = {};
-#endif
 
-	// Get the base address
-	baseaddr = (uint32_t)bcm_host_get_peripheral_address();
+    // Save operation mode
+    actmode = mode;
 
-	// Open /dev/mem
-	int fd = open("/dev/mem", O_RDWR | O_SYNC);
-	if (fd == -1) {
-        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
-		return false;
-	}
+    // SignalTable.push_back(board->pin_dt0);
+    // SignalTable.push_back(board->pin_dt1);
+    // SignalTable.push_back(board->pin_dt2);
+    // SignalTable.push_back(board->pin_dt3);
+    // SignalTable.push_back(board->pin_dt4);
+    // SignalTable.push_back(board->pin_dt5);
+    // SignalTable.push_back(board->pin_dt6);
+    // SignalTable.push_back(board->pin_dt7);
+    // SignalTable.push_back(board->pin_dp);
+    // SignalTable.push_back(board->pin_sel);
+    // SignalTable.push_back(board->pin_atn);
+    // SignalTable.push_back(board->pin_rst);
+    // SignalTable.push_back(board->pin_ack);
+    // SignalTable.push_back(board->pin_bsy);
+    // SignalTable.push_back(board->pin_msg);
+    // SignalTable.push_back(board->pin_cd);
+    // SignalTable.push_back(board->pin_io);
+    // SignalTable.push_back(board->pin_req);
 
-	// Map peripheral region memory
-	void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
-	if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory")
-		close(fd);
-		return false;
-	}
-
-	// Determine the type of raspberry pi from the base address
-	if (baseaddr == 0xfe000000) {
-		rpitype = 4;
-	} else if (baseaddr == 0x3f000000) {
-		rpitype = 2;
-	} else {
-		rpitype = 1;
-	}
-
-	// GPIO
-	gpio = (uint32_t *)map;
-	gpio += GPIO_OFFSET / sizeof(uint32_t);
-	level = &gpio[GPIO_LEV_0];
-
-	// PADS
-	pads = (uint32_t *)map;
-	pads += PADS_OFFSET / sizeof(uint32_t);
-
-	// System timer
-	SysTimer::Init(
-		(uint32_t *)map + SYST_OFFSET / sizeof(uint32_t),
-		(uint32_t *)map + ARMT_OFFSET / sizeof(uint32_t));
-
-	// Interrupt controller
-	irpctl = (uint32_t *)map;
-	irpctl += IRPT_OFFSET / sizeof(uint32_t);
-
-	// Quad-A7 control
-	qa7regs = (uint32_t *)map;
-	qa7regs += QA7_OFFSET / sizeof(uint32_t);
-
-	// Map GIC memory
-	if (rpitype == 4) {
-		map = mmap(NULL, 8192,
-			PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
-		if (map == MAP_FAILED) {
-			close(fd);
-			return false;
-		}
-		gicd = (uint32_t *)map;
-		gicc = (uint32_t *)map;
-		gicc += (ARM_GICC_BASE - ARM_GICD_BASE) / sizeof(uint32_t);
-	} else {
-		gicd = NULL;
-		gicc = NULL;
-	}
-	close(fd);
-
-	// Set Drive Strength to 16mA
-	DrvConfig(7);
-
-	// Set pull up/pull down
-#if SIGNAL_CONTROL_MODE == 0
-	int pullmode = GPIO_PULLNONE;
-#elif SIGNAL_CONTROL_MODE == 1
-	int pullmode = GPIO_PULLUP;
-#else
-	int pullmode = GPIO_PULLDOWN;
-#endif
-
-	// Initialize all signals
-	for (i = 0; SignalTable[i] >= 0; i++) {
-		int j = SignalTable[i];
-		PinSetSignal(j, OFF);
-		PinConfig(j, GPIO_INPUT);
-		PullConfig(j, pullmode);
-	}
-
-	// Set control signals
-	PinSetSignal(PIN_ACT, OFF);
-	PinSetSignal(PIN_TAD, OFF);
-	PinSetSignal(PIN_IND, OFF);
-	PinSetSignal(PIN_DTD, OFF);
-	PinConfig(PIN_ACT, GPIO_OUTPUT);
-	PinConfig(PIN_TAD, GPIO_OUTPUT);
-	PinConfig(PIN_IND, GPIO_OUTPUT);
-	PinConfig(PIN_DTD, GPIO_OUTPUT);
-
-	// Set the ENABLE signal
-	// This is used to show that the application is running
-	PinSetSignal(PIN_ENB, ENB_OFF);
-	PinConfig(PIN_ENB, GPIO_OUTPUT);
-
-	// GPFSEL backup
-	gpfsel[0] = gpio[GPIO_FSEL_0];
-	gpfsel[1] = gpio[GPIO_FSEL_1];
-	gpfsel[2] = gpio[GPIO_FSEL_2];
-	gpfsel[3] = gpio[GPIO_FSEL_3];
-
-	// Initialize SEL signal interrupt
-#ifdef USE_SEL_EVENT_ENABLE
-	// GPIO chip open
-	fd = open("/dev/gpiochip0", 0);
-	if (fd == -1) {
-		LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
-		return false;
-	}
-
-	// Event request setting
-	strcpy(selevreq.consumer_label, "RaSCSI");
-	selevreq.lineoffset = PIN_SEL;
-	selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
-#if SIGNAL_CONTROL_MODE < 2
-	selevreq.eventflags = GPIOEVENT_REQUEST_FALLING_EDGE;
-#else
-	selevreq.eventflags = GPIOEVENT_REQUEST_RISING_EDGE;
-#endif	// SIGNAL_CONTROL_MODE
-
-	//Get event request
-	if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-		LOGERROR("Unable to register event request. Is RaSCSI already running?")
-		close(fd);
-		return false;
-	}
-
-	// Close GPIO chip file handle
-	close(fd);
-
-	// epoll initialization
-	epfd = epoll_create(1);
-	ev.events = EPOLLIN | EPOLLPRI;
-	ev.data.fd = selevreq.fd;
-	epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
-#else
-	// Edge detection setting
-#if SIGNAL_CONTROL_MODE == 2
-	gpio[GPIO_AREN_0] = 1 << PIN_SEL;
-#else
-	gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
-#endif	// SIGNAL_CONTROL_MODE
-
-	// Clear event
-	gpio[GPIO_EDS_0] = 1 << PIN_SEL;
-
-	// Register interrupt handler
-	setIrqFuncAddress(IrqHandler);
-
-	// GPIO interrupt setting
-	if (rpitype == 4) {
-		// GIC Invalid
-		gicd[GICD_CTLR] = 0;
-
-		// Route all interupts to core 0
-		for (i = 0; i < 8; i++) {
-			gicd[GICD_ICENABLER0 + i] = 0xffffffff;
-			gicd[GICD_ICPENDR0 + i] = 0xffffffff;
-			gicd[GICD_ICACTIVER0 + i] = 0xffffffff;
-		}
-		for (i = 0; i < 64; i++) {
-			gicd[GICD_IPRIORITYR0 + i] = 0xa0a0a0a0;
-			gicd[GICD_ITARGETSR0 + i] = 0x01010101;
-		}
-
-		// Set all interrupts as level triggers
-		for (i = 0; i < 16; i++) {
-			gicd[GICD_ICFGR0 + i] = 0;
-		}
-
-		// GIC Invalid
-		gicd[GICD_CTLR] = 1;
-
-		// Enable CPU interface for core 0
-		gicc[GICC_PMR] = 0xf0;
-		gicc[GICC_CTLR] = 1;
-
-		// Enable interrupts
-		gicd[GICD_ISENABLER0 + (GIC_GPIO_IRQ / 32)] =
-			1 << (GIC_GPIO_IRQ % 32);
-	} else {
-		// Enable interrupts
-		irpctl[IRPT_ENB_IRQ_2] = (1 << (GPIO_IRQ % 32));
-	}
-#endif	// USE_SEL_EVENT_ENABLE
-
-	// Create work table
-	MakeTable();
-
-	// Finally, enable ENABLE
-	// Show the user that this app is running
-	SetControl(PIN_ENB, ENB_ON);
-
-	return true;
-#endif // ifdef __x86_64__ || __X86__
-
+    return true;
 }
 
-void GPIOBUS::Cleanup()
-{
-#if defined(__x86_64__) || defined(__X86__)
-	return;
-#else
-	// Release SEL signal interrupt
-#ifdef USE_SEL_EVENT_ENABLE
-	close(selevreq.fd);
-#endif	// USE_SEL_EVENT_ENABLE
+// // The GPIO hardware needs to be initialized before calling this function.
+// void GPIOBUS::InitializeGpio()
+// {
+//     // Set pull up/pull down
+//     LOGTRACE("%s Set pull up/down....", __PRETTY_FUNCTION__);
+//     board_type::gpio_pull_up_down_e pullmode;
+//     if (board->signal_control_mode == 0) {
+//         // #if SIGNAL_CONTROL_MODE == 0
+//         LOGTRACE("%s GPIO_PULLNONE", __PRETTY_FUNCTION__);
+//         pullmode = board_type::gpio_pull_up_down_e::GPIO_PULLNONE;
+//     } else if (board->signal_control_mode == 1) {
+//         // #elif SIGNAL_CONTROL_MODE == 1
+//         LOGTRACE("%s GPIO_PULLUP", __PRETTY_FUNCTION__);
+//         pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLUP;
+//     } else {
+//         // #else
+//         LOGTRACE("%s GPIO_PULLDOWN", __PRETTY_FUNCTION__);
+//         pullmode = board_type::gpio_pull_up_down_e ::GPIO_PULLDOWN;
+//     }
+//     // #endif
 
-	// Set control signals
-	PinSetSignal(PIN_ENB, OFF);
-	PinSetSignal(PIN_ACT, OFF);
-	PinSetSignal(PIN_TAD, OFF);
-	PinSetSignal(PIN_IND, OFF);
-	PinSetSignal(PIN_DTD, OFF);
-	PinConfig(PIN_ACT, GPIO_INPUT);
-	PinConfig(PIN_TAD, GPIO_INPUT);
-	PinConfig(PIN_IND, GPIO_INPUT);
-	PinConfig(PIN_DTD, GPIO_INPUT);
+//     // Initialize all signals
+//     LOGTRACE("%s Initialize all signals....", __PRETTY_FUNCTION__);
 
-	// Initialize all signals
-	for (int i = 0; SignalTable[i] >= 0; i++) {
-		int pin = SignalTable[i];
-		PinSetSignal(pin, OFF);
-		PinConfig(pin, GPIO_INPUT);
-		PullConfig(pin, GPIO_PULLNONE);
-	}
+//     for (auto cur_signal : SignalTable) {
+//         PinSetSignal(cur_signal, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//         PinConfig(cur_signal, board_type::gpio_direction_e::GPIO_INPUT);
+//         PullConfig(cur_signal, pullmode);
+//     }
 
-	// Set drive strength back to 8mA
-	DrvConfig(3);
-#endif // ifdef __x86_64__ || __X86__
-}
+//     // Set control signals
+//     LOGTRACE("%s Set control signals....", __PRETTY_FUNCTION__);
+//     PinSetSignal(board->pin_act, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_tad, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_ind, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_dtd, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinConfig(board->pin_act, board_type::gpio_direction_e::GPIO_OUTPUT);
+//     PinConfig(board->pin_tad, board_type::gpio_direction_e::GPIO_OUTPUT);
+//     PinConfig(board->pin_ind, board_type::gpio_direction_e::GPIO_OUTPUT);
+//     PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_OUTPUT);
 
-void GPIOBUS::Reset()
-{
-#if defined(__x86_64__) || defined(__X86__)
-	return;
-#else
-	int i;
-	int j;
+//     // Set the ENABLE signal
+//     // This is used to show that the application is running
+//     PinConfig(board->pin_enb, board_type::gpio_direction_e::GPIO_OUTPUT);
+//     PinSetSignal(board->pin_enb, board->EnbOn());
 
-	// Turn off active signal
-	SetControl(PIN_ACT, ACT_OFF);
+// }
 
-	// Set all signals to off
-	for (i = 0;; i++) {
-		j = SignalTable[i];
-		if (j < 0) {
-			break;
-		}
 
-		SetSignal(j, OFF);
-	}
+// void GPIOBUS::Cleanup()
+// {
+// #if defined(__x86_64__) || defined(__X86__)
+// 	return;
+// #else
+// 	// Release SEL signal interrupt
+// #ifdef USE_SEL_EVENT_ENABLE
+// 	close(selevreq.fd);
+// #endif	// USE_SEL_EVENT_ENABLE
 
-	if (actmode == mode_e::TARGET) {
-		// Target mode
+//     // Set control signals
+//     PinSetSignal(board->pin_enb, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_act, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_tad, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_ind, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinSetSignal(board->pin_dtd, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//     PinConfig(board->pin_act, board_type::gpio_direction_e::GPIO_INPUT);
+//     PinConfig(board->pin_tad, board_type::gpio_direction_e::GPIO_INPUT);
+//     PinConfig(board->pin_ind, board_type::gpio_direction_e::GPIO_INPUT);
+//     PinConfig(board->pin_dtd, board_type::gpio_direction_e::GPIO_INPUT);
 
-		// Set target signal to input
-		SetControl(PIN_TAD, TAD_IN);
-		SetMode(PIN_BSY, IN);
-		SetMode(PIN_MSG, IN);
-		SetMode(PIN_CD, IN);
-		SetMode(PIN_REQ, IN);
-		SetMode(PIN_IO, IN);
+//     // Initialize all signals
+//     for (board_type::pi_physical_pin_e pin : SignalTable) {
+//         if (pin != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
+//             PinSetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//             PinConfig(pin, board_type::gpio_direction_e::GPIO_INPUT);
+//             PullConfig(pin, board_type::gpio_pull_up_down_e::GPIO_PULLNONE);
+//         }
+//     }
 
-		// Set the initiator signal to input
-		SetControl(PIN_IND, IND_IN);
-		SetMode(PIN_SEL, IN);
-		SetMode(PIN_ATN, IN);
-		SetMode(PIN_ACK, IN);
-		SetMode(PIN_RST, IN);
+//     // Set drive strength back to 8mA
+//     DrvConfig(3);
+// #endif // ifdef __x86_64__ || __X86__
+// }
 
-		// Set data bus signals to input
-		SetControl(PIN_DTD, DTD_IN);
-		SetMode(PIN_DT0, IN);
-		SetMode(PIN_DT1, IN);
-		SetMode(PIN_DT2, IN);
-		SetMode(PIN_DT3, IN);
-		SetMode(PIN_DT4, IN);
-		SetMode(PIN_DT5, IN);
-		SetMode(PIN_DT6, IN);
-		SetMode(PIN_DT7, IN);
-		SetMode(PIN_DP, IN);
-	} else {
-		// Initiator mode
+// void GPIOBUS::Reset()
+// {
+//     GPIO_FUNCTION_TRACE
+// #if defined(__x86_64__) || defined(__X86__)
+//     return;
+// #else
 
-		// Set target signal to input
-		SetControl(PIN_TAD, TAD_IN);
-		SetMode(PIN_BSY, IN);
-		SetMode(PIN_MSG, IN);
-		SetMode(PIN_CD, IN);
-		SetMode(PIN_REQ, IN);
-		SetMode(PIN_IO, IN);
+//     // Turn off active signal
+//     SetControl(board->pin_act, board->ActOff());
 
-		// Set the initiator signal to output
-		SetControl(PIN_IND, IND_OUT);
-		SetMode(PIN_SEL, OUT);
-		SetMode(PIN_ATN, OUT);
-		SetMode(PIN_ACK, OUT);
-		SetMode(PIN_RST, OUT);
+//     for (board_type::pi_physical_pin_e pin : SignalTable) {
+//         if (pin != board_type::pi_physical_pin_e::PI_PHYS_PIN_NONE) {
+//             SetSignal(pin, board_type::gpio_high_low_e::GPIO_STATE_LOW);
+//         }
+//     }
 
-		// Set the data bus signals to output
-		SetControl(PIN_DTD, DTD_OUT);
-		SetMode(PIN_DT0, OUT);
-		SetMode(PIN_DT1, OUT);
-		SetMode(PIN_DT2, OUT);
-		SetMode(PIN_DT3, OUT);
-		SetMode(PIN_DT4, OUT);
-		SetMode(PIN_DT5, OUT);
-		SetMode(PIN_DT6, OUT);
-		SetMode(PIN_DT7, OUT);
-		SetMode(PIN_DP, OUT);
-	}
+//     if (actmode == mode_e::TARGET) {
+//         // Target mode
 
-	// Initialize all signals
-	signals = 0;
-#endif // ifdef __x86_64__ || __X86__
-}
+//         // Set target signal to input
+//         SetControl(board->pin_tad, board->TadIn());
+//         SetMode(board->pin_bsy, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_msg, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_cd, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_req, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_io, board_type::gpio_direction_e::GPIO_INPUT);
 
-void GPIOBUS::SetENB(bool ast)
-{
-	PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
-}
+//         // Set the initiator signal to input
+//         SetControl(board->pin_ind, board->IndIn());
+//         SetMode(board->pin_sel, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_atn, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_ack, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_rst, board_type::gpio_direction_e::GPIO_INPUT);
 
-bool GPIOBUS::GetBSY() const
-{
-	return GetSignal(PIN_BSY);
-}
+//         // Set data bus signals to input
+//         SetControl(board->pin_dtd, board->DtdIn());
+//         SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_INPUT);
+//     } else {
+//         // Initiator mode
 
-void GPIOBUS::SetBSY(bool ast)
-{
-	// Set BSY signal
-	SetSignal(PIN_BSY, ast);
+//         // Set target signal to input
+//         SetControl(board->pin_tad, board->TadIn());
+//         SetMode(board->pin_bsy, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_msg, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_cd, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_req, board_type::gpio_direction_e::GPIO_INPUT);
+//         SetMode(board->pin_io, board_type::gpio_direction_e::GPIO_INPUT);
 
-	if (actmode == mode_e::TARGET) {
-		if (ast) {
-			// Turn on ACTIVE signal
-			SetControl(PIN_ACT, ACT_ON);
+//         // Set the initiator signal to output
+//         SetControl(board->pin_ind, board->IndOut());
+//         SetMode(board->pin_sel, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_atn, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_ack, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_rst, board_type::gpio_direction_e::GPIO_OUTPUT);
 
-			// Set Target signal to output
-			SetControl(PIN_TAD, TAD_OUT);
+//         // Set the data bus signals to output
+//         SetControl(board->pin_dtd, board->DtdOut());
+//         SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_OUTPUT);
+//     }
 
-			SetMode(PIN_BSY, OUT);
-			SetMode(PIN_MSG, OUT);
-			SetMode(PIN_CD, OUT);
-			SetMode(PIN_REQ, OUT);
-			SetMode(PIN_IO, OUT);
-		} else {
-			// Turn off the ACTIVE signal
-			SetControl(PIN_ACT, ACT_OFF);
+//     // Re-read all signals
+//     Acquire();
+//     // signals = 0;
+// #endif // ifdef __x86_64__ || __X86__
+// }
 
-			// Set the target signal to input
-			SetControl(PIN_TAD, TAD_IN);
+// void GPIOBUS::SetENB(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     PinSetSignal(board->pin_enb, ast ? board->EnbOn() : board->EnbOff());
+// }
 
-			SetMode(PIN_BSY, IN);
-			SetMode(PIN_MSG, IN);
-			SetMode(PIN_CD, IN);
-			SetMode(PIN_REQ, IN);
-			SetMode(PIN_IO, IN);
-		}
-	}
-}
+// bool GPIOBUS::GetBSY() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_bsy);
+// }
 
-bool GPIOBUS::GetSEL() const
-{
-	return GetSignal(PIN_SEL);
-}
+// void GPIOBUS::SetBSY(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     // Set BSY signal
+//     SetSignal(board->pin_bsy, board->bool_to_gpio_state(ast));
 
-void GPIOBUS::SetSEL(bool ast)
-{
-	if (actmode == mode_e::INITIATOR && ast) {
-		// Turn on ACTIVE signal
-		SetControl(PIN_ACT, ACT_ON);
-	}
+//     if (actmode == mode_e::TARGET) {
+//         if (ast) {
+//             // Turn on ACTIVE signal
+//             SetControl(board->pin_act, board->act_on);
 
-	// Set SEL signal
-	SetSignal(PIN_SEL, ast);
-}
+//             // Set Target signal to output
+//             SetControl(board->pin_tad, board->TadOut());
 
-bool GPIOBUS::GetATN() const
-{
-	return GetSignal(PIN_ATN);
-}
+//             SetMode(board->pin_bsy, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_msg, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_cd, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_req, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_io, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         } else {
+//             // Turn off the ACTIVE signal
+//             SetControl(board->pin_act, board->ActOff());
 
-void GPIOBUS::SetATN(bool ast)
-{
-	SetSignal(PIN_ATN, ast);
-}
+//             // Set the target signal to input
+//             SetControl(board->pin_tad, board->TadIn());
 
-bool GPIOBUS::GetACK() const
-{
-	return GetSignal(PIN_ACK);
-}
+//             SetMode(board->pin_bsy, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_msg, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_cd, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_req, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_io, board_type::gpio_direction_e::GPIO_INPUT);
+//         }
+//     }
+// }
 
-void GPIOBUS::SetACK(bool ast)
-{
-	SetSignal(PIN_ACK, ast);
-}
+// bool GPIOBUS::GetSEL() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_sel);
+// }
 
-bool GPIOBUS::GetACT() const
-{
-	return GetSignal(PIN_ACT);
-}
+// void GPIOBUS::SetSEL(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     if (actmode == mode_e::INITIATOR && ast) {
+//         // Turn on ACTIVE signal
+//         SetControl(board->pin_act, board->act_on);
+//     }
 
-void GPIOBUS::SetACT(bool ast)
-{
-	SetSignal(PIN_ACT, ast);
-}
+//     // Set SEL signal
+//     SetSignal(board->pin_sel, board->bool_to_gpio_state(ast));
+// }
 
-bool GPIOBUS::GetRST() const
-{
-	return GetSignal(PIN_RST);
-}
+// bool GPIOBUS::GetATN() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_atn);
+// }
 
-void GPIOBUS::SetRST(bool ast)
-{
-	SetSignal(PIN_RST, ast);
-}
+// void GPIOBUS::SetATN(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_atn, board->bool_to_gpio_state(ast));
+// }
 
-bool GPIOBUS::GetMSG() const
-{
-	return GetSignal(PIN_MSG);
-}
+// bool GPIOBUS::GetACK() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_ack);
+// }
 
-void GPIOBUS::SetMSG(bool ast)
-{
-	SetSignal(PIN_MSG, ast);
-}
+// void GPIOBUS::SetACK(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_ack, board->bool_to_gpio_state(ast));
+// }
 
-bool GPIOBUS::GetCD() const
-{
-	return GetSignal(PIN_CD);
-}
+// bool GPIOBUS::GetACT() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_act);
+// }
 
-void GPIOBUS::SetCD(bool ast)
-{
-	SetSignal(PIN_CD, ast);
-}
+// void GPIOBUS::SetACT(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_act, (ast) ? board->ActOn() : board->ActOff());
+// }
 
-bool GPIOBUS::GetIO()
-{
-	bool ast = GetSignal(PIN_IO);
+// bool GPIOBUS::GetRST() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_rst);
+// }
 
-	if (actmode == mode_e::INITIATOR) {
-		// Change the data input/output direction by IO signal
-		if (ast) {
-			SetControl(PIN_DTD, DTD_IN);
-			SetMode(PIN_DT0, IN);
-			SetMode(PIN_DT1, IN);
-			SetMode(PIN_DT2, IN);
-			SetMode(PIN_DT3, IN);
-			SetMode(PIN_DT4, IN);
-			SetMode(PIN_DT5, IN);
-			SetMode(PIN_DT6, IN);
-			SetMode(PIN_DT7, IN);
-			SetMode(PIN_DP, IN);
-		} else {
-			SetControl(PIN_DTD, DTD_OUT);
-			SetMode(PIN_DT0, OUT);
-			SetMode(PIN_DT1, OUT);
-			SetMode(PIN_DT2, OUT);
-			SetMode(PIN_DT3, OUT);
-			SetMode(PIN_DT4, OUT);
-			SetMode(PIN_DT5, OUT);
-			SetMode(PIN_DT6, OUT);
-			SetMode(PIN_DT7, OUT);
-			SetMode(PIN_DP, OUT);
-		}
-	}
+// void GPIOBUS::SetRST(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_rst, (ast) ? board->act_on : board->ActOff());
+// }
 
-	return ast;
-}
+// bool GPIOBUS::GetMSG() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_msg);
+// }
 
-void GPIOBUS::SetIO(bool ast)
-{
-	SetSignal(PIN_IO, ast);
+// void GPIOBUS::SetMSG(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_msg, board->bool_to_gpio_state(ast));
+// }
 
-	if (actmode == mode_e::TARGET) {
-		// Change the data input/output direction by IO signal
-		if (ast) {
-			SetControl(PIN_DTD, DTD_OUT);
-			SetDAT(0);
-			SetMode(PIN_DT0, OUT);
-			SetMode(PIN_DT1, OUT);
-			SetMode(PIN_DT2, OUT);
-			SetMode(PIN_DT3, OUT);
-			SetMode(PIN_DT4, OUT);
-			SetMode(PIN_DT5, OUT);
-			SetMode(PIN_DT6, OUT);
-			SetMode(PIN_DT7, OUT);
-			SetMode(PIN_DP, OUT);
-		} else {
-			SetControl(PIN_DTD, DTD_IN);
-			SetMode(PIN_DT0, IN);
-			SetMode(PIN_DT1, IN);
-			SetMode(PIN_DT2, IN);
-			SetMode(PIN_DT3, IN);
-			SetMode(PIN_DT4, IN);
-			SetMode(PIN_DT5, IN);
-			SetMode(PIN_DT6, IN);
-			SetMode(PIN_DT7, IN);
-			SetMode(PIN_DP, IN);
-		}
-	}
-}
+// bool GPIOBUS::GetCD() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_cd);
+// }
 
-bool GPIOBUS::GetREQ() const
-{
-	return GetSignal(PIN_REQ);
-}
+// void GPIOBUS::SetCD(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_cd, board->bool_to_gpio_state(ast));
+// }
 
-void GPIOBUS::SetREQ(bool ast)
-{
-	SetSignal(PIN_REQ, ast);
-}
+// bool GPIOBUS::GetIO()
+// {
+//     GPIO_FUNCTION_TRACE
+//     bool ast = GetSignal(board->pin_io);
 
-//---------------------------------------------------------------------------
-//
-// Get data signals
-//
-//---------------------------------------------------------------------------
-uint8_t GPIOBUS::GetDAT()
-{
-	uint32_t data = Acquire();
-	data =
-		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
-		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-		((data >> (PIN_DT2 - 2)) & (1 << 2)) |
-		((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-		((data >> (PIN_DT4 - 4)) & (1 << 4)) |
-		((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-		((data >> (PIN_DT6 - 6)) & (1 << 6)) |
-		((data >> (PIN_DT7 - 7)) & (1 << 7));
+//     if (actmode == mode_e::INITIATOR) {
+//         // Change the data input/output direction by IO signal
+//         if (ast) {
+//             SetControl(board->pin_dtd, board->DtdIn());
+//             SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_INPUT);
+//         } else {
+//             SetControl(board->pin_dtd, board->DtdOut());
+//             SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         }
+//     }
 
-	return (uint8_t)data;
-}
+//     return ast;
+// }
 
-//---------------------------------------------------------------------------
-//
-//	Set data signals
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetDAT(uint8_t dat)
-{
-	// Write to port
-#if SIGNAL_CONTROL_MODE == 0
-	uint32_t fsel = gpfsel[0];
-	fsel &= tblDatMsk[0][dat];
-	fsel |= tblDatSet[0][dat];
-	if (fsel != gpfsel[0]) {
-		gpfsel[0] = fsel;
-		gpio[GPIO_FSEL_0] = fsel;
-	}
+// void GPIOBUS::SetIO(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_io, board->bool_to_gpio_state(ast));
 
-	fsel = gpfsel[1];
-	fsel &= tblDatMsk[1][dat];
-	fsel |= tblDatSet[1][dat];
-	if (fsel != gpfsel[1]) {
-		gpfsel[1] = fsel;
-		gpio[GPIO_FSEL_1] = fsel;
-	}
+//     if (actmode == mode_e::TARGET) {
+//         // Change the data input/output direction by IO signal
+//         if (ast) {
+//             SetControl(board->pin_dtd, board->DtdOut());
+//             SetDAT(0);
+//             SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_OUTPUT);
+//             SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_OUTPUT);
+//         } else {
+//             SetControl(board->pin_dtd, board->DtdIn());
+//             SetMode(board->pin_dt0, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt1, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt2, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt3, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt4, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt5, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt6, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dt7, board_type::gpio_direction_e::GPIO_INPUT);
+//             SetMode(board->pin_dp, board_type::gpio_direction_e::GPIO_INPUT);
+//         }
+//     }
+// }
 
-	fsel = gpfsel[2];
-	fsel &= tblDatMsk[2][dat];
-	fsel |= tblDatSet[2][dat];
-	if (fsel != gpfsel[2]) {
-		gpfsel[2] = fsel;
-		gpio[GPIO_FSEL_2] = fsel;
-	}
-#else
-	gpio[GPIO_CLR_0] = tblDatMsk[dat];
-	gpio[GPIO_SET_0] = tblDatSet[dat];
-#endif	// SIGNAL_CONTROL_MODE
-}
+// bool GPIOBUS::GetREQ() const
+// {
+//     GPIO_FUNCTION_TRACE
+//     return GetSignal(board->pin_req);
+// }
 
-bool GPIOBUS::GetDP() const
-{
-	return GetSignal(PIN_DP);
-}
+// void GPIOBUS::SetREQ(bool ast)
+// {
+//     GPIO_FUNCTION_TRACE
+//     SetSignal(board->pin_req, board->bool_to_gpio_state(ast));
+// }
+
+
+
+// bool GPIOBUS::GetDP() const
+// {
+// 	return GetSignal(PIN_DP);
+// }
+
+// // Extract as specific pin field from a raw data capture
+// uint32_t GPIOBUS::GetPinRaw(uint32_t raw_data, board_type::pi_physical_pin_e pin_num)
+// {
+//     // return GetSignalRaw(raw_data, pin_num);
+//     (void)raw_data;
+//     (void)pin_num;
+//     LOGWARN("THIS FUNCTION ISN'T IMPLEMENTED YET");
+//     return 0;
+// }
+
+
+
 
 //---------------------------------------------------------------------------
 //
@@ -681,6 +478,7 @@ bool GPIOBUS::GetDP() const
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 {
+    GPIO_FUNCTION_TRACE
 	// Only works in TARGET mode
 	if (actmode != mode_e::TARGET) {
 		return 0;
@@ -806,6 +604,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 //---------------------------------------------------------------------------
 int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 {
+    GPIO_FUNCTION_TRACE
 	int i;
 
 	// Disable IRQs
@@ -846,7 +645,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 		}
 	} else {
 		// Get phase
-		uint32_t phase = Acquire() & GPIO_MCI;
+        Acquire();
+		BUS::phase_t phase = GetPhase();
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
@@ -858,7 +658,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 			}
 
 			// Phase error
-			if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+			if (GetPhase() != phase) {
 				break;
 			}
 
@@ -883,7 +684,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 			}
 
 			// Phase error
-			if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+			if (GetPhase() != phase) {
 				break;
 			}
 
@@ -906,6 +708,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 //---------------------------------------------------------------------------
 int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 {
+    GPIO_FUNCTION_TRACE
 	int i;
 
 	// Disable IRQs
@@ -953,7 +756,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 		WaitSignal(PIN_ACK, OFF);
 	} else {
 		// Get Phase
-		uint32_t phase = Acquire() & GPIO_MCI;
+        Acquire();
+		BUS::phase_t phase = GetPhase();
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
@@ -973,7 +777,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			}
 
 			// Phase error
-			if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+			if (GetPhase() != phase) {
 				break;
 			}
 
@@ -994,7 +799,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			}
 
 			// Phase error
-			if ((signals & GPIO_MCI) != phase) {
+            Acquire();
+			if (GetPhase() != phase) {
 				break;
 			}
 
@@ -1018,6 +824,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 //---------------------------------------------------------------------------
 bool GPIOBUS::PollSelectEvent()
 {
+    GPIO_FUNCTION_TRACE
 	errno = 0;
 
 	if (epoll_event epev; epoll_wait(epfd, &epev, 1, -1) <= 0) {
@@ -1040,199 +847,18 @@ bool GPIOBUS::PollSelectEvent()
 //---------------------------------------------------------------------------
 void GPIOBUS::ClearSelectEvent()
 {
+    GPIO_FUNCTION_TRACE
 }
 #endif	// USE_SEL_EVENT_ENABLE
 
-//---------------------------------------------------------------------------
-//
-//	Signal table
-//
-//---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS::SignalTable = {
-	PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3,
-	PIN_DT4, PIN_DT5, PIN_DT6, PIN_DT7,	PIN_DP,
-	PIN_SEL,PIN_ATN, PIN_RST, PIN_ACK,
-	PIN_BSY, PIN_MSG, PIN_CD, PIN_IO, PIN_REQ,
-	-1
-};
 
-//---------------------------------------------------------------------------
-//
-//	Create work table
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::MakeTable(void)
-{
-	const array<int, 9> pintbl = {
-		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
-		PIN_DT5, PIN_DT6, PIN_DT7, PIN_DP
-	};
-
-	array<bool, 256> tblParity;
-
-	// Create parity table
-	for (uint32_t i = 0; i < 0x100; i++) {
-		uint32_t bits = i;
-		uint32_t parity = 0;
-		for (int j = 0; j < 8; j++) {
-			parity ^= bits & 1;
-			bits >>= 1;
-		}
-		parity = ~parity;
-		tblParity[i] = parity & 1;
-	}
-
-#if SIGNAL_CONTROL_MODE == 0
-	// Mask and setting data generation
-	for (auto& tbl : tblDatMsk) {
-		tbl.fill(-1);
-	}
-	for (auto& tbl : tblDatSet) {
-		tbl.fill(0);
-	}
-
-	for (uint32_t i = 0; i < 0x100; i++) {
-		// Bit string for inspection
-		uint32_t bits = i;
-
-		// Get parity
-		if (tblParity[i]) {
-			bits |= (1 << 8);
-		}
-
-		// Bit check
-		for (int j = 0; j < 9; j++) {
-			// Index and shift amount calculation
-			int index = pintbl[j] / 10;
-			int shift = (pintbl[j] % 10) * 3;
-
-			// Mask data
-			tblDatMsk[index][i] &= ~(0x7 << shift);
-
-			// Setting data
-			if (bits & 1) {
-				tblDatSet[index][i] |= (1 << shift);
-			}
-
-			bits >>= 1;
-		}
-	}
-#else
-	for (uint32_t i = 0; i < 0x100; i++) {
-		// Bit string for inspection
-		uint32_t bits = i;
-
-		// Get parity
-		if (tblParity[i]) {
-			bits |= (1 << 8);
-		}
-
-#if SIGNAL_CONTROL_MODE == 1
-		// Negative logic is inverted
-		bits = ~bits;
-#endif
-
-		// Create GPIO register information
-		uint32_t gpclr = 0;
-		uint32_t gpset = 0;
-		for (int j = 0; j < 9; j++) {
-			if (bits & 1) {
-				gpset |= (1 << pintbl[j]);
-			} else {
-				gpclr |= (1 << pintbl[j]);
-			}
-			bits >>= 1;
-		}
-
-		tblDatMsk[i] = gpclr;
-		tblDatSet[i] = gpset;
-	}
-#endif
-}
-
-//---------------------------------------------------------------------------
-//
-//	Control signal setting
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetControl(int pin, bool ast)
-{
-	PinSetSignal(pin, ast);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Input/output mode setting
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetMode(int pin, int mode)
-{
-#if SIGNAL_CONTROL_MODE == 0
-	if (mode == OUT) {
-		return;
-	}
-#endif	// SIGNAL_CONTROL_MODE
-
-	int index = pin / 10;
-	int shift = (pin % 10) * 3;
-	uint32_t data = gpfsel[index];
-	data &= ~(0x7 << shift);
-	if (mode == OUT) {
-		data |= (1 << shift);
-	}
-	gpio[index] = data;
-	gpfsel[index] = data;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get input signal value
-//
-//---------------------------------------------------------------------------
-bool GPIOBUS::GetSignal(int pin) const
-{
-	return (signals >> pin) & 1;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Set output signal value
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::SetSignal(int pin, bool ast)
-{
-#if SIGNAL_CONTROL_MODE == 0
-	int index = pin / 10;
-	int shift = (pin % 10) * 3;
-	uint32_t data = gpfsel[index];
-	if (ast) {
-		data |= (1 << shift);
-	} else {
-		data &= ~(0x7 << shift);
-	}
-	gpio[index] = data;
-	gpfsel[index] = data;
-#elif SIGNAL_CONTROL_MODE == 1
-	if (ast) {
-		gpio[GPIO_CLR_0] = 0x1 << pin;
-	} else {
-		gpio[GPIO_SET_0] = 0x1 << pin;
-	}
-#elif SIGNAL_CONTROL_MODE == 2
-	if (ast) {
-		gpio[GPIO_SET_0] = 0x1 << pin;
-	} else {
-		gpio[GPIO_CLR_0] = 0x1 << pin;
-	}
-#endif	// SIGNAL_CONTROL_MODE
-}
 
 //---------------------------------------------------------------------------
 //
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::WaitSignal(int pin, int ast)
+bool GPIOBUS::WaitSignal(int pin, bool ast)
 {
 	// Get current time
 	uint32_t now = SysTimer::GetTimerLow();
@@ -1249,169 +875,11 @@ bool GPIOBUS::WaitSignal(int pin, int ast)
 		}
 
 		// Check for the signal edge
-        if (((signals >> pin) ^ ~ast) & 1) {
+        if (((signals >> pin) ^ !ast) & 1) {
 			return true;
 		}
 	} while ((SysTimer::GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
 	return false;
-}
-
-void GPIOBUS::DisableIRQ()
-{
-#ifdef __linux__
-	if (rpitype == 4) {
-		// RPI4 is disabled by GICC
-		giccpmr = gicc[GICC_PMR];
-		gicc[GICC_PMR] = 0;
-	} else if (rpitype == 2) {
-		// RPI2,3 disable core timer IRQ
-		tintcore = sched_getcpu() + QA7_CORE0_TINTC;
-		tintctl = qa7regs[tintcore];
-		qa7regs[tintcore] = 0;
-	} else {
-		// Stop system timer interrupt with interrupt controller
-		irptenb = irpctl[IRPT_ENB_IRQ_1];
-		irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
-	}
-#else
-	(void)0;
-#endif
-}
-
-void GPIOBUS::EnableIRQ()
-{
-	if (rpitype == 4) {
-		// RPI4 enables interrupts via the GICC
-		gicc[GICC_PMR] = giccpmr;
-	} else if (rpitype == 2) {
-		// RPI2,3 re-enable core timer IRQ
-		qa7regs[tintcore] = tintctl;
-	} else {
-		// Restart the system timer interrupt with the interrupt controller
-		irpctl[IRPT_ENB_IRQ_1] = irptenb & 0xf;
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-//	Pin direction setting (input/output)
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::PinConfig(int pin, int mode)
-{
-	// Check for invalid pin
-	if (pin < 0) {
-		return;
-	}
-
-	int index = pin / 10;
-	uint32_t mask = ~(0x7 << ((pin % 10) * 3));
-	gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
-}
-
-//---------------------------------------------------------------------------
-//
-//	Pin pull-up/pull-down setting
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::PullConfig(int pin, int mode)
-{
-	uint32_t pull;
-
-	// Check for invalid pin
-	if (pin < 0) {
-		return;
-	}
-
-	if (rpitype == 4) {
-		switch (mode) {
-			case GPIO_PULLNONE:
-				pull = 0;
-				break;
-			case GPIO_PULLUP:
-				pull = 1;
-				break;
-			case GPIO_PULLDOWN:
-				pull = 2;
-				break;
-			default:
-				return;
-		}
-
-		pin &= 0x1f;
-		int shift = (pin & 0xf) << 1;
-		uint32_t bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
-		bits &= ~(3 << shift);
-		bits |= (pull << shift);
-		gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
-	} else {
-		pin &= 0x1f;
-		gpio[GPIO_PUD] = mode & 0x3;
-		SysTimer::SleepUsec(2);
-		gpio[GPIO_CLK_0] = 0x1 << pin;
-		SysTimer::SleepUsec(2);
-		gpio[GPIO_PUD] = 0;
-		gpio[GPIO_CLK_0] = 0;
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-//	Set output pin
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::PinSetSignal(int pin, bool ast)
-{
-	// Check for invalid pin
-	if (pin < 0) {
-		return;
-	}
-
-	if (ast) {
-		gpio[GPIO_SET_0] = 0x1 << pin;
-	} else {
-		gpio[GPIO_CLR_0] = 0x1 << pin;
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-//	Set the signal drive strength
-//
-//---------------------------------------------------------------------------
-void GPIOBUS::DrvConfig(uint32_t drive)
-{
-	uint32_t data = pads[PAD_0_27];
-	pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
-}
-
-
-//---------------------------------------------------------------------------
-//
-//	Generic Phase Acquisition (Doesn't read GPIO)
-//
-//---------------------------------------------------------------------------
-BUS::phase_t GPIOBUS::GetPhaseRaw(uint32_t raw_data)
-{
-	// Selection Phase
-	if (GetPinRaw(raw_data, PIN_SEL)) {
-		if(GetPinRaw(raw_data, PIN_IO)) {
-			return BUS::phase_t::reselection;
-		} else{
-			return BUS::phase_t::selection;
-		}
-	}
-
-	// Bus busy phase
-	if (!GetPinRaw(raw_data, PIN_BSY)) {
-		return BUS::phase_t::busfree;
-	}
-
-	// Get target phase from bus signal line
-	int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
-	mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
-	mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
-	return GetPhase(mci);
 }

@@ -71,12 +71,17 @@ static uint8_t get_data_field(uint32_t data)
     return (uint8_t)data_out;
 }
 
+BUS::phase_t TempGetPhaseRaw(uint32_t data){
+    (void)data;
+    return BUS::phase_t::msgout;
+}
+
 static void vcd_output_if_changed_phase(ofstream& fp, uint32_t data, int pin, char symbol)
 {
-    const BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
+    const BUS::phase_t new_value = TempGetPhaseRaw(data);
     if (prev_value[pin] != static_cast<uint8_t>(new_value)) {
         prev_value[pin] = static_cast<uint8_t>(new_value);
-        fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
+        fp << "s" << BUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }
 

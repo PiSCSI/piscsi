@@ -6,6 +6,7 @@
 ##                   arm-linux-gnueabihf-
 CROSS_COMPILE =
 
+CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 AR = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
@@ -58,6 +59,7 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
+# SCSILOOP = scsiloop
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -77,7 +79,7 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP)
+	$(BINDIR)/$(RASDUMP) 
 
 SRC_PROTOC = rascsi_interface.proto
 
@@ -114,8 +116,8 @@ SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 SRC_RASCSI_TEST += $(shell find ./rasdump -name '*.cpp')
 SRC_RASCSI_TEST += $(shell find ./monitor -name '*.cpp')
 
-vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump
-vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump ./test
+vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump
+vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -136,7 +138,7 @@ GENERATED_DIR := generated
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST)) $(OBJ_SCSILOOP)
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
