@@ -58,6 +58,40 @@
 
 //---------------------------------------------------------------------------
 //
+//	Constant declarations (GIC)
+//
+//---------------------------------------------------------------------------
+const static uint32_t ARM_GICD_BASE =	0xFF841000;
+const static uint32_t ARM_GICC_BASE =	0xFF842000;
+const static uint32_t ARM_GIC_END =		0xFF847FFF;
+const static int GICD_CTLR =		0x000;
+const static int GICD_IGROUPR0 =	0x020;
+const static int GICD_ISENABLER0 =	0x040;
+const static int GICD_ICENABLER0 =	0x060;
+const static int GICD_ISPENDR0 =	0x080;
+const static int GICD_ICPENDR0 =	0x0A0;
+const static int GICD_ISACTIVER0 =	0x0C0;
+const static int GICD_ICACTIVER0 =	0x0E0;
+const static int GICD_IPRIORITYR0 =	0x100;
+const static int GICD_ITARGETSR0 =	0x200;
+const static int GICD_ICFGR0 =		0x300;
+const static int GICD_SGIR =		0x3C0;
+const static int GICC_CTLR =		0x000;
+const static int GICC_PMR =			0x001;
+const static int GICC_IAR =			0x003;
+const static int GICC_EOIR =		0x004;
+
+//---------------------------------------------------------------------------
+//
+//	Constant declarations (GIC IRQ)
+//
+//---------------------------------------------------------------------------
+const static int GIC_IRQLOCAL0 =	(16 + 14);
+const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
+
+
+//---------------------------------------------------------------------------
+//
 //	Class definition
 //
 //---------------------------------------------------------------------------
@@ -84,7 +118,7 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     uint32_t Acquire() override;
 
 	// Extract as specific pin field from a raw data capture
-	uint32_t GetPinRaw(uint32_t raw_data, int pin_num) override;
+	uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
 
 
       void SetENB(bool ast) override;
@@ -185,9 +219,6 @@ class GPIOBUS_Raspberry final : public GPIOBUS
 
     BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
 
-
-
-    static const array<int, 19> SignalTable;    
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
 #endif
@@ -234,38 +265,5 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     array<uint32_t, 256> tblDatSet = {}; // Table setting table
 #endif
 
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (GIC)
-//
-//---------------------------------------------------------------------------
-const static uint32_t ARM_GICD_BASE =	0xFF841000;
-const static uint32_t ARM_GICC_BASE =	0xFF842000;
-const static uint32_t ARM_GIC_END =		0xFF847FFF;
-const static int GICD_CTLR =		0x000;
-const static int GICD_IGROUPR0 =	0x020;
-const static int GICD_ISENABLER0 =	0x040;
-const static int GICD_ICENABLER0 =	0x060;
-const static int GICD_ISPENDR0 =	0x080;
-const static int GICD_ICPENDR0 =	0x0A0;
-const static int GICD_ISACTIVER0 =	0x0C0;
-const static int GICD_ICACTIVER0 =	0x0E0;
-const static int GICD_IPRIORITYR0 =	0x100;
-const static int GICD_ITARGETSR0 =	0x200;
-const static int GICD_ICFGR0 =		0x300;
-const static int GICD_SGIR =		0x3C0;
-const static int GICC_CTLR =		0x000;
-const static int GICC_PMR =			0x001;
-const static int GICC_IAR =			0x003;
-const static int GICC_EOIR =		0x004;
-
-//---------------------------------------------------------------------------
-//
-//	Constant declarations (GIC IRQ)
-//
-//---------------------------------------------------------------------------
-const static int GIC_IRQLOCAL0 =	(16 + 14);
-const static int GIC_GPIO_IRQ =		(32 + 116);	// GPIO3
-
+    static const array<int, 19> SignalTable;    
 };

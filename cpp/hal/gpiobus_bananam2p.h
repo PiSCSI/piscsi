@@ -142,7 +142,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
 
     // Extract as specific pin field from a raw data capture
-    uint32_t GetPinRaw(uint32_t raw_data, int pin_num) override;
+    uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
 
     // Map the physical pin number to the logical GPIO number
     // shared_ptr<Banana_Pi_Gpio_Mapping> phys_to_gpio_map;

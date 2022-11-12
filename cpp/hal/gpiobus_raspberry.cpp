@@ -1023,7 +1023,7 @@ BUS::phase_t GPIOBUS_Raspberry::GetPhaseRaw(uint32_t raw_data)
 }
 
 	// Extract as specific pin field from a raw data capture
-	uint32_t GPIOBUS_Raspberry::GetPinRaw(uint32_t raw_data, int pin_num)
+	uint32_t GPIOBUS_Raspberry::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
 	{
 		return ((raw_data >> pin_num) & 1);
 	}

@@ -1474,7 +1474,7 @@ void GPIOBUS_BananaM2p::short_wait(void)
 }
 
 	// Extract as specific pin field from a raw data capture
-	uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, int pin_num)
+	uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
 	{
 		return ((raw_data >> pin_num) & 1);
 	}

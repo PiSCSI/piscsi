@@ -268,7 +268,7 @@ class GPIOBUS : public BUS
     GPIOBUS()           = default;
     ~GPIOBUS() override = default;
     // Destructor
-	bool Init(mode_e mode = mode_e::TARGET) override;
+	virtual bool Init(mode_e mode = mode_e::TARGET) override;
     // Initialization
     virtual void Reset() override = 0;
     // Reset
@@ -338,7 +338,7 @@ class GPIOBUS : public BUS
     // Get Data parity signal
 
     // Extract as specific pin field from a raw data capture
-     virtual uint32_t GetPinRaw(uint32_t raw_data, int pin_num) override = 0;
+     virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override = 0;
 
     int CommandHandShake(vector<uint8_t>&) override;
     // Command receive handshake
@@ -393,30 +393,9 @@ protected:
     // Set GPIO drive strength
 
     mode_e actmode = mode_e::TARGET; // Operation mode
-
-#if !defined(__x86_64__) && !defined(__X86__)
-	volatile uint32_t *gicd = nullptr;	// GIC Interrupt distributor register
-#endif
-
-	volatile uint32_t *gicc = nullptr;	// GIC CPU interface register
-
-	array<uint32_t, 4> gpfsel;			// GPFSEL0-4 backup values
-
-	uint32_t signals = 0;				// All bus signals
-
 #ifdef USE_SEL_EVENT_ENABLE
 	struct gpioevent_request selevreq = {};	// SEL signal event request
 
 	int epfd;							// epoll file descriptor
 #endif	// USE_SEL_EVENT_ENABLE
-
-#if SIGNAL_CONTROL_MODE == 0
-	array<array<uint32_t, 256>, 3>  tblDatMsk;	// Data mask table
-
-	array<array<uint32_t, 256>, 3> tblDatSet;	// Data setting table
-#else
-	array<uint32_t, 256> tblDatMsk = {};	// Data mask table
-
-	array<uint32_t, 256> tblDatSet = {};	// Table setting table
-#endif
 };

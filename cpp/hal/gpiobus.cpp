@@ -875,7 +875,7 @@ bool GPIOBUS::WaitSignal(int pin, bool ast)
 		}
 
 		// Check for the signal edge
-        if (((signals >> pin) ^ !ast) & 1) {
+        if ((GetSignal(pin) ^ !ast) & 1) {
 			return true;
 		}
 	} while ((SysTimer::GetTimerLow() - now) < timeout);
