@@ -23,8 +23,8 @@
 #include "spdlog/spdlog.h"
 #include <iostream>
 #include <sched.h>
-#include <stdio.h>
 #include <signal.h>
+#include <stdio.h>
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/gpiobus_standard.h"
@@ -66,15 +66,14 @@ string current_log_level = "debug"; // Some versions of spdlog do not support ge
 
 // string connection_type = "hard-coded fullspec";
 
-            int local_pin_dtd = -1;
-        int local_pin_tad = -1;
-        int local_pin_ind = -1;
+int local_pin_dtd = -1;
+int local_pin_tad = -1;
+int local_pin_ind = -1;
 
 void Banner(int argc, char *argv[])
 {
     cout << ras_util::Banner("Reloaded");
     cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
-    cout << "Board type: " << SBC_Version::GetString() << endl << flush;
 
     if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)) {
         cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
@@ -98,14 +97,10 @@ void Banner(int argc, char *argv[])
 
 bool InitBus()
 {
-#ifdef USE_SEL_EVENT_ENABLE
-    SBC_Version::Init();
-#endif
-
-	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
-	if (bus == nullptr) {
-		return false;
-	}
+    bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+    if (bus == nullptr) {
+        return false;
+    }
 
     return true;
 }
@@ -288,45 +283,86 @@ int main(int argc, char *argv[])
     cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
+    test_timer();
     run_loopback_test();
     return 0;
 }
 
 void test_timer()
 {
+    uint32_t timer_test_failures = 0;
+
+    // Allow +/- 2% tolerance when testing the timers
+    double timer_tolerance_percent  = 0.02;
+    const uint32_t one_second_in_ns = 1000000;
+
+    printf(CYAN "Testing hardware timer:");
+
+    //------------------------------------------------------
+    // Test SysTimer::GetTimerLow()
+
     uint32_t before = SysTimer::GetTimerLow();
-    sleep(1);
+    for (int i = 0; i < 10; i++) {
+        usleep(100000);
+        printf(".");
+    }
     uint32_t after = SysTimer::GetTimerLow();
 
-    LOGINFO("first sample: %d %08X", (before - after), (after - before));
+    uint32_t elapsed_nanosecs = after - before;
 
-    uint64_t sum = 0;
-    int count    = 0;
-    for (int i = 0; i < 100; i++) {
-        before = SysTimer::GetTimerLow();
-        usleep(1000);
-        after = SysTimer::GetTimerLow();
-        sum += (after - before);
-        count++;
+    LOGDEBUG("Elapsed time: %d %08X", elapsed_nanosecs, elapsed_nanosecs);
+
+    if ((elapsed_nanosecs > (one_second_in_ns * (1.0 + timer_tolerance_percent))) ||
+        (elapsed_nanosecs < (one_second_in_ns * (1.0 - timer_tolerance_percent)))) {
+        printf(RED "TIMER FAILED! Expected time approx: %d, but actually %d", one_second_in_ns, elapsed_nanosecs);
+        timer_test_failures++;
+    } else {
+        printf(".");
     }
 
-    LOGINFO("usleep() Average %d", (uint32_t)(sum / count));
+    //------------------------------------------------------
+    // Test SysTimer::SleepUsec()
 
-    sum   = 0;
-    count = 0;
+    uint32_t expected_usec_result = 1000 * 100;
+    before                        = SysTimer::GetTimerLow();
     for (int i = 0; i < 100; i++) {
-        before = SysTimer::GetTimerLow();
         SysTimer::SleepUsec(1000);
-        after = SysTimer::GetTimerLow();
-        sum += (after - before);
-        count++;
     }
-    LOGINFO("usleep() Average %d", (uint32_t)(sum / count));
+    after            = SysTimer::GetTimerLow();
+    elapsed_nanosecs = after - before;
+    LOGDEBUG("SysTimer::SleepUsec() Average %d", (uint32_t)(elapsed_nanosecs / 100));
+
+    if ((elapsed_nanosecs > expected_usec_result * (1.0 + timer_tolerance_percent)) ||
+        (elapsed_nanosecs < expected_usec_result * (1.0 - timer_tolerance_percent))) {
+        printf(RED "SysTimer::SleepUsec FAILED! Expected time approx: %d, but actually %d", expected_usec_result,
+               elapsed_nanosecs);
+        timer_test_failures++;
+    } else {
+        printf(".");
+    }
+
+    //------------------------------------------------------
+    // Test SysTimer::SleepNsec()
 
     before = SysTimer::GetTimerLow();
     SysTimer::SleepNsec(1000000);
     after = SysTimer::GetTimerLow();
-    LOGINFO("SysTimer::SleepNSec: %d (expected ~1000)", (uint32_t)(after - before));
+    LOGDEBUG("SysTimer::SleepNSec: %d (expected ~1000)", (uint32_t)(after - before));
+
+    elapsed_nanosecs = after - before;
+    if ((elapsed_nanosecs > (1000 * (1.0 + timer_tolerance_percent))) ||
+        (elapsed_nanosecs < (1000 * (1.0 - timer_tolerance_percent)))) {
+        printf(RED "SysTimer::SleepNsec FAILED! Expected time approx: 1000, but actually %d", elapsed_nanosecs);
+        timer_test_failures++;
+    } else {
+        printf(".");
+    }
+
+    if (timer_test_failures == 0) {
+        printf(GREEN "OK!\n");
+    } else {
+        printf(RED "Timer FAILED - %d errors!\n", timer_test_failures);
+    }
 }
 
 struct loopback_connections_struct {
@@ -468,9 +504,9 @@ void init_loopback()
         pin_name_lookup[BPI_PIN_IND] = "ind";
         pin_name_lookup[BPI_PIN_TAD] = "tad";
         pin_name_lookup[BPI_PIN_DTD] = "dtd";
-            local_pin_dtd = BPI_PIN_DTD;
-        local_pin_tad = BPI_PIN_TAD;
-        local_pin_ind = BPI_PIN_IND;
+        local_pin_dtd                = BPI_PIN_DTD;
+        local_pin_tad                = BPI_PIN_TAD;
+        local_pin_ind                = BPI_PIN_IND;
 
     } else {
         LOGERROR("Unsupported board version: %s", SBC_Version::GetString()->c_str());
@@ -483,9 +519,14 @@ void print_all()
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     for (auto cur_gpio : loopback_conn_table) {
-        LOGDEBUG("%s %2d = %s %2d", pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_gpio.this_pin,
-                 pin_name_lookup.at(cur_gpio.connected_pin).c_str(), (int)cur_gpio.connected_pin)
+        printf("%s[%2d] ", pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_gpio.this_pin);
     }
+    printf("\n");
+
+    for (auto cur_gpio : loopback_conn_table) {
+        printf("  %4d  ", bus->GetSignal(cur_gpio.this_pin));
+    }
+    printf("\n");
 }
 
 // Set transceivers IC1 and IC2 to OUTPUT
@@ -531,8 +572,8 @@ void set_tad_in()
 // will set all of the transceivers to inputs.
 void set_output_channel(int out_gpio)
 {
-    LOGTRACE("%s tad: %d dtd: %d ind: %d", CONNECT_DESC.c_str(), (int)local_pin_tad,
-             (int)local_pin_dtd, (int)local_pin_ind);
+    LOGTRACE("%s tad: %d dtd: %d ind: %d", CONNECT_DESC.c_str(), (int)local_pin_tad, (int)local_pin_dtd,
+             (int)local_pin_ind);
     if (out_gpio == local_pin_tad)
         set_tad_out();
     else
@@ -541,7 +582,7 @@ void set_output_channel(int out_gpio)
         set_dtd_out();
     else
         set_dtd_in();
-    if (out_gpio ==  local_pin_ind)
+    if (out_gpio == local_pin_ind)
         set_ind_out();
     else
         set_ind_in();
@@ -580,7 +621,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     int err_count  = 0;
-    int sleep_time = 500000; // 5ms
+    int sleep_time = 5000; // 5ms
 
     LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
@@ -640,6 +681,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 
     usleep(sleep_time);
 
+    bus->Acquire();
     // # loop through all of the gpios
     for (auto cur_gpio : loopback_conn_table) {
         printf(".");
@@ -659,10 +701,6 @@ int test_gpio_pin(loopback_connection &gpio_rec)
                 LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
-                LOGINFO("TRY IT AGAIN")
-                bus->Acquire();
-                auto new_val = bus->GetSignal(cur_gpio.this_pin);
-                LOGINFO("Connected pin is %d (%s)", new_val, (new_val) ? "OFF" : "ON")
             }
         }
     }
@@ -692,12 +730,14 @@ int test_gpio_pin(loopback_connection &gpio_rec)
                 LOGERROR("Test commanded GPIO %d [%s] to be high, but it did not respond", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
+                print_all();
             }
         } else {
             if (cur_val != OFF) {
                 LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
                          pin_name_lookup.at(cur_gpio.this_pin).c_str())
                 err_count++;
+                print_all();
             }
         }
     }
@@ -716,56 +756,9 @@ void run_loopback_test()
     init_loopback();
     loopback_setup();
 
-
-//     int sleep_time = 500000;
-//     while(1){
-
-//     LOGINFO("Setting all dir to out");
-//     set_dtd_out();
-//     set_ind_out();
-//     set_tad_out();
-
-//     usleep(sleep_time);
-//     LOGINFO("ON")
-//     for (auto cur_gpio : loopback_conn_table) {
-//         bus->SetSignal(cur_gpio.this_pin, ON);
-//         usleep(sleep_time);
-//     }
-
-//     LOGINFO("OFF");
-//     for (auto cur_gpio : loopback_conn_table) {
-//         bus->SetSignal(cur_gpio.this_pin, OFF);
-//         usleep(sleep_time);
-//     }
-
-//     usleep(5000000);
-
-//     LOGINFO("Setting all dir to IN");
-//     set_dtd_in();
-//     set_ind_in();
-//     set_tad_in();
-
-//     usleep(sleep_time);
-//     LOGINFO("ON")
-//     for (auto cur_gpio : loopback_conn_table) {
-//         bus->SetSignal(cur_gpio.this_pin, ON);
-//         usleep(sleep_time);
-//     }
-
-//     LOGINFO("OFF");
-//     for (auto cur_gpio : loopback_conn_table) {
-//         bus->SetSignal(cur_gpio.this_pin, OFF);
-//         usleep(sleep_time);
-//     }
-
-// }
-
-
-
     for (auto cur_gpio : loopback_conn_table) {
         printf(CYAN "Testing GPIO %2d [%s]:" WHITE, (int)cur_gpio.this_pin,
                pin_name_lookup.at(cur_gpio.this_pin).c_str());
         test_gpio_pin(cur_gpio);
-        // exit(1);
     }
 }
