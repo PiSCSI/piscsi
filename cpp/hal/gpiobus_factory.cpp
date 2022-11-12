@@ -23,6 +23,7 @@ using namespace std;
 unique_ptr<GPIOBUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
     unique_ptr<GPIOBUS> return_ptr;
+    SBC_Version::Init();
     if (SBC_Version::IsBananaPi()) {
         LOGTRACE("Creating GPIOBUS_BananaM2p")
         return_ptr =  make_unique<GPIOBUS_BananaM2p>();
