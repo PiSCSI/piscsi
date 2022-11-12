@@ -51,9 +51,7 @@
 #define GPIO_FUNCTION_TRACE
 #endif
 
-#ifndef USE_SEL_EVENT_ENABLE
-#define USE_SEL_EVENT_ENABLE
-#endif
+
 
 using namespace std;
 
@@ -357,9 +355,9 @@ class GPIOBUS : public BUS
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
-    bool PollSelectEvent();
+    bool PollSelectEvent() override;
     // SEL signal event polling
-    void ClearSelectEvent();
+    void ClearSelectEvent() override;
     // Clear SEL signal event
 										// Clear SEL signal event
 #endif

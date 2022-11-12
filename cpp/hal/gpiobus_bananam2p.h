@@ -31,7 +31,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     GPIOBUS_BananaM2p()           = default;
     ~GPIOBUS_BananaM2p() override = default;
     // Destructor
-    bool Init(mode_e mode = mode_e::TARGET);
+    bool Init(mode_e mode = mode_e::TARGET) override;
     //, board_type::rascsi_board_type_e rascsi_type =
     //                                          board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
 

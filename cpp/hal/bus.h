@@ -18,6 +18,10 @@
 
 using namespace std;
 
+#ifndef USE_SEL_EVENT_ENABLE
+#define USE_SEL_EVENT_ENABLE
+#endif
+
 class BUS
 {
 public:
