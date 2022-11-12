@@ -162,6 +162,7 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
 
     sbc_version      = SBC_Version::GetSbcVersion();
     // phys_to_gpio_map = BPI_GPIO::GetBpiGpioMapping(sbc_version);
+    LOGINFO("Detected board version: %s", SBC_Version::GetString()->c_str());
 
     for (auto const gpio_num : SignalTable) {
 
@@ -180,7 +181,7 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
         return false;
     }
 
-    SaveGpioConfig();
+    // SaveGpioConfig();
 
     if (!SetupSelEvent()) {
         LOGERROR("Failed to setup SELECT poll event");
@@ -229,8 +230,8 @@ GPIO_FUNCTION_TRACE
 
 	// Set the ENABLE signal
 	// This is used to show that the application is running
-	PinSetSignal(PIN_ENB, ENB_OFF);
-	PinConfig(PIN_ENB, GPIO_OUTPUT);
+	PinConfig(BPI_PIN_ENB, GPIO_OUTPUT);
+	PinSetSignal(BPI_PIN_ENB, ON);
 }
 
 
@@ -333,7 +334,7 @@ void GPIOBUS_BananaM2p::Cleanup()
     SetACT(false);
 
 
-    RestoreGpioConfig();
+    // RestoreGpioConfig();
 
     munmap((void *)gpio_map, BLOCK_SIZE);
     munmap((void *)r_gpio_map, BLOCK_SIZE);

@@ -361,8 +361,8 @@ class GPIOBUS : public BUS
     // Clear SEL signal event
 										// Clear SEL signal event
 #endif
-
-protected:
+// TODO: restore this back to protected
+// protected:
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
