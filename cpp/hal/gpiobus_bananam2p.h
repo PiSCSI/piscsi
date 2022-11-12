@@ -106,6 +106,11 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Get DAT signal
     void SetDAT(uint8_t dat) override;
     // Set DAT signal
+
+    bool WaitREQ(bool ast) override {return WaitSignal(BPI_PIN_REQ, ast);}
+    bool WaitACK(bool ast) override {return WaitSignal(BPI_PIN_ACK, ast);}
+
+
     // TODO: Restore these back to protected
     //   protected:
     // SCSI I/O signal control

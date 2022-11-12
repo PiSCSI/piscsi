@@ -375,6 +375,10 @@ protected:
     void SetSignal(int pin, bool ast) override = 0;
     // Set SCSI I/O mode
     bool WaitSignal(int pin, bool ast);
+
+    virtual bool WaitREQ(bool ast) = 0;
+    virtual bool WaitACK(bool ast) = 0;
+
     // Wait for a signal to change
     // Interrupt control
     virtual void DisableIRQ() = 0;

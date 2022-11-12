@@ -487,10 +487,12 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 	DisableIRQ();
 
 	// Assert REQ signal
-	SetSignal(PIN_REQ, ON);
+	// SetSignal(PIN_REQ, ON);
+    SetREQ(ON);
 
 	// Wait for ACK signal
-	bool ret = WaitSignal(PIN_ACK, ON);
+	// bool ret = WaitSignal(PIN_ACK, ON);
+    bool ret = WaitACK(ON);
 
 	// Wait until the signal line stabilizes
 	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -499,7 +501,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 	buf[0] = GetDAT();
 
 	// Disable REQ signal
-	SetSignal(PIN_REQ, OFF);
+	// SetSignal(PIN_REQ, OFF);
+    SetREQ(OFF);
 
 	// Timeout waiting for ACK assertion
 	if (!ret) {
@@ -508,7 +511,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 	}
 
 	// Wait for ACK to clear
-	ret = WaitSignal(PIN_ACK, OFF);
+	// ret = WaitSignal(PIN_ACK, OFF);
+    ret = WaitACK(OFF);
 
 	// Timeout waiting for ACK to clear
 	if (!ret) {
@@ -526,23 +530,27 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
 	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
 	if (buf[0] == 0x1F) {
-		SetSignal(PIN_REQ, ON);
+		// SetSignal(PIN_REQ, ON);
+        SetREQ(ON);
 
-		ret = WaitSignal(PIN_ACK, ON);
+		// ret = WaitSignal(PIN_ACK, ON);
+        ret = WaitACK(ON);
 
 		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get the actual SCSI command
 		buf[0] = GetDAT();
 
-		SetSignal(PIN_REQ, OFF);
+		// SetSignal(PIN_REQ, OFF);
+        SetREQ(OFF);
 
 		if (!ret) {
 			EnableIRQ();
 			return 0;
 		}
 
-		WaitSignal(PIN_ACK, OFF);
+		// WaitSignal(PIN_ACK, OFF);
+        WaitACK(OFF);
 
 		if (!ret) {
 			EnableIRQ();
@@ -564,10 +572,12 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 		++offset;
 
 		// Assert REQ signal
-		SetSignal(PIN_REQ, ON);
+		// SetSignal(PIN_REQ, ON);
+        SetREQ(ON);
 
 		// Wait for ACK signal
-		ret = WaitSignal(PIN_ACK, ON);
+		// ret = WaitSignal(PIN_ACK, ON);
+        ret=WaitACK(ON);
 
 		// Wait until the signal line stabilizes
 		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -576,7 +586,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 		buf[offset] = GetDAT();
 
 		// Clear the REQ signal
-		SetSignal(PIN_REQ, OFF);
+		// SetSignal(PIN_REQ, OFF);
+        SetREQ(OFF);
 
 		// Check for timeout waiting for ACK assertion
 		if (!ret) {
@@ -584,7 +595,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 		}
 
 		// Wait for ACK to clear
-		ret = WaitSignal(PIN_ACK, OFF);
+		// ret = WaitSignal(PIN_ACK, OFF);
+        ret= WaitACK(OFF);
 
 		// Check for timeout waiting for ACK to clear
 		if (!ret) {
@@ -613,10 +625,12 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 	if (actmode == mode_e::TARGET) {
 		for (i = 0; i < count; i++) {
 			// Assert the REQ signal
-			SetSignal(PIN_REQ, ON);
+            SetREQ(ON);
+			// SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			bool ret = WaitSignal(PIN_ACK, ON);
+			// bool ret = WaitSignal(PIN_ACK, ON);
+            bool ret = WaitACK(ON);
 
 			// Wait until the signal line stabilizes
 			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -625,7 +639,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 			*buf = GetDAT();
 
 			// Clear the REQ signal
-			SetSignal(PIN_REQ, OFF);
+			// SetSignal(PIN_REQ, OFF);
+            SetREQ(OFF);
 
 			// Check for timeout waiting for ACK signal
 			if (!ret) {
@@ -633,7 +648,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 			}
 
 			// Wait for ACK to clear
-			ret = WaitSignal(PIN_ACK, OFF);
+			// ret = WaitSignal(PIN_ACK, OFF);
+            ret = WaitACK(OFF);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -650,7 +666,8 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
-			bool ret = WaitSignal(PIN_REQ, ON);
+			// bool ret = WaitSignal(PIN_REQ, ON);
+            bool ret = WaitREQ(ON);
 
 			// Check for timeout waiting for REQ signal
 			if (!ret) {
@@ -670,13 +687,16 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
 			*buf = GetDAT();
 
 			// Assert the ACK signal
-			SetSignal(PIN_ACK, ON);
+			// SetSignal(PIN_ACK, ON);
+            SetACK(ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, OFF);
+			// ret = WaitSignal(PIN_REQ, OFF);
+            ret = WaitREQ(OFF);
 
 			// Clear the ACK signal
-			SetSignal(PIN_ACK, OFF);
+			// SetSignal(PIN_ACK, OFF);
+            SetACK(OFF);
 
 			// Check for timeout waiting for REQ to clear
 			if (!ret) {
@@ -725,7 +745,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for ACK to clear
-			bool ret = WaitSignal(PIN_ACK, OFF);
+			// bool ret = WaitSignal(PIN_ACK, OFF);
+            bool ret=WaitACK(OFF);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -735,13 +756,16 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			// Already waiting for ACK to clear
 
 			// Assert the REQ signal
-			SetSignal(PIN_REQ, ON);
+			// SetSignal(PIN_REQ, ON);
+            SetREQ(ON);
 
 			// Wait for ACK
-			ret = WaitSignal(PIN_ACK, ON);
+			// ret = WaitSignal(PIN_ACK, ON);
+            ret = WaitACK(ON);
 
 			// Clear REQ signal
-			SetSignal(PIN_REQ, OFF);
+			// SetSignal(PIN_REQ, OFF);
+            SetREQ(OFF);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -753,7 +777,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 		}
 
 		// Wait for ACK to clear
-		WaitSignal(PIN_ACK, OFF);
+		// WaitSignal(PIN_ACK, OFF);
+        WaitACK(OFF);
 	} else {
 		// Get Phase
         Acquire();
@@ -769,7 +794,8 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for REQ to be asserted
-			bool ret = WaitSignal(PIN_REQ, ON);
+			// bool ret = WaitSignal(PIN_REQ, ON);
+            bool ret = WaitREQ(ON);
 
 			// Check for timeout waiting for REQ to be asserted
 			if (!ret) {
@@ -785,13 +811,16 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 			// Already waiting for REQ assertion
 
 			// Assert the ACK signal
-			SetSignal(PIN_ACK, ON);
+			// SetSignal(PIN_ACK, ON);
+            SetACK(ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, OFF);
+			// ret = WaitSignal(PIN_REQ, OFF);
+            ret = WaitREQ(OFF);
 
 			// Clear the ACK signal
-			SetSignal(PIN_ACK, OFF);
+			// SetSignal(PIN_ACK, OFF);
+            SetACK(OFF);
 
 			// Check for timeout waiting for REQ to clear
 			if (!ret) {
