@@ -27,8 +27,8 @@ endif
 ifeq ("$(shell uname -s)","Linux")
 	# -Wno-psabi might not work on non-Linux platforms
 	CXXFLAGS += -Wno-psabi
-	CXXFLAGS += --target=arm-linux-gnueabihf
 endif
+#	CXXFLAGS += --target=arm-linux-gnueabihf
 
 # Depending on the GCC version the compilation flags differ
 GCCVERSION10 := $(shell expr `$(CXX) -dumpversion` \>= 10)
