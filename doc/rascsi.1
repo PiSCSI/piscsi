@@ -84,7 +84,7 @@ Overrides the default locale for client-faces error messages. The client can ove
 .BR \-ID\fIn[:u] " " \fIFILE
 n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
 .IP
-FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCBR and SCDP it is an optioinal prioritized list of network interfaces, an optional IP address and netmask, e.g. "interfaces=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
+FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCBR and SCDP it is an optioinal prioritized list of network interfaces, an optional IP address and netmask, e.g. "interface=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 .IP
 FILE is the name of the image file to use for the SCSI device.
 .IP

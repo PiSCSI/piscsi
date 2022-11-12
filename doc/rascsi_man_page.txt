@@ -113,7 +113,7 @@ OPTIONS
               SCHS)  the  filename  may have a special meaning or a dummy name
               can be provided. For SCBR and SCDP it is  an  optioinal  priori‐
               tized  list  of  network  interfaces, an optional IP address and
-              netmask,  e.g.  "interfaces=eth0,eth1,wlan0:inet=10.10.20.1/24".
+              netmask,   e.g.  "interface=eth0,eth1,wlan0:inet=10.10.20.1/24".
               For  SCLP  it  is the print command to be used and a reservation
               timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 
