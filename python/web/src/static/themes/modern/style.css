@@ -21,14 +21,14 @@
  General layout
  ------------------------------------------------------------------------------
  */
-html,
-body {
+html, body {
   height: 100%;
 }
 
 body {
   display: flex;
   flex-direction: column;
+  font-size: var(--font-size);
 }
 
 div.content {
@@ -44,259 +44,6 @@ hr {
 
 a:hover {
   text-decoration: none;
-}
-
-body {
-  font-size: var(--font-size);
-}
-
-body:not(.logged-in) section:not(#current-config, #manual) {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config form#config-actions,
-body:not(.logged-in) section#current-config form#config-save {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config table#attached-devices th.actions,
-body:not(.logged-in) section#current-config table#attached-devices td.actions,
-body:not(.logged-in) section#current-config table#attached-devices form {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config form#detach-all-devices {
-  display: none;
-}
-
-/*
- ------------------------------------------------------------------------------
- Header
- ------------------------------------------------------------------------------
- */
-div.header {
-  display: flex;
-}
-
-div.header div.title {
-  order: 1;
-  text-align: left;
-  flex-grow: 1;
-}
-
-div.header div.title h1 {
-  margin: 0;
-  color: #f9f9f9;
-  font-size: 1.25rem;
-}
-
-div.header div.title a {
-  text-decoration: none;
-}
-
-div.header div.hostname {
-  display: none;
-}
-
-div.header div.login-status {
-  order: 10;
-}
-
-div.header div.login-status form {
-  display: flex;
-}
-
-div.header span.logged-in-as-text em {
-  font-weight: bold;
-  font-style: normal;
-}
-
-div.header div.login-form-title {
-  display: none;
-}
-
-div.header div.authentication-disabled {
-  background: var(--danger);
-  border-radius: var(--border-radius);
-  padding: 0 0.5rem;
-}
-
-@media (max-width: 820px) {
-  div.header {
-    /* Safari 14 iOS and iPad OS */
-    min-height: 3.5rem;
-  }
-
-  body:not(.logged-in) div.header {
-    flex-wrap: wrap;
-    /* Safari 14 iOS and iPad OS */
-    min-height: 8.875rem;
-  }
-
-  div.header div.title {
-    background: var(--dark);
-  }
-
-  div.header div.title a {
-    display: block;
-    background: url(/static/logo.png) no-repeat;
-    background-size: auto 2rem;
-    background-position: 1rem center;
-    padding: 1rem 1rem 1rem 3.5rem;
-  }
-
-  div.header div.login-status.logged-out {
-    flex: 0 0 100%;
-  }
-
-  div.header div.login-status.logged-out form {
-    align-items: end;
-    padding: 1rem;
-    background: var(--light);
-    border-bottom: 1px solid #ccc;
-  }
-
-  div.header div.login-status.logged-out form span {
-    display: block;
-    padding: 0 0.1rem;
-    flex-grow: 1;
-  }
-
-  div.header div.login-status.logged-out form label {
-    display: block;
-    text-align: left;
-    margin: 0;
-    padding: 0;
-  }
-
-  div.header div.login-status.logged-out form input[type="submit"] {
-    flex-grow: 0.5;
-    /* Safari 14 iOS and iPad OS */
-    margin-top: auto;
-  }
-
-  div.header div.login-status.logged-out form input:not([type="submit"]) {
-    width: 100%;
-  }
-
-  div.header div.login-status.logged-in {
-    background: var(--dark);
-    display: flex;
-    align-items: center;
-  }
-
-  div.header div.login-status.logged-in span.logged-in-as-text,
-  div.header div.login-status.logged-in span.separator {
-    display: none;
-  }
-
-  div.header div.login-status.logged-in a {
-    margin-right: 1rem;
-    color: var(--secondary);
-    text-decoration: none;
-  }
-}
-
-@media (min-width: 821px) {
-  div.header {
-    background: var(--dark);
-    align-items: center;
-    padding: 0.5rem 1.25rem;
-    color: #fff;
-  }
-
-  div.header div.title a {
-    display: inline-block;
-    background: url(/static/logo.png) no-repeat;
-    background-size: auto 40px;
-    background-position: left center;
-    padding-left: 3rem;
-  }
-
-  div.header div.title a h1 {
-    font-size: 1.5rem;
-    padding: 0.25rem;
-  }
-
-  @supports (-webkit-background-clip: text) {
-    div.header div.title a:hover h1 {
-      background: linear-gradient(
-        to right,
-        rgb(101 204 51 / 100%) 0%,
-        rgb(255 204 51 / 100%) 10%,
-        rgb(255 153 51 / 100%) 20%,
-        rgb(205 51 50 / 100%) 55%,
-        rgb(152 50 153 / 100%) 100%
-      );
-      /* stylelint-disable-line */
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-  }
-
-  div.header div.login-status.logged-out form label,
-  div.header div.login-status.logged-out form input {
-    margin-left: 0.5rem;
-  }
-
-  div.header div.login-status.logged-out form input:not([type="submit"]) {
-    width: 8rem;
-    background: var(--dark);
-    border-color: var(--secondary);
-    color: #fff;
-  }
-
-  div.header div.login-status.logged-out form input::-webkit-credentials-auto-fill-button {
-    background-color: #ccc;
-  }
-
-  div.header div.login-status.logged-out form input[type="submit"] {
-    background: var(--secondary);
-    border-color: var(--secondary);
-    color: #fff;
-  }
-
-  div.header div.login-status.logged-in a {
-    background: var(--danger) url(icons/log-out.svg) no-repeat right 0.5rem center;
-    background-size: var(--icon-size);
-    border-radius: var(--border-radius);
-    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
-    display: inline-block;
-    text-decoration: none;
-    color: #fff;
-  }
-
-  div.header div.login-status.logged-in span.logged-in-as-text {
-    margin-right: 1rem;
-  }
-
-  div.header div.login-status.logged-in span.separator {
-    display: none;
-  }
-}
-
-/*
- ------------------------------------------------------------------------------
- Footer
- ------------------------------------------------------------------------------
- */
-div.footer {
-  flex-shrink: 0;
-  background: var(--dark);
-  padding: 1rem;
-  color: #fff;
-}
-
-div.footer a {
-  color: #ccc;
-}
-
-div.footer div.theme-change-hint {
-  margin-bottom: 1rem;
-}
-
-div.footer div.theme-change-hint a {
-  color: yellow;
 }
 
 /*
@@ -415,22 +162,22 @@ select {
 
 .dropzone .dz-preview {
   display: inline-block;
-  background: var(--light) url(icons/upload-queued.svg) no-repeat 1rem center;
+  background: var(--light) url("icons/upload-queued.svg") no-repeat 1rem center;
   padding: 1rem 1rem 1rem 3.5rem;
   margin: 1rem 1rem 0 0;
   border-radius: var(--border-radius);
 }
 
 .dropzone .dz-preview.dz-processing {
-  background: #ededbe url(icons/upload-in-progress.svg) no-repeat 1rem center;
+  background: #ededbe url("icons/upload-in-progress.svg") no-repeat 1rem center;
 }
 
 .dropzone .dz-preview.dz-success {
-  background: #e0f5df url(icons/upload-success.svg) no-repeat 1rem center;
+  background: #e0f5df url("icons/upload-success.svg") no-repeat 1rem center;
 }
 
 .dropzone .dz-preview.dz-error {
-  background: #fae2e2 url(icons/upload-error.svg) no-repeat 1rem center;
+  background: #fae2e2 url("icons/upload-error.svg") no-repeat 1rem center;
 }
 
 .dropzone .dz-preview .dz-error-message {
@@ -452,6 +199,233 @@ select {
   display: block;
   height: 0.5rem;
   margin-top: 0.25rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Header
+ ------------------------------------------------------------------------------
+ */
+div.header {
+  display: flex;
+}
+
+div.header div.title {
+  order: 1;
+  text-align: left;
+  flex-grow: 1;
+}
+
+div.header div.title h1 {
+  margin: 0;
+  color: #f9f9f9;
+  font-size: 1.25rem;
+}
+
+div.header div.title a {
+  text-decoration: none;
+}
+
+div.header div.hostname {
+  display: none;
+}
+
+div.header div.login-status {
+  order: 10;
+}
+
+div.header div.login-status form {
+  display: flex;
+}
+
+div.header span.logged-in-as-text em {
+  font-weight: bold;
+  font-style: normal;
+}
+
+div.header div.login-form-title {
+  display: none;
+}
+
+div.header div.authentication-disabled {
+  background: var(--danger);
+  border-radius: var(--border-radius);
+  padding: 0 0.5rem;
+}
+
+@media (max-width: 820px) {
+  div.header {
+    min-height: 3.5rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  body:not(.logged-in) div.header {
+    flex-wrap: wrap;
+    min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  div.header div.title {
+    background: var(--dark);
+  }
+
+  div.header div.title a {
+    display: block;
+    background: url("/static/logo.png") no-repeat;
+    background-size: auto 2rem;
+    background-position: 1rem center;
+    padding: 1rem 1rem 1rem 3.5rem;
+  }
+
+  div.header div.login-status.logged-out {
+    flex: 0 0 100%;
+  }
+
+  div.header div.login-status.logged-out form {
+    align-items: end;
+    padding: 1rem;
+    background: var(--light);
+    border-bottom: 1px solid #ccc;
+  }
+
+  div.header div.login-status.logged-out form span {
+    display: block;
+    padding: 0 0.1rem;
+    flex-grow: 1;
+  }
+
+  div.header div.login-status.logged-out form label {
+    display: block;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+  }
+
+  div.header div.login-status.logged-out form input[type="submit"] {
+    flex-grow: 0.5;
+    margin-top: auto; /* Safari 14 iOS and iPad OS */
+  }
+
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 100%;
+  }
+
+  div.header div.login-status.logged-in {
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+  }
+
+  div.header div.login-status.logged-in span.logged-in-as-text,
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+
+  div.header div.login-status.logged-in a {
+    margin-right: 1rem;
+    color: var(--secondary);
+    text-decoration: none;
+  }
+}
+
+@media (min-width: 821px) {
+  div.header {
+    background: var(--dark);
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    color: #fff;
+  }
+
+  div.header div.title a {
+    display: inline-block;
+    background: url("/static/logo.png") no-repeat;
+    background-size: auto 40px;
+    background-position: left center;
+    padding-left: 3rem;
+  }
+
+  div.header div.title a h1 {
+    font-size: 1.5rem;
+    padding: 0.25rem;
+  }
+
+  @supports (-webkit-background-clip: text) {
+    div.header div.title a:hover h1 {
+      background: linear-gradient(
+        to right,
+        rgb(101 204 51 / 100%) 0%,
+        rgb(255 204 51 / 100%) 10%,
+        rgb(255 153 51 / 100%) 20%,
+        rgb(205 51 50 / 100%) 55%,
+        rgb(152 50 153 / 100%) 100%
+      );
+
+      -webkit-background-clip: text; /* stylelint-disable-line */
+      -webkit-text-fill-color: transparent; /* stylelint-disable-line */
+    }
+  }
+
+  div.header div.login-status.logged-out form label,
+  div.header div.login-status.logged-out form input {
+    margin-left: 0.5rem;
+  }
+
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 8rem;
+    background: var(--dark);
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-out form input::-webkit-credentials-auto-fill-button {
+    background-color: #ccc;
+  }
+
+  div.header div.login-status.logged-out form input[type="submit"] {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in a {
+    background: var(--danger) url("icons/log-out.svg") no-repeat right 0.5rem center;
+    background-size: var(--icon-size);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in span.logged-in-as-text {
+    margin-right: 1rem;
+  }
+
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Footer
+ ------------------------------------------------------------------------------
+ */
+div.footer {
+  flex-shrink: 0;
+  background: var(--dark);
+  padding: 1rem;
+  color: #fff;
+}
+
+div.footer a {
+  color: #ccc;
+}
+
+div.footer div.theme-change-hint {
+  margin-bottom: 1rem;
+}
+
+div.footer div.theme-change-hint a {
+  color: yellow;
 }
 
 /*
@@ -486,24 +460,24 @@ div.flash > div a::before {
 
 div.flash > div.info {
   background-color: var(--info);
-  background-image: url(icons/info.svg);
+  background-image: url("icons/info.svg");
 }
 
 div.flash > div.error {
   background-color: var(--danger);
-  background-image: url(icons/error.svg);
+  background-image: url("icons/error.svg");
   color: #fff;
 }
 
 div.flash > div.success {
   background-color: var(--success);
-  background-image: url(icons/success.svg);
+  background-image: url("icons/success.svg");
   color: #fff;
 }
 
 div.flash > div.warning {
   background-color: var(--warning);
-  background-image: url(icons/warning.svg);
+  background-image: url("icons/warning.svg");
 }
 
 /*
@@ -546,6 +520,25 @@ section > details ul {
  Index > Section: Current RaSCSI configuration
  ------------------------------------------------------------------------------
  */
+body:not(.logged-in) section:not(#current-config, #manual) {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config form#config-actions,
+body:not(.logged-in) section#current-config form#config-save {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config table#attached-devices th.actions,
+body:not(.logged-in) section#current-config table#attached-devices td.actions,
+body:not(.logged-in) section#current-config table#attached-devices form {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config form#detach-all-devices {
+  display: none;
+}
+
 section#current-config form#config-actions select,
 section#current-config form#config-save input[type="text"] {
   max-width: 10rem;
@@ -564,9 +557,7 @@ table#attached-devices td.actions {
 }
 
 table#attached-devices td.parameters form {
-  text-align: center;
   display: flex;
-  align-items: center;
 }
 
 table#attached-devices td.parameters form label {
@@ -623,7 +614,7 @@ table#attached-devices tr.reserved td {
 
   table#attached-devices tr.device-assigned td.name,
   table#attached-devices tr.reserved td.name {
-    background-image: url(icons/device-other.svg);
+    background-image: url("icons/device-other.svg");
     background-repeat: no-repeat;
     background-position: 1rem center;
     background-size: var(--icon-size);
@@ -631,28 +622,28 @@ table#attached-devices tr.reserved td {
   }
 
   table#attached-devices tr.reserved td.name {
-    background-image: url(icons/device-reserved.svg);
+    background-image: url("icons/device-reserved.svg");
   }
 
   table#attached-devices tr.device-sccd td.name,
   table#attached-devices tr.device-scmo td.name {
-    background-image: url(icons/device-optical.svg);
+    background-image: url("icons/device-optical.svg");
   }
 
   table#attached-devices tr.device-scdp td.name {
-    background-image: url(icons/device-network.svg);
+    background-image: url("icons/device-network.svg");
   }
 
   table#attached-devices tr.device-schd td.name {
-    background-image: url(icons/device-hard-drive.svg);
+    background-image: url("icons/device-hard-drive.svg");
   }
 
   table#attached-devices tr.device-scrm td.name {
-    background-image: url(icons/device-removable.svg);
+    background-image: url("icons/device-removable.svg");
   }
 
   table#attached-devices tr.device-sclp td.name {
-    background-image: url(icons/device-printer.svg);
+    background-image: url("icons/device-printer.svg");
   }
 }
 
@@ -707,29 +698,29 @@ section#files p {
 
   section#files table#images form.file-attach input[type="submit"],
   section#attach-devices form.device-attach input[type="submit"] {
-    background: #efefef url(icons/file-device-attach.svg) no-repeat 0.5rem center;
+    background: #efefef url("icons/file-device-attach.svg") no-repeat 0.5rem center;
     background-size: 1rem;
     padding-left: 2rem;
   }
 
   section#files table#images form.file-copy input[type="submit"] {
-    background-image: url(icons/file-copy.svg);
+    background-image: url("icons/file-copy.svg");
   }
 
   section#files table#images form.file-rename input[type="submit"] {
-    background-image: url(icons/file-rename.svg);
+    background-image: url("icons/file-rename.svg");
   }
 
   section#files table#images form.file-delete input[type="submit"] {
-    background-image: url(icons/file-delete.svg);
+    background-image: url("icons/file-delete.svg");
   }
 
   section#files table#images form.file-info input[type="submit"] {
-    background-image: url(icons/file-info.svg);
+    background-image: url("icons/file-info.svg");
   }
 
   section#files table#images form.file-extract input[type="submit"] {
-    background: #efefef url(icons/file-extract.svg) no-repeat 0.5rem center;
+    background: #efefef url("icons/file-extract.svg") no-repeat 0.5rem center;
     background-size: 1rem;
     padding-left: 2rem;
   }
@@ -809,7 +800,7 @@ section#manual a {
   margin: auto;
   display: block;
   padding: 0 0 0 2rem;
-  background: url(icons/manual.svg) no-repeat left center;
+  background: url("icons/manual.svg") no-repeat left center;
   font-weight: bold;
 }
 
@@ -837,11 +828,11 @@ body.page-drives div.content p:first-of-type {
   border-radius: 0.5rem;
 }
 
-body.page-drives div.content > p:nth-of-type(3) {
+body.page-drives div.content p:nth-of-type(3) {
   margin-top: 1rem;
 }
 
-body.page-drives div.content > p a {
+body.page-drives div.content p.home {
   font-weight: bold;
 }
 
@@ -850,7 +841,7 @@ body.page-drives div.content > p a {
  Disk info page
  ------------------------------------------------------------------------------
  */
-body.page-diskinfo div.content > p a {
+body.page-diskinfo div.content p.home {
   font-weight: bold;
 }
 
@@ -866,7 +857,7 @@ body.page-deviceinfo div.content table th {
   width: 25%;
 }
 
-body.page-deviceinfo div.content > p a {
+body.page-deviceinfo div.content p.home {
   font-weight: bold;
 }
 
@@ -875,7 +866,7 @@ body.page-deviceinfo div.content > p a {
  Logs page
  ------------------------------------------------------------------------------
  */
-body.page-logs div.content > p a {
+body.page-logs div.content p.home {
   font-weight: bold;
 }
 
@@ -893,10 +884,7 @@ body.page-manpage div#manpage-content h2 {
   margin: 2rem 0 0.5rem;
 }
 
-body.page-manpage div.content > p {
+body.page-manpage div.content p.home {
   margin-top: 2rem;
-}
-
-body.page-manpage div.content > p a {
   font-weight: bold;
 }
