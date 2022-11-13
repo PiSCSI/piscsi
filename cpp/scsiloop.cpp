@@ -20,7 +20,6 @@
 #include "shared/rascsi_version.h"
 #include "shared/rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/spdlog.h"
 #include <iostream>
 #include <sched.h>
 #include <signal.h>
@@ -78,6 +77,7 @@ void set_ind_in();
 void set_tad_out();
 void set_tad_in();
 void print_all();
+void temp_debug();
 
 void Banner(int argc, char *argv[])
 {
@@ -109,7 +109,6 @@ void Reset()
 {
     bus->Reset();
 }
-
 
 bool SetLogLevel(const string &log_level)
 {
@@ -233,7 +232,8 @@ int main(int argc, char *argv[])
     cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
-    test_timer();
+    // temp_debug();
+    // test_timer();
     run_loopback_test();
     Cleanup();
 
@@ -656,7 +656,6 @@ int test_gpio_pin(loopback_connection &gpio_rec)
             }
         }
     }
-    // exit(1);
 
     // Set the transceiver back to output
     set_output_channel(gpio_rec.dir_ctrl_pin);
@@ -694,9 +693,9 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         }
     }
     if (err_count == 0) {
-        printf(GREEN "GPIO %2d [%s] OK!\n", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str());
+        printf(GREEN "GPIO %3d [%s] OK!\n", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str());
     } else {
-        printf(RED "GPIO %2d [%s] FAILED - %d errors!\n\r", (int)gpio_rec.this_pin,
+        printf(RED "GPIO %3d [%s] FAILED - %d errors!\n\r", (int)gpio_rec.this_pin,
                pin_name_lookup.at(gpio_rec.this_pin).c_str(), err_count);
     }
     return err_count;
@@ -709,8 +708,59 @@ void run_loopback_test()
     loopback_setup();
 
     for (auto cur_gpio : loopback_conn_table) {
-        printf(CYAN "Testing GPIO %2d [%s]:" WHITE, (int)cur_gpio.this_pin,
+        printf(CYAN "Testing GPIO %3d [%s]:" WHITE, (int)cur_gpio.this_pin,
                pin_name_lookup.at(cur_gpio.this_pin).c_str());
         test_gpio_pin(cur_gpio);
     }
+}
+
+void temp_debug(){
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    init_loopback();
+    loopback_setup();
+
+    int delay_time = 10000000;
+    
+    while(1){
+
+
+        LOGINFO("Direction IN");
+        set_tad_in();
+        set_dtd_in();
+        set_ind_in();
+
+        LOGINFO("IN: All Pins true");
+        for (auto cur_gpio : loopback_conn_table) {
+	        bus->SetSignal(cur_gpio.this_pin, true);
+        }
+
+        usleep(delay_time);
+
+        LOGINFO("IN: All Pins false");
+        for (auto cur_gpio : loopback_conn_table) {
+	        bus->SetSignal(cur_gpio.this_pin, false);
+        }
+        usleep(delay_time);
+
+        LOGINFO("Direction OUT");
+        set_tad_out();
+        set_dtd_out();
+        set_ind_out();
+
+                LOGINFO("OUT: All Pins true");
+        for (auto cur_gpio : loopback_conn_table) {
+	        bus->SetSignal(cur_gpio.this_pin, true);
+        }
+
+        usleep(delay_time);
+
+        LOGINFO("OUT: All Pins false");
+        for (auto cur_gpio : loopback_conn_table) {
+	        bus->SetSignal(cur_gpio.this_pin, false);
+        }
+        usleep(delay_time);
+
+
+    }
+
 }

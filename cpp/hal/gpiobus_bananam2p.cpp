@@ -166,6 +166,10 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
 
     for (auto const gpio_num : SignalTable) {
 
+        if(gpio_num == -1){
+            break;
+        }
+
         int gpio_bank = GPIO_BANK(gpio_num);
 
         if (std::find(gpio_banks.begin(), gpio_banks.end(), gpio_bank) != gpio_banks.end()) {
@@ -864,29 +868,43 @@ bool GPIOBUS_BananaM2p::GetDP() const
 void GPIOBUS_BananaM2p::SetControl(int pin, bool ast)
 {
     GPIO_FUNCTION_TRACE
-    if ((int)pin < 0) {
-        return;
-    }
-    GPIOBUS_BananaM2p::SetSignal(pin, ast);
-    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+ 	PinSetSignal(pin, ast);
 }
 
+// Set direction
 void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
 {
     GPIO_FUNCTION_TRACE
-    int gpio_num             = pin;
+    int gpio             = pin;
+    int direction = mode;
     // int sunxi_gpio_direction = (mode == int::GPIO_INPUT) ? INPUT : OUTPUT;
-    int sunxi_gpio_direction = mode;
+    // int sunxi_gpio_direction = mode;
 
-    sunxi_setup_gpio(gpio_num, sunxi_gpio_direction, -1);
+    // sunxi_setup_gpio(gpio_num, sunxi_gpio_direction, -1);
     // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    // if(mode == bool::GPIO_INPUT){
-    //     pinMode(pin, INPUT);
+    uint32_t regval = 0;
+    int bank        = GPIO_BANK(gpio);       // gpio >> 5
+    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
+    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+    LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset, (GPIO_INPUT == direction) ? "IN" : "OUT")
 
-    // }else{
-    //     pinMode(pin, OUTPUT);
-    // }
-    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+    sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
+    /* DK, for PL and PM */
+    if (bank >= 11) {
+        bank -= 11;
+        pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
+    }
+
+    regval = *(&pio->CFG[0] + index);
+    regval &= ~(0x7 << offset); // 0xf?
+    if (GPIO_INPUT == direction) {
+        *(&pio->CFG[0] + index) = regval;
+    } else if (GPIO_OUTPUT == direction) {
+        regval |= (1 << offset);
+        *(&pio->CFG[0] + index) = regval;
+    } else {
+        LOGERROR("line:%dgpio number error\n", __LINE__);
+    }
 }
 
 bool GPIOBUS_BananaM2p::GetSignal(int pin) const
@@ -902,7 +920,7 @@ bool GPIOBUS_BananaM2p::GetSignal(int pin) const
     LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, (int)gpio_num, (int)bank, (int)num);
 
     regval = (signals[bank] >> num) & 0x1;
-    return regval != 0;
+    return regval == 0;
     // sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     // /* DK, for PL and PM */
     // if (bank >= 11) {
@@ -929,21 +947,32 @@ bool GPIOBUS_BananaM2p::GetSignal(int pin) const
 void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
 {
     GPIO_FUNCTION_TRACE
-    LOGTRACE("pin(%d) ast(%d)", (int)pin, (int)ast)
-
     int gpio_num         = pin;
+
+#if SIGNAL_CONTROL_MODE == 0
+//	  True  : 0V
+//	  False : Open collector output (disconnect from bus)
     int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
+#elif SIGNAL_CONTROL_MODE == 1
+//	  True  : 0V   -> (CONVERT) -> 0V
+//	  False : 3.3V -> (CONVERT) -> Open collector output
+LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
+    int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
+#elif SIGNAL_CONTROL_MODE == 2
+//	  True  : 3.3V -> (CONVERT) -> 0V
+//	  False : 0V   -> (CONVERT) -> Open collector output
+LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
+    int sunxi_gpio_state = (ast == true) ? LOW : HIGH;
+#endif	// SIGNAL_CONTROL_MODE
+
     LOGTRACE("gpio(%d) sunxi_state(%d)", gpio_num, sunxi_gpio_state)
     // sunxi_output_gpio(gpio_num, sunxi_gpio_state);
 
     int bank = GPIO_BANK(gpio_num); // gpio >> 5
     int num  = GPIO_NUM(gpio_num);  // gpio & 0x1F
 
-    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
-    // LOGTRACE("pio_map: %p", pio_map)
-    // LOGTRACE("pio_map->gpio_bank: %p", &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0])
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
-    // LOGTRACE("pio: %p", pio)
+
     /* DK, for PL and PM */
     if (bank >= 11) {
         LOGTRACE("bank > 11");
@@ -951,45 +980,11 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
         pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
     }
 
-    if (sunxi_gpio_state == 0)
+    if (sunxi_gpio_state == HIGH)
         *(&pio->DAT) &= ~(1 << num);
     else
         *(&pio->DAT) |= (1 << num);
 }
-
-// //---------------------------------------------------------------------------
-// //
-// //	Wait for signal change
-// //
-// // TODO: maybe this should be moved to SCSI_Bus?
-// //---------------------------------------------------------------------------
-// bool GPIOBUS_BananaM2p::WaitSignal(int hw_pin, bool ast)
-// {
-//     LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
-
-//     // Get current time
-//     uint32_t now = SysTimer::GetTimerLow();
-
-//     // Calculate timeout (3000ms)
-//     uint32_t timeout = 3000 * 1000;
-
-//     // end immediately if the signal has changed
-//     do {
-//         // Immediately upon receiving a reset
-//         Acquire();
-//         if (GetRST()) {
-//             return false;
-//         }
-
-//         // Check for the signal edge
-//         if (((GetSignal(hw_pin)) ^ !board->gpio_state_to_bool(ast)) == true) {
-//             return true;
-//         }
-//     } while ((SysTimer::GetTimerLow() - now) < timeout);
-
-//     // We timed out waiting for the signal
-//     return false;
-// }
 
 void GPIOBUS_BananaM2p::DisableIRQ()
 {
@@ -1010,7 +1005,9 @@ void GPIOBUS_BananaM2p::PinConfig(int pin, int mode)
     // } catch (const std::out_of_range &e) {
     //     LOGERROR("%s %d is not a valid pin", __PRETTY_FUNCTION__, (int)pin);
     // }
-    int sunxi_direction = mode;
+    // int sunxi_direction = mode;
+    int sunxi_direction = (mode == GPIO_INPUT) ? INPUT : OUTPUT;
+
     sunxi_setup_gpio(gpio_num, sunxi_direction, -1);
 
     // if(mode == bool::GPIO_INPUT){
@@ -1143,10 +1140,8 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
 
         uint32_t regval = *(&pio->DAT);
         signals[bank]   = regval;
-        // LOGDEBUG("Bank %d value %08X", bank, regval);
     }
-    // return value;
-
+    // TODO: This should do something someday....
     return 0;
 }
 
@@ -1310,7 +1305,7 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
     int bank = GPIO_BANK(gpio); // gpio >> 5
     int num  = GPIO_NUM(gpio);  // gpio & 0x1F
 
-    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
+    LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
     // LOGTRACE("pio_map: %p", pio_map)
     // LOGTRACE("pio_map->gpio_bank: %p", &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0])
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
