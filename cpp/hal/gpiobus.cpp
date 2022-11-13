@@ -560,7 +560,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t>& buf)
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
     if (buf[0] == 0x1F) {
-        SetSignal(PIN_REQ, ON);
+        SetSignal(board->pin_req, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
 
         ret = WaitSignal(board->pin_ack, board_type::gpio_high_low_e::GPIO_STATE_HIGH);
 
