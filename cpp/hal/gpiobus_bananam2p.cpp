@@ -76,27 +76,6 @@ extern int wiringPiMode;
 #define MAP_SIZE (4096 * 2)
 #define MAP_MASK (MAP_SIZE - 1)
 
-// TODO: Delete these. They're just to make things compile for now
-int pinToGpio_BPI_M1P[64]     = {0};
-int pinToGpio_BPI_M2[64]      = {0};
-int pinToGpio_BPI_M2M[64]     = {0};
-int pinToGpio_BPI_M2M_1P1[64] = {0};
-int pinToGpio_BPI_M2P[64]     = {0};
-int pinToGpio_BPI_M2U[64]     = {0};
-int pinToGpio_BPI_M3[64]      = {0};
-int pinToGpio_BPI_M64[64]     = {0};
-int pinTobcm_BPI_M1P[64]      = {0};
-int pinTobcm_BPI_M2[64]       = {0};
-int pinTobcm_BPI_M2M[64]      = {0};
-int pinTobcm_BPI_M2M_1P1[64]  = {0};
-int pinTobcm_BPI_M2P[64]      = {0};
-int pinTobcm_BPI_M2U[64]      = {0};
-int pinTobcm_BPI_M3[64]       = {0};
-int pinTobcm_BPI_M64[64]      = {0};
-
-// #define BCM2708_PERI_BASE_DEFAULT   0x20000000
-// #define BCM2709_PERI_BASE_DEFAULT   0x3f000000
-// #define GPIO_BASE_OFFSET            0x200000
 #define FSEL_OFFSET 0          // 0x0000
 #define SET_OFFSET 7           // 0x001c / 4
 #define CLR_OFFSET 10          // 0x0028 / 4
@@ -112,46 +91,6 @@ int pinTobcm_BPI_M64[64]      = {0};
 #define PAGE_SIZE (4 * 1024)
 #define BLOCK_SIZE (4 * 1024)
 
-// // BpiBoardsType bpiboard[];
-// GPIOBUS_BananaM2p::BpiBoardsType GPIOBUS_BananaM2p::bpiboard[] = {
-//     {"bpi-0", -1, 0, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-1", -1, 1, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-2", -1, 2, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-3", -1, 3, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-4", -1, 4, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-5", -1, 5, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-6", -1, 6, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-7", -1, 7, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-8", -1, 8, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-9", -1, 9, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-10", -1, 10, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-11", -1, 11, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-12", -1, 12, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-13", -1, 13, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-14", -1, 14, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-15", -1, 15, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-new", -1, 16, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-x86", -1, 17, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-rpi", -1, 18, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-rpi2", -1, 19, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-rpi3", -1, 20, 1, 2, 5, 0, NULL, NULL, NULL},
-//     {"bpi-m1", 10001, 21, 1, 2, 5, 0, pinToGpio_BPI_M1P, physToGpio_BPI_M1P, pinTobcm_BPI_M1P},
-//     {"bpi-m1p", 10001, 22, 1, 2, 5, 0, pinToGpio_BPI_M1P, physToGpio_BPI_M1P, pinTobcm_BPI_M1P},
-//     {"bpi-r1", 10001, 23, 1, 2, 5, 0, pinToGpio_BPI_M1P, physToGpio_BPI_M1P, pinTobcm_BPI_M1P},
-//     {"bpi-m2", 10101, 24, 1, 2, 5, 0, pinToGpio_BPI_M2, physToGpio_BPI_M2, pinTobcm_BPI_M2},
-//     {"bpi-m3", 10201, 25, 1, 3, 5, 0, pinToGpio_BPI_M3, physToGpio_BPI_M3, pinTobcm_BPI_M3},
-//     {"bpi-m2p", 10301, 26, 1, 2, 5, 0, pinToGpio_BPI_M2P, physToGpio_BPI_M2P, pinTobcm_BPI_M2P},
-//     {"bpi-m64", 10401, 27, 1, 3, 5, 0, pinToGpio_BPI_M64, physToGpio_BPI_M64, pinTobcm_BPI_M64},
-//     {"bpi-m2u", 10501, 28, 1, 3, 5, 0, pinToGpio_BPI_M2U, physToGpio_BPI_M2U, pinTobcm_BPI_M2U},
-//     {"bpi-m2m", 10601, 29, 1, 1, 5, 0, pinToGpio_BPI_M2M, physToGpio_BPI_M2M, pinTobcm_BPI_M2M},
-//     {"bpi-m2p_H2+", 10701, 30, 1, 2, 5, 0, pinToGpio_BPI_M2P, physToGpio_BPI_M2P, pinTobcm_BPI_M2P},
-//     {"bpi-m2p_H5", 10801, 31, 1, 2, 5, 0, pinToGpio_BPI_M2P, physToGpio_BPI_M2P, pinTobcm_BPI_M2P},
-//     {"bpi-m2u_V40", 10901, 32, 1, 3, 5, 0, pinToGpio_BPI_M2U, physToGpio_BPI_M2U, pinTobcm_BPI_M2U},
-//     {"bpi-m2z", 11001, 33, 1, 1, 5, 0, pinToGpio_BPI_M2P, physToGpio_BPI_M2P, pinTobcm_BPI_M2P},
-//     //   { "bpi-r2",      11101, 34, 1, 3, 5, 0, pinToGpio_BPI_R2,  physToGpio_BPI_R2,  pinTobcm_BPI_R2    },
-//     {NULL, 0, 0, 1, 2, 5, 0, NULL, NULL, NULL},
-// };
-
 std::vector<int> gpio_banks;
 
 bool GPIOBUS_BananaM2p::Init(mode_e mode)
@@ -160,13 +99,10 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
     GPIOBUS::Init(mode);
     SysTimer::Init();
 
-    sbc_version      = SBC_Version::GetSbcVersion();
-    // phys_to_gpio_map = BPI_GPIO::GetBpiGpioMapping(sbc_version);
-    LOGINFO("Detected board version: %s", SBC_Version::GetString()->c_str());
+    sbc_version = SBC_Version::GetSbcVersion();
 
     for (auto const gpio_num : SignalTable) {
-
-        if(gpio_num == -1){
+        if (gpio_num == -1) {
             break;
         }
 
@@ -191,141 +127,138 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
         LOGERROR("Failed to setup SELECT poll event");
         return false;
     }
-    LOGINFO("SetupSelEvent OK!")
+    LOGTRACE("SetupSelEvent OK!")
     DrvConfig(3);
     // usleep(5000000);
 
     InitializeGpio();
 
     return true;
-
 }
 
+void GPIOBUS_BananaM2p::InitializeGpio()
+{
+    GPIO_FUNCTION_TRACE
 
-void GPIOBUS_BananaM2p::InitializeGpio(){
-GPIO_FUNCTION_TRACE
-
-	// Set pull up/pull down
+    // Set pull up/pull down
 #if SIGNAL_CONTROL_MODE == 0
-	int pullmode = GPIO_PULLNONE;
+    int pullmode = GPIO_PULLNONE;
 #elif SIGNAL_CONTROL_MODE == 1
-	int pullmode = GPIO_PULLUP;
+    int pullmode = GPIO_PULLUP;
 #else
-	int pullmode = GPIO_PULLDOWN;
+    int pullmode = GPIO_PULLDOWN;
 #endif
 
-	// Initialize all signals
-	for (int i = 0; SignalTable[i] >= 0; i++) {
-		int j = SignalTable[i];
-		PinSetSignal(j, OFF);
-		PinConfig(j, GPIO_INPUT);
-		PullConfig(j, pullmode);
-	}
+    // Initialize all signals
+    for (int i = 0; SignalTable[i] >= 0; i++) {
+        int j = SignalTable[i];
+        PinSetSignal(j, OFF);
+        PinConfig(j, GPIO_INPUT);
+        PullConfig(j, pullmode);
+    }
 
-	// Set control signals
-	PinSetSignal(BPI_PIN_ACT, OFF);
-	PinSetSignal(BPI_PIN_TAD, OFF);
-	PinSetSignal(BPI_PIN_IND, OFF);
-	PinSetSignal(BPI_PIN_DTD, OFF);
-	PinConfig(BPI_PIN_ACT, GPIO_OUTPUT);
-	PinConfig(BPI_PIN_TAD, GPIO_OUTPUT);
-	PinConfig(BPI_PIN_IND, GPIO_OUTPUT);
-	PinConfig(BPI_PIN_DTD, GPIO_OUTPUT);
+    // Set control signals
+    PinSetSignal(BPI_PIN_ACT, OFF);
+    PinSetSignal(BPI_PIN_TAD, OFF);
+    PinSetSignal(BPI_PIN_IND, OFF);
+    PinSetSignal(BPI_PIN_DTD, OFF);
+    PinConfig(BPI_PIN_ACT, GPIO_OUTPUT);
+    PinConfig(BPI_PIN_TAD, GPIO_OUTPUT);
+    PinConfig(BPI_PIN_IND, GPIO_OUTPUT);
+    PinConfig(BPI_PIN_DTD, GPIO_OUTPUT);
 
-	// Set the ENABLE signal
-	// This is used to show that the application is running
-	PinConfig(BPI_PIN_ENB, GPIO_OUTPUT);
-	PinSetSignal(BPI_PIN_ENB, ON);
+    // Set the ENABLE signal
+    // This is used to show that the application is running
+    PinConfig(BPI_PIN_ENB, GPIO_OUTPUT);
+    PinSetSignal(BPI_PIN_ENB, ON);
 }
-
 
 void GPIOBUS_BananaM2p::Reset()
 {
 #if defined(__x86_64__) || defined(__X86__)
-	return;
+    return;
 #else
-	int i;
-	int j;
+    int i;
+    int j;
 
-	// Turn off active signal
-	SetControl(BPI_PIN_ACT, ACT_OFF);
+    // Turn off active signal
+    SetControl(BPI_PIN_ACT, ACT_OFF);
 
-	// Set all signals to off
-	for (i = 0;; i++) {
-		j = SignalTable[i];
-		if (j < 0) {
-			break;
-		}
+    // Set all signals to off
+    for (i = 0;; i++) {
+        j = SignalTable[i];
+        if (j < 0) {
+            break;
+        }
 
-		SetSignal(j, OFF);
-	}
+        SetSignal(j, OFF);
+    }
 
-	if (actmode == mode_e::TARGET) {
-		// Target mode
+    if (actmode == mode_e::TARGET) {
+        // Target mode
 
-		// Set target signal to input
-		SetControl(BPI_PIN_TAD, TAD_IN);
-		SetMode(BPI_PIN_BSY, IN);
-		SetMode(BPI_PIN_MSG, IN);
-		SetMode(BPI_PIN_CD, IN);
-		SetMode(BPI_PIN_REQ, IN);
-		SetMode(BPI_PIN_IO, IN);
+        // Set target signal to input
+        SetControl(BPI_PIN_TAD, TAD_IN);
+        SetMode(BPI_PIN_BSY, IN);
+        SetMode(BPI_PIN_MSG, IN);
+        SetMode(BPI_PIN_CD, IN);
+        SetMode(BPI_PIN_REQ, IN);
+        SetMode(BPI_PIN_IO, IN);
 
-		// Set the initiator signal to input
-		SetControl(BPI_PIN_IND, IND_IN);
-		SetMode(BPI_PIN_SEL, IN);
-		SetMode(BPI_PIN_ATN, IN);
-		SetMode(BPI_PIN_ACK, IN);
-		SetMode(BPI_PIN_RST, IN);
+        // Set the initiator signal to input
+        SetControl(BPI_PIN_IND, IND_IN);
+        SetMode(BPI_PIN_SEL, IN);
+        SetMode(BPI_PIN_ATN, IN);
+        SetMode(BPI_PIN_ACK, IN);
+        SetMode(BPI_PIN_RST, IN);
 
-		// Set data bus signals to input
-		SetControl(BPI_PIN_DTD, DTD_IN);
-		SetMode(BPI_PIN_DT0, IN);
-		SetMode(BPI_PIN_DT1, IN);
-		SetMode(BPI_PIN_DT2, IN);
-		SetMode(BPI_PIN_DT3, IN);
-		SetMode(BPI_PIN_DT4, IN);
-		SetMode(BPI_PIN_DT5, IN);
-		SetMode(BPI_PIN_DT6, IN);
-		SetMode(BPI_PIN_DT7, IN);
-		SetMode(BPI_PIN_DP, IN);
-	} else {
-		// Initiator mode
+        // Set data bus signals to input
+        SetControl(BPI_PIN_DTD, DTD_IN);
+        SetMode(BPI_PIN_DT0, IN);
+        SetMode(BPI_PIN_DT1, IN);
+        SetMode(BPI_PIN_DT2, IN);
+        SetMode(BPI_PIN_DT3, IN);
+        SetMode(BPI_PIN_DT4, IN);
+        SetMode(BPI_PIN_DT5, IN);
+        SetMode(BPI_PIN_DT6, IN);
+        SetMode(BPI_PIN_DT7, IN);
+        SetMode(BPI_PIN_DP, IN);
+    } else {
+        // Initiator mode
 
-		// Set target signal to input
-		SetControl(BPI_PIN_TAD, TAD_IN);
-		SetMode(BPI_PIN_BSY, IN);
-		SetMode(BPI_PIN_MSG, IN);
-		SetMode(BPI_PIN_CD, IN);
-		SetMode(BPI_PIN_REQ, IN);
-		SetMode(BPI_PIN_IO, IN);
+        // Set target signal to input
+        SetControl(BPI_PIN_TAD, TAD_IN);
+        SetMode(BPI_PIN_BSY, IN);
+        SetMode(BPI_PIN_MSG, IN);
+        SetMode(BPI_PIN_CD, IN);
+        SetMode(BPI_PIN_REQ, IN);
+        SetMode(BPI_PIN_IO, IN);
 
-		// Set the initiator signal to output
-		SetControl(BPI_PIN_IND, IND_OUT);
-		SetMode(BPI_PIN_SEL, OUT);
-		SetMode(BPI_PIN_ATN, OUT);
-		SetMode(BPI_PIN_ACK, OUT);
-		SetMode(BPI_PIN_RST, OUT);
+        // Set the initiator signal to output
+        SetControl(BPI_PIN_IND, IND_OUT);
+        SetMode(BPI_PIN_SEL, OUT);
+        SetMode(BPI_PIN_ATN, OUT);
+        SetMode(BPI_PIN_ACK, OUT);
+        SetMode(BPI_PIN_RST, OUT);
 
-		// Set the data bus signals to output
-		SetControl(BPI_PIN_DTD, DTD_OUT);
-		SetMode(BPI_PIN_DT0, OUT);
-		SetMode(BPI_PIN_DT1, OUT);
-		SetMode(BPI_PIN_DT2, OUT);
-		SetMode(BPI_PIN_DT3, OUT);
-		SetMode(BPI_PIN_DT4, OUT);
-		SetMode(BPI_PIN_DT5, OUT);
-		SetMode(BPI_PIN_DT6, OUT);
-		SetMode(BPI_PIN_DT7, OUT);
-		SetMode(BPI_PIN_DP, OUT);
-	}
+        // Set the data bus signals to output
+        SetControl(BPI_PIN_DTD, DTD_OUT);
+        SetMode(BPI_PIN_DT0, OUT);
+        SetMode(BPI_PIN_DT1, OUT);
+        SetMode(BPI_PIN_DT2, OUT);
+        SetMode(BPI_PIN_DT3, OUT);
+        SetMode(BPI_PIN_DT4, OUT);
+        SetMode(BPI_PIN_DT5, OUT);
+        SetMode(BPI_PIN_DT6, OUT);
+        SetMode(BPI_PIN_DT7, OUT);
+        SetMode(BPI_PIN_DP, OUT);
+    }
 
-	// Initialize all signals
+    // Initialize all signals
     // TODO!! For now, just re-run Acquire
     Acquire();
 #endif // ifdef __x86_64__ || __X86__
 }
-
 
 void GPIOBUS_BananaM2p::Cleanup()
 {
@@ -336,7 +269,6 @@ void GPIOBUS_BananaM2p::Cleanup()
 
     SetENB(false);
     SetACT(false);
-
 
     // RestoreGpioConfig();
 
@@ -356,15 +288,13 @@ void GPIOBUS_BananaM2p::SaveGpioConfig()
     saved_gpio_config.resize(14);
 
     for (auto this_bank : gpio_banks) {
-                int bank = this_bank;
+        int bank = this_bank;
         if (this_bank < 11) {
             // std::vector<sunxi_gpio_t> saved_gpio_config;
-            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank],
-                   sizeof(sunxi_gpio_t));
+            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank], sizeof(sunxi_gpio_t));
         } else {
             bank -= 11;
-            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank],
-                   sizeof(sunxi_gpio_t));
+            memcpy(&(saved_gpio_config[bank]), &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank], sizeof(sunxi_gpio_t));
         }
     }
 }
@@ -376,12 +306,10 @@ void GPIOBUS_BananaM2p::RestoreGpioConfig()
         int bank = this_bank;
         if (this_bank < 11) {
             // std::vector<sunxi_gpio_t> saved_gpio_config;
-            memcpy(&((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]),
-                   sizeof(sunxi_gpio_t));
+            memcpy(&((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]), sizeof(sunxi_gpio_t));
         } else {
             bank -= 11;
-            memcpy(&((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]),
-                   sizeof(sunxi_gpio_t));
+            memcpy(&((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank], &(saved_gpio_config[bank]), sizeof(sunxi_gpio_t));
         }
     }
 }
@@ -392,7 +320,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     int gpio_pin = BPI_PIN_SEL;
 
     // GPIO chip open
-    LOGTRACE("%s GPIO chip open  [%d]", __PRETTY_FUNCTION__,  gpio_pin);
+    LOGTRACE("%s GPIO chip open  [%d]", __PRETTY_FUNCTION__, gpio_pin);
     std::string gpio_dev = "/dev/gpiochip0";
     if (GPIO_BANK(gpio_pin) >= 11) {
         gpio_dev = "/dev/gpiochip1";
@@ -495,202 +423,201 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     //     epoll_ctl(epfd, EPOLL_CTL_ADD, selevreq.fd, &ev);
 }
 
-
 void GPIOBUS_BananaM2p::SetENB(bool ast)
 {
-	PinSetSignal(BPI_PIN_ENB, ast ? ENB_ON : ENB_OFF);
+    PinSetSignal(BPI_PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
 
 bool GPIOBUS_BananaM2p::GetBSY() const
 {
-	return GetSignal(BPI_PIN_BSY);
+    return GetSignal(BPI_PIN_BSY);
 }
 
 void GPIOBUS_BananaM2p::SetBSY(bool ast)
 {
-	// Set BSY signal
-	SetSignal(BPI_PIN_BSY, ast);
+    // Set BSY signal
+    SetSignal(BPI_PIN_BSY, ast);
 
-	if (actmode == mode_e::TARGET) {
-		if (ast) {
-			// Turn on ACTIVE signal
-			SetControl(BPI_PIN_ACT, ACT_ON);
+    if (actmode == mode_e::TARGET) {
+        if (ast) {
+            // Turn on ACTIVE signal
+            SetControl(BPI_PIN_ACT, ACT_ON);
 
-			// Set Target signal to output
-			SetControl(BPI_PIN_TAD, TAD_OUT);
+            // Set Target signal to output
+            SetControl(BPI_PIN_TAD, TAD_OUT);
 
-			SetMode(BPI_PIN_BSY, OUT);
-			SetMode(BPI_PIN_MSG, OUT);
-			SetMode(BPI_PIN_CD, OUT);
-			SetMode(BPI_PIN_REQ, OUT);
-			SetMode(BPI_PIN_IO, OUT);
-		} else {
-			// Turn off the ACTIVE signal
-			SetControl(BPI_PIN_ACT, ACT_OFF);
+            SetMode(BPI_PIN_BSY, OUT);
+            SetMode(BPI_PIN_MSG, OUT);
+            SetMode(BPI_PIN_CD, OUT);
+            SetMode(BPI_PIN_REQ, OUT);
+            SetMode(BPI_PIN_IO, OUT);
+        } else {
+            // Turn off the ACTIVE signal
+            SetControl(BPI_PIN_ACT, ACT_OFF);
 
-			// Set the target signal to input
-			SetControl(BPI_PIN_TAD, TAD_IN);
+            // Set the target signal to input
+            SetControl(BPI_PIN_TAD, TAD_IN);
 
-			SetMode(BPI_PIN_BSY, IN);
-			SetMode(BPI_PIN_MSG, IN);
-			SetMode(BPI_PIN_CD, IN);
-			SetMode(BPI_PIN_REQ, IN);
-			SetMode(BPI_PIN_IO, IN);
-		}
-	}
+            SetMode(BPI_PIN_BSY, IN);
+            SetMode(BPI_PIN_MSG, IN);
+            SetMode(BPI_PIN_CD, IN);
+            SetMode(BPI_PIN_REQ, IN);
+            SetMode(BPI_PIN_IO, IN);
+        }
+    }
 }
 
 bool GPIOBUS_BananaM2p::GetSEL() const
 {
-	return GetSignal(BPI_PIN_SEL);
+    return GetSignal(BPI_PIN_SEL);
 }
 
 void GPIOBUS_BananaM2p::SetSEL(bool ast)
 {
-	if (actmode == mode_e::INITIATOR && ast) {
-		// Turn on ACTIVE signal
-		SetControl(BPI_PIN_ACT, ACT_ON);
-	}
+    if (actmode == mode_e::INITIATOR && ast) {
+        // Turn on ACTIVE signal
+        SetControl(BPI_PIN_ACT, ACT_ON);
+    }
 
-	// Set SEL signal
-	SetSignal(BPI_PIN_SEL, ast);
+    // Set SEL signal
+    SetSignal(BPI_PIN_SEL, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetATN() const
 {
-	return GetSignal(BPI_PIN_ATN);
+    return GetSignal(BPI_PIN_ATN);
 }
 
 void GPIOBUS_BananaM2p::SetATN(bool ast)
 {
-	SetSignal(BPI_PIN_ATN, ast);
+    SetSignal(BPI_PIN_ATN, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetACK() const
 {
-	return GetSignal(BPI_PIN_ACK);
+    return GetSignal(BPI_PIN_ACK);
 }
 
 void GPIOBUS_BananaM2p::SetACK(bool ast)
 {
-	SetSignal(BPI_PIN_ACK, ast);
+    SetSignal(BPI_PIN_ACK, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetACT() const
 {
-	return GetSignal(BPI_PIN_ACT);
+    return GetSignal(BPI_PIN_ACT);
 }
 
 void GPIOBUS_BananaM2p::SetACT(bool ast)
 {
-	SetSignal(BPI_PIN_ACT, ast);
+    SetSignal(BPI_PIN_ACT, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetRST() const
 {
-	return GetSignal(BPI_PIN_RST);
+    return GetSignal(BPI_PIN_RST);
 }
 
 void GPIOBUS_BananaM2p::SetRST(bool ast)
 {
-	SetSignal(BPI_PIN_RST, ast);
+    SetSignal(BPI_PIN_RST, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetMSG() const
 {
-	return GetSignal(BPI_PIN_MSG);
+    return GetSignal(BPI_PIN_MSG);
 }
 
 void GPIOBUS_BananaM2p::SetMSG(bool ast)
 {
-	SetSignal(BPI_PIN_MSG, ast);
+    SetSignal(BPI_PIN_MSG, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetCD() const
 {
-	return GetSignal(BPI_PIN_CD);
+    return GetSignal(BPI_PIN_CD);
 }
 
 void GPIOBUS_BananaM2p::SetCD(bool ast)
 {
-	SetSignal(BPI_PIN_CD, ast);
+    SetSignal(BPI_PIN_CD, ast);
 }
 
 bool GPIOBUS_BananaM2p::GetIO()
 {
-	bool ast = GetSignal(BPI_PIN_IO);
+    bool ast = GetSignal(BPI_PIN_IO);
 
-	if (actmode == mode_e::INITIATOR) {
-		// Change the data input/output direction by IO signal
-		if (ast) {
-			SetControl(BPI_PIN_DTD, DTD_IN);
-			SetMode(BPI_PIN_DT0, IN);
-			SetMode(BPI_PIN_DT1, IN);
-			SetMode(BPI_PIN_DT2, IN);
-			SetMode(BPI_PIN_DT3, IN);
-			SetMode(BPI_PIN_DT4, IN);
-			SetMode(BPI_PIN_DT5, IN);
-			SetMode(BPI_PIN_DT6, IN);
-			SetMode(BPI_PIN_DT7, IN);
-			SetMode(BPI_PIN_DP, IN);
-		} else {
-			SetControl(BPI_PIN_DTD, DTD_OUT);
-			SetMode(BPI_PIN_DT0, OUT);
-			SetMode(BPI_PIN_DT1, OUT);
-			SetMode(BPI_PIN_DT2, OUT);
-			SetMode(BPI_PIN_DT3, OUT);
-			SetMode(BPI_PIN_DT4, OUT);
-			SetMode(BPI_PIN_DT5, OUT);
-			SetMode(BPI_PIN_DT6, OUT);
-			SetMode(BPI_PIN_DT7, OUT);
-			SetMode(BPI_PIN_DP, OUT);
-		}
-	}
+    if (actmode == mode_e::INITIATOR) {
+        // Change the data input/output direction by IO signal
+        if (ast) {
+            SetControl(BPI_PIN_DTD, DTD_IN);
+            SetMode(BPI_PIN_DT0, IN);
+            SetMode(BPI_PIN_DT1, IN);
+            SetMode(BPI_PIN_DT2, IN);
+            SetMode(BPI_PIN_DT3, IN);
+            SetMode(BPI_PIN_DT4, IN);
+            SetMode(BPI_PIN_DT5, IN);
+            SetMode(BPI_PIN_DT6, IN);
+            SetMode(BPI_PIN_DT7, IN);
+            SetMode(BPI_PIN_DP, IN);
+        } else {
+            SetControl(BPI_PIN_DTD, DTD_OUT);
+            SetMode(BPI_PIN_DT0, OUT);
+            SetMode(BPI_PIN_DT1, OUT);
+            SetMode(BPI_PIN_DT2, OUT);
+            SetMode(BPI_PIN_DT3, OUT);
+            SetMode(BPI_PIN_DT4, OUT);
+            SetMode(BPI_PIN_DT5, OUT);
+            SetMode(BPI_PIN_DT6, OUT);
+            SetMode(BPI_PIN_DT7, OUT);
+            SetMode(BPI_PIN_DP, OUT);
+        }
+    }
 
-	return ast;
+    return ast;
 }
 
 void GPIOBUS_BananaM2p::SetIO(bool ast)
 {
-	SetSignal(BPI_PIN_IO, ast);
+    SetSignal(BPI_PIN_IO, ast);
 
-	if (actmode == mode_e::TARGET) {
-		// Change the data input/output direction by IO signal
-		if (ast) {
-			SetControl(BPI_PIN_DTD, DTD_OUT);
-			SetDAT(0);
-			SetMode(BPI_PIN_DT0, OUT);
-			SetMode(BPI_PIN_DT1, OUT);
-			SetMode(BPI_PIN_DT2, OUT);
-			SetMode(BPI_PIN_DT3, OUT);
-			SetMode(BPI_PIN_DT4, OUT);
-			SetMode(BPI_PIN_DT5, OUT);
-			SetMode(BPI_PIN_DT6, OUT);
-			SetMode(BPI_PIN_DT7, OUT);
-			SetMode(BPI_PIN_DP, OUT);
-		} else {
-			SetControl(BPI_PIN_DTD, DTD_IN);
-			SetMode(BPI_PIN_DT0, IN);
-			SetMode(BPI_PIN_DT1, IN);
-			SetMode(BPI_PIN_DT2, IN);
-			SetMode(BPI_PIN_DT3, IN);
-			SetMode(BPI_PIN_DT4, IN);
-			SetMode(BPI_PIN_DT5, IN);
-			SetMode(BPI_PIN_DT6, IN);
-			SetMode(BPI_PIN_DT7, IN);
-			SetMode(BPI_PIN_DP, IN);
-		}
-	}
+    if (actmode == mode_e::TARGET) {
+        // Change the data input/output direction by IO signal
+        if (ast) {
+            SetControl(BPI_PIN_DTD, DTD_OUT);
+            SetDAT(0);
+            SetMode(BPI_PIN_DT0, OUT);
+            SetMode(BPI_PIN_DT1, OUT);
+            SetMode(BPI_PIN_DT2, OUT);
+            SetMode(BPI_PIN_DT3, OUT);
+            SetMode(BPI_PIN_DT4, OUT);
+            SetMode(BPI_PIN_DT5, OUT);
+            SetMode(BPI_PIN_DT6, OUT);
+            SetMode(BPI_PIN_DT7, OUT);
+            SetMode(BPI_PIN_DP, OUT);
+        } else {
+            SetControl(BPI_PIN_DTD, DTD_IN);
+            SetMode(BPI_PIN_DT0, IN);
+            SetMode(BPI_PIN_DT1, IN);
+            SetMode(BPI_PIN_DT2, IN);
+            SetMode(BPI_PIN_DT3, IN);
+            SetMode(BPI_PIN_DT4, IN);
+            SetMode(BPI_PIN_DT5, IN);
+            SetMode(BPI_PIN_DT6, IN);
+            SetMode(BPI_PIN_DT7, IN);
+            SetMode(BPI_PIN_DP, IN);
+        }
+    }
 }
 
 bool GPIOBUS_BananaM2p::GetREQ() const
 {
-	return GetSignal(BPI_PIN_REQ);
+    return GetSignal(BPI_PIN_REQ);
 }
 
 void GPIOBUS_BananaM2p::SetREQ(bool ast)
 {
-	SetSignal(BPI_PIN_REQ, ast);
+    SetSignal(BPI_PIN_REQ, ast);
 }
 
 uint8_t GPIOBUS_BananaM2p::GetDAT()
@@ -698,9 +625,9 @@ uint8_t GPIOBUS_BananaM2p::GetDAT()
     GPIO_FUNCTION_TRACE
     static uint8_t prev_data = 0;
     // // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
-    // LOGINFO("0:%02X 1:%02X 2:%02X 3:%02X 4:%02X 5:%02X 6:%02X 7:%02X P:%02X", GetSignal(board->pin_dt0),
-    //         GetSignal(board->pin_dt1), GetSignal(board->pin_dt2), GetSignal(board->pin_dt3), GetSignal(board->pin_dt4),
-    //         GetSignal(board->pin_dt5), GetSignal(board->pin_dt6), GetSignal(board->pin_dt7), GetSignal(board->pin_dp));
+    // LOGTRACE("0:%X 1:%X 2:%X 3:%X 4:%X 5:%X 6:%X 7:%X P:%X", GetSignal(BPI_PIN_DT0),
+    //          GetSignal(BPI_PIN_DT1), GetSignal(BPI_PIN_DT2), GetSignal(BPI_PIN_DT3), GetSignal(BPI_PIN_DT4),
+    //  GetSignal(BPI_PIN_DT5), GetSignal(BPI_PIN_DT6), GetSignal(BPI_PIN_DT7), GetSignal(BPI_PIN_DP));
     // TODO: This is crazy inefficient...
     uint8_t data = ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
                    ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
@@ -720,37 +647,25 @@ void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
     // TODO: This is crazy inefficient...
-    PinSetSignal(BPI_PIN_DT0, (dat & (1 << 0)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT1, (dat & (1 << 1)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT2, (dat & (1 << 2)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT3, (dat & (1 << 3)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT4, (dat & (1 << 4)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT5, (dat & (1 << 5)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT6, (dat & (1 << 6)) != 0 ? true
-                                                       : false);
-    PinSetSignal(BPI_PIN_DT7, (dat & (1 << 7)) != 0 ? true
-                                                       : false);
+    PinSetSignal(BPI_PIN_DT0, (dat & (1 << 0)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT1, (dat & (1 << 1)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT2, (dat & (1 << 2)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT3, (dat & (1 << 3)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT4, (dat & (1 << 4)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT5, (dat & (1 << 5)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT6, (dat & (1 << 6)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT7, (dat & (1 << 7)) == 0 ? true : false);
 }
-
 
 //---------------------------------------------------------------------------
 //
 //	Signal table
 //
 //---------------------------------------------------------------------------
-const array<int, 19> GPIOBUS_BananaM2p::SignalTable = {
-	BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3,
-	BPI_PIN_DT4, BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7,	BPI_PIN_DP,
-	BPI_PIN_SEL, BPI_PIN_ATN, BPI_PIN_RST, BPI_PIN_ACK,
-	BPI_PIN_BSY, BPI_PIN_MSG, BPI_PIN_CD,  BPI_PIN_IO, BPI_PIN_REQ,
-	-1
-};
+const array<int, 19> GPIOBUS_BananaM2p::SignalTable = {BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
+                                                       BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP,  BPI_PIN_SEL,
+                                                       BPI_PIN_ATN, BPI_PIN_RST, BPI_PIN_ACK, BPI_PIN_BSY, BPI_PIN_MSG,
+                                                       BPI_PIN_CD,  BPI_PIN_IO,  BPI_PIN_REQ, -1};
 
 //---------------------------------------------------------------------------
 //
@@ -759,90 +674,88 @@ const array<int, 19> GPIOBUS_BananaM2p::SignalTable = {
 //---------------------------------------------------------------------------
 void GPIOBUS_BananaM2p::MakeTable(void)
 {
-	const array<int, 9> pintbl = {
-		BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
-		BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP
-	};
+    const array<int, 9> pintbl = {BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
+                                  BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP};
 
-	array<bool, 256> tblParity;
+    array<bool, 256> tblParity;
 
-	// Create parity table
-	for (uint32_t i = 0; i < 0x100; i++) {
-		uint32_t bits = i;
-		uint32_t parity = 0;
-		for (int j = 0; j < 8; j++) {
-			parity ^= bits & 1;
-			bits >>= 1;
-		}
-		parity = ~parity;
-		tblParity[i] = parity & 1;
-	}
+    // Create parity table
+    for (uint32_t i = 0; i < 0x100; i++) {
+        uint32_t bits   = i;
+        uint32_t parity = 0;
+        for (int j = 0; j < 8; j++) {
+            parity ^= bits & 1;
+            bits >>= 1;
+        }
+        parity       = ~parity;
+        tblParity[i] = parity & 1;
+    }
 
 #if SIGNAL_CONTROL_MODE == 0
-	// Mask and setting data generation
-	for (auto& tbl : tblDatMsk) {
-		tbl.fill(-1);
-	}
-	for (auto& tbl : tblDatSet) {
-		tbl.fill(0);
-	}
+    // Mask and setting data generation
+    for (auto &tbl : tblDatMsk) {
+        tbl.fill(-1);
+    }
+    for (auto &tbl : tblDatSet) {
+        tbl.fill(0);
+    }
 
-	for (uint32_t i = 0; i < 0x100; i++) {
-		// Bit string for inspection
-		uint32_t bits = i;
+    for (uint32_t i = 0; i < 0x100; i++) {
+        // Bit string for inspection
+        uint32_t bits = i;
 
-		// Get parity
-		if (tblParity[i]) {
-			bits |= (1 << 8);
-		}
+        // Get parity
+        if (tblParity[i]) {
+            bits |= (1 << 8);
+        }
 
-		// Bit check
-		for (int j = 0; j < 9; j++) {
-			// Index and shift amount calculation
-			int index = pintbl[j] / 10;
-			int shift = (pintbl[j] % 10) * 3;
+        // Bit check
+        for (int j = 0; j < 9; j++) {
+            // Index and shift amount calculation
+            int index = pintbl[j] / 10;
+            int shift = (pintbl[j] % 10) * 3;
 
-			// Mask data
-			tblDatMsk[index][i] &= ~(0x7 << shift);
+            // Mask data
+            tblDatMsk[index][i] &= ~(0x7 << shift);
 
-			// Setting data
-			if (bits & 1) {
-				tblDatSet[index][i] |= (1 << shift);
-			}
+            // Setting data
+            if (bits & 1) {
+                tblDatSet[index][i] |= (1 << shift);
+            }
 
-			bits >>= 1;
-		}
-	}
+            bits >>= 1;
+        }
+    }
 #else
-	for (uint32_t i = 0; i < 0x100; i++) {
-		// Bit string for inspection
-		uint32_t bits = i;
+    for (uint32_t i = 0; i < 0x100; i++) {
+        // Bit string for inspection
+        uint32_t bits = i;
 
-		// Get parity
-		if (tblParity[i]) {
-			bits |= (1 << 8);
-		}
+        // Get parity
+        if (tblParity[i]) {
+            bits |= (1 << 8);
+        }
 
 #if SIGNAL_CONTROL_MODE == 1
-		// Negative logic is inverted
-		bits = ~bits;
+        // Negative logic is inverted
+        bits = ~bits;
 #endif
 
-		// Create GPIO register information
-		uint32_t gpclr = 0;
-		uint32_t gpset = 0;
-		for (int j = 0; j < 9; j++) {
-			if (bits & 1) {
-				gpset |= (1 << pintbl[j]);
-			} else {
-				gpclr |= (1 << pintbl[j]);
-			}
-			bits >>= 1;
-		}
+        // Create GPIO register information
+        uint32_t gpclr = 0;
+        uint32_t gpset = 0;
+        for (int j = 0; j < 9; j++) {
+            if (bits & 1) {
+                gpset |= (1 << pintbl[j]);
+            } else {
+                gpclr |= (1 << pintbl[j]);
+            }
+            bits >>= 1;
+        }
 
-		tblDatMsk[i] = gpclr;
-		tblDatSet[i] = gpset;
-	}
+        tblDatMsk[i] = gpclr;
+        tblDatSet[i] = gpset;
+    }
 #endif
 }
 
@@ -856,26 +769,22 @@ void GPIOBUS_BananaM2p::MakeTable(void)
 // 	PinSetSignal(pin, ast);
 // }
 
-
-
 bool GPIOBUS_BananaM2p::GetDP() const
 {
-	return GetSignal(BPI_PIN_DP);
+    return GetSignal(BPI_PIN_DP);
 }
-
-
 
 void GPIOBUS_BananaM2p::SetControl(int pin, bool ast)
 {
     GPIO_FUNCTION_TRACE
- 	PinSetSignal(pin, ast);
+    PinSetSignal(pin, ast);
 }
 
 // Set direction
 void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
 {
     GPIO_FUNCTION_TRACE
-    int gpio             = pin;
+    int gpio      = pin;
     int direction = mode;
     // int sunxi_gpio_direction = (mode == int::GPIO_INPUT) ? INPUT : OUTPUT;
     // int sunxi_gpio_direction = mode;
@@ -886,7 +795,8 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     int bank        = GPIO_BANK(gpio);       // gpio >> 5
     int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
     int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-    LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset, (GPIO_INPUT == direction) ? "IN" : "OUT")
+    LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset,
+             (GPIO_INPUT == direction) ? "IN" : "OUT")
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
@@ -947,23 +857,23 @@ bool GPIOBUS_BananaM2p::GetSignal(int pin) const
 void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
 {
     GPIO_FUNCTION_TRACE
-    int gpio_num         = pin;
+    int gpio_num = pin;
 
 #if SIGNAL_CONTROL_MODE == 0
-//	  True  : 0V
-//	  False : Open collector output (disconnect from bus)
+    //	  True  : 0V
+    //	  False : Open collector output (disconnect from bus)
     int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
 #elif SIGNAL_CONTROL_MODE == 1
-//	  True  : 0V   -> (CONVERT) -> 0V
-//	  False : 3.3V -> (CONVERT) -> Open collector output
-LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
+    //	  True  : 0V   -> (CONVERT) -> 0V
+    //	  False : 3.3V -> (CONVERT) -> Open collector output
+    LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
     int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
 #elif SIGNAL_CONTROL_MODE == 2
-//	  True  : 3.3V -> (CONVERT) -> 0V
-//	  False : 0V   -> (CONVERT) -> Open collector output
-LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
+    //	  True  : 3.3V -> (CONVERT) -> 0V
+    //	  False : 0V   -> (CONVERT) -> Open collector output
+    LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
     int sunxi_gpio_state = (ast == true) ? LOW : HIGH;
-#endif	// SIGNAL_CONTROL_MODE
+#endif // SIGNAL_CONTROL_MODE
 
     LOGTRACE("gpio(%d) sunxi_state(%d)", gpio_num, sunxi_gpio_state)
     // sunxi_output_gpio(gpio_num, sunxi_gpio_state);
@@ -1351,7 +1261,7 @@ int GPIOBUS_BananaM2p::bpi_piGpioLayout(void)
     // char buffer[1024];
     // char hardware[1024];
     // struct BPIBoards *board = nullptr;
-    int gpioLayout   = -1;
+    int gpioLayout = -1;
 
     // if (gpioLayout != -1) // No point checking twice
     //     return gpioLayout;
@@ -1469,13 +1379,11 @@ void GPIOBUS_BananaM2p::short_wait(void)
     }
 }
 
-	// Extract as specific pin field from a raw data capture
-	uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
-	{
-		return ((raw_data >> pin_num) & 1);
-	}
-
-
+// Extract as specific pin field from a raw data capture
+uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
+{
+    return ((raw_data >> pin_num) & 1);
+}
 
 //---------------------------------------------------------------------------
 //
@@ -1484,24 +1392,23 @@ void GPIOBUS_BananaM2p::short_wait(void)
 //---------------------------------------------------------------------------
 BUS::phase_t GPIOBUS_BananaM2p::GetPhaseRaw(uint32_t raw_data)
 {
-	// Selection Phase
-	if (GetPinRaw(raw_data, BPI_PIN_SEL)) {
-		if(GetPinRaw(raw_data, BPI_PIN_IO)) {
-			return BUS::phase_t::reselection;
-		} else{
-			return BUS::phase_t::selection;
-		}
-	}
+    // Selection Phase
+    if (GetPinRaw(raw_data, BPI_PIN_SEL)) {
+        if (GetPinRaw(raw_data, BPI_PIN_IO)) {
+            return BUS::phase_t::reselection;
+        } else {
+            return BUS::phase_t::selection;
+        }
+    }
 
-	// Bus busy phase
-	if (!GetPinRaw(raw_data, BPI_PIN_BSY)) {
-		return BUS::phase_t::busfree;
-	}
+    // Bus busy phase
+    if (!GetPinRaw(raw_data, BPI_PIN_BSY)) {
+        return BUS::phase_t::busfree;
+    }
 
-	// Get target phase from bus signal line
-	int mci = GetPinRaw(raw_data, BPI_PIN_MSG) ? 0x04 : 0x00;
-	mci |= GetPinRaw(raw_data, BPI_PIN_CD) ? 0x02 : 0x00;
-	mci |= GetPinRaw(raw_data, BPI_PIN_IO) ? 0x01 : 0x00;
-	return BUS::GetPhase(mci);
+    // Get target phase from bus signal line
+    int mci = GetPinRaw(raw_data, BPI_PIN_MSG) ? 0x04 : 0x00;
+    mci |= GetPinRaw(raw_data, BPI_PIN_CD) ? 0x02 : 0x00;
+    mci |= GetPinRaw(raw_data, BPI_PIN_IO) ? 0x01 : 0x00;
+    return BUS::GetPhase(mci);
 }
-

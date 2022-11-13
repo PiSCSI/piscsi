@@ -66,9 +66,32 @@ string current_log_level = "unknown"; // Some versions of spdlog do not support 
 int local_pin_dtd = -1;
 int local_pin_tad = -1;
 int local_pin_ind = -1;
+int local_pin_ack = -1;
+int local_pin_sel = -1;
+int local_pin_atn = -1;
+int local_pin_rst = -1;
+int local_pin_cd  = -1;
+int local_pin_io  = -1;
+int local_pin_msg = -1;
+int local_pin_req = -1;
+int local_pin_bsy = -1;
+
+int local_pin_dt0 = -1;
+int local_pin_dt1 = -1;
+int local_pin_dt2 = -1;
+int local_pin_dt3 = -1;
+int local_pin_dt4 = -1;
+int local_pin_dt5 = -1;
+int local_pin_dt6 = -1;
+int local_pin_dt7 = -1;
+int local_pin_dp  = -1;
 
 void test_timer();
 void test_gpio();
+void test_dat_inputs();
+void dat_output_test_setup();
+uint8_t get_dat_outputs_loop();
+void test_dat_outputs();
 void run_loopback_test();
 void set_dtd_out();
 void set_dtd_in();
@@ -235,6 +258,8 @@ int main(int argc, char *argv[])
     // temp_debug();
     test_timer();
     run_loopback_test();
+    test_dat_inputs();
+    test_dat_outputs();
     Cleanup();
 
     return 0;
@@ -248,7 +273,7 @@ void test_timer()
     double timer_tolerance_percent  = 0.02;
     const uint32_t one_second_in_ns = 1000000;
 
-    printf(CYAN "Testing hardware timer:");
+    printf(CYAN "Testing hardware timer:" WHITE);
 
     //------------------------------------------------------
     // Test SysTimer::GetTimerLow()
@@ -399,6 +424,25 @@ void init_loopback()
         local_pin_dtd = PIN_DTD;
         local_pin_tad = PIN_TAD;
         local_pin_ind = PIN_IND;
+        local_pin_ack = PIN_ACK;
+        local_pin_sel = PIN_SEL;
+        local_pin_atn = PIN_ATN;
+        local_pin_rst = PIN_RST;
+        local_pin_cd  = PIN_CD;
+        local_pin_io  = PIN_IO;
+        local_pin_msg = PIN_MSG;
+        local_pin_req = PIN_REQ;
+        local_pin_bsy = PIN_BSY;
+        local_pin_dt0 = PIN_DT0;
+        local_pin_dt1 = PIN_DT1;
+        local_pin_dt2 = PIN_DT2;
+        local_pin_dt3 = PIN_DT3;
+        local_pin_dt4 = PIN_DT4;
+        local_pin_dt5 = PIN_DT5;
+        local_pin_dt6 = PIN_DT6;
+        local_pin_dt7 = PIN_DT7;
+        local_pin_dp  = PIN_DP;
+
     } else if (SBC_Version::GetSbcVersion() == SBC_Version::sbc_version_type::sbc_bananapi_m2_plus) {
         loopback_conn_table.push_back(
             loopback_connection{.this_pin = BPI_PIN_DT0, .connected_pin = BPI_PIN_ACK, .dir_ctrl_pin = BPI_PIN_DTD});
@@ -458,9 +502,28 @@ void init_loopback()
         pin_name_lookup[BPI_PIN_IND] = "ind";
         pin_name_lookup[BPI_PIN_TAD] = "tad";
         pin_name_lookup[BPI_PIN_DTD] = "dtd";
-        local_pin_dtd                = BPI_PIN_DTD;
-        local_pin_tad                = BPI_PIN_TAD;
-        local_pin_ind                = BPI_PIN_IND;
+
+        local_pin_dtd = BPI_PIN_DTD;
+        local_pin_tad = BPI_PIN_TAD;
+        local_pin_ind = BPI_PIN_IND;
+        local_pin_ack = BPI_PIN_ACK;
+        local_pin_sel = BPI_PIN_SEL;
+        local_pin_atn = BPI_PIN_ATN;
+        local_pin_rst = BPI_PIN_RST;
+        local_pin_cd  = BPI_PIN_CD;
+        local_pin_io  = BPI_PIN_IO;
+        local_pin_msg = BPI_PIN_MSG;
+        local_pin_req = BPI_PIN_REQ;
+        local_pin_bsy = BPI_PIN_BSY;
+        local_pin_dt0 = BPI_PIN_DT0;
+        local_pin_dt1 = BPI_PIN_DT1;
+        local_pin_dt2 = BPI_PIN_DT2;
+        local_pin_dt3 = BPI_PIN_DT3;
+        local_pin_dt4 = BPI_PIN_DT4;
+        local_pin_dt5 = BPI_PIN_DT5;
+        local_pin_dt6 = BPI_PIN_DT6;
+        local_pin_dt7 = BPI_PIN_DT7;
+        local_pin_dp  = BPI_PIN_DP;
 
     } else {
         LOGERROR("Unsupported board version: %s", SBC_Version::GetString()->c_str());
@@ -575,7 +638,7 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     int err_count  = 0;
-    int sleep_time = 5000; // 5ms
+    int sleep_time = 1000;
 
     LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
@@ -695,10 +758,9 @@ int test_gpio_pin(loopback_connection &gpio_rec)
         }
     }
     if (err_count == 0) {
-        printf(GREEN "GPIO %3d [%s] OK!\n", (int)gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin).c_str());
+        printf(GREEN "OK!\n" WHITE);
     } else {
-        printf(RED "GPIO %3d [%s] FAILED - %d errors!\n\r", (int)gpio_rec.this_pin,
-               pin_name_lookup.at(gpio_rec.this_pin).c_str(), err_count);
+        printf(RED "FAILED - %d errors!\n" WHITE, err_count);
     }
     return err_count;
 }
@@ -716,16 +778,84 @@ void run_loopback_test()
     }
 }
 
-void temp_debug(){
+void dat_input_test_setup()
+{
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
+
+    for (loopback_connection cur_gpio : loopback_conn_table) {
+        if (cur_gpio.this_pin == -1) {
+            continue;
+        }
+        bus->PinConfig(cur_gpio.this_pin, GPIO_OUTPUT);
+        bus->PullConfig(cur_gpio.this_pin, GPIO_PULLNONE);
+    }
+
+    bus->PinConfig(local_pin_dt0, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt1, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt2, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt3, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt4, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt5, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt6, GPIO_INPUT);
+    bus->PinConfig(local_pin_dt7, GPIO_INPUT);
+
+    set_dtd_in();
+    set_tad_out();
+    set_ind_out();
+}
+
+void set_dat_inputs_loop(uint8_t value)
+{
+    bus->SetSignal(local_pin_ack, (value >> 0) & 0x1);
+    bus->SetSignal(local_pin_sel, (value >> 1) & 0x1);
+    bus->SetSignal(local_pin_atn, (value >> 2) & 0x1);
+    bus->SetSignal(local_pin_rst, (value >> 3) & 0x1);
+    bus->SetSignal(local_pin_cd, (value >> 4) & 0x1);
+    bus->SetSignal(local_pin_io, (value >> 5) & 0x1);
+    bus->SetSignal(local_pin_msg, (value >> 6) & 0x1);
+    bus->SetSignal(local_pin_req, (value >> 7) & 0x1);
+}
+
+void test_dat_inputs()
+{
+    int err_count     = 0;
+    int delay_time_us = 1000;
+    dat_input_test_setup();
+
+    printf(CYAN "Testing DAT inputs    :" WHITE);
+
+    for (uint32_t val = 0; val < UINT8_MAX; val++) {
+        set_dat_inputs_loop(val);
+        usleep(delay_time_us);
+
+        bus->Acquire();
+        uint8_t read_val = bus->GetDAT();
+
+        if (read_val != (uint8_t)(val & 0xFF)) {
+            LOGERROR("expected: %08X, got %08X", val, read_val);
+            err_count++;
+        }
+        if ((val % 0x7) == 0) {
+            printf(".");
+        }
+    }
+
+    if (err_count == 0) {
+        printf(GREEN "DAT Inputs OK!\n");
+    } else {
+        printf(RED "DAT Input FAILED - %d errors!\n\r", err_count);
+    }
+}
+
+void temp_debug()
+{
     LOGTRACE("%s", __PRETTY_FUNCTION__);
     init_loopback();
     loopback_setup();
 
     int delay_time = 10000000;
-    
-    while(1){
 
-
+    while (1) {
         LOGINFO("Direction IN");
         set_tad_in();
         set_dtd_in();
@@ -733,14 +863,14 @@ void temp_debug(){
 
         LOGINFO("IN: All Pins true");
         for (auto cur_gpio : loopback_conn_table) {
-	        bus->SetSignal(cur_gpio.this_pin, true);
+            bus->SetSignal(cur_gpio.this_pin, true);
         }
 
         usleep(delay_time);
 
         LOGINFO("IN: All Pins false");
         for (auto cur_gpio : loopback_conn_table) {
-	        bus->SetSignal(cur_gpio.this_pin, false);
+            bus->SetSignal(cur_gpio.this_pin, false);
         }
         usleep(delay_time);
 
@@ -749,20 +879,88 @@ void temp_debug(){
         set_dtd_out();
         set_ind_out();
 
-                LOGINFO("OUT: All Pins true");
+        LOGINFO("OUT: All Pins true");
         for (auto cur_gpio : loopback_conn_table) {
-	        bus->SetSignal(cur_gpio.this_pin, true);
+            bus->SetSignal(cur_gpio.this_pin, true);
         }
 
         usleep(delay_time);
 
         LOGINFO("OUT: All Pins false");
         for (auto cur_gpio : loopback_conn_table) {
-	        bus->SetSignal(cur_gpio.this_pin, false);
+            bus->SetSignal(cur_gpio.this_pin, false);
         }
         usleep(delay_time);
+    }
+}
 
+void dat_output_test_setup()
+{
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
+    for (loopback_connection cur_gpio : loopback_conn_table) {
+        if (cur_gpio.this_pin == -1) {
+            continue;
+        }
+        bus->PinConfig(cur_gpio.this_pin, GPIO_INPUT);
+        bus->PullConfig(cur_gpio.this_pin, GPIO_PULLNONE);
     }
 
+    bus->PinConfig(local_pin_dt0, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt1, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt2, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt3, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt4, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt5, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt6, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt7, GPIO_OUTPUT);
+
+    set_dtd_out();
+    set_tad_in();
+    set_ind_in();
+}
+
+uint8_t get_dat_outputs_loop()
+{
+    uint8_t value = 0;
+    value |= ((bus->GetSignal(local_pin_ack) & 0x1) <<  0);
+    value |= ((bus->GetSignal(local_pin_sel) & 0x1) <<  1);
+    value |= ((bus->GetSignal(local_pin_atn) & 0x1) <<  2);
+    value |= ((bus->GetSignal(local_pin_rst) & 0x1) <<  3);
+    value |= ((bus->GetSignal(local_pin_cd)  & 0x1) <<  4);
+    value |= ((bus->GetSignal(local_pin_io)  & 0x1) <<  5);
+    value |= ((bus->GetSignal(local_pin_msg) & 0x1) <<  6);
+    value |= ((bus->GetSignal(local_pin_req) & 0x1) <<  7);
+    return value;
+}
+
+void test_dat_outputs()
+{
+    int err_count     = 0;
+    int delay_time_us = 1000;
+    dat_output_test_setup();
+
+    printf(CYAN "Testing DAT outputs   :" WHITE);
+
+    for (uint32_t val = 0; val < UINT8_MAX; val++) {
+        bus->SetDAT(val);
+        usleep(delay_time_us);
+
+        bus->Acquire();
+        uint8_t read_val = get_dat_outputs_loop();
+
+        if (read_val != (uint8_t)(val & 0xFF)) {
+            LOGERROR("expected: %08X, got %08X", val, read_val);
+            err_count++;
+        }
+        if ((val % 0x7) == 0) {
+            printf(".");
+        }
+    }
+
+    if (err_count == 0) {
+        printf(GREEN "DAT Outputs OK!\n");
+    } else {
+        printf(RED "DAT Outputs FAILED - %d errors!\n\r", err_count);
+    }
 }
