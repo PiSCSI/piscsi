@@ -886,7 +886,7 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     int bank        = GPIO_BANK(gpio);       // gpio >> 5
     int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
     int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-    LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset, (GPIO_INPUT == direction) ? "IN" : "OUT")
+    LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset, (GPIO_INPUT == direction) ? "IN" : "OUT")
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
@@ -1051,7 +1051,7 @@ void GPIOBUS_BananaM2p::PullConfig(int pin, int mode)
     int bank        = GPIO_BANK(gpio_num);       // gpio >> 5
     int index       = GPIO_PUL_INDEX(gpio_num);  // (gpio & 0x1f) >> 4
     int offset      = GPIO_PUL_OFFSET(gpio_num); // (gpio) & 0x0F) << 1
-    LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio_num, bank, index, offset)
+    LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio_num, bank, index, offset)
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
@@ -1100,7 +1100,7 @@ void GPIOBUS_BananaM2p::DrvConfig(uint32_t drive)
         int bank        = GPIO_BANK(gpio);       // gpio >> 5
         int index       = GPIO_DRV_INDEX(gpio);  // (gpio & 0x1F) >> 3
         int offset      = GPIO_DRV_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-        LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
+        LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
 
         sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
         /* DK, for PL and PM */
@@ -1252,7 +1252,7 @@ void GPIOBUS_BananaM2p::sunxi_setup_gpio(int gpio, int direction, int pud)
     int bank        = GPIO_BANK(gpio);       // gpio >> 5
     int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
     int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-    LOGDEBUG("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
+    LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
@@ -1305,7 +1305,7 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
     int bank = GPIO_BANK(gpio); // gpio >> 5
     int num  = GPIO_NUM(gpio);  // gpio & 0x1F
 
-    LOGDEBUG("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
+    LOGTRACE("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
     // LOGTRACE("pio_map: %p", pio_map)
     // LOGTRACE("pio_map->gpio_bank: %p", &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0])
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -1330,7 +1330,7 @@ int GPIOBUS_BananaM2p::sunxi_input_gpio(int gpio) const
     int bank        = GPIO_BANK(gpio); // gpio >> 5
     int num         = GPIO_NUM(gpio);  // gpio & 0x1F
 
-    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
+    LOGTRACE("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
     if (bank >= 11) {

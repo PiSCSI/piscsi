@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 #endif
 
     // temp_debug();
-    // test_timer();
+    test_timer();
     run_loopback_test();
     Cleanup();
 
@@ -252,7 +252,7 @@ void test_timer()
 
     //------------------------------------------------------
     // Test SysTimer::GetTimerLow()
-
+    LOGDEBUG("++ Testing SysTimer::GetTimerLow()")
     uint32_t before = SysTimer::GetTimerLow();
     for (int i = 0; i < 10; i++) {
         usleep(100000);
@@ -274,6 +274,7 @@ void test_timer()
 
     //------------------------------------------------------
     // Test SysTimer::SleepUsec()
+    LOGDEBUG("++ Testing SysTimer::SleepUsec()")
 
     uint32_t expected_usec_result = 1000 * 100;
     before                        = SysTimer::GetTimerLow();
@@ -295,6 +296,7 @@ void test_timer()
 
     //------------------------------------------------------
     // Test SysTimer::SleepNsec()
+    LOGDEBUG("++ Testing SysTimer::SleepNsec()")
 
     before = SysTimer::GetTimerLow();
     SysTimer::SleepNsec(1000000);

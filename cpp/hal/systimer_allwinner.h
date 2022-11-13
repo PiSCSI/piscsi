@@ -49,7 +49,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
      * device tree. If it is ever added, this should be pulled
      * from there */
 
-    struct sun8i_hsitimer_registers {
+    typedef struct {
         /* 0x00 HS Timer IRQ Enabled Register */
         uint32_t hs_tmr_irq_en_reg;
         /* 0x04 HS Timer Status Register */
@@ -68,7 +68,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
         uint32_t hs_tmr_curnt_lo_reg;
         /* 0x20 HS Timer Current Value High Register */
         uint32_t hs_tmr_curnt_hi_reg;
-    };
+    } sun8i_hsitimer_registers;
 
     /* Constants for the HS Timer IRQ enable Register (section 4.9.4.1) */
     static const uint32_t HS_TMR_INTERUPT_ENB = (1 << 0);
@@ -84,7 +84,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
     static const uint32_t HS_TMR_MODE_SINGLE      = (1 << 7);
     static const uint32_t HS_TMR_TEST_MODE        = (1 << 31);
 
-    struct sun8i_hsitimer_registers *hsitimer_regs;
+    volatile sun8i_hsitimer_registers *hsitimer_regs;
 
     /* Reference: Allwinner H3 Datasheet, section 4.3.4 */
     static const uint32_t system_bus_base_address = 0x01C20000;
