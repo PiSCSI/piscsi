@@ -546,6 +546,11 @@ section > details ul {
  Index > Section: Current RaSCSI configuration
  ------------------------------------------------------------------------------
  */
+section#current-config form#config-actions select,
+section#current-config form#config-save input[type="text"] {
+  max-width: 10rem;
+}
+
 table#attached-devices th.id,
 table#attached-devices td.id,
 table#attached-devices th.unit,
