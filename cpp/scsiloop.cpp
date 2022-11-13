@@ -62,35 +62,30 @@ using namespace spdlog;
 //
 //---------------------------------------------------------------------------
 shared_ptr<GPIOBUS> bus;
-string current_log_level = "debug"; // Some versions of spdlog do not support get_log_level()
-
-// string connection_type = "hard-coded fullspec";
+string current_log_level = "unknown"; // Some versions of spdlog do not support get_log_level()
 
 int local_pin_dtd = -1;
 int local_pin_tad = -1;
 int local_pin_ind = -1;
 
+void test_timer();
+void test_gpio();
+void run_loopback_test();
+void set_dtd_out();
+void set_dtd_in();
+void set_ind_out();
+void set_ind_in();
+void set_tad_out();
+void set_tad_in();
+void print_all();
+
 void Banner(int argc, char *argv[])
 {
-    cout << ras_util::Banner("Reloaded");
+    cout << ras_util::Banner("SCSI Loopback Test");
     cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
     if ((argc > 1 && strcmp(argv[1], "-h") == 0) || (argc > 1 && strcmp(argv[1], "--help") == 0)) {
-        cout << "\nUsage: " << argv[0] << " [-idn[:m] FILE] ...\n\n";
-        cout << " n is SCSI device ID (0-7).\n";
-        cout << " m is the optional logical unit (LUN) (0-31).\n";
-        cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
-        cout << " Image type is detected based on file extension if no explicit type is specified.\n";
-        cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
-        cout << "  hds : SCSI HD image (Non-removable generic SCSI HD image)\n";
-        cout << "  hdr : SCSI HD image (Removable generic HD image)\n";
-        cout << "  hda : SCSI HD image (Apple compatible image)\n";
-        cout << "  hdn : SCSI HD image (NEC compatible image)\n";
-        cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
-        cout << "  nhd : SCSI HD image (T98Next HD image)\n";
-        cout << "  mos : SCSI MO image (MO image)\n";
-        cout << "  iso : SCSI CD image (ISO 9660 image)\n" << flush;
-
+        cout << "\nUsage: " << argv[0] << " [-L log_level] ...\n\n";
         exit(EXIT_SUCCESS);
     }
 }
@@ -115,39 +110,6 @@ void Reset()
     bus->Reset();
 }
 
-void test_timer();
-void test_gpio();
-void run_loopback_test();
-void set_dtd_out();
-void set_dtd_in();
-void set_ind_out();
-void set_ind_in();
-void set_tad_out();
-void set_tad_in();
-void tony_test();
-void print_all();
-
-//---------------------------------------------------------------------------
-//
-//	Pin the thread to a specific CPU
-//
-//---------------------------------------------------------------------------
-void FixCpu(int cpu)
-{
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-    // Get the number of CPUs
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-    int cpus = CPU_COUNT(&cpuset);
-
-    // Set the thread affinity
-    if (cpu < cpus) {
-        CPU_ZERO(&cpuset);
-        CPU_SET(cpu, &cpuset);
-        sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
-    }
-}
 
 bool SetLogLevel(const string &log_level)
 {
@@ -194,23 +156,12 @@ bool ParseArgument(int argc, char *argv[])
 
     opterr = 1;
     int opt;
-    while ((opt = getopt(argc, argv, "-Iib:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
+    while ((opt = getopt(argc, argv, "-L:")) != -1) {
         switch (opt) {
-        case 'z':
-            locale = optarg;
-            continue;
 
         case 'L':
             log_level = optarg;
             continue;
-
-        case 'n':
-            name = optarg;
-            continue;
-
-        case 1:
-            // Encountered filename
-            break;
 
         default:
             return false;
@@ -245,19 +196,18 @@ int main(int argc, char *argv[])
         }
     }
 
-    // executor->SetLogLevel(current_log_level);
-
     // Create a thread-safe stdout logger to process the log messages
-    const auto logger = stdout_color_mt("rascsi stdout logger");
+    const auto logger = stdout_color_mt("scsiloop stdout logger");
     set_level(level::info);
-
-    if (!InitBus()) {
-        return EPERM;
-    }
+    current_log_level = "info";
 
     if (!ParseArgument(argc, argv)) {
-        Cleanup();
         return -1;
+    }
+
+    if (!InitBus()) {
+        Cleanup();
+        return EPERM;
     }
 
     // Signal handler to detach all devices on a KILL or TERM signal
@@ -272,7 +222,7 @@ int main(int argc, char *argv[])
     Reset();
 
     // Set the affinity to a specific processor core
-    FixCpu(3);
+    ras_util::FixCpu(3);
 
 #ifdef USE_SEL_EVENT_ENABLE
     sched_param schparam;
@@ -285,6 +235,8 @@ int main(int argc, char *argv[])
 
     test_timer();
     run_loopback_test();
+    Cleanup();
+
     return 0;
 }
 
