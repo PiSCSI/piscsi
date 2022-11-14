@@ -5,7 +5,7 @@ Module for the Flask app rendering and endpoints
 import sys
 import logging
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
 
@@ -56,6 +56,7 @@ from web_utils import (
     is_bridge_configured,
     is_safe_path,
     upload_with_dropzonejs,
+    browser_supports_modern_themes,
 )
 from settings import (
     WEB_DIR,
@@ -65,6 +66,9 @@ from settings import (
     DRIVE_PROPERTIES_FILE,
     AUTH_GROUP,
     LANGUAGES,
+    TEMPLATE_THEMES,
+    TEMPLATE_THEME_DEFAULT,
+    TEMPLATE_THEME_LEGACY,
 )
 
 
@@ -87,6 +91,7 @@ def get_env_info():
         "running_env": sys_cmd.running_env(),
         "username": username,
         "auth_active": auth_active(AUTH_GROUP)["status"],
+        "logged_in": username and auth_active(AUTH_GROUP)["status"],
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
@@ -133,7 +138,18 @@ def response(
             flash(message, category)
 
     if template:
+        if session.get("theme") and session["theme"] in TEMPLATE_THEMES:
+            theme = session["theme"]
+        elif browser_supports_modern_themes():
+            theme = TEMPLATE_THEME_DEFAULT
+        else:
+            theme = TEMPLATE_THEME_LEGACY
+
         kwargs["env"] = get_env_info()
+        kwargs["body_class"] = f"page-{PurePath(template).stem.lower()}"
+        kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
+        kwargs["current_theme"] = theme
+        kwargs["available_themes"] = TEMPLATE_THEMES
         return render_template(template, **kwargs)
 
     if redirect_url:
@@ -1205,6 +1221,20 @@ def change_language():
     language = Locale.parse(locale)
     language_name = language.get_language_name(locale)
     return response(message=_("Changed Web Interface language to %(locale)s", locale=language_name))
+
+
+@APP.route("/theme", methods=["GET", "POST"])
+def change_theme():
+    if request.method == "GET":
+        theme = request.args.get("name")
+    else:
+        theme = request.form.get("name")
+
+    if theme not in TEMPLATE_THEMES:
+        return response(error=True, message=_("The requested theme does not exist."))
+
+    session["theme"] = theme
+    return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
 
 
 @APP.before_first_request

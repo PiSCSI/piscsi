@@ -150,3 +150,49 @@ def test_save_load_and_delete_configs(env, http_client):
     )
 
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
+
+
+# route("/theme", methods=["POST"])
+@pytest.mark.parametrize(
+    "theme",
+    [
+        "modern",
+        "classic",
+    ],
+)
+def test_set_theme(http_client, theme):
+    response = http_client.post(
+        "/theme",
+        data={
+            "theme": theme,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
+
+
+# route("/theme", methods=["GET"])
+@pytest.mark.parametrize(
+    "theme",
+    [
+        "modern",
+        "classic",
+    ],
+)
+def test_set_theme_via_query_string(http_client, theme):
+    response = http_client.get(
+        "/theme",
+        params={
+            "v": theme,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."

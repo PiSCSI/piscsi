@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<section id="current-config">
 <details>
     <summary class="heading">
         {{ _("Current RaSCSI Configuration") }}
@@ -12,8 +13,8 @@
 </details>
 
 <p>
-<form action="/config/load" method="post">
-    <label for="config_load_name">{{ _("File name") }}</label>
+<form action="/config/load" method="post" id="config-actions">
+    <label for="config_load_name">{{ _("File Name:") }}</label>
     <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
         {% for config in config_files|sort %}
@@ -33,35 +34,41 @@
 </p>
 
 <p>
-<form action="/config/save" method="post">
-    <label for="config_save_name">{{ _("File name") }}</label>
-    <input name="name" id="config_save_name" value="default" size="20">
+<form action="/config/save" method="post" id="config-save">
+    <label for="config_save_name">{{ _("File Name:") }}</label>
+    <input type="text" name="name" id="config_save_name" value="default" size="20">
     .{{ CONFIG_FILE_SUFFIX }}
     <input type="submit" value="{{ _("Save") }}">
 </form>
 </p>
 
-<table border="black" cellpadding="3" summary="List of attached devices">
+<table id="attached-devices" border="black" cellpadding="3" summary="List of attached devices">
     <tbody>
         <tr>
-            <th scope="col">{{ _("ID") }}</th>
+            <th class="id" scope="col">{{ _("ID") }}</th>
             {% if units %}
-            <th scope="col">{{ _("LUN") }}</th>
+            <th class="unit" scope="col">{{ _("LUN") }}</th>
             {% endif %}
-            <th scope="col">{{ _("Device") }}</th>
-            <th scope="col">{{ _("Parameters") }}</th>
-            <th scope="col">{{ _("Product") }}</th>
-            <th scope="col">{{ _("Actions") }}</th>
+            <th class="name" scope="col">{{ _("Device") }}</th>
+            <th class="parameters" scope="col">{{ _("Parameters") }}</th>
+            <th class="product" scope="col">{{ _("Product") }}</th>
+            <th class="actions" scope="col">{{ _("Actions") }}</th>
         </tr>
         {% for device in devices | sort(attribute='id') %}
-        <tr>
+        {% if device["id"] in reserved_scsi_ids %}
+        <tr class="reserved">
+        {% elif device.device_type %}
+        <tr class="device-assigned device-{{ device.device_type|lower }}">
+        {% else %}
+        <tr class="free">
+        {% endif %}
             {% if device["id"] not in reserved_scsi_ids %}
-            <td align="center">{{ device.id }}</td>
+            <td class="id" align="center">{{ device.id }}</td>
             {% if units %}
-            <td align="center">{{ device.unit }}</td>
+            <td class="unit" align="center">{{ device.unit }}</td>
             {% endif %}
-            <td align="center">{{ device.device_name }}</td>
-            <td>
+            <td class="name" align="center">{{ device.device_name }}</td>
+            <td class="parameters">
                 {% if "No Media" in device.status %}
                 <form action="/scsi/attach" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
@@ -89,22 +96,22 @@
                     <input type="submit" value="{{ _("Attach") }}">
                 </form>
             {% else %}
-            {% if device.params %}
-            {% for key in device.params %}
-            {% if key == "interface" %}
-            ({{device.params[key]}})
-            {% elif key == "timeout" %}
-            ({{key}}:{{device.params[key]}})
-            {% else %}
-            {{device.params[key]}}
-            {% endif %}
-            {% endfor %}
-            {% elif device.file %}
-            {{ device.file }}
-            {% endif %}
+                {% if device.params %}
+                    {% for key in device.params %}
+                        {% if key == "interface" %}
+                            ({{device.params[key]}})
+                        {% elif key == "timeout" %}
+                            ({{key}}:{{device.params[key]}})
+                        {% else %}
+                            {{device.params[key]}}
+                        {% endif %}
+                    {% endfor %}
+                {% elif device.file %}
+                    <span class="filename">{{ device.file }}</span>
+                {% endif %}
             {% endif %}
             </td>
-            <td align="center">
+            <td class="product" align="center">
                 {% if device.vendor != "RaSCSI" %}
                 {{ device.vendor }}
                 {% endif %}
@@ -113,7 +120,7 @@
                 {{ device.revision }}
                 {% endif %}
             </td>
-            <td align="center">
+            <td class="actions" align="center">
                 {% if device.id in scsi_ids["occupied_ids"] %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('{{ _("Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!") }}')">
@@ -136,14 +143,14 @@
                 {% endif %}
             </td>
             {% else %}
-            <td class="inactive">{{ device.id }}</td>
+            <td class="id inactive">{{ device.id }}</td>
             {% if units %}
-            <td class="inactive"></td>
+            <td class="units inactive"></td>
             {% endif %}
-            <td class="inactive">{{ _("Reserved ID") }}</td>
-            <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
-            <td class="inactive"></td>
-            <td class="inactive">
+            <td class="name inactive">{{ _("Reserved ID") }}</td>
+            <td class="parameters inactive">{{ RESERVATIONS[device.id] }}</td>
+            <td class="product inactive"></td>
+            <td class="actions inactive">
                 <form action="/scsi/release" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input type="submit" value="{{ _("Release") }}">
@@ -156,16 +163,18 @@
 </table>
 
 <p>
-    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
+    <form action="/scsi/detach_all" method="post" id="detach-all-devices" onsubmit="return confirm('{{ _("Detach all SCSI Devices?") }}')">
         <input type="submit" value="{{ _("Detach All Devices") }}">
     </form>
-    <form action="/scsi/info" method="post">
+    <form action="/scsi/info" method="post" id="show-device-info">
         <input type="submit" value="{{ _("Show Device Info") }}">
     </form>
 </p>
+</section>
 
 <hr/>
 
+<section id="files">
 <details>
     <summary class="heading">
         {{ _("Image File Management") }}
@@ -187,13 +196,20 @@
     </ul>
 </details>
 
-<table border="black" cellpadding="3" summary="List of files in the image directory">
+<table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
             <th scope="col">{{ _("File") }}</th>
             <th scope="col">{{ _("Size") }}</th>
             <th scope="col">{{ _("Actions") }}</th>
         </tr>
+        {% if not files|length: %}
+            <tr class="directory-empty">
+                <td colspan="3">
+                    {{ _("The images directory is currently empty.") }}
+                </td>
+            </tr>
+        {% endif %}
         {% for file in files|sort(attribute='name') %}
         <tr>
             {% if file["prop"] %}
@@ -227,10 +243,10 @@
                                         <details>
                                             <summary>
                                                 <label>{{ member["path"] }}</label>
-                                                <form action="/files/extract_image" method="post">
+                                                <form action="/files/extract_image" method="post" class="file-extract">
                                                     <input name="archive_file" type="hidden" value="{{ file['name'] }}">
                                                     <input name="archive_members" type="hidden" value="{{ member["path"] }}|{{ member["related_properties_file"] }}">
-                                                    <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                                    <input type="submit" value="{{ _("Extract") }}" title="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
                                                 </form>
                                             </summary>
                                             <ul class="inline_list">
@@ -239,10 +255,10 @@
                                         </details>
                                     {% else %}
                                         <label>{{ member["path"] }}</label>
-                                        <form action="/files/extract_image" method="post">
+                                        <form action="/files/extract_image" method="post" class="file-extract">
                                             <input name="archive_file" type="hidden" value="{{ file["name"] }}">
                                             <input name="archive_members" type="hidden" value="{{ member["path"] }}">
-                                            <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                            <input type="submit" value="{{ _("Extract") }}" title="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
                                         </form>
                                     {% endif %}
                                 </li>
@@ -265,14 +281,14 @@
                     {{ _("In use") }}
                 {% else %}
                 {% if file["archive_contents"] %}
-                <form action="/files/extract_image" method="post">
+                <form action="/files/extract_image" method="post" class="file-extract">
                     <input name="archive_file" type="hidden" value="{{ file['name'] }}">
                     {% set pipe = joiner("|") %}
                     <input name="archive_members" type="hidden" value="{% for member in file["archive_contents"] %}{{ pipe() }}{{ member["path"] }}{% endfor %}">
-                    <input type="submit" value="{{ _("Extract All") }}" onclick="processNotify('{{ _("Extracting all files...") }}')">
+                    <input type="submit" value="{{ _("Extract") }}" title="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting all files...") }}')">
                 </form>
                 {% else %}
-                <form action="/scsi/attach" method="post">
+                <form action="/scsi/attach" method="post" class="file-attach">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="image_list_scsi_id_{{ file["name"] }}">{{ _("ID") }}</label>
@@ -303,28 +319,28 @@
                         {% endfor %}
                         </select>
                     {% endif %}
-                    <input type="submit" value="{{ _("Attach") }}">
+                    <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
                 {% endif %}
                 </form>
-                <form action="/files/rename" method="post" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ loop.index }}').value = new_file_name;">
+                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ loop.index }}').value = new_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="new_file_name" id="new_file_name_{{ loop.index }}" type="hidden" value="">
-                    <input type="submit" value="{{ _("Rename") }}">
+                    <input type="submit" value="{{ _("Rename") }}" title="{{ _("Rename") }}">
                 </form>
-                <form action="/files/copy" method="post" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ loop.index }}').value = copy_file_name;">
+                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ loop.index }}').value = copy_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="copy_file_name" id="copy_file_name_{{ loop.index }}" type="hidden" value="">
-                    <input type="submit" value="{{ _("Copy") }}">
+                    <input type="submit" value="{{ _("Copy") }}" title="{{ _("Copy") }}">
                 </form>
-                <form action="/files/delete" method="post" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
+                <form action="/files/delete" method="post" class="file-delete" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input type="submit" value="{{ _("Delete") }}">
+                    <input type="submit" value="{{ _("Delete") }}" title="{{ _("Delete") }}">
                 </form>
                 {% endif %}
                 {% if not file["archive_contents"] %}
-                <form action="/files/diskinfo" method="post">
+                <form action="/files/diskinfo" method="post" class="file-info">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input type="submit" value="{{ _("?") }}">
+                    <input type="submit" value="{{ _("?") }}" title="{{ _("Info") }}">
                 </form>
                 {% endif %}
             </td>
@@ -333,8 +349,11 @@
     </tbody>
 </table>
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
+</section>
 
 <hr/>
+
+<section id="attach-devices">
 <details>
     <summary class="heading">
         {{ _("Attach Peripheral Device") }}
@@ -367,7 +386,7 @@
             <div>{{ type }}</div>
         </td>
         <td>
-            <form action="/scsi/attach_device" method="post">
+            <form action="/scsi/attach_device" method="post" class="device-attach">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_types[type]["params"] | dictsort %}
                 <label for="param_{{ type }}_{{ key }}">{{ key }}:</label>
@@ -424,14 +443,17 @@
                 </select>
                 <label for="{{ type }}_unit">{{ _("LUN") }}</label>
                 <input class="lun" name="unit" id="{{ type }}_unit" type="number" value="0" min="0" max="31" step="1" size="3">
-                <input type="submit" value="{{ _("Attach") }}">
+                <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
             </form>
         </td>
     </tr>
     {% endfor %}
 </table>
+</section>
 
 <hr/>
+
+<section id="upload">
 <details>
     <summary class="heading">
         {{ _("Upload File from Local Computer") }}
@@ -481,9 +503,11 @@
         }
     }
 </script>
+</section>
 
 <hr/>
 
+<section id="download-url">
 <details>
     <summary class="heading">
         {{ _("Download File from the Web") }}
@@ -503,12 +527,14 @@
     <input name="url" id="download_url" required="" type="url">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
+</section>
 
 <hr/>
 
+<section id="download-to-iso">
 <details>
     <summary class="heading">
-        {{ _("Download File and Create CD-ROM image") }}
+        {{ _("Download File and Create CD-ROM Image") }}
     </summary>
     <ul>
         <li>{{ _("Create an ISO file system CD-ROM image with the downloaded file, and mount it on the given SCSI ID.") }}</li>
@@ -551,9 +577,11 @@
     </select>
     <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
 </form>
+</section>
 
 <hr/>
 
+<section id="create-image">
 <details>
     <summary class="heading">
         {{ _("Create Empty Disk Image File") }}
@@ -610,9 +638,11 @@
 </form>
 
 <p><a href="/drive/list">{{ _("Create a named disk image that mimics real-life drives") }}</a></p>
+</section>
 
 <hr/>
 
+<section id="logging">
 <details>
     <summary class="heading">
         {{ _("Logging") }}
@@ -661,9 +691,11 @@
     <input type="submit" value="{{ _("Set Log Level") }}">
 </form>
 </div>
+</section>
 
 <hr/>
 
+<section id="language">
 <details>
     <summary class="heading">
         {{ _("Language") }}
@@ -684,9 +716,11 @@
     </select>
     <input type="submit" value="{{ _("Change Language") }}">
 </form>
+</section>
 
 <hr/>
 
+<section id="system">
 <details>
     <summary class="heading">
         {{ _("Raspberry Pi Operations") }}
@@ -702,9 +736,12 @@
 <form action="/pi/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the Raspberry Pi?") }}')) shutdownNotify('{{ _("Shutting down the Raspberry Pi...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Shut Down Raspberry Pi") }}">
 </form>
+</section>
 
 <hr/>
 
+<section id="manual">
 <a href="/sys/manpage?app=rascsi"><p>{{ _("Read the RaSCSI Manual") }}</p></a>
+</section>
 
 {% endblock content %}

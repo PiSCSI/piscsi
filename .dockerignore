@@ -7,11 +7,10 @@
 !/docker/rascsi-web/start.sh
 !/doc
 !/python
-!/src
+!/cpp
 !/test
 !/easyinstall.sh
 !/LICENCE
-!/lido-driver.img
 !/README.md
 
 # From .gitignore

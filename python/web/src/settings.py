@@ -22,3 +22,12 @@ AUTH_GROUP = "rascsi"
 
 # The language locales supported by RaSCSI
 LANGUAGES = ["en", "de", "sv", "fr", "es"]
+
+# Available themes
+TEMPLATE_THEMES = ["classic", "modern"]
+
+# Default theme for modern browsers
+TEMPLATE_THEME_DEFAULT = "modern"
+
+# Fallback theme for older browsers
+TEMPLATE_THEME_LEGACY = "classic"

@@ -2,7 +2,10 @@
 
 {% block content %}
 <h2>{{ _("Manual for %(app)s", app=app) }}</h2>
-{{ manpage | safe }}
-<p><a href="/">{{ _("Go to Home") }}</a></p>
 
+<div id="manpage-content">
+{{ manpage | safe }}
+</div>
+
+<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
 {% endblock content %}

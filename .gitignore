@@ -11,6 +11,7 @@ rascsi_interface_pb2.py
 messages.pot
 messages.mo
 report.xml
+node_modules
 
 # Intermediate files from astyle
 *.orig

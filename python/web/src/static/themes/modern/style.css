@@ -1,0 +1,890 @@
+@import url("//cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.2/css/bootstrap-reboot.min.css");
+
+:root {
+  --success: var(--bs-success);
+  --danger: var(--bs-danger);
+  --info: #80eaff;
+  --warning: var(--bs-warning);
+  --dark: var(--bs-dark);
+  --light: var(--bs-light);
+  --primary: var(--bs-primary);
+  --secondary: var(--bs-secondary);
+  --text-color: var(--bs-body-color);
+  --border-radius: 0.2rem;
+  --input-padding: 0.25rem 0.5rem;
+  --font-size: 0.85rem;
+  --icon-size: 1.2rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ General layout
+ ------------------------------------------------------------------------------
+ */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size);
+}
+
+div.content {
+  flex-grow: 1;
+  padding: 1rem;
+  margin: auto;
+  width: 100%;
+}
+
+hr {
+  display: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Tables
+ ------------------------------------------------------------------------------
+ */
+table {
+  width: 100%;
+  border: 1px solid var(--dark);
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 0.5rem;
+  text-align: left;
+  height: 2.5rem;
+}
+
+table th {
+  background: var(--dark);
+  border: 1px solid var(--dark);
+  color: #fff;
+}
+
+table td {
+  border: 1px solid #ccc;
+  padding: 0.25rem 0.5rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Forms
+ ------------------------------------------------------------------------------
+ */
+form {
+  display: inline-block;
+}
+
+input,
+select,
+button,
+label {
+  margin: 0.15rem 0;
+}
+
+input,
+select,
+button {
+  border-radius: var(--border-radius);
+  border: 1px solid #ccc;
+  font-size: var(--font-size);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--text-color);
+}
+
+input[type="submit"],
+button {
+  padding: var(--input-padding);
+  background-color: #efefef;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="url"],
+input[type="password"] {
+  display: inline-block;
+  padding: var(--input-padding);
+  background-color: #fff;
+  background-clip: padding-box;
+  appearance: none;
+}
+
+select {
+  display: inline-block;
+  padding: 0.275rem 2.25rem 0.275em 0.75rem;
+  -moz-padding-start: calc(0.75rem - 3px);
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  appearance: none;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Dropzone
+ ------------------------------------------------------------------------------
+ */
+.dropzone {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dropzone p,
+.dropzone .dz-default {
+  flex: 0 0 100%;
+}
+
+.dropzone .dz-button {
+  width: 100%;
+  padding: 2rem 4rem;
+  border: 2px dashed darkcyan;
+  background: lightcyan;
+}
+
+.dropzone .dz-preview .dz-image,
+.dropzone .dz-preview .dz-success-mark,
+.dropzone .dz-preview .dz-error-mark {
+  display: none;
+}
+
+.dropzone .dz-preview {
+  display: inline-block;
+  background: var(--light) url("icons/upload-queued.svg") no-repeat 1rem center;
+  padding: 1rem 1rem 1rem 3.5rem;
+  margin: 1rem 1rem 0 0;
+  border-radius: var(--border-radius);
+}
+
+.dropzone .dz-preview.dz-processing {
+  background: #ededbe url("icons/upload-in-progress.svg") no-repeat 1rem center;
+}
+
+.dropzone .dz-preview.dz-success {
+  background: #e0f5df url("icons/upload-success.svg") no-repeat 1rem center;
+}
+
+.dropzone .dz-preview.dz-error {
+  background: #fae2e2 url("icons/upload-error.svg") no-repeat 1rem center;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  color: var(--danger);
+}
+
+.dropzone .dz-preview.dz-processing .dz-progress {
+  display: block;
+}
+
+.dropzone .dz-preview.dz-error .dz-progress,
+.dropzone .dz-preview:not(.dz-processing) .dz-progress {
+  display: none;
+}
+
+.dropzone .dz-preview .dz-progress .dz-upload {
+  width: 1px;
+  background: var(--dark);
+  display: block;
+  height: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Header
+ ------------------------------------------------------------------------------
+ */
+div.header {
+  display: flex;
+}
+
+div.header div.title {
+  order: 1;
+  text-align: left;
+  flex-grow: 1;
+}
+
+div.header div.title h1 {
+  margin: 0;
+  color: #f9f9f9;
+  font-size: 1.25rem;
+}
+
+div.header div.title a {
+  text-decoration: none;
+}
+
+div.header div.hostname {
+  display: none;
+}
+
+div.header div.login-status {
+  order: 10;
+}
+
+div.header div.login-status form {
+  display: flex;
+}
+
+div.header span.logged-in-as-text em {
+  font-weight: bold;
+  font-style: normal;
+}
+
+div.header div.login-form-title {
+  display: none;
+}
+
+div.header div.authentication-disabled {
+  background: var(--danger);
+  border-radius: var(--border-radius);
+  padding: 0 0.5rem;
+}
+
+@media (max-width: 820px) {
+  div.header {
+    min-height: 3.5rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  body:not(.logged-in) div.header {
+    flex-wrap: wrap;
+    min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  div.header div.title {
+    background: var(--dark);
+  }
+
+  div.header div.title a {
+    display: block;
+    background: url("/static/logo.png") no-repeat;
+    background-size: auto 2rem;
+    background-position: 1rem center;
+    padding: 1rem 1rem 1rem 3.5rem;
+  }
+
+  div.header div.login-status.logged-out {
+    flex: 0 0 100%;
+  }
+
+  div.header div.login-status.logged-out form {
+    align-items: end;
+    padding: 1rem;
+    background: var(--light);
+    border-bottom: 1px solid #ccc;
+  }
+
+  div.header div.login-status.logged-out form span {
+    display: block;
+    padding: 0 0.1rem;
+    flex-grow: 1;
+  }
+
+  div.header div.login-status.logged-out form label {
+    display: block;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+  }
+
+  div.header div.login-status.logged-out form input[type="submit"] {
+    flex-grow: 0.5;
+    margin-top: auto; /* Safari 14 iOS and iPad OS */
+  }
+
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 100%;
+  }
+
+  div.header div.login-status.logged-in {
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+  }
+
+  div.header div.login-status.logged-in span.logged-in-as-text,
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+
+  div.header div.login-status.logged-in a {
+    margin-right: 1rem;
+    color: var(--secondary);
+    text-decoration: none;
+  }
+}
+
+@media (min-width: 821px) {
+  div.header {
+    background: var(--dark);
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    color: #fff;
+  }
+
+  div.header div.title a {
+    display: inline-block;
+    background: url("/static/logo.png") no-repeat;
+    background-size: auto 40px;
+    background-position: left center;
+    padding-left: 3rem;
+  }
+
+  div.header div.title a h1 {
+    font-size: 1.5rem;
+    padding: 0.25rem;
+  }
+
+  @supports (-webkit-background-clip: text) {
+    div.header div.title a:hover h1 {
+      background: linear-gradient(
+        to right,
+        rgb(101 204 51 / 100%) 0%,
+        rgb(255 204 51 / 100%) 10%,
+        rgb(255 153 51 / 100%) 20%,
+        rgb(205 51 50 / 100%) 55%,
+        rgb(152 50 153 / 100%) 100%
+      );
+
+      -webkit-background-clip: text; /* stylelint-disable-line */
+      -webkit-text-fill-color: transparent; /* stylelint-disable-line */
+    }
+  }
+
+  div.header div.login-status.logged-out form label,
+  div.header div.login-status.logged-out form input {
+    margin-left: 0.5rem;
+  }
+
+  div.header div.login-status.logged-out form input:not([type="submit"]) {
+    width: 8rem;
+    background: var(--dark);
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-out form input::-webkit-credentials-auto-fill-button {
+    background-color: #ccc;
+  }
+
+  div.header div.login-status.logged-out form input[type="submit"] {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in a {
+    background: var(--danger) url("icons/log-out.svg") no-repeat right 0.5rem center;
+    background-size: var(--icon-size);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+  }
+
+  div.header div.login-status.logged-in span.logged-in-as-text {
+    margin-right: 1rem;
+  }
+
+  div.header div.login-status.logged-in span.separator {
+    display: none;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Footer
+ ------------------------------------------------------------------------------
+ */
+div.footer {
+  flex-shrink: 0;
+  background: var(--dark);
+  padding: 1rem;
+  color: #fff;
+}
+
+div.footer a {
+  color: #ccc;
+}
+
+div.footer div.theme-change-hint {
+  margin-bottom: 1rem;
+}
+
+div.footer div.theme-change-hint a {
+  color: yellow;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Flash messages
+ ------------------------------------------------------------------------------
+ */
+div.flash > div {
+  margin: 1rem 1rem 0;
+  padding: 0.5rem 0.75rem 0.5rem 3rem;
+  border-radius: var(--border-radius);
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  display: flex;
+  align-items: center;
+}
+
+div.flash > div a {
+  display: inline-block !important;
+  padding: 0.25rem 0.75rem;
+  margin-left: auto;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+div.flash > div a::before {
+  content: "×";
+}
+
+div.flash > div.info {
+  background-color: var(--info);
+  background-image: url("icons/info.svg");
+}
+
+div.flash > div.error {
+  background-color: var(--danger);
+  background-image: url("icons/error.svg");
+  color: #fff;
+}
+
+div.flash > div.success {
+  background-color: var(--success);
+  background-image: url("icons/success.svg");
+  color: #fff;
+}
+
+div.flash > div.warning {
+  background-color: var(--warning);
+  background-image: url("icons/warning.svg");
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Section headings
+ ------------------------------------------------------------------------------
+ */
+section > details {
+  margin: 1rem auto;
+}
+
+div.content > section:first-child > details {
+  margin-top: 0;
+}
+
+section > details summary {
+  background: var(--secondary);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+}
+
+section > details ul {
+  background-color: lightcyan;
+  border: 2px solid var(--secondary);
+  padding: 1rem 1rem 1rem 2rem;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 820px) {
+  section > details summary {
+    font-size: 0.9rem;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Current RaSCSI configuration
+ ------------------------------------------------------------------------------
+ */
+body:not(.logged-in) section:not(#current-config, #manual) {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config form#config-actions,
+body:not(.logged-in) section#current-config form#config-save {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config table#attached-devices th.actions,
+body:not(.logged-in) section#current-config table#attached-devices td.actions,
+body:not(.logged-in) section#current-config table#attached-devices form {
+  display: none;
+}
+
+body:not(.logged-in) section#current-config form#detach-all-devices {
+  display: none;
+}
+
+section#current-config form#config-actions select,
+section#current-config form#config-save input[type="text"] {
+  max-width: 10rem;
+}
+
+table#attached-devices th.id,
+table#attached-devices td.id,
+table#attached-devices th.unit,
+table#attached-devices td.unit {
+  text-align: center;
+}
+
+table#attached-devices th.actions,
+table#attached-devices td.actions {
+  text-align: center;
+}
+
+table#attached-devices td.parameters form {
+  display: flex;
+}
+
+table#attached-devices td.parameters form label {
+  display: none;
+}
+
+table#attached-devices td.parameters form select {
+  width: 100%;
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+table#attached-devices span.filename {
+  word-break: break-all;
+}
+
+table#attached-devices tr.reserved td {
+  background-color: #ffe9e9;
+}
+
+@media (max-width: 820px) {
+  table#attached-devices th.product,
+  table#attached-devices td.product {
+    display: none;
+  }
+}
+
+@media (max-width: 625px) {
+  table#attached-devices td.parameters form {
+    display: block;
+    max-width: none;
+    text-align: left;
+  }
+
+  table#attached-devices td.parameters form select {
+    margin-right: 0;
+  }
+}
+
+@media (min-width: 821px) {
+  section#current-config form#config-actions {
+    float: left;
+    height: 2.75rem;
+  }
+
+  section#current-config form#config-save {
+    float: right;
+    height: 2.75rem;
+  }
+
+  section#current-config form#config-save input[type="text"] {
+    width: 10rem;
+  }
+
+  table#attached-devices tr.device-assigned td.name,
+  table#attached-devices tr.reserved td.name {
+    background-image: url("icons/device-other.svg");
+    background-repeat: no-repeat;
+    background-position: 1rem center;
+    background-size: var(--icon-size);
+    padding-left: 3rem;
+  }
+
+  table#attached-devices tr.reserved td.name {
+    background-image: url("icons/device-reserved.svg");
+  }
+
+  table#attached-devices tr.device-sccd td.name,
+  table#attached-devices tr.device-scmo td.name {
+    background-image: url("icons/device-optical.svg");
+  }
+
+  table#attached-devices tr.device-scdp td.name {
+    background-image: url("icons/device-network.svg");
+  }
+
+  table#attached-devices tr.device-schd td.name {
+    background-image: url("icons/device-hard-drive.svg");
+  }
+
+  table#attached-devices tr.device-scrm td.name {
+    background-image: url("icons/device-removable.svg");
+  }
+
+  table#attached-devices tr.device-sclp td.name {
+    background-image: url("icons/device-printer.svg");
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section:Image/file management
+ ------------------------------------------------------------------------------
+ */
+section#files table#images td:first-child {
+  word-break: break-all;
+  width: 25%;
+}
+
+section#files table#images th:last-child,
+section#files table#images td:last-child {
+  text-align: right;
+}
+
+section#files table#images tr.directory-empty td {
+  text-align: center;
+}
+
+section#files p {
+  margin-top: 1rem;
+}
+
+@media (max-width: 820px) {
+  section#files table#images tr th:nth-child(2),
+  section#files table#images tr td:nth-child(2) {
+    display: none;
+  }
+
+  section#files table#images form.file-attach {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dotted #ccc;
+  }
+}
+
+@media (min-width: 821px) {
+  section#files table#images form.file-copy input[type="submit"],
+  section#files table#images form.file-rename input[type="submit"],
+  section#files table#images form.file-delete input[type="submit"],
+  section#files table#images form.file-info input[type="submit"] {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1rem;
+    text-indent: -1000px;
+    width: 2.5rem;
+  }
+
+  section#files table#images form.file-attach input[type="submit"],
+  section#attach-devices form.device-attach input[type="submit"] {
+    background: #efefef url("icons/file-device-attach.svg") no-repeat 0.5rem center;
+    background-size: 1rem;
+    padding-left: 2rem;
+  }
+
+  section#files table#images form.file-copy input[type="submit"] {
+    background-image: url("icons/file-copy.svg");
+  }
+
+  section#files table#images form.file-rename input[type="submit"] {
+    background-image: url("icons/file-rename.svg");
+  }
+
+  section#files table#images form.file-delete input[type="submit"] {
+    background-image: url("icons/file-delete.svg");
+  }
+
+  section#files table#images form.file-info input[type="submit"] {
+    background-image: url("icons/file-info.svg");
+  }
+
+  section#files table#images form.file-extract input[type="submit"] {
+    background: #efefef url("icons/file-extract.svg") no-repeat 0.5rem center;
+    background-size: 1rem;
+    padding-left: 2rem;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Attach peripheral devices
+ ------------------------------------------------------------------------------
+ */
+section#attach-devices table th:last-child,
+section#attach-devices table td:last-child {
+  text-align: right;
+}
+
+section#attach-devices form {
+  display: block;
+}
+
+@media (max-width: 820px) {
+  section#attach-devices table tr th:nth-child(2),
+  section#attach-devices table tr td:nth-child(2) {
+    display: none;
+  }
+
+  section#attach-devices form label {
+    display: none;
+  }
+
+  section#attach-devices form select {
+    max-width: 200px;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Create image
+ ------------------------------------------------------------------------------
+ */
+section#create-image > p a {
+  display: block;
+  margin-top: 1rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Logging
+ ------------------------------------------------------------------------------
+ */
+section#logging div:first-of-type {
+  margin-bottom: 0.5rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: System
+ ------------------------------------------------------------------------------
+ */
+@media (min-width: 821px) {
+  section#system input[type="submit"] {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+  }
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Manual
+ ------------------------------------------------------------------------------
+ */
+section#manual {
+  margin: 2rem 0 1rem;
+}
+
+section#manual a {
+  margin: auto;
+  display: block;
+  padding: 0 0 0 2rem;
+  background: url("icons/manual.svg") no-repeat left center;
+  font-weight: bold;
+}
+
+section#manual a p {
+  margin: 0;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Drives page
+ ------------------------------------------------------------------------------
+ */
+body.page-drives div.content h2:first-child {
+  margin-top: 0;
+}
+
+body.page-drives div.content h2 {
+  margin: 2rem 0 1rem;
+}
+
+body.page-drives div.content p:first-of-type {
+  background: lightcyan;
+  border: 2px solid darkcyan;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+body.page-drives div.content p:nth-of-type(3) {
+  margin-top: 1rem;
+}
+
+body.page-drives div.content p.home {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Disk info page
+ ------------------------------------------------------------------------------
+ */
+body.page-diskinfo div.content p.home {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Device info page
+ ------------------------------------------------------------------------------
+ */
+body.page-deviceinfo div.content table th {
+  background: #efefef;
+  color: var(--text-color);
+  border-color: #ccc;
+  width: 25%;
+}
+
+body.page-deviceinfo div.content p.home {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Logs page
+ ------------------------------------------------------------------------------
+ */
+body.page-logs div.content p.home {
+  font-weight: bold;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Manual page
+ ------------------------------------------------------------------------------
+ */
+body.page-manpage div#manpage-content {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+body.page-manpage div#manpage-content h2 {
+  margin: 2rem 0 0.5rem;
+}
+
+body.page-manpage div.content p.home {
+  margin-top: 2rem;
+  font-weight: bold;
+}

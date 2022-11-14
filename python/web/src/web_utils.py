@@ -6,6 +6,7 @@ import logging
 from grp import getgrall
 from os import path
 from pathlib import Path
+from ua_parser import user_agent_parser
 
 from flask import request, make_response
 from flask_babel import _
@@ -295,3 +296,35 @@ def upload_with_dropzonejs(image_dir):
             return make_response(_("Transferred file corrupted!"), 500)
 
     return make_response(_("File upload successful!"), 200)
+
+
+def browser_supports_modern_themes():
+    """
+    Determines if the browser supports the HTML/CSS/JS features used in non-legacy themes.
+    """
+    user_agent_string = request.headers.get("User-Agent")
+    if not user_agent_string:
+        return False
+
+    user_agent = user_agent_parser.Parse(user_agent_string)
+    if not user_agent['user_agent']['family']:
+        return False
+
+    # (family, minimum version)
+    supported_browsers = [
+        ('Safari', 14),
+        ('Chrome', 100),
+        ('Firefox', 100),
+        ('Edge', 100),
+        ('Mobile Safari', 14),
+        ('Chrome Mobile', 100),
+    ]
+
+    current_ua_family = user_agent['user_agent']['family']
+    current_ua_version = float(user_agent['user_agent']['major'])
+    logging.info(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
+
+    for supported_browser, supported_version in supported_browsers:
+        if current_ua_family == supported_browser and current_ua_version >= supported_version:
+            return True
+    return False
