@@ -1212,6 +1212,10 @@ int GPIOBUS_BananaM2p::sunxi_gpio_function(int gpio)
 void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
 {
     GPIO_FUNCTION_TRACE
+	    if(gpio < 0){
+		    LOGWARN("Invalid GPIO Num")
+		    return;
+	    }
     int bank = GPIO_BANK(gpio); // gpio >> 5
     int num  = GPIO_NUM(gpio);  // gpio & 0x1F
 
