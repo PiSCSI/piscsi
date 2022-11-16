@@ -13,7 +13,7 @@
 #include "hal/gpiobus_bananam2p.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus_raspberry.h"
-// #include "hal/gpiobus_virtual.h"
+#include "hal/gpiobus_virtual.h"
 #include "hal/sbc_version.h"
 #include "shared/log.h"
 
@@ -32,9 +32,8 @@ unique_ptr<GPIOBUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         return_ptr = make_unique<GPIOBUS_Raspberry>();
     }
     else {
-        return nullptr;
-        // LOGINFO("Creating Virtual GPIOBUS");
-        // return_ptr = make_unique<GPIOBUS_Virtual>();
+        LOGINFO("Creating Virtual GPIOBUS");
+        return_ptr = make_unique<GPIOBUS_Virtual>();
     }
     return_ptr->Init(mode);
     return_ptr->Reset();
