@@ -262,7 +262,6 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 class GPIOBUS : public BUS
 {
   public:
-    static GPIOBUS *create();
 
     // Basic Functions
     GPIOBUS()           = default;
