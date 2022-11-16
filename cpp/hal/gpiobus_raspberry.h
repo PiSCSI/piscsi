@@ -163,9 +163,6 @@ protected:
     // GPIO input level
     volatile uint32_t *level = nullptr;
 
-    bool WaitREQ(bool ast) override {return WaitSignal(PIN_REQ, ast);}
-    bool WaitACK(bool ast) override {return WaitSignal(PIN_ACK, ast);}
-
     void dump_all() override {}
 
   private:

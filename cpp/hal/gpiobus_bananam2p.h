@@ -109,6 +109,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     bool WaitREQ(bool ast) override {return WaitSignal(BPI_PIN_REQ, ast);}
     bool WaitACK(bool ast) override {return WaitSignal(BPI_PIN_ACK, ast);}
+     void dump_all() override;
 
 
     // TODO: Restore these back to protected
@@ -277,7 +278,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     volatile uint32_t *r_gpio_map;
 
-     void dump_all() override;
 
     uint8_t *gpio_mmap_reg;
     uint32_t sunxi_capture_all_gpio();

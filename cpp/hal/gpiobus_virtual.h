@@ -112,6 +112,8 @@ class GPIOBUS_Virtual final : public GPIOBUS
         return WaitSignal(PIN_ACK, ast);
     }
 
+     void dump_all() override {};
+
     uint8_t GetDAT() override;
     // Get DAT signal
     void SetDAT(uint8_t dat) override;
