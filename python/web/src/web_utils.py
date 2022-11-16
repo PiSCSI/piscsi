@@ -189,19 +189,19 @@ def get_properties_by_drive_name(drives, drive_name):
     """
     drives.sort(key=lambda item: item.get("name"))
 
-    drive_props = None
     for drive in drives:
         if drive["name"] == drive_name:
-            drive_props = drive
+            return {
+                "file_type": drive["file_type"],
+                "vendor": drive["vendor"],
+                "product": drive["product"],
+                "revision": drive["revision"],
+                "block_size": drive["block_size"],
+                "size": drive["size"],
+                }
 
-    return {
-        "file_type": drive_props["file_type"],
-        "vendor": drive_props["vendor"],
-        "product": drive_props["product"],
-        "revision": drive_props["revision"],
-        "block_size": drive_props["block_size"],
-        "size": drive_props["size"],
-        }
+    logging.error("Properties for drive '%s' does not exist in database", drive_name)
+    return {}
 
 def auth_active(group):
     """
