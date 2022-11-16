@@ -33,13 +33,13 @@
 //#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 #if defined CONNECT_TYPE_STANDARD
-#include "hal/gpiobus_standard.h"
+#include "hal/connection_type/connection_standard.h"
 #elif defined CONNECT_TYPE_FULLSPEC
-#include "hal/gpiobus_fullspec.h"
+#include "hal/connection_type/connection_fullspec.h"
 #elif defined CONNECT_TYPE_AIBOM
-#include "hal/gpiobus_aibom.h"
+#include "hal/connection_type/connection_aibom.h"
 #elif defined CONNECT_TYPE_GAMERNIUM
-#include "hal/gpiobus_gamernium.h"
+#include "hal/connection_type/connection_gamernium.h"
 #else
 #error Invalid connection type or none specified
 #endif
