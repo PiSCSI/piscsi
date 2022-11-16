@@ -1007,21 +1007,22 @@ def create_file():
             APP.config["RASCSI_DRIVE_PROPERTIES"],
             drive_name
             )
-        prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
-        process = file_cmd.write_drive_properties(prop_file_name, properties)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
+        if properties:
+            prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+            process = file_cmd.write_drive_properties(prop_file_name, properties)
+            process = ReturnCodeMapper.add_msg(process)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
 
-        return response(
-            status_code=201,
-            message=_(
-                "Image file with properties created: %(file_name)s%(drive_format)s",
-                file_name=full_file_name,
-                drive_format=message_postfix,
-            ),
-            image=full_file_name,
-        )
+            return response(
+                status_code=201,
+                message=_(
+                    "Image file with properties created: %(file_name)s%(drive_format)s",
+                    file_name=full_file_name,
+                    drive_format=message_postfix,
+                ),
+                image=full_file_name,
+            )
 
     return response(
         status_code=201,

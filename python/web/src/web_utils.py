@@ -201,7 +201,7 @@ def get_properties_by_drive_name(drives, drive_name):
                 }
 
     logging.error("Properties for drive '%s' does not exist in database", drive_name)
-    return {}
+    return False
 
 def auth_active(group):
     """
