@@ -40,7 +40,7 @@ class SysCmds:
         try:
             os_version = (
                 subprocess.run(
-                    ["uname", "-srm"],
+                    ["uname", "--kernel-name", "--nodename", "--kernel-release"],
                     capture_output=True,
                     check=True,
                     )
@@ -56,30 +56,15 @@ class SysCmds:
         SYS_PROD_PATH = "/sys/devices/virtual/dmi/id/product_name"
         # First we try to get the Pi model
         if Path(PROC_MODEL_PATH).is_file():
-            try:
-                open_file = open(PROC_MODEL_PATH)
-                for line in open_file:
-                    hardware = line
-                    break
-            except (IOError, ValueError, EOFError, TypeError) as error:
-                logging.error(str(error))
+            with open(PROC_MODEL_PATH, "r") as open_file:
+                hardware = open_file.readline()
         # As a fallback, look for PC vendor information
         elif Path(SYS_VENDOR_PATH).is_file() and Path(SYS_PROD_PATH).is_file():
             hardware = ""
-            try:
-                open_file = open(SYS_VENDOR_PATH)
-                for line in open_file:
-                    hardware = f"{line} "
-                    break
-            except (IOError, ValueError, EOFError, TypeError) as error:
-                logging.error(str(error))
-            try:
-                open_file = open(SYS_PROD_PATH)
-                for line in open_file:
-                    hardware = f"{hardware}{line}"
-                    break
-            except (IOError, ValueError, EOFError, TypeError) as error:
-                logging.error(str(error))
+            with open(SYS_VENDOR_PATH, "r") as open_file:
+                hardware = open_file.readline() + " "
+            with open(SYS_PROD_PATH, "r") as open_file:
+                hardware = hardware + open_file.readline()
         else:
             hardware = "Unknown Device"
 
