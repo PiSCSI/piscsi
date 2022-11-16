@@ -141,15 +141,18 @@ class SysCmds:
         Will introspect file_path for the existance of re_term
         and return True if found, False if not found
         """
+        result = False
         try:
             ifile = open(file_path, "r", encoding="ISO-8859-1")
+            for line in ifile:
+                if match(re_term, line):
+                    result = True
+                    break
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            return False
-        for line in ifile:
-            if match(re_term, line):
-                return True
-        return False
+        finally:
+            ifile.close()
+        return result
 
     # pylint: disable=broad-except
     @staticmethod
