@@ -361,6 +361,12 @@ def drive_create():
         drive_name
         )
 
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     # Creating the image file
     process = file_cmd.create_new_image(
         file_name,
@@ -398,6 +404,13 @@ def drive_cdrom():
         APP.config["RASCSI_DRIVE_PROPERTIES"],
         drive_name
         )
+
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
