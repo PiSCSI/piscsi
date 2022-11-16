@@ -49,7 +49,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
      * device tree. If it is ever added, this should be pulled
      * from there */
 
-    typedef struct {
+    using sun8i_hsitimer_registers = struct {
         /* 0x00 HS Timer IRQ Enabled Register */
         uint32_t hs_tmr_irq_en_reg;
         /* 0x04 HS Timer Status Register */
@@ -68,7 +68,7 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
         uint32_t hs_tmr_curnt_lo_reg;
         /* 0x20 HS Timer Current Value High Register */
         uint32_t hs_tmr_curnt_hi_reg;
-    } sun8i_hsitimer_registers;
+    };
 
     /* Constants for the HS Timer IRQ enable Register (section 4.9.4.1) */
     static const uint32_t HS_TMR_INTERUPT_ENB = (1 << 0);
@@ -90,10 +90,10 @@ class SysTimer_AllWinner : public PlatformSpecificTimer
     static const uint32_t system_bus_base_address = 0x01C20000;
 
     struct sun8i_sysbus_registers {
-        uint32_t pad_00_5C[(0x60 / sizeof(uint32_t))]; //NOSONAR c-style array used for padding
+        uint32_t pad_00_5C[(0x60 / sizeof(uint32_t))]; // NOSONAR c-style array used for padding
         /* 0x0060 Bus Clock Gating Register 0 */
         uint32_t bus_clk_gating_reg0;
-        uint32_t pad_64_2C0[((0x2C0 - 0x64) / sizeof(uint32_t))]; //NOSONAR c-style array used for padding
+        uint32_t pad_64_2C0[((0x2C0 - 0x64) / sizeof(uint32_t))]; // NOSONAR c-style array used for padding
         /* 0x2C0 Bus Software Reset Register 0 */
         uint32_t bus_soft_rst_reg0;
     };
