@@ -58,7 +58,7 @@ class SysCmds:
         if Path(PROC_MODEL_PATH).is_file():
             try:
                 with open(PROC_MODEL_PATH, "r") as open_file:
-                    hardware = open_file.readline().rstrip()
+                    hardware = open_file.read().rstrip()
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
         # As a fallback, look for PC vendor information
@@ -66,12 +66,12 @@ class SysCmds:
             hardware = ""
             try:
                 with open(SYS_VENDOR_PATH, "r") as open_file:
-                    hardware = open_file.readline().rstrip() + " "
+                    hardware = open_file.read().rstrip() + " "
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
             try:
                 with open(SYS_PROD_PATH, "r") as open_file:
-                    hardware = hardware + open_file.readline().rstrip()
+                    hardware = hardware + open_file.read().rstrip()
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
         else:
