@@ -107,6 +107,12 @@ void SBC_Version::Init()
 
     if (input_stream.fail()) {
         LOGERROR("Failed to open %s. Are you running as root?", SBC_Version::m_device_tree_model_path.c_str())
+        #if defined(__x86_64__) || defined(__X86__)
+            // We expect this to fail on x86
+            LOGINFO("Detected device %s", GetString()->c_str())
+            m_sbc_version = sbc_version_type::sbc_unknown;
+            return;
+    	#endif
         throw std::invalid_argument("Failed to open /proc/device-tree/model");
     }
 
