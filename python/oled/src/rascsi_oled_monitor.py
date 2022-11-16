@@ -125,18 +125,10 @@ print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approxim
 # Show a startup splash bitmap image before starting the main loop
 # Convert the image to mode '1' for 1-bit color (monochrome)
 # Make sure the splash bitmap image is in the same dir as this script
+IMAGE_STOP = Image.open(f"resources/splash_stop_{HEIGHT}.bmp").convert("1")
 IMAGE = Image.open(f"resources/splash_start_{HEIGHT}.bmp").convert("1")
 OLED.image(IMAGE)
 OLED.show()
-
-# Keep the pretty splash on screen for a number of seconds
-sleep(4)
-
-# Get drawing object to draw on image.
-DRAW = ImageDraw.Draw(IMAGE)
-
-# Draw a black filled box to clear the image.
-DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
 
 # Draw some shapes.
 # First define some constants to allow easy resizing of shapes.
@@ -163,6 +155,15 @@ FONT = ImageFont.truetype('resources/type_writer.ttf', FONT_SIZE)
 IP_ADDR, HOSTNAME = sys_cmd.get_ip_and_host()
 REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
+
+# Keep the pretty splash up on screen for a number of seconds
+sleep(2)
+
+# Get drawing object to draw on image.
+DRAW = ImageDraw.Draw(IMAGE)
+
+# Draw a black filled box to clear the image.
+DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
 
 def formatted_output():
     """
@@ -241,6 +242,9 @@ with GracefulInterruptHandler() as handler:
             if handler.interrupted:
                 # Catch interrupt signals and blank out the screen
                 DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
+                OLED.image(IMAGE)
+                OLED.show()
+                IMAGE = IMAGE_STOP
                 OLED.image(IMAGE)
                 OLED.show()
                 sys.exit("Shutting down the OLED display...")
