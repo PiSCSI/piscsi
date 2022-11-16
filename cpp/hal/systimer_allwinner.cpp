@@ -34,8 +34,8 @@ void SysTimer_AllWinner::Init()
         exit(-1);
     }
 
-    hsitimer_regs = (sun8i_hsitimer_registers *)mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
-                                                            hs_timer_base_address);
+    hsitimer_regs =
+        (sun8i_hsitimer_registers *)mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, hs_timer_base_address);
 
     if (hsitimer_regs == MAP_FAILED) {
         LOGERROR("Unable to map high speed timer registers. Are you running as root?")
@@ -125,7 +125,7 @@ void SysTimer_AllWinner::SleepNsec(uint32_t nsec)
     // one clock tick every 5 ns.
     auto clockticks = (uint32_t)std::ceil(nsec / 5);
 
-    uint32_t enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;    
+    uint32_t enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;
 
     // TODO: NEED TO HANDLE COUNTER OVERFLOW
     LOGTRACE("%s entertime: %08X ns: %d clockticks: %d", __PRETTY_FUNCTION__, enter_time, nsec, clockticks)
