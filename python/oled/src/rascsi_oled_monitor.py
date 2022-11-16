@@ -240,11 +240,7 @@ with GracefulInterruptHandler() as handler:
             snapshot = formatted_output()
 
             if handler.interrupted:
-                # Catch interrupt signals and blank out the screen
-                DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-                OLED.image(IMAGE)
-                OLED.show()
-                IMAGE = IMAGE_STOP
-                OLED.image(IMAGE)
+                # Display the shutdown splash
+                OLED.image(IMAGE_STOP)
                 OLED.show()
                 sys.exit("Shutting down the OLED display...")
