@@ -49,7 +49,7 @@ class SysCmds:
             )
         except subprocess.CalledProcessError as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            os_version = "?"
+            os_version = "Unknown OS"
 
         PROC_MODEL_PATH = "/proc/device-tree/model"
         SYS_VENDOR_PATH = "/sys/devices/virtual/dmi/id/sys_vendor"
@@ -69,19 +69,19 @@ class SysCmds:
             try:
                 open_file = open(SYS_VENDOR_PATH)
                 for line in open_file:
-                    hardware = line + " "
+                    hardware = f"{line} "
                     break
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
             try:
                 open_file = open(SYS_PROD_PATH)
                 for line in open_file:
-                    hardware = hardware + line
+                    hardware = f"{hardware}{line}"
                     break
             except (IOError, ValueError, EOFError, TypeError) as error:
                 logging.error(str(error))
         else:
-            hardware = "?"
+            hardware = "Unknown Device"
 
         return {"git": ra_git_version, "env": f"{hardware}, {os_version}" }
 
