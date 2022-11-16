@@ -188,6 +188,7 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     bool WaitREQ(bool ast) override {return WaitSignal(PIN_REQ, ast);}
     bool WaitACK(bool ast) override {return WaitSignal(PIN_ACK, ast);}
 
+    void dump_all() override {}
 
 
 // TODO: Restore this back to private

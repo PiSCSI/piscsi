@@ -352,6 +352,8 @@ class GPIOBUS : public BUS
 
 	// virtual phase_t GetPhase() const override;
 
+    virtual void dump_all() =0;
+
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
