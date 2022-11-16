@@ -1,0 +1,198 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI Reloaded
+// for Raspberry Pi
+//
+// Copyright (C) 2022 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
+#include "hal/gpiobus_raspberry.h"
+#include "mocks.h"
+
+class SetableGpiobusRaspberry : public GPIOBUS_Raspberry
+{
+  public:
+    void TestSetGpios(uint32_t value)
+    {
+        *level = ~value;
+    }
+    void TestSetGpioPin(int pin, bool value)
+    {
+        // Level is inverted logic
+        if (!value) {
+            *level |= (1 << pin);
+        } else {
+            *level &= ~(1 << pin);
+        }
+    }
+    SetableGpiobusRaspberry()
+    {
+        level = new uint32_t();
+    }
+};
+
+TEST(GpiobusRaspberry, GetDat)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    EXPECT_EQ(0, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT0, true);
+    EXPECT_EQ(0x01, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT1, true);
+    EXPECT_EQ(0x03, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT2, true);
+    EXPECT_EQ(0x07, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT3, true);
+    EXPECT_EQ(0x0F, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT4, true);
+    EXPECT_EQ(0x1F, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT5, true);
+    EXPECT_EQ(0x3F, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT6, true);
+    EXPECT_EQ(0x7F, bus.GetDAT());
+
+    bus.TestSetGpioPin(PIN_DT7, true);
+    EXPECT_EQ(0xFF, bus.GetDAT());
+
+    bus.TestSetGpios(0xFFFFFFFF);
+    EXPECT_EQ(0xFF, bus.GetDAT());
+}
+
+TEST(GpiobusRaspberry, GetBSY)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_BSY, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetBSY());
+    bus.TestSetGpioPin(PIN_BSY, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetBSY());
+}
+
+TEST(GpiobusRaspberry, GetSEL)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_SEL, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetSEL());
+    bus.TestSetGpioPin(PIN_SEL, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetSEL());
+}
+
+TEST(GpiobusRaspberry, GetATN)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_ATN, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetATN());
+    bus.TestSetGpioPin(PIN_ATN, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetATN());
+}
+
+TEST(GpiobusRaspberry, GetACK)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_ACK, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetACK());
+    bus.TestSetGpioPin(PIN_ACK, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetACK());
+}
+
+TEST(GpiobusRaspberry, GetRST)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_RST, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetRST());
+    bus.TestSetGpioPin(PIN_RST, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetRST());
+}
+
+TEST(GpiobusRaspberry, GetMSG)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_MSG, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetMSG());
+    bus.TestSetGpioPin(PIN_MSG, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetMSG());
+}
+
+TEST(GpiobusRaspberry, GetCD)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_CD, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetCD());
+    bus.TestSetGpioPin(PIN_CD, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetCD());
+}
+
+TEST(GpiobusRaspberry, GetIO)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_IO, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetIO());
+    bus.TestSetGpioPin(PIN_IO, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetIO());
+}
+
+TEST(GpiobusRaspberry, GetREQ)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_REQ, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetREQ());
+    bus.TestSetGpioPin(PIN_REQ, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetREQ());
+}
+
+TEST(GpiobusRaspberry, GetDP)
+{
+    SetableGpiobusRaspberry bus;
+
+    bus.TestSetGpios(0x00);
+    bus.TestSetGpioPin(PIN_DP, true);
+    bus.Acquire();
+    EXPECT_EQ(true, bus.GetDP());
+    bus.TestSetGpioPin(PIN_DP, false);
+    bus.Acquire();
+    EXPECT_EQ(false, bus.GetDP());
+}

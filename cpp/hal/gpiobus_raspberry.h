@@ -72,7 +72,7 @@ const static int GIC_GPIO_IRQ  = (32 + 116); // GPIO3
 //	Class definition
 //
 //---------------------------------------------------------------------------
-class GPIOBUS_Raspberry final : public GPIOBUS
+class GPIOBUS_Raspberry : public GPIOBUS
 {
   public:
     GPIOBUS_Raspberry()           = default;
@@ -157,6 +157,13 @@ class GPIOBUS_Raspberry final : public GPIOBUS
         return WaitSignal(PIN_ACK, ast);
     }
 
+protected:
+    // All bus signals
+    uint32_t signals = 0;
+    // GPIO input level
+    volatile uint32_t *level = nullptr;
+
+
   private:
     // SCSI I/O signal control
     void MakeTable() override;
@@ -199,10 +206,6 @@ class GPIOBUS_Raspberry final : public GPIOBUS
     // PADS register
     volatile uint32_t *pads = nullptr; // NOSONAR: volatile needed for register access
 
-#if !defined(__x86_64__) && !defined(__X86__)
-    // GPIO input level
-    volatile uint32_t *level = nullptr;
-#endif
     // Interrupt control register
     volatile uint32_t *irpctl = nullptr;
 
@@ -228,9 +231,6 @@ class GPIOBUS_Raspberry final : public GPIOBUS
 
     // GPFSEL0-4 backup values
     array<uint32_t, 4> gpfsel;
-
-    // All bus signals
-    uint32_t signals = 0;
 
 #if SIGNAL_CONTROL_MODE == 0
     // Data mask table
