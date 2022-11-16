@@ -7,6 +7,7 @@ from subprocess import run
 from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
+from pathlib import Path
 
 from rascsi.common_settings import SHELL_ERROR
 
@@ -37,9 +38,9 @@ class SysCmds:
             ra_git_version = ""
 
         try:
-            pi_version = (
+            os_version = (
                 subprocess.run(
-                    ["uname", "-a"],
+                    ["uname", "--kernel-name", "--kernel-release", "--machine"],
                     capture_output=True,
                     check=True,
                     )
@@ -48,9 +49,35 @@ class SysCmds:
             )
         except subprocess.CalledProcessError as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            pi_version = "?"
+            os_version = "Unknown OS"
 
-        return {"git": ra_git_version, "env": pi_version}
+        PROC_MODEL_PATH = "/proc/device-tree/model"
+        SYS_VENDOR_PATH = "/sys/devices/virtual/dmi/id/sys_vendor"
+        SYS_PROD_PATH = "/sys/devices/virtual/dmi/id/product_name"
+        # First we try to get the Pi model
+        if Path(PROC_MODEL_PATH).is_file():
+            try:
+                with open(PROC_MODEL_PATH, "r") as open_file:
+                    hardware = open_file.read().rstrip()
+            except (IOError, ValueError, EOFError, TypeError) as error:
+                logging.error(str(error))
+        # As a fallback, look for PC vendor information
+        elif Path(SYS_VENDOR_PATH).is_file() and Path(SYS_PROD_PATH).is_file():
+            hardware = ""
+            try:
+                with open(SYS_VENDOR_PATH, "r") as open_file:
+                    hardware = open_file.read().rstrip() + " "
+            except (IOError, ValueError, EOFError, TypeError) as error:
+                logging.error(str(error))
+            try:
+                with open(SYS_PROD_PATH, "r") as open_file:
+                    hardware = hardware + open_file.read().rstrip()
+            except (IOError, ValueError, EOFError, TypeError) as error:
+                logging.error(str(error))
+        else:
+            hardware = "Unknown Device"
+
+        return {"git": ra_git_version, "env": f"{hardware}, {os_version}" }
 
     @staticmethod
     def running_proc(daemon):
@@ -114,15 +141,18 @@ class SysCmds:
         Will introspect file_path for the existance of re_term
         and return True if found, False if not found
         """
+        result = False
         try:
             ifile = open(file_path, "r", encoding="ISO-8859-1")
+            for line in ifile:
+                if match(re_term, line):
+                    result = True
+                    break
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
-            return False
-        for line in ifile:
-            if match(re_term, line):
-                return True
-        return False
+        finally:
+            ifile.close()
+        return result
 
     # pylint: disable=broad-except
     @staticmethod

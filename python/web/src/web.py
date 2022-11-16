@@ -361,6 +361,12 @@ def drive_create():
         drive_name
         )
 
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     # Creating the image file
     process = file_cmd.create_new_image(
         file_name,
@@ -398,6 +404,13 @@ def drive_cdrom():
         APP.config["RASCSI_DRIVE_PROPERTIES"],
         drive_name
         )
+
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -1007,21 +1020,22 @@ def create_file():
             APP.config["RASCSI_DRIVE_PROPERTIES"],
             drive_name
             )
-        prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
-        process = file_cmd.write_drive_properties(prop_file_name, properties)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
+        if properties:
+            prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+            process = file_cmd.write_drive_properties(prop_file_name, properties)
+            process = ReturnCodeMapper.add_msg(process)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
 
-        return response(
-            status_code=201,
-            message=_(
-                "Image file with properties created: %(file_name)s%(drive_format)s",
-                file_name=full_file_name,
-                drive_format=message_postfix,
-            ),
-            image=full_file_name,
-        )
+            return response(
+                status_code=201,
+                message=_(
+                    "Image file with properties created: %(file_name)s%(drive_format)s",
+                    file_name=full_file_name,
+                    drive_format=message_postfix,
+                ),
+                image=full_file_name,
+            )
 
     return response(
         status_code=201,
