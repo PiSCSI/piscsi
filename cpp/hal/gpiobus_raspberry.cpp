@@ -8,6 +8,11 @@
 //
 //	[ GPIO-SCSI bus ]
 //
+//  Raspberry Pi 4:
+//     https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf
+//  Raspberry Pi Zero:
+//     https://datasheets.raspberrypi.com/bcm2835/bcm2835-peripherals.pdf
+//
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus_raspberry.h"
@@ -188,7 +193,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	PinSetSignal(PIN_ENB, ENB_OFF);
 	PinConfig(PIN_ENB, GPIO_OUTPUT);
 
-	// GPFSEL backup
+	// GPIO Function Select (GPFSEL) registers backup
 	gpfsel[0] = gpio[GPIO_FSEL_0];
 	gpfsel[1] = gpio[GPIO_FSEL_1];
 	gpfsel[2] = gpio[GPIO_FSEL_2];
@@ -236,7 +241,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 	gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
 #endif	// SIGNAL_CONTROL_MODE
 
-	// Clear event
+	// Clear event - GPIO Pin Event Detect Status 
 	gpio[GPIO_EDS_0] = 1 << PIN_SEL;
 
 	// Register interrupt handler

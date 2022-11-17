@@ -91,6 +91,26 @@ extern int wiringPiMode;
 #define PAGE_SIZE (4 * 1024)
 #define BLOCK_SIZE (4 * 1024)
 
+// #define SUNXI_GPIO_BASE   0x01C20000
+#define TMR_REGISTER_BASE 0x01C20C00
+#define TMR_IRQ_EN_REG 0x0       // T imer IRQ Enable Register
+#define TMR_IRQ_STA_REG 0x4      // Timer Status Register
+#define TMR0_CTRL_REG 0x10       // Timer 0 Control Register
+#define TMR0_INTV_VALUE_REG 0x14 // Timer 0 Interval Value Register
+#define TMR0_CUR_VALUE_REG 0x18  // Timer 0 Current Value Register
+#define TMR1_CTRL_REG 0x20       // Timer 1 Control Register
+#define TMR1_INTV_VALUE_REG 0x24 // Timer 1 Interval Value Register
+#define TMR1_CUR_VALUE_REG 0x28  // Timer 1 Current Value Register
+#define AVS_CNT_CTL_REG 0x80     // AVS Control Register
+#define AVS_CNT0_REG 0x84        // AVS Counter 0 Register
+#define AVS_CNT1_REG 0x88        // AVS Counter 1 Register
+#define AVS_CNT_DIV_REG 0x8C     // AVS Divisor Register
+#define WDOG0_IRQ_EN_REG 0xA0    // Watchdog 0 IRQ Enable Register
+#define WDOG0_IRQ_STA_REG 0xA4   // Watchdog 0 Status Register
+#define WDOG0_CTRL_REG 0xB0      // Watchdog 0 Control Register
+#define WDOG0_CFG_REG 0xB4       // Watchdog 0 Configuration Register
+#define WDOG0_MODE_REG 0xB8      // Watchdog 0 Mode Register
+
 std::vector<int> gpio_banks;
 
 bool GPIOBUS_BananaM2p::Init(mode_e mode)
@@ -898,12 +918,14 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
 
 void GPIOBUS_BananaM2p::DisableIRQ()
 {
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
+    LOGERROR("%s not tested????", __PRETTY_FUNCTION__)
+    *tmr_ctrl = 0b00;
 }
 
 void GPIOBUS_BananaM2p::EnableIRQ()
 {
-    LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
+    LOGERROR("%s not tested????", __PRETTY_FUNCTION__)
+    *tmr_ctrl = 0b11;
 }
 
 void GPIOBUS_BananaM2p::PinConfig(int pin, int mode)
@@ -1143,6 +1165,9 @@ int GPIOBUS_BananaM2p::sunxi_setup(void)
     r_pio_map = r_gpio_map + (SUNXI_R_GPIO_REG_OFFSET >> 2);
     LOGTRACE("r_gpio_map[%p] r_pio_map[%p]", r_gpio_map, r_pio_map)
 
+    tmr_ctrl = gpio_map + ((TMR_REGISTER_BASE - SUNXI_GPIO_BASE) >> 2);
+    LOGINFO("tmr_ctrl offset: %08X value: %08X", (TMR_REGISTER_BASE - SUNXI_GPIO_BASE), *tmr_ctrl);
+
     close(mem_fd);
     return SETUP_OK;
 #endif
@@ -1212,10 +1237,10 @@ int GPIOBUS_BananaM2p::sunxi_gpio_function(int gpio)
 void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
 {
     GPIO_FUNCTION_TRACE
-	    if(gpio < 0){
-		    LOGWARN("Invalid GPIO Num")
-		    return;
-	    }
+    if (gpio < 0) {
+        LOGWARN("Invalid GPIO Num")
+        return;
+    }
     int bank = GPIO_BANK(gpio); // gpio >> 5
     int num  = GPIO_NUM(gpio);  // gpio & 0x1F
 

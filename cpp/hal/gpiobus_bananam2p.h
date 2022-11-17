@@ -183,6 +183,10 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     volatile uint32_t giccpmr; // GICC priority setting
 
+    // Timer control register
+    volatile uint32_t *tmr_ctrl; 
+
+
 #if !defined(__x86_64__) && !defined(__X86__)
     volatile uint32_t *gicd = nullptr; // GIC Interrupt distributor register
 #endif
