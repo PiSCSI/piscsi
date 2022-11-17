@@ -109,6 +109,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     bool WaitREQ(bool ast) override {return WaitSignal(BPI_PIN_REQ, ast);}
     bool WaitACK(bool ast) override {return WaitSignal(BPI_PIN_ACK, ast);}
+     void dump_all() override;
 
 
     // TODO: Restore these back to protected
@@ -228,6 +229,17 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     int bpi_found = -1;
 
+    enum class gpio_configure_values_e : uint8_t{
+        gpio_input = 0b000,
+        gpio_output = 0b001,
+        gpio_alt_func_1 = 0b010,
+        gpio_alt_func_2 = 0b011,
+        gpio_reserved_1 = 0b100,
+        gpio_reserved_2 = 0b101,
+        gpio_interupt = 0b110,
+        gpio_disable = 0b111
+    };
+
     struct BPIBoards {
         const char *name;
         int gpioLayout;
@@ -269,6 +281,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     volatile uint32_t *r_pio_map;
 
     volatile uint32_t *r_gpio_map;
+
 
     uint8_t *gpio_mmap_reg;
     uint32_t sunxi_capture_all_gpio();
