@@ -35,6 +35,7 @@ import argparse
 import sys
 from time import sleep
 from collections import deque
+from unidecode import unidecode
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
@@ -177,6 +178,9 @@ def formatted_output():
         output.append("Permission denied!")
     elif rascsi_list:
         for line in rascsi_list:
+            # Transliterate non-Latin characters
+            if line["file"]:
+                line["file"] = unidecode(line["file"])
             if line["device_type"] in REMOVABLE_DEVICE_TYPES:
                 # Print image file name only when there is an image attached
                 if line["file"]:
@@ -208,10 +212,24 @@ def formatted_output():
         output.append("Check network connection")
     return output
 
+def shutdown():
+    """
+    Display the shutdown splash, then blank the screen after a sleep
+    Finally shuts down the script
+    """
+    OLED.image(IMAGE_STOP)
+    OLED.show()
+    OLED.fill(0)
+    sleep(700/1000)
+    OLED.show()
+    sys.exit("Shutting down the OLED display...")
+
 
 with GracefulInterruptHandler() as handler:
+    """
+    The main display loop inside an interrupt handler
+    """
     while True:
-
         # The reference snapshot of attached devices that will be compared against each cycle
         # to identify changes in RaSCSI backend
         ref_snapshot = formatted_output()
@@ -240,10 +258,4 @@ with GracefulInterruptHandler() as handler:
             snapshot = formatted_output()
 
             if handler.interrupted:
-                # Display the shutdown splash
-                OLED.image(IMAGE_STOP)
-                OLED.show()
-                OLED.fill(0)
-                sleep(700/1000)
-                OLED.show()
-                sys.exit("Shutting down the OLED display...")
+                shutdown()
