@@ -348,7 +348,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
 
 <hr/>
@@ -723,18 +723,18 @@
 <section id="system">
 <details>
     <summary class="heading">
-        {{ _("Raspberry Pi Operations") }}
+        {{ _("System Operations") }}
     </summary>
     <ul>
-        <li>{{ _("IMPORTANT: Always shut down the Pi before turning off the power. Failing to do so may lead to data loss.") }}</li>
+        <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
     </ul>
 </details>
 
-<form action="/pi/reboot" method="post" onclick="if (confirm('{{ _("Reboot the Raspberry Pi?") }}')) shutdownNotify('{{ _("Rebooting the Raspberry Pi...") }}'); else event.preventDefault();">
-    <input type="submit" value="{{ _("Reboot Raspberry Pi") }}">
+<form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Reboot System") }}">
 </form>
-<form action="/pi/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the Raspberry Pi?") }}')) shutdownNotify('{{ _("Shutting down the Raspberry Pi...") }}'); else event.preventDefault();">
-    <input type="submit" value="{{ _("Shut Down Raspberry Pi") }}">
+<form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
+    <input type="submit" value="{{ _("Shut Down System") }}">
 </form>
 </section>
 

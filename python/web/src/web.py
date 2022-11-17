@@ -797,23 +797,23 @@ def release_id():
     return response(error=True, message=process["msg"])
 
 
-@APP.route("/pi/reboot", methods=["POST"])
+@APP.route("/sys/reboot", methods=["POST"])
 @login_required
 def restart():
     """
-    Restarts the Pi
+    Restarts the system
     """
-    ractl_cmd.shutdown_pi("reboot")
+    sys_cmd.reboot_system()
     return response()
 
 
-@APP.route("/pi/shutdown", methods=["POST"])
+@APP.route("/sys/shutdown", methods=["POST"])
 @login_required
 def shutdown():
     """
-    Shuts down the Pi
+    Shuts down the system
     """
-    ractl_cmd.shutdown_pi("system")
+    sys_cmd.shutdown_system()
     return response()
 
 
@@ -889,7 +889,7 @@ def download_to_iso():
 @login_required
 def download_file():
     """
-    Downloads a remote file onto the images dir on the Pi
+    Downloads a remote file onto the images dir on the system
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
@@ -915,7 +915,7 @@ def download_file():
 @APP.route("/files/upload", methods=["POST"])
 def upload_file():
     """
-    Uploads a file from the local computer to the images dir on the Pi
+    Uploads a file from the local computer to the images dir on the system
     Depending on the Dropzone.js JavaScript library
     """
     # Due to the embedded javascript library, we cannot use the @login_required decorator
@@ -1052,7 +1052,7 @@ def create_file():
 @login_required
 def download():
     """
-    Downloads a file from the Pi to the local computer
+    Downloads a file from the system to the local computer
     """
     file_name = Path(request.form.get("file"))
     safe_path = is_safe_path(file_name)
