@@ -223,3 +223,31 @@ class SysCmds:
             return process.returncode, process.stdout.decode("utf-8")
 
         return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def reboot_system():
+        """
+        Sends a reboot command to the system
+        """
+        process = run(
+                ["sudo", "reboot"],
+                capture_output=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def shutdown_system():
+        """
+        Sends a shutdown command to the system
+        """
+        process = run(
+                ["sudo", "shutdown", "-h", "now"],
+                capture_output=True,
+                )
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")
