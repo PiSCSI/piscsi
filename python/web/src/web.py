@@ -803,8 +803,11 @@ def restart():
     """
     Restarts the system
     """
-    sys_cmd.reboot_system()
-    return response()
+    returncode, message = sys_cmd.reboot_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
 @APP.route("/sys/shutdown", methods=["POST"])
@@ -813,8 +816,11 @@ def shutdown():
     """
     Shuts down the system
     """
-    sys_cmd.shutdown_system()
-    return response()
+    returncode, message = sys_cmd.shutdown_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
 @APP.route("/files/download_to_iso", methods=["POST"])
