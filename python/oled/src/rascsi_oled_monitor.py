@@ -243,4 +243,7 @@ with GracefulInterruptHandler() as handler:
                 # Display the shutdown splash
                 OLED.image(IMAGE_STOP)
                 OLED.show()
+                OLED.fill(0)
+                sleep(700/1000)
+                OLED.show()
                 sys.exit("Shutting down the OLED display...")
