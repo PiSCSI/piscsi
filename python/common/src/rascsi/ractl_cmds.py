@@ -445,7 +445,7 @@ class RaCtlCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
-    def shutdown_pi(self, mode):
+    def shutdown(self, mode):
         """
         Sends a SHUT_DOWN command to the server.
         Takes (str) mode as an argument.
