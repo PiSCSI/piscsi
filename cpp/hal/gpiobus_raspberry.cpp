@@ -16,7 +16,6 @@
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus_raspberry.h"
-#include "hal/board_type.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "shared/log.h"

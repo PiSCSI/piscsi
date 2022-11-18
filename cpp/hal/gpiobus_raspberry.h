@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "hal/board_type.h"
 #include "hal/gpiobus.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
@@ -195,10 +194,7 @@ protected:
     // Set GPIO drive strength
 
     BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
-
-#if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
-#endif
 
     int rpitype = 0; // Type of Raspberry Pi
 
