@@ -730,12 +730,21 @@
     </ul>
 </details>
 
+<div>
+<form action="/sys/rename" method="post">
+    <label for="device_name">{{ _("Device Name:") }}</label>
+    <input name="device_name" id="device_name" required type="text">
+    <input type="submit" value="{{ _("Change Device Name") }}">
+</form>
+</div>
+<div>
 <form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Reboot System") }}">
 </form>
 <form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Shut Down System") }}">
 </form>
+</div>
 </section>
 
 <hr/>

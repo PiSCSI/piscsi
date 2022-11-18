@@ -798,6 +798,20 @@ def release_id():
     return response(error=True, message=process["msg"])
 
 
+@APP.route("/sys/rename", methods=["POST"])
+@login_required
+def rename_device():
+    """
+    Changes the display name of the device
+    """
+    name = request.form.get("device_name")
+    process = sys_cmd.set_pretty_host(name)
+    if process:
+        return response(message=_("Changed device name to %(name)s", name=name))
+
+    return response(error=True, message=_("Failed to change device name"))
+
+
 @APP.route("/sys/reboot", methods=["POST"])
 @login_required
 def restart():

@@ -3,7 +3,7 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
-from subprocess import run
+from subprocess import run, CalledProcessError
 from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
@@ -178,6 +178,23 @@ class SysCmds:
             return pretty_hostname
 
         return gethostname()
+
+    @staticmethod
+    def set_pretty_host(name):
+        """
+        Set the pretty hostname for the system
+        """
+        try:
+            process = run(
+                    ["sudo", "hostnamectl", "set-hostname", "--pretty", name],
+                    capture_output=False,
+                    check=True,
+                    )
+        except CalledProcessError as error:
+            logging.error(str(error))
+            return False
+
+        return True
 
     @staticmethod
     def get_logs(lines, scope):
