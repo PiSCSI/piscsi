@@ -1,10 +1,10 @@
-# What is RaSCSI Reloaded?
-RaSCSI Reloaded is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/akuker/RASCSI/wiki/Compatibility)) from the 1980's and 1990's.
+# What is RedSCSI (Formerly known as "RaSCSI Reloaded")?
+RedSCSI is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/akuker/RASCSI/wiki/Compatibility)) from the 1980's and 1990's.
 
 Please check out the full story with much more detail on the [wiki](https://github.com/akuker/RASCSI/wiki)!
 
 # How do I contribute?
-RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
+RedSCSI is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
 
 - The *master* branch should always reflect the contents of the last stable release
 - The *develop* branch should contain the latest tested & approved updates. Pull requests should be used to merge changes into develop.
@@ -13,7 +13,7 @@ RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/Introdu
   
 Typically, releases will only be planned every few months.
 
-When you are ready to contribute code to RaSCSI Reloaded, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
+When you are ready to contribute code to RedSCSI, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
 
 If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/akuker/RASCSI/blob/develop/python/web/README.md#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
 
