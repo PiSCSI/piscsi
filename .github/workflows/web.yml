@@ -8,6 +8,9 @@ on:
       - 'python/web/**'
       - 'python/common/**'
       - '.github/workflows/web.yml'
+  push:
+    branches:
+      - develop
 
 jobs:
   backend_checks:

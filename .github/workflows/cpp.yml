@@ -7,6 +7,9 @@ on:
     paths:
       - 'cpp/**'
       - '.github/workflows/cpp.yml'
+  push:
+    branches:
+      - develop
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
