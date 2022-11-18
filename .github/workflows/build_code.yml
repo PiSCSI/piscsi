@@ -7,6 +7,9 @@ on:
     paths:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
+  push:
+    branches:
+      - develop
 
 jobs:
   fullspec:
