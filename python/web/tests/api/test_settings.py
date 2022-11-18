@@ -196,3 +196,22 @@ def test_set_theme_via_query_string(http_client, theme):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
+
+
+# route("/sys/rename", methods=["POST"])
+def test_rename_device(http_client):
+    # TODO: Make this test non-destructive for reused test environments.
+    new_name = "DEVICE NAME TEST"
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "device_name": new_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Device name changed to '{new_name}'."

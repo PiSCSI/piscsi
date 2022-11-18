@@ -807,9 +807,9 @@ def rename_device():
     name = request.form.get("device_name")
     process = sys_cmd.set_pretty_host(name)
     if process:
-        return response(message=_("Changed device name to %(name)s", name=name))
+        return response(message=_("Device name changed to '%(name)s'.", name=name))
 
-    return response(error=True, message=_("Failed to change device name"))
+    return response(error=True, message=_("Failed to change device name."))
 
 
 @APP.route("/sys/reboot", methods=["POST"])
