@@ -8,6 +8,7 @@ from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 from pathlib import Path
+from platform import uname
 
 from rascsi.common_settings import SHELL_ERROR
 
@@ -37,20 +38,6 @@ class SysCmds:
             logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
             ra_git_version = ""
 
-        try:
-            os_version = (
-                subprocess.run(
-                    ["uname", "--kernel-name", "--kernel-release", "--machine"],
-                    capture_output=True,
-                    check=True,
-                    )
-                .stdout.decode("utf-8")
-                .strip()
-            )
-        except subprocess.CalledProcessError as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            os_version = "Unknown OS"
-
         PROC_MODEL_PATH = "/proc/device-tree/model"
         SYS_VENDOR_PATH = "/sys/devices/virtual/dmi/id/sys_vendor"
         SYS_PROD_PATH = "/sys/devices/virtual/dmi/id/product_name"
@@ -77,7 +64,11 @@ class SysCmds:
         else:
             hardware = "Unknown Device"
 
-        return {"git": ra_git_version, "env": f"{hardware}, {os_version}" }
+        env = uname()
+        return {
+            "git": ra_git_version,
+            "env": f"{hardware}, {env.system} {env.release} {env.machine}",
+            }
 
     @staticmethod
     def running_proc(daemon):
