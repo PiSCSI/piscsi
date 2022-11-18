@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "hal/board_type.h"
 #include "hal/gpiobus.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
@@ -111,8 +110,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     {
         return WaitSignal(PIN_ACK, ast);
     }
-
-     void dump_all() override {};
 
     uint8_t GetDAT() override;
     // Get DAT signal

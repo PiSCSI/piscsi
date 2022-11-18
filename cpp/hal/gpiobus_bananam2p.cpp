@@ -112,19 +112,20 @@ extern int wiringPiMode;
 #define WDOG0_MODE_REG 0xB8      // Watchdog 0 Mode Register
 
 std::vector<int> gpio_banks;
-#define CYAN "\033[36m"    /* Cyan */
-#define WHITE "\033[37m"   /* White */
-void GPIOBUS_BananaM2p::dump_all(){
 
-        sunxi_gpio_reg_t *regs = ((sunxi_gpio_reg_t *)pio_map);
-        printf(CYAN "--- GPIO BANK 0 CFG: %08X %08X %08X %08X\n", regs->gpio_bank[0].CFG[0], regs->gpio_bank[0].CFG[1], regs->gpio_bank[0].CFG[2], regs->gpio_bank[0].CFG[3]);
-        printf("---      Dat: (%08X)  DRV: %08X %08X\n", regs->gpio_bank[0].DAT, regs->gpio_bank[0].DRV[0], regs->gpio_bank[0].DRV[1]);
-        printf("---      Pull: %08X %08x\n", regs->gpio_bank[0].PULL[0], regs->gpio_bank[0].PULL[1]);
+// #define CYAN "\033[36m"    /* Cyan */
+// #define WHITE "\033[37m"   /* White */
+// void GPIOBUS_BananaM2p::dump_all(){
+
+//         sunxi_gpio_reg_t *regs = ((sunxi_gpio_reg_t *)pio_map);
+//         printf(CYAN "--- GPIO BANK 0 CFG: %08X %08X %08X %08X\n", regs->gpio_bank[0].CFG[0], regs->gpio_bank[0].CFG[1], regs->gpio_bank[0].CFG[2], regs->gpio_bank[0].CFG[3]);
+//         printf("---      Dat: (%08X)  DRV: %08X %08X\n", regs->gpio_bank[0].DAT, regs->gpio_bank[0].DRV[0], regs->gpio_bank[0].DRV[1]);
+//         printf("---      Pull: %08X %08x\n", regs->gpio_bank[0].PULL[0], regs->gpio_bank[0].PULL[1]);
         
-        printf("--- GPIO INT CFG: %08X %08X %08X\n", regs->gpio_int.CFG[0], regs->gpio_int.CFG[1], regs->gpio_int.CFG[2]);
-        printf("---      CTL: (%08X)  STA: %08X DEB: %08X\n " WHITE, regs->gpio_int.CTL, regs->gpio_int.STA, regs->gpio_int.DEB);
+//         printf("--- GPIO INT CFG: %08X %08X %08X\n", regs->gpio_int.CFG[0], regs->gpio_int.CFG[1], regs->gpio_int.CFG[2]);
+//         printf("---      CTL: (%08X)  STA: %08X DEB: %08X\n " WHITE, regs->gpio_int.CTL, regs->gpio_int.STA, regs->gpio_int.DEB);
 
-}
+// }
 
 bool GPIOBUS_BananaM2p::Init(mode_e mode)
 {

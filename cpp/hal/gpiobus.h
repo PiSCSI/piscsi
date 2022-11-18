@@ -11,9 +11,8 @@
 
 #pragma once
 
-#include "hal/board_type.h"
-#include "shared/scsi.h"
 #include "hal/bus.h"
+#include "shared/scsi.h"
 #include <array>
 #include <memory>
 #include <vector>
@@ -44,14 +43,12 @@
 #error Invalid connection type or none specified
 #endif
 
-#define ENABLE_GPIO_TRACE
+// #define ENABLE_GPIO_TRACE
 #ifdef ENABLE_GPIO_TRACE
 #define GPIO_FUNCTION_TRACE LOGTRACE("%s", __PRETTY_FUNCTION__)
 #else
 #define GPIO_FUNCTION_TRACE
 #endif
-
-
 
 using namespace std;
 
@@ -129,95 +126,94 @@ using namespace std;
 //
 //---------------------------------------------------------------------------
 
-
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
-const static uint32_t SYST_OFFSET =		0x00003000;
-const static uint32_t IRPT_OFFSET =		0x0000B200;
-const static uint32_t ARMT_OFFSET =		0x0000B400;
-const static uint32_t PADS_OFFSET =		0x00100000;
-const static uint32_t GPIO_OFFSET =		0x00200000;
-const static uint32_t QA7_OFFSET =		0x01000000;
+const static uint32_t SYST_OFFSET = 0x00003000;
+const static uint32_t IRPT_OFFSET = 0x0000B200;
+const static uint32_t ARMT_OFFSET = 0x0000B400;
+const static uint32_t PADS_OFFSET = 0x00100000;
+const static uint32_t GPIO_OFFSET = 0x00200000;
+const static uint32_t QA7_OFFSET  = 0x01000000;
 
-const static int GPIO_INPUT	=		0;
-const static int GPIO_OUTPUT =		1;
-const static int GPIO_PULLNONE =	0;
-const static int GPIO_PULLDOWN =	1;
-const static int GPIO_PULLUP =		2;
-const static int GPIO_FSEL_0 =		0;
-const static int GPIO_FSEL_1 =		1;
-const static int GPIO_FSEL_2 =		2;
-const static int GPIO_FSEL_3 =		3;
-const static int GPIO_SET_0 =		7;
-const static int GPIO_CLR_0 =		10;
-const static int GPIO_LEV_0 =		13;
-const static int GPIO_EDS_0 =		16;
-const static int GPIO_REN_0 =		19;
-const static int GPIO_FEN_0 =		22;
-const static int GPIO_HEN_0 =		25;
-const static int GPIO_LEN_0 =		28;
-const static int GPIO_AREN_0 =		31;
-const static int GPIO_AFEN_0 =		34;
-const static int GPIO_PUD =			37;
-const static int GPIO_CLK_0 =		38;
-const static int GPIO_GPPINMUXSD =	52;
-const static int GPIO_PUPPDN0 =		57;
-const static int GPIO_PUPPDN1 =		58;
-const static int GPIO_PUPPDN3 =		59;
-const static int GPIO_PUPPDN4 =		60;
-const static int PAD_0_27 =			11;
-const static int SYST_CS =			0;
-const static int SYST_CLO =			1;
-const static int SYST_CHI =			2;
-const static int SYST_C0 =			3;
-const static int SYST_C1 =			4;
-const static int SYST_C2 =			5;
-const static int SYST_C3 =			6;
-const static int ARMT_LOAD =		0;
-const static int ARMT_VALUE =		1;
-const static int ARMT_CTRL =		2;
-const static int ARMT_CLRIRQ =		3;
-const static int ARMT_RAWIRQ =		4;
-const static int ARMT_MSKIRQ =		5;
-const static int ARMT_RELOAD =		6;
-const static int ARMT_PREDIV =		7;
-const static int ARMT_FREERUN =		8;
-const static int IRPT_PND_IRQ_B =	0;
-const static int IRPT_PND_IRQ_1 =	1;
-const static int IRPT_PND_IRQ_2 =	2;
-const static int IRPT_FIQ_CNTL =	3;
-const static int IRPT_ENB_IRQ_1 =	4;
-const static int IRPT_ENB_IRQ_2 =	5;
-const static int IRPT_ENB_IRQ_B =	6;
-const static int IRPT_DIS_IRQ_1 =	7;
-const static int IRPT_DIS_IRQ_2 =	8;
-const static int IRPT_DIS_IRQ_B =	9;
-const static int QA7_CORE0_TINTC = 	16;
-const static int GPIO_IRQ =			(32 + 20);	// GPIO3
+const static int GPIO_INPUT      = 0;
+const static int GPIO_OUTPUT     = 1;
+const static int GPIO_PULLNONE   = 0;
+const static int GPIO_PULLDOWN   = 1;
+const static int GPIO_PULLUP     = 2;
+const static int GPIO_FSEL_0     = 0;
+const static int GPIO_FSEL_1     = 1;
+const static int GPIO_FSEL_2     = 2;
+const static int GPIO_FSEL_3     = 3;
+const static int GPIO_SET_0      = 7;
+const static int GPIO_CLR_0      = 10;
+const static int GPIO_LEV_0      = 13;
+const static int GPIO_EDS_0      = 16;
+const static int GPIO_REN_0      = 19;
+const static int GPIO_FEN_0      = 22;
+const static int GPIO_HEN_0      = 25;
+const static int GPIO_LEN_0      = 28;
+const static int GPIO_AREN_0     = 31;
+const static int GPIO_AFEN_0     = 34;
+const static int GPIO_PUD        = 37;
+const static int GPIO_CLK_0      = 38;
+const static int GPIO_GPPINMUXSD = 52;
+const static int GPIO_PUPPDN0    = 57;
+const static int GPIO_PUPPDN1    = 58;
+const static int GPIO_PUPPDN3    = 59;
+const static int GPIO_PUPPDN4    = 60;
+const static int PAD_0_27        = 11;
+const static int SYST_CS         = 0;
+const static int SYST_CLO        = 1;
+const static int SYST_CHI        = 2;
+const static int SYST_C0         = 3;
+const static int SYST_C1         = 4;
+const static int SYST_C2         = 5;
+const static int SYST_C3         = 6;
+const static int ARMT_LOAD       = 0;
+const static int ARMT_VALUE      = 1;
+const static int ARMT_CTRL       = 2;
+const static int ARMT_CLRIRQ     = 3;
+const static int ARMT_RAWIRQ     = 4;
+const static int ARMT_MSKIRQ     = 5;
+const static int ARMT_RELOAD     = 6;
+const static int ARMT_PREDIV     = 7;
+const static int ARMT_FREERUN    = 8;
+const static int IRPT_PND_IRQ_B  = 0;
+const static int IRPT_PND_IRQ_1  = 1;
+const static int IRPT_PND_IRQ_2  = 2;
+const static int IRPT_FIQ_CNTL   = 3;
+const static int IRPT_ENB_IRQ_1  = 4;
+const static int IRPT_ENB_IRQ_2  = 5;
+const static int IRPT_ENB_IRQ_B  = 6;
+const static int IRPT_DIS_IRQ_1  = 7;
+const static int IRPT_DIS_IRQ_2  = 8;
+const static int IRPT_DIS_IRQ_B  = 9;
+const static int QA7_CORE0_TINTC = 16;
+const static int GPIO_IRQ        = (32 + 20); // GPIO3
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (Control signals)
 //
 //---------------------------------------------------------------------------
-#define ACT_OFF	!ACT_ON
-#define ENB_OFF	!ENB_ON
-#define TAD_OUT	!TAD_IN
-#define IND_OUT	!IND_IN
-#define DTD_OUT	!DTD_IN
+#define ACT_OFF !ACT_ON
+#define ENB_OFF !ENB_ON
+#define TAD_OUT !TAD_IN
+#define IND_OUT !IND_IN
+#define DTD_OUT !DTD_IN
 
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
-#define IN		GPIO_INPUT
-#define OUT		GPIO_OUTPUT
-const static int ON =	1;
-const static int OFF =	0;
+#define IN GPIO_INPUT
+#define OUT GPIO_OUTPUT
+const static int ON  = 1;
+const static int OFF = 0;
 
 //---------------------------------------------------------------------------
 //
@@ -226,28 +222,28 @@ const static int OFF =	0;
 //---------------------------------------------------------------------------
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
-const static int SCSI_DELAY_ARBITRATION_DELAY_NS =        2400;
-const static int SCSI_DELAY_ASSERTION_PERIOD_NS =           90;
-const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS =           800;
-const static int SCSI_DELAY_BUS_FREE_DELAY_NS =            800;
-const static int SCSI_DELAY_BUS_SET_DELAY_NS =            1800;
-const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS =          400;
-const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS =           10;
-const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS =        400;
-const static int SCSI_DELAY_DESKEW_DELAY_NS =               45;
-const static int SCSI_DELAY_DISCONNECTION_DELAY_US =       200;
-const static int SCSI_DELAY_HOLD_TIME_NS =                  45;
-const static int SCSI_DELAY_NEGATION_PERIOD_NS =            90;
-const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S =  10;      // (recommended)
-const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US =   250*1000; // (recommended)
-const static int SCSI_DELAY_RESET_HOLD_TIME_US =            25;
-const static int SCSI_DELAY_SELECTION_ABORT_TIME_US =      200;
-const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS =  250*1000;  // (recommended)
-const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS =      30;
-const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS =       5;
-const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS =          20;
-const static int SCSI_DELAY_FAST_HOLD_TIME_NS =             10;
-const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS =       30;
+const static int SCSI_DELAY_ARBITRATION_DELAY_NS         = 2400;
+const static int SCSI_DELAY_ASSERTION_PERIOD_NS          = 90;
+const static int SCSI_DELAY_BUS_CLEAR_DELAY_NS           = 800;
+const static int SCSI_DELAY_BUS_FREE_DELAY_NS            = 800;
+const static int SCSI_DELAY_BUS_SET_DELAY_NS             = 1800;
+const static int SCSI_DELAY_BUS_SETTLE_DELAY_NS          = 400;
+const static int SCSI_DELAY_CABLE_SKEW_DELAY_NS          = 10;
+const static int SCSI_DELAY_DATA_RELEASE_DELAY_NS        = 400;
+const static int SCSI_DELAY_DESKEW_DELAY_NS              = 45;
+const static int SCSI_DELAY_DISCONNECTION_DELAY_US       = 200;
+const static int SCSI_DELAY_HOLD_TIME_NS                 = 45;
+const static int SCSI_DELAY_NEGATION_PERIOD_NS           = 90;
+const static int SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S = 10;         // (recommended)
+const static int SCSI_DELAY_RESET_TO_SELECTION_TIME_US   = 250 * 1000; // (recommended)
+const static int SCSI_DELAY_RESET_HOLD_TIME_US           = 25;
+const static int SCSI_DELAY_SELECTION_ABORT_TIME_US      = 200;
+const static int SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS   = 250 * 1000; // (recommended)
+const static int SCSI_DELAY_FAST_ASSERTION_PERIOD_NS     = 30;
+const static int SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS     = 5;
+const static int SCSI_DELAY_FAST_DESKEW_DELAY_NS         = 20;
+const static int SCSI_DELAY_FAST_HOLD_TIME_NS            = 10;
+const static int SCSI_DELAY_FAST_NEGATION_PERIOD_NS      = 30;
 
 // The DaynaPort SCSI Link do a short delay in the middle of transfering
 // a packet. This is the number of uS that will be delayed between the
@@ -262,12 +258,11 @@ const static int SCSI_DELAY_SEND_DATA_DAYNAPORT_US = 100;
 class GPIOBUS : public BUS
 {
   public:
-
     // Basic Functions
     GPIOBUS()           = default;
     ~GPIOBUS() override = default;
     // Destructor
-	virtual bool Init(mode_e mode = mode_e::TARGET) override;
+    virtual bool Init(mode_e mode = mode_e::TARGET) override;
     // Initialization
     virtual void Reset() override = 0;
     // Reset
@@ -276,70 +271,70 @@ class GPIOBUS : public BUS
 
     virtual uint32_t Acquire() override = 0;
 
-     virtual void SetENB(bool ast) =0;
+    virtual void SetENB(bool ast) = 0;
     // Set ENB signal
 
-    virtual  bool GetBSY() const override =0;
+    virtual bool GetBSY() const override = 0;
     // Get BSY signal
-     virtual void SetBSY(bool ast) override =0;
+    virtual void SetBSY(bool ast) override = 0;
     // Set BSY signal
 
-     virtual bool GetSEL() const override =0;
+    virtual bool GetSEL() const override = 0;
     // Get SEL signal
-     virtual void SetSEL(bool ast) override =0;
+    virtual void SetSEL(bool ast) override = 0;
     // Set SEL signal
 
-     virtual bool GetATN() const override =0;
+    virtual bool GetATN() const override = 0;
     // Get ATN signal
-     virtual void SetATN(bool ast) override =0;
+    virtual void SetATN(bool ast) override = 0;
     // Set ATN signal
 
-     virtual bool GetACK() const override =0;
+    virtual bool GetACK() const override = 0;
     // Get ACK signal
-     virtual void SetACK(bool ast) override =0;
+    virtual void SetACK(bool ast) override = 0;
     // Set ACK signal
 
-     virtual bool GetACT() const =0;
+    virtual bool GetACT() const = 0;
     // Get ACT signal
-     virtual void SetACT(bool ast) =0;
+    virtual void SetACT(bool ast) = 0;
     // Set ACT signal
 
-     virtual bool GetRST() const override =0;
+    virtual bool GetRST() const override = 0;
     // Get RST signal
-     virtual void SetRST(bool ast) override =0;
+    virtual void SetRST(bool ast) override = 0;
     // Set RST signal
 
-     virtual bool GetMSG() const override =0;
+    virtual bool GetMSG() const override = 0;
     // Get MSG signal
-    virtual  void SetMSG(bool ast) override =0;
+    virtual void SetMSG(bool ast) override = 0;
     // Set MSG signal
 
-     virtual bool GetCD() const override =0;
+    virtual bool GetCD() const override = 0;
     // Get CD signal
-     virtual void SetCD(bool ast) override =0;
+    virtual void SetCD(bool ast) override = 0;
     // Set CD signal
 
-     virtual bool GetIO() override =0;
+    virtual bool GetIO() override = 0;
     // Get IO signal
-    virtual  void SetIO(bool ast) override =0;
+    virtual void SetIO(bool ast) override = 0;
     // Set IO signal
 
-     virtual bool GetREQ() const override =0;
+    virtual bool GetREQ() const override = 0;
     // Get REQ signal
-	 virtual void SetREQ(bool ast) override =0;
+    virtual void SetREQ(bool ast) override = 0;
     // Set REQ signal
 
-	 virtual uint8_t GetDAT() override =0;
-										// Get DAT signal
-	 virtual void SetDAT(uint8_t dat) override =0;
-										// Set DAT signal
-     virtual bool GetDP() const override =0;
+    virtual uint8_t GetDAT() override = 0;
+    // Get DAT signal
+    virtual void SetDAT(uint8_t dat) override = 0;
+    // Set DAT signal
+    virtual bool GetDP() const override = 0;
     // Get Data parity signal
 
     // Extract as specific pin field from a raw data capture
-     virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override = 0;
+    virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override = 0;
 
-    int CommandHandShake(vector<uint8_t>&) override;
+    int CommandHandShake(vector<uint8_t> &) override;
     // Command receive handshake
     int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake
@@ -349,21 +344,16 @@ class GPIOBUS : public BUS
     // Get the phase based on raw data
     virtual BUS::phase_t GetPhaseRaw(uint32_t raw_data) = 0;
 
-	// virtual phase_t GetPhase() const override;
-
-    virtual void dump_all() =0;
-
-
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt
     bool PollSelectEvent() override;
     // SEL signal event polling
     void ClearSelectEvent() override;
     // Clear SEL signal event
-										// Clear SEL signal event
+    // Clear SEL signal event
 #endif
-// TODO: restore this back to protected
-// protected:
+    // TODO: restore this back to protected
+    // protected:
     // SCSI I/O signal control
     virtual void MakeTable() = 0;
     // Create work data
@@ -399,8 +389,8 @@ class GPIOBUS : public BUS
 
     mode_e actmode = mode_e::TARGET; // Operation mode
 #ifdef USE_SEL_EVENT_ENABLE
-	struct gpioevent_request selevreq = {};	// SEL signal event request
+    struct gpioevent_request selevreq = {}; // SEL signal event request
 
-	int epfd;							// epoll file descriptor
-#endif	// USE_SEL_EVENT_ENABLE
+    int epfd; // epoll file descriptor
+#endif        // USE_SEL_EVENT_ENABLE
 };

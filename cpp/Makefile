@@ -6,7 +6,6 @@
 ##                   arm-linux-gnueabihf-
 CROSS_COMPILE =
 
-CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 AR = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
@@ -28,7 +27,6 @@ ifeq ("$(shell uname -s)","Linux")
 	# -Wno-psabi might not work on non-Linux platforms
 	CXXFLAGS += -Wno-psabi
 endif
-#	CXXFLAGS += --target=arm-linux-gnueabihf
 
 # Depending on the GCC version the compilation flags differ
 GCCVERSION10 := $(shell expr `$(CXX) -dumpversion` \>= 10)

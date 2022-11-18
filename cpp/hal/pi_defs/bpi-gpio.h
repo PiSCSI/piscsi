@@ -22,7 +22,6 @@ SOFTWARE.
 */
 
 #pragma once
-#include "hal/board_type.h"
 #include "hal/sbc_version.h"
 #include <map>
 #include <string>
@@ -356,40 +355,3 @@ SOFTWARE.
 #define GPIO_PM29 29 + GPIO_PM00
 #define GPIO_PM30 30 + GPIO_PM00
 #define GPIO_PM31 31 + GPIO_PM00
-
-// struct Banana_Pi_Gpio_Mapping_Struct {
-//     const std::map<board_type::pi_physical_pin_e, int> phys_to_gpio_map;
-
-//     const std::string I2C_DEV;
-//     const std::string SPI_DEV;
-
-//     const int I2C_OFFSET;
-//     const int SPI_OFFSET;
-//     const int PWM_OFFSET;
-// };
-
-// typedef struct Banana_Pi_Gpio_Mapping_Struct Banana_Pi_Gpio_Mapping;
-
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m1_m1p_r1_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m2_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m2m_1p1_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m2m_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m2p_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m2u_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m3_map;
-// extern const Banana_Pi_Gpio_Mapping banana_pi_m64_map;
-
-// extern int physToGpio_BPI_M1P[64];
-// extern int physToGpio_BPI_M2[64];
-// extern int physToGpio_BPI_M2M[64];
-// extern int physToGpio_BPI_M2M_1P1[64];
-// extern int physToGpio_BPI_M2P[64];
-// extern int physToGpio_BPI_M2U[64];
-// extern int physToGpio_BPI_M3[64];
-// extern int physToGpio_BPI_M64[64];
-
-// class BPI_GPIO
-// {
-//   public:
-//     static shared_ptr<Banana_Pi_Gpio_Mapping> GetBpiGpioMapping(SBC_Version::sbc_version_type sbc_version);
-// };

@@ -223,8 +223,6 @@ int ScsiMon::run(const vector<char *>& args)
 
     (void)gettimeofday(&start_time, nullptr);
 
-    // LOGDEBUG("ALL_SCSI_PINS %08X\n", ALL_SCSI_PINS)
-
     // Main Loop
     while (running) {
         // Work initialization

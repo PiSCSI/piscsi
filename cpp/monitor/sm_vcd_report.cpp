@@ -71,6 +71,7 @@ static uint8_t get_data_field(uint32_t data)
     return (uint8_t)data_out;
 }
 
+// TODO: THIS DOESN"T WORK PROPERLY
 BUS::phase_t TempGetPhaseRaw(uint32_t data){
     (void)data;
     return BUS::phase_t::msgout;

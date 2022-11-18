@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "hal/board_type.h"
 #include "hal/gpiobus.h"
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sbc_version.h"
@@ -109,8 +108,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     bool WaitREQ(bool ast) override {return WaitSignal(BPI_PIN_REQ, ast);}
     bool WaitACK(bool ast) override {return WaitSignal(BPI_PIN_ACK, ast);}
-     void dump_all() override;
-
 
     // TODO: Restore these back to protected
     //   protected:

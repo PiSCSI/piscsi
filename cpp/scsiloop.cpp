@@ -100,7 +100,6 @@ void set_ind_in();
 void set_tad_out();
 void set_tad_in();
 void print_all();
-void temp_debug();
 
 void Banner(int argc, char *argv[])
 {
@@ -255,7 +254,6 @@ int main(int argc, char *argv[])
     cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
-    // temp_debug();
     test_timer();
     run_loopback_test();
     test_dat_inputs();
@@ -844,53 +842,6 @@ void test_dat_inputs()
         printf(GREEN "DAT Inputs OK!\n");
     } else {
         printf(RED "DAT Input FAILED - %d errors!\n\r", err_count);
-    }
-}
-
-void temp_debug()
-{
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-    init_loopback();
-    loopback_setup();
-
-    int delay_time = 10000000;
-
-    while (1) {
-        LOGINFO("Direction IN");
-        set_tad_in();
-        set_dtd_in();
-        set_ind_in();
-
-        LOGINFO("IN: All Pins true");
-        for (auto cur_gpio : loopback_conn_table) {
-            bus->SetSignal(cur_gpio.this_pin, true);
-        }
-
-        usleep(delay_time);
-
-        LOGINFO("IN: All Pins false");
-        for (auto cur_gpio : loopback_conn_table) {
-            bus->SetSignal(cur_gpio.this_pin, false);
-        }
-        usleep(delay_time);
-
-        LOGINFO("Direction OUT");
-        set_tad_out();
-        set_dtd_out();
-        set_ind_out();
-
-        LOGINFO("OUT: All Pins true");
-        for (auto cur_gpio : loopback_conn_table) {
-            bus->SetSignal(cur_gpio.this_pin, true);
-        }
-
-        usleep(delay_time);
-
-        LOGINFO("OUT: All Pins false");
-        for (auto cur_gpio : loopback_conn_table) {
-            bus->SetSignal(cur_gpio.this_pin, false);
-        }
-        usleep(delay_time);
     }
 }
 

@@ -22,6 +22,9 @@ using namespace std;
  
 unique_ptr<GPIOBUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
 {
+    // TODO Make the factory a friend of GPIOBUS and make the GPIOBUS constructor private
+	// so that clients cannot use it anymore but have to use the factory.
+	// Also make Init() private.
     unique_ptr<GPIOBUS> return_ptr;
     SBC_Version::Init();
     if (SBC_Version::IsBananaPi()) {

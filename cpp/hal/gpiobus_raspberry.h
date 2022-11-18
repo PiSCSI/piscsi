@@ -162,8 +162,6 @@ protected:
     // GPIO input level
     volatile uint32_t *level = nullptr;
 
-    void dump_all() override {}
-
   private:
     // SCSI I/O signal control
     void MakeTable() override;
