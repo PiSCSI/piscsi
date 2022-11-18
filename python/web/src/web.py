@@ -94,6 +94,7 @@ def get_env_info():
         "logged_in": username and auth_active(AUTH_GROUP)["status"],
         "ip_addr": ip_addr,
         "host": host,
+        "device_name": sys_cmd.get_pretty_host(),
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],

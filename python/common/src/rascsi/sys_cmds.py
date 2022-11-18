@@ -164,6 +164,22 @@ class SysCmds:
         return ip_addr, host
 
     @staticmethod
+    def get_pretty_host():
+        """
+        Returns either the pretty hostname if set, or the regular hostname as fallback.
+        """
+        process = run(
+                ["hostnamectl", "status", "--pretty"],
+                capture_output=True,
+                )
+        pretty_hostname = process.stdout.decode("utf-8").rstrip()
+
+        if process.returncode == 0 and pretty_hostname:
+            return pretty_hostname
+
+        return gethostname()
+
+    @staticmethod
     def get_logs(lines, scope):
         """
         Takes (int) lines and (str) scope.
