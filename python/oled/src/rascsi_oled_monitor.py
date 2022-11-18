@@ -35,6 +35,7 @@ import argparse
 import sys
 from time import sleep
 from collections import deque
+from unidecode import unidecode
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
@@ -125,18 +126,10 @@ print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approxim
 # Show a startup splash bitmap image before starting the main loop
 # Convert the image to mode '1' for 1-bit color (monochrome)
 # Make sure the splash bitmap image is in the same dir as this script
+IMAGE_STOP = Image.open(f"resources/splash_stop_{HEIGHT}.bmp").convert("1")
 IMAGE = Image.open(f"resources/splash_start_{HEIGHT}.bmp").convert("1")
 OLED.image(IMAGE)
 OLED.show()
-
-# Keep the pretty splash on screen for a number of seconds
-sleep(4)
-
-# Get drawing object to draw on image.
-DRAW = ImageDraw.Draw(IMAGE)
-
-# Draw a black filled box to clear the image.
-DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
 
 # Draw some shapes.
 # First define some constants to allow easy resizing of shapes.
@@ -164,6 +157,15 @@ IP_ADDR, HOSTNAME = sys_cmd.get_ip_and_host()
 REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
 
+# Keep the pretty splash up on screen for a number of seconds
+sleep(2)
+
+# Get drawing object to draw on image.
+DRAW = ImageDraw.Draw(IMAGE)
+
+# Draw a black filled box to clear the image.
+DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
+
 def formatted_output():
     """
     Formats the strings to be displayed on the Screen
@@ -176,6 +178,9 @@ def formatted_output():
         output.append("Permission denied!")
     elif rascsi_list:
         for line in rascsi_list:
+            # Transliterate non-Latin characters
+            if line["file"]:
+                line["file"] = unidecode(line["file"])
             if line["device_type"] in REMOVABLE_DEVICE_TYPES:
                 # Print image file name only when there is an image attached
                 if line["file"]:
@@ -207,10 +212,24 @@ def formatted_output():
         output.append("Check network connection")
     return output
 
+def shutdown():
+    """
+    Display the shutdown splash, then blank the screen after a sleep
+    Finally shuts down the script
+    """
+    OLED.image(IMAGE_STOP)
+    OLED.show()
+    OLED.fill(0)
+    sleep(700/1000)
+    OLED.show()
+    sys.exit("Shutting down the OLED display...")
+
 
 with GracefulInterruptHandler() as handler:
+    """
+    The main display loop inside an interrupt handler
+    """
     while True:
-
         # The reference snapshot of attached devices that will be compared against each cycle
         # to identify changes in RaSCSI backend
         ref_snapshot = formatted_output()
@@ -239,8 +258,4 @@ with GracefulInterruptHandler() as handler:
             snapshot = formatted_output()
 
             if handler.interrupted:
-                # Catch interrupt signals and blank out the screen
-                DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-                OLED.image(IMAGE)
-                OLED.show()
-                sys.exit("Shutting down the OLED display...")
+                shutdown()

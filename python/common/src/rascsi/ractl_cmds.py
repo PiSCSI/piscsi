@@ -445,10 +445,12 @@ class RaCtlCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
-    def shutdown_pi(self, mode):
+    def shutdown(self, mode):
         """
         Sends a SHUT_DOWN command to the server.
         Takes (str) mode as an argument.
+        The backend will use system calls to reboot or shut down the system.
+        It can also shut down the backend process itself.
         Returns (bool) status and (str) msg.
         """
         command = proto.PbCommand()

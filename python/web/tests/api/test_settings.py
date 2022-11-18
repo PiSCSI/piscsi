@@ -164,7 +164,7 @@ def test_set_theme(http_client, theme):
     response = http_client.post(
         "/theme",
         data={
-            "theme": theme,
+            "name": theme,
         },
     )
 
@@ -187,7 +187,7 @@ def test_set_theme_via_query_string(http_client, theme):
     response = http_client.get(
         "/theme",
         params={
-            "v": theme,
+            "name": theme,
         },
     )
 

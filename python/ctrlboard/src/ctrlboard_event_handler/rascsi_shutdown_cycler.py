@@ -19,7 +19,7 @@ class RascsiShutdownCycler(Cycler):
         if self.executed_once is False:
             self.executed_once = True
             self._menu_controller.show_timed_message("Shutting down...")
-            self.ractl_cmd.shutdown_pi("system")
+            self.ractl_cmd.shutdown("system")
             return "shutdown"
 
         return None
