@@ -168,14 +168,17 @@ class SysCmds:
         """
         Returns either the pretty hostname if set, or the regular hostname as fallback.
         """
-        process = run(
-                ["hostnamectl", "status", "--pretty"],
-                capture_output=True,
-                )
-        pretty_hostname = process.stdout.decode("utf-8").rstrip()
-
-        if process.returncode == 0 and pretty_hostname:
-            return pretty_hostname
+        try:
+            process = run(
+                    ["hostnamectl", "status", "--pretty"],
+                    capture_output=True,
+                    check=True,
+                    )
+            pretty_hostname = process.stdout.decode("utf-8").rstrip()
+            if pretty_hostname:
+                return pretty_hostname
+        except CalledProcessError as error:
+            logging.error(str(error))
 
         return gethostname()
 
