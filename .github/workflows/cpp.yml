@@ -12,7 +12,7 @@ on:
       - develop
 
 env:
-  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
+  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev libboost-filesystem-dev
 
 jobs:
   unit_tests:
