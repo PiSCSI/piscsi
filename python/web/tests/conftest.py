@@ -27,7 +27,6 @@ def env(pytestconfig):
                 )
         system_name = process.stdout.decode("utf-8").rstrip()
     except CalledProcessError as error:
-        logging.error(str(error))
         system_name = ""
 
     return {
