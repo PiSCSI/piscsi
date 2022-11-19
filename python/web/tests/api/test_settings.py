@@ -199,8 +199,7 @@ def test_set_theme_via_query_string(http_client, theme):
 
 
 # route("/sys/rename", methods=["POST"])
-def test_rename_system(http_client):
-    # TODO: Make this test non-destructive for reused test environments.
+def test_rename_system(env, http_client):
     new_name = "SYSTEM NAME TEST"
 
     response = http_client.post(
@@ -215,3 +214,16 @@ def test_rename_system(http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"System name changed to '{new_name}'."
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "system_name": env["system_name"],
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"System name changed to '{env['system_name']}'."
