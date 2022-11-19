@@ -331,15 +331,15 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		device->SetProtected(pb_device.protected_());
 	}
 
+	// Stop the dry run here, before actually attaching
+	if (dryRun) {
+		return true;
+	}
+
 	unordered_map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->SupportsFile()) {
 		// Clients like rasctl might have sent both "file" and "interfaces"
 		params.erase("file");
-	}
-
-	// Stop the dry run here, before actually attaching
-	if (dryRun) {
-		return true;
 	}
 
 	if (!device->Init(params)) {
