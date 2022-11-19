@@ -337,6 +337,11 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		params.erase("file");
 	}
 
+	// Stop the dry run here, before actually attaching
+	if (dryRun) {
+		return true;
+	}
+
 	if (!device->Init(params)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(device->GetType()),
 				to_string(id), to_string(lun));
@@ -344,11 +349,6 @@ bool RascsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 
 	if (storage_device != nullptr) {
 		storage_device->ReserveFile(full_path, id, lun);
-	}
-
-	// Stop the dry run here, before actually attaching
-	if (dryRun) {
-		return true;
 	}
 
 	if (!controller_manager.AttachToScsiController(id, device)) {
