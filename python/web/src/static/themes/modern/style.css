@@ -213,7 +213,6 @@ div.header {
 div.header div.title {
   order: 1;
   text-align: left;
-  flex-grow: 1;
 }
 
 div.header div.title h1 {
@@ -227,7 +226,10 @@ div.header div.title a {
 }
 
 div.header div.hostname {
-  display: none;
+  color: #ccc;
+  padding: 0 0.5rem;
+  order: 2;
+  flex-grow: 1;
 }
 
 div.header div.login-status {
