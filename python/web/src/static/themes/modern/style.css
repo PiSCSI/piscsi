@@ -267,15 +267,12 @@ div.header div.authentication-disabled {
 @media (max-width: 900px) {
   div.header {
     min-height: 3.5rem; /* Safari 14 iOS and iPad OS */
+    background: var(--dark);
   }
 
   body:not(.logged-in) div.header {
     flex-wrap: wrap;
     min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
-  }
-
-  div.header {
-    background: var(--dark);
   }
 
   div.header div.title a {
