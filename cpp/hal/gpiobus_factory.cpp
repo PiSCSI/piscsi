@@ -35,7 +35,7 @@ unique_ptr<GPIOBUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         return_ptr = make_unique<GPIOBUS_Raspberry>();
     }
     else {
-        LOGINFO("Creating Virtual GPIOBUS");
+        LOGINFO("Creating Virtual GPIOBUS")
         return_ptr = make_unique<GPIOBUS_Virtual>();
     }
     return_ptr->Init(mode);

@@ -155,6 +155,7 @@ class GPIOBUS_Raspberry : public GPIOBUS
     {
         return WaitSignal(PIN_ACK, ast);
     }
+    static uint32_t bcm_host_get_peripheral_address();
 
 protected:
     // All bus signals
@@ -192,6 +193,9 @@ protected:
     // Set GPIO drive strength
 
     BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
+    
+    static uint32_t get_dt_ranges(const char *filename, uint32_t offset);
+
     uint32_t baseaddr = 0; // Base address
 
     int rpitype = 0; // Type of Raspberry Pi

@@ -32,7 +32,7 @@
 //	imported from bcm_host.c
 //
 //---------------------------------------------------------------------------
-static uint32_t get_dt_ranges(const char *filename, uint32_t offset)
+uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
 {
     GPIO_FUNCTION_TRACE
     uint32_t address = ~0;
@@ -46,7 +46,7 @@ static uint32_t get_dt_ranges(const char *filename, uint32_t offset)
     return address;
 }
 
-uint32_t bcm_host_get_peripheral_address()
+uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
 {
     GPIO_FUNCTION_TRACE
     uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);

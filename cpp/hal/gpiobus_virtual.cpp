@@ -51,10 +51,8 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
         shm_unlink(SHARED_MEM_NAME.c_str());
     }
 #else
-    signals = (uint32_t *)malloc(sizeof(uint32_t));
+    signals = new uint32_t();
 #endif
-
-    // GPIOBUS::InitializeGpio();
 
     return true;
 }
@@ -402,14 +400,14 @@ void GPIOBUS_Virtual::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
 
-    PinSetSignal(PIN_DT0, ((dat >> 0) & 0x1));
-    PinSetSignal(PIN_DT1, ((dat >> 1) & 0x1));
-    PinSetSignal(PIN_DT2, ((dat >> 2) & 0x1));
-    PinSetSignal(PIN_DT3, ((dat >> 3) & 0x1));
-    PinSetSignal(PIN_DT4, ((dat >> 4) & 0x1));
-    PinSetSignal(PIN_DT5, ((dat >> 5) & 0x1));
-    PinSetSignal(PIN_DT6, ((dat >> 6) & 0x1));
-    PinSetSignal(PIN_DT7, ((dat >> 7) & 0x1));
+    PinSetSignal(PIN_DT0, (dat & (0x01 >> 0)) != 0);
+    PinSetSignal(PIN_DT1, (dat & (0x01 >> 1)) != 0);
+    PinSetSignal(PIN_DT2, (dat & (0x01 >> 2)) != 0);
+    PinSetSignal(PIN_DT3, (dat & (0x01 >> 3)) != 0);
+    PinSetSignal(PIN_DT4, (dat & (0x01 >> 4)) != 0);
+    PinSetSignal(PIN_DT5, (dat & (0x01 >> 5)) != 0);
+    PinSetSignal(PIN_DT6, (dat & (0x01 >> 6)) != 0);
+    PinSetSignal(PIN_DT7, (dat & (0x01 >> 7)) != 0);
 }
 
 //---------------------------------------------------------------------------
@@ -429,7 +427,7 @@ void GPIOBUS_Virtual::MakeTable(void)
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::SetControl(int pin, bool ast)
 {
-    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)pin);
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)pin)
     PinSetSignal(pin, ast);
 }
 
@@ -525,7 +523,7 @@ void GPIOBUS_Virtual::PullConfig(int hw_pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
 {
-    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin);
+    LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin)
 
     // Check for invalid pin
     if (hw_pin < 0) {

@@ -62,8 +62,6 @@ class BUS
         return phase_table[mci];
     }
 
-    // virtual phase_t GetPhase() const = 0;
-
     // Get the string phase name, based upon the raw data
     static const char *GetPhaseStrRaw(phase_t current_phase);
 
