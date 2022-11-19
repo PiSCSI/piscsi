@@ -54,7 +54,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
     SetREQ(ON);
 
     // Wait for ACK signal
-    // bool ret = WaitSignal(PIN_ACK, ON);
     bool ret = WaitACK(ON);
 
     // Wait until the signal line stabilizes
@@ -91,10 +90,8 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
 
     // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
     if (buf[0] == 0x1F) {
-        // SetSignal(PIN_REQ, ON);
         SetREQ(ON);
 
-        // ret = WaitSignal(PIN_ACK, ON);
         ret = WaitACK(ON);
 
         SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
@@ -102,7 +99,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         // Get the actual SCSI command
         buf[0] = GetDAT();
 
-        // SetSignal(PIN_REQ, OFF);
         SetREQ(OFF);
 
         if (!ret) {
@@ -110,7 +106,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
             return 0;
         }
 
-        // WaitSignal(PIN_ACK, OFF);
         WaitACK(OFF);
 
         if (!ret) {
@@ -153,7 +148,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
         }
 
         // Wait for ACK to clear
-        // ret = WaitSignal(PIN_ACK, OFF);
         ret = WaitACK(OFF);
 
         // Check for timeout waiting for ACK to clear
