@@ -16,7 +16,6 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "hal/gpiobus_pin_get_set.h"
 
 #ifdef __linux__
 #include <linux/gpio.h>
