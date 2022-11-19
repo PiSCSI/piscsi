@@ -193,7 +193,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
         """Method handles the rotary button press on 'Shutdown' in the action menu."""
-        self.ractl_cmd.shutdown_pi("system")
+        self.ractl_cmd.shutdown("system")
         self._menu_controller.show_message("Shutting down!", 150)
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
                                     transition_attributes=self._menu_renderer_config.

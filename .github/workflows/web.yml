@@ -1,0 +1,59 @@
+name: Web Tests/Analysis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'python/web/**'
+      - 'python/common/**'
+      - '.github/workflows/web.yml'
+  push:
+    branches:
+      - develop
+
+jobs:
+  backend_checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python/web
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.7.15
+          cache: 'pip'
+
+      - run: pip install -r requirements-dev.txt
+        id: pip
+
+      - run: black --check tests
+
+      - run: flake8 tests
+        if: success() || failure() && steps.pip.outcome == 'success'
+
+  frontend_checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python/web
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        cache-dependency-path: python/web/package-lock.json
+
+    - run: npm ci
+      id: npm
+
+    - name: Stylelint
+      run: npx stylelint src/static/themes/modern/style.css
+
+    - name: Prettier
+      run: npx prettier --check src/static/themes/modern/style.css
+      if: success() || failure() && steps.npm.outcome == 'success'

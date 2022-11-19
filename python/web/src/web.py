@@ -5,7 +5,7 @@ Module for the Flask app rendering and endpoints
 import sys
 import logging
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePath
 from functools import wraps
 from grp import getgrall
 
@@ -56,6 +56,7 @@ from web_utils import (
     is_bridge_configured,
     is_safe_path,
     upload_with_dropzonejs,
+    browser_supports_modern_themes,
 )
 from settings import (
     WEB_DIR,
@@ -65,6 +66,9 @@ from settings import (
     DRIVE_PROPERTIES_FILE,
     AUTH_GROUP,
     LANGUAGES,
+    TEMPLATE_THEMES,
+    TEMPLATE_THEME_DEFAULT,
+    TEMPLATE_THEME_LEGACY,
 )
 
 
@@ -87,6 +91,7 @@ def get_env_info():
         "running_env": sys_cmd.running_env(),
         "username": username,
         "auth_active": auth_active(AUTH_GROUP)["status"],
+        "logged_in": username and auth_active(AUTH_GROUP)["status"],
         "ip_addr": ip_addr,
         "host": host,
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
@@ -133,7 +138,18 @@ def response(
             flash(message, category)
 
     if template:
+        if session.get("theme") and session["theme"] in TEMPLATE_THEMES:
+            theme = session["theme"]
+        elif browser_supports_modern_themes():
+            theme = TEMPLATE_THEME_DEFAULT
+        else:
+            theme = TEMPLATE_THEME_LEGACY
+
         kwargs["env"] = get_env_info()
+        kwargs["body_class"] = f"page-{PurePath(template).stem.lower()}"
+        kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
+        kwargs["current_theme"] = theme
+        kwargs["available_themes"] = TEMPLATE_THEMES
         return render_template(template, **kwargs)
 
     if redirect_url:
@@ -345,6 +361,12 @@ def drive_create():
         drive_name
         )
 
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     # Creating the image file
     process = file_cmd.create_new_image(
         file_name,
@@ -382,6 +404,13 @@ def drive_cdrom():
         APP.config["RASCSI_DRIVE_PROPERTIES"],
         drive_name
         )
+
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
     process = file_cmd.write_drive_properties(file_name, properties)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -768,24 +797,30 @@ def release_id():
     return response(error=True, message=process["msg"])
 
 
-@APP.route("/pi/reboot", methods=["POST"])
+@APP.route("/sys/reboot", methods=["POST"])
 @login_required
 def restart():
     """
-    Restarts the Pi
+    Restarts the system
     """
-    ractl_cmd.shutdown_pi("reboot")
-    return response()
+    returncode, message = sys_cmd.reboot_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
-@APP.route("/pi/shutdown", methods=["POST"])
+@APP.route("/sys/shutdown", methods=["POST"])
 @login_required
 def shutdown():
     """
-    Shuts down the Pi
+    Shuts down the system
     """
-    ractl_cmd.shutdown_pi("system")
-    return response()
+    returncode, message = sys_cmd.shutdown_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
 @APP.route("/files/download_to_iso", methods=["POST"])
@@ -860,7 +895,7 @@ def download_to_iso():
 @login_required
 def download_file():
     """
-    Downloads a remote file onto the images dir on the Pi
+    Downloads a remote file onto the images dir on the system
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
@@ -886,7 +921,7 @@ def download_file():
 @APP.route("/files/upload", methods=["POST"])
 def upload_file():
     """
-    Uploads a file from the local computer to the images dir on the Pi
+    Uploads a file from the local computer to the images dir on the system
     Depending on the Dropzone.js JavaScript library
     """
     # Due to the embedded javascript library, we cannot use the @login_required decorator
@@ -991,21 +1026,22 @@ def create_file():
             APP.config["RASCSI_DRIVE_PROPERTIES"],
             drive_name
             )
-        prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
-        process = file_cmd.write_drive_properties(prop_file_name, properties)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(error=True, message=process["msg"])
+        if properties:
+            prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+            process = file_cmd.write_drive_properties(prop_file_name, properties)
+            process = ReturnCodeMapper.add_msg(process)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
 
-        return response(
-            status_code=201,
-            message=_(
-                "Image file with properties created: %(file_name)s%(drive_format)s",
-                file_name=full_file_name,
-                drive_format=message_postfix,
-            ),
-            image=full_file_name,
-        )
+            return response(
+                status_code=201,
+                message=_(
+                    "Image file with properties created: %(file_name)s%(drive_format)s",
+                    file_name=full_file_name,
+                    drive_format=message_postfix,
+                ),
+                image=full_file_name,
+            )
 
     return response(
         status_code=201,
@@ -1022,7 +1058,7 @@ def create_file():
 @login_required
 def download():
     """
-    Downloads a file from the Pi to the local computer
+    Downloads a file from the system to the local computer
     """
     file_name = Path(request.form.get("file"))
     safe_path = is_safe_path(file_name)
@@ -1205,6 +1241,20 @@ def change_language():
     language = Locale.parse(locale)
     language_name = language.get_language_name(locale)
     return response(message=_("Changed Web Interface language to %(locale)s", locale=language_name))
+
+
+@APP.route("/theme", methods=["GET", "POST"])
+def change_theme():
+    if request.method == "GET":
+        theme = request.args.get("name")
+    else:
+        theme = request.form.get("name")
+
+    if theme not in TEMPLATE_THEMES:
+        return response(error=True, message=_("The requested theme does not exist."))
+
+    session["theme"] = theme
+    return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
 
 
 @APP.before_first_request

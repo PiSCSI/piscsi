@@ -47,11 +47,15 @@ div.footer {
   font-family: monospace;
 }
 
-div.logged_in {
+div.footer div.theme-change-hint {
+    margin-bottom: 15px;
+}
+
+div.logged-in {
   background-color: green;
 }
 
-div.logged_out {
+div.logged-out {
   background-color: red;
 }
 
@@ -66,9 +70,12 @@ div.flash {
 
 div.flash div {
   color: white;
-  font-size: 18px;
-  white-space: pre-line;
   padding: 2px 5px;
+  font-size: 18px;
+}
+
+div.flash div div {
+  white-space: pre-line;
 }
 
 div.flash div.success {

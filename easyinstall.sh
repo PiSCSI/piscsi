@@ -782,7 +782,7 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-220801"
+    NETATALK_VERSION="2-221101"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then

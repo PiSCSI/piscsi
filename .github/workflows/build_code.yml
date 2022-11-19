@@ -1,54 +1,23 @@
-name: Build C++ Packages
+name: Build ARM binaries
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'cpp/**'
+      - '.github/workflows/build_code.yml'
+  push:
+    branches:
+      - develop
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  fullspec:
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "FULLSPEC"
 
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Add armhf as architecture
-      run: sudo dpkg --add-architecture armhf
-
-    - name: Reconfigure apt for arch amd64
-      run: sudo sed -i "s/deb /deb [arch=amd64] /g" /etc/apt/sources.list
-
-    - name: Add armhf repos (jammy)
-      run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse restricted universe\" >> /etc/apt/sources.list"
-
-    - name: Add armhf repos (jammy-updates)
-      run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse restricted universe\" >> /etc/apt/sources.list"
-
-    - name: Update apt
-      run: sudo apt update
-
-    - name: Install cross compile toolchain
-      run: sudo apt-get --yes install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
-    
-    - name: Install libraries
-      run: sudo apt-get --yes install libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf 
-
-    - name: make standard
-      run: make all -j6 CONNECT_TYPE=STANDARD CROSS_COMPILE=arm-linux-gnueabihf-
-      working-directory: ./cpp
- 
-    - name: make fullspec
-      run: make all -j6 CONNECT_TYPE=FULLSPEC CROSS_COMPILE=arm-linux-gnueabihf-
-      working-directory: ./cpp
-
-    # We need to tar the binary outputs to retain the executable
-    # file permission. Currently, actions/upload-artifact only
-    # supports .ZIP files.
-    # This is workaround for https://github.com/actions/upload-artifact/issues/38
-    - name: tar binary outputs
-      run: tar -czvf rascsi.tar.gz ./bin
-      working-directory: ./cpp
-
-    - name: upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: arm-binaries
-        path: ./cpp/rascsi.tar.gz
-
+  standard:
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "STANDARD"
