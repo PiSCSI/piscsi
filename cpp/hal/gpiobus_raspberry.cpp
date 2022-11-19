@@ -85,6 +85,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     GPIOBUS::Init(mode);
 
 #if defined(__x86_64__) || defined(__X86__)
+    (void)baseaddr;
     level = new uint32_t();
     return true;
 #else
@@ -191,11 +192,11 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     PinSetSignal(PIN_ENB, ENB_OFF);
     PinConfig(PIN_ENB, GPIO_OUTPUT);
 
-	// GPIO Function Select (GPFSEL) registers backup
-	gpfsel[0] = gpio[GPIO_FSEL_0];
-	gpfsel[1] = gpio[GPIO_FSEL_1];
-	gpfsel[2] = gpio[GPIO_FSEL_2];
-	gpfsel[3] = gpio[GPIO_FSEL_3];
+    // GPIO Function Select (GPFSEL) registers backup
+    gpfsel[0] = gpio[GPIO_FSEL_0];
+    gpfsel[1] = gpio[GPIO_FSEL_1];
+    gpfsel[2] = gpio[GPIO_FSEL_2];
+    gpfsel[3] = gpio[GPIO_FSEL_3];
 
     // Initialize SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
@@ -239,8 +240,8 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     gpio[GPIO_AFEN_0] = 1 << PIN_SEL;
 #endif // SIGNAL_CONTROL_MODE
 
-	// Clear event - GPIO Pin Event Detect Status 
-	gpio[GPIO_EDS_0] = 1 << PIN_SEL;
+    // Clear event - GPIO Pin Event Detect Status
+    gpio[GPIO_EDS_0] = 1 << PIN_SEL;
 
     // Register interrupt handler
     setIrqFuncAddress(IrqHandler);

@@ -53,6 +53,8 @@ public:
 	MOCK_METHOD(void, SetIO, (bool), (override));
 	MOCK_METHOD(bool, GetREQ, (), (const override));
 	MOCK_METHOD(void, SetREQ, (bool), (override));
+	MOCK_METHOD(bool, GetACT, (), (const override));
+	MOCK_METHOD(void, SetACT, (bool), (override));
 	MOCK_METHOD(uint8_t, GetDAT, (), (override));
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));

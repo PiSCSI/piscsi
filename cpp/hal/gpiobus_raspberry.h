@@ -157,7 +157,7 @@ class GPIOBUS_Raspberry : public GPIOBUS
     }
     static uint32_t bcm_host_get_peripheral_address();
 
-protected:
+  protected:
     // All bus signals
     uint32_t signals = 0;
     // GPIO input level
@@ -193,7 +193,7 @@ protected:
     // Set GPIO drive strength
 
     BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
-    
+
     static uint32_t get_dt_ranges(const char *filename, uint32_t offset);
 
     uint32_t baseaddr = 0; // Base address

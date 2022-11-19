@@ -1189,7 +1189,7 @@ int GPIOBUS_BananaM2p::sunxi_setup(void)
     LOGTRACE("r_gpio_map[%p] r_pio_map[%p]", r_gpio_map, r_pio_map)
 
     tmr_ctrl = gpio_map + ((TMR_REGISTER_BASE - SUNXI_GPIO_BASE) >> 2);
-    LOGINFO("tmr_ctrl offset: %08X value: %08X", (TMR_REGISTER_BASE - SUNXI_GPIO_BASE), *tmr_ctrl);
+    // LOGINFO("tmr_ctrl offset: %08X value: %08X", (TMR_REGISTER_BASE - SUNXI_GPIO_BASE), *tmr_ctrl);
 
     close(mem_fd);
     return SETUP_OK;

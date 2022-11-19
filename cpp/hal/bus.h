@@ -15,14 +15,14 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-
+#include "hal/pin_control.h"
 using namespace std;
 
 #ifndef USE_SEL_EVENT_ENABLE
 #define USE_SEL_EVENT_ENABLE
 #endif
 
-class BUS
+class BUS : public PinControl
 {
   public:
     // Operation modes definition
@@ -67,36 +67,6 @@ class BUS
 
     virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) = 0;
 
-    virtual bool GetBSY() const   = 0;
-    virtual void SetBSY(bool ast) = 0;
-
-    virtual bool GetSEL() const   = 0;
-    virtual void SetSEL(bool ast) = 0;
-
-    virtual bool GetATN() const   = 0;
-    virtual void SetATN(bool ast) = 0;
-
-    virtual bool GetACK() const   = 0;
-    virtual void SetACK(bool ast) = 0;
-
-    virtual bool GetRST() const   = 0;
-    virtual void SetRST(bool ast) = 0;
-
-    virtual bool GetMSG() const   = 0;
-    virtual void SetMSG(bool ast) = 0;
-
-    virtual bool GetCD() const   = 0;
-    virtual void SetCD(bool ast) = 0;
-
-    virtual bool GetIO()         = 0;
-    virtual void SetIO(bool ast) = 0;
-
-    virtual bool GetREQ() const   = 0;
-    virtual void SetREQ(bool ast) = 0;
-
-    virtual uint8_t GetDAT()         = 0;
-    virtual void SetDAT(uint8_t dat) = 0;
-    virtual bool GetDP() const       = 0; // Get parity signal
 
     virtual uint32_t Acquire()                                                = 0;
     virtual int CommandHandShake(vector<uint8_t> &)                           = 0;

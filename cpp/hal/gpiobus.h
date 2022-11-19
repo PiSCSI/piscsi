@@ -16,6 +16,7 @@
 #include <array>
 #include <memory>
 #include <vector>
+#include "hal/gpiobus_pin_get_set.h"
 
 #ifdef __linux__
 #include <linux/gpio.h>
@@ -274,63 +275,6 @@ class GPIOBUS : public BUS
 
     virtual void SetENB(bool ast) = 0;
     // Set ENB signal
-
-    virtual bool GetBSY() const override = 0;
-    // Get BSY signal
-    virtual void SetBSY(bool ast) override = 0;
-    // Set BSY signal
-
-    virtual bool GetSEL() const override = 0;
-    // Get SEL signal
-    virtual void SetSEL(bool ast) override = 0;
-    // Set SEL signal
-
-    virtual bool GetATN() const override = 0;
-    // Get ATN signal
-    virtual void SetATN(bool ast) override = 0;
-    // Set ATN signal
-
-    virtual bool GetACK() const override = 0;
-    // Get ACK signal
-    virtual void SetACK(bool ast) override = 0;
-    // Set ACK signal
-
-    virtual bool GetACT() const = 0;
-    // Get ACT signal
-    virtual void SetACT(bool ast) = 0;
-    // Set ACT signal
-
-    virtual bool GetRST() const override = 0;
-    // Get RST signal
-    virtual void SetRST(bool ast) override = 0;
-    // Set RST signal
-
-    virtual bool GetMSG() const override = 0;
-    // Get MSG signal
-    virtual void SetMSG(bool ast) override = 0;
-    // Set MSG signal
-
-    virtual bool GetCD() const override = 0;
-    // Get CD signal
-    virtual void SetCD(bool ast) override = 0;
-    // Set CD signal
-
-    virtual bool GetIO() override = 0;
-    // Get IO signal
-    virtual void SetIO(bool ast) override = 0;
-    // Set IO signal
-
-    virtual bool GetREQ() const override = 0;
-    // Get REQ signal
-    virtual void SetREQ(bool ast) override = 0;
-    // Set REQ signal
-
-    virtual uint8_t GetDAT() override = 0;
-    // Get DAT signal
-    virtual void SetDAT(uint8_t dat) override = 0;
-    // Set DAT signal
-    virtual bool GetDP() const override = 0;
-    // Get Data parity signal
 
     // Extract as specific pin field from a raw data capture
     virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override = 0;

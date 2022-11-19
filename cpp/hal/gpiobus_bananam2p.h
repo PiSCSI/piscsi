@@ -31,13 +31,9 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     ~GPIOBUS_BananaM2p() override = default;
     // Destructor
     bool Init(mode_e mode = mode_e::TARGET) override;
-    //, board_type::rascsi_board_type_e rascsi_type =
-    //                                          board_type::rascsi_board_type_e::BOARD_TYPE_FULLSPEC) override;
 
     void Cleanup() override;
-      // // Initialization
     void Reset() override;
-    // Reset
 
     //---------------------------------------------------------------------------
     //
@@ -106,8 +102,14 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void SetDAT(uint8_t dat) override;
     // Set DAT signal
 
-    bool WaitREQ(bool ast) override {return WaitSignal(BPI_PIN_REQ, ast);}
-    bool WaitACK(bool ast) override {return WaitSignal(BPI_PIN_ACK, ast);}
+    bool WaitREQ(bool ast) override
+    {
+        return WaitSignal(BPI_PIN_REQ, ast);
+    }
+    bool WaitACK(bool ast) override
+    {
+        return WaitSignal(BPI_PIN_ACK, ast);
+    }
 
     // TODO: Restore these back to protected
     //   protected:
@@ -142,7 +144,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Set GPIO drive strength
 
     BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
-
 
     // Extract as specific pin field from a raw data capture
     uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
@@ -182,8 +183,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     volatile uint32_t giccpmr; // GICC priority setting
 
     // Timer control register
-    volatile uint32_t *tmr_ctrl; 
-
+    volatile uint32_t *tmr_ctrl;
 
 #if !defined(__x86_64__) && !defined(__X86__)
     volatile uint32_t *gicd = nullptr; // GIC Interrupt distributor register
@@ -226,15 +226,15 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     int bpi_found = -1;
 
-    enum class gpio_configure_values_e : uint8_t{
-        gpio_input = 0b000,
-        gpio_output = 0b001,
+    enum class gpio_configure_values_e : uint8_t {
+        gpio_input      = 0b000,
+        gpio_output     = 0b001,
         gpio_alt_func_1 = 0b010,
         gpio_alt_func_2 = 0b011,
         gpio_reserved_1 = 0b100,
         gpio_reserved_2 = 0b101,
-        gpio_interupt = 0b110,
-        gpio_disable = 0b111
+        gpio_interupt   = 0b110,
+        gpio_disable    = 0b111
     };
 
     struct BPIBoards {
@@ -279,7 +279,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     volatile uint32_t *r_gpio_map;
 
-
     uint8_t *gpio_mmap_reg;
     uint32_t sunxi_capture_all_gpio();
     void set_pullupdn(int gpio, int pud);
@@ -311,5 +310,4 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     static const array<int, 19> SignalTable;
 
     void InitializeGpio();
-
-    };
+};
