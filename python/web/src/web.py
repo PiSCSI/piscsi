@@ -800,16 +800,16 @@ def release_id():
 
 @APP.route("/sys/rename", methods=["POST"])
 @login_required
-def rename_device():
+def rename_system():
     """
-    Changes the display name of the device
+    Changes the hostname of the system
     """
-    name = request.form.get("device_name")
+    name = request.form.get("system_name")
     process = sys_cmd.set_pretty_host(name)
     if process:
-        return response(message=_("Device name changed to '%(name)s'.", name=name))
+        return response(message=_("System name changed to '%(name)s'.", name=name))
 
-    return response(error=True, message=_("Failed to change device name."))
+    return response(error=True, message=_("Failed to change system name."))
 
 
 @APP.route("/sys/reboot", methods=["POST"])
