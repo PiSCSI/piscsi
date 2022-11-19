@@ -140,6 +140,7 @@ const static uint32_t QA7_OFFSET  = 0x01000000;
 
 const static int GPIO_INPUT      = 0;
 const static int GPIO_OUTPUT     = 1;
+const static int GPIO_IRQ_IN     = 3;
 const static int GPIO_PULLNONE   = 0;
 const static int GPIO_PULLDOWN   = 1;
 const static int GPIO_PULLUP     = 2;
