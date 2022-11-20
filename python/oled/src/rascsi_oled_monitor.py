@@ -213,7 +213,7 @@ def formatted_output():
     if ip_addr:
         output += [f"IP {ip_addr} - {hostname}"]
     else:
-        output += ["No IP address assigned", "Check network connection"]
+        output += ["No IP address assigned"]
     return output
 
 def shutdown():
