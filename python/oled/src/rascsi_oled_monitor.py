@@ -211,7 +211,7 @@ def formatted_output():
         output += ["No device attached!"]
 
     if ip_addr:
-        output += [f"{hostname} ({ip_addr})"]
+        output += [f"IP {ip_addr} - {hostname}"]
     else:
         output += ["No IP address assigned", "Check network connection"]
     return output
