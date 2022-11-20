@@ -13,7 +13,7 @@ if [[ "$1" == "set-hostname" && "$2" == "--pretty" ]]; then
 fi
 
 if [[ "$1" == "status" ]]; then
-    cat "$TMP_FILE" 2>/dev/null || hostname
+    cat "$TMP_FILE" 2>/dev/null
     exit 0
 fi
 
