@@ -202,6 +202,11 @@ def test_set_theme_via_query_string(http_client, theme):
 def test_rename_system(env, http_client):
     new_name = "SYSTEM NAME TEST"
 
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    old_name = response_data["data"]["system_name"]
+
     response = http_client.post(
         "/sys/rename",
         data={
@@ -226,4 +231,4 @@ def test_rename_system(env, http_client):
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == f"System name changed to '{env['system_name']}'."
+    assert response_data["messages"][0]["message"] == f"System name changed to '{old_name}'."

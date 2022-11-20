@@ -19,23 +19,12 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="session")
 def env(pytestconfig):
     home_dir = pytestconfig.getoption("home_dir")
-    try:
-        process = run(
-                ["hostnamectl", "status", "--pretty"],
-                capture_output=True,
-                check=True,
-                )
-        system_name = process.stdout.decode("utf-8").rstrip()
-    except CalledProcessError as error:
-        system_name = ""
-
     return {
         "is_docker": bool(os.getenv("DOCKER")),
         "home_dir": home_dir,
         "cfg_dir": f"{home_dir}/.config/rascsi",
         "images_dir": f"{home_dir}/images",
         "file_server_dir": f"{home_dir}/shared_files",
-        "system_name": system_name,
     }
 
 
