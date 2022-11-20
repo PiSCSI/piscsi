@@ -298,17 +298,12 @@ class GPIOBUS : public BUS
 #endif
     // TODO: restore this back to protected
     // protected:
-    // SCSI I/O signal control
-    virtual void MakeTable() = 0;
-    // Create work data
+    virtual void MakeTable()                   = 0;
     virtual void SetControl(int pin, bool ast) = 0;
-    // Set Control Signal
-    virtual void SetMode(int pin, int mode) = 0;
-    // Set SCSI I/O mode
-    bool GetSignal(int pin) const override = 0;
-    // Set Control Signal
+    virtual void SetMode(int pin, int mode)    = 0;
+    virtual int GetMode(int pin)               = 0;
+    bool GetSignal(int pin) const override     = 0;
     void SetSignal(int pin, bool ast) override = 0;
-    // Set SCSI I/O mode
     bool WaitSignal(int pin, bool ast);
 
     virtual bool WaitREQ(bool ast) = 0;

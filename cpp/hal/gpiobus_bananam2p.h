@@ -120,6 +120,8 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Set Control Signal
     void SetMode(int pin, int mode) override;
     // Set SCSI I/O mode
+    int GetMode(int pin) override;
+
     bool GetSignal(int pin) const override;
 
     // Get SCSI input signal value
@@ -303,9 +305,9 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     SBC_Version::sbc_version_type sbc_version;
 
     void SaveGpioConfig();
-    void RestoreGpioConfig();
+    void SaveGpioBankCfg(int);
 
-    std::vector<sunxi_gpio_t> saved_gpio_config;
+    sunxi_gpio_reg_t saved_gpio_config;
 
     static const array<int, 19> SignalTable;
 

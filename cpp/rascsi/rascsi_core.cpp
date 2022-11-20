@@ -576,6 +576,7 @@ int Rascsi::run(const vector<char *>& args)
 
 		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
+			LOGTRACE("Dif dev selected BSY:%d %d", bus->GetBSY(), bus->GetSEL())
 			continue;
 		}
 
@@ -583,6 +584,7 @@ int Rascsi::run(const vector<char *>& args)
 
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
+		LOGTRACE("ID: %02X", id_data);
 
 		BUS::phase_t phase = BUS::phase_t::busfree;
 
@@ -594,13 +596,14 @@ int Rascsi::run(const vector<char *>& args)
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+				LOGTRACE("++++ Starting processing for initiator ID %s", to_string(initiator_id).c_str());
 			}
 			else {
-				device_logger.Trace("++++ Starting processing for unknown initiator ID");
+				LOGTRACE("++++ Starting processing for unknown initiator ID");
 			}
 
 			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
+				LOGTRACE("phase = BUS::phase_t::selection;")
 				phase = BUS::phase_t::selection;
 			}
 		}
@@ -611,6 +614,7 @@ int Rascsi::run(const vector<char *>& args)
 		}
 
 		// Start target device
+		LOGTRACE("active = true")
 		active = true;
 
 #if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
@@ -622,8 +626,10 @@ int Rascsi::run(const vector<char *>& args)
 		// Loop until the bus is free
 		while (service.IsRunning()) {
 			// Target drive
+			// LOGTRACE("Calling phase = controller->Process(initiator_id);")
 			phase = controller->Process(initiator_id);
 
+			// LOGTRACE("new phase: %s", bus->GetPhaseStrRaw(phase));
 			// End when the bus is free
 			if (phase == BUS::phase_t::busfree) {
 				break;
@@ -645,6 +651,7 @@ int Rascsi::run(const vector<char *>& args)
 
 void Rascsi::WaitForNotBusy() const
 {
+	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	if (bus->GetBSY()) {
 		const uint32_t now = SysTimer::GetTimerLow();
 
@@ -656,5 +663,7 @@ void Rascsi::WaitForNotBusy() const
 				break;
 			}
 		}
+		LOGTRACE("%s timeout", __PRETTY_FUNCTION__)
 	}
+	
 }

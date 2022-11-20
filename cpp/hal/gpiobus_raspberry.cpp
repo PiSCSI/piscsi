@@ -789,6 +789,9 @@ void GPIOBUS_Raspberry::SetControl(int pin, bool ast)
 //
 //	Input/output mode setting
 //
+// Set direction fo pin (IN / OUT)
+//   Used with: TAD, BSY, MSG, CD, REQ, O, SEL, IND, ATN, ACK, RST, DT*
+//
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetMode(int pin, int mode)
 {
@@ -822,6 +825,9 @@ bool GPIOBUS_Raspberry::GetSignal(int pin) const
 //---------------------------------------------------------------------------
 //
 //	Set output signal value
+//
+//  Sets the output value. Used with:
+//     PIN_ENB, ACT, TAD, IND, DTD, BSY, SignalTable
 //
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::SetSignal(int pin, bool ast)
@@ -892,6 +898,9 @@ void GPIOBUS_Raspberry::EnableIRQ()
 //
 //	Pin direction setting (input/output)
 //
+// Used in Init() for ACT, TAD, IND, DTD, ENB to set direction (GPIO_OUTPUT vs GPIO_INPUT)
+// Also used on SignalTable
+// Only used in Init and Cleanup. Reset uses SetMode
 //---------------------------------------------------------------------------
 void GPIOBUS_Raspberry::PinConfig(int pin, int mode)
 {

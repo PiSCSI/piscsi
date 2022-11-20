@@ -171,6 +171,12 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Set Control Signal
     void SetMode(int pin, int mode) override;
     // Set SCSI I/O mode
+    int GetMode(int pin) override
+    {
+        // Not implemented (or needed for thist gpio bus type)
+        (void)pin;
+        return -1;
+    }
     bool GetSignal(int pin) const override;
     // Get SCSI input signal value
     void SetSignal(int pin, bool ast) override;
@@ -228,7 +234,7 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // GIC CPU interface register
     volatile uint32_t *gicc = nullptr;
 
-    // GPFSEL0-4 backup values
+    // RAM copy of GPFSEL0-4  values (GPIO Function Select)
     array<uint32_t, 4> gpfsel;
 
 #if SIGNAL_CONTROL_MODE == 0

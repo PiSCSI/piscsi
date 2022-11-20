@@ -12,8 +12,6 @@
 #include "hal/gpiobus.h"
 #include <memory>
 
-using namespace std;
-
 class GPIOBUS_Factory
 {
   public:
