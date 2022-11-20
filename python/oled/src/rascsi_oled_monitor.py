@@ -201,6 +201,8 @@ def formatted_output():
             if device["file"]:
                 # Transliterate non-Latin characters in the file name
                 line += [unidecode(device["file"])]
+            elif device["device_type"] in REMOVABLE_DEVICE_TYPES:
+                line += ["[No Media]"]
             # Print only the Vendor/Product info if it's not generic RaSCSI
             if device["vendor"] not in "RaSCSI":
                 line += [device["vendor"], device["product"]]
