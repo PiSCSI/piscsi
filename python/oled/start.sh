@@ -127,6 +127,9 @@ while [ "$1" != "" ]; do
 	-h | --height)
 	    HEIGHT="--height $VALUE"
 	    ;;
+	-i | --refresh_interval)
+	    INTERVAL="--refresh_interval $VALUE"
+	    ;;
 	-P | --password)
 	    PASSWORD="--password $VALUE"
 	    ;;
@@ -152,4 +155,4 @@ fi
 
 PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
-python3 src/rascsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${PASSWORD}
+python3 src/rascsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${INTERVAL} ${PASSWORD}
