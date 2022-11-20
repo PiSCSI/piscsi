@@ -2,7 +2,6 @@ import pytest
 import requests
 import socket
 import os
-from subprocess import run, CalledProcessError
 
 
 def pytest_addoption(parser):
