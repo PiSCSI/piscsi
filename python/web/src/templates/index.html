@@ -742,7 +742,7 @@
     <input type="submit" value="{{ _("Reset") }}">
 </form>
 </div>
-<div>
+<div class="power-control">
 <form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Reboot System") }}">
 </form>

@@ -787,8 +787,12 @@ section#logging div:first-of-type {
  Index > Section: System
  ------------------------------------------------------------------------------
  */
+section#system div.power-control {
+  margin-top: 1rem;
+}
+
 @media (min-width: 901px) {
-  section#system input[type="submit"] {
+  section#system div.power-control input[type="submit"] {
     background: var(--danger);
     border-color: var(--danger);
     color: #fff;
