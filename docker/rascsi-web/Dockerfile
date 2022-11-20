@@ -21,7 +21,7 @@ RUN useradd --create-home --shell /bin/bash -g pi pi
 RUN echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN echo "pi:rascsi" | chpasswd
 
-# Allow PATH override for mock commands when running in --dev-mode
+# Allows custom PATH for mock commands to work when executing with sudo
 RUN sed -i 's/^Defaults\tsecure_path/#Defaults\tsecure_path./' /etc/sudoers
 
 RUN mkdir /home/pi/shared_files
