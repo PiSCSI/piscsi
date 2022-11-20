@@ -247,8 +247,8 @@ with GracefulInterruptHandler() as handler:
             if not network_refresh_counter:
                 ip_addr, hostname = sys_cmd.get_ip_and_host()
                 network_refresh_counter = NETWORK_REFRESH_TICKS
-
-            network_refresh_counter -= 1
+            else:
+                network_refresh_counter -= 1
 
             # Draw a black filled box to clear the image.
             DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
