@@ -220,10 +220,15 @@ def test_rename_system(env, http_client):
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"System name changed to '{new_name}'."
 
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == new_name
+
     response = http_client.post(
         "/sys/rename",
         data={
-            "system_name": env["system_name"],
+            "system_name": old_name,
         },
     )
 
@@ -232,3 +237,8 @@ def test_rename_system(env, http_client):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"System name changed to '{old_name}'."
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == old_name
