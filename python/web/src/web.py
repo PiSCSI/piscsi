@@ -804,10 +804,15 @@ def rename_system():
     """
     Changes the hostname of the system
     """
-    name = request.form.get("system_name")
-    process = sys_cmd.set_pretty_host(name)
-    if process:
-        return response(message=_("System name changed to '%(name)s'.", name=name))
+    name = str(request.form.get("system_name"))
+    max_length = 120
+
+    if len(name) <= max_length:
+        process = sys_cmd.set_pretty_host(name)
+        if process:
+            if name:
+                return response(message=_("System name changed to '%(name)s'.", name=name))
+            return response(message=_("System name reset to default."))
 
     return response(error=True, message=_("Failed to change system name."))
 
