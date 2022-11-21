@@ -136,7 +136,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 	inet = params["inet"];
 
-	LOGTRACE("Opening Tap device")
+	LOGTRACE("Opening tap device")
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGERROR("Can't open tun: %s", strerror(errno))
