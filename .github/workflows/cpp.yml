@@ -2,14 +2,10 @@ name: C++ Tests/Analysis
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize]
+  push:
     paths:
       - 'cpp/**'
       - '.github/workflows/cpp.yml'
-  push:
-    branches:
-      - develop
 
 env:
   APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
