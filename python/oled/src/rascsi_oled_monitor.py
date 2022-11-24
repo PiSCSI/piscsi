@@ -62,6 +62,14 @@ parser.add_argument(
     help="The pixel height of the screen buffer",
     )
 parser.add_argument(
+    "--refresh_interval",
+    type=int,
+    choices=range(0, 10000),
+    default=1000,
+    action="store",
+    help="Interval in ms between each screen refresh",
+    )
+parser.add_argument(
     "--password",
     type=str,
     default="",
@@ -105,9 +113,6 @@ sys_cmd = SysCmds()
 WIDTH = 128
 BORDER = 5
 
-# How long to delay between each update
-DELAY_TIME_MS = 1000
-
 # Define the Reset Pin
 OLED_RESET = None
 
@@ -121,7 +126,7 @@ OLED.rotation = ROTATION
 print("Running with the following display:")
 print(OLED)
 print()
-print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approximately)")
+print("Will update the OLED display every " + str(args.refresh_interval) + "ms (approximately)")
 
 # Show a startup splash bitmap image before starting the main loop
 # Convert the image to mode '1' for 1-bit color (monochrome)
@@ -153,9 +158,14 @@ LINE_SPACING = 8
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype('resources/type_writer.ttf', FONT_SIZE)
 
-IP_ADDR, HOSTNAME = sys_cmd.get_ip_and_host()
 REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
+
+# After how many screen updates the network data should be refreshed
+NETWORK_REFRESH_TICKS = 10
+network_refresh_counter = NETWORK_REFRESH_TICKS
+
+ip_addr, hostname = sys_cmd.get_ip_and_host()
 
 # Keep the pretty splash up on screen for a number of seconds
 sleep(2)
@@ -180,7 +190,7 @@ def formatted_output():
         has_luns = False
         for line in device_list:
             # If any device is using a LUN > 0 then display LUN for all devices
-            if line["unit"] > 0:
+            if int(line["unit"]) > 0:
                 has_luns = True
                 break
         for device in device_list:
@@ -191,6 +201,8 @@ def formatted_output():
             if device["file"]:
                 # Transliterate non-Latin characters in the file name
                 line += [unidecode(device["file"])]
+            elif device["device_type"] in REMOVABLE_DEVICE_TYPES:
+                line += ["[No Media]"]
             # Print only the Vendor/Product info if it's not generic RaSCSI
             if device["vendor"] not in "RaSCSI":
                 line += [device["vendor"], device["product"]]
@@ -198,10 +210,10 @@ def formatted_output():
     else:
         output += ["No device attached!"]
 
-    if IP_ADDR:
-        output += [f"IP {IP_ADDR} - {HOSTNAME}"]
+    if ip_addr:
+        output += [f"IP {ip_addr} - {hostname}"]
     else:
-        output += ["No IP address assigned", "Check network connection"]
+        output += ["No network connection"]
     return output
 
 def shutdown():
@@ -231,6 +243,13 @@ with GracefulInterruptHandler() as handler:
         active_output = deque(snapshot)
 
         while snapshot == ref_snapshot:
+            # When the counter reaches 0, refresh the ip address and hostname data
+            if not network_refresh_counter:
+                ip_addr, hostname = sys_cmd.get_ip_and_host()
+                network_refresh_counter = NETWORK_REFRESH_TICKS
+            else:
+                network_refresh_counter -= 1
+
             # Draw a black filled box to clear the image.
             DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
             Y_POS = TOP
@@ -245,7 +264,7 @@ with GracefulInterruptHandler() as handler:
             # Display image.
             OLED.image(IMAGE)
             OLED.show()
-            sleep(1000/DELAY_TIME_MS)
+            sleep(args.refresh_interval/1000)
 
             snapshot = formatted_output()
 
