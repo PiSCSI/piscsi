@@ -12,6 +12,7 @@
 #pragma once
 
 #include "hal/gpiobus.h"
+#include "hal/data_sample_raspberry.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
@@ -157,6 +158,12 @@ class GPIOBUS_Raspberry : public GPIOBUS
     }
     static uint32_t bcm_host_get_peripheral_address();
 
+    unique_ptr<DataSample> GetSample(uint64_t timestamp) override
+    {
+        Acquire();
+        return make_unique<DataSample_Raspberry>(signals, timestamp);
+    }
+
   protected:
     // All bus signals
     uint32_t signals = 0;
@@ -197,8 +204,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     // Set GPIO output signal
     void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
-
-    BUS::phase_t GetPhaseRaw(uint32_t raw_data) override;
 
     static uint32_t get_dt_ranges(const char *filename, uint32_t offset);
 

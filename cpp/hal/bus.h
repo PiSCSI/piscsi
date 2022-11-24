@@ -9,13 +9,15 @@
 
 #pragma once
 
+#include "hal/data_sample.h"
+#include "hal/pin_control.h"
 #include "shared/config.h"
 #include "shared/scsi.h"
 #include <array>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-#include "hal/pin_control.h"
+#include <memory>
 using namespace std;
 
 #ifndef USE_SEL_EVENT_ENABLE
@@ -30,21 +32,6 @@ class BUS : public PinControl
         TARGET    = 0,
         INITIATOR = 1,
         MONITOR   = 2,
-    };
-
-    //	Phase definitions
-    enum class phase_t : int {
-        busfree,
-        arbitration,
-        selection,
-        reselection,
-        command,
-        datain,
-        dataout,
-        status,
-        msgin,
-        msgout,
-        reserved
     };
 
     BUS()          = default;
@@ -67,8 +54,8 @@ class BUS : public PinControl
 
     virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) = 0;
 
-
     virtual uint32_t Acquire()                                                = 0;
+    virtual unique_ptr<DataSample> GetSample(uint64_t timestamp = 0)          = 0;
     virtual int CommandHandShake(vector<uint8_t> &)                           = 0;
     virtual int ReceiveHandShake(uint8_t *buf, int count)                     = 0;
     virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;

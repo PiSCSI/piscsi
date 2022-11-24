@@ -11,9 +11,11 @@
 
 #include "shared/scsi.h"
 
+	using namespace scsi_defs;
+
 class PhaseHandler
 {
-	BUS::phase_t phase = BUS::phase_t::busfree;
+	phase_t phase = phase_t::busfree;
 
 public:
 
@@ -29,18 +31,18 @@ public:
 	virtual void MsgIn() = 0;
 	virtual void MsgOut() = 0;
 
-	virtual BUS::phase_t Process(int) = 0;
+	virtual phase_t Process(int) = 0;
 
 protected:
 
-	BUS::phase_t GetPhase() const { return phase; }
-	void SetPhase(BUS::phase_t p) { phase = p; }
-	bool IsSelection() const { return phase == BUS::phase_t::selection; }
-	bool IsBusFree() const { return phase == BUS::phase_t::busfree; }
-	bool IsCommand() const { return phase == BUS::phase_t::command; }
-	bool IsStatus() const { return phase == BUS::phase_t::status; }
-	bool IsDataIn() const { return phase == BUS::phase_t::datain; }
-	bool IsDataOut() const { return phase == BUS::phase_t::dataout; }
-	bool IsMsgIn() const { return phase == BUS::phase_t::msgin; }
-	bool IsMsgOut() const { return phase == BUS::phase_t::msgout; }
+	phase_t GetPhase() const { return phase; }
+	void SetPhase(phase_t p) { phase = p; }
+	bool IsSelection() const { return phase == phase_t::selection; }
+	bool IsBusFree() const { return phase == phase_t::busfree; }
+	bool IsCommand() const { return phase == phase_t::command; }
+	bool IsStatus() const { return phase == phase_t::status; }
+	bool IsDataIn() const { return phase == phase_t::datain; }
+	bool IsDataOut() const { return phase == phase_t::dataout; }
+	bool IsMsgIn() const { return phase == phase_t::msgin; }
+	bool IsMsgOut() const { return phase == phase_t::msgout; }
 };

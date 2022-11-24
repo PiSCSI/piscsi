@@ -11,9 +11,11 @@
 
 #pragma once
 
+#include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
+
 #include <map>
 #include <semaphore.h>
 
@@ -149,16 +151,13 @@ class GPIOBUS_Virtual final : public GPIOBUS
     void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
-    // Get the phase based on raw data
-    // TODO: should decode the actual bus phase....
-    BUS::phase_t GetPhaseRaw(uint32_t raw_data) override
-    {
-        (void)raw_data;
-        return BUS::phase_t::busfree;
-    }
-
     array<int, 19> SignalTable;
     uint32_t *signals; // All bus signals
+
+    unique_ptr<DataSample> GetSample(uint64_t timestamp) override
+    {
+        return make_unique<DataSample_Raspberry>(*signals, timestamp);
+    }
 
 #ifdef SHARED_MEMORY_GPIO
     inline static const string SHARED_MEM_MUTEX_NAME = "/sem-mutex";

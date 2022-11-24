@@ -9,6 +9,8 @@
 
 #include <cstdint>
 
+#pragma once 
+
 // Virtual functions that must be implemented by the derived gpiobus classes
 // to control the GPIO pins
 class PinControl

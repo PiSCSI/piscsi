@@ -275,18 +275,12 @@ class GPIOBUS : public BUS
     virtual void SetENB(bool ast) = 0;
     // Set ENB signal
 
-    // Extract as specific pin field from a raw data capture
-    virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override = 0;
-
     int CommandHandShake(vector<uint8_t> &) override;
     // Command receive handshake
     int ReceiveHandShake(uint8_t *buf, int count) override;
     // Data receive handshake
     int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
     // Data transmission handshake
-
-    // Get the phase based on raw data
-    virtual BUS::phase_t GetPhaseRaw(uint32_t raw_data) = 0;
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal interrupt

@@ -210,7 +210,7 @@ int GPIOBUS::ReceiveHandShake(uint8_t *buf, int count)
     } else {
         // Get phase
         Acquire();
-        BUS::phase_t phase = GetPhase();
+        phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             // Wait for the REQ signal to be asserted
@@ -322,7 +322,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     } else {
         // Get Phase
         Acquire();
-        BUS::phase_t phase = GetPhase();
+        phase_t phase = GetPhase();
 
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {

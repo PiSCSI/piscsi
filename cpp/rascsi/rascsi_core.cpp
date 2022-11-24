@@ -41,6 +41,7 @@ using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
+using namespace scsi_defs;
 
 void Rascsi::Banner(const vector<char *>& args) const
 {
@@ -586,7 +587,7 @@ int Rascsi::run(const vector<char *>& args)
 		const uint8_t id_data = bus->GetDAT();
 		LOGTRACE("ID: %02X", id_data);
 
-		BUS::phase_t phase = BUS::phase_t::busfree;
+		phase_t phase = phase_t::busfree;
 
 		// Identify the responsible controller
 		auto controller = controller_manager->IdentifyController(id_data);
@@ -602,14 +603,14 @@ int Rascsi::run(const vector<char *>& args)
 				LOGTRACE("++++ Starting processing for unknown initiator ID");
 			}
 
-			if (controller->Process(initiator_id) == BUS::phase_t::selection) {
-				LOGTRACE("phase = BUS::phase_t::selection;")
-				phase = BUS::phase_t::selection;
+			if (controller->Process(initiator_id) == phase_t::selection) {
+				LOGTRACE("phase = phase_t::selection;")
+				phase = phase_t::selection;
 			}
 		}
 
 		// Return to bus monitoring if the selection phase has not started
-		if (phase != BUS::phase_t::selection) {
+		if (phase != phase_t::selection) {
 			continue;
 		}
 
@@ -631,7 +632,7 @@ int Rascsi::run(const vector<char *>& args)
 
 			// LOGTRACE("new phase: %s", bus->GetPhaseStrRaw(phase));
 			// End when the bus is free
-			if (phase == BUS::phase_t::busfree) {
+			if (phase == phase_t::busfree) {
 				break;
 			}
 		}

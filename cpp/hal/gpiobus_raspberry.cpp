@@ -990,33 +990,6 @@ void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Generic Phase Acquisition (Doesn't read GPIO)
-//
-//---------------------------------------------------------------------------
-BUS::phase_t GPIOBUS_Raspberry::GetPhaseRaw(uint32_t raw_data)
-{
-    // Selection Phase
-    if (GetPinRaw(raw_data, PIN_SEL)) {
-        if (GetPinRaw(raw_data, PIN_IO)) {
-            return BUS::phase_t::reselection;
-        } else {
-            return BUS::phase_t::selection;
-        }
-    }
-
-    // Bus busy phase
-    if (!GetPinRaw(raw_data, PIN_BSY)) {
-        return BUS::phase_t::busfree;
-    }
-
-    // Get target phase from bus signal line
-    int mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
-    mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
-    mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
-    return BUS::GetPhase(mci);
-}
 
 // Extract as specific pin field from a raw data capture
 uint32_t GPIOBUS_Raspberry::GetPinRaw(uint32_t raw_data, uint32_t pin_num)

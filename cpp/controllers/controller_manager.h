@@ -14,10 +14,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
+#include "hal/bus.h"
 
 using namespace std;
 
-class BUS;
 class AbstractController;
 class PrimaryDevice;
 

@@ -15,7 +15,7 @@
 #include "hal/gpiobus.h"
 #include "monitor/sm_reports.h"
 #include "monitor/sm_core.h"
-#include "monitor/data_sample.h"
+#include "hal/data_sample.h"
 #include <sys/time.h>
 #include <climits>
 #include <csignal>
@@ -130,11 +130,11 @@ void ScsiMon::Cleanup() const
     }
     LOGINFO(" ")
     LOGINFO("Generating %s...", vcd_file_name.c_str())
-    scsimon_generate_value_change_dump(vcd_file_name.c_str(), data_buffer, data_idx);
+    scsimon_generate_value_change_dump(vcd_file_name.c_str(), data_buffer);
     LOGINFO("Generating %s...", json_file_name.c_str())
-    scsimon_generate_json(json_file_name.c_str(), data_buffer, data_idx);
+    scsimon_generate_json(json_file_name.c_str(), data_buffer);
     LOGINFO("Generating %s...", html_file_name.c_str())
-    scsimon_generate_html(html_file_name.c_str(), data_buffer, data_idx);
+    scsimon_generate_html(html_file_name.c_str(), data_buffer);
 
     bus->Cleanup();
 }
@@ -166,8 +166,8 @@ int ScsiMon::run(const vector<char *>& args)
     uint32_t prev_high = high_bits;
     uint32_t prev_low = low_bits;
 #endif
-    uint32_t prev_sample = 0xFFFFFFFF;
-    uint32_t this_sample = 0;
+    shared_ptr<DataSample> prev_sample = nullptr;
+    shared_ptr<DataSample> this_sample = nullptr;;
     timeval start_time;
     timeval stop_time;
     uint64_t loop_count = 0;
@@ -181,10 +181,10 @@ int ScsiMon::run(const vector<char *>& args)
 
     Banner();
 
-    data_buffer = (data_capture *)calloc(buff_size, sizeof(data_capture_t));
+    data_buffer.reserve(buff_size);
 
     if (import_data) {
-        data_idx = scsimon_read_json(input_file_name.c_str(), data_buffer, buff_size);
+        data_idx = scsimon_read_json(input_file_name.c_str(), data_buffer);
         if (data_idx > 0)
         {
             LOGDEBUG("Read %d samples from %s", data_idx, input_file_name.c_str())
@@ -225,8 +225,6 @@ int ScsiMon::run(const vector<char *>& args)
 
     // Main Loop
     while (running) {
-        // Work initialization
-        this_sample = bus->Acquire();
         loop_count++;
         if (loop_count > LLONG_MAX - 1) {
             LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")
@@ -238,7 +236,7 @@ int ScsiMon::run(const vector<char *>& args)
             running = false;
         }
 
-        if (this_sample != prev_sample) {
+        if ((prev_sample == nullptr) || (this_sample == nullptr) || (this_sample != prev_sample)) {
 #ifdef DEBUG
             // This is intended to be a debug check to see if every pin is set
             // high and low at some point.
@@ -253,8 +251,7 @@ int ScsiMon::run(const vector<char *>& args)
                 LOGDEBUG("%s", ("Collected " + to_string(data_idx) + " samples...").c_str())
             }
 #endif
-            data_buffer[data_idx].data = this_sample;
-            data_buffer[data_idx].timestamp = loop_count;
+            data_buffer.push_back(bus->GetSample(loop_count));
             data_idx++;
             prev_sample = this_sample;
         }
@@ -264,8 +261,7 @@ int ScsiMon::run(const vector<char *>& args)
 
     // Collect one last sample, otherwise it looks like the end of the data was cut off
     if (data_idx < buff_size) {
-        data_buffer[data_idx].data = this_sample;
-        data_buffer[data_idx].timestamp = loop_count;
+        data_buffer.push_back(bus->GetSample(loop_count));
         data_idx++;
     }
 

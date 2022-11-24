@@ -96,13 +96,13 @@ for (i = 0; i < coll.length; i++) {
 )";
 
 
-static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, uint32_t capture_count)
+static void print_html_data(ofstream& html_fp, vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    const data_capture *data;
+    shared_ptr<DataSample> data;
     bool prev_data_valid = false;
     bool curr_data_valid;
     uint32_t selected_id = 0;
-    BUS::phase_t prev_phase = BUS::phase_t::busfree;
+    phase_t prev_phase = phase_t::busfree;
     bool close_row = false;
     int data_space_count = 0;
     bool collapsible_div_active = false;
@@ -110,12 +110,11 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
 
     html_fp << "<table>" << endl;
 
-    for (uint32_t idx = 0; idx < capture_count; idx++) {
-        data = &data_capture_array[idx];
-        curr_data_valid = GetAck(data) && GetReq(data);
-        BUS::phase_t phase = GetPhase(data);
-        if (phase == BUS::phase_t::selection && !GetBsy(data)) {
-            selected_id = GetData(data);
+    for (auto data: data_capture_array) {
+        curr_data_valid = data->GetACK() && data->GetREQ();
+        phase_t phase = data->GetPhase();
+        if (phase == phase_t::selection && !data->GetBSY()) {
+            selected_id = data->GetDAT();
         }
         if (prev_phase != phase) {
             if (close_row) {
@@ -137,8 +136,8 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
             }
             html_fp << "<tr>";
             close_row = true; // Close the row the next time around
-            html_fp << "<td>" << (double)data->timestamp / 100000 << "</td>";
-            html_fp << "<td>" << GetPhaseStr(data) << "</td>";
+            html_fp << "<td>" << (double)data->GetTimestamp() / 100000 << "</td>";
+            html_fp << "<td>" << data->GetPhaseStr() << "</td>";
             html_fp << "<td>" << std::hex << selected_id << "</td>";
             html_fp << "<td>";
         }
@@ -151,7 +150,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
                 html_fp << std::hex << data_space_count << ": ";
             }
 
-            html_fp << fmt::format("{0:02X}", GetData(data));
+            html_fp << fmt::format("{0:02X}", data->GetDAT());
 
             data_space_count++;
             if ((data_space_count % 4) == 0) {
@@ -171,7 +170,7 @@ static void print_html_data(ofstream& html_fp, const data_capture *data_capture_
     }
 }
 
-void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, uint32_t capture_count)
+void scsimon_generate_html(const char *filename, vector<shared_ptr<DataSample>> &data_capture_array)
 {
     LOGINFO("Creating HTML report file (%s)", filename)
 
@@ -181,7 +180,7 @@ void scsimon_generate_html(const char *filename, const data_capture *data_captur
 
     html_ofstream << html_header;
     print_copyright_info(html_ofstream);
-    print_html_data(html_ofstream, data_capture_array, capture_count);
+    print_html_data(html_ofstream,  data_capture_array);
 
     html_ofstream << html_footer;
 

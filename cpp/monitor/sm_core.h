@@ -10,52 +10,50 @@
 #pragma once
 
 #include "hal/bus.h"
-#include "monitor/data_sample.h"
-#include <vector>
+#include "hal/data_sample.h"
 #include <memory>
+#include <vector>
 
 using namespace std;
 
 // TODO Make static fields/methods non-static
 class ScsiMon
 {
-public:
+  public:
+    ScsiMon()  = default;
+    ~ScsiMon() = default;
 
-	ScsiMon() = default;
-	~ScsiMon() = default;
+    int run(const vector<char *> &);
 
-	int run(const vector<char *>&);
+    inline static double ns_per_loop;
 
-	inline static double ns_per_loop;
+  private:
+    void ParseArguments(const vector<char *> &);
+    void PrintHelpText(const vector<char *> &) const;
+    void Banner() const;
+    bool Init();
+    void Cleanup() const;
+    void Reset() const;
 
-private:
+    static void KillHandler(int);
 
-	void ParseArguments(const vector<char *>&);
-	void PrintHelpText(const vector<char *>&) const;
-	void Banner() const;
-	bool Init();
-	void Cleanup() const;
-	void Reset() const;
+    static inline volatile bool running;
 
-	static void KillHandler(int);
+    shared_ptr<BUS> bus;
 
-	static inline volatile bool running;
+    uint32_t buff_size = 1000000;
 
-	unique_ptr<BUS> bus;
+    vector<shared_ptr<DataSample>> data_buffer;
 
-	uint32_t buff_size = 1000000;
+    uint32_t data_idx = 0;
 
-	data_capture *data_buffer = nullptr;
+    bool print_help = false;
 
-	uint32_t data_idx = 0;
+    bool import_data = false;
 
-	bool print_help = false;
-
-	bool import_data = false;
-
-	string file_base_name = "log";
-	string vcd_file_name;
-	string json_file_name;
-	string html_file_name;
-	string input_file_name;
+    string file_base_name = "log";
+    string vcd_file_name;
+    string json_file_name;
+    string html_file_name;
+    string input_file_name;
 };

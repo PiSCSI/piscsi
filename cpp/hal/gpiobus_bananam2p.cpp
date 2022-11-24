@@ -348,17 +348,17 @@ void GPIOBUS_BananaM2p::Cleanup()
 
 void GPIOBUS_BananaM2p::SaveGpioBankCfg(int bank)
 {
-    if (bank >= 11) {
-        for (int i = 0; i < 4; i++) {
-            saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank - 11].CFG[i];
-        }
-    }
+    // if (bank >= 11) {
+    //     for (int i = 0; i < 4; i++) {
+    //         saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank - 11].CFG[i];
+    //     }
+    // }
 
-    else {
-        for (int i = 0; i < 4; i++) {
-            saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank].CFG[i];
-        }
-    }
+    // else {
+        // for (int i = 0; i < 4; i++) {
+        //     saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank].CFG[i];
+        // }
+    // }
 }
 
 void GPIOBUS_BananaM2p::SaveGpioConfig()
@@ -1456,30 +1456,3 @@ uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
     return ((raw_data >> pin_num) & 1);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Generic Phase Acquisition (Doesn't read GPIO)
-//
-//---------------------------------------------------------------------------
-BUS::phase_t GPIOBUS_BananaM2p::GetPhaseRaw(uint32_t raw_data)
-{
-    // Selection Phase
-    if (GetPinRaw(raw_data, BPI_PIN_SEL)) {
-        if (GetPinRaw(raw_data, BPI_PIN_IO)) {
-            return BUS::phase_t::reselection;
-        } else {
-            return BUS::phase_t::selection;
-        }
-    }
-
-    // Bus busy phase
-    if (!GetPinRaw(raw_data, BPI_PIN_BSY)) {
-        return BUS::phase_t::busfree;
-    }
-
-    // Get target phase from bus signal line
-    int mci = GetPinRaw(raw_data, BPI_PIN_MSG) ? 0x04 : 0x00;
-    mci |= GetPinRaw(raw_data, BPI_PIN_CD) ? 0x02 : 0x00;
-    mci |= GetPinRaw(raw_data, BPI_PIN_IO) ? 0x01 : 0x00;
-    return BUS::GetPhase(mci);
-}
