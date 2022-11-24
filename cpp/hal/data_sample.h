@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI Reloaded
 //	for Raspberry Pi
 //
-//	Copyright (C) 2020-2021 akuker
+//	Copyright (C) 2022 akuker
 //
 //	[ Logical representation of a single data sample ]
 //
@@ -45,6 +45,8 @@ class DataSample
     }
 
     const string GetPhaseStr() const;
+
+    virtual ~DataSample() = default;
 
   protected:
     uint64_t timestamp = 0;

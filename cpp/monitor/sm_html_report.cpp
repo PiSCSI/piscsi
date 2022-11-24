@@ -5,6 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//  Copyright (C) 2021-2022 akuker
 //
 //---------------------------------------------------------------------------
 
@@ -96,7 +97,7 @@ for (i = 0; i < coll.length; i++) {
 )";
 
 
-static void print_html_data(ofstream& html_fp, vector<shared_ptr<DataSample>> &data_capture_array)
+static void print_html_data(ofstream& html_fp, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
     shared_ptr<DataSample> data;
     bool prev_data_valid = false;
@@ -170,13 +171,13 @@ static void print_html_data(ofstream& html_fp, vector<shared_ptr<DataSample>> &d
     }
 }
 
-void scsimon_generate_html(const char *filename, vector<shared_ptr<DataSample>> &data_capture_array)
+void scsimon_generate_html(string filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    LOGINFO("Creating HTML report file (%s)", filename)
+    LOGINFO("Creating HTML report file (%s)", filename.c_str())
 
     ofstream html_ofstream;
 
-    html_ofstream.open(filename, ios::out);
+    html_ofstream.open(filename.c_str(), ios::out);
 
     html_ofstream << html_header;
     print_copyright_info(html_ofstream);

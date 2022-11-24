@@ -85,11 +85,11 @@ static void vcd_output_if_changed_byte(ofstream &fp, uint8_t data, int pin, char
     }
 }
 
-void scsimon_generate_value_change_dump(const char *filename, vector<shared_ptr<DataSample>> data_capture_array)
+void scsimon_generate_value_change_dump(string filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    LOGTRACE("Creating Value Change Dump file (%s)", filename)
+    LOGTRACE("Creating Value Change Dump file (%s)", filename.c_str())
     ofstream vcd_ofstream;
-    vcd_ofstream.open(filename, ios::out);
+    vcd_ofstream.open(filename.c_str(), ios::out);
 
     // Get the current time
     time_t rawtime;

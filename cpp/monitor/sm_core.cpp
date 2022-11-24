@@ -5,23 +5,24 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//  Copyright (C) 2021-2022 akuker
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
-#include "shared/rasutil.h"
-#include "shared/rascsi_version.h"
-#include "hal/gpiobus_factory.h"
-#include "hal/gpiobus.h"
-#include "monitor/sm_reports.h"
 #include "monitor/sm_core.h"
 #include "hal/data_sample.h"
-#include <sys/time.h>
+#include "hal/gpiobus.h"
+#include "hal/gpiobus_factory.h"
+#include "monitor/sm_reports.h"
+#include "shared/log.h"
+#include "shared/rascsi_version.h"
+#include "shared/rasutil.h"
 #include <climits>
 #include <csignal>
-#include <iostream>
 #include <getopt.h>
+#include <iostream>
 #include <sched.h>
+#include <sys/time.h>
 
 using namespace std;
 using namespace ras_util;
@@ -31,7 +32,7 @@ void ScsiMon::KillHandler(int)
     running = false;
 }
 
-void ScsiMon::ParseArguments(const vector<char *>& args)
+void ScsiMon::ParseArguments(const vector<char *> &args)
 {
     int opt;
 
@@ -46,11 +47,11 @@ void ScsiMon::ParseArguments(const vector<char *>& args)
             buff_size = atoi(optarg);
             break;
         case 'i':
-        	input_file_name = optarg;
-            import_data = true;
+            input_file_name = optarg;
+            import_data     = true;
             break;
         case 1:
-        	file_base_name = optarg;
+            file_base_name = optarg;
             break;
         default:
             cout << "default: " << optarg << endl;
@@ -72,7 +73,7 @@ void ScsiMon::ParseArguments(const vector<char *>& args)
     html_file_name += ".html";
 }
 
-void ScsiMon::PrintHelpText(const vector<char *>& args) const
+void ScsiMon::PrintHelpText(const vector<char *> &args) const
 {
     LOGINFO("%s -i [input file json] -b [buffer size] [output file]", args[0])
     LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data")
@@ -86,8 +87,7 @@ void ScsiMon::Banner() const
 {
     if (import_data) {
         LOGINFO("Reading input file: %s", input_file_name.c_str())
-    }
-    else {
+    } else {
         LOGINFO("Reading live data from the GPIO pins")
         LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
     }
@@ -112,7 +112,7 @@ bool ScsiMon::Init()
         return false;
     }
 
-	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
+    bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
     if (bus == nullptr) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
         return false;
@@ -130,11 +130,11 @@ void ScsiMon::Cleanup() const
     }
     LOGINFO(" ")
     LOGINFO("Generating %s...", vcd_file_name.c_str())
-    scsimon_generate_value_change_dump(vcd_file_name.c_str(), data_buffer);
+    scsimon_generate_value_change_dump(vcd_file_name, data_buffer);
     LOGINFO("Generating %s...", json_file_name.c_str())
-    scsimon_generate_json(json_file_name.c_str(), data_buffer);
+    scsimon_generate_json(json_file_name, data_buffer);
     LOGINFO("Generating %s...", html_file_name.c_str())
-    scsimon_generate_html(html_file_name.c_str(), data_buffer);
+    scsimon_generate_html(html_file_name, data_buffer);
 
     bus->Cleanup();
 }
@@ -146,10 +146,10 @@ void ScsiMon::Reset() const
 
 #ifdef DEBUG
 static uint32_t high_bits = 0x0;
-static uint32_t low_bits = 0xFFFFFFFF;
+static uint32_t low_bits  = 0xFFFFFFFF;
 #endif
 
-int ScsiMon::run(const vector<char *>& args)
+int ScsiMon::run(const vector<char *> &args)
 {
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::trace);
@@ -164,10 +164,10 @@ int ScsiMon::run(const vector<char *>& args)
 
 #ifdef DEBUG
     uint32_t prev_high = high_bits;
-    uint32_t prev_low = low_bits;
+    uint32_t prev_low  = low_bits;
 #endif
     shared_ptr<DataSample> prev_sample = nullptr;
-    shared_ptr<DataSample> this_sample = nullptr;;
+    shared_ptr<DataSample> this_sample = nullptr;
     timeval start_time;
     timeval stop_time;
     uint64_t loop_count = 0;
@@ -184,9 +184,8 @@ int ScsiMon::run(const vector<char *>& args)
     data_buffer.reserve(buff_size);
 
     if (import_data) {
-        data_idx = scsimon_read_json(input_file_name.c_str(), data_buffer);
-        if (data_idx > 0)
-        {
+        data_idx = scsimon_read_json(input_file_name, data_buffer);
+        if (data_idx > 0) {
             LOGDEBUG("Read %d samples from %s", data_idx, input_file_name.c_str())
             Cleanup();
         }
@@ -246,7 +245,7 @@ int ScsiMon::run(const vector<char *>& args)
                 LOGDEBUG("   %08X    %08X\n", high_bits, low_bits)
             }
             prev_high = high_bits;
-            prev_low = low_bits;
+            prev_low  = low_bits;
             if ((data_idx % 1000) == 0) {
                 LOGDEBUG("%s", ("Collected " + to_string(data_idx) + " samples...").c_str())
             }
@@ -270,13 +269,15 @@ int ScsiMon::run(const vector<char *>& args)
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec * 1000000) + time_diff.tv_usec);
-    LOGINFO("%s", ("Elapsed time: " + to_string(elapsed_us) + " microseconds (" + to_string(elapsed_us / 1000000)
-    		+ " seconds").c_str())
+    LOGINFO("%s", ("Elapsed time: " + to_string(elapsed_us) + " microseconds (" + to_string(elapsed_us / 1000000) +
+                   " seconds")
+                      .c_str())
     LOGINFO("%s", ("Collected " + to_string(data_idx) + " changes").c_str())
 
     ns_per_loop = (double)(elapsed_us * 1000) / (double)loop_count;
-    LOGINFO("%s", ("Read the SCSI bus " + to_string(loop_count) + " times with an average of "
-    		+ to_string(ns_per_loop) + " ns for each read").c_str())
+    LOGINFO("%s", ("Read the SCSI bus " + to_string(loop_count) + " times with an average of " +
+                   to_string(ns_per_loop) + " ns for each read")
+                      .c_str())
 
     Cleanup();
 

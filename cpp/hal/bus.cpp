@@ -5,6 +5,7 @@
 // Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 // Copyright (C) 2014-2020 GIMONS
 // Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022 akuker
 //
 //---------------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ const char* BUS::GetPhaseStrRaw(phase_t current_phase) {
 //  This determines the phase based upon the Msg, C/D and I/O signals.
 //
 //---------------------------------------------------------------------------
-const array<phase_t, 8> phase_table = {
+const array<phase_t, 8> BUS::phase_table = {
 						// | MSG|C/D|I/O |
 	phase_t::dataout,	// |  0 | 0 | 0  |
 	phase_t::datain,	// |  0 | 0 | 1  |

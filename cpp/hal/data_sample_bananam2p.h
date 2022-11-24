@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI Reloaded
 //	for Raspberry Pi
 //
-//	Copyright (C) 2020-2021 akuker
+//	Copyright (C) 2022 akuker
 //
 //	[ Logical representation of a single data sample ]
 //
@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include <array>
 #include "hal/data_sample.h"
 #include "shared/scsi.h"
+#include <array>
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
@@ -27,10 +27,9 @@
 #error Invalid connection type or none specified
 #endif
 
-class DataSample_BananaM2p  : public DataSample
+class DataSample_BananaM2p final : public DataSample
 {
   public:
-
     bool GetSignal(int pin) const override;
 
     bool GetBSY() const override
@@ -80,9 +79,12 @@ class DataSample_BananaM2p  : public DataSample
 
     uint8_t GetDAT() const override;
 
-	uint32_t GetRawCapture() const override;
+    uint32_t GetRawCapture() const override;
 
-    	bool operator==(const DataSample& other) const override{ return data == dynamic_cast<const DataSample_BananaM2p*>(&other)->data;}
+    bool operator==(const DataSample &other) const override
+    {
+        return data == dynamic_cast<const DataSample_BananaM2p *>(&other)->data;
+    }
 
     DataSample_BananaM2p(array<uint32_t, 12> in_data, uint64_t in_timestamp)
     {
@@ -90,6 +92,8 @@ class DataSample_BananaM2p  : public DataSample
         timestamp = in_timestamp;
     }
     DataSample_BananaM2p() = default;
+
+    ~DataSample_BananaM2p() override = default;
 
   private:
     array<uint32_t, 12> data = {0};

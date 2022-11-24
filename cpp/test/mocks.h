@@ -67,6 +67,7 @@ public:
 	MOCK_METHOD(uint32_t, GetPinRaw, (uint32_t, uint32_t), (override));
 	MOCK_METHOD(bool, PollSelectEvent, (), (override));
 	MOCK_METHOD(void, ClearSelectEvent, (), (override));
+	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));
 
 	MockBus() = default;
 	~MockBus() override = default;

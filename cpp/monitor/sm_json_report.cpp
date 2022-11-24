@@ -5,6 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//  Copyright (C) 2021-2022 akuker
 //
 //---------------------------------------------------------------------------
 
@@ -20,10 +21,10 @@ using namespace std;
 const char timestamp_label[] = "\"timestamp\":\"0x";
 const char data_label[]      = "\"data\":\"0x";
 
-uint32_t scsimon_read_json(const char *json_filename, vector<shared_ptr<DataSample>> &data_capture_array)
+uint32_t scsimon_read_json(string json_filename, vector<shared_ptr<DataSample>> &data_capture_array)
 {
     char str_buf[1024];
-    FILE *fp              = fopen(json_filename, "r");
+    FILE *fp              = fopen(json_filename.c_str(), "r");
     uint32_t sample_count = 0;
 
     while (fgets(str_buf, sizeof(str_buf), fp)) {
@@ -48,7 +49,6 @@ uint32_t scsimon_read_json(const char *json_filename, vector<shared_ptr<DataSamp
         data_uint = static_cast<uint32_t>(strtoul(data, &ptr, 16));
 
         // For reading in JSON files, we'll just assume raspberry pi data types
-        // shared_ptr<DataSample> read_sample = ;
         data_capture_array.push_back(make_unique<DataSample_Raspberry>(data_uint, timestamp_uint));
 
         sample_count++;
@@ -70,11 +70,11 @@ uint32_t scsimon_read_json(const char *json_filename, vector<shared_ptr<DataSamp
 //	Generate JSON Output File
 //
 //---------------------------------------------------------------------------
-void scsimon_generate_json(const char *filename, vector<shared_ptr<DataSample>> data_capture_array)
+void scsimon_generate_json(string filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    LOGTRACE("Creating JSON file (%s)", filename)
+    LOGTRACE("Creating JSON file (%s)", filename.c_str())
     ofstream json_ofstream;
-    json_ofstream.open(filename, ios::out);
+    json_ofstream.open(filename.c_str(), ios::out);
 
     json_ofstream << "[" << endl;
 

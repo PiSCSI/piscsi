@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI Reloaded
 //	for Raspberry Pi
 //
-//	Copyright (C) 2020-2021 akuker
+//	Copyright (C) 2022 akuker
 //
 //	[ Logical representation of a single data sample ]
 //
@@ -26,10 +26,9 @@
 #error Invalid connection type or none specified
 #endif
 
-class DataSample_Raspberry : public DataSample
+class DataSample_Raspberry final : public DataSample
 {
   public:
-
     bool GetSignal(int pin) const override
     {
         return (bool)((data >> pin) & 1);
@@ -87,16 +86,24 @@ class DataSample_Raspberry : public DataSample
                ((data >> (PIN_DT6 - 6)) & (1 << 6)) | ((data >> (PIN_DT7 - 7)) & (1 << 7));
     }
 
-	uint32_t GetRawCapture() const override {return data;}
+    uint32_t GetRawCapture() const override
+    {
+        return data;
+    }
 
-	bool operator==(const DataSample& other) const override{ return data == dynamic_cast<const DataSample_Raspberry*>(&other)->data;}
+    bool operator==(const DataSample &other) const override
+    {
+        return data == dynamic_cast<const DataSample_Raspberry *>(&other)->data;
+    }
 
     DataSample_Raspberry(uint32_t in_data, uint64_t in_timestamp)
     {
         data      = in_data;
         timestamp = in_timestamp;
     }
-	DataSample_Raspberry() = default;
+    DataSample_Raspberry() = default;
+
+    ~DataSample_Raspberry() override = default;
 
   private:
     uint32_t data = 0;
