@@ -94,6 +94,7 @@ def get_env_info():
         "logged_in": username and auth_active(AUTH_GROUP)["status"],
         "ip_addr": ip_addr,
         "host": host,
+        "system_name": sys_cmd.get_pretty_host(),
         "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
@@ -795,6 +796,25 @@ def release_id():
         return response(message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
 
     return response(error=True, message=process["msg"])
+
+
+@APP.route("/sys/rename", methods=["POST"])
+@login_required
+def rename_system():
+    """
+    Changes the hostname of the system
+    """
+    name = str(request.form.get("system_name"))
+    max_length = 120
+
+    if len(name) <= max_length:
+        process = sys_cmd.set_pretty_host(name)
+        if process:
+            if name:
+                return response(message=_("System name changed to '%(name)s'.", name=name))
+            return response(message=_("System name reset to default."))
+
+    return response(error=True, message=_("Failed to change system name."))
 
 
 @APP.route("/sys/reboot", methods=["POST"])

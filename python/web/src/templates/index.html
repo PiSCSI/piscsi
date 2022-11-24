@@ -726,16 +726,30 @@
         {{ _("System Operations") }}
     </summary>
     <ul>
+        <li>{{ _("For System Name we are using the high-level \"pretty\" hostname.") }}</li>
         <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
     </ul>
 </details>
 
+<div>
+<form action="/sys/rename" method="post">
+    <label for="system_name">{{ _("System Name:") }}</label>
+    <input name="system_name" id="system_name" type="text" maxlength=120 required>
+    <input type="submit" value="{{ _("Rename") }}">
+</form>
+<form action="/sys/rename" method="post">
+    <input name="system_name" type="hidden" value="">
+    <input type="submit" value="{{ _("Reset") }}">
+</form>
+</div>
+<div class="power-control">
 <form action="/sys/reboot" method="post" onclick="if (confirm('{{ _("Reboot the System?") }}')) shutdownNotify('{{ _("Rebooting the system...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Reboot System") }}">
 </form>
-<form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
+<form action="/sys/shutdown" method="post" onclick="if (confirm('{{ _("Shut Down the System?") }}')) shutdownNotify('{{ _("Shutting down the system...") }}'); else event.preventDefault();">
     <input type="submit" value="{{ _("Shut Down System") }}">
 </form>
+</div>
 </section>
 
 <hr/>

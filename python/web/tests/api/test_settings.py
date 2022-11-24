@@ -196,3 +196,49 @@ def test_set_theme_via_query_string(http_client, theme):
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
+
+
+# route("/sys/rename", methods=["POST"])
+def test_rename_system(env, http_client):
+    new_name = "SYSTEM NAME TEST"
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    old_name = response_data["data"]["system_name"]
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "system_name": new_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"System name changed to '{new_name}'."
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == new_name
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "system_name": old_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"System name changed to '{old_name}'."
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == old_name

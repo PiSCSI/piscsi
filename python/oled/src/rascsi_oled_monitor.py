@@ -66,21 +66,21 @@ parser.add_argument(
     type=str,
     default="",
     action="store",
-    help="Token password string for authenticating with RaSCSI",
+    help="Token password string for authenticating with the backend",
     )
 parser.add_argument(
-    "--rascsi-host",
+    "--host",
     type=str,
     default="localhost",
     action="store",
-    help="RaSCSI host. Default: localhost",
+    help="Backend hostname. Default: localhost",
 )
 parser.add_argument(
-    "--rascsi-port",
+    "--port",
     type=str,
     default=6868,
     action="store",
-    help="RaSCSI port. Default: 6868",
+    help="Backend port number. Default: 6868",
 )
 args = parser.parse_args()
 
@@ -98,7 +98,7 @@ elif args.height == 32:
 
 TOKEN = args.password
 
-sock_cmd = SocketCmds(host=args.rascsi_host, port=args.rascsi_port)
+sock_cmd = SocketCmds(host=args.host, port=args.port)
 ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=TOKEN)
 sys_cmd = SysCmds()
 
@@ -171,45 +171,37 @@ def formatted_output():
     Formats the strings to be displayed on the Screen
     Returns a (list) of (str) output
     """
-    rascsi_list = ractl_cmd.list_devices()['device_list']
+    device_list = ractl_cmd.list_devices()["device_list"]
     output = []
 
     if not TOKEN and not ractl_cmd.is_token_auth()["status"]:
-        output.append("Permission denied!")
-    elif rascsi_list:
-        for line in rascsi_list:
-            # Transliterate non-Latin characters
-            if line["file"]:
-                line["file"] = unidecode(line["file"])
-            if line["device_type"] in REMOVABLE_DEVICE_TYPES:
-                # Print image file name only when there is an image attached
-                if line["file"]:
-                    output.append(f"{line['id']} {line['device_type'][2:4]} "
-                                  f"{line['file']} {line['status']}")
-                else:
-                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
-            # Special handling of devices that don't use image files
-            elif line["device_type"] in PERIPHERAL_DEVICE_TYPES:
-                if line["vendor"] == "RaSCSI":
-                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
-                else:
-                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} "
-                                  f"{line['product']}")
+        output += ["Permission denied!"]
+    elif device_list:
+        has_luns = False
+        for line in device_list:
+            # If any device is using a LUN > 0 then display LUN for all devices
+            if line["unit"] > 0:
+                has_luns = True
+                break
+        for device in device_list:
+            line = [str(device["id"])]
+            if has_luns:
+                line += [str(device["unit"])]
+            line += [device["device_type"][2:4]]
+            if device["file"]:
+                # Transliterate non-Latin characters in the file name
+                line += [unidecode(device["file"])]
             # Print only the Vendor/Product info if it's not generic RaSCSI
-            elif line["vendor"] not in "RaSCSI":
-                output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} "
-                              f"{line['vendor']} {line['product']} {line['status']}")
-            else:
-                output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} "
-                              f"{line['status']}")
+            if device["vendor"] not in "RaSCSI":
+                line += [device["vendor"], device["product"]]
+            output += [" ".join(line)]
     else:
-        output.append("No image mounted!")
+        output += ["No device attached!"]
 
     if IP_ADDR:
-        output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+        output += [f"IP {IP_ADDR} - {HOSTNAME}"]
     else:
-        output.append("RaSCSI has no IP address")
-        output.append("Check network connection")
+        output += ["No IP address assigned", "Check network connection"]
     return output
 
 def shutdown():
@@ -231,7 +223,7 @@ with GracefulInterruptHandler() as handler:
     """
     while True:
         # The reference snapshot of attached devices that will be compared against each cycle
-        # to identify changes in RaSCSI backend
+        # to identify changes in the backend
         ref_snapshot = formatted_output()
         # The snapshot updated each cycle that will compared with ref_snapshot
         snapshot = ref_snapshot
