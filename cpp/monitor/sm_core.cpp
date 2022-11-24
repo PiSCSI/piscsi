@@ -235,7 +235,8 @@ int ScsiMon::run(const vector<char *> &args)
             running = false;
         }
 
-        if ((prev_sample == nullptr) || (this_sample == nullptr) || (this_sample != prev_sample)) {
+        this_sample = bus->GetSample(loop_count);
+        if ((prev_sample == nullptr) || (this_sample->GetRawCapture() != prev_sample->GetRawCapture())) {
 #ifdef DEBUG
             // This is intended to be a debug check to see if every pin is set
             // high and low at some point.
@@ -250,7 +251,7 @@ int ScsiMon::run(const vector<char *> &args)
                 LOGDEBUG("%s", ("Collected " + to_string(data_idx) + " samples...").c_str())
             }
 #endif
-            data_buffer.push_back(bus->GetSample(loop_count));
+            data_buffer.push_back(this_sample);
             data_idx++;
             prev_sample = this_sample;
         }

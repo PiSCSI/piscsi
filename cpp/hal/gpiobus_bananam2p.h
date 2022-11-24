@@ -11,10 +11,10 @@
 
 #pragma once
 
+#include "hal/data_sample_bananam2p.h"
 #include "hal/gpiobus.h"
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sbc_version.h"
-#include "hal/data_sample_bananam2p.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
@@ -149,8 +149,11 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Extract as specific pin field from a raw data capture
     uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
 
-
-        unique_ptr<DataSample>  GetSample(uint64_t timestamp) override {Acquire(); return make_unique<DataSample_BananaM2p>(signals, timestamp);}
+    unique_ptr<DataSample> GetSample(uint64_t timestamp) override
+    {
+        Acquire();
+        return make_unique<DataSample_BananaM2p>(signals, timestamp);
+    }
 
     // Map the physical pin number to the logical GPIO number
     // shared_ptr<Banana_Pi_Gpio_Mapping> phys_to_gpio_map;
