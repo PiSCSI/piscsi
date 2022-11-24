@@ -14,7 +14,9 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "shared/log.h"
+#include <cstddef>
 #include <map>
+#include <memory>
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
@@ -51,7 +53,7 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
         shm_unlink(SHARED_MEM_NAME.c_str());
     }
 #else
-    signals = new uint32_t();
+    signals = make_shared<uint32_t>(0);
 #endif
 
     return true;
@@ -82,8 +84,6 @@ void GPIOBUS_Virtual::Cleanup()
     munmap(static_cast<void *>(signals), sizeof(uint32_t));
     shm_unlink(SHARED_MEM_NAME.c_str());
     sem_close(mutex_sem);
-#else
-    free(signals);
 #endif
 }
 
@@ -400,14 +400,16 @@ void GPIOBUS_Virtual::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
 
-    PinSetSignal(PIN_DT0, (dat & (0x01 >> 0)) != 0);
-    PinSetSignal(PIN_DT1, (dat & (0x01 >> 1)) != 0);
-    PinSetSignal(PIN_DT2, (dat & (0x01 >> 2)) != 0);
-    PinSetSignal(PIN_DT3, (dat & (0x01 >> 3)) != 0);
-    PinSetSignal(PIN_DT4, (dat & (0x01 >> 4)) != 0);
-    PinSetSignal(PIN_DT5, (dat & (0x01 >> 5)) != 0);
-    PinSetSignal(PIN_DT6, (dat & (0x01 >> 6)) != 0);
-    PinSetSignal(PIN_DT7, (dat & (0x01 >> 7)) != 0);
+    byte new_dat = static_cast<byte>(dat);
+
+    PinSetSignal(PIN_DT0, (new_dat & ((byte)1 << 0)) != (byte)0);
+    PinSetSignal(PIN_DT1, (new_dat & ((byte)1 << 1)) != (byte)0);
+    PinSetSignal(PIN_DT2, (new_dat & ((byte)1 << 2)) != (byte)0);
+    PinSetSignal(PIN_DT3, (new_dat & ((byte)1 << 3)) != (byte)0);
+    PinSetSignal(PIN_DT4, (new_dat & ((byte)1 << 4)) != (byte)0);
+    PinSetSignal(PIN_DT5, (new_dat & ((byte)1 << 5)) != (byte)0);
+    PinSetSignal(PIN_DT6, (new_dat & ((byte)1 << 6)) != (byte)0);
+    PinSetSignal(PIN_DT7, (new_dat & ((byte)1 << 7)) != (byte)0);
 }
 
 //---------------------------------------------------------------------------
@@ -490,30 +492,6 @@ void GPIOBUS_Virtual::EnableIRQ()
 {
     GPIO_FUNCTION_TRACE
     // Nothing to do for virtual gpio bus
-}
-
-//---------------------------------------------------------------------------
-//
-//	Pin direction setting (input/output)
-//
-//---------------------------------------------------------------------------
-void GPIOBUS_Virtual::PinConfig(int hw_pin, int mode)
-{
-    GPIO_FUNCTION_TRACE(void) hw_pin;
-    (void)mode;
-    // Nothing to do to configure pins for virtual gpio bus
-}
-
-//---------------------------------------------------------------------------
-//
-//	Pin pull-up/pull-down setting
-//
-//---------------------------------------------------------------------------
-void GPIOBUS_Virtual::PullConfig(int hw_pin, int mode)
-{
-    GPIO_FUNCTION_TRACE(void) hw_pin;
-    (void)mode;
-    // Nothing to do to configure pins for virtual gpio bus
 }
 
 //---------------------------------------------------------------------------
