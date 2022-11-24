@@ -626,11 +626,13 @@ function installHfdisk() {
 
 # Fetch HFS drivers that the Web Interface uses
 function fetchHardDiskDrivers() {
-    if [ ! -d "$BASE/mac-hard-disk-drivers" ]; then
+    DRIVER_ARCHIVE="mac-hard-disk-drivers"
+    if [ ! -d "$BASE/$DRIVER_ARCHIVE" ]; then
         cd "$BASE" || exit 1
-        wget -r https://www.dropbox.com/s/gcs4v5pcmk7rxtb/mac-hard-disk-drivers.zip?dl=0
-        unzip -d mac-hard-disk-drivers mac-hard-disk-drivers.zip
-        rm mac-hard-disk-drivers.zip
+        # -N option overwrites if downloaded file is newer than existing file
+        wget -N "https://www.dropbox.com/s/gcs4v5pcmk7rxtb/$DRIVER_ARCHIVE.zip?dl=1" -O "$DRIVER_ARCHIVE.zip"
+        unzip -d "$DRIVER_ARCHIVE" "$DRIVER_ARCHIVE.zip"
+        rm "$DRIVER_ARCHIVE.zip"
     fi
 }
 

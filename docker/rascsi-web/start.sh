@@ -11,6 +11,9 @@ fi
 # Start Nginx service
 nginx
 
+# Use mock commands
+export PATH="/home/pi/RASCSI/python/web/mock/bin:$PATH"
+
 # Pass args to web UI start script
 if [[ $RASCSI_PASSWORD ]]; then
     /home/pi/RASCSI/python/web/start.sh "$@" --password=$RASCSI_PASSWORD

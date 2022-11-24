@@ -77,8 +77,7 @@
         </div>
 
         <div class="hostname">
-            <span>{{ _("IP") }}: {{ env["ip_addr"] }}</span>
-            <span>{{ _("Hostname") }}: {{ env["host"] }}</span>
+            <span>{{ env['system_name'] }}</span>
         </div>
     </div>
 
@@ -126,10 +125,13 @@
             {% endif %}
         </div>
         <div>
-            {{ _("RaSCSI Reloaded version: ") }}<b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+            {{ _("RaSCSI Reloaded version:") }} <b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
         </div>
         <div>
-            {{ _("Hardware and OS: ") }}{{ env["running_env"]["env"] }}
+            {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}
+        </div>
+        <div>
+            {{ _("Network Address:") }} {{ env["host"] }} ({{ env["ip_addr"] }})
         </div>
     </div>
 </body>

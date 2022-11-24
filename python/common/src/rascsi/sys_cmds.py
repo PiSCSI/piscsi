@@ -3,11 +3,12 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
-from subprocess import run
+from subprocess import run, CalledProcessError
 from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 from pathlib import Path
+from platform import uname
 
 from rascsi.common_settings import SHELL_ERROR
 
@@ -37,20 +38,6 @@ class SysCmds:
             logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
             ra_git_version = ""
 
-        try:
-            os_version = (
-                subprocess.run(
-                    ["uname", "--kernel-name", "--kernel-release", "--machine"],
-                    capture_output=True,
-                    check=True,
-                    )
-                .stdout.decode("utf-8")
-                .strip()
-            )
-        except subprocess.CalledProcessError as error:
-            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-            os_version = "Unknown OS"
-
         PROC_MODEL_PATH = "/proc/device-tree/model"
         SYS_VENDOR_PATH = "/sys/devices/virtual/dmi/id/sys_vendor"
         SYS_PROD_PATH = "/sys/devices/virtual/dmi/id/product_name"
@@ -77,7 +64,11 @@ class SysCmds:
         else:
             hardware = "Unknown Device"
 
-        return {"git": ra_git_version, "env": f"{hardware}, {os_version}" }
+        env = uname()
+        return {
+            "git": ra_git_version,
+            "env": f"{hardware}, {env.system} {env.release} {env.machine}",
+            }
 
     @staticmethod
     def running_proc(daemon):
@@ -171,6 +162,42 @@ class SysCmds:
         finally:
             sock.close()
         return ip_addr, host
+
+    @staticmethod
+    def get_pretty_host():
+        """
+        Returns either the pretty hostname if set, or the regular hostname as fallback.
+        """
+        try:
+            process = run(
+                    ["hostnamectl", "status", "--pretty"],
+                    capture_output=True,
+                    check=True,
+                    )
+            pretty_hostname = process.stdout.decode("utf-8").rstrip()
+            if pretty_hostname:
+                return pretty_hostname
+        except CalledProcessError as error:
+            logging.error(str(error))
+
+        return gethostname()
+
+    @staticmethod
+    def set_pretty_host(name):
+        """
+        Set the pretty hostname for the system
+        """
+        try:
+            process = run(
+                    ["sudo", "hostnamectl", "set-hostname", "--pretty", name],
+                    capture_output=False,
+                    check=True,
+                    )
+        except CalledProcessError as error:
+            logging.error(str(error))
+            return False
+
+        return True
 
     @staticmethod
     def get_logs(lines, scope):

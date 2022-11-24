@@ -2,14 +2,10 @@ name: Build ARM binaries
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize]
+  push:
     paths:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
-  push:
-    branches:
-      - develop
 
 jobs:
   fullspec:
