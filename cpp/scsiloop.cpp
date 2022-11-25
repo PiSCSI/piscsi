@@ -86,13 +86,13 @@ int local_pin_dt6 = -1;
 int local_pin_dt7 = -1;
 int local_pin_dp  = -1;
 
-void test_timer();
-void test_gpio();
-void test_dat_inputs();
+int test_timer(vector<string> &error_list);
+void test_gpio(vector<string> &error_list);
+void test_dat_inputs(vector<string> &error_list);
 void dat_output_test_setup();
 uint8_t get_dat_outputs_loop();
-void test_dat_outputs();
-void run_loopback_test();
+void test_dat_outputs(vector<string> &error_list);
+int run_loopback_test(vector<string> &error_list);
 void set_dtd_out();
 void set_dtd_in();
 void set_ind_out();
@@ -179,7 +179,6 @@ bool ParseArgument(int argc, char *argv[])
     int opt;
     while ((opt = getopt(argc, argv, "-L:")) != -1) {
         switch (opt) {
-
         case 'L':
             log_level = optarg;
             continue;
@@ -222,6 +221,8 @@ int main(int argc, char *argv[])
     set_level(level::info);
     current_log_level = "info";
 
+    vector<string> error_list;
+
     if (!ParseArgument(argc, argv)) {
         return -1;
     }
@@ -254,16 +255,26 @@ int main(int argc, char *argv[])
     cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
-    test_timer();
-    run_loopback_test();
-    test_dat_inputs();
-    test_dat_outputs();
+    test_timer(error_list);
+    int result = run_loopback_test(error_list);
+
+    if (result == 0) {
+        // Only test the dat inputs/outputs if the loopback test passed.
+        test_dat_inputs(error_list);
+        test_dat_outputs(error_list);
+    }
+
+    if (error_list.size() > 0) {
+        for (auto err_string : error_list) {
+            printf(RED "%s\n", err_string.c_str());
+        }
+    }
     Cleanup();
 
     return 0;
 }
 
-void test_timer()
+int test_timer(vector<string> &error_list)
 {
     uint32_t timer_test_failures = 0;
 
@@ -289,7 +300,8 @@ void test_timer()
 
     if ((elapsed_nanosecs > (one_second_in_ns * (1.0 + timer_tolerance_percent))) ||
         (elapsed_nanosecs < (one_second_in_ns * (1.0 - timer_tolerance_percent)))) {
-        printf(RED "TIMER FAILED! Expected time approx: %d, but actually %d", one_second_in_ns, elapsed_nanosecs);
+        error_list.push_back(fmt::format("SysTimer::GetTimerLow() test: Expected time approx: {}, but actually {}",
+                                         one_second_in_ns, elapsed_nanosecs));
         timer_test_failures++;
     } else {
         printf(".");
@@ -310,8 +322,8 @@ void test_timer()
 
     if ((elapsed_nanosecs > expected_usec_result * (1.0 + timer_tolerance_percent)) ||
         (elapsed_nanosecs < expected_usec_result * (1.0 - timer_tolerance_percent))) {
-        printf(RED "SysTimer::SleepUsec FAILED! Expected time approx: %d, but actually %d", expected_usec_result,
-               elapsed_nanosecs);
+        error_list.push_back(fmt::format("SysTimer::SleepUsec Test: Expected time approx: {}, but actually {}",
+                                         expected_usec_result, elapsed_nanosecs));
         timer_test_failures++;
     } else {
         printf(".");
@@ -329,7 +341,8 @@ void test_timer()
     elapsed_nanosecs = after - before;
     if ((elapsed_nanosecs > (1000 * (1.0 + timer_tolerance_percent))) ||
         (elapsed_nanosecs < (1000 * (1.0 - timer_tolerance_percent)))) {
-        printf(RED "SysTimer::SleepNsec FAILED! Expected time approx: 1000, but actually %d", elapsed_nanosecs);
+        error_list.push_back(
+            fmt::format("SysTimer::SleepNsec Test: Expected time approx: 1000, but actually {}", elapsed_nanosecs));
         timer_test_failures++;
     } else {
         printf(".");
@@ -340,6 +353,7 @@ void test_timer()
     } else {
         printf(RED "Timer FAILED - %d errors!\n", timer_test_failures);
     }
+    return timer_test_failures;
 }
 
 struct loopback_connections_struct {
@@ -631,7 +645,7 @@ void loopback_setup()
 
 // Main test procedure.This will execute for each of the SCSI pins to make sure its connected
 // properly.
-int test_gpio_pin(loopback_connection &gpio_rec)
+int test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
@@ -669,22 +683,25 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != ON) {
-                LOGERROR("Test commanded GPIO %d [%s] to be low, but it did not respond", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: Test commanded GPIO {} [{}] to be low, but it did not respond",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
             }
         } else if (cur_gpio.this_pin == gpio_rec.connected_pin) {
             if (cur_val != ON) {
-                LOGERROR("GPIO %d [%s] should be driven low, but %d [%s] did not affect it", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_gpio.connected_pin,
-                         pin_name_lookup.at(cur_gpio.connected_pin).c_str());
+                error_list.push_back(
+                    fmt::format("Loopback test: GPIO {} [{}] should be driven low, but {} [{}] did not affect it",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin), cur_gpio.connected_pin,
+                                pin_name_lookup.at(cur_gpio.connected_pin)));
 
                 err_count++;
             }
         } else {
             if (cur_val != OFF) {
-                LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: GPIO {} [{}] was incorrectly pulled low, when it shouldn't be",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
             }
         }
@@ -707,14 +724,16 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != ON) {
-                LOGERROR("Test commanded GPIO %d [%s] to be low, but it did not respond", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: Test commanded GPIO {} [{}] to be low, but it did not respond",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
             }
         } else {
             if (cur_val != OFF) {
-                LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: GPIO {} [{}] was incorrectly pulled low, when it shouldn't be",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
             }
         }
@@ -741,15 +760,17 @@ int test_gpio_pin(loopback_connection &gpio_rec)
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != OFF) {
-                LOGERROR("Test commanded GPIO %d [%s] to be high, but it did not respond", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: Test commanded GPIO {} [{}] to be high, but it did not respond",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
                 print_all();
             }
         } else {
             if (cur_val != OFF) {
-                LOGERROR("GPIO %d [%s] was incorrectly pulled low, when it shouldn't be", (int)cur_gpio.this_pin,
-                         pin_name_lookup.at(cur_gpio.this_pin).c_str())
+                error_list.push_back(
+                    fmt::format("Loopback test: GPIO {} [{}] was incorrectly pulled low, when it shouldn't be",
+                                cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin)));
                 err_count++;
                 print_all();
             }
@@ -763,8 +784,9 @@ int test_gpio_pin(loopback_connection &gpio_rec)
     return err_count;
 }
 
-void run_loopback_test()
+int run_loopback_test(vector<string> &error_list)
 {
+    int errors = 0;
     LOGTRACE("%s", __PRETTY_FUNCTION__);
     init_loopback();
     loopback_setup();
@@ -772,8 +794,9 @@ void run_loopback_test()
     for (auto cur_gpio : loopback_conn_table) {
         printf(CYAN "Testing GPIO %3d [%s]:" WHITE, (int)cur_gpio.this_pin,
                pin_name_lookup.at(cur_gpio.this_pin).c_str());
-        test_gpio_pin(cur_gpio);
+        errors += test_gpio_pin(cur_gpio, error_list);
     }
+    return errors;
 }
 
 void dat_input_test_setup()
@@ -814,7 +837,7 @@ void set_dat_inputs_loop(uint8_t value)
     bus->SetSignal(local_pin_req, (value >> 7) & 0x1);
 }
 
-void test_dat_inputs()
+void test_dat_inputs(vector<string> &error_list)
 {
     int err_count     = 0;
     int delay_time_us = 1000;
@@ -830,7 +853,7 @@ void test_dat_inputs()
         uint8_t read_val = bus->GetDAT();
 
         if (read_val != (uint8_t)(val & 0xFF)) {
-            LOGERROR("expected: %08X, got %08X", val, read_val);
+            error_list.push_back(fmt::format("DAT Inputs: Expected value {} but got {}", val, read_val));
             err_count++;
         }
         if ((val % 0x7) == 0) {
@@ -839,9 +862,9 @@ void test_dat_inputs()
     }
 
     if (err_count == 0) {
-        printf(GREEN "DAT Inputs OK!\n");
+        printf(GREEN "OK!\n");
     } else {
-        printf(RED "DAT Input FAILED - %d errors!\n\r", err_count);
+        printf(RED "FAILED - %d errors!\n\r", err_count);
     }
 }
 
@@ -874,18 +897,18 @@ void dat_output_test_setup()
 uint8_t get_dat_outputs_loop()
 {
     uint8_t value = 0;
-    value |= ((bus->GetSignal(local_pin_ack) & 0x1) <<  0);
-    value |= ((bus->GetSignal(local_pin_sel) & 0x1) <<  1);
-    value |= ((bus->GetSignal(local_pin_atn) & 0x1) <<  2);
-    value |= ((bus->GetSignal(local_pin_rst) & 0x1) <<  3);
-    value |= ((bus->GetSignal(local_pin_cd)  & 0x1) <<  4);
-    value |= ((bus->GetSignal(local_pin_io)  & 0x1) <<  5);
-    value |= ((bus->GetSignal(local_pin_msg) & 0x1) <<  6);
-    value |= ((bus->GetSignal(local_pin_req) & 0x1) <<  7);
+    value |= ((bus->GetSignal(local_pin_ack) & 0x1) << 0);
+    value |= ((bus->GetSignal(local_pin_sel) & 0x1) << 1);
+    value |= ((bus->GetSignal(local_pin_atn) & 0x1) << 2);
+    value |= ((bus->GetSignal(local_pin_rst) & 0x1) << 3);
+    value |= ((bus->GetSignal(local_pin_cd) & 0x1) << 4);
+    value |= ((bus->GetSignal(local_pin_io) & 0x1) << 5);
+    value |= ((bus->GetSignal(local_pin_msg) & 0x1) << 6);
+    value |= ((bus->GetSignal(local_pin_req) & 0x1) << 7);
     return value;
 }
 
-void test_dat_outputs()
+void test_dat_outputs(vector<string> &error_list)
 {
     int err_count     = 0;
     int delay_time_us = 1000;
@@ -901,7 +924,7 @@ void test_dat_outputs()
         uint8_t read_val = get_dat_outputs_loop();
 
         if (read_val != (uint8_t)(val & 0xFF)) {
-            LOGERROR("expected: %08X, got %08X", val, read_val);
+            error_list.push_back(fmt::format("DAT Outputs: Expected value {} but got {}", val, read_val));
             err_count++;
         }
         if ((val % 0x7) == 0) {
@@ -910,8 +933,8 @@ void test_dat_outputs()
     }
 
     if (err_count == 0) {
-        printf(GREEN "DAT Outputs OK!\n");
+        printf(GREEN "OK!\n");
     } else {
-        printf(RED "DAT Outputs FAILED - %d errors!\n\r", err_count);
+        printf(RED "FAILED - %d errors!\n\r", err_count);
     }
 }

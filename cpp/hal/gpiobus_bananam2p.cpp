@@ -355,9 +355,9 @@ void GPIOBUS_BananaM2p::SaveGpioBankCfg(int bank)
     // }
 
     // else {
-        // for (int i = 0; i < 4; i++) {
-        //     saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank].CFG[i];
-        // }
+    // for (int i = 0; i < 4; i++) {
+    //     saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank].CFG[i];
+    // }
     // }
 }
 
@@ -369,7 +369,7 @@ void GPIOBUS_BananaM2p::SaveGpioConfig()
     SaveGpioBankCfg(2);
     SaveGpioBankCfg(11);
 
-        // saved_gpio_config.gpio_bank[0]
+    // saved_gpio_config.gpio_bank[0]
     //     //     .CFG[0] = ((sunxi_gpio_reg_t *)pio_map)->gpio_bank[0].CFG[0];
 
     // for (auto this_bank : gpio_banks) {
@@ -832,7 +832,7 @@ int GPIOBUS_BananaM2p::GetMode(int pin)
     // LOGINFO("raw regval: %08X", regval);
     // Shift it down to the LSB
     regval >>= offset;
-    LOGINFO("shifted regval: %08X", regval);
+    // LOGINFO("shifted regval: %08X", regval);
     return (int)regval;
 }
 
@@ -892,7 +892,7 @@ bool GPIOBUS_BananaM2p::GetSignal(int pin) const
     // LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, (int)gpio_num, (int)bank, (int)num);
 
     regval = (signals[bank] >> num) & 0x1;
-    return regval == 0;
+    return regval != 0;
     // sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     // /* DK, for PL and PM */
     // if (bank >= 11) {
@@ -1113,7 +1113,12 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
         }
 
         uint32_t regval = *(&pio->DAT);
-        signals[bank]   = regval;
+
+#if SIGNAL_CONTROL_MODE < 2
+        // Invert if negative logic (internal processing is unified to positive logic)
+        regval = ~regval;
+#endif // SIGNAL_CONTROL_MODE
+        signals[bank] = regval;
     }
     // TODO: This should do something someday....
     return 0;
@@ -1455,4 +1460,3 @@ uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
 {
     return ((raw_data >> pin_num) & 1);
 }
-
