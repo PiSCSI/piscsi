@@ -68,6 +68,11 @@ public:
 	MOCK_METHOD(bool, PollSelectEvent, (), (override));
 	MOCK_METHOD(void, ClearSelectEvent, (), (override));
 	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));
+	MOCK_METHOD(void, PinConfig, (int, int), (override));
+    MOCK_METHOD(void, PullConfig, (int , int ), (override));
+    MOCK_METHOD(void, SetControl, (int , bool ), (override));
+    MOCK_METHOD(void, SetMode, (int , int ), (override));
+    MOCK_METHOD(int, GetMode, (int ), (override));
 
 	MockBus() = default;
 	~MockBus() override = default;
