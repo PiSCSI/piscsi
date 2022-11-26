@@ -142,9 +142,9 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    void PinConfig(int pin, int mode) override;
+    void PinConfig(int pin, int mode) override {(void)pin; (void)mode;}
     // GPIO pin direction setting
-    void PullConfig(int pin, int mode) override;
+    void PullConfig(int pin, int mode) override {(void)pin; (void)mode;}
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
     // Set GPIO output signal
@@ -152,7 +152,7 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // Set GPIO drive strength
 
     array<int, 19> SignalTable;
-    uint32_t *signals; // All bus signals
+    shared_ptr<uint32_t> signals; // All bus signals
 
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override
     {
