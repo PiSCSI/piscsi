@@ -49,6 +49,9 @@ class PinControl
     virtual uint8_t GetDAT()         = 0;
     virtual void SetDAT(uint8_t dat) = 0;
 
+    // Set ENB signal
+    virtual void SetENB(bool ast) = 0;
+
     // Get parity signal
     virtual bool GetDP() const = 0;
 
@@ -59,4 +62,7 @@ class PinControl
 
     virtual void SetControl(int pin, bool ast) = 0;
     virtual void SetMode(int pin, int mode)    = 0;
+
+    PinControl()          = default;
+    virtual ~PinControl() = default;
 };

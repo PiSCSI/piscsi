@@ -81,15 +81,8 @@ class DataSample_BananaM2p final : public DataSample
 
     uint32_t GetRawCapture() const override;
 
-    bool operator==(const DataSample &other) const override
+    DataSample_BananaM2p(array<uint32_t, 12> &in_data, uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data}
     {
-        return data == dynamic_cast<const DataSample_BananaM2p *>(&other)->data;
-    }
-
-    DataSample_BananaM2p(array<uint32_t, 12> in_data, uint64_t in_timestamp)
-    {
-        data      = in_data;
-        timestamp = in_timestamp;
     }
     DataSample_BananaM2p() = default;
 

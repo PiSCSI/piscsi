@@ -14,7 +14,7 @@
 #include "shared/scsi.h"
 #include <string>
 
-	using namespace scsi_defs;
+using namespace scsi_defs;
 
 class DataSample
 {
@@ -32,9 +32,7 @@ class DataSample
     virtual uint8_t GetDAT() const = 0;
     virtual bool GetDP() const     = 0;
 
-	virtual uint32_t GetRawCapture() const = 0;
-
-	virtual bool operator==(const DataSample& other) const = 0;
+    virtual uint32_t GetRawCapture() const = 0;
 
     phase_t GetPhase() const;
     virtual bool GetSignal(int pin) const = 0;
@@ -48,6 +46,9 @@ class DataSample
 
     virtual ~DataSample() = default;
 
-  protected:
+    DataSample(uint64_t in_timestamp) : timestamp{in_timestamp} {}
+    DataSample() = default;
+
+  private:
     uint64_t timestamp = 0;
 };

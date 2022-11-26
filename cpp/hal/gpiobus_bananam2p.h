@@ -15,6 +15,7 @@
 #include "hal/gpiobus.h"
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sbc_version.h"
+#include "hal/sunxi_utils.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
@@ -96,7 +97,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void SetREQ(bool ast) override;
     // Set REQ signal
 
-    virtual bool GetDP() const override;
+    bool GetDP() const override;
 
     uint8_t GetDAT() override;
     // Get DAT signal
@@ -125,16 +126,14 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     bool GetSignal(int pin) const override;
 
-    // Get SCSI input signal value
-    void SetSignal(int pin, bool ast) override;
     // Set SCSI output signal value
-    // bool WaitSignal(int pin, bool ast) override;
-    // Wait for a signal to change
+    void SetSignal(int pin, bool ast) override;
+
     // Interrupt control
-    void DisableIRQ() override;
     // IRQ Disabled
-    void EnableIRQ() override;
+    void DisableIRQ() override;
     // IRQ Enabled
+    void EnableIRQ() override;
 
     //  GPIO pin functionality settings
     void PinConfig(int pin, int mode) override;
@@ -155,36 +154,13 @@ class GPIOBUS_BananaM2p : public GPIOBUS
         return make_unique<DataSample_BananaM2p>(signals, timestamp);
     }
 
-    // Map the physical pin number to the logical GPIO number
-    // shared_ptr<Banana_Pi_Gpio_Mapping> phys_to_gpio_map;
-
     bool SetupSelEvent();
 
 #if !defined(__x86_64__) && !defined(__X86__)
     uint32_t baseaddr = 0; // Base address
 #endif
 
-    volatile uint32_t *gpio = nullptr; // GPIO register
-
-    volatile uint32_t *pads = nullptr; // PADS register
-
-    volatile uint32_t *gpio_map;
-
-#if !defined(__x86_64__) && !defined(__X86__)
-    volatile uint32_t *level = nullptr; // GPIO input level
-#endif
-
-    volatile uint32_t *irpctl = nullptr; // Interrupt control register
-
-    volatile uint32_t irptenb; // Interrupt enabled state
-
-    volatile uint32_t *qa7regs = nullptr; // QA7 register
-
-    volatile int tintcore; // Interupt control target CPU.
-
-    volatile uint32_t tintctl; // Interupt control
-
-    volatile uint32_t giccpmr; // GICC priority setting
+    volatile uint32_t *gpio_map = nullptr;
 
     // Timer control register
     volatile uint32_t *tmr_ctrl;
@@ -198,7 +174,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
 
     array<uint32_t, 12> signals = {0}; // All bus signals
-
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table
@@ -220,54 +195,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     int bpi_found = -1;
 
-    enum class gpio_configure_values_e : uint8_t {
-        gpio_input      = 0b000,
-        gpio_output     = 0b001,
-        gpio_alt_func_1 = 0b010,
-        gpio_alt_func_2 = 0b011,
-        gpio_reserved_1 = 0b100,
-        gpio_reserved_2 = 0b101,
-        gpio_interupt   = 0b110,
-        gpio_disable    = 0b111
-    };
-
-    struct BPIBoards {
-        const char *name;
-        int gpioLayout;
-        int model;
-        int rev;
-        int mem;
-        int maker;
-        int warranty;
-        int *pinToGpio;
-        int *physToGpio;
-        int *pinTobcm;
-    };
-
-    typedef BPIBoards BpiBoardsType;
-    static BpiBoardsType bpiboard[];
-
-    typedef struct sunxi_gpio {
-        unsigned int CFG[4];
-        unsigned int DAT;
-        unsigned int DRV[2];
-        unsigned int PULL[2];
-    } sunxi_gpio_t;
-
-    /* gpio interrupt control */
-    typedef struct sunxi_gpio_int {
-        unsigned int CFG[3];
-        unsigned int CTL;
-        unsigned int STA;
-        unsigned int DEB;
-    } sunxi_gpio_int_t;
-
-    typedef struct sunxi_gpio_reg {
-        struct sunxi_gpio gpio_bank[9];
-        unsigned char res[0xbc];
-        struct sunxi_gpio_int gpio_int;
-    } sunxi_gpio_reg_t;
-
     volatile uint32_t *pio_map;
     volatile uint32_t *r_pio_map;
 
@@ -278,19 +205,17 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void set_pullupdn(int gpio, int pud);
 
     // These definitions are from c_gpio.c and should be removed at some point!!
-    const int SETUP_OK           = 0;
-
-    void short_wait(void) const;
+    const int SETUP_OK = 0;
 
     SBC_Version::sbc_version_type sbc_version;
 
     void SaveGpioConfig();
     void SaveGpioBankCfg(int);
 
-    sunxi_gpio_reg_t saved_gpio_config;
+    SunXI::sunxi_gpio_reg_t saved_gpio_config;
 
     static const array<int, 19> SignalTable;
 
     void InitializeGpio();
-
+    std::vector<int> gpio_banks;
 };

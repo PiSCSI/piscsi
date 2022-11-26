@@ -91,16 +91,7 @@ class DataSample_Raspberry final : public DataSample
         return data;
     }
 
-    bool operator==(const DataSample &other) const override
-    {
-        return data == dynamic_cast<const DataSample_Raspberry *>(&other)->data;
-    }
-
-    DataSample_Raspberry(uint32_t in_data, uint64_t in_timestamp)
-    {
-        data      = in_data;
-        timestamp = in_timestamp;
-    }
+    DataSample_Raspberry(uint32_t in_data, uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data} {}
     DataSample_Raspberry() = default;
 
     ~DataSample_Raspberry() override = default;

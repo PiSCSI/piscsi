@@ -261,19 +261,10 @@ class GPIOBUS : public BUS
   public:
     // Basic Functions
     GPIOBUS()           = default;
-    ~GPIOBUS() override = default;
     // Destructor
-    virtual bool Init(mode_e mode = mode_e::TARGET) override;
+    ~GPIOBUS() override = default;
     // Initialization
-    virtual void Reset() override = 0;
-    // Reset
-    virtual void Cleanup() override = 0;
-    // Cleanup
-
-    virtual uint32_t Acquire() override = 0;
-
-    virtual void SetENB(bool ast) = 0;
-    // Set ENB signal
+    bool Init(mode_e mode = mode_e::TARGET) override;
 
     int CommandHandShake(vector<uint8_t> &) override;
     // Command receive handshake

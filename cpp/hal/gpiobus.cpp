@@ -50,7 +50,6 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
     DisableIRQ();
 
     // Assert REQ signal
-    // SetSignal(PIN_REQ, ON);
     SetREQ(ON);
 
     // Wait for ACK signal

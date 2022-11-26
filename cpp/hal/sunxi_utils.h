@@ -12,6 +12,8 @@
 //
 //---------------------------------------------------------------------------
 
+#pragma once
+
 #include <cstdint>
 
 class SunXI
@@ -19,44 +21,80 @@ class SunXI
   public:
     static inline int GPIO_BANK(int pin)
     {
-        return ((pin) >> 5);
+        return (pin >> 5);
     }
     static inline int GPIO_NUM(int pin)
     {
-        return ((pin)&0x1F);
+        return (pin & 0x1F);
     }
     static inline int GPIO_CFG_INDEX(int pin)
     {
-        return (((pin)&0x1F) >> 3);
+        return ((pin & 0x1F) >> 3);
     }
     static inline int GPIO_CFG_OFFSET(int pin)
     {
-        return ((((pin)&0x1F) & 0x7) << 2);
+        return (((pin & 0x1F) & 0x7) << 2);
     }
     static inline int GPIO_PUL_INDEX(int pin)
     {
-        return (((pin)&0x1F) >> 4);
+        return ((pin & 0x1F) >> 4);
     }
     static inline int GPIO_PUL_OFFSET(int pin)
     {
-        return (((pin)&0x0F) << 1);
+        return ((pin & 0x0F) << 1);
     }
     static inline int GPIO_DRV_INDEX(int pin)
     {
-        return (((pin)&0x1F) >> 4);
+        return ((pin & 0x1F) >> 4);
     }
     static inline int GPIO_DRV_OFFSET(int pin)
     {
-        return (((pin)&0x0F) << 1);
+        return ((pin & 0x0F) << 1);
     }
 
     static inline void short_wait(void)
     {
         for (int i = 0; i < 150; i++) {
+#ifndef __arm__
+            usleep(1);
+#else
             // wait 150 cycles
             asm volatile("nop");
+#endif
         }
     }
+
+    enum class gpio_configure_values_e : uint8_t {
+        gpio_input      = 0b000,
+        gpio_output     = 0b001,
+        gpio_alt_func_1 = 0b010,
+        gpio_alt_func_2 = 0b011,
+        gpio_reserved_1 = 0b100,
+        gpio_reserved_2 = 0b101,
+        gpio_interupt   = 0b110,
+        gpio_disable    = 0b111
+    };
+
+    typedef struct sunxi_gpio {
+        unsigned int CFG[4];
+        unsigned int DAT;
+        unsigned int DRV[2];
+        unsigned int PULL[2];
+    } sunxi_gpio_t;
+
+    /* gpio interrupt control */
+    typedef struct sunxi_gpio_int {
+        unsigned int CFG[3];
+        unsigned int CTL;
+        unsigned int STA;
+        unsigned int DEB;
+    } sunxi_gpio_int_t;
+
+    typedef struct sunxi_gpio_reg {
+        struct sunxi_gpio gpio_bank[9];
+        unsigned char res[0xbc];
+        struct sunxi_gpio_int gpio_int;
+    } sunxi_gpio_reg_t;
 
     static const uint32_t PAGE_SIZE  = (4 * 1024);
     static const uint32_t BLOCK_SIZE = (4 * 1024);
@@ -66,8 +104,8 @@ class SunXI
     static const int SETUP_MMAP_FAIL    = 3;
     static const int SETUP_CPUINFO_FAIL = 4;
     static const int SETUP_NOT_RPI_FAIL = 5;
-    static const int INPUT              = 1; // is really 0 for control register!;
-    static const int OUTPUT             = 0; // is really 1 for control register!;
+    static const int INPUT              = 1;
+    static const int OUTPUT             = 0;
     static const int ALT0               = 4;
     static const int HIGH               = 1;
     static const int LOW                = 0;
