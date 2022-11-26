@@ -293,8 +293,7 @@ class GPIOBUS : public BUS
     // TODO: restore this back to protected
     // protected:
     virtual void MakeTable()                   = 0;
-    virtual void SetControl(int pin, bool ast) = 0;
-    virtual void SetMode(int pin, int mode)    = 0;
+
     bool GetSignal(int pin) const override     = 0;
     void SetSignal(int pin, bool ast) override = 0;
     bool WaitSignal(int pin, bool ast);
@@ -309,11 +308,7 @@ class GPIOBUS : public BUS
     virtual void EnableIRQ() = 0;
     // IRQ Enabled
 
-    //  GPIO pin functionality settings
-    virtual void PinConfig(int pin, int mode) = 0;
-    // GPIO pin direction setting
-    virtual void PullConfig(int pin, int mode) = 0;
-    // GPIO pin pull up/down resistor setting
+
     virtual void PinSetSignal(int pin, bool ast) = 0;
     // Set GPIO output signal
     virtual void DrvConfig(uint32_t drive) = 0;

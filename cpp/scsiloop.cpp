@@ -60,7 +60,7 @@ using namespace spdlog;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-shared_ptr<GPIOBUS> bus;
+shared_ptr<BUS> bus;
 string current_log_level = "unknown"; // Some versions of spdlog do not support get_log_level()
 
 int local_pin_dtd = -1;

@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "hal/gpiobus.h"
+#include "hal/bus.h"
 #include <memory>
 
 class GPIOBUS_Factory
 {
   public:
 
-  static unique_ptr<GPIOBUS> Create(BUS::mode_e mode);
+  static unique_ptr<BUS> Create(BUS::mode_e mode);
 };

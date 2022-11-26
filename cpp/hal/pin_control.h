@@ -9,7 +9,7 @@
 
 #include <cstdint>
 
-#pragma once 
+#pragma once
 
 // Virtual functions that must be implemented by the derived gpiobus classes
 // to control the GPIO pins
@@ -51,4 +51,12 @@ class PinControl
 
     // Get parity signal
     virtual bool GetDP() const = 0;
+
+    // GPIO pin direction setting
+    virtual void PinConfig(int pin, int mode) = 0;
+    // GPIO pin pull up/down resistor setting
+    virtual void PullConfig(int pin, int mode) = 0;
+
+    virtual void SetControl(int pin, bool ast) = 0;
+    virtual void SetMode(int pin, int mode)    = 0;
 };
