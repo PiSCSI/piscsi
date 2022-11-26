@@ -16,7 +16,7 @@
 
 #include <cstdint>
 #ifndef __arm__
-#include <unistd.h>
+#include <time.h>
 #endif
 
 class SunXI
@@ -59,7 +59,10 @@ class SunXI
     {
         for (int i = 0; i < 150; i++) {
 #ifndef __arm__
-            usleep(1);
+            // Timing doesn't really matter if we're not on ARM.
+            // The SunXI SoCs are all ARM-based.
+            const timespec ts = {.tv_sec = 0, .tv_nsec = 1};
+            nanosleep(&ts, nullptr);
 #else
             // wait 150 cycles
             asm volatile("nop");
@@ -78,26 +81,29 @@ class SunXI
         gpio_disable    = 0b111
     };
 
-    typedef struct sunxi_gpio {
-        unsigned int CFG[4];
+    struct sunxi_gpio {
+        unsigned int CFG[4]; // NOSONAR: Intentionally using C style arrays for low level register access
         unsigned int DAT;
-        unsigned int DRV[2];
-        unsigned int PULL[2];
-    } sunxi_gpio_t;
+        unsigned int DRV[2];  // NOSONAR: Intentionally using C style arrays for low level register access
+        unsigned int PULL[2]; // NOSONAR: Intentionally using C style arrays for low level register access
+    };
+    using sunxi_gpio_t = struct sunxi_gpio;
 
     /* gpio interrupt control */
-    typedef struct sunxi_gpio_int {
-        unsigned int CFG[3];
+    struct sunxi_gpio_int {
+        unsigned int CFG[3]; // NOSONAR: Intentionally using C style arrays for low level register access
         unsigned int CTL;
         unsigned int STA;
         unsigned int DEB;
-    } sunxi_gpio_int_t;
+    };
+    using sunxi_gpio_int_t = struct sunxi_gpio_int;
 
-    typedef struct sunxi_gpio_reg {
-        struct sunxi_gpio gpio_bank[9];
-        unsigned char res[0xbc];
+    struct sunxi_gpio_reg {
+        struct sunxi_gpio gpio_bank[9]; // NOSONAR: Intentionally using C style arrays for low level register access
+        unsigned char res[0xbc];        // NOSONAR: Intentionally using C style arrays for low level register access
         struct sunxi_gpio_int gpio_int;
-    } sunxi_gpio_reg_t;
+    };
+    using sunxi_gpio_reg_t = struct sunxi_gpio_reg;
 
     static const uint32_t PAGE_SIZE  = (4 * 1024);
     static const uint32_t BLOCK_SIZE = (4 * 1024);

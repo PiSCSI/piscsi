@@ -69,8 +69,8 @@ class BUS : public PinControl
         MONITOR   = 2,
     };
 
-    BUS()          = default;
-    virtual ~BUS() = default;
+    BUS()  = default;
+    ~BUS() = default;
 
     static int GetCommandByteCount(uint8_t);
 

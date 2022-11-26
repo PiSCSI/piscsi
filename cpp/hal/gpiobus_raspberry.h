@@ -166,9 +166,9 @@ class GPIOBUS_Raspberry : public GPIOBUS
 
   protected:
     // All bus signals
-    uint32_t signals = 0;
+    uint32_t signals = 0; // NOSONAR: Must be protected (not private) for testability
     // GPIO input level
-    volatile uint32_t *level = nullptr;
+    volatile uint32_t *level = nullptr; // NOSONAR: Must be protected (not private) for testability
 
   private:
     // SCSI I/O signal control

@@ -142,9 +142,17 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // IRQ Enabled
 
     //  GPIO pin functionality settings
-    void PinConfig(int pin, int mode) override {(void)pin; (void)mode;}
+    void PinConfig(int pin, int mode) override
+    {
+        (void)pin;
+        (void)mode;
+    }
     // GPIO pin direction setting
-    void PullConfig(int pin, int mode) override {(void)pin; (void)mode;}
+    void PullConfig(int pin, int mode) override
+    {
+        (void)mode; // Put these in opposite order so Sonar doesn't complain
+        (void)pin; // That PinConfig and PullConfig are identical
+    }
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
     // Set GPIO output signal

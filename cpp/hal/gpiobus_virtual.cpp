@@ -23,6 +23,8 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
+using namespace std;
+
 bool GPIOBUS_Virtual::Init(mode_e mode)
 {
     GPIO_FUNCTION_TRACE
@@ -400,7 +402,7 @@ void GPIOBUS_Virtual::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
 
-    byte new_dat = static_cast<byte>(dat);
+    auto new_dat = static_cast<byte>(dat);
 
     PinSetSignal(PIN_DT0, (new_dat & ((byte)1 << 0)) != (byte)0);
     PinSetSignal(PIN_DT1, (new_dat & ((byte)1 << 1)) != (byte)0);
