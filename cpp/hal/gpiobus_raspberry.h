@@ -85,9 +85,6 @@ class GPIOBUS_Raspberry : public GPIOBUS
     //	Bus signal acquisition
     uint32_t Acquire() override;
 
-    // Extract as specific pin field from a raw data capture
-    uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
-
     // Set ENB signal
     void SetENB(bool ast) override;
 

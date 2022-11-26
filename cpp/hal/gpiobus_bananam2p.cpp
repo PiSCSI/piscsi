@@ -45,35 +45,6 @@
 #include "hal/systimer.h"
 #include "shared/log.h"
 
-extern int wiringPiMode;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-// #pragma GCC diagnostic ignored "-Wformat-truncation"
-
-#define BLACK "\033[30m"   /* Black */
-#define RED "\033[31m"     /* Red */
-#define GREEN "\033[32m"   /* Green */
-#define YELLOW "\033[33m"  /* Yellow */
-#define BLUE "\033[34m"    /* Blue */
-#define MAGENTA "\033[35m" /* Magenta */
-#define CYAN "\033[36m"    /* Cyan */
-#define WHITE "\033[37m"   /* White */
-void dump_gpio_registers(SunXI::sunxi_gpio_reg_t *regs)
-{
-    printf(CYAN "--- GPIO BANK 0 CFG: %08X %08X %08X %08X\n", regs->gpio_bank[0].CFG[0], regs->gpio_bank[0].CFG[1],
-           regs->gpio_bank[0].CFG[2], regs->gpio_bank[0].CFG[3]);
-
-    printf("---      Dat: (%08X)  DRV: %08X %08X\n", regs->gpio_bank[0].DAT, regs->gpio_bank[0].DRV[0],
-           regs->gpio_bank[0].DRV[1]);
-    printf("---      Pull: %08X %08x\n", regs->gpio_bank[0].PULL[0], regs->gpio_bank[0].PULL[1]);
-
-    printf("--- GPIO INT CFG: %08X %08X %08X\n", regs->gpio_int.CFG[0], regs->gpio_int.CFG[1], regs->gpio_int.CFG[2]);
-    printf("---      CTL: (%08X)  STA: %08X DEB: %08X\n " WHITE, regs->gpio_int.CTL, regs->gpio_int.STA,
-           regs->gpio_int.DEB);
-}
 
 bool GPIOBUS_BananaM2p::Init(mode_e mode)
 {
@@ -156,6 +127,46 @@ void GPIOBUS_BananaM2p::InitializeGpio()
     // This is used to show that the application is running
     PinConfig(BPI_PIN_ENB, GPIO_OUTPUT);
     PinSetSignal(BPI_PIN_ENB, ON);
+}
+
+void GPIOBUS_BananaM2p::Cleanup()
+{
+    GPIO_FUNCTION_TRACE
+#if defined(__x86_64__) || defined(__X86__)
+    return;
+#else
+
+#ifdef USE_SEL_EVENT_ENABLE
+    // Release SEL signal interrupt
+    close(selevreq.fd);
+#endif // USE_SEL_EVENT_ENABLE
+
+    // Set control signals
+    PinSetSignal(BPI_PIN_ENB, OFF);
+    PinSetSignal(BPI_PIN_ACT, OFF);
+    PinSetSignal(BPI_PIN_TAD, OFF);
+    PinSetSignal(BPI_PIN_IND, OFF);
+    PinSetSignal(BPI_PIN_DTD, OFF);
+    PinConfig(BPI_PIN_ACT, GPIO_INPUT);
+    PinConfig(BPI_PIN_TAD, GPIO_INPUT);
+    PinConfig(BPI_PIN_IND, GPIO_INPUT);
+    PinConfig(BPI_PIN_DTD, GPIO_INPUT);
+
+    // Initialize all signals
+    for (int i = 0; SignalTable[i] >= 0; i++) {
+        int pin = SignalTable[i];
+        PinSetSignal(pin, OFF);
+        PinConfig(pin, GPIO_INPUT);
+        PullConfig(pin, GPIO_PULLNONE);
+    }
+
+    // Set drive strength back to Default (Level 1)
+    DrvConfig(1);
+
+    munmap((void *)gpio_map, SunXI::BLOCK_SIZE);
+    munmap((void *)r_gpio_map, SunXI::BLOCK_SIZE);
+
+#endif
 }
 
 void GPIOBUS_BananaM2p::Reset()
@@ -245,48 +256,10 @@ void GPIOBUS_BananaM2p::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-void GPIOBUS_BananaM2p::Cleanup()
-{
-    GPIO_FUNCTION_TRACE
-#if defined(__x86_64__) || defined(__X86__)
-    return;
-#else
-
-#ifdef USE_SEL_EVENT_ENABLE
-    // Release SEL signal interrupt
-    close(selevreq.fd);
-#endif // USE_SEL_EVENT_ENABLE
-
-    // Set control signals
-    PinSetSignal(BPI_PIN_ENB, OFF);
-    PinSetSignal(BPI_PIN_ACT, OFF);
-    PinSetSignal(BPI_PIN_TAD, OFF);
-    PinSetSignal(BPI_PIN_IND, OFF);
-    PinSetSignal(BPI_PIN_DTD, OFF);
-    PinConfig(BPI_PIN_ACT, GPIO_INPUT);
-    PinConfig(BPI_PIN_TAD, GPIO_INPUT);
-    PinConfig(BPI_PIN_IND, GPIO_INPUT);
-    PinConfig(BPI_PIN_DTD, GPIO_INPUT);
-
-    // Initialize all signals
-    for (int i = 0; SignalTable[i] >= 0; i++) {
-        int pin = SignalTable[i];
-        PinSetSignal(pin, OFF);
-        PinConfig(pin, GPIO_INPUT);
-        PullConfig(pin, GPIO_PULLNONE);
-    }
-
-    // Set drive strength back to Default (Level 1)
-    DrvConfig(1);
-
-    munmap((void *)gpio_map, SunXI::BLOCK_SIZE);
-    munmap((void *)r_gpio_map, SunXI::BLOCK_SIZE);
-
-#endif
-}
 
 void GPIOBUS_BananaM2p::SaveGpioBankCfg(int bank)
 {
+    (void)bank;
     // if (bank >= 11) {
     //     for (int i = 0; i < 4; i++) {
     //         saved_gpio_config.gpio_bank[bank].CFG[i] = ((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank - 11].CFG[i];
@@ -364,7 +337,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
         LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd)
         LOGERROR("Unable to register event request. Is RaSCSI already running?")
-        LOGERROR("[%08X] %s", errno, strerror(errno));
+        LOGERROR("[%08X] %s", errno, strerror(errno))
         close(gpio_fd);
         return false;
     }
@@ -555,7 +528,6 @@ void GPIOBUS_BananaM2p::SetIO(bool ast)
         // Change the data input/output direction by IO signal
         if (ast) {
             SetControl(BPI_PIN_DTD, DTD_OUT);
-            SetDAT(0);
             SetMode(BPI_PIN_DT0, OUT);
             SetMode(BPI_PIN_DT1, OUT);
             SetMode(BPI_PIN_DT2, OUT);
@@ -566,6 +538,7 @@ void GPIOBUS_BananaM2p::SetIO(bool ast)
             SetMode(BPI_PIN_DT7, OUT);
             SetMode(BPI_PIN_DP, OUT);
 
+            SetDAT(0);
             SetSignal(BPI_PIN_IO, ast);
 
         } else {
@@ -598,7 +571,6 @@ void GPIOBUS_BananaM2p::SetREQ(bool ast)
 uint8_t GPIOBUS_BananaM2p::GetDAT()
 {
     GPIO_FUNCTION_TRACE
-    static uint8_t prev_data = 0;
     // TODO: This is inefficient, but it works...
     uint32_t data = ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
                     ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
@@ -973,8 +945,6 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
 {
     GPIO_FUNCTION_TRACE
 
-    uint32_t value = 0;
-
     for (auto bank : gpio_banks) {
         volatile SunXI::sunxi_gpio_t *pio = &((SunXI::sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
         /* DK, for PL and PM */
@@ -994,7 +964,6 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
     return 0;
 }
 
-#pragma GCC diagnostic pop
 
 int GPIOBUS_BananaM2p::sunxi_setup(void)
 {
@@ -1160,8 +1129,4 @@ void GPIOBUS_BananaM2p::set_pullupdn(int pin, int pud)
     *(gpio_map + clk_offset) = 0;
 }
 
-// Extract as specific pin field from a raw data capture
-uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
-{
-    return ((raw_data >> pin_num) & 1);
-}
+

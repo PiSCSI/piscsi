@@ -990,13 +990,6 @@ void GPIOBUS_Raspberry::DrvConfig(uint32_t drive)
     pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 
-
-// Extract as specific pin field from a raw data capture
-uint32_t GPIOBUS_Raspberry::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
-{
-    return ((raw_data >> pin_num) & 1);
-}
-
 //---------------------------------------------------------------------------
 //
 //	Bus signal acquisition

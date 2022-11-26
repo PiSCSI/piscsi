@@ -88,8 +88,6 @@ class BUS : public PinControl
     static const char *GetPhaseStrRaw(phase_t current_phase);
     virtual int GetMode(int pin) = 0;
 
-    virtual uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) = 0;
-
     virtual uint32_t Acquire()                                                = 0;
     virtual unique_ptr<DataSample> GetSample(uint64_t timestamp = 0)          = 0;
     virtual int CommandHandShake(vector<uint8_t> &)                           = 0;

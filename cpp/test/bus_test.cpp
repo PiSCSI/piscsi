@@ -126,13 +126,3 @@ TEST(BusTest, GetPhaseStrRaw)
     EXPECT_STREQ("msgout", BUS::GetPhaseStrRaw(phase_t::msgout));
     EXPECT_STREQ("reserved", BUS::GetPhaseStrRaw(phase_t::reserved));
 }
-
-TEST(BusTest, GetPinRaw)
-{
-    NiceMock<MockBus> bus;
-
-    ON_CALL(bus, GetPinRaw(0, 0)).WillByDefault(Return(0));
-    ON_CALL(bus, GetPinRaw(0, 7)).WillByDefault(Return(0));
-    ON_CALL(bus, GetPinRaw(-1, 0)).WillByDefault(Return(1));
-    ON_CALL(bus, GetPinRaw(-1, 7)).WillByDefault(Return(1));
-}

@@ -562,8 +562,3 @@ uint32_t GPIOBUS_Virtual::Acquire()
     return signal_value;
 }
 
-// Extract as specific pin field from a raw data capture
-uint32_t GPIOBUS_Virtual::GetPinRaw(uint32_t raw_data, uint32_t pin_num)
-{
-    return ((raw_data >> pin_num) & 1);
-}

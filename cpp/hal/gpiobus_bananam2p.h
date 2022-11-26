@@ -145,9 +145,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void DrvConfig(uint32_t drive) override;
     // Set GPIO drive strength
 
-    // Extract as specific pin field from a raw data capture
-    uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
-
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override
     {
         Acquire();

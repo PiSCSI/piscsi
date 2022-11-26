@@ -65,7 +65,6 @@ public:
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
-	MOCK_METHOD(uint32_t, GetPinRaw, (uint32_t, uint32_t), (override));
 	MOCK_METHOD(bool, PollSelectEvent, (), (override));
 	MOCK_METHOD(void, ClearSelectEvent, (), (override));
 	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));

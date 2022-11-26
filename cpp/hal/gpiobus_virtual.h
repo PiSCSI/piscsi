@@ -46,9 +46,6 @@ class GPIOBUS_Virtual final : public GPIOBUS
     //---------------------------------------------------------------------------
     uint32_t Acquire() override;
 
-    // Extract as specific pin field from a raw data capture
-    uint32_t GetPinRaw(uint32_t raw_data, uint32_t pin_num) override;
-
     void SetENB(bool ast) override;
     // Set ENB signal
 
