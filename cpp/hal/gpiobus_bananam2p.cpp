@@ -203,7 +203,6 @@ void GPIOBUS_BananaM2p::InitializeGpio()
         PullConfig(j, pullmode);
     }
 
-
     PinConfig(BPI_PIN_BSY, GPIO_INPUT);
     PinSetSignal(BPI_PIN_BSY, OFF);
     usleep(100);
@@ -226,8 +225,6 @@ void GPIOBUS_BananaM2p::InitializeGpio()
     Acquire();
     PinConfig(BPI_PIN_BSY, GPIO_INPUT);
     PinSetSignal(BPI_PIN_BSY, OFF);
-
-
 
     // Set control signals
     PinSetSignal(BPI_PIN_ACT, OFF);
@@ -490,11 +487,9 @@ bool GPIOBUS_BananaM2p::GetBSY() const
 
 void GPIOBUS_BananaM2p::SetBSY(bool ast)
 {
-
     if (actmode == mode_e::TARGET) {
         if (ast) {
             // Turn on ACTIVE signal
-            LOGINFO("%s ACT=ON", __PRETTY_FUNCTION__)
             SetControl(BPI_PIN_ACT, ACT_ON);
 
             // Set Target signal to output
@@ -511,7 +506,6 @@ void GPIOBUS_BananaM2p::SetBSY(bool ast)
 
         } else {
             // Turn off the ACTIVE signal
-            LOGINFO("%s ACT=OFF", __PRETTY_FUNCTION__)
             SetControl(BPI_PIN_ACT, ACT_OFF);
 
             // Set the target signal to input
@@ -523,12 +517,10 @@ void GPIOBUS_BananaM2p::SetBSY(bool ast)
             SetMode(BPI_PIN_REQ, IN);
             SetMode(BPI_PIN_IO, IN);
         }
-    }
-    else{
+    } else {
         // Set BSY signal
-       SetSignal(BPI_PIN_BSY, ast);
+        SetSignal(BPI_PIN_BSY, ast);
     }
-
 }
 
 bool GPIOBUS_BananaM2p::GetSEL() const
@@ -643,8 +635,6 @@ bool GPIOBUS_BananaM2p::GetIO()
 
 void GPIOBUS_BananaM2p::SetIO(bool ast)
 {
-    SetSignal(BPI_PIN_IO, ast);
-
     if (actmode == mode_e::TARGET) {
         // Change the data input/output direction by IO signal
         if (ast) {
@@ -659,6 +649,9 @@ void GPIOBUS_BananaM2p::SetIO(bool ast)
             SetMode(BPI_PIN_DT6, OUT);
             SetMode(BPI_PIN_DT7, OUT);
             SetMode(BPI_PIN_DP, OUT);
+
+            SetSignal(BPI_PIN_IO, ast);
+
         } else {
             SetControl(BPI_PIN_DTD, DTD_IN);
             SetMode(BPI_PIN_DT0, IN);
@@ -671,6 +664,8 @@ void GPIOBUS_BananaM2p::SetIO(bool ast)
             SetMode(BPI_PIN_DT7, IN);
             SetMode(BPI_PIN_DP, IN);
         }
+    } else {
+        SetSignal(BPI_PIN_IO, ast);
     }
 }
 
@@ -995,13 +990,11 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
 
 void GPIOBUS_BananaM2p::DisableIRQ()
 {
-    LOGERROR("%s not tested????", __PRETTY_FUNCTION__)
     *tmr_ctrl = 0b00;
 }
 
 void GPIOBUS_BananaM2p::EnableIRQ()
 {
-    LOGERROR("%s not tested????", __PRETTY_FUNCTION__)
     *tmr_ctrl = 0b11;
 }
 
