@@ -627,10 +627,10 @@ int Rascsi::run(const vector<char *>& args)
 		// Loop until the bus is free
 		while (service.IsRunning()) {
 			// Target drive
-			// LOGTRACE("Calling phase = controller->Process(initiator_id);")
+			LOGTRACE("Calling phase = controller->Process(initiator_id);")
 			phase = controller->Process(initiator_id);
 
-			// LOGTRACE("new phase: %s", bus->GetPhaseStrRaw(phase));
+			LOGTRACE("new phase: %s", bus->GetPhaseStrRaw(phase));
 			// End when the bus is free
 			if (phase == phase_t::busfree) {
 				break;

@@ -203,6 +203,32 @@ void GPIOBUS_BananaM2p::InitializeGpio()
         PullConfig(j, pullmode);
     }
 
+
+    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
+    PinSetSignal(BPI_PIN_BSY, OFF);
+    usleep(100);
+    Acquire();
+    LOGINFO("BSY Input Off: %d", GetSignal(BPI_PIN_BSY));
+    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
+    PinSetSignal(BPI_PIN_BSY, ON);
+    LOGINFO("BSY Input On: %d", GetSignal(BPI_PIN_BSY));
+    usleep(100);
+    Acquire();
+    PinConfig(BPI_PIN_BSY, GPIO_OUTPUT);
+    PinSetSignal(BPI_PIN_BSY, OFF);
+    LOGINFO("BSY Output Off: %d", GetSignal(BPI_PIN_BSY));
+    usleep(100);
+    Acquire();
+    PinConfig(BPI_PIN_BSY, GPIO_OUTPUT);
+    PinSetSignal(BPI_PIN_BSY, ON);
+    LOGINFO("BSY Output On: %d", GetSignal(BPI_PIN_BSY));
+    usleep(100);
+    Acquire();
+    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
+    PinSetSignal(BPI_PIN_BSY, OFF);
+
+
+
     // Set control signals
     PinSetSignal(BPI_PIN_ACT, OFF);
     PinSetSignal(BPI_PIN_TAD, OFF);
@@ -464,12 +490,11 @@ bool GPIOBUS_BananaM2p::GetBSY() const
 
 void GPIOBUS_BananaM2p::SetBSY(bool ast)
 {
-    // Set BSY signal
-    SetSignal(BPI_PIN_BSY, ast);
 
     if (actmode == mode_e::TARGET) {
         if (ast) {
             // Turn on ACTIVE signal
+            LOGINFO("%s ACT=ON", __PRETTY_FUNCTION__)
             SetControl(BPI_PIN_ACT, ACT_ON);
 
             // Set Target signal to output
@@ -480,8 +505,13 @@ void GPIOBUS_BananaM2p::SetBSY(bool ast)
             SetMode(BPI_PIN_CD, OUT);
             SetMode(BPI_PIN_REQ, OUT);
             SetMode(BPI_PIN_IO, OUT);
+
+            // Set BSY signal
+            SetSignal(BPI_PIN_BSY, ast);
+
         } else {
             // Turn off the ACTIVE signal
+            LOGINFO("%s ACT=OFF", __PRETTY_FUNCTION__)
             SetControl(BPI_PIN_ACT, ACT_OFF);
 
             // Set the target signal to input
@@ -494,6 +524,11 @@ void GPIOBUS_BananaM2p::SetBSY(bool ast)
             SetMode(BPI_PIN_IO, IN);
         }
     }
+    else{
+        // Set BSY signal
+       SetSignal(BPI_PIN_BSY, ast);
+    }
+
 }
 
 bool GPIOBUS_BananaM2p::GetSEL() const
