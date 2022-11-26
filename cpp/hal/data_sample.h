@@ -42,11 +42,11 @@ class DataSample
         return timestamp;
     }
 
-    const string GetPhaseStr() const;
+    string GetPhaseStr() const;
 
     virtual ~DataSample() = default;
 
-    DataSample(uint64_t in_timestamp) : timestamp{in_timestamp} {}
+    explicit DataSample(uint64_t in_timestamp) : timestamp{in_timestamp} {}
     DataSample() = default;
 
   private:
