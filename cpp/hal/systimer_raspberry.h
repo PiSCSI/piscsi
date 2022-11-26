@@ -46,4 +46,22 @@ class SysTimer_Raspberry : public PlatformSpecificTimer
     static volatile uint32_t *armtaddr;
     // Core frequency
     static volatile uint32_t corefreq;
+
+    const static int ARMT_LOAD    = 0;
+    const static int ARMT_VALUE   = 1;
+    const static int ARMT_CTRL    = 2;
+    const static int ARMT_CLRIRQ  = 3;
+    const static int ARMT_RAWIRQ  = 4;
+    const static int ARMT_MSKIRQ  = 5;
+    const static int ARMT_RELOAD  = 6;
+    const static int ARMT_PREDIV  = 7;
+    const static int ARMT_FREERUN = 8;
+
+    const static int SYST_CS  = 0;
+    const static int SYST_CLO = 1;
+    const static int SYST_CHI = 2;
+    const static int SYST_C0  = 3;
+    const static int SYST_C1  = 4;
+    const static int SYST_C2  = 5;
+    const static int SYST_C3  = 6;
 };
