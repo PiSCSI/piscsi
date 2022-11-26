@@ -64,4 +64,7 @@ class SysTimer_Raspberry : public PlatformSpecificTimer
     const static int SYST_C1  = 4;
     const static int SYST_C2  = 5;
     const static int SYST_C3  = 6;
+
+    const static uint32_t SYST_OFFSET = 0x00003000;
+    const static uint32_t ARMT_OFFSET = 0x0000B400;
 };

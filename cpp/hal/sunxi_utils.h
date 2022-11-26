@@ -15,7 +15,9 @@
 #pragma once
 
 #include <cstdint>
+#ifndef __arm__
 #include <unistd.h>
+#endif
 
 class SunXI
 {

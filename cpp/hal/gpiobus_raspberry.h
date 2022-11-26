@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "hal/gpiobus.h"
 #include "hal/data_sample_raspberry.h"
+#include "hal/gpiobus.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
 #include <map>
@@ -255,4 +255,44 @@ class GPIOBUS_Raspberry : public GPIOBUS
 #endif
 
     static const array<int, 19> SignalTable;
+
+    const static int GPIO_FSEL_0     = 0;
+    const static int GPIO_FSEL_1     = 1;
+    const static int GPIO_FSEL_2     = 2;
+    const static int GPIO_FSEL_3     = 3;
+    const static int GPIO_SET_0      = 7;
+    const static int GPIO_CLR_0      = 10;
+    const static int GPIO_LEV_0      = 13;
+    const static int GPIO_EDS_0      = 16;
+    const static int GPIO_REN_0      = 19;
+    const static int GPIO_FEN_0      = 22;
+    const static int GPIO_HEN_0      = 25;
+    const static int GPIO_LEN_0      = 28;
+    const static int GPIO_AREN_0     = 31;
+    const static int GPIO_AFEN_0     = 34;
+    const static int GPIO_PUD        = 37;
+    const static int GPIO_CLK_0      = 38;
+    const static int GPIO_GPPINMUXSD = 52;
+    const static int GPIO_PUPPDN0    = 57;
+    const static int GPIO_PUPPDN1    = 58;
+    const static int GPIO_PUPPDN3    = 59;
+    const static int GPIO_PUPPDN4    = 60;
+    const static int PAD_0_27        = 11;
+    const static int IRPT_PND_IRQ_B  = 0;
+    const static int IRPT_PND_IRQ_1  = 1;
+    const static int IRPT_PND_IRQ_2  = 2;
+    const static int IRPT_FIQ_CNTL   = 3;
+    const static int IRPT_ENB_IRQ_1  = 4;
+    const static int IRPT_ENB_IRQ_2  = 5;
+    const static int IRPT_ENB_IRQ_B  = 6;
+    const static int IRPT_DIS_IRQ_1  = 7;
+    const static int IRPT_DIS_IRQ_2  = 8;
+    const static int IRPT_DIS_IRQ_B  = 9;
+    const static int QA7_CORE0_TINTC = 16;
+    const static int GPIO_IRQ        = (32 + 20); // GPIO3
+
+    const static uint32_t IRPT_OFFSET = 0x0000B200;
+    const static uint32_t PADS_OFFSET = 0x00100000;
+    const static uint32_t GPIO_OFFSET = 0x00200000;
+    const static uint32_t QA7_OFFSET  = 0x01000000;
 };
