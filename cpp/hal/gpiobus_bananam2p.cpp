@@ -43,6 +43,7 @@
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/systimer.h"
 #include "shared/log.h"
+#include "hal/sunxi_utils.h"
 
 extern int wiringPiMode;
 
@@ -52,64 +53,7 @@ extern int wiringPiMode;
 
 // #pragma GCC diagnostic ignored "-Wformat-truncation"
 
-#define GPIO_BANK(pin) ((pin) >> 5)
-#define GPIO_NUM(pin) ((pin)&0x1F)
 
-#define GPIO_CFG_INDEX(pin) (((pin)&0x1F) >> 3)
-#define GPIO_CFG_OFFSET(pin) ((((pin)&0x1F) & 0x7) << 2)
-
-#define GPIO_PUL_INDEX(pin) (((pin)&0x1F) >> 4)
-#define GPIO_PUL_OFFSET(pin) (((pin)&0x0F) << 1)
-
-#define GPIO_DRV_INDEX(pin) (((pin)&0x1F) >> 4)
-#define GPIO_DRV_OFFSET(pin) (((pin)&0x0F) << 1)
-
-#define SUNXI_R_GPIO_BASE 0x01F02000
-#define SUNXI_R_GPIO_REG_OFFSET 0xC00
-#define SUNXI_GPIO_BASE 0x01C20000
-#define SUNXI_GPIO_REG_OFFSET 0x800
-#define SUNXI_CFG_OFFSET 0x00
-#define SUNXI_DATA_OFFSET 0x10
-#define SUNXI_PUD_OFFSET 0x1C
-#define SUNXI_BANK_SIZE 0x24
-
-#define MAP_SIZE (4096 * 2)
-#define MAP_MASK (MAP_SIZE - 1)
-
-#define FSEL_OFFSET 0          // 0x0000
-#define SET_OFFSET 7           // 0x001c / 4
-#define CLR_OFFSET 10          // 0x0028 / 4
-#define PINLEVEL_OFFSET 13     // 0x0034 / 4
-#define EVENT_DETECT_OFFSET 16 // 0x0040 / 4
-#define RISING_ED_OFFSET 19    // 0x004c / 4
-#define FALLING_ED_OFFSET 22   // 0x0058 / 4
-#define HIGH_DETECT_OFFSET 25  // 0x0064 / 4
-#define LOW_DETECT_OFFSET 28   // 0x0070 / 4
-#define PULLUPDN_OFFSET 37     // 0x0094 / 4
-#define PULLUPDNCLK_OFFSET 38  // 0x0098 / 4
-
-#define PAGE_SIZE (4 * 1024)
-#define BLOCK_SIZE (4 * 1024)
-
-// #define SUNXI_GPIO_BASE   0x01C20000
-#define TMR_REGISTER_BASE 0x01C20C00
-#define TMR_IRQ_EN_REG 0x0       // T imer IRQ Enable Register
-#define TMR_IRQ_STA_REG 0x4      // Timer Status Register
-#define TMR0_CTRL_REG 0x10       // Timer 0 Control Register
-#define TMR0_INTV_VALUE_REG 0x14 // Timer 0 Interval Value Register
-#define TMR0_CUR_VALUE_REG 0x18  // Timer 0 Current Value Register
-#define TMR1_CTRL_REG 0x20       // Timer 1 Control Register
-#define TMR1_INTV_VALUE_REG 0x24 // Timer 1 Interval Value Register
-#define TMR1_CUR_VALUE_REG 0x28  // Timer 1 Current Value Register
-#define AVS_CNT_CTL_REG 0x80     // AVS Control Register
-#define AVS_CNT0_REG 0x84        // AVS Counter 0 Register
-#define AVS_CNT1_REG 0x88        // AVS Counter 1 Register
-#define AVS_CNT_DIV_REG 0x8C     // AVS Divisor Register
-#define WDOG0_IRQ_EN_REG 0xA0    // Watchdog 0 IRQ Enable Register
-#define WDOG0_IRQ_STA_REG 0xA4   // Watchdog 0 Status Register
-#define WDOG0_CTRL_REG 0xB0      // Watchdog 0 Control Register
-#define WDOG0_CFG_REG 0xB4       // Watchdog 0 Configuration Register
-#define WDOG0_MODE_REG 0xB8      // Watchdog 0 Mode Register
 
 std::vector<int> gpio_banks;
 
@@ -148,7 +92,7 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
             break;
         }
 
-        int gpio_bank = GPIO_BANK(gpio_num);
+        int gpio_bank = SunXI::GPIO_BANK(gpio_num);
 
         if (std::find(gpio_banks.begin(), gpio_banks.end(), gpio_bank) != gpio_banks.end()) {
             LOGTRACE("Duplicate bank: %d", gpio_bank)
@@ -202,29 +146,6 @@ void GPIOBUS_BananaM2p::InitializeGpio()
         PinConfig(j, GPIO_INPUT);
         PullConfig(j, pullmode);
     }
-
-    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
-    PinSetSignal(BPI_PIN_BSY, OFF);
-    usleep(100);
-    Acquire();
-    LOGINFO("BSY Input Off: %d", GetSignal(BPI_PIN_BSY));
-    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
-    PinSetSignal(BPI_PIN_BSY, ON);
-    LOGINFO("BSY Input On: %d", GetSignal(BPI_PIN_BSY));
-    usleep(100);
-    Acquire();
-    PinConfig(BPI_PIN_BSY, GPIO_OUTPUT);
-    PinSetSignal(BPI_PIN_BSY, OFF);
-    LOGINFO("BSY Output Off: %d", GetSignal(BPI_PIN_BSY));
-    usleep(100);
-    Acquire();
-    PinConfig(BPI_PIN_BSY, GPIO_OUTPUT);
-    PinSetSignal(BPI_PIN_BSY, ON);
-    LOGINFO("BSY Output On: %d", GetSignal(BPI_PIN_BSY));
-    usleep(100);
-    Acquire();
-    PinConfig(BPI_PIN_BSY, GPIO_INPUT);
-    PinSetSignal(BPI_PIN_BSY, OFF);
 
     // Set control signals
     PinSetSignal(BPI_PIN_ACT, OFF);
@@ -363,8 +284,8 @@ void GPIOBUS_BananaM2p::Cleanup()
     // Set drive strength back to Default (Level 1)
     DrvConfig(1);
 
-    munmap((void *)gpio_map, BLOCK_SIZE);
-    munmap((void *)r_gpio_map, BLOCK_SIZE);
+    munmap((void *)gpio_map, SunXI::BLOCK_SIZE);
+    munmap((void *)r_gpio_map, SunXI::BLOCK_SIZE);
 
 #endif
 }
@@ -419,7 +340,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     // GPIO chip open
     LOGTRACE("%s GPIO chip open  [%d]", __PRETTY_FUNCTION__, gpio_pin);
     std::string gpio_dev = "/dev/gpiochip0";
-    if (GPIO_BANK(gpio_pin) >= 11) {
+    if (SunXI::GPIO_BANK(gpio_pin) >= 11) {
         gpio_dev = "/dev/gpiochip1";
         LOGWARN("gpiochip1 support isn't implemented yet....");
         LOGWARN("THIS PROBABLY WONT WORK!");
@@ -705,7 +626,7 @@ void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
     PinSetSignal(BPI_PIN_DT6, (dat & (1 << 6)) == 0 ? true : false);
     PinSetSignal(BPI_PIN_DT7, (dat & (1 << 7)) == 0 ? true : false);
 
-    PinSetSignal(BPI_PIN_DP, __builtin_parity(dat) == 0);
+    PinSetSignal(BPI_PIN_DP, __builtin_parity(dat) == 1);
 }
 
 //---------------------------------------------------------------------------
@@ -810,16 +731,6 @@ void GPIOBUS_BananaM2p::MakeTable(void)
 #endif
 }
 
-//---------------------------------------------------------------------------
-//
-//	Control signal setting
-//
-//---------------------------------------------------------------------------
-// void GPIOBUS_BananaM2p::SetControl(int pin, bool ast)
-// {
-// 	PinSetSignal(pin, ast);
-// }
-
 bool GPIOBUS_BananaM2p::GetDP() const
 {
     return GetSignal(BPI_PIN_DP);
@@ -831,23 +742,18 @@ void GPIOBUS_BananaM2p::SetControl(int pin, bool ast)
     PinSetSignal(pin, ast);
 }
 
+
 // Set direction
 int GPIOBUS_BananaM2p::GetMode(int pin)
 {
     GPIO_FUNCTION_TRACE
     int gpio = pin;
-    // int sunxi_gpio_direction = (mode == int::GPIO_INPUT) ? INPUT : OUTPUT;
-    // int sunxi_gpio_direction = mode;
-
-    // sunxi_setup_gpio(gpio_num, sunxi_gpio_direction, -1);
-    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
+ 
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio);       // gpio >> 5
-    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
-    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-    // LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset,
-    //          (GPIO_INPUT == direction) ? "IN" : (GPIO_IRQ_IN == direction) ? "IRQ" : "OUT")
-
+    int bank        = SunXI::GPIO_BANK(gpio);       // gpio >> 5
+    int index       = SunXI::GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
+    int offset      = SunXI::GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+ 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
     /* DK, for PL and PM */
     if (bank >= 11) {
@@ -859,10 +765,8 @@ int GPIOBUS_BananaM2p::GetMode(int pin)
 
     // Extract the CFG field
     regval &= (0x7 << offset); // 0xf?
-    // LOGINFO("raw regval: %08X", regval);
     // Shift it down to the LSB
     regval >>= offset;
-    // LOGINFO("shifted regval: %08X", regval);
     return (int)regval;
 }
 
@@ -872,15 +776,11 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     GPIO_FUNCTION_TRACE
     int gpio      = pin;
     int direction = mode;
-    // int sunxi_gpio_direction = (mode == int::GPIO_INPUT) ? INPUT : OUTPUT;
-    // int sunxi_gpio_direction = mode;
 
-    // sunxi_setup_gpio(gpio_num, sunxi_gpio_direction, -1);
-    // LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__)
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio);       // gpio >> 5
-    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
-    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+    int bank        = SunXI::GPIO_BANK(gpio);       // gpio >> 5
+    int index       = SunXI::GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
+    int offset      = SunXI::GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
     LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d) dir(%s)", __PRETTY_FUNCTION__, gpio, bank, index, offset,
              (GPIO_INPUT == direction)    ? "IN"
              : (GPIO_IRQ_IN == direction) ? "IRQ"
@@ -913,37 +813,13 @@ bool GPIOBUS_BananaM2p::GetSignal(int pin) const
 {
     GPIO_FUNCTION_TRACE
     int gpio_num = pin;
-    // int sunxi_gpio_state = sunxi_input_gpio(gpio_num);
 
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio_num); // gpio >> 5
-    int num         = GPIO_NUM(gpio_num);  // gpio & 0x1F
-
-    // LOGDEBUG("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, (int)gpio_num, (int)bank, (int)num);
+    int bank        = SunXI::GPIO_BANK(gpio_num); // gpio >> 5
+    int num         = SunXI::GPIO_NUM(gpio_num);  // gpio & 0x1F
 
     regval = (signals[bank] >> num) & 0x1;
     return regval != 0;
-    // sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
-    // /* DK, for PL and PM */
-    // if (bank >= 11) {
-    //     bank -= 11;
-    //     pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
-    // }
-
-    // regval = *(&pio->DAT);
-    // regval = regval >> num;
-    // regval &= 1;
-
-    // int sunxi_gpio_state = regval;
-
-    // LOGDEBUG("%s GPIO %d is set to %d", __PRETTY_FUNCTION__, gpio_num, sunxi_gpio_state);
-
-    // if (sunxi_gpio_state == LOW) {
-    //     return true;
-    // } else {
-    //     return false;
-    // }
-    // return (digitalRead(pin) != 0);
 }
 
 void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
@@ -954,24 +830,23 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
 #if SIGNAL_CONTROL_MODE == 0
     //	  True  : 0V
     //	  False : Open collector output (disconnect from bus)
-    int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
+    int sunxi_gpio_state = (ast == true) ? SunXI::HIGH : SunXI::LOW;
 #elif SIGNAL_CONTROL_MODE == 1
     //	  True  : 0V   -> (CONVERT) -> 0V
     //	  False : 3.3V -> (CONVERT) -> Open collector output
     LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
-    int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
+    int sunxi_gpio_state = (ast == true) ? SunXI::HIGH : SunXI::LOW;
 #elif SIGNAL_CONTROL_MODE == 2
     //	  True  : 3.3V -> (CONVERT) -> 0V
     //	  False : 0V   -> (CONVERT) -> Open collector output
     LOGWARN("%s:%d THIS LOGIC NEEDS TO BE VALIDATED/TESTED", __PRETTY_FUNCTION__, __LINE__)
-    int sunxi_gpio_state = (ast == true) ? LOW : HIGH;
+    int sunxi_gpio_state = (ast == true) ? SunXI::LOW : SunXI::HIGH;
 #endif // SIGNAL_CONTROL_MODE
 
     LOGTRACE("gpio(%d) sunxi_state(%d)", gpio_num, sunxi_gpio_state)
-    // sunxi_output_gpio(gpio_num, sunxi_gpio_state);
 
-    int bank = GPIO_BANK(gpio_num); // gpio >> 5
-    int num  = GPIO_NUM(gpio_num);  // gpio & 0x1F
+    int bank = SunXI::GPIO_BANK(gpio_num); // gpio >> 5
+    int num  = SunXI::GPIO_NUM(gpio_num);  // gpio & 0x1F
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
 
@@ -982,7 +857,7 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
         pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
     }
 
-    if (sunxi_gpio_state == HIGH)
+    if (sunxi_gpio_state == SunXI::HIGH)
         *(&pio->DAT) &= ~(1 << num);
     else
         *(&pio->DAT) |= (1 << num);
@@ -1002,22 +877,10 @@ void GPIOBUS_BananaM2p::PinConfig(int pin, int mode)
 {
     GPIO_FUNCTION_TRACE
     int gpio_num = pin;
-    // try {
-    //     gpio_num = pin;
-    // } catch (const std::out_of_range &e) {
-    //     LOGERROR("%s %d is not a valid pin", __PRETTY_FUNCTION__, (int)pin);
-    // }
-    // int sunxi_direction = mode;
-    int sunxi_direction = (mode == GPIO_INPUT) ? INPUT : OUTPUT;
+    int sunxi_direction = (mode == GPIO_INPUT) ? SunXI::INPUT : SunXI::OUTPUT;
 
     sunxi_setup_gpio(gpio_num, sunxi_direction, -1);
 
-    // if(mode == bool::GPIO_INPUT){
-    //     pinMode(pin, INPUT);
-
-    // }else{
-    //     pinMode(pin, OUTPUT);
-    // }
 }
 
 void GPIOBUS_BananaM2p::PullConfig(int pin, int mode)
@@ -1036,13 +899,13 @@ void GPIOBUS_BananaM2p::PullConfig(int pin, int mode)
 
     switch (mode) {
     case GPIO_PULLNONE:
-        pull_up_down_state = PUD_OFF;
+        pull_up_down_state = SunXI::PUD_OFF;
         break;
     case GPIO_PULLUP:
-        pull_up_down_state = PUD_UP;
+        pull_up_down_state = SunXI::PUD_UP;
         break;
     case GPIO_PULLDOWN:
-        pull_up_down_state = PUD_DOWN;
+        pull_up_down_state = SunXI::PUD_DOWN;
         break;
     default:
         LOGERROR("%s INVALID PIN MODE", __PRETTY_FUNCTION__);
@@ -1050,9 +913,9 @@ void GPIOBUS_BananaM2p::PullConfig(int pin, int mode)
     }
 
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio_num);       // gpio >> 5
-    int index       = GPIO_PUL_INDEX(gpio_num);  // (gpio & 0x1f) >> 4
-    int offset      = GPIO_PUL_OFFSET(gpio_num); // (gpio) & 0x0F) << 1
+    int bank        = SunXI::GPIO_BANK(gpio_num);       // gpio >> 5
+    int index       = SunXI::GPIO_PUL_INDEX(gpio_num);  // (gpio & 0x1f) >> 4
+    int offset      = SunXI::GPIO_PUL_OFFSET(gpio_num); // (gpio) & 0x0F) << 1
     LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio_num, bank, index, offset)
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -1074,22 +937,13 @@ void GPIOBUS_BananaM2p::PinSetSignal(int pin, bool ast)
     GPIO_FUNCTION_TRACE
     int gpio_num = pin;
 
-    int sunxi_gpio_state = (ast == true) ? HIGH : LOW;
+    int sunxi_gpio_state = (ast == true) ? SunXI::HIGH : SunXI::LOW;
     sunxi_output_gpio(gpio_num, sunxi_gpio_state);
-
-    // digitalWrite(pin, ast);
-    // LOGERROR("%s not implemented!!", __PRETTY_FUNCTION__)
 }
 
 void GPIOBUS_BananaM2p::DrvConfig(uint32_t drive)
 {
     GPIO_FUNCTION_TRACE
-    // #ifndef __arm__
-
-    //     (void)drive;
-    //     return;
-
-    // #else
 
     for (auto gpio : SignalTable) {
         if (gpio == -1) {
@@ -1099,9 +953,9 @@ void GPIOBUS_BananaM2p::DrvConfig(uint32_t drive)
         LOGTRACE("Configuring GPIO %d to drive strength %d", gpio, drive);
 
         uint32_t regval = 0;
-        int bank        = GPIO_BANK(gpio);       // gpio >> 5
-        int index       = GPIO_DRV_INDEX(gpio);  // (gpio & 0x1F) >> 3
-        int offset      = GPIO_DRV_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+        int bank        = SunXI::GPIO_BANK(gpio);       // gpio >> 5
+        int index       = SunXI::GPIO_DRV_INDEX(gpio);  // (gpio & 0x1F) >> 3
+        int offset      = SunXI::GPIO_DRV_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
         LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
 
         sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -1126,9 +980,6 @@ void GPIOBUS_BananaM2p::DrvConfig(uint32_t drive)
 
 uint32_t GPIOBUS_BananaM2p::Acquire()
 {
-    // (void)sunxi_capture_all_gpio();
-    // uint32_t GPIOBUS_BananaM2p::sunxi_capture_all_gpio()
-    // {
     GPIO_FUNCTION_TRACE
 
     uint32_t value = 0;
@@ -1154,93 +1005,52 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
 
 #pragma GCC diagnostic pop
 
-uint32_t GPIOBUS_BananaM2p::sunxi_readl(volatile uint32_t *addr)
-{
-    GPIO_FUNCTION_TRACE
-#ifndef __arm__
-        (void)
-    addr;
-    return 0;
-#else
-    printf("sunxi_readl\n");
-    uint32_t val       = 0;
-    uint32_t mmap_base = (uint32_t)addr & (~MAP_MASK);
-    uint32_t mmap_seek = ((uint32_t)addr - mmap_base) >> 2;
-    val                = *(gpio_map + mmap_seek);
-    return val;
-#endif
-}
-
-void GPIOBUS_BananaM2p::sunxi_writel(volatile uint32_t *addr, uint32_t val)
-{
-    GPIO_FUNCTION_TRACE
-#ifndef __arm__
-        (void)
-    addr;
-    (void)val;
-    return;
-#else
-    printf("sunxi_writel\n");
-    uint32_t mmap_base      = (uint32_t)addr & (~MAP_MASK);
-    uint32_t mmap_seek      = ((uint32_t)addr - mmap_base) >> 2;
-    *(gpio_map + mmap_seek) = val;
-#endif
-}
-
 int GPIOBUS_BananaM2p::sunxi_setup(void)
 {
     GPIO_FUNCTION_TRACE
 #ifndef __arm__
-    return SETUP_MMAP_FAIL;
+    return SunXI::SETUP_MMAP_FAIL;
 #else
     int mem_fd;
     uint8_t *gpio_mem;
-    // uint8_t *r_gpio_mem;
-    // uint32_t peri_base;
-    // uint32_t gpio_base;
-    // unsigned char buf[4];
-    // FILE *fp;
-    // char buffer[1024];
-    // char hardware[1024];
-    // int found = 0;
 
     // mmap the GPIO memory registers
     if ((mem_fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
         LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
         LOGDEBUG("errno: [%08X] %s", errno, strerror(errno));
-        return SETUP_DEVMEM_FAIL;
+        return SunXI::SETUP_DEVMEM_FAIL;
     }
 
-    if ((gpio_mem = (uint8_t *)malloc(BLOCK_SIZE + (PAGE_SIZE - 1))) == NULL) {
+    if ((gpio_mem = (uint8_t *)malloc(SunXI::BLOCK_SIZE + (SunXI::PAGE_SIZE - 1))) == NULL) {
         LOGERROR("Error: Unable to allocate gpio memory. Are you running as root?")
         LOGDEBUG("errno: [%08X] %s", errno, strerror(errno));
-        return SETUP_DEVMEM_FAIL;
+        return SunXI::SETUP_DEVMEM_FAIL;
     }
 
-    if ((uint32_t)gpio_mem % PAGE_SIZE)
-        gpio_mem += PAGE_SIZE - ((uint32_t)gpio_mem % PAGE_SIZE);
+    if ((uint32_t)gpio_mem % SunXI::PAGE_SIZE)
+        gpio_mem += SunXI::PAGE_SIZE - ((uint32_t)gpio_mem % SunXI::PAGE_SIZE);
 
-    gpio_map = (uint32_t *)mmap((caddr_t)gpio_mem, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, mem_fd,
-                                SUNXI_GPIO_BASE);
+    gpio_map = (uint32_t *)mmap((caddr_t)gpio_mem, SunXI::BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, mem_fd,
+                                SunXI::SUNXI_GPIO_BASE);
     if ((void *)gpio_map == MAP_FAILED) {
         LOGERROR("Error: Unable to map gpio memory. Are you running as root?")
         LOGDEBUG("errno: [%08X] %s", errno, strerror(errno));
-        return SETUP_MMAP_FAIL;
+        return SunXI::SETUP_MMAP_FAIL;
     }
-    pio_map = gpio_map + (SUNXI_GPIO_REG_OFFSET >> 2);
+    pio_map = gpio_map + (SunXI::SUNXI_GPIO_REG_OFFSET >> 2);
     LOGTRACE("gpio_mem[%p] gpio_map[%p] pio_map[%p]", gpio_mem, gpio_map, pio_map)
     // R_PIO GPIO LMN
     r_gpio_map =
-        (uint32_t *)mmap((caddr_t)0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, SUNXI_R_GPIO_BASE);
+        (uint32_t *)mmap((caddr_t)0, SunXI::BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, SunXI::SUNXI_R_GPIO_BASE);
     if ((void *)r_gpio_map == MAP_FAILED) {
         LOGERROR("Error: Unable to map r_gpio memory. Are you running as root?")
         LOGDEBUG("errno: [%08X] %s", errno, strerror(errno));
-        return SETUP_MMAP_FAIL;
+        return SunXI::SETUP_MMAP_FAIL;
     }
-    r_pio_map = r_gpio_map + (SUNXI_R_GPIO_REG_OFFSET >> 2);
+    r_pio_map = r_gpio_map + (SunXI::SUNXI_R_GPIO_REG_OFFSET >> 2);
     LOGTRACE("r_gpio_map[%p] r_pio_map[%p]", r_gpio_map, r_pio_map)
 
-    tmr_ctrl = gpio_map + ((TMR_REGISTER_BASE - SUNXI_GPIO_BASE) >> 2);
+    tmr_ctrl = gpio_map + ((SunXI::TMR_REGISTER_BASE - SunXI::SUNXI_GPIO_BASE) >> 2);
     // LOGINFO("tmr_ctrl offset: %08X value: %08X", (TMR_REGISTER_BASE - SUNXI_GPIO_BASE), *tmr_ctrl);
 
     close(mem_fd);
@@ -1259,9 +1069,9 @@ void GPIOBUS_BananaM2p::sunxi_setup_gpio(int gpio, int direction, int pud)
     return;
 #else
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio);       // gpio >> 5
-    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
-    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
+    int bank        = SunXI::GPIO_BANK(gpio);       // gpio >> 5
+    int index       = SunXI::GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
+    int offset      = SunXI::GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
     LOGTRACE("%s gpio(%d) bank(%d) index(%d) offset(%d)", __PRETTY_FUNCTION__, gpio, bank, index, offset)
 
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -1276,9 +1086,9 @@ void GPIOBUS_BananaM2p::sunxi_setup_gpio(int gpio, int direction, int pud)
     }
     regval = *(&pio->CFG[0] + index);
     regval &= ~(0x7 << offset); // 0xf?
-    if (INPUT == direction) {
+    if (SunXI::INPUT == direction) {
         *(&pio->CFG[0] + index) = regval;
-    } else if (OUTPUT == direction) {
+    } else if (SunXI::OUTPUT == direction) {
         regval |= (1 << offset);
         *(&pio->CFG[0] + index) = regval;
     } else {
@@ -1287,27 +1097,6 @@ void GPIOBUS_BananaM2p::sunxi_setup_gpio(int gpio, int direction, int pud)
 #endif
 }
 
-// Contribution by Eric Ptak <trouch@trouch.com>
-int GPIOBUS_BananaM2p::sunxi_gpio_function(int gpio)
-{
-    GPIO_FUNCTION_TRACE
-    uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio);       // gpio >> 5
-    int index       = GPIO_CFG_INDEX(gpio);  // (gpio & 0x1F) >> 3
-    int offset      = GPIO_CFG_OFFSET(gpio); // ((gpio & 0x1F) & 0x7) << 2
-
-    sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
-    /* DK, for PL and PM */
-    if (bank >= 11) {
-        bank -= 11;
-        pio = &((sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
-    }
-
-    regval = *(&pio->CFG[0] + index);
-    regval >>= offset;
-    regval &= 7;
-    return regval; // 0=input, 1=output, 4=alt0
-}
 
 void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
 {
@@ -1316,8 +1105,8 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int gpio, int value)
         LOGWARN("Invalid GPIO Num")
         return;
     }
-    int bank = GPIO_BANK(gpio); // gpio >> 5
-    int num  = GPIO_NUM(gpio);  // gpio & 0x1F
+    int bank = SunXI::GPIO_BANK(gpio); // gpio >> 5
+    int num  = SunXI::GPIO_NUM(gpio);  // gpio & 0x1F
 
     LOGTRACE("%s gpio(%d) bank(%d) num(%d) value(%d)", __PRETTY_FUNCTION__, gpio, bank, num, value)
     // LOGTRACE("pio_map: %p", pio_map)
@@ -1341,8 +1130,8 @@ int GPIOBUS_BananaM2p::sunxi_input_gpio(int gpio) const
 {
     GPIO_FUNCTION_TRACE
     uint32_t regval = 0;
-    int bank        = GPIO_BANK(gpio); // gpio >> 5
-    int num         = GPIO_NUM(gpio);  // gpio & 0x1F
+    int bank        = SunXI::GPIO_BANK(gpio); // gpio >> 5
+    int num         = SunXI::GPIO_NUM(gpio);  // gpio & 0x1F
 
     LOGTRACE("%s gpio(%d) bank(%d) num(%d)", __PRETTY_FUNCTION__, gpio, bank, num);
     sunxi_gpio_t *pio = &((sunxi_gpio_reg_t *)pio_map)->gpio_bank[bank];
@@ -1358,99 +1147,11 @@ int GPIOBUS_BananaM2p::sunxi_input_gpio(int gpio) const
     return regval;
 }
 
-int GPIOBUS_BananaM2p::bpi_piGpioLayout(void)
-{
-    GPIO_FUNCTION_TRACE
-    // FILE *bpiFd;
-    // char buffer[1024];
-    // char hardware[1024];
-    // struct BPIBoards *board = nullptr;
-    int gpioLayout = -1;
-
-    // if (gpioLayout != -1) // No point checking twice
-    //     return gpioLayout;
-
-    // bpi_found = 0; // -1: not init, 0: init but not found, 1: found
-    // if ((bpiFd = fopen("/var/lib/bananapi/board.sh", "r")) == NULL) {
-    //     return -1;
-    // }
-    // while (!feof(bpiFd)) {
-    //     // TODO: check the output of fgets()
-    //     char *ret = fgets(buffer, sizeof(buffer), bpiFd);
-    //     (void)ret;
-    //     sscanf(buffer, "BOARD=%s", hardware);
-    //     // LOGDEBUG("BPI: buffer[%s] hardware[%s]\n", buffer, hardware);
-
-    //     // Search for board:
-    //     for (board = bpiboard; board->name != NULL; ++board) {
-    //         LOGDEBUG("BPI: name[%s] hardware[%s]\n", board->name, hardware);
-    //         if (strcmp(board->name, hardware) == 0) {
-    //             // gpioLayout = board->gpioLayout;
-    //             gpioLayout = board->model; // BPI: use model to replace gpioLayout
-    //             LOGDEBUG("BPI: name[%s] gpioLayout(%d)\n", board->name, gpioLayout);
-    //             if (gpioLayout >= 21) {
-    //                 bpi_found = 1;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if (bpi_found == 1) {
-    //         break;
-    //     }
-    // }
-    // fclose(bpiFd);
-    // LOGDEBUG("BPI: name[%s] gpioLayout(%d)\n", board->name, gpioLayout);
-    return gpioLayout;
-}
-
-// int GPIOBUS_BananaM2p::bpi_get_rpi_info(rpi_info *info)
-// {
-//   struct BPIBoards *board=bpiboard;
-//   static int  gpioLayout = -1 ;
-//   char ram[64];
-//   char manufacturer[64];
-//   char processor[64];
-//   char type[64];
-
-//   gpioLayout = bpi_piGpioLayout () ;
-//   printf("BPI: gpioLayout(%d)\n", gpioLayout);
-//   if(bpi_found == 1) {
-//     board = &bpiboard[gpioLayout];
-//     printf("BPI: name[%s] gpioLayout(%d)\n",board->name, gpioLayout);
-//     sprintf(ram, "%dMB", piMemorySize [board->mem]);
-//     sprintf(type, "%s", piModelNames [board->model]);
-//      //add by jackzeng
-//      //jude mtk platform
-//     if(strcmp(board->name, "bpi-r2") == 0){
-//         bpi_found_mtk = 1;
-// 	printf("found mtk board\n");
-//     }
-//     sprintf(manufacturer, "%s", piMakerNames [board->maker]);
-//     info->p1_revision = 3;
-//     info->type = type;
-//     info->ram  = ram;
-//     info->manufacturer = manufacturer;
-//     if(bpi_found_mtk == 1){
-//         info->processor = "MTK";
-//     }else{
-// 	info->processor = "Allwinner";
-//     }
-
-//     strcpy(info->revision, "4001");
-// //    pin_to_gpio =  board->physToGpio ;
-//     pinToGpio_BP =  board->pinToGpio ;
-//     physToGpio_BP = board->physToGpio ;
-//     pinTobcm_BP = board->pinTobcm ;
-//     //printf("BPI: name[%s] bType(%d) model(%d)\n",board->name, bType, board->model);
-//     return 0;
-//   }
-//   return -1;
-// }
 
 void GPIOBUS_BananaM2p::set_pullupdn(int gpio, int pud)
 {
     GPIO_FUNCTION_TRACE
-    int clk_offset = PULLUPDNCLK_OFFSET + (gpio / 32);
+    int clk_offset = SunXI::PULLUPDNCLK_OFFSET + (gpio / 32);
     int shift      = (gpio % 32);
 
 #ifdef BPI
@@ -1459,29 +1160,21 @@ void GPIOBUS_BananaM2p::set_pullupdn(int gpio, int pud)
         return sunxi_set_pullupdn(gpio, pud);
     }
 #endif
-    if (pud == PUD_DOWN)
-        *(gpio_map + PULLUPDN_OFFSET) = (*(gpio_map + PULLUPDN_OFFSET) & ~3) | PUD_DOWN;
-    else if (pud == PUD_UP)
-        *(gpio_map + PULLUPDN_OFFSET) = (*(gpio_map + PULLUPDN_OFFSET) & ~3) | PUD_UP;
+    if (pud == SunXI::PUD_DOWN)
+        *(gpio_map + SunXI::PULLUPDN_OFFSET) = (*(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3) | SunXI::PUD_DOWN;
+    else if (pud == SunXI::PUD_UP)
+        *(gpio_map +SunXI::PULLUPDN_OFFSET) = (*(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3) | SunXI::PUD_UP;
     else // pud == PUD_OFF
-        *(gpio_map + PULLUPDN_OFFSET) &= ~3;
+        *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
 
-    short_wait();
+    SunXI::short_wait();
     *(gpio_map + clk_offset) = 1 << shift;
-    short_wait();
-    *(gpio_map + PULLUPDN_OFFSET) &= ~3;
+    SunXI::short_wait();
+    *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
     *(gpio_map + clk_offset) = 0;
 }
 
-void GPIOBUS_BananaM2p::short_wait(void)
-{
-    GPIO_FUNCTION_TRACE
-    int i;
 
-    for (i = 0; i < 150; i++) { // wait 150 cycles
-        asm volatile("nop");
-    }
-}
 
 // Extract as specific pin field from a raw data capture
 uint32_t GPIOBUS_BananaM2p::GetPinRaw(uint32_t raw_data, uint32_t pin_num)

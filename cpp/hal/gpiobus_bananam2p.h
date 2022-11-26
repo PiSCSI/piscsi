@@ -170,9 +170,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     volatile uint32_t *gpio_map;
 
-    int bpi_piGpioLayout(void);
-    // int bpi_get_rpi_info(rpi_info *info);
-
 #if !defined(__x86_64__) && !defined(__X86__)
     volatile uint32_t *level = nullptr; // GPIO input level
 #endif
@@ -202,12 +199,6 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     array<uint32_t, 12> signals = {0}; // All bus signals
 
-    // // TODO: PUT THIS BACK (PROBABLY)
-    // // #ifdef USE_SEL_EVENT_ENABLE
-    //     struct gpioevent_request selevreq = {}; // SEL signal event request
-
-    //     int epfd; // epoll file descriptor
-    // // #endif        // USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
     array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table
@@ -219,14 +210,10 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     array<uint32_t, 256> tblDatSet = {}; // Table setting table
 #endif
 
-    uint32_t sunxi_readl(volatile uint32_t *addr);
-    void sunxi_writel(volatile uint32_t *addr, uint32_t val);
-
     int sunxi_setup(void);
 
     void sunxi_set_pullupdn(int gpio, int pud);
     void sunxi_setup_gpio(int gpio, int direction, int pud);
-    int sunxi_gpio_function(int gpio);
 
     void sunxi_output_gpio(int gpio, int value);
     int sunxi_input_gpio(int gpio) const;
@@ -292,20 +279,8 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     // These definitions are from c_gpio.c and should be removed at some point!!
     const int SETUP_OK           = 0;
-    const int SETUP_DEVMEM_FAIL  = 1;
-    const int SETUP_MALLOC_FAIL  = 2;
-    const int SETUP_MMAP_FAIL    = 3;
-    const int SETUP_CPUINFO_FAIL = 4;
-    const int SETUP_NOT_RPI_FAIL = 5;
-    const int INPUT              = 1; // is really 0 for control register!;
-    const int OUTPUT             = 0; // is really 1 for control register!;
-    const int ALT0               = 4;
-    const int HIGH               = 1;
-    const int LOW                = 0;
-    const int PUD_OFF            = 0;
-    const int PUD_DOWN           = 1;
-    const int PUD_UP             = 2;
-    void short_wait(void);
+
+    void short_wait(void) const;
 
     SBC_Version::sbc_version_type sbc_version;
 
@@ -317,4 +292,5 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     static const array<int, 19> SignalTable;
 
     void InitializeGpio();
+
 };

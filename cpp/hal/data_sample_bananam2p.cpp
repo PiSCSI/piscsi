@@ -10,10 +10,8 @@
 //---------------------------------------------------------------------------
 
 #include "data_sample_bananam2p.h"
+#include "hal/sunxi_utils.h"
 
-// TODO: These are duplicated from GPIOBUS_BananaM2p
-#define GPIO_BANK(pin) ((pin) >> 5)
-#define GPIO_NUM(pin) ((pin)&0x1F)
 
 uint8_t DataSample_BananaM2p::GetDAT() const
 {
@@ -25,8 +23,8 @@ uint8_t DataSample_BananaM2p::GetDAT() const
 
 bool DataSample_BananaM2p::GetSignal(int pin) const
 {
-    int bank = GPIO_BANK(pin);
-    int num  = GPIO_NUM(pin);
+    int bank = SunXI::GPIO_BANK(pin);
+    int num  = SunXI::GPIO_NUM(pin);
 
     return (bool)((data[bank] >> num) & 0x1);
 }

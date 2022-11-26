@@ -170,7 +170,6 @@ void ScsiController::Selection()
         SetPhase(phase_t::selection);
 
         // Raise BSY and respond
-        LOGDEBUG("+++++++ SETBSY TRUE")
         GetBus().SetBSY(true);
         return;
     }
