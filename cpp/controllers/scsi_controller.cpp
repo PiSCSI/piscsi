@@ -151,8 +151,6 @@ void ScsiController::BusFree()
 
 void ScsiController::Selection()
 {
-    static int limiter       = 0;
-    static uint32_t last_val = 0;
     if (!IsSelection()) {
         if (int id = 1 << GetTargetId(); (static_cast<int>(GetBus().GetDAT()) & id) == 0) {
             LOGDEBUG("// A different device controller was selected")
@@ -172,16 +170,6 @@ void ScsiController::Selection()
         // Raise BSY and respond
         GetBus().SetBSY(true);
         return;
-    }
-
-    GetBus().Acquire();
-    uint32_t new_val = GetBus().GetSample(0)->GetRawCapture();
-
-    if ((new_val != last_val) || (limiter++ > 100000)) {
-        LOGDEBUG("%08X[%02X] SELECTION SEL:%d BSY:%d MSG: %d %s - BSY MODE:%d", new_val, GetBus().GetDAT(),
-                 GetBus().GetSEL(), GetBus().GetBSY(), GetBus().GetMSG(), GetBus().GetPhaseStrRaw(GetBus().GetPhase()), GetBus().GetMode(BPI_PIN_BSY))
-        last_val = new_val;
-        limiter  = 0;
     }
 
     // Selection completed
