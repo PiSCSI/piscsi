@@ -22,13 +22,10 @@
 
 using namespace std;
 
-boost::filesystem::path test_path("/scsi-test");
+const boost::filesystem::path test_path("/scsi-test");
 
 void test_fs_create_file_in_temp_dir(string filename, vector<uint8_t> &data)
 {
-    (void)data;
-    (void)filename;
-
     boost::filesystem::path new_filename = boost::filesystem::temp_directory_path();
     new_filename += test_path;
     new_filename += boost::filesystem::path(filename);
@@ -36,6 +33,10 @@ void test_fs_create_file_in_temp_dir(string filename, vector<uint8_t> &data)
     boost::filesystem::create_directories(new_filename.parent_path());
 
     FILE *fp = fopen(new_filename.c_str(), "wb");
+    if (fp == nullptr) {
+        printf("ERROR: Unable to open file %s", new_filename.c_str());
+        return;
+    }
 
     size_t size_written = fwrite(&data[0], sizeof(uint8_t), data.size(), fp);
 

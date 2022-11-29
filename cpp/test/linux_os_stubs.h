@@ -17,7 +17,7 @@
 
 using namespace std;
 
-extern boost::filesystem::path test_temp_dir;
+extern const boost::filesystem::path test_temp_dir;
 
 // create a file with the specified data
 void test_fs_create_file_in_temp_dir(string filename, vector<uint8_t> &data);

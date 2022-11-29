@@ -31,7 +31,7 @@ class SetableGpiobusRaspberry : public GPIOBUS_Raspberry
     }
     SetableGpiobusRaspberry()
     {
-        level = new uint32_t();
+        level = new uint32_t(); // NOSONAR: This is a pointer to a register on the real hardware
     }
 };
 

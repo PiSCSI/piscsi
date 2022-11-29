@@ -585,7 +585,6 @@ int Rascsi::run(const vector<char *>& args)
 
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
-		LOGTRACE("ID: %02X", id_data);
 
 		phase_t phase = phase_t::busfree;
 
@@ -597,10 +596,10 @@ int Rascsi::run(const vector<char *>& args)
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				LOGTRACE("++++ Starting processing for initiator ID %s", to_string(initiator_id).c_str());
+				LOGTRACE("++++ Starting processing for initiator ID %s", to_string(initiator_id).c_str())
 			}
 			else {
-				LOGTRACE("++++ Starting processing for unknown initiator ID");
+				LOGTRACE("++++ Starting processing for unknown initiator ID")
 			}
 
 			if (controller->Process(initiator_id) == phase_t::selection) {
@@ -630,7 +629,6 @@ int Rascsi::run(const vector<char *>& args)
 			LOGTRACE("Calling phase = controller->Process(initiator_id);")
 			phase = controller->Process(initiator_id);
 
-			LOGTRACE("new phase: %s", bus->GetPhaseStrRaw(phase));
 			// End when the bus is free
 			if (phase == phase_t::busfree) {
 				break;
