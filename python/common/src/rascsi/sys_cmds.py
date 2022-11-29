@@ -189,7 +189,7 @@ class SysCmds:
         Set the pretty hostname for the system
         """
         try:
-            process = run(
+            run(
                 ["sudo", "hostnamectl", "set-hostname", "--pretty", name],
                 capture_output=False,
                 check=True,

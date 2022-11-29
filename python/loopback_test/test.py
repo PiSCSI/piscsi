@@ -180,6 +180,7 @@ scsi_signals = {
     scsi_sel_gpio: "SEL",
 }
 
+
 # Debug function that just dumps the status of all of the scsi signals to the console
 def print_all():
     for cur_gpio in gpio_map:

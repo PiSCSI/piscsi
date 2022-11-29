@@ -25,7 +25,8 @@ def extract_archive(file_path, **kwargs):
     Takes (str) file_path, and kwargs:
     - (list) members - list of (str) files to be extracted (all files are extracted if None)
     - (str) output_dir - directory to place the extracted files
-    - (str) fork_output_type - output type for resource forks; "visible" for *.rsrc files, "hidden" for ._* files
+    - (str) fork_output_type - output type for resource forks;
+            "visible" for *.rsrc files, "hidden" for ._* files
     Returns (dict) of extracted and skipped members
     """
     members = kwargs.get("members")
@@ -70,7 +71,10 @@ def extract_archive(file_path, **kwargs):
 
         unar_result_success = r'^Successfully extracted to "(?P<destination>.+)".$'
         unar_result_no_files = "No files extracted."
-        unar_file_extracted = r"^ {2}(?P<path>.+). \(((?P<size>\d+) B)?(?P<types>(dir)?(, )?(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
+        unar_file_extracted = (
+            r"^ {2}(?P<path>.+). \(((?P<size>\d+) B)?(?P<types>(dir)?(, )?"
+            r"(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
+        )
 
         lines = process["stdout"].rstrip("\n").split("\n")
 

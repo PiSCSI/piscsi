@@ -34,8 +34,9 @@ class SocketCmdsFlask(SocketCmds):
             abort(
                 404,
                 _(
-                    "The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s "
-                    "with error: %(error_msg)s. The RaSCSI process is not running or may have crashed.",
+                    "The RaSCSI Web Interface failed to connect to RaSCSI at "
+                    "%(host)s:%(port)s with error: %(error_msg)s. The RaSCSI "
+                    "process is not running or may have crashed.",
                     host=self.host,
                     port=self.port,
                     error_msg=str(err),

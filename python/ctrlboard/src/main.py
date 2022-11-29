@@ -171,7 +171,7 @@ def main():
     menu_controller.add(CtrlBoardMenuBuilder.SCSI_ID_MENU)
     menu_controller.add(CtrlBoardMenuBuilder.ACTION_MENU)
 
-    menu_controller.show_splash_screen(f"resources/splash_start_64.bmp")
+    menu_controller.show_splash_screen("resources/splash_start_64.bmp")
 
     menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(
         menu_controller, sock_cmd=sock_cmd, ractl_cmd=ractl_cmd

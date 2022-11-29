@@ -535,7 +535,7 @@ class FileCmds:
             else:
                 logging.info(process.stdout.decode("utf-8"))
                 self.delete_file(Path(file_name))
-                return {"status": False, "msg": error.stderr.decode("utf-8")}
+                return {"status": False, "msg": process.stderr.decode("utf-8")}
         except (FileNotFoundError, CalledProcessError) as error:
             logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
             self.delete_file(Path(file_name))
@@ -735,7 +735,7 @@ class FileCmds:
             logging.error(str(error))
             self.delete_file(Path(file_path))
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error(FILE_WRITE_ERROR, file_name)
             self.delete_file(Path(file_path))
             raise
@@ -808,7 +808,7 @@ class FileCmds:
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error(FILE_READ_ERROR, str(file_path))
             raise
 
@@ -832,7 +832,7 @@ class FileCmds:
             logging.error(str(error))
             self.delete_file(file_path)
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error(FILE_WRITE_ERROR, str(file_path))
             self.delete_file(file_path)
             raise
@@ -857,7 +857,7 @@ class FileCmds:
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
-        except:
+        except Exception:
             logging.error(FILE_READ_ERROR, str(file_path))
             raise
 

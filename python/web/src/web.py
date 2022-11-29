@@ -11,7 +11,6 @@ from grp import getgrall
 
 import bjoern
 from rascsi.return_codes import ReturnCodes
-from werkzeug.utils import secure_filename
 from simplepam import authenticate
 from flask_babel import Babel, Locale, refresh, _
 

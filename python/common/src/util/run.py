@@ -4,7 +4,6 @@ Utility module for running system commands with basic logging
 
 import asyncio
 import logging
-import os
 
 
 def run(program, args=None):
