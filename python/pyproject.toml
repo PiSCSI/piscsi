@@ -1,3 +1,4 @@
 [tool.black]
 line-length = 100
 target-version = ['py37', 'py38', 'py39']
+extend-exclude = ".*_pb2.py"
