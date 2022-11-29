@@ -3,18 +3,17 @@
 // SCSI Target Emulator RaSCSI Reloaded
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
 // Copyright (C) 2022 akuker
 //
 //---------------------------------------------------------------------------
 
-#include "scsiloop/scsiloop_core.h"
+#include <string>
+#include <vector>
 
 using namespace std;
 
-int main(int argc, char *argv[])
+class ScsiLoop_Timer
 {
-	const vector<char *> args(argv, argv + argc);
-
-	return ScsiLoop().run(args);
-}
+  public:
+    static int RunTimerTest(vector<string> &error_list);
+};
