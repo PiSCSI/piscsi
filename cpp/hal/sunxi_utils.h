@@ -1,11 +1,11 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
-//	for Raspberry Pi
+//  SCSI Target Emulator RaSCSI Reloaded
+//  for Raspberry Pi
 //
-//	Copyright (C) 2022 akuker
+//  Copyright (C) 2022 akuker
 //
-//	[ Utility functions for working with Allwinner CPUs ]
+//  [ Utility functions for working with Allwinner CPUs ]
 //
 //  This should include generic functions that can be applicable to
 //  different variants of the SunXI (Allwinner) SoCs
