@@ -1,9 +1,9 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
-// for Raspberry Pi
+//	SCSI Target Emulator RaSCSI Reloaded for Raspberry Pi
+//  Loopback tester utility
 //
-// Copyright (C) 2022 akuker
+//	Copyright (C) 2022 akuker
 //
 //---------------------------------------------------------------------------
 
@@ -25,8 +25,6 @@
 #error Invalid connection type or none specified
 #endif
 
-// This needs to run AFTER GPIOBUS has been initialized. Otherwise, we don't know what type of board
-// we're using
 ScsiLoop_GPIO::ScsiLoop_GPIO()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
@@ -36,6 +34,8 @@ ScsiLoop_GPIO::ScsiLoop_GPIO()
         throw bus_exception("Unable to create bus");
     }
 
+    // At compile time, we don't know which type of board we're using. So, we'll build these at runtime.
+    // TODO: This logic should be re-structured when/if other variants of SBCs are added in.
     if (SBC_Version::IsRaspberryPi()) {
         loopback_conn_table.push_back(
             loopback_connection{.this_pin = PIN_DT0, .connected_pin = PIN_ACK, .dir_ctrl_pin = PIN_DTD});
@@ -208,21 +208,6 @@ void ScsiLoop_GPIO::Cleanup()
 {
     bus->Cleanup();
 }
-// // Debug function that just dumps the status of all of the scsi signals to the console
-// void print_all()
-// {
-//     LOGTRACE("%s", __PRETTY_FUNCTION__);
-
-//     for (auto cur_gpio : loopback_conn_table) {
-//         printf("%s[%2d] ", pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_gpio.this_pin);
-//     }
-//     printf("\n");
-
-//     for (auto cur_gpio : loopback_conn_table) {
-//         printf("  %4d  ", bus->GetSignal(cur_gpio.this_pin));
-//     }
-//     printf("\n");
-// }
 
 // Set transceivers IC1 and IC2 to OUTPUT
 void ScsiLoop_GPIO::set_dtd_out()
@@ -441,13 +426,8 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
         }
     }
 
-    ScsiLoop_Cout::FinishTest(
-        fmt::format("GPIO {:<3} [{}]", gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin)), err_count);
-    // if (err_count == 0) {
-    //     printf(GREEN "OK!\n" WHITE);
-    // } else {
-    //     printf(RED "FAILED - %d errors!\n" WHITE, err_count);
-    // }
+    ScsiLoop_Cout::FinishTest(fmt::format("GPIO {:<3} [{}]", gpio_rec.this_pin, pin_name_lookup.at(gpio_rec.this_pin)),
+                              err_count);
     return err_count;
 }
 
@@ -459,10 +439,8 @@ int ScsiLoop_GPIO::RunLoopbackTest(vector<string> &error_list)
 
     for (auto cur_gpio : loopback_conn_table) {
         ScsiLoop_Cout::StartTest(
-            fmt::format("GPIO {:<3} (}", cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str()));
+            fmt::format("GPIO {:<3}[{}]", cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str()));
 
-        // printf(CYAN "Testing GPIO %3d [%s]:" WHITE, (int)cur_gpio.this_pin,
-        //        pin_name_lookup.at(cur_gpio.this_pin).c_str());
         errors += test_gpio_pin(cur_gpio, error_list);
     }
     return errors;
@@ -512,8 +490,7 @@ int ScsiLoop_GPIO::RunDataInputTest(vector<string> &error_list)
     int delay_time_us = 1000;
     dat_input_test_setup();
 
-    ScsiLoop_Cout::StartTest("Data inputs");
-    // printf(CYAN "Testing DAT inputs    :" WHITE);
+    ScsiLoop_Cout::StartTest("data inputs  ");
 
     for (uint32_t val = 0; val < UINT8_MAX; val++) {
         set_dat_inputs_loop(val);
@@ -533,11 +510,6 @@ int ScsiLoop_GPIO::RunDataInputTest(vector<string> &error_list)
 
     ScsiLoop_Cout::FinishTest("DAT Inputs", err_count);
 
-    // if (err_count == 0) {
-    //     printf(GREEN "OK!\n");
-    // } else {
-    //     printf(RED "FAILED - %d errors!\n\r", err_count);
-    // }
     return err_count;
 }
 
@@ -587,9 +559,7 @@ int ScsiLoop_GPIO::RunDataOutputTest(vector<string> &error_list)
     int delay_time_us = 1000;
     dat_output_test_setup();
 
-    ScsiLoop_Cout::StartTest("Data outputs");
-
-    // printf(CYAN "Testing DAT outputs   :" WHITE);
+    ScsiLoop_Cout::StartTest("data outputs ");
 
     for (uint32_t val = 0; val < UINT8_MAX; val++) {
         bus->SetDAT(val);
@@ -608,11 +578,6 @@ int ScsiLoop_GPIO::RunDataOutputTest(vector<string> &error_list)
     }
 
     ScsiLoop_Cout::FinishTest("DAT Outputs", err_count);
-    // if (err_count == 0) {
-    //     printf(GREEN "OK!\n");
-    // } else {
-    //     printf(RED "FAILED - %d errors!\n\r", err_count);
-    // }
 
     return err_count;
 }

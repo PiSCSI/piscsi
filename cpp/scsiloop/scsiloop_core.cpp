@@ -12,24 +12,18 @@
 //
 //---------------------------------------------------------------------------
 
-#include "hal/gpiobus.h"
-#include "hal/gpiobus_factory.h"
-#include "hal/sbc_version.h"
-#include "hal/systimer.h"
 #include "shared/log.h"
 #include "shared/rascsi_version.h"
 #include "shared/rasutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #include "scsiloop/scsiloop_core.h"
-#include "scsiloop/scsiloop_gpio.h"
 #include "scsiloop/scsiloop_cout.h"
+#include "scsiloop/scsiloop_gpio.h"
 #include "scsiloop/scsiloop_timer.h"
 
 #include <iostream>
-#include <sched.h>
 #include <signal.h>
-#include <stdio.h>
 
 #if defined CONNECT_TYPE_STANDARD
 #include "hal/connection_type/connection_standard.h"
@@ -162,23 +156,11 @@ int ScsiLoop::run(const vector<char *> &args)
     sigaction(SIGINT, &termination_handler, nullptr);
     sigaction(SIGTERM, &termination_handler, nullptr);
 
-    // Set the affinity to a specific processor core
-    ras_util::FixCpu(3);
-
-#ifdef USE_SEL_EVENT_ENABLE
-    sched_param schparam;
-    // Scheduling policy setting (highest priority)
-    schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    sched_setscheduler(0, SCHED_FIFO, &schparam);
-#else
-    cout << "Note: No RaSCSI hardware support, only client interface calls are supported" << endl;
-#endif
+    // This must be executed before the timer test, since this initializes the timer
+    ScsiLoop_GPIO gpio_test;
 
     int result = ScsiLoop_Timer::RunTimerTest(error_list);
-    ScsiLoop_GPIO gpio_test;
     result += gpio_test.RunLoopbackTest(error_list);
-    // RunTimerTest(error_list);
-    // int result = RunLoopbackTest(error_list);
 
     if (result == 0) {
         // Only test the dat inputs/outputs if the loopback test passed.

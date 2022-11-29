@@ -117,10 +117,15 @@ SRC_RASCSI_TEST += $(shell find ./rasdump -name '*.cpp')
 SRC_RASCSI_TEST += $(shell find ./monitor -name '*.cpp')
 
 SRC_SCSILOOP = scsiloop.cpp
+SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp')
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
-vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump
-vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal ./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump ./test
+vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
+	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./scsiloop
+vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
+	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
