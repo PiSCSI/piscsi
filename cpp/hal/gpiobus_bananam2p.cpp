@@ -45,6 +45,7 @@
 #include "hal/systimer.h"
 #include "shared/log.h"
 
+#define ARRAY_SIZE(x) (sizeof(x) / (sizeof(x[0])))
 
 bool GPIOBUS_BananaM2p::Init(mode_e mode)
 {
@@ -108,20 +109,20 @@ void GPIOBUS_BananaM2p::InitializeGpio()
     // Initialize all signals
     for (int i = 0; SignalTable[i] >= 0; i++) {
         int j = SignalTable[i];
-        PinSetSignal(j, OFF);
         PinConfig(j, GPIO_INPUT);
         PullConfig(j, pullmode);
+        PinSetSignal(j, OFF);
     }
 
     // Set control signals
-    PinSetSignal(BPI_PIN_ACT, OFF);
-    PinSetSignal(BPI_PIN_TAD, OFF);
-    PinSetSignal(BPI_PIN_IND, OFF);
-    PinSetSignal(BPI_PIN_DTD, OFF);
     PinConfig(BPI_PIN_ACT, GPIO_OUTPUT);
     PinConfig(BPI_PIN_TAD, GPIO_OUTPUT);
     PinConfig(BPI_PIN_IND, GPIO_OUTPUT);
     PinConfig(BPI_PIN_DTD, GPIO_OUTPUT);
+    PinSetSignal(BPI_PIN_ACT, OFF);
+    PinSetSignal(BPI_PIN_TAD, OFF);
+    PinSetSignal(BPI_PIN_IND, OFF);
+    PinSetSignal(BPI_PIN_DTD, OFF);
 
     // Set the ENABLE signal
     // This is used to show that the application is running
@@ -142,22 +143,22 @@ void GPIOBUS_BananaM2p::Cleanup()
 #endif // USE_SEL_EVENT_ENABLE
 
     // Set control signals
+    PinConfig(BPI_PIN_ACT, GPIO_INPUT);
+    PinConfig(BPI_PIN_TAD, GPIO_INPUT);
+    PinConfig(BPI_PIN_IND, GPIO_INPUT);
+    PinConfig(BPI_PIN_DTD, GPIO_INPUT);
     PinSetSignal(BPI_PIN_ENB, OFF);
     PinSetSignal(BPI_PIN_ACT, OFF);
     PinSetSignal(BPI_PIN_TAD, OFF);
     PinSetSignal(BPI_PIN_IND, OFF);
     PinSetSignal(BPI_PIN_DTD, OFF);
-    PinConfig(BPI_PIN_ACT, GPIO_INPUT);
-    PinConfig(BPI_PIN_TAD, GPIO_INPUT);
-    PinConfig(BPI_PIN_IND, GPIO_INPUT);
-    PinConfig(BPI_PIN_DTD, GPIO_INPUT);
 
     // Initialize all signals
     for (int i = 0; SignalTable[i] >= 0; i++) {
         int pin = SignalTable[i];
-        PinSetSignal(pin, OFF);
         PinConfig(pin, GPIO_INPUT);
         PullConfig(pin, GPIO_PULLNONE);
+        PinSetSignal(pin, OFF);
     }
 
     // Set drive strength back to Default (Level 1)
@@ -256,7 +257,6 @@ void GPIOBUS_BananaM2p::Reset()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-
 void GPIOBUS_BananaM2p::SaveGpioBankCfg(int bank)
 {
     (void)bank;
@@ -322,7 +322,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
 
     // Event request setting
     LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, gpio_pin)
-    strcpy(selevreq.consumer_label, "RaSCSI");
+    strncpy(selevreq.consumer_label, "RaSCSI", ARRAY_SIZE(selevreq.consumer_label));
     selevreq.lineoffset  = gpio_pin;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
@@ -583,6 +583,16 @@ uint8_t GPIOBUS_BananaM2p::GetDAT()
 void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
+
+    SetMode(BPI_PIN_DT0, OUT);
+    SetMode(BPI_PIN_DT1, OUT);
+    SetMode(BPI_PIN_DT2, OUT);
+    SetMode(BPI_PIN_DT3, OUT);
+    SetMode(BPI_PIN_DT4, OUT);
+    SetMode(BPI_PIN_DT5, OUT);
+    SetMode(BPI_PIN_DT6, OUT);
+    SetMode(BPI_PIN_DT7, OUT);
+    SetMode(BPI_PIN_DP, OUT);
     // TODO: This is inefficient, but it works...
     PinSetSignal(BPI_PIN_DT0, (dat & (1 << 0)) == 0 ? true : false);
     PinSetSignal(BPI_PIN_DT1, (dat & (1 << 1)) == 0 ? true : false);
@@ -726,7 +736,7 @@ int GPIOBUS_BananaM2p::GetMode(int pin)
         pio = &((SunXI::sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
     }
 
-    regval = *(&pio->CFG[0] + index);
+    regval = *(&pio->CFG[0 + index]);
 
     // Extract the CFG field
     regval &= (0x7 << offset); // 0xf?
@@ -757,7 +767,7 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
         pio = &((SunXI::sunxi_gpio_reg_t *)r_pio_map)->gpio_bank[bank];
     }
 
-    regval = *(&pio->CFG[0] + index);
+    regval = *(&pio->CFG[0 + index]);
 
     // Clear the cfg field
     regval &= ~(0x7 << offset); // 0xf?
@@ -770,7 +780,7 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     } else {
         LOGERROR("line:%d gpio number error %d", __LINE__, pin)
     }
-    *(&pio->CFG[0] + index) = regval;
+    *(&pio->CFG[0 + index]) = regval;
 }
 
 bool GPIOBUS_BananaM2p::GetSignal(int pin) const
@@ -964,7 +974,6 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
     return 0;
 }
 
-
 int GPIOBUS_BananaM2p::sunxi_setup(void)
 {
     GPIO_FUNCTION_TRACE
@@ -1044,13 +1053,13 @@ void GPIOBUS_BananaM2p::sunxi_setup_gpio(int pin, int direction, int pud)
     if (pud != -1) {
         set_pullupdn(pin, pud);
     }
-    regval = *(&pio->CFG[0] + index);
+    regval = *(&pio->CFG[0 + index]);
     regval &= ~(0x7 << offset); // 0xf?
     if (SunXI::INPUT == direction) {
-        *(&pio->CFG[0] + index) = regval;
+        *(&pio->CFG[0 + index]) = regval;
     } else if (SunXI::OUTPUT == direction) {
         regval |= (1 << offset);
-        *(&pio->CFG[0] + index) = regval;
+        *(&pio->CFG[0 + index]) = regval;
     } else {
         LOGERROR("line:%d gpio number error %d", __LINE__, pin)
     }
@@ -1128,5 +1137,3 @@ void GPIOBUS_BananaM2p::set_pullupdn(int pin, int pud)
     *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
     *(gpio_map + clk_offset) = 0;
 }
-
-
