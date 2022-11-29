@@ -209,12 +209,14 @@ class GPIOBUS : public BUS
     // Set GPIO drive strength
     virtual void DrvConfig(uint32_t drive) = 0;
 
-    mode_e actmode = mode_e::TARGET; // Operation mode
+    // Operation mode
+    mode_e actmode = mode_e::TARGET; // NOSONAR: This protected so derived classes can access it
 
 #ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event request
-    struct gpioevent_request selevreq = {};
+    struct gpioevent_request selevreq = {}; // NOSONAR: This protected so derived classes can access it
     // epoll file descriptor
-    int epfd;
+    int epfd; // NOSONAR: This protected so derived classes can access it
+
 #endif // USE_SEL_EVENT_ENABLE
 };
