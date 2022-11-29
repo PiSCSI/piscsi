@@ -6,8 +6,13 @@ class RascsiShutdownCycler(Cycler):
     """Class implementing the shutdown cycler for the RaSCSI Control Board UI"""
 
     def __init__(self, menu_controller, sock_cmd, ractl_cmd):
-        super().__init__(menu_controller, sock_cmd, ractl_cmd, return_entry=True,
-                         empty_messages=False)
+        super().__init__(
+            menu_controller,
+            sock_cmd,
+            ractl_cmd,
+            return_entry=True,
+            empty_messages=False,
+        )
         self.executed_once = False
 
     def populate_cycle_entries(self):

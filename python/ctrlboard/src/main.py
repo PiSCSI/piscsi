@@ -6,14 +6,17 @@ import logging
 from config import CtrlboardConfig
 from ctrlboard_hw.ctrlboard_hw import CtrlBoardHardware
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
-from ctrlboard_event_handler.ctrlboard_menu_update_event_handler \
-    import CtrlBoardMenuUpdateEventHandler
+from ctrlboard_event_handler.ctrlboard_menu_update_event_handler import (
+    CtrlBoardMenuUpdateEventHandler,
+)
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_renderer_config import MenuRendererConfig
 from menu.menu_renderer_luma_oled import MenuRendererLumaOled
-from rascsi.exceptions import (EmptySocketChunkException,
-                               InvalidProtobufResponse,
-                               FailedSocketConnectionException)
+from rascsi.exceptions import (
+    EmptySocketChunkException,
+    InvalidProtobufResponse,
+    FailedSocketConnectionException,
+)
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
 
@@ -23,7 +26,7 @@ from rascsi_menu_controller import RascsiMenuController
 def parse_config():
     """Parses the command line parameters and configured the RaSCSI Control Board UI accordingly"""
     config = CtrlboardConfig()
-    cmdline_args_parser = argparse.ArgumentParser(description='RaSCSI ctrlboard service')
+    cmdline_args_parser = argparse.ArgumentParser(description="RaSCSI ctrlboard service")
     cmdline_args_parser.add_argument(
         "--rotation",
         type=int,
@@ -68,7 +71,7 @@ def parse_config():
         default=logging.WARN,
         action="store",
         help="Loglevel. Valid values: 0 (notset), 10 (debug), 30 (warning), "
-             "40 (error), 50 (critical). Default: Warning",
+        "40 (error), 50 (critical). Default: Warning",
     )
     cmdline_args_parser.add_argument(
         "--transitions",
@@ -115,14 +118,14 @@ def main():
     config = parse_config()
 
     log_format = "%(asctime)s:%(name)s:%(levelname)s - %(message)s"
-    logging.basicConfig(stream=sys.stdout,
-                        format=log_format,
-                        level=config.LOG_LEVEL)
+    logging.basicConfig(stream=sys.stdout, format=log_format, level=config.LOG_LEVEL)
     log = logging.getLogger(__name__)
     log.debug("RaSCSI ctrlboard service started.")
 
-    ctrlboard_hw = CtrlBoardHardware(display_i2c_address=config.DISPLAY_I2C_ADDRESS,
-                                     pca9554_i2c_address=config.PCA9554_I2C_ADDRESS)
+    ctrlboard_hw = CtrlBoardHardware(
+        display_i2c_address=config.DISPLAY_I2C_ADDRESS,
+        pca9554_i2c_address=config.PCA9554_I2C_ADDRESS,
+    )
 
     # for now, we require the complete rascsi ctrlboard hardware.
     # Oled only will be supported as well at some later point in time.
@@ -143,8 +146,10 @@ def main():
         exit(1)
 
     if check_rascsi_connection(ractl_cmd) is False:
-        log.error("Communication with RaSCSI failed. Please check if password token must be set "
-                  "and whether is set correctly.")
+        log.error(
+            "Communication with RaSCSI failed. Please check if password token must be set "
+            "and whether is set correctly."
+        )
         exit(1)
 
     menu_renderer_config = MenuRendererConfig()
@@ -156,18 +161,21 @@ def main():
     menu_renderer_config.rotation = config.ROTATION
 
     menu_builder = CtrlBoardMenuBuilder(ractl_cmd)
-    menu_controller = RascsiMenuController(config.MENU_REFRESH_INTERVAL, menu_builder=menu_builder,
-                                           menu_renderer=MenuRendererLumaOled(menu_renderer_config),
-                                           menu_renderer_config=menu_renderer_config)
+    menu_controller = RascsiMenuController(
+        config.MENU_REFRESH_INTERVAL,
+        menu_builder=menu_builder,
+        menu_renderer=MenuRendererLumaOled(menu_renderer_config),
+        menu_renderer_config=menu_renderer_config,
+    )
 
     menu_controller.add(CtrlBoardMenuBuilder.SCSI_ID_MENU)
     menu_controller.add(CtrlBoardMenuBuilder.ACTION_MENU)
 
     menu_controller.show_splash_screen(f"resources/splash_start_64.bmp")
 
-    menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(menu_controller,
-                                                                sock_cmd=sock_cmd,
-                                                                ractl_cmd=ractl_cmd)
+    menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(
+        menu_controller, sock_cmd=sock_cmd, ractl_cmd=ractl_cmd
+    )
     ctrlboard_hw.attach(menu_update_event_handler)
     menu_controller.set_active_menu(CtrlBoardMenuBuilder.SCSI_ID_MENU)
 
@@ -184,5 +192,5 @@ def main():
             print(ex)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

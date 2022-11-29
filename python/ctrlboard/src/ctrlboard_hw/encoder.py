@@ -6,6 +6,7 @@ from ctrlboard_hw.hardware_button import HardwareButton
 class Encoder:
     """Class implementing a detection mechanism to detect the rotary encoder directions
     through the i2c multiplexer + interrupt"""
+
     def __init__(self, enc_a: HardwareButton, enc_b: HardwareButton):
         self.enc_a = enc_a
         self.enc_b = enc_b
@@ -27,16 +28,27 @@ class Encoder:
             state |= 0b10000000
 
         # clockwise pattern detection
-        if (state == 0b11010010 or state == 0b11001000 or state == 0b11011000 or
-                state == 0b11010001 or state == 0b11011011 or state == 0b11100000 or
-                state == 0b11001011):
+        if (
+            state == 0b11010010
+            or state == 0b11001000
+            or state == 0b11011000
+            or state == 0b11010001
+            or state == 0b11011011
+            or state == 0b11100000
+            or state == 0b11001011
+        ):
             self.pos += 1
             self.direction = 1
             self.state = 0b00000000
             return
         # counter-clockwise pattern detection
-        elif (state == 0b11000100 or state == 0b11100100 or state == 0b11100001 or
-              state == 0b11000111 or state == 0b11100111):
+        elif (
+            state == 0b11000100
+            or state == 0b11100100
+            or state == 0b11100001
+            or state == 0b11000111
+            or state == 0b11100111
+        ):
             self.pos -= 1
             self.direction = -1
             self.state = 0b00000000

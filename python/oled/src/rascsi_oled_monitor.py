@@ -52,7 +52,7 @@ parser.add_argument(
     default=180,
     action="store",
     help="The rotation of the screen buffer in degrees",
-    )
+)
 parser.add_argument(
     "--height",
     type=int,
@@ -60,7 +60,7 @@ parser.add_argument(
     default=32,
     action="store",
     help="The pixel height of the screen buffer",
-    )
+)
 parser.add_argument(
     "--refresh_interval",
     type=int,
@@ -68,14 +68,14 @@ parser.add_argument(
     default=1000,
     action="store",
     help="Interval in ms between each screen refresh",
-    )
+)
 parser.add_argument(
     "--password",
     type=str,
     default="",
     action="store",
     help="Token password string for authenticating with the backend",
-    )
+)
 parser.add_argument(
     "--host",
     type=str,
@@ -156,7 +156,7 @@ LINE_SPACING = 8
 # When using other fonts, you may need to adjust PADDING, FONT_SIZE,
 # LINE_SPACING, and LINES.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-FONT = ImageFont.truetype('resources/type_writer.ttf', FONT_SIZE)
+FONT = ImageFont.truetype("resources/type_writer.ttf", FONT_SIZE)
 
 REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
@@ -175,6 +175,7 @@ DRAW = ImageDraw.Draw(IMAGE)
 
 # Draw a black filled box to clear the image.
 DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
+
 
 def formatted_output():
     """
@@ -216,6 +217,7 @@ def formatted_output():
         output += ["No network connection"]
     return output
 
+
 def shutdown():
     """
     Display the shutdown splash, then blank the screen after a sleep
@@ -224,7 +226,7 @@ def shutdown():
     OLED.image(IMAGE_STOP)
     OLED.show()
     OLED.fill(0)
-    sleep(700/1000)
+    sleep(700 / 1000)
     OLED.show()
     sys.exit("Shutting down the OLED display...")
 
@@ -264,7 +266,7 @@ with GracefulInterruptHandler() as handler:
             # Display image.
             OLED.image(IMAGE)
             OLED.show()
-            sleep(args.refresh_interval/1000)
+            sleep(args.refresh_interval / 1000)
 
             snapshot = formatted_output()
 

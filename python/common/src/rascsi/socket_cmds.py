@@ -7,15 +7,18 @@ import socket
 from time import sleep
 from struct import pack, unpack
 
-from rascsi.exceptions import (EmptySocketChunkException,
-                               InvalidProtobufResponse,
-                               FailedSocketConnectionException)
+from rascsi.exceptions import (
+    EmptySocketChunkException,
+    InvalidProtobufResponse,
+    FailedSocketConnectionException,
+)
 
 
 class SocketCmds:
     """
     Class for sending and receiving data over a socket connection with the RaSCSI backend
     """
+
     def __init__(self, host="localhost", port=6868):
         self.host = host
         self.port = port
@@ -38,8 +41,11 @@ class SocketCmds:
                 return response
             except socket.error as error:
                 counter += 1
-                logging.warning("The RaSCSI service is not responding - attempt %s/%s",
-                                str(counter), str(tries))
+                logging.warning(
+                    "The RaSCSI service is not responding - attempt %s/%s",
+                    str(counter),
+                    str(tries),
+                )
                 error_msg = str(error)
                 sleep(0.2)
             except EmptySocketChunkException as ex:
@@ -75,18 +81,22 @@ class SocketCmds:
             bytes_recvd = 0
             while bytes_recvd < response_length:
                 chunk = sock.recv(min(response_length - bytes_recvd, 2048))
-                if chunk == b'':
-                    error_message = ("Read an empty chunk from the socket. Socket connection has "
-                                     "dropped unexpectedly. RaSCSI may have crashed.")
+                if chunk == b"":
+                    error_message = (
+                        "Read an empty chunk from the socket. Socket connection has "
+                        "dropped unexpectedly. RaSCSI may have crashed."
+                    )
                     logging.error(error_message)
                     raise EmptySocketChunkException(error_message)
                 chunks.append(chunk)
                 bytes_recvd = bytes_recvd + len(chunk)
-            response_message = b''.join(chunks)
+            response_message = b"".join(chunks)
             return response_message
 
-        error_message = ("The response from RaSCSI did not contain a protobuf header. "
-                         "RaSCSI may have crashed.")
+        error_message = (
+            "The response from RaSCSI did not contain a protobuf header. "
+            "RaSCSI may have crashed."
+        )
 
         logging.error(error_message)
         raise InvalidProtobufResponse(error_message)

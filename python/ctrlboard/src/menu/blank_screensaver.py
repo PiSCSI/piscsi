@@ -5,6 +5,7 @@ from menu.screensaver import ScreenSaver
 class BlankScreenSaver(ScreenSaver):
     """Class implementing a blank screen safer that simply blanks the screen after a
     configured activation delay"""
+
     def __init__(self, activation_delay, menu_renderer):
         super().__init__(activation_delay, menu_renderer)
         self._initial_draw_call = None

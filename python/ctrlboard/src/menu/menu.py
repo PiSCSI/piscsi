@@ -4,6 +4,7 @@ from typing import List
 
 class Menu:
     """Class implement the Menu class"""
+
     def __init__(self, name: str):
         self.entries: List = []
         self.item_selection = 0
@@ -17,11 +18,11 @@ class Menu:
 
     def get_current_text(self):
         """Returns the text content of the currently selected text in the menu."""
-        return self.entries[self.item_selection]['text']
+        return self.entries[self.item_selection]["text"]
 
     def get_current_info_object(self):
         """Returns the data object to the currently selected menu item"""
-        return self.entries[self.item_selection]['data_object']
+        return self.entries[self.item_selection]["data_object"]
 
     def __repr__(self):
         print("entries: " + str(self.entries))

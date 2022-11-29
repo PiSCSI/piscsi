@@ -13,17 +13,11 @@ CONFIG_FILE_SUFFIX = "json"
 PROPERTIES_SUFFIX = "properties"
 
 # Supported archive file suffixes
-ARCHIVE_FILE_SUFFIXES = [
-    "zip",
-    "sit",
-    "tar",
-    "gz",
-    "7z"
-    ]
+ARCHIVE_FILE_SUFFIXES = ["zip", "sit", "tar", "gz", "7z"]
 
 # The RESERVATIONS list is used to keep track of the reserved ID memos.
 # Initialize with a list of 8 empty strings.
 RESERVATIONS = ["" for _ in range(0, 8)]
 
 # Standard error message for shell commands
-SHELL_ERROR = "Shell command: \"%s\" led to error: %s"
+SHELL_ERROR = 'Shell command: "%s" led to error: %s'

@@ -6,6 +6,7 @@ Module for return codes that are refrenced in the return payloads of the rascsi 
 # pylint: disable=too-few-public-methods
 class ReturnCodes:
     """Class for the return codes used within the rascsi module."""
+
     DELETEFILE_SUCCESS = 0
     DELETEFILE_FILE_NOT_FOUND = 1
     RENAMEFILE_SUCCESS = 10

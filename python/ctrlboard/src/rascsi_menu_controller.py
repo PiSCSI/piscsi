@@ -9,8 +9,13 @@ from menu.timer import Timer
 class RascsiMenuController(MenuController):
     """Class implementing a RaSCSI Control Board UI specific menu controller"""
 
-    def __init__(self, refresh_interval, menu_builder: MenuBuilder,
-                 menu_renderer=None, menu_renderer_config=None):
+    def __init__(
+        self,
+        refresh_interval,
+        menu_builder: MenuBuilder,
+        menu_renderer=None,
+        menu_renderer_config=None,
+    ):
         super().__init__(menu_builder, menu_renderer, menu_renderer_config)
         self._refresh_interval = refresh_interval
         self._menu_renderer: MenuRenderer = menu_renderer

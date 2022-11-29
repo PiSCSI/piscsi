@@ -5,6 +5,7 @@ from observer import Observer
 
 class Observable:
     """Class implementing the Observable pattern"""
+
     _observers: List[Observer] = []
 
     def attach(self, observer: Observer):

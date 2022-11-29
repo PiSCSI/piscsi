@@ -19,8 +19,10 @@ class PCA9554Multiplexer:
         try:
             self.i2c_bus = smbus.SMBus(1)
             if self.read_input_register() is None:
-                logging.error("PCA9554 initialization test on specified i2c address %s failed",
-                              self.i2c_address)
+                logging.error(
+                    "PCA9554 initialization test on specified i2c address %s failed",
+                    self.i2c_address,
+                )
                 self.i2c_bus = None
         except IOError:
             logging.error("Could not open the i2c bus.")
@@ -35,8 +37,9 @@ class PCA9554Multiplexer:
                 if bit_value:
                     updated_configuration_register = configuration_register | (1 << port_bit)
                 else:
-                    updated_configuration_register = configuration_register & (0xFF -
-                                                                               (1 << port_bit))
+                    updated_configuration_register = configuration_register & (
+                        0xFF - (1 << port_bit)
+                    )
                 self.i2c_bus.write_byte_data(self.i2c_address, 3, updated_configuration_register)
                 return True
 
