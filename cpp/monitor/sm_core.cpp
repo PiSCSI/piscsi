@@ -61,8 +61,10 @@ void ScsiMon::ParseArguments(const vector<char *> &args)
 
     /* Process any remaining command line arguments (not options). */
     if (optind < static_cast<int>(args.size())) {
-        while (optind < static_cast<int>(args.size()))
-            file_base_name = args[optind++];
+        while (optind < static_cast<int>(args.size())){
+            file_base_name = args[optind];
+            optind++;
+        }
     }
 
     vcd_file_name = file_base_name;

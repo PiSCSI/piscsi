@@ -18,35 +18,38 @@
 
 using namespace std;
 
-const char timestamp_label[] = "\"timestamp\":\"0x";
-const char data_label[]      = "\"data\":\"0x";
+const string timestamp_label = "\"timestamp\":\"0x";
+const string data_label      = "\"data\":\"0x";
 
-uint32_t scsimon_read_json(string json_filename, vector<shared_ptr<DataSample>> &data_capture_array)
+uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    char str_buf[1024];
-    FILE *fp              = fopen(json_filename.c_str(), "r");
+    std::ifstream json_file(json_filename);
     uint32_t sample_count = 0;
 
-    while (fgets(str_buf, sizeof(str_buf), fp)) {
-        char timestamp[1024];
-        char data[1024];
+    while (json_file) {
+        string str_buf;
+        std::getline(json_file,str_buf);
+        string timestamp;
+        string data;
         uint64_t timestamp_uint;
         uint32_t data_uint;
         char *ptr;
 
-        const char *timestamp_str = strstr(str_buf, timestamp_label);
-        if (!timestamp_str)
+        size_t timestamp_pos = str_buf.find(timestamp_label);
+        // const char *timestamp_str = strstr(str_buf.c_str(), timestamp_label);
+        if (timestamp_pos == string::npos)
             continue;
-        strncpy(timestamp, &timestamp_str[strlen(timestamp_label)], 16);
-        timestamp[16]  = '\0';
-        timestamp_uint = strtoull(timestamp, &ptr, 16);
+        timestamp = str_buf.substr(timestamp_pos + timestamp_label.length(), 16);
+        // timestamp.('\0');
+        timestamp_uint = strtoull(timestamp.c_str(), &ptr, 16);
 
-        const char *data_str = strstr(str_buf, data_label);
-        if (!data_str)
+
+        size_t data_pos = str_buf.find(data_label);
+        if (data_pos == string::npos)
             continue;
-        strncpy(data, &data_str[strlen(data_label)], 8);
-        data[8]   = '\0';
-        data_uint = static_cast<uint32_t>(strtoul(data, &ptr, 16));
+        data = str_buf.substr(data_pos + data_label.length(), 8);
+        // data.append('\0');
+        data_uint = static_cast<uint32_t>(strtoul(data.c_str(), &ptr, 16));
 
         // For reading in JSON files, we'll just assume raspberry pi data types
         data_capture_array.push_back(make_unique<DataSample_Raspberry>(data_uint, timestamp_uint));
@@ -58,9 +61,7 @@ uint32_t scsimon_read_json(string json_filename, vector<shared_ptr<DataSample>> 
         }
     }
 
-    if (fp != nullptr) {
-        fclose(fp);
-    }
+    json_file.close();
 
     return sample_count;
 }
@@ -70,7 +71,7 @@ uint32_t scsimon_read_json(string json_filename, vector<shared_ptr<DataSample>> 
 //	Generate JSON Output File
 //
 //---------------------------------------------------------------------------
-void scsimon_generate_json(string filename, const vector<shared_ptr<DataSample>> &data_capture_array)
+void scsimon_generate_json(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
     LOGTRACE("Creating JSON file (%s)", filename.c_str())
     ofstream json_ofstream;
@@ -78,8 +79,8 @@ void scsimon_generate_json(string filename, const vector<shared_ptr<DataSample>>
 
     json_ofstream << "[" << endl;
 
-    uint32_t i = 0;
-    uint32_t capture_count = data_capture_array.size();
+    size_t i = 0;
+    size_t capture_count = data_capture_array.size();
     for(auto data: data_capture_array){
         json_ofstream << fmt::format("{{\"id\": \"{0:d}\", \"timestamp\":\"{1:#016x}\", \"data\":\"{2:#08x}\"}}", i,
                                      data->GetTimestamp(), data->GetRawCapture());

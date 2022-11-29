@@ -49,17 +49,7 @@ const int PIN_PHASE = 0;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static uint8_t prev_value[32] = {0xFF};
-
-// static uint8_t get_pin_value(DataSample *data, int pin)
-// {
-//     return data->GetSignal(pin);
-// }
-
-// static uint8_t get_data_field(DataSample *data)
-// {
-//     return data->GetDAT();
-// }
+static array<uint8_t,32> prev_value = {0xFF};
 
 static void vcd_output_if_changed_phase(ofstream &fp, phase_t data, int pin, char symbol)
 {
@@ -85,7 +75,7 @@ static void vcd_output_if_changed_byte(ofstream &fp, uint8_t data, int pin, char
     }
 }
 
-void scsimon_generate_value_change_dump(string filename, const vector<shared_ptr<DataSample>> &data_capture_array)
+void scsimon_generate_value_change_dump(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
     LOGTRACE("Creating Value Change Dump file (%s)", filename.c_str())
     ofstream vcd_ofstream;
@@ -94,9 +84,11 @@ void scsimon_generate_value_change_dump(string filename, const vector<shared_ptr
     // Get the current time
     time_t rawtime;
     time(&rawtime);
-    const struct tm *timeinfo = localtime(&rawtime);
-    char timestamp[256];
-    strftime(timestamp, sizeof(timestamp), "%d-%m-%Y %H-%M-%S", timeinfo);
+    struct tm timeinfo;
+    localtime_r(&rawtime, &timeinfo);
+    string timestamp;
+    timestamp.resize(256);
+    strftime(&timestamp[0], timestamp.size(), "%d-%m-%Y %H-%M-%S", &timeinfo);
 
     vcd_ofstream << "$date" << endl
                  << timestamp << endl
@@ -139,7 +131,7 @@ void scsimon_generate_value_change_dump(string filename, const vector<shared_ptr
 
     uint32_t i = 0;
     for (shared_ptr<DataSample> cur_sample : data_capture_array) {
-        vcd_ofstream << "#" << cur_sample->GetTimestamp() * ScsiMon::ns_per_loop << endl;
+        vcd_ofstream << "#" << (double)cur_sample->GetTimestamp() * ScsiMon::ns_per_loop << endl;
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetBSY(), PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetSEL(), PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetCD(), PIN_CD, SYMBOL_PIN_CD);

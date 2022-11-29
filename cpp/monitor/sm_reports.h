@@ -12,8 +12,8 @@
 #include "hal/data_sample.h"
 #include <memory>
 
-uint32_t scsimon_read_json(string json_filename, vector<shared_ptr<DataSample>> &data_capture_array);
+uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSample>> &data_capture_array);
 
-void scsimon_generate_html(string filename, const vector<shared_ptr<DataSample>> &data_capture_array);
-void scsimon_generate_json(string filename, const vector<shared_ptr<DataSample>> &data_capture_array);
-void scsimon_generate_value_change_dump(string filename, const vector<shared_ptr<DataSample>> &data_capture_array);
+void scsimon_generate_html(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array);
+void scsimon_generate_json(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array);
+void scsimon_generate_value_change_dump(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array);
