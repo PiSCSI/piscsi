@@ -44,7 +44,7 @@ jobs:
           echo "DOCKER_BACKEND_IMAGE=${DOCKER_BACKEND_IMAGE}" >> $GITHUB_ENV
           docker pull --quiet ${DOCKER_BACKEND_IMAGE} || echo "DOCKER_BACKEND_NEEDS_PUSH=1" >> $GITHUB_ENV
 
-      - name: Build and launch containers backend/web containers
+      - name: Build and launch containers
         run: docker compose -f docker-compose.ci.yml up -d
 
       - name: Run test suite
