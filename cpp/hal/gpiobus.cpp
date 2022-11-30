@@ -381,7 +381,6 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
     return i;
 }
 
-#ifdef USE_SEL_EVENT_ENABLE
 //---------------------------------------------------------------------------
 //
 //	SEL signal event polling
@@ -389,6 +388,9 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
 //---------------------------------------------------------------------------
 bool GPIOBUS::PollSelectEvent()
 {
+#ifndef USE_SEL_EVENT_ENABLE
+    return false;
+#else
     GPIO_FUNCTION_TRACE
     LOGTRACE("%s", __PRETTY_FUNCTION__)
     errno         = 0;
@@ -412,6 +414,7 @@ bool GPIOBUS::PollSelectEvent()
         SetMode(BPI_PIN_SEL, prev_mode);
     }
     return true;
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -423,7 +426,6 @@ void GPIOBUS::ClearSelectEvent()
 {
     GPIO_FUNCTION_TRACE
 }
-#endif // USE_SEL_EVENT_ENABLE
 
 //---------------------------------------------------------------------------
 //

@@ -182,12 +182,10 @@ class GPIOBUS : public BUS
     // Data transmission handshake
     int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) override;
 
-#ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event polling
     bool PollSelectEvent() override;
     // Clear SEL signal event
     void ClearSelectEvent() override;
-#endif
 
   protected:
     virtual void MakeTable() = 0;
@@ -212,11 +210,11 @@ class GPIOBUS : public BUS
     // Operation mode
     mode_e actmode = mode_e::TARGET; // NOSONAR: This protected so derived classes can access it
 
-#ifdef USE_SEL_EVENT_ENABLE
+#ifdef __linux__
     // SEL signal event request
     struct gpioevent_request selevreq = {}; // NOSONAR: This protected so derived classes can access it
     // epoll file descriptor
     int epfd; // NOSONAR: This protected so derived classes can access it
 
-#endif // USE_SEL_EVENT_ENABLE
+#endif
 };

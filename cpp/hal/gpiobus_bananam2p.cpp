@@ -302,6 +302,9 @@ void GPIOBUS_BananaM2p::SaveGpioConfig()
 
 bool GPIOBUS_BananaM2p::SetupSelEvent()
 {
+#ifndef USE_SEL_EVENT_ENABLE
+    return false;
+#else
     GPIO_FUNCTION_TRACE
     int gpio_pin = BPI_PIN_SEL;
 
@@ -362,6 +365,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     }
 
     return true;
+#endif
 }
 
 void GPIOBUS_BananaM2p::SetENB(bool ast)

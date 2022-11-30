@@ -97,13 +97,11 @@ class BUS : public PinControl
     virtual int ReceiveHandShake(uint8_t *buf, int count)                     = 0;
     virtual int SendHandShake(uint8_t *buf, int count, int delay_after_bytes) = 0;
 
-#ifdef USE_SEL_EVENT_ENABLE
     // SEL signal event polling
     virtual bool PollSelectEvent() = 0;
 
     // Clear SEL signal event
     virtual void ClearSelectEvent() = 0;
-#endif
 
     virtual bool GetSignal(int pin) const = 0;
     // Get SCSI input signal value
