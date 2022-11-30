@@ -192,8 +192,8 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     int bpi_found = -1;
 
-    volatile uint32_t *pio_map;
-    volatile uint32_t *r_pio_map;
+    volatile SunXI::sunxi_gpio_reg_t *pio_map;
+    volatile SunXI::sunxi_gpio_reg_t *r_pio_map;
 
     volatile uint32_t *r_gpio_map;
 
@@ -206,13 +206,16 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     SBC_Version::sbc_version_type sbc_version;
 
-    void SaveGpioConfig();
-    void SaveGpioBankCfg(int);
-
     SunXI::sunxi_gpio_reg_t saved_gpio_config;
 
     static const array<int, 19> SignalTable;
 
     void InitializeGpio();
     std::vector<int> gpio_banks;
+
+#if defined(__x86_64__) || defined(__X86__)
+    // The SEL_EVENT functions need to do something to prevent SonarCloud from
+    // claiming they should be const
+    int dummy_var = 0;
+#endif
 };
