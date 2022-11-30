@@ -58,6 +58,7 @@ class FileCmds:
         files_list = []
         for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
+            # TODO: Refactor for readability?
             files = [f for f in files if f.lower().endswith(file_types)]
             files_list.extend(
                 [(file, path.getsize(path.join(file_path, file))) for file in files],
