@@ -61,7 +61,7 @@ void ScsiMon::ParseArguments(const vector<char *> &args)
 
     /* Process any remaining command line arguments (not options). */
     if (optind < static_cast<int>(args.size())) {
-        while (optind < static_cast<int>(args.size())){
+        while (optind < static_cast<int>(args.size())) {
             file_base_name = args[optind];
             optind++;
         }
@@ -146,11 +146,6 @@ void ScsiMon::Reset() const
     bus->Reset();
 }
 
-#ifdef DEBUG
-static uint32_t high_bits = 0x0;
-static uint32_t low_bits  = 0xFFFFFFFF;
-#endif
-
 int ScsiMon::run(const vector<char *> &args)
 {
 #ifdef DEBUG
@@ -164,10 +159,6 @@ int ScsiMon::run(const vector<char *> &args)
 
     ParseArguments(args);
 
-#ifdef DEBUG
-    uint32_t prev_high = high_bits;
-    uint32_t prev_low  = low_bits;
-#endif
     shared_ptr<DataSample> prev_sample = nullptr;
     shared_ptr<DataSample> this_sample = nullptr;
     timeval start_time;
@@ -239,20 +230,6 @@ int ScsiMon::run(const vector<char *> &args)
 
         this_sample = bus->GetSample(loop_count);
         if ((prev_sample == nullptr) || (this_sample->GetRawCapture() != prev_sample->GetRawCapture())) {
-#ifdef DEBUG
-            // This is intended to be a debug check to see if every pin is set
-            // high and low at some point.
-            high_bits |= this_sample;
-            low_bits &= this_sample;
-            if ((high_bits != prev_high) || (low_bits != prev_low)) {
-                LOGDEBUG("   %08X    %08X\n", high_bits, low_bits)
-            }
-            prev_high = high_bits;
-            prev_low  = low_bits;
-            if ((data_idx % 1000) == 0) {
-                LOGDEBUG("%s", ("Collected " + to_string(data_idx) + " samples...").c_str())
-            }
-#endif
             data_buffer.push_back(this_sample);
             data_idx++;
             prev_sample = this_sample;

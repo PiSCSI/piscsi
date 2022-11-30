@@ -129,7 +129,6 @@ void scsimon_generate_value_change_dump(const string &filename, const vector<sha
                  << "b00000000 " << SYMBOL_PIN_DAT << endl
                  << "$end" << endl;
 
-    uint32_t i = 0;
     for (shared_ptr<DataSample> cur_sample : data_capture_array) {
         vcd_ofstream << "#" << (double)cur_sample->GetTimestamp() * ScsiMon::ns_per_loop << endl;
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetBSY(), PIN_BSY, SYMBOL_PIN_BSY);
@@ -143,7 +142,6 @@ void scsimon_generate_value_change_dump(const string &filename, const vector<sha
         vcd_output_if_changed_bool(vcd_ofstream, cur_sample->GetRST(), PIN_RST, SYMBOL_PIN_RST);
         vcd_output_if_changed_byte(vcd_ofstream, cur_sample->GetDAT(), PIN_DT0, SYMBOL_PIN_DAT);
         vcd_output_if_changed_phase(vcd_ofstream, cur_sample->GetPhase(), PIN_PHASE, SYMBOL_PIN_PHASE);
-        i++;
     }
     vcd_ofstream.close();
 }
