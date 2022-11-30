@@ -144,6 +144,9 @@ OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 
 GENERATED_DIR := generated
 
+# For the unit tests, the following functions will be "wrapped" by the linker, meaning the
+# __wrap_xxxx() function will be called instead of the real function. These linker flags
+# should only be used for testing purposes!
 TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
@@ -245,10 +248,12 @@ install: \
 	$(MAN_PAGE_DIR)/rascsi.1 \
 	$(MAN_PAGE_DIR)/rasctl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/scsiloop.1 \
 	$(MAN_PAGE_DIR)/rasdump.1 \
 	$(USR_LOCAL_BIN)/$(RASCTL) \
 	$(USR_LOCAL_BIN)/$(RASCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(SCSILOOP) \
 	$(USR_LOCAL_BIN)/$(RASDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
