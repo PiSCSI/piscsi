@@ -67,6 +67,11 @@ jobs:
         if: env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
         run: docker compose -f docker-compose.ci.yml push backend
 
+      - name: Output container logs
+        run: |
+          docker compose -f docker-compose.ci.yml backend > backend.log
+          docker compose -f docker-compose.ci.yml web > web.log
+
       - name: Upload test artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -74,6 +79,18 @@ jobs:
           path: |
             docker/volumes/pytest/report.xml
             docker/volumes/pytest/pytest.log
+
+      - name: Upload backend log
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend.log
+          path: docker/backend.log
+
+      - name: Upload web log
+        uses: actions/upload-artifact@v3
+        with:
+          name: web.log
+          path: docker/web.log
 
   frontend_checks:
     runs-on: ubuntu-latest
