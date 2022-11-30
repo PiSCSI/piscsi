@@ -18,6 +18,7 @@ from menu.screensaver import ScreenSaver
 class MenuRenderer(ABC):
     """The abstract menu renderer class provides the base for concrete menu
     renderer classes that implement functionality based on conrete hardware or available APIs."""
+
     def __init__(self, config: MenuRendererConfig):
         self.message = ""
         self.mini_message = ""
@@ -25,7 +26,7 @@ class MenuRenderer(ABC):
         self._config = config
         self.disp = self.display_init()
 
-        self.image = Image.new('1', (self.disp.width, self.disp.height))
+        self.image = Image.new("1", (self.disp.width, self.disp.height))
         self.draw = ImageDraw.Draw(self.image)
         self.font = ImageFont.truetype(config.font_path, size=config.font_size)
         # just a sample text to work with the font height
@@ -83,14 +84,21 @@ class MenuRenderer(ABC):
     def draw_row(self, row_number: int, text: str, selected: bool):
         """Draws a single row of the menu."""
         x_pos = 0
-        y_pos = row_number*self.font_height
+        y_pos = row_number * self.font_height
         if selected:
             selection_extension = 0
             if row_number < self.rows_per_screen():
                 selection_extension = self._config.row_selection_pixel_extension
-            self.draw.rectangle((x_pos, y_pos, self.disp.width,
-                                 y_pos+self._config.font_size+selection_extension),
-                                outline=0, fill=255)
+            self.draw.rectangle(
+                (
+                    x_pos,
+                    y_pos,
+                    self.disp.width,
+                    y_pos + self._config.font_size + selection_extension,
+                ),
+                outline=0,
+                fill=255,
+            )
 
             # in stage 1, we initialize scrolling for the currently selected line
             if self._perform_scrolling_stage == 1:
@@ -99,9 +107,9 @@ class MenuRenderer(ABC):
 
             # in stage 2, we know the details and can thus perform the scrolling to the left
             if self._perform_scrolling_stage == 2:
-                if self._current_line_horizontal_overlap+self._x_scrolling > 0:
+                if self._current_line_horizontal_overlap + self._x_scrolling > 0:
                     self._x_scrolling -= 1
-                if self._current_line_horizontal_overlap+self._x_scrolling == 0:
+                if self._current_line_horizontal_overlap + self._x_scrolling == 0:
                     self._stage_timestamp = int(time.time())
                     self._perform_scrolling_stage = 3
 
@@ -115,11 +123,12 @@ class MenuRenderer(ABC):
 
             # in stage 4, we scroll back to the right
             if self._perform_scrolling_stage == 4:
-                if self._current_line_horizontal_overlap+self._x_scrolling >= 0:
+                if self._current_line_horizontal_overlap + self._x_scrolling >= 0:
                     self._x_scrolling += 1
 
-                if (self._current_line_horizontal_overlap +
-                        self._x_scrolling) == self._current_line_horizontal_overlap:
+                if (
+                    self._current_line_horizontal_overlap + self._x_scrolling
+                ) == self._current_line_horizontal_overlap:
                     self._stage_timestamp = int(time.time())
                     self._perform_scrolling_stage = 5
 
@@ -131,8 +140,14 @@ class MenuRenderer(ABC):
                     self._stage_timestamp = None
                     self._perform_scrolling_stage = 2
 
-            self.draw.text((x_pos+self._x_scrolling, y_pos), text, font=self.font,
-                           spacing=0, stroke_fill=0, fill=0)
+            self.draw.text(
+                (x_pos + self._x_scrolling, y_pos),
+                text,
+                font=self.font,
+                spacing=0,
+                stroke_fill=0,
+                fill=0,
+            )
         else:
             self.draw.text((x_pos, y_pos), text, font=self.font, spacing=0, stroke_fill=0, fill=255)
 
@@ -143,8 +158,15 @@ class MenuRenderer(ABC):
         centered_height = (self.disp.height - font_height) / 2
 
         self.draw.rectangle((0, 0, self.disp.width, self.disp.height), outline=0, fill=255)
-        self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
-                       stroke_fill=0, fill=0, textsize=20)
+        self.draw.text(
+            (centered_width, centered_height),
+            text,
+            align="center",
+            font=self.font,
+            stroke_fill=0,
+            fill=0,
+            textsize=20,
+        )
 
     def draw_mini_message(self, text: str):
         """Draws a fullscreen message, i.e., a message covering only the center portion of
@@ -153,16 +175,33 @@ class MenuRenderer(ABC):
         centered_width = (self.disp.width - font_width) / 2
         centered_height = (self.disp.height - self.font_height) / 2
 
-        self.draw.rectangle((0, centered_height-4, self.disp.width,
-                             centered_height+self.font_height+4), outline=0, fill=255)
-        self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
-                       stroke_fill=0, fill=0, textsize=20)
+        self.draw.rectangle(
+            (
+                0,
+                centered_height - 4,
+                self.disp.width,
+                centered_height + self.font_height + 4,
+            ),
+            outline=0,
+            fill=255,
+        )
+        self.draw.text(
+            (centered_width, centered_height),
+            text,
+            align="center",
+            font=self.font,
+            stroke_fill=0,
+            fill=0,
+            textsize=20,
+        )
 
     def draw_menu(self):
         """Method draws the menu set to the class instance."""
         if self._menu.item_selection >= self.frame_start_row + self.rows_per_screen():
             if self._config.scroll_behavior == "page":
-                self.frame_start_row = self.frame_start_row + (round(self.rows_per_screen()/2)) + 1
+                self.frame_start_row = (
+                    self.frame_start_row + (round(self.rows_per_screen() / 2)) + 1
+                )
                 if self.frame_start_row > len(self._menu.entries) - self.rows_per_screen():
                     self.frame_start_row = len(self._menu.entries) - self.rows_per_screen()
             else:  # extend as default behavior
@@ -170,13 +209,15 @@ class MenuRenderer(ABC):
 
         if self._menu.item_selection < self.frame_start_row:
             if self._config.scroll_behavior == "page":
-                self.frame_start_row = self.frame_start_row - (round(self.rows_per_screen()/2)) - 1
+                self.frame_start_row = (
+                    self.frame_start_row - (round(self.rows_per_screen() / 2)) - 1
+                )
                 if self.frame_start_row < 0:
                     self.frame_start_row = 0
             else:  # extend as default behavior
                 self.frame_start_row = self._menu.item_selection
 
-        self.draw_menu_frame(self.frame_start_row, self.frame_start_row+self.rows_per_screen())
+        self.draw_menu_frame(self.frame_start_row, self.frame_start_row + self.rows_per_screen())
 
     def draw_menu_frame(self, frame_start_row: int, frame_end_row: int):
         """Draws row frame_start_row to frame_end_row of the class instance menu, i.e., it

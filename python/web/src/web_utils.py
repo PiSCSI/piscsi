@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 
 from rascsi.sys_cmds import SysCmds
 
+
 def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of (dict)s devices, and list of (int)s reserved_ids.
@@ -43,7 +44,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
         "valid_ids": valid_ids,
         "occupied_ids": occupied_ids,
         "recommended_id": recommended_id,
-        }
+    }
 
 
 def sort_and_format_devices(devices):
@@ -180,7 +181,8 @@ def format_drive_properties(drive_properties):
         "cd_conf": cd_conf,
         "rm_conf": rm_conf,
         "mo_conf": mo_conf,
-        }
+    }
+
 
 def get_properties_by_drive_name(drives, drive_name):
     """
@@ -198,10 +200,11 @@ def get_properties_by_drive_name(drives, drive_name):
                 "revision": drive["revision"],
                 "block_size": drive["block_size"],
                 "size": drive["size"],
-                }
+            }
 
     logging.error("Properties for drive '%s' does not exist in database", drive_name)
     return False
+
 
 def auth_active(group):
     """
@@ -212,9 +215,9 @@ def auth_active(group):
     groups = [g.gr_name for g in getgrall()]
     if group in groups:
         return {
-                "status": True,
-                "msg": _("You must log in to use this function"),
-                }
+            "status": True,
+            "msg": _("You must log in to use this function"),
+        }
     return {"status": False, "msg": ""}
 
 
@@ -272,7 +275,7 @@ def upload_with_dropzonejs(image_dir):
     file_name = secure_filename(file_object.filename)
 
     save_path = path.join(image_dir, file_name)
-    current_chunk = int(request.form['dzchunkindex'])
+    current_chunk = int(request.form["dzchunkindex"])
 
     # Makes sure not to overwrite an existing file,
     # but continues writing to a file transfer in progress
@@ -307,21 +310,21 @@ def browser_supports_modern_themes():
         return False
 
     user_agent = user_agent_parser.Parse(user_agent_string)
-    if not user_agent['user_agent']['family']:
+    if not user_agent["user_agent"]["family"]:
         return False
 
     # (family, minimum version)
     supported_browsers = [
-        ('Safari', 14),
-        ('Chrome', 100),
-        ('Firefox', 100),
-        ('Edge', 100),
-        ('Mobile Safari', 14),
-        ('Chrome Mobile', 100),
+        ("Safari", 14),
+        ("Chrome", 100),
+        ("Firefox", 100),
+        ("Edge", 100),
+        ("Mobile Safari", 14),
+        ("Chrome Mobile", 100),
     ]
 
-    current_ua_family = user_agent['user_agent']['family']
-    current_ua_version = float(user_agent['user_agent']['major'])
+    current_ua_family = user_agent["user_agent"]["family"]
+    current_ua_version = float(user_agent["user_agent"]["major"])
     logging.info(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
 
     for supported_browser, supported_version in supported_browsers:

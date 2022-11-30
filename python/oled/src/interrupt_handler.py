@@ -8,6 +8,7 @@ class GracefulInterruptHandler:
     """
     Class for handling Linux signal interrupts
     """
+
     def __init__(self, signals=(signal.SIGINT, signal.SIGTERM)):
         self.signals = signals
         self.original_handlers = {}

@@ -2,7 +2,3 @@
 addopts = "--junitxml=report.xml"
 log_cli = true
 log_cli_level = "warn"
-
-[tool.black]
-line-length = 100
-target-version = ['py37', 'py38', 'py39']

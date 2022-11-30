@@ -12,6 +12,7 @@ from platform import uname
 
 from rascsi.common_settings import SHELL_ERROR
 
+
 class SysCmds:
     """
     Class for commands sent to the Pi's Linux system.
@@ -30,7 +31,7 @@ class SysCmds:
                     ["git", "rev-parse", "HEAD"],
                     capture_output=True,
                     check=True,
-                    )
+                )
                 .stdout.decode("utf-8")
                 .strip()
             )
@@ -68,7 +69,7 @@ class SysCmds:
         return {
             "git": ra_git_version,
             "env": f"{hardware}, {env.system} {env.release} {env.machine}",
-            }
+        }
 
     @staticmethod
     def running_proc(daemon):
@@ -82,7 +83,7 @@ class SysCmds:
                     ["ps", "aux"],
                     capture_output=True,
                     check=True,
-                    )
+                )
                 .stdout.decode("utf-8")
                 .strip()
             )
@@ -104,7 +105,7 @@ class SysCmds:
                     ["brctl", "show"],
                     capture_output=True,
                     check=True,
-                    )
+                )
                 .stdout.decode("utf-8")
                 .strip()
             )
@@ -155,7 +156,7 @@ class SysCmds:
         sock = socket(AF_INET, SOCK_DGRAM)
         try:
             # mock ip address; doesn't have to be reachable
-            sock.connect(('10.255.255.255', 1))
+            sock.connect(("10.255.255.255", 1))
             ip_addr = sock.getsockname()[0]
         except Exception:
             ip_addr = False
@@ -170,10 +171,10 @@ class SysCmds:
         """
         try:
             process = run(
-                    ["hostnamectl", "status", "--pretty"],
-                    capture_output=True,
-                    check=True,
-                    )
+                ["hostnamectl", "status", "--pretty"],
+                capture_output=True,
+                check=True,
+            )
             pretty_hostname = process.stdout.decode("utf-8").rstrip()
             if pretty_hostname:
                 return pretty_hostname
@@ -188,11 +189,11 @@ class SysCmds:
         Set the pretty hostname for the system
         """
         try:
-            process = run(
-                    ["sudo", "hostnamectl", "set-hostname", "--pretty", name],
-                    capture_output=False,
-                    check=True,
-                    )
+            run(
+                ["sudo", "hostnamectl", "set-hostname", "--pretty", name],
+                capture_output=False,
+                check=True,
+            )
         except CalledProcessError as error:
             logging.error(str(error))
             return False
@@ -213,9 +214,9 @@ class SysCmds:
         if scope:
             scope_param = ["-u", scope]
         process = run(
-                ["journalctl"] + line_param + scope_param,
-                capture_output=True,
-                )
+            ["journalctl"] + line_param + scope_param,
+            capture_output=True,
+        )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
@@ -228,9 +229,9 @@ class SysCmds:
         Returns either the disktype output, or the stderr output.
         """
         process = run(
-                ["disktype", file_path],
-                capture_output=True,
-                )
+            ["disktype", file_path],
+            capture_output=True,
+        )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
@@ -243,9 +244,9 @@ class SysCmds:
         Returns either the man2html output, or the stderr output.
         """
         process = run(
-                ["man2html", file_path, "-M", "/"],
-                capture_output=True,
-                )
+            ["man2html", file_path, "-M", "/"],
+            capture_output=True,
+        )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
@@ -257,9 +258,9 @@ class SysCmds:
         Sends a reboot command to the system
         """
         process = run(
-                ["sudo", "reboot"],
-                capture_output=True,
-                )
+            ["sudo", "reboot"],
+            capture_output=True,
+        )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
@@ -271,9 +272,9 @@ class SysCmds:
         Sends a shutdown command to the system
         """
         process = run(
-                ["sudo", "shutdown", "-h", "now"],
-                capture_output=True,
-                )
+            ["sudo", "shutdown", "-h", "now"],
+            capture_output=True,
+        )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 

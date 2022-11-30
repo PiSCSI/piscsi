@@ -11,6 +11,7 @@ class RaCtlCmds:
     """
     Class for commands sent to the RaSCSI backend service.
     """
+
     def __init__(self, sock_cmd: SocketCmds, token=None, locale="en"):
         self.sock_cmd = sock_cmd
         self.token = token
@@ -37,9 +38,13 @@ class RaCtlCmds:
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()
         result.ParseFromString(data)
-        version = (str(result.server_info.version_info.major_version) + "." +
-                   str(result.server_info.version_info.minor_version) + "." +
-                   str(result.server_info.version_info.patch_version))
+        version = (
+            str(result.server_info.version_info.major_version)
+            + "."
+            + str(result.server_info.version_info.minor_version)
+            + "."
+            + str(result.server_info.version_info.patch_version)
+        )
         log_levels = list(result.server_info.log_level_info.log_levels)
         current_log_level = result.server_info.log_level_info.current_log_level
         reserved_ids = list(result.server_info.reserved_ids_info.ids)
@@ -74,7 +79,7 @@ class RaCtlCmds:
             "scrm": scrm,
             "scmo": scmo,
             "sccd": sccd,
-            }
+        }
 
     def get_reserved_ids(self):
         """
@@ -137,11 +142,11 @@ class RaCtlCmds:
             for key, value in device.properties.default_params.items():
                 params[key] = value
             device_types[proto.PbDeviceType.Name(device.type)] = {
-                    "removable": device.properties.removable,
-                    "supports_file": device.properties.supports_file,
-                    "params": params,
-                    "block_sizes": list(device.properties.block_sizes),
-                    }
+                "removable": device.properties.removable,
+                "supports_file": device.properties.supports_file,
+                "params": params,
+                "block_sizes": list(device.properties.block_sizes),
+            }
         return {"status": result.status, "device_types": device_types}
 
     def get_removable_device_types(self):
@@ -176,8 +181,8 @@ class RaCtlCmds:
         device_types = self.get_device_types()
         image_device_types = self.get_disk_device_types()
         peripheral_device_types = [
-                x for x in device_types["device_types"] if x not in image_device_types
-                ]
+            x for x in device_types["device_types"] if x not in image_device_types
+        ]
         return peripheral_device_types
 
     def get_image_files_info(self):
@@ -205,7 +210,7 @@ class RaCtlCmds:
             "images_dir": images_dir,
             "image_files": image_files,
             "scan_depth": scan_depth,
-            }
+        }
 
     def attach_device(self, scsi_id, **kwargs):
         """
@@ -245,13 +250,13 @@ class RaCtlCmds:
             if current_type != device_type:
                 parameters = {
                     "device_type": device_type,
-                    "current_device_type": current_type
+                    "current_device_type": current_type,
                 }
                 return {
                     "status": False,
                     "return_code": ReturnCodes.ATTACHIMAGE_COULD_NOT_ATTACH,
                     "parameters": parameters,
-                    }
+                }
             command.operation = proto.PbOperation.INSERT
 
         # Handling attaching a new device
@@ -394,20 +399,22 @@ class RaCtlCmds:
             dblock = result.devices_info.devices[i].block_size
             dsize = int(result.devices_info.devices[i].block_count) * int(dblock)
 
-            device_list.append({
-                "id": did,
-                "unit": dunit,
-                "device_type": dtype,
-                "status": ", ".join(dstat_msg),
-                "image": dpath,
-                "file": dfile,
-                "params": dparam,
-                "vendor": dven,
-                "product": dprod,
-                "revision": drev,
-                "block_size": dblock,
-                "size": dsize,
-                })
+            device_list.append(
+                {
+                    "id": did,
+                    "unit": dunit,
+                    "device_type": dtype,
+                    "status": ", ".join(dstat_msg),
+                    "image": dpath,
+                    "file": dfile,
+                    "params": dparam,
+                    "vendor": dven,
+                    "product": dprod,
+                    "revision": drev,
+                    "block_size": dblock,
+                    "size": dsize,
+                }
+            )
             i += 1
 
         return {"status": result.status, "msg": result.msg, "device_list": device_list}

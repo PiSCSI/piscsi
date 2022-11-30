@@ -8,8 +8,8 @@ class FailedSocketConnectionException(Exception):
 
 
 class EmptySocketChunkException(Exception):
-    """Raise when a socket payload contains an empty chunk which implies a possible problem. """
+    """Raise when a socket payload contains an empty chunk which implies a possible problem."""
 
 
 class InvalidProtobufResponse(Exception):
-    """Raise when a rascsi socket payload contains unpexpected data. """
+    """Raise when a rascsi socket payload contains unpexpected data."""

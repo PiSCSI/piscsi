@@ -5,6 +5,7 @@ import time
 class Timer:
     """Class implementing a timer class. Takes an activation delay and
     sets a flag if the activation delay exprires."""
+
     def __init__(self, activation_delay):
         self.start_timestamp = int(time.time())
         self.activation_delay = activation_delay

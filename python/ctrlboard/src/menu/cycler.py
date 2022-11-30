@@ -8,9 +8,17 @@ class Cycler:
     """Class implementing button cycling functionality. Message is shown at the center of
     the screen where repeated button presses cycle through the available selection
     possibilities. Inactivity (cycle_timeout) actives cycle entry last shown on the screen."""
-    def __init__(self, menu_controller, sock_cmd, ractl_cmd,
-                 cycle_timeout=3, return_string="Return ->",
-                 return_entry=True, empty_messages=True):
+
+    def __init__(
+        self,
+        menu_controller,
+        sock_cmd,
+        ractl_cmd,
+        cycle_timeout=3,
+        return_string="Return ->",
+        return_entry=True,
+        empty_messages=True,
+    ):
         self._cycle_profile_timer_flag = Timer(activation_delay=cycle_timeout)
         self._menu_controller = menu_controller
         self.sock_cmd = sock_cmd
@@ -39,7 +47,7 @@ class Cycler:
         """Perform the return action, i.e., when no selection is chosen"""
 
     def update(self):
-        """ Returns True if object has completed its task and can be deleted """
+        """Returns True if object has completed its task and can be deleted"""
 
         if self._cycle_profile_timer_flag is None:
             return None

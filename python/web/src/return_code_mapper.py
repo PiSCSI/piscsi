@@ -1,4 +1,4 @@
-"""Module for mapping between rascsi return codes and translated strings"""
+"""Module for mapping between return codes and translated strings"""
 
 from rascsi.return_codes import ReturnCodes
 from flask_babel import _, lazy_gettext
@@ -6,8 +6,9 @@ from flask_babel import _, lazy_gettext
 
 # pylint: disable=too-few-public-methods
 class ReturnCodeMapper:
-    """Class for mapping between rascsi return codes and translated strings"""
+    """Class for mapping between return codes and translated strings"""
 
+    # fmt: off
     MESSAGES = {
         ReturnCodes.DELETEFILE_SUCCESS:
             _("File deleted: %(file_path)s"),
@@ -46,11 +47,12 @@ class ReturnCodeMapper:
         ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR:
             _("Unable to extract archive: %(error)s"),
         }
+    # fmt: on
 
     @staticmethod
     def add_msg(payload):
-        """adds a msg key to a given payload with a rascsi module return code
-        with a translated return code message string. """
+        """adds a msg key to a given payload with a module return code
+        with a translated return code message string."""
         if "return_code" not in payload:
             return payload
 
@@ -60,7 +62,7 @@ class ReturnCodeMapper:
             payload["msg"] = lazy_gettext(
                 ReturnCodeMapper.MESSAGES[payload["return_code"]],
                 **parameters,
-                )
+            )
         else:
             payload["msg"] = lazy_gettext(ReturnCodeMapper.MESSAGES[payload["return_code"]])
 
