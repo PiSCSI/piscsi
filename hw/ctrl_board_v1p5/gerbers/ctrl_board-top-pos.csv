@@ -1,8 +1,0 @@
-Ref,Val,Package,PosX,PosY,Rot,Side
-"G1","Pi Logo","pi_logo",211.700000,-112.100000,0.000000,top
-"G2","Pi Logo","pi_logo",230.100000,-111.900000,0.000000,top
-"J2","OLED Connector","0.9_and_1.3_in_OLED_Footprint",220.500000,-102.000000,-90.000000,top
-"J3","Conn_01x06_Odd_Even","PinHeader_1x06_P2.54mm_Vertical",243.950000,-122.200000,90.000000,top
-"SW1","SW_SPST","SW_PUSH_6mm_H5mm",240.000000,-101.800000,0.000000,top
-"SW2","SW_SPST","SW_PUSH_6mm_H5mm",246.500000,-117.700000,180.000000,top
-"SW4","Rotary_Encoder_Switch","RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm",255.400000,-116.300000,90.000000,top
