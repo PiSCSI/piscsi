@@ -79,8 +79,8 @@ jobs:
       - name: Output container logs
         if: success() || failure()
         run: |
-          docker compose -f docker-compose.ci.yml backend > backend.log
-          docker compose -f docker-compose.ci.yml web > web.log
+          docker compose -f docker-compose.ci.yml logs backend > backend.log
+          docker compose -f docker-compose.ci.yml logs web > web.log
 
       - name: Upload backend log
         if: success() || failure()
