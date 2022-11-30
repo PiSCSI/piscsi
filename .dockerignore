@@ -2,9 +2,8 @@
 /*
 
 # Paths to include
-!/docker/rascsi/rascsi_wrapper.sh
-!/docker/rascsi/cfilesystem.patch
-!/docker/rascsi-web/start.sh
+!/docker/backend/rascsi_wrapper.sh
+!/docker/web/start.sh
 !/doc
 !/python
 !/cpp
@@ -13,19 +12,27 @@
 !/LICENCE
 !/README.md
 
-# From .gitignore
-venv
-*.pyc
-core
+# Dev artifacts to exclude
+**/.git
+
+/cpp/bin
+/cpp/obj
+
+**/venv*
+**/*.pyc
+**/__pycache__
+**/.pytest_cache
+**/rascsi_interface_pb2.py
+**/report.xml
+
 **/.idea
-.DS_Store
-*.swp
-__pycache__
-current
-rascsi_interface_pb2.py
-src/raspberrypi/hfdisk/
-*~
-messages.pot
-messages.mo
-s.sh
-*-backups
+**/.vscode
+**/.DS_Store
+
+**/core
+**/*.swp
+**/current
+
+**/node_modules
+**/messages.pot
+**/messages.mo

@@ -1,15 +1,11 @@
 services:
-  rascsi:
-    container_name: rascsi
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-standalone
+  backend:
+    container_name: rascsi_backend
+    image: rascsi-backend
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi/Dockerfile
-      args:
-        - OS_DISTRO=${OS_DISTRO:-debian}
-        - OS_VERSION=${OS_VERSION:-buster}
-        - OS_ARCH=${OS_ARCH:-amd64}
+      dockerfile: docker/backend/Dockerfile
     volumes:
       - ./volumes/images:/home/pi/images:delegated
       - ./volumes/config:/home/pi/.config/rascsi:delegated
@@ -19,26 +15,19 @@ services:
      - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
     init: true
     command: [
-      "/usr/local/bin/rascsi_wrapper.sh",
       "-L",
       "${RASCSI_LOG_LEVEL:-trace}",
-      "-r",
-      "7",
-      "-F",
-      "/home/pi/images"
     ]
 
-  rascsi_web:
+  web:
     container_name: rascsi_web
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-web
+    image: rascsi-web:${OS_VERSION:-buster}
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi-web/Dockerfile
+      dockerfile: docker/web/Dockerfile
       args:
-        - OS_DISTRO=${OS_DISTRO:-debian}
         - OS_VERSION=${OS_VERSION:-buster}
-        - OS_ARCH=${OS_ARCH:-amd64}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
       - ./volumes/config:/home/pi/.config/rascsi:delegated
@@ -49,23 +38,19 @@ services:
      - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
     init: true
     command: [
-      "start.sh",
-      "--rascsi-host=${RASCSI_HOST:-rascsi}",
+      "--rascsi-host=${RASCSI_HOST:-backend}",
       "--rascsi-port=${RASCSI_PORT:-6868}",
       "--log-level=${WEB_LOG_LEVEL:-info}",
       "--dev-mode"
     ]
 
   pytest:
-    container_name: pytest
-    image: rascsi:pytest
+    container_name: rascsi_pytest
+    image: rascsi-pytest
     pull_policy: never
     profiles:
       - webui-tests
     build:
       context: ..
       dockerfile: docker/pytest/Dockerfile
-    volumes:
-      - ../python/web:/src:delegated
     working_dir: /src
-    entrypoint: "pytest"

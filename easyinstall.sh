@@ -69,6 +69,11 @@ SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
 
+APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils"
+APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang-11"
+APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
+APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype"
+
 set -e
 
 # checks to run before entering the script main menu
@@ -96,50 +101,35 @@ function installPackages() {
         return 0
     fi
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
-        build-essential \
-        git \
-        libspdlog-dev \
-        libpcap-dev \
-        libprotobuf-dev \
-        genisoimage \
-        python3 \
-        python3-dev \
-        python3-pip \
-        python3-venv \
-        python3-setuptools \
-        python3-wheel \
-        nginx-light \
-        protobuf-compiler \
-        bridge-utils \
-        libev-dev \
-        libevdev2 \
-        unzip \
-        unar \
-        disktype \
-        libgmock-dev \
-        man2html \
-        hfsutils \
-        dosfstools \
-        kpartx \
-        clang-11
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_BACKEND \
+        $APT_PACKAGES_PYTHON \
+        $APT_PACKAGES_WEB
 }
 
-# install Debian packges for RaSCSI standalone
+# install Debian packages for RaSCSI standalone
 function installPackagesStandalone() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
         return 0
     fi
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
-        build-essential \
-        git \
-        libspdlog-dev \
-        libpcap-dev \
-        libprotobuf-dev \
-        protobuf-compiler \
-        libgmock-dev \
-        clang-11
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_BACKEND
 }
+
+# install Debian packages for RaSCSI web UI standalone
+function installPackagesWeb() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_PYTHON \
+        $APT_PACKAGES_WEB
+}
+
 
 # cache the pip packages
 function cachePipPackages(){
@@ -1363,7 +1353,7 @@ function runChoice() {
               sudoCheck
               createCfgDir
               updateRaScsiGit
-              installPackages
+              installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
               preparePythonCommon
@@ -1393,6 +1383,10 @@ function runChoice() {
           14)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
+          ;;
+          15)
+              installPackagesStandalone
+              compileRaScsi
           ;;
           -h|--help|h|help)
               showMenu
@@ -1439,6 +1433,7 @@ function showMenu() {
     echo " 13) Enable or disable RaSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
     echo " 14) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 15) Compile RaSCSI binaries"
 }
 
 # parse arguments passed to the script
@@ -1454,7 +1449,7 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 14 ]]; then
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
                 echo "ERROR: The run choice parameter must have a numeric value between 1 and 14"
                 exit 1
             fi

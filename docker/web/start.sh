@@ -3,7 +3,7 @@
 if ! [[ -f "/home/pi/RASCSI/python/common/src/rascsi_interface_pb2.py" ]]; then
     # Build rascsi_interface_pb2.py with the protobuf compiler
     protoc \
-        -I=/home/pi/RASCSI/src/raspberrypi \
+        -I=/home/pi/RASCSI/cpp \
         --python_out=/home/pi/RASCSI/python/common/src \
         rascsi_interface.proto
 fi

@@ -35,14 +35,12 @@ from another terminal.
 The following environment variables are available when using Docker Compose:
 
 | Environment Variable | Default  |
-| -------------------- | -------- |
-| `OS_DISTRO`          | debian   |
+| -------------------- |----------|
 | `OS_VERSION`         | buster   |
-| `OS_ARCH`            | amd64    |
 | `WEB_HTTP_PORT`      | 8080     |
 | `WEB_HTTPS_PORT`     | 8443     |
 | `WEB_LOG_LEVEL`      | info     |
-| `RASCSI_HOST`        | rascsi   |
+| `RASCSI_HOST`        | backend  |
 | `RASCSI_PORT`        | 6868     |
 | `RASCSI_PASSWORD`    | *[None]* |
 | `RASCSI_LOG_LEVEL`   | debug    |
@@ -83,7 +81,7 @@ docker compose up --build
 
 ### Open a Shell on a Running Container
 
-Run the following command, replacing `[CONTAINER]` with `rascsi` or `rascsi_web`.
+Run the following command, replacing `[CONTAINER]` with `backend` or `web`.
 
 ```
 docker compose exec [CONTAINER] bash
@@ -92,7 +90,7 @@ docker compose exec [CONTAINER] bash
 ### Setup Live Editing for the Web UI
 
 Use a `docker-compose.override.yml` to mount the local `python` directory to
-`/home/pi/RASCSI/python/` in the `rascsi_web` container.
+`/home/pi/RASCSI/python/` in the `web` container.
 
 Any changes to *.py files on the host computer (i.e. in your IDE) will trigger
 the web UI process to be restarted in the container.
@@ -100,7 +98,7 @@ the web UI process to be restarted in the container.
 **Example:**
 ```
 services:
-  rascsi_web:
+  web:
     volumes:
       - ../python:/home/pi/RASCSI/python:delegated
 ```

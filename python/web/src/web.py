@@ -994,7 +994,7 @@ def create_file():
 
     message_postfix = ""
 
-    # Formatting and injecting driver, if one is choosen
+    # Formatting and injecting driver, if one is chosen
     if drive_format:
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
         known_formats = [
@@ -1283,6 +1283,11 @@ def change_theme():
 
     session["theme"] = theme
     return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
+
+
+@APP.route("/healthcheck", methods=["GET"])
+def healthcheck():
+    return "", 200
 
 
 @APP.before_first_request
