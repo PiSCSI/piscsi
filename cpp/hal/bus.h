@@ -21,10 +21,6 @@
 #include <stdexcept>
 using namespace std;
 
-#ifndef USE_SEL_EVENT_ENABLE
-#define USE_SEL_EVENT_ENABLE
-#endif
-
 //---------------------------------------------------------------------------
 //
 //	Constant declarations (bus control timing)

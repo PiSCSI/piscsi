@@ -45,7 +45,7 @@ class ScsiLoop_GPIO
     void set_output_channel(int out_gpio);
     void loopback_setup();
 
-    int test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list);
+    int test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list, bool &loopback_adapter_missing);
 
     void set_dat_inputs_loop(uint8_t value);
 

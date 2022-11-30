@@ -28,7 +28,7 @@ static const string CYAN    = "\033[36m"; /* Cyan */
 static const string WHITE   = "\033[37m"; /* White */
 
 // TODO: this is only a debug function that will be removed at a later date.....
-void dump_gpio_registers(SunXI::sunxi_gpio_reg_t *regs)
+void dump_gpio_registers(const SunXI::sunxi_gpio_reg_t *regs)
 {
     printf("%s--- GPIO BANK 0 CFG: %08X %08X %08X %08X\n", CYAN.c_str(), regs->gpio_bank[0].CFG[0],
            regs->gpio_bank[0].CFG[1], regs->gpio_bank[0].CFG[2], regs->gpio_bank[0].CFG[3]);

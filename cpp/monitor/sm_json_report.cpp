@@ -28,7 +28,7 @@ uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSa
 
     while (json_file) {
         string str_buf;
-        std::getline(json_file,str_buf);
+        std::getline(json_file, str_buf);
         string timestamp;
         string data;
         uint64_t timestamp_uint;
@@ -36,19 +36,15 @@ uint32_t scsimon_read_json(const string &json_filename, vector<shared_ptr<DataSa
         char *ptr;
 
         size_t timestamp_pos = str_buf.find(timestamp_label);
-        // const char *timestamp_str = strstr(str_buf.c_str(), timestamp_label);
         if (timestamp_pos == string::npos)
             continue;
-        timestamp = str_buf.substr(timestamp_pos + timestamp_label.length(), 16);
-        // timestamp.('\0');
+        timestamp      = str_buf.substr(timestamp_pos + timestamp_label.length(), 16);
         timestamp_uint = strtoull(timestamp.c_str(), &ptr, 16);
-
 
         size_t data_pos = str_buf.find(data_label);
         if (data_pos == string::npos)
             continue;
-        data = str_buf.substr(data_pos + data_label.length(), 8);
-        // data.append('\0');
+        data      = str_buf.substr(data_pos + data_label.length(), 8);
         data_uint = static_cast<uint32_t>(strtoul(data.c_str(), &ptr, 16));
 
         // For reading in JSON files, we'll just assume raspberry pi data types
@@ -79,9 +75,9 @@ void scsimon_generate_json(const string &filename, const vector<shared_ptr<DataS
 
     json_ofstream << "[" << endl;
 
-    size_t i = 0;
+    size_t i             = 0;
     size_t capture_count = data_capture_array.size();
-    for(auto data: data_capture_array){
+    for (auto data : data_capture_array) {
         json_ofstream << fmt::format("{{\"id\": \"{0:d}\", \"timestamp\":\"{1:#016x}\", \"data\":\"{2:#08x}\"}}", i,
                                      data->GetTimestamp(), data->GetRawCapture());
 

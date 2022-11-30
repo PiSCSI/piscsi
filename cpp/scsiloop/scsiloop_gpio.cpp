@@ -296,7 +296,7 @@ void ScsiLoop_GPIO::loopback_setup()
 
 // Main test procedure.This will execute for each of the SCSI pins to make sure its connected
 // properly.
-int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list)
+int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list, bool &loopback_adapter_missing)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__);
 
@@ -347,6 +347,9 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
                                 pin_name_lookup.at(cur_gpio.connected_pin)));
 
                 err_count++;
+            }
+            else{
+                loopback_adapter_missing = false;
             }
         } else {
             if (cur_val != OFF) {
@@ -434,6 +437,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
 int ScsiLoop_GPIO::RunLoopbackTest(vector<string> &error_list)
 {
     int errors = 0;
+    bool loopback_adapter_missing = true;
     LOGTRACE("%s", __PRETTY_FUNCTION__);
     loopback_setup();
 
@@ -441,7 +445,11 @@ int ScsiLoop_GPIO::RunLoopbackTest(vector<string> &error_list)
         ScsiLoop_Cout::StartTest(
             fmt::format("GPIO {:<3}[{}]", cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str()));
 
-        errors += test_gpio_pin(cur_gpio, error_list);
+        errors += test_gpio_pin(cur_gpio, error_list, loopback_adapter_missing);
+    }
+
+    if(loopback_adapter_missing){
+        error_list.push_back("All of the loop-backed signals failed. Is the loopback adapter missing? (A special cable is required to use scsiloop)");
     }
     return errors;
 }
@@ -472,6 +480,32 @@ void ScsiLoop_GPIO::dat_input_test_setup()
     set_ind_out();
 }
 
+void ScsiLoop_GPIO::dat_output_test_setup()
+{
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
+
+    for (loopback_connection cur_gpio : loopback_conn_table) {
+        if (cur_gpio.this_pin == -1) {
+            continue;
+        }
+        bus->PinConfig(cur_gpio.this_pin, GPIO_INPUT);
+        bus->PullConfig(cur_gpio.this_pin, GPIO_PULLNONE);
+    }
+
+    bus->PinConfig(local_pin_dt0, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt1, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt2, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt3, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt4, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt5, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt6, GPIO_OUTPUT);
+    bus->PinConfig(local_pin_dt7, GPIO_OUTPUT);
+
+    set_dtd_out();
+    set_tad_in();
+    set_ind_in();
+}
+
 void ScsiLoop_GPIO::set_dat_inputs_loop(uint8_t value)
 {
     bus->SetSignal(local_pin_ack, (value >> 0) & 0x1);
@@ -482,6 +516,20 @@ void ScsiLoop_GPIO::set_dat_inputs_loop(uint8_t value)
     bus->SetSignal(local_pin_io, (value >> 5) & 0x1);
     bus->SetSignal(local_pin_msg, (value >> 6) & 0x1);
     bus->SetSignal(local_pin_req, (value >> 7) & 0x1);
+}
+
+uint8_t ScsiLoop_GPIO::get_dat_outputs_loop()
+{
+    uint8_t value = 0;
+    value |= ((bus->GetSignal(local_pin_ack) & 0x1) << 0);
+    value |= ((bus->GetSignal(local_pin_sel) & 0x1) << 1);
+    value |= ((bus->GetSignal(local_pin_atn) & 0x1) << 2);
+    value |= ((bus->GetSignal(local_pin_rst) & 0x1) << 3);
+    value |= ((bus->GetSignal(local_pin_cd) & 0x1) << 4);
+    value |= ((bus->GetSignal(local_pin_io) & 0x1) << 5);
+    value |= ((bus->GetSignal(local_pin_msg) & 0x1) << 6);
+    value |= ((bus->GetSignal(local_pin_req) & 0x1) << 7);
+    return value;
 }
 
 int ScsiLoop_GPIO::RunDataInputTest(vector<string> &error_list)
@@ -510,47 +558,8 @@ int ScsiLoop_GPIO::RunDataInputTest(vector<string> &error_list)
 
     ScsiLoop_Cout::FinishTest("DAT Inputs", err_count);
 
+    set_dat_inputs_loop(0);
     return err_count;
-}
-
-void ScsiLoop_GPIO::dat_output_test_setup()
-{
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
-
-    for (loopback_connection cur_gpio : loopback_conn_table) {
-        if (cur_gpio.this_pin == -1) {
-            continue;
-        }
-        bus->PinConfig(cur_gpio.this_pin, GPIO_INPUT);
-        bus->PullConfig(cur_gpio.this_pin, GPIO_PULLNONE);
-    }
-
-    bus->PinConfig(local_pin_dt0, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt1, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt2, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt3, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt4, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt5, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt6, GPIO_OUTPUT);
-    bus->PinConfig(local_pin_dt7, GPIO_OUTPUT);
-
-    set_dtd_out();
-    set_tad_in();
-    set_ind_in();
-}
-
-uint8_t ScsiLoop_GPIO::get_dat_outputs_loop()
-{
-    uint8_t value = 0;
-    value |= ((bus->GetSignal(local_pin_ack) & 0x1) << 0);
-    value |= ((bus->GetSignal(local_pin_sel) & 0x1) << 1);
-    value |= ((bus->GetSignal(local_pin_atn) & 0x1) << 2);
-    value |= ((bus->GetSignal(local_pin_rst) & 0x1) << 3);
-    value |= ((bus->GetSignal(local_pin_cd) & 0x1) << 4);
-    value |= ((bus->GetSignal(local_pin_io) & 0x1) << 5);
-    value |= ((bus->GetSignal(local_pin_msg) & 0x1) << 6);
-    value |= ((bus->GetSignal(local_pin_req) & 0x1) << 7);
-    return value;
 }
 
 int ScsiLoop_GPIO::RunDataOutputTest(vector<string> &error_list)
