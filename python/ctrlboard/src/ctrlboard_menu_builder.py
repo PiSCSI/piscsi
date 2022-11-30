@@ -113,7 +113,10 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def create_action_menu(self, context_object=None):
         """Method creates the action submenu with action that can be performed on a scsi slot"""
         menu = Menu(CtrlBoardMenuBuilder.ACTION_MENU)
-        menu.add_entry("Return", {"context": self.ACTION_MENU, "action": self.ACTION_RETURN})
+        menu.add_entry(
+            "Return",
+            {"context": self.ACTION_MENU, "action": self.ACTION_RETURN},
+        )
         menu.add_entry(
             "Attach/Insert",
             {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_ATTACHINSERT},
@@ -122,12 +125,18 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             "Detach/Eject",
             {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_DETACHEJECT},
         )
-        menu.add_entry("Info", {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_INFO})
+        menu.add_entry(
+            "Info",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_INFO},
+        )
         menu.add_entry(
             "Load Profile",
             {"context": self.ACTION_MENU, "action": self.ACTION_LOADPROFILE},
         )
-        menu.add_entry("Shutdown", {"context": self.ACTION_MENU, "action": self.ACTION_SHUTDOWN})
+        menu.add_entry(
+            "Shutdown",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SHUTDOWN},
+        )
         return menu
 
     def create_images_menu(self, context_object=None):

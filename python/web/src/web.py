@@ -1338,7 +1338,11 @@ if __name__ == "__main__":
         help="Log level for Web UI. Default: warning",
         choices=["debug", "info", "warning", "error", "critical"],
     )
-    parser.add_argument("--dev-mode", action="store_true", help="Run in development mode")
+    parser.add_argument(
+        "--dev-mode",
+        action="store_true",
+        help="Run in development mode",
+    )
 
     arguments = parser.parse_args()
     APP.config["RASCSI_TOKEN"] = arguments.password
