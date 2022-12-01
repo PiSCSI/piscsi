@@ -81,7 +81,8 @@ class DataSample_BananaM2p final : public DataSample
 
     uint32_t GetRawCapture() const override;
 
-    DataSample_BananaM2p(array<uint32_t, 12> &in_data, uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data}
+    DataSample_BananaM2p(const array<uint32_t, 12> &in_data, uint64_t in_timestamp)
+        : DataSample{in_timestamp}, data{in_data}
     {
     }
     DataSample_BananaM2p() = default;
