@@ -26,7 +26,6 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
-#ifdef __linux__
 //---------------------------------------------------------------------------
 //
 //	imported from bcm_host.c
@@ -49,36 +48,17 @@ uint32_t GPIOBUS_Raspberry::get_dt_ranges(const char *filename, uint32_t offset)
 uint32_t GPIOBUS_Raspberry::bcm_host_get_peripheral_address()
 {
     GPIO_FUNCTION_TRACE
+#ifdef __linux__
     uint32_t address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
     if (address == 0) {
         address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
     }
     address = (address == (uint32_t)~0) ? 0x20000000 : address;
     return address;
+#else
+    return 0;
+#endif
 }
-#endif // __linux__
-
-#ifdef __NetBSD__
-// Assume the Raspberry Pi series and estimate the address from CPU
-uint32_t bcm_host_get_peripheral_address()
-{
-    GPIO_FUNCTION_TRACE
-    array<char, 1024> buf;
-    size_t len = buf.size();
-    uint32_t address;
-
-    if (sysctlbyname("hw.model", buf.data(), &len, NULL, 0) || strstr(buf, "ARM1176JZ-S") != buf.data()) {
-        // Failed to get CPU model || Not BCM2835
-        // use the address of BCM283[67]
-        address = 0x3f000000;
-    } else {
-        // Use BCM2835 address
-        address = 0x20000000;
-    }
-    LOGDEBUG("Peripheral address : 0x%lx\n", address);
-    return address;
-}
-#endif // __NetBSD__
 
 bool GPIOBUS_Raspberry::Init(mode_e mode)
 {
