@@ -132,7 +132,7 @@ void GPIOBUS_BananaM2p::Cleanup()
 {
     GPIO_FUNCTION_TRACE
 #if defined(__x86_64__) || defined(__X86__)
-    dummy_var++; // Need to do something to prevent Sonar from claiming this should be a const function
+    dummy_var--; // Need to do something to prevent Sonar from claiming this should be a const function
     return;
 #else
 
@@ -260,7 +260,7 @@ void GPIOBUS_BananaM2p::Reset()
 bool GPIOBUS_BananaM2p::SetupSelEvent()
 {
 #if defined(__x86_64__) || defined(__X86__)
-    dummy_var++; // Need to do something to prevent Sonar from claiming this should be a const function
+    dummy_var += 2; // Need to do something to prevent Sonar from claiming this should be a const function
     return false;
 #else
     GPIO_FUNCTION_TRACE
@@ -534,10 +534,12 @@ uint8_t GPIOBUS_BananaM2p::GetDAT()
 {
     GPIO_FUNCTION_TRACE
     // TODO: This is inefficient, but it works...
-    uint32_t data = ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
-                    ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
-                    ((GetSignal(BPI_PIN_DT4) ? 0x01 : 0x00) << 4) | ((GetSignal(BPI_PIN_DT5) ? 0x01 : 0x00) << 5) |
-                    ((GetSignal(BPI_PIN_DT6) ? 0x01 : 0x00) << 6) | ((GetSignal(BPI_PIN_DT7) ? 0x01 : 0x00) << 7);
+    uint32_t data =
+        ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
+        ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
+        ((GetSignal(BPI_PIN_DT4) ? 0x01 : 0x00) << 4) | ((GetSignal(BPI_PIN_DT5) ? 0x01 : 0x00) << 5) |
+        ((GetSignal(BPI_PIN_DT6) ? 0x01 : 0x00) << 6) |
+        ((GetSignal(BPI_PIN_DT7) ? 0x01 : 0x00) << 7); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
 
     return (uint8_t)(data & 0xFF);
 }
@@ -556,16 +558,15 @@ void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
     SetMode(BPI_PIN_DT7, OUT);
     SetMode(BPI_PIN_DP, OUT);
 
-    std::byte data = static_cast<std::byte>(dat);
     // TODO: This is inefficient, but it works...
-    PinSetSignal(BPI_PIN_DT0, static_cast<bool>(data & (std::byte(1) << 0)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT1, static_cast<bool>(data & (std::byte(1) << 1)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT2, static_cast<bool>(data & (std::byte(1) << 2)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT3, static_cast<bool>(data & (std::byte(1) << 3)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT4, static_cast<bool>(data & (std::byte(1) << 4)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT5, static_cast<bool>(data & (std::byte(1) << 5)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT6, static_cast<bool>(data & (std::byte(1) << 6)) == 0 ? true : false);
-    PinSetSignal(BPI_PIN_DT7, static_cast<bool>(data & (std::byte(1) << 7)) == 0 ? true : false);
+    PinSetSignal(BPI_PIN_DT0, (dat & (1 << 0)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT1, (dat & (1 << 1)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT2, (dat & (1 << 2)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT3, (dat & (1 << 3)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT4, (dat & (1 << 4)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT5, (dat & (1 << 5)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT6, (dat & (1 << 6)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    PinSetSignal(BPI_PIN_DT7, (dat & (1 << 7)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
 
     PinSetSignal(BPI_PIN_DP, __builtin_parity(dat) == 1);
 }

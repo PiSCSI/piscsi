@@ -12,13 +12,14 @@
 #include "data_sample_bananam2p.h"
 #include "hal/sunxi_utils.h"
 
-
 uint8_t DataSample_BananaM2p::GetDAT() const
 {
     return (uint8_t)((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
            ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
            ((GetSignal(BPI_PIN_DT4) ? 0x01 : 0x00) << 4) | ((GetSignal(BPI_PIN_DT5) ? 0x01 : 0x00) << 5) |
-           ((GetSignal(BPI_PIN_DT6) ? 0x01 : 0x00) << 6) | ((GetSignal(BPI_PIN_DT7) ? 0x01 : 0x00) << 7);
+           ((GetSignal(BPI_PIN_DT6) ? 0x01 : 0x00) << 6) |
+           ((GetSignal(BPI_PIN_DT7) ? 0x01 : 0x00)
+            << 7); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
 }
 
 bool DataSample_BananaM2p::GetSignal(int pin) const
