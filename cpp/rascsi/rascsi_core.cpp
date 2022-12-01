@@ -577,7 +577,6 @@ int Rascsi::run(const vector<char *>& args)
 
 		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
-			LOGTRACE("Dif dev selected BSY:%d %d", bus->GetBSY(), bus->GetSEL())
 			continue;
 		}
 
@@ -596,14 +595,13 @@ int Rascsi::run(const vector<char *>& args)
 			initiator_id = controller->ExtractInitiatorId(id_data);
 
 			if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-				LOGTRACE("++++ Starting processing for initiator ID %s", to_string(initiator_id).c_str())
+				device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
 			}
 			else {
-				LOGTRACE("++++ Starting processing for unknown initiator ID")
+				device_logger.Trace("++++ Starting processing for unknown initiator ID");
 			}
 
 			if (controller->Process(initiator_id) == phase_t::selection) {
-				LOGTRACE("phase = phase_t::selection;")
 				phase = phase_t::selection;
 			}
 		}
@@ -614,7 +612,6 @@ int Rascsi::run(const vector<char *>& args)
 		}
 
 		// Start target device
-		LOGTRACE("active = true")
 		active = true;
 
 #if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
@@ -626,7 +623,6 @@ int Rascsi::run(const vector<char *>& args)
 		// Loop until the bus is free
 		while (service.IsRunning()) {
 			// Target drive
-			LOGTRACE("Calling phase = controller->Process(initiator_id);")
 			phase = controller->Process(initiator_id);
 
 			// End when the bus is free
@@ -650,7 +646,6 @@ int Rascsi::run(const vector<char *>& args)
 
 void Rascsi::WaitForNotBusy() const
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__)
 	if (bus->GetBSY()) {
 		const uint32_t now = SysTimer::GetTimerLow();
 
@@ -662,7 +657,5 @@ void Rascsi::WaitForNotBusy() const
 				break;
 			}
 		}
-		LOGTRACE("%s timeout", __PRETTY_FUNCTION__)
 	}
-	
 }
