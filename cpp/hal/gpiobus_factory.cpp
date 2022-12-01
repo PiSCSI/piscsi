@@ -36,8 +36,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         LOGINFO("Creating Virtual GPIOBUS")
         return_ptr = make_unique<GPIOBUS_Virtual>();
     }
-    bool result = return_ptr->Init(mode);
-    if (!result) {
+    if (!return_ptr->Init(mode)) {
         return_ptr->Cleanup();
         return nullptr;
     }

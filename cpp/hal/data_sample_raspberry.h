@@ -80,10 +80,16 @@ class DataSample_Raspberry final : public DataSample
     }
     uint8_t GetDAT() const override
     {
-        return (uint8_t)((data >> (PIN_DT0 - 0)) & (1 << 0)) | ((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-               ((data >> (PIN_DT2 - 2)) & (1 << 2)) | ((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-               ((data >> (PIN_DT4 - 4)) & (1 << 4)) | ((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-               ((data >> (PIN_DT6 - 6)) & (1 << 6)) | ((data >> (PIN_DT7 - 7)) & (1 << 7));
+        uint8_t ret_val = 0;
+        ret_val |= (data >> (PIN_DT0 - 0)) & 0x01; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT1 - 1)) & 0x02; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT2 - 2)) & 0x04; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT3 - 3)) & 0x08; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT4 - 4)) & 0x10; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT5 - 5)) & 0x20; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT6 - 6)) & 0x40; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        ret_val |= (data >> (PIN_DT7 - 7)) & 0x80; // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+        return ret_val;
     }
 
     uint32_t GetRawCapture() const override
@@ -91,7 +97,9 @@ class DataSample_Raspberry final : public DataSample
         return data;
     }
 
-    DataSample_Raspberry(uint32_t in_data, uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data} {}
+    DataSample_Raspberry(const uint32_t in_data, const uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data}
+    {
+    }
     DataSample_Raspberry() = default;
 
     ~DataSample_Raspberry() override = default;
