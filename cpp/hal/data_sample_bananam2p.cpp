@@ -11,18 +11,19 @@
 
 #include "data_sample_bananam2p.h"
 #include "hal/sunxi_utils.h"
+#include <cstdint>
 
 uint8_t DataSample_BananaM2p::GetDAT() const
 {
     uint8_t ret_val = 0;
-    ret_val |= GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT1) ? 0x02 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT2) ? 0x04 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT3) ? 0x08 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT4) ? 0x10 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT5) ? 0x20 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT6) ? 0x40 : 0x00;
-    ret_val |= GetSignal(BPI_PIN_DT7) ? 0x80 : 0x00;
+    ret_val |= GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT1) ? 0x02 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT2) ? 0x04 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT3) ? 0x08 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT4) ? 0x10 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT5) ? 0x20 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT6) ? 0x40 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
+    ret_val |= GetSignal(BPI_PIN_DT7) ? 0x80 : 0x00; // NOSONAR: GCC 10 doesn't fully support std::byte
     return ret_val;
 }
 
