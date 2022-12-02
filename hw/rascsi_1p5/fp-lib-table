@@ -1,3 +1,0 @@
-(fp_lib_table
-  (lib (name rascsi_din)(type KiCad)(uri "$(KIPRJMOD)/rascsi_din.pretty")(options "")(descr ""))
-)
