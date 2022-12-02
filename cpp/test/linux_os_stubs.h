@@ -12,8 +12,6 @@
 #pragma once
 #include <stdio.h>
 
-using namespace std;
-
 extern "C" {
 #ifdef __USE_LARGEFILE64
 FILE *__real_fopen64(const char *__restrict __filename, const char *__restrict __modes);
