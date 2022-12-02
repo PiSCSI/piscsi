@@ -168,16 +168,7 @@ def get_locale():
     """
     Uses the session language, or tries to detect based on accept-languages header
     """
-    try:
-        language = session["language"]
-    except KeyError:
-        language = ""
-        logging.info("The default locale could not be detected. Falling back to English.")
-    if language:
-        return language
-    # Hardcoded fallback to "en" when the user agent does not send an accept-language header
-    language = request.accept_languages.best_match(LANGUAGES) or "en"
-    return language
+    return session.get("language", request.accept_languages.best_match(LANGUAGES) or "en")
 
 
 def get_supported_locales():
