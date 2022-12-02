@@ -213,7 +213,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void InitializeGpio();
     std::vector<int> gpio_banks;
 
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     // The SEL_EVENT functions need to do something to prevent SonarCloud from
     // claiming they should be const
     int dummy_var = 0;

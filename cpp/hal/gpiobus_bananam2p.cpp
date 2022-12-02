@@ -131,7 +131,7 @@ void GPIOBUS_BananaM2p::InitializeGpio()
 void GPIOBUS_BananaM2p::Cleanup()
 {
     GPIO_FUNCTION_TRACE
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var--; // Need to do something to prevent Sonar from claiming this should be a const function
     return;
 #else
@@ -171,7 +171,7 @@ void GPIOBUS_BananaM2p::Cleanup()
 
 void GPIOBUS_BananaM2p::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var++;
     return;
 #else
@@ -259,7 +259,7 @@ void GPIOBUS_BananaM2p::Reset()
 
 bool GPIOBUS_BananaM2p::SetupSelEvent()
 {
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var += 2; // Need to do something to prevent Sonar from claiming this should be a const function
     return false;
 #else
@@ -824,7 +824,7 @@ void GPIOBUS_BananaM2p::PinConfig(int pin, int mode)
 void GPIOBUS_BananaM2p::PullConfig(int pin, int mode)
 {
     GPIO_FUNCTION_TRACE
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var++; // Need to do something to prevent Sonar from claiming this should be a const function
     (void)pin;
     (void)mode;
@@ -942,7 +942,7 @@ uint32_t GPIOBUS_BananaM2p::Acquire()
 int GPIOBUS_BananaM2p::sunxi_setup(void)
 {
     GPIO_FUNCTION_TRACE
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var++; // Need to do something to prevent Sonar from claiming this should be a const function
     return SunXI::SETUP_MMAP_FAIL;
 #else
@@ -996,7 +996,7 @@ int GPIOBUS_BananaM2p::sunxi_setup(void)
 void GPIOBUS_BananaM2p::sunxi_setup_gpio(int pin, int direction, int pud)
 {
     GPIO_FUNCTION_TRACE
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     dummy_var++; // Need to do something to prevent Sonar from claiming this should be a const function
     (void)pin;
     (void)direction;
