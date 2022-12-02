@@ -117,7 +117,6 @@ void CreateTempFileWithData(string filename, vector<uint8_t> &data)
                sizeof(vector<uint8_t>::value_type) * data.size(), filename.c_str());
     }
     fclose(fp);
-    printf("%s done with this\n", __PRETTY_FUNCTION__);
 }
 
 void DeleteTempFile(string filename)
