@@ -8,10 +8,9 @@
 //---------------------------------------------------------------------------
 
 #include "hal/gpiobus_raspberry.h"
-#include "linux_os_stubs.h"
 #include "mocks.h"
 #include "stdlib.h"
-#include <boost/filesystem.hpp>
+#include "test/test_shared.h"
 
 class SetableGpiobusRaspberry : public GPIOBUS_Raspberry
 {
@@ -48,25 +47,25 @@ TEST(GpiobusRaspberry, GetDtRanges)
     // If bytes 4-7 are non-zero, get_peripheral address should return those bytes
     data = vector<uint8_t>(
         {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF});
-    test_fs_create_file_in_temp_dir(soc_ranges_file, data);
+    CreateTempFileWithData(soc_ranges_file, data);
     EXPECT_EQ(0x44556677, GPIOBUS_Raspberry::bcm_host_get_peripheral_address());
-    test_fs_delete_file_in_temp_dir("/proc/device-tree/soc/ranges");
+    DeleteTempFile("/proc/device-tree/soc/ranges");
 
     // If bytes 4-7 are zero, get_peripheral address should return bytes 8-11
     data = vector<uint8_t>(
         {0x00, 0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF});
-    test_fs_create_file_in_temp_dir(soc_ranges_file, data);
+    CreateTempFileWithData(soc_ranges_file, data);
     EXPECT_EQ(0x8899AABB, GPIOBUS_Raspberry::bcm_host_get_peripheral_address());
-    test_fs_delete_file_in_temp_dir("/proc/device-tree/soc/ranges");
+    DeleteTempFile("/proc/device-tree/soc/ranges");
 
     // If bytes 4-7 are zero, and 8-11 are 0xFF, get_peripheral address should return a default address of 0x20000000
     data = vector<uint8_t>(
         {0x00, 0x11, 0x22, 0x33, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xCC, 0xDD, 0xEE, 0xFF});
-    test_fs_create_file_in_temp_dir(soc_ranges_file, data);
+    CreateTempFileWithData(soc_ranges_file, data);
     EXPECT_EQ(0x20000000, GPIOBUS_Raspberry::bcm_host_get_peripheral_address());
-    test_fs_delete_file_in_temp_dir("/proc/device-tree/soc/ranges");
+    DeleteTempFile("/proc/device-tree/soc/ranges");
 
-    test_fs_cleanup_temp_files();
+    CleanupAllTempFiles();
 }
 
 TEST(GpiobusRaspberry, GetDat)
