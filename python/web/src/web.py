@@ -1297,7 +1297,10 @@ def log_http_request():
     global REQUEST_COUNT
     if logging.getLogger().isEnabledFor(logging.DEBUG):
         REQUEST_COUNT += 1
-        message = f"HTTP request #{REQUEST_COUNT} {request.method} {request.path}"
+        message = (
+            f"HTTP request #{REQUEST_COUNT} [{request.headers.get('X-Test-Name')}] "
+            f"{request.method} {request.path}"
+        )
 
         if request.method == "POST":
             if request.path == "/login":
