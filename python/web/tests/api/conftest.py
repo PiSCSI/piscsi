@@ -2,7 +2,6 @@ import pytest
 import uuid
 import warnings
 import datetime
-import logging
 
 SCSI_ID = 6
 FILE_SIZE_1_MIB = 1048576
