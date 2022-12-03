@@ -1407,6 +1407,7 @@ if __name__ == "__main__":
         APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
+    logging.info("Starting WSGI server...")
     if arguments.dev_mode:
         logging.info("Dev mode enabled")
         APP.debug = True
