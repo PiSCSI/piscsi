@@ -2,8 +2,8 @@
 Module for the Flask app rendering and endpoints
 """
 
-import sys
 import logging
+import logging.config
 import argparse
 from pathlib import Path, PurePath
 from functools import wraps
@@ -1292,6 +1292,22 @@ def detect_locale():
     file_cmd.locale = session["language"]
 
 
+@APP.before_request
+def log_http_request():
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        message = f"HTTP request: {request.method} {request.path}"
+
+        if request.method == "POST":
+            if request.path == "/login":
+                message += " (<hidden>)"
+            elif len(request.get_data()) > 100:
+                message += f" (payload: {request.get_data()[:100]} <truncated>)"
+            else:
+                message += f" (payload: {request.get_data()})"
+
+        logging.debug(message)
+
+
 if __name__ == "__main__":
     APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
@@ -1343,6 +1359,27 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     APP.config["RASCSI_TOKEN"] = arguments.password
 
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "[%(asctime)s] [%(levelname)s] %(filename)s:%(lineno)s %(message)s",
+                }
+            },
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                }
+            },
+            "root": {
+                "level": arguments.log_level.upper(),
+                "handlers": ["wsgi"],
+            },
+        }
+    )
+
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
     ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["RASCSI_TOKEN"])
     file_cmd = FileCmds(sock_cmd=sock_cmd, ractl=ractl_cmd, token=APP.config["RASCSI_TOKEN"])
@@ -1361,14 +1398,8 @@ if __name__ == "__main__":
         APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
-    logging.basicConfig(
-        stream=sys.stdout,
-        format="%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(message)s",
-        level=arguments.log_level.upper(),
-    )
-
     if arguments.dev_mode:
-        print("Running rascsi-web in development mode ...")
+        logging.info("Dev mode enabled")
         APP.debug = True
         from werkzeug.debug import DebuggedApplication
 
@@ -1377,5 +1408,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             pass
     else:
-        print("Serving rascsi-web...")
         bjoern.run(APP, "0.0.0.0", arguments.port)

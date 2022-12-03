@@ -40,7 +40,7 @@ services:
     command: [
       "--rascsi-host=${RASCSI_HOST:-backend}",
       "--rascsi-port=${RASCSI_PORT:-6868}",
-      "--log-level=${WEB_LOG_LEVEL:-info}",
+      "--log-level=${WEB_LOG_LEVEL:-debug}",
       "--dev-mode"
     ]
 
