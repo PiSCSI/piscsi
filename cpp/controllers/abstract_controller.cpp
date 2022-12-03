@@ -11,6 +11,8 @@
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
 
+using namespace scsi_defs;
+
 void AbstractController::AllocateCmd(size_t size)
 {
 	if (size > ctrl.cmd.size()) {
@@ -52,7 +54,7 @@ shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
 
 void AbstractController::Reset()
 {
-	SetPhase(BUS::phase_t::busfree);
+	SetPhase(phase_t::busfree);
 
 	ctrl.status = status::GOOD;
 	ctrl.message = 0x00;
@@ -70,35 +72,35 @@ void AbstractController::Reset()
 void AbstractController::ProcessPhase()
 {
 	switch (GetPhase()) {
-		case BUS::phase_t::busfree:
+		case phase_t::busfree:
 			BusFree();
 			break;
 
-		case BUS::phase_t::selection:
+		case phase_t::selection:
 			Selection();
 			break;
 
-		case BUS::phase_t::dataout:
+		case phase_t::dataout:
 			DataOut();
 			break;
 
-		case BUS::phase_t::datain:
+		case phase_t::datain:
 			DataIn();
 			break;
 
-		case BUS::phase_t::command:
+		case phase_t::command:
 			Command();
 			break;
 
-		case BUS::phase_t::status:
+		case phase_t::status:
 			Status();
 			break;
 
-		case BUS::phase_t::msgout:
+		case phase_t::msgout:
 			MsgOut();
 			break;
 
-		case BUS::phase_t::msgin:
+		case phase_t::msgin:
 			MsgIn();
 			break;
 

@@ -52,7 +52,7 @@ void ScsiController::Reset()
 	SetByteTransfer(false);
 }
 
-BUS::phase_t ScsiController::Process(int id)
+phase_t ScsiController::Process(int id)
 {
 	GetBus().Acquire();
 
@@ -89,7 +89,7 @@ void ScsiController::BusFree()
 	if (!IsBusFree()) {
 		logger.Trace("Bus free phase");
 
-		SetPhase(BUS::phase_t::busfree);
+		SetPhase(phase_t::busfree);
 
 		GetBus().SetREQ(false);
 		GetBus().SetMSG(false);
@@ -165,7 +165,7 @@ void ScsiController::Selection()
 
 		logger.Trace("Selection phase");
 
-		SetPhase(BUS::phase_t::selection);
+		SetPhase(phase_t::selection);
 
 		// Raise BSY and respond
 		GetBus().SetBSY(true);
@@ -188,7 +188,7 @@ void ScsiController::Command()
 	if (!IsCommand()) {
 		logger.Trace("Command phase");
 
-		SetPhase(BUS::phase_t::command);
+		SetPhase(phase_t::command);
 
 		GetBus().SetMSG(false);
 		GetBus().SetCD(true);
@@ -307,7 +307,7 @@ void ScsiController::Status()
 		s << "Status Phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
 		logger.Trace(s.str());
 
-		SetPhase(BUS::phase_t::status);
+		SetPhase(phase_t::status);
 
 		// Signal line operated by the target
 		GetBus().SetMSG(false);
@@ -331,7 +331,7 @@ void ScsiController::MsgIn()
 	if (!IsMsgIn()) {
 		logger.Trace("Message In phase");
 
-		SetPhase(BUS::phase_t::msgin);
+		SetPhase(phase_t::msgin);
 
 		GetBus().SetMSG(true);
 		GetBus().SetCD(true);
@@ -356,7 +356,7 @@ void ScsiController::MsgOut()
 			scsi.msb = {};
 		}
 
-		SetPhase(BUS::phase_t::msgout);
+		SetPhase(phase_t::msgout);
 
 		GetBus().SetMSG(true);
 		GetBus().SetCD(true);
@@ -389,7 +389,7 @@ void ScsiController::DataIn()
 
 		logger.Trace("Entering Data In phase");
 
-		SetPhase(BUS::phase_t::datain);
+		SetPhase(phase_t::datain);
 
 		GetBus().SetMSG(false);
 		GetBus().SetCD(false);
@@ -419,7 +419,7 @@ void ScsiController::DataOut()
 
 		logger.Trace("Data Out phase");
 
-		SetPhase(BUS::phase_t::dataout);
+		SetPhase(phase_t::dataout);
 
 		// Signal line operated by the target
 		GetBus().SetMSG(false);
@@ -537,7 +537,7 @@ void ScsiController::Send()
 	logger.Trace("Moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		// Message in phase
-		case BUS::phase_t::msgin:
+		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
 				// flag off
@@ -552,13 +552,13 @@ void ScsiController::Send()
 			break;
 
 		// Data-in Phase
-		case BUS::phase_t::datain:
+		case phase_t::datain:
 			// status phase
 			Status();
 			break;
 
 		// status phase
-		case BUS::phase_t::status:
+		case phase_t::status:
 			// Message in phase
 			SetLength(1);
 			SetBlocks(1);
@@ -605,7 +605,7 @@ void ScsiController::Receive()
 	// Processing after receiving data (by phase)
 	logger.Trace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
-		case BUS::phase_t::dataout:
+		case phase_t::dataout:
 			if (GetBlocks() == 0) {
 				// End with this buffer
 				result = XferOut(false);
@@ -615,7 +615,7 @@ void ScsiController::Receive()
 			}
 			break;
 
-		case BUS::phase_t::msgout:
+		case phase_t::msgout:
 			SetMessage(GetBuffer()[0]);
 			if (!XferMsg(GetMessage())) {
 				// Immediately free the bus if message output fails
@@ -646,15 +646,15 @@ void ScsiController::Receive()
 
 	// Move to next phase
 	switch (GetPhase()) {
-		case BUS::phase_t::command:
+		case phase_t::command:
 			ProcessCommand();
 			break;
 
-		case BUS::phase_t::msgout:
+		case phase_t::msgout:
 			ProcessMessage();
 			break;
 
-		case BUS::phase_t::dataout:
+		case phase_t::dataout:
 			// Block-oriented data have been handled above
 			DataOutNonBlockOriented();
 
@@ -694,11 +694,11 @@ void ScsiController::ReceiveBytes()
 	// Processing after receiving data (by phase)
 	logger.Trace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
-		case BUS::phase_t::dataout:
+		case phase_t::dataout:
 			result = XferOut(false);
 			break;
 
-		case BUS::phase_t::msgout:
+		case phase_t::msgout:
 			SetMessage(GetBuffer()[0]);
 			if (!XferMsg(GetMessage())) {
 				// Immediately free the bus if message output fails
@@ -722,15 +722,15 @@ void ScsiController::ReceiveBytes()
 
 	// Move to next phase
 	switch (GetPhase()) {
-		case BUS::phase_t::command:
+		case phase_t::command:
 			ProcessCommand();
 			break;
 
-		case BUS::phase_t::msgout:
+		case phase_t::msgout:
 			ProcessMessage();
 			break;
 
-		case BUS::phase_t::dataout:
+		case phase_t::dataout:
 			Status();
 			break;
 

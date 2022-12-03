@@ -53,6 +53,9 @@ public:
 	MOCK_METHOD(void, SetIO, (bool), (override));
 	MOCK_METHOD(bool, GetREQ, (), (const override));
 	MOCK_METHOD(void, SetREQ, (bool), (override));
+	MOCK_METHOD(bool, GetACT, (), (const override));
+	MOCK_METHOD(void, SetACT, (bool), (override));
+	MOCK_METHOD(void, SetENB, (bool), (override));
 	MOCK_METHOD(uint8_t, GetDAT, (), (override));
 	MOCK_METHOD(void, SetDAT, (uint8_t), (override));
 	MOCK_METHOD(bool, GetDP, (), (const override));
@@ -62,6 +65,14 @@ public:
 	MOCK_METHOD(int, SendHandShake, (uint8_t *, int, int), (override));
 	MOCK_METHOD(bool, GetSignal, (int), (const override));
 	MOCK_METHOD(void, SetSignal, (int, bool), (override));
+	MOCK_METHOD(bool, PollSelectEvent, (), (override));
+	MOCK_METHOD(void, ClearSelectEvent, (), (override));
+	MOCK_METHOD(unique_ptr<DataSample>, GetSample, (uint64_t), (override));
+	MOCK_METHOD(void, PinConfig, (int, int), (override));
+    MOCK_METHOD(void, PullConfig, (int , int ), (override));
+    MOCK_METHOD(void, SetControl, (int , bool ), (override));
+    MOCK_METHOD(void, SetMode, (int , int ), (override));
+    MOCK_METHOD(int, GetMode, (int ), (override));
 
 	MockBus() = default;
 	~MockBus() override = default;
@@ -73,7 +84,7 @@ class MockPhaseHandler : public PhaseHandler
 
 public:
 
-	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
+	MOCK_METHOD(phase_t, Process, (int), (override));
 	MOCK_METHOD(void, Status, (), ());
 	MOCK_METHOD(void, DataIn, (), ());
 	MOCK_METHOD(void, DataOut, (), ());
@@ -140,7 +151,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 
 public:
 
-	MOCK_METHOD(BUS::phase_t, Process, (int), (override));
+	MOCK_METHOD(phase_t, Process, (int), (override));
 	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));

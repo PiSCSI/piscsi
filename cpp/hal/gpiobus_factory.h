@@ -9,14 +9,12 @@
 
 #pragma once
 
-#include "bus.h"
+#include "hal/bus.h"
 #include <memory>
-
-using namespace std;
 
 class GPIOBUS_Factory
 {
   public:
 
-    static unique_ptr<BUS> Create(BUS::mode_e);
+  static unique_ptr<BUS> Create(BUS::mode_e mode);
 };
