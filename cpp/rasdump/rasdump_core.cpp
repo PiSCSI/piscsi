@@ -139,7 +139,7 @@ void RasDump::ParseArguments(const vector<char *>& args)
 	buffer = vector<uint8_t>(buffer_size);
 }
 
-void RasDump::WaitPhase(BUS::phase_t phase) const
+void RasDump::WaitPhase(phase_t phase) const
 {
 	LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
 
@@ -176,7 +176,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 	Selection();
 
-	WaitPhase(BUS::phase_t::command);
+	WaitPhase(phase_t::command);
 
 	cdb[0] = static_cast<uint8_t>(cmd);
 	cdb[1] = static_cast<uint8_t>(static_cast<byte>(cdb[1]) | static_cast<byte>(target_lun << 5));
@@ -189,7 +189,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 void RasDump::DataIn(int length)
 {
-	WaitPhase(BUS::phase_t::datain);
+	WaitPhase(phase_t::datain);
 
 	if (!bus->ReceiveHandShake(buffer.data(), length)) {
 		throw parser_exception("DATA IN failed");
@@ -198,7 +198,7 @@ void RasDump::DataIn(int length)
 
 void RasDump::DataOut(int length)
 {
-	WaitPhase(BUS::phase_t::dataout);
+	WaitPhase(phase_t::dataout);
 
 	if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
 		throw parser_exception("DATA OUT failed");
@@ -207,7 +207,7 @@ void RasDump::DataOut(int length)
 
 void RasDump::Status() const
 {
-	WaitPhase(BUS::phase_t::status);
+	WaitPhase(phase_t::status);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
 		throw parser_exception("STATUS failed");
@@ -216,7 +216,7 @@ void RasDump::Status() const
 
 void RasDump::MessageIn() const
 {
-	WaitPhase(BUS::phase_t::msgin);
+	WaitPhase(phase_t::msgin);
 
 	if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
 		throw parser_exception("MESSAGE IN failed");

@@ -45,8 +45,8 @@ TEST(AbstractControllerTest, Reset)
 
 	controller->AddDevice(device);
 
-	controller->SetPhase(BUS::phase_t::status);
-	EXPECT_EQ(BUS::phase_t::status, controller->GetPhase());
+	controller->SetPhase(phase_t::status);
+	EXPECT_EQ(phase_t::status, controller->GetPhase());
 	controller->Reset();
 	EXPECT_TRUE(controller->IsBusFree());
 	EXPECT_EQ(status::GOOD, controller->GetStatus());
@@ -124,44 +124,44 @@ TEST(AbstractControllerTest, ProcessPhase)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, 0);
 
-	controller.SetPhase(BUS::phase_t::selection);
+	controller.SetPhase(phase_t::selection);
 	EXPECT_CALL(controller, Selection);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::busfree);
+	controller.SetPhase(phase_t::busfree);
 	EXPECT_CALL(controller, BusFree);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::datain);
+	controller.SetPhase(phase_t::datain);
 	EXPECT_CALL(controller, DataIn);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::dataout);
+	controller.SetPhase(phase_t::dataout);
 	EXPECT_CALL(controller, DataOut);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::command);
+	controller.SetPhase(phase_t::command);
 	EXPECT_CALL(controller, Command);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::status);
+	controller.SetPhase(phase_t::status);
 	EXPECT_CALL(controller, Status);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::msgin);
+	controller.SetPhase(phase_t::msgin);
 	EXPECT_CALL(controller, MsgIn);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::msgout);
+	controller.SetPhase(phase_t::msgout);
 	EXPECT_CALL(controller, MsgOut);
 	controller.ProcessPhase();
 
-	controller.SetPhase(BUS::phase_t::reselection);
+	controller.SetPhase(phase_t::reselection);
 	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
 			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
 
-	controller.SetPhase(BUS::phase_t::reserved);
+	controller.SetPhase(phase_t::reserved);
 	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
 			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));

@@ -58,6 +58,7 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SCSIMON = scsimon
 RASCSI_TEST = rascsi_test
+SCSILOOP = scsiloop
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -77,7 +78,8 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCSI) \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP)
+	$(BINDIR)/$(RASDUMP) \
+	$(BINDIR)/$(SCSILOOP)
 
 SRC_PROTOC = rascsi_interface.proto
 
@@ -114,8 +116,16 @@ SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 SRC_RASCSI_TEST += $(shell find ./rasdump -name '*.cpp')
 SRC_RASCSI_TEST += $(shell find ./monitor -name '*.cpp')
 
-vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump
-vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal ./rascsi ./rasctl ./rasdump ./test
+SRC_SCSILOOP = scsiloop.cpp
+SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp')
+SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
+
+vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
+	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./scsiloop
+vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
+	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -127,16 +137,21 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
+OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
 
 GENERATED_DIR := generated
 
+# For the unit tests, the following functions will be "wrapped" by the linker, meaning the
+# __wrap_xxxx() function will be called instead of the real function. These linker flags
+# should only be used for testing purposes!
+TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST) $(OBJ_SCSILOOP))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -179,7 +194,7 @@ lcov: test
 	lcov -q -c -d . --include '*/cpp/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
-docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/rasdump_man_page.txt
+docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/rasdump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
 
 $(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE) : $(OBJ_GENERATED)
 
@@ -196,16 +211,19 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
 
 $(BINDIR)/$(RASCSI_TEST): $(SRC_GENERATED) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+	$(CXX) $(CXXFLAGS) $(TEST_WRAPS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
+$(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(RASCSI_TEST)
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(RASCSI_TEST) $(SCSILOOP)
 $(RASCSI) : $(BINDIR)/$(RASCSI) 
 $(RASCTL) : $(BINDIR)/$(RASCTL) 
 $(RASDUMP) : $(BINDIR)/$(RASDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 $(RASCSI_TEST): $(BINDIR)/$(RASCSI_TEST)
+$(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
@@ -230,10 +248,12 @@ install: \
 	$(MAN_PAGE_DIR)/rascsi.1 \
 	$(MAN_PAGE_DIR)/rasctl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/scsiloop.1 \
 	$(MAN_PAGE_DIR)/rasdump.1 \
 	$(USR_LOCAL_BIN)/$(RASCTL) \
 	$(USR_LOCAL_BIN)/$(RASCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(SCSILOOP) \
 	$(USR_LOCAL_BIN)/$(RASDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \

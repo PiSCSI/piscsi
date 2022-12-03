@@ -60,7 +60,7 @@ public:
 
 	void Reset() override;
 
-	BUS::phase_t Process(int) override;
+	phase_t Process(int) override;
 
 	int GetEffectiveLun() const override;
 
