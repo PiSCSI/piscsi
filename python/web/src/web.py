@@ -73,7 +73,7 @@ from settings import (
 
 APP = Flask(__name__)
 BABEL = Babel(APP)
-
+REQUEST_COUNT = 0
 
 def get_env_info():
     """
@@ -1294,8 +1294,10 @@ def detect_locale():
 
 @APP.before_request
 def log_http_request():
+    global REQUEST_COUNT
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        message = f"HTTP request: {request.method} {request.path}"
+        REQUEST_COUNT += 1
+        message = f"HTTP request #{REQUEST_COUNT} {request.method} {request.path}"
 
         if request.method == "POST":
             if request.path == "/login":
