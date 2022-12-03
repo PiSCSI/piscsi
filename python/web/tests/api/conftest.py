@@ -1,6 +1,8 @@
 import pytest
 import uuid
 import warnings
+import datetime
+import logging
 
 SCSI_ID = 6
 FILE_SIZE_1_MIB = 1048576
@@ -13,7 +15,7 @@ def create_test_image(request, http_client):
     images = []
 
     def create(image_type="hds", size=1, auto_delete=True):
-        file_prefix = str(uuid.uuid4())
+        file_prefix = f"{request.function.__name__}___{uuid.uuid4()}"
         file_name = f"{file_prefix}.{image_type}"
 
         response = http_client.post(
@@ -29,13 +31,19 @@ def create_test_image(request, http_client):
             raise Exception("Failed to create temporary image")
 
         if auto_delete:
-            images.append(file_name)
+            images.append(
+                {
+                    "file_name": file_name,
+                    "function": request.function,
+                    "created": str(datetime.datetime.now()),
+                }
+            )
 
         return file_name
 
     def delete():
         for image in images:
-            response = http_client.post("/files/delete", data={"file_name": image})
+            response = http_client.post("/files/delete", data={"file_name": image["file_name"]})
             if response.status_code != 200 or response.json()["status"] != STATUS_SUCCESS:
                 warnings.warn(
                     f"Failed to auto-delete file created with create_test_image fixture: {image}"
