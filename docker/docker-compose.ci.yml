@@ -31,6 +31,8 @@ services:
         condition: service_healthy
       backend:
         condition: service_healthy
+    profiles:
+      - webui-tests
     build:
       context: ..
       dockerfile: docker/pytest/Dockerfile
