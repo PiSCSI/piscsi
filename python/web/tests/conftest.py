@@ -46,14 +46,9 @@ def ensure_all_devices_detached(create_http_client):
 
 @pytest.fixture(scope="session")
 def create_http_client(pytestconfig):
-    def create(authenticate=True, extra_headers=None):
+    def create(authenticate=True):
         session = requests.Session()
         session.headers.update({"Accept": "application/json"})
-
-        if extra_headers:
-            for (header, value) in extra_headers.items():
-                session.headers.update({header: value})
-
         session.original_request = session.request
 
         def relative_request(method, url, *args, **kwargs):
@@ -78,14 +73,10 @@ def create_http_client(pytestconfig):
 
 
 @pytest.fixture(scope="function")
-def http_client(request, create_http_client):
-    return create_http_client(
-        authenticate=True, extra_headers={"X-Test-Name": request.function.__name__}
-    )
+def http_client(create_http_client):
+    return create_http_client(authenticate=True)
 
 
 @pytest.fixture(scope="function")
-def http_client_unauthenticated(request, create_http_client):
-    return create_http_client(
-        authenticate=False, extra_headers={"X-Test-Name": request.function.__name__}
-    )
+def http_client_unauthenticated(create_http_client):
+    return create_http_client(authenticate=False)

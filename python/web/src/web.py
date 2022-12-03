@@ -1295,7 +1295,7 @@ def detect_locale():
 @APP.before_request
 def log_http_request():
     if logging.getLogger().isEnabledFor(logging.DEBUG):
-        message = f"HTTP request: {request.method} {request.path} [{request.headers.get('X-Test-Name')}]"
+        message = f"HTTP request: {request.method} {request.path}"
 
         if request.method == "POST":
             if request.path == "/login":
