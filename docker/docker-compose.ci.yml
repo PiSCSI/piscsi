@@ -37,3 +37,4 @@ services:
     working_dir: /src
     volumes:
       - ./volumes/pytest:/src/tests/output:delegated
+    command: ["-vv"]

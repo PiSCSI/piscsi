@@ -54,3 +54,4 @@ services:
       context: ..
       dockerfile: docker/pytest/Dockerfile
     working_dir: /src
+    command: ["-vv"]
