@@ -81,6 +81,7 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml logs backend > backend.log
           docker compose -f docker-compose.ci.yml logs web > web.log
+          docker compose -f docker-compose.ci.yml logs -t | sort -u -k 3 > combined.log
 
       - name: Upload backend log
         if: success() || failure()
@@ -95,6 +96,13 @@ jobs:
         with:
           name: web.log
           path: docker/web.log
+
+      - name: Upload combined log
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: combined.log
+          path: docker/combined.log
 
   frontend_checks:
     runs-on: ubuntu-latest
