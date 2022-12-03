@@ -20,7 +20,7 @@ class RaCtlCmds:
 
     def send_pb_command(self, command):
         if logging.getLogger().isEnabledFor(logging.DEBUG):
-            self.log_pb_command(command)
+            logging.debug(self.format_pb_command(command))
 
         return self.sock_cmd.send_pb_command(command.SerializeToString())
 
@@ -492,9 +492,9 @@ class RaCtlCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
-    def log_pb_command(self, command):
+    def format_pb_command(self, command):
         """
-        Formats and logs the Protobuf command
+        Formats the Protobuf command for output
         """
         message = f"Sending: {proto.PbOperation.Name(command.operation)}"
 
@@ -520,4 +520,4 @@ class RaCtlCmds:
             }
             message += f", device: {formatted_device}"
 
-        logging.debug(message)
+        return message

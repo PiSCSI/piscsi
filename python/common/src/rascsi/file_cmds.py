@@ -47,6 +47,13 @@ class FileCmds:
         self.token = token
         self.locale = locale
 
+    def send_pb_command(self, command):
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            # TODO: Uncouple/move to common dependency
+            logging.debug(self.ractl.format_pb_command(command))
+
+        return self.sock_cmd.send_pb_command(command.SerializeToString())
+
     # noinspection PyMethodMayBeStatic
     # pylint: disable=no-self-use
     def list_files(self, file_types, dir_path):
@@ -89,7 +96,7 @@ class FileCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
 
@@ -168,7 +175,7 @@ class FileCmds:
         command.params["size"] = str(size)
         command.params["read_only"] = "false"
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -186,7 +193,7 @@ class FileCmds:
 
         command.params["file"] = file_name
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -205,7 +212,7 @@ class FileCmds:
         command.params["from"] = file_name
         command.params["to"] = new_file_name
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -224,7 +231,7 @@ class FileCmds:
         command.params["from"] = file_name
         command.params["to"] = new_file_name
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
