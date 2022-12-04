@@ -4,6 +4,10 @@ on:
       connect-type:
         required: true
         type: string
+      # Debug flag indicates whether to build a debug build (no optimization, debugger symbols)
+      debug-flag:
+        required: false
+        type: boolean
 
 jobs:
   build_arm:
@@ -35,18 +39,24 @@ jobs:
       - name: Install apt packages
         run: sudo apt-get --yes install ${{ env.APT_ARM_TOOLCHAIN }} ${{ env.APT_LIBRARIES }}
 
+      - name: Build debug strings
+        if: ${{ inputs.debug-flag }}
+        run: |
+          echo "debug_flag_compile=DEBUG\=1" >> $GITHUB_ENV
+          echo "debug_flag_filename=debug-" >> $GITHUB_ENV
+
       - name: Compile
-        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} CROSS_COMPILE=arm-linux-gnueabihf-
+        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=arm-linux-gnueabihf-
 
       # We need to tar the binary outputs to retain the executable
       # file permission. Currently, actions/upload-artifact only
       # supports .ZIP files.
       # This is workaround for https://github.com/actions/upload-artifact/issues/38
       - name: Tar binary output
-        run: tar -czvf rascsi-${{ inputs.connect-type }}.tar.gz ./bin
+        run: tar -czvf ${{ env.debug_flag_filename }}rascsi-${{ inputs.connect-type }}.tar.gz ./bin
 
       - name: Upload binaries
         uses: actions/upload-artifact@v3
         with:
-          name: arm-binaries-${{ inputs.connect-type }}.tar.gz
-          path: cpp/rascsi-${{ inputs.connect-type }}.tar.gz
+          name: ${{ env.debug_flag_filename }}arm-binaries-${{ inputs.connect-type }}.tar.gz
+          path: cpp/${{ env.debug_flag_filename }}rascsi-${{ inputs.connect-type }}.tar.gz
