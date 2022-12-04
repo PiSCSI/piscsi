@@ -22,16 +22,16 @@ RUN mkdir -p /home/pi/shared_files \
     && touch /etc/dhcpcd.conf
 
 USER pi
-WORKDIR /home/pi/RASCSI
+WORKDIR /home/pi/piscsi
 
-RUN mkdir /home/pi/RASCSI/{python,cpp}
+RUN mkdir /home/pi/piscsi/{python,cpp}
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi cpp/os_integration cpp/os_integration
 COPY --chown=pi:pi cpp/piscsi_interface.proto cpp/piscsi_interface.proto
 COPY --chown=pi:pi python/web python/web
 COPY --chown=pi:pi python/common python/common
 
-# Install standalone RaSCSI web UI
+# Install standalone PiSCSI Web UI
 RUN ./easyinstall.sh --run_choice=11 \
     && sudo apt-get remove build-essential --yes \
     && sudo apt autoremove -y \

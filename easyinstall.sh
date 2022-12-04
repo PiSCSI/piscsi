@@ -118,7 +118,7 @@ function installPackagesStandalone() {
         $APT_PACKAGES_BACKEND
 }
 
-# install Debian packages for RaSCSI web UI standalone
+# install Debian packages for PiSCSI web UI standalone
 function installPackagesWeb() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
@@ -139,7 +139,7 @@ function cachePipPackages(){
 }
 
 # compile the PiSCSI binaries
-function compileRaScsi() {
+function compilePiscsi() {
     cd "$CPP_PATH" || exit 1
 
     echo "Compiling $CONNECT_TYPE with $COMPILER on $CORES simultaneous cores..."
@@ -156,7 +156,7 @@ function cleanupOutdatedManPage() {
 }
 
 # install the PiSCSI binaries and modify the service configuration
-function installRaScsi() {
+function installPiscsi() {
     # clean up outdated man pages if they exist
     cleanupOutdatedManPage "piscsi.1"
     cleanupOutdatedManPage "scsictl.1"
@@ -195,7 +195,7 @@ function preparePythonCommon() {
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
-function installRaScsiWebInterface() {
+function installPiscsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
@@ -243,7 +243,7 @@ function createCfgDir() {
 
 # Stops the piscsi-web and apache2 processes
 function stopOldWebInterface() {
-    stopRaScsiWeb
+    stopPiscsiWeb
 
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
     if [ "$APACHE_STATUS" -eq 0 ] ; then
@@ -254,7 +254,7 @@ function stopOldWebInterface() {
 }
 
 # Checks for upstream changes to the git repo and fast-forwards changes if needed
-function updateRaScsiGit() {
+function updatePiscsiGit() {
     cd "$BASE" || exit 1
 
     set +e
@@ -286,7 +286,7 @@ function updateRaScsiGit() {
 }
 
 # Takes a backup copy of the piscsi.service file if it exists
-function backupRaScsiService() {
+function backupPiscsiService() {
     if [ -f "$SYSTEMD_PATH/piscsi.service" ]; then
         sudo mv "$SYSTEMD_PATH/piscsi.service" "$SYSTEMD_PATH/piscsi.service.old"
         SYSTEMD_BACKUP=true
@@ -332,7 +332,7 @@ function configureTokenAuth() {
 }
 
 # Enables and starts the piscsi service
-function enableRaScsiService() {
+function enablePiscsiService() {
     sudo systemctl daemon-reload
     sudo systemctl restart rsyslog
     sudo systemctl enable piscsi # optional - start piscsi at boot
@@ -367,7 +367,7 @@ function installWebInterfaceService() {
 }
 
 # Stops the piscsi service if it is running
-function stopRaScsi() {
+function stopPiscsi() {
     if [[ -f "$SYSTEMD_PATH/piscsi.service" ]]; then
         SERVICE_PISCSI_RUNNING=0
         sudo systemctl is-active --quiet piscsi.service >/dev/null 2>&1 || SERVICE_PISCSI_RUNNING=$?
@@ -378,7 +378,7 @@ function stopRaScsi() {
 }
 
 # Stops the piscsi-web service if it is running
-function stopRaScsiWeb() {
+function stopPiscsiWeb() {
     if [[ -f "$SYSTEMD_PATH/piscsi-web.service" ]]; then
         SERVICE_PISCSI_WEB_RUNNING=0
         sudo systemctl is-active --quiet piscsi-web.service >/dev/null 2>&1 || SERVICE_PISCSI_WEB_RUNNING=$?
@@ -389,12 +389,13 @@ function stopRaScsiWeb() {
 }
 
 # Stops the piscsi-oled service if it is running
-function stopRaScsiScreen() {
-    if [[ -f "$SYSTEMD_PATH/monitor_piscsi.service" ]]; then
-        SERVICE_MONITOR_PISCSI_RUNNING=0
-        sudo systemctl is-active --quiet monitor_piscsi.service >/dev/null 2>&1 || SERVICE_MONITOR_PISCSI_RUNNING=$?
-        if [[ $SERVICE_MONITOR_PISCSI_RUNNING -eq 0 ]]; then
-          sudo systemctl stop monitor_piscsi.service
+function stopPiscsiScreen() {
+    # monitor_rascsi is a legacy name for this service
+    if [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
+        SERVICE_MONITOR_RASCSI_RUNNING=0
+        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_RUNNING=$?
+        if [[ $SERVICE_MONITOR_RASCSI_RUNNING -eq 0 ]]; then
+          sudo systemctl stop monitor_rascsi.service
         fi
     fi
     if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
@@ -407,7 +408,7 @@ function stopRaScsiScreen() {
 }
 
 # Stops the piscsi-ctrlboard service if it is running
-function stopRaScsiCtrlBoard() {
+function stopPiscsiCtrlBoard() {
     if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
         SERVICE_PISCSI_CTRLBOARD_RUNNING=0
         sudo systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
@@ -418,7 +419,7 @@ function stopRaScsiCtrlBoard() {
 }
 
 # disables and removes the old monitor_piscsi service
-function disableOldRaScsiMonitorService() {
+function disableOldPiscsiMonitorService() {
     if [ -f "$SYSTEMD_PATH/monitor_piscsi.service" ]; then
         SERVICE_MONITOR_PISCSI_RUNNING=0
         sudo systemctl is-active --quiet monitor_piscsi.service >/dev/null 2>&1 || SERVICE_MONITOR_PISCSI_RUNNING=$?
@@ -436,7 +437,7 @@ function disableOldRaScsiMonitorService() {
 }
 
 # disables the piscsi-oled service
-function disableRaScsiOledService() {
+function disablePiscsiOledService() {
     if [ -f "$SYSTEMD_PATH/piscsi-oled.service" ]; then
         SERVICE_PISCSI_OLED_RUNNING=0
         sudo systemctl is-active --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_RUNNING=$?
@@ -453,7 +454,7 @@ function disableRaScsiOledService() {
 }
 
 # disables the piscsi-ctrlboard service
-function disableRaScsiCtrlBoardService() {
+function disablePiscsiCtrlBoardService() {
     if [ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]; then
         SERVICE_PISCSI_CTRLBOARD_RUNNING=0
         sudo systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
@@ -477,7 +478,7 @@ function stopMacproxy() {
 }
 
 # Checks whether the piscsi-oled service is installed
-function isRaScsiScreenInstalled() {
+function isPiscsiScreenInstalled() {
     SERVICE_PISCSI_OLED_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
         sudo systemctl is-enabled --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_ENABLED=$?
@@ -491,7 +492,7 @@ function isRaScsiScreenInstalled() {
 }
 
 # Checks whether the piscsi-ctrlboard service is installed
-function isRaScsiCtrlBoardInstalled() {
+function isPiscsiCtrlBoardInstalled() {
     SERVICE_PISCSI_CTRLBOARD_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
         sudo systemctl is-enabled --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_ENABLED=$?
@@ -503,7 +504,7 @@ function isRaScsiCtrlBoardInstalled() {
 }
 
 # Checks whether the piscsi-oled service is running
-function isRaScsiScreenRunning() {
+function isPiscsiScreenRunning() {
     SERVICE_PISCSI_OLED_RUNNING=0
     if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
         sudo systemctl is-active --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_RUNNING=$?
@@ -517,7 +518,7 @@ function isRaScsiScreenRunning() {
 }
 
 # Checks whether the piscsi-oled service is running
-function isRaScsiCtrlBoardRunning() {
+function isPiscsiCtrlBoardRunning() {
     SERVICE_PISCSI_CTRLBOARD_RUNNING=0
     if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
         sudo systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
@@ -530,18 +531,18 @@ function isRaScsiCtrlBoardRunning() {
 
 
 # Starts the piscsi-oled service if installed
-function startRaScsiScreen() {
-    if [[ $(isRaScsiScreenInstalled) -eq 0 ]] && [[ $(isRaScsiScreenRunning) -ne 1 ]]; then
+function startPiscsiScreen() {
+    if [[ $(isPiscsiScreenInstalled) -eq 0 ]] && [[ $(isPiscsiScreenRunning) -ne 1 ]]; then
         sudo systemctl start piscsi-oled.service
-        showRaScsiScreenStatus
+        showPiscsiScreenStatus
     fi
 }
 
 # Starts the piscsi-ctrlboard service if installed
-function startRaScsiCtrlBoard() {
-    if [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isRaScsiCtrlBoardRunning) -ne 1 ]]; then
+function startPiscsiCtrlBoard() {
+    if [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isPiscsiCtrlBoardRunning) -ne 1 ]]; then
         sudo systemctl start piscsi-ctrlboard.service
-        showRaScsiCtrlBoardStatus
+        showPiscsiCtrlBoardStatus
     fi
 }
 
@@ -554,22 +555,22 @@ function startMacproxy() {
 }
 
 # Shows status for the piscsi service
-function showRaScsiStatus() {
+function showPiscsiStatus() {
     systemctl status piscsi | tee
 }
 
 # Shows status for the piscsi-web service
-function showRaScsiWebStatus() {
+function showPiscsiWebStatus() {
     systemctl status piscsi-web | tee
 }
 
 # Shows status for the piscsi-oled service
-function showRaScsiScreenStatus() {
+function showPiscsiScreenStatus() {
     systemctl status piscsi-oled | tee
 }
 
 # Shows status for the piscsi-ctrlboard service
-function showRaScsiCtrlBoardStatus() {
+function showPiscsiCtrlBoardStatus() {
     systemctl status piscsi-ctrlboard | tee
 }
 
@@ -948,7 +949,7 @@ function installSamba() {
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
-function installRaScsiScreen() {
+function installPiscsiScreen() {
     if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
         echo ""
         echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
@@ -985,9 +986,9 @@ function installRaScsiScreen() {
         SCREEN_HEIGHT="32"
     fi
 
-    stopRaScsiScreen
-    disableRaScsiCtrlBoardService
-    updateRaScsiGit
+    stopPiscsiScreen
+    disablePiscsiCtrlBoardService
+    updatePiscsiGit
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
@@ -1016,7 +1017,7 @@ function installRaScsiScreen() {
     sudo systemctl daemon-reload
 
     # ensure that the old monitor_piscsi service is disabled and removed before the new one is installed
-    disableOldRaScsiMonitorService
+    disableOldPiscsiMonitorService
 
     sudo systemctl daemon-reload
     sudo systemctl enable piscsi-oled
@@ -1036,7 +1037,7 @@ function installRaScsiScreen() {
 }
 
 # updates configuration files and installs packages needed for the CtrlBoard script
-function installRaScsiCtrlBoard() {
+function installPiscsiCtrlBoard() {
     if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
         echo ""
         echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
@@ -1059,8 +1060,8 @@ function installRaScsiCtrlBoard() {
         ROTATION="180"
     fi
 
-    stopRaScsiCtrlBoard
-    updateRaScsiGit
+    stopPiscsiCtrlBoard
+    updatePiscsiGit
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
     # install python packages through apt that need compilation
@@ -1118,8 +1119,8 @@ function installRaScsiCtrlBoard() {
     sudo systemctl daemon-reload
 
     # ensure that the old monitor_piscsi or piscsi-oled service is disabled and removed before the new one is installed
-    disableOldRaScsiMonitorService
-    disableRaScsiOledService
+    disableOldPiscsiMonitorService
+    disablePiscsiOledService
 
     sudo systemctl daemon-reload
     sudo systemctl enable piscsi-ctrlboard
@@ -1190,31 +1191,31 @@ function runChoice() {
               createImagesDir
               createCfgDir
               stopOldWebInterface
-              updateRaScsiGit
+              updatePiscsiGit
               installPackages
               installHfdisk
               fetchHardDiskDrivers
-              stopRaScsiScreen
-              stopRaScsi
-              compileRaScsi
-              backupRaScsiService
-              installRaScsi
-              enableRaScsiService
+              stopPiscsiScreen
+              stopPiscsi
+              compilePiscsi
+              backupPiscsiService
+              installPiscsi
+              enablePiscsiService
               preparePythonCommon
-              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
+              if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
-                  installRaScsiScreen
-              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
+                  installPiscsiScreen
+              elif [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]]; then
                   echo "Detected piscsi control board service; will run the installation steps for the control board ui."
-                  installRaScsiCtrlBoard
+                  installPiscsiCtrlBoard
               fi
               cachePipPackages
-              installRaScsiWebInterface
+              installPiscsiWebInterface
               installWebInterfaceService
-              showRaScsiScreenStatus
-              showRaScsiCtrlBoardStatus
-              showRaScsiStatus
-              showRaScsiWebStatus
+              showPiscsiScreenStatus
+              showPiscsiCtrlBoardStatus
+              showPiscsiStatus
+              showPiscsiWebStatus
               notifyBackup
               echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) + Web Interface - Complete!"
           ;;
@@ -1231,25 +1232,25 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              updateRaScsiGit
+              updatePiscsiGit
               installPackagesStandalone
-              stopRaScsiScreen
-              stopRaScsi
-              compileRaScsi
-              backupRaScsiService
+              stopPiscsiScreen
+              stopPiscsi
+              compilePiscsi
+              backupPiscsiService
               preparePythonCommon
-              installRaScsi
-              enableRaScsiService
-              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
+              installPiscsi
+              enablePiscsiService
+              if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
-                  installRaScsiScreen
-              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
+                  installPiscsiScreen
+              elif [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]]; then
                   echo "Detected piscsi control board service; will run the installation steps for the control board ui."
-                  installRaScsiCtrlBoard
+                  installPiscsiCtrlBoard
               fi
-              showRaScsiScreenStatus
-              showRaScsiCtrlBoardStatus
-              showRaScsiStatus
+              showPiscsiScreenStatus
+              showPiscsiCtrlBoardStatus
+              showPiscsiStatus
               notifyBackup
               echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) - Complete!"
           ;;
@@ -1261,8 +1262,8 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              installRaScsiScreen
-              showRaScsiScreenStatus
+              installPiscsiScreen
+              showPiscsiScreenStatus
               echo "Installing / Updating PiSCSI OLED Screen - Complete!"
           ;;
           4)
@@ -1274,8 +1275,8 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              installRaScsiCtrlBoard
-              showRaScsiCtrlBoardStatus
+              installPiscsiCtrlBoard
+              showPiscsiCtrlBoardStatus
               echo "Installing / Updating PiSCSI Control Board UI - Complete!"
           ;;
           5)
@@ -1334,11 +1335,11 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
-              updateRaScsiGit
+              updatePiscsiGit
               installPackagesStandalone
-              stopRaScsi
-              compileRaScsi
-              installRaScsi
+              stopPiscsi
+              compilePiscsi
+              installPiscsi
               echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE) - Complete!"
               echo "Use 'piscsi' to launch PiSCSI, and 'scsictl' to control the running process."
           ;;
@@ -1352,13 +1353,13 @@ function runChoice() {
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
-              updateRaScsiGit
+              updatePiscsiGit
               installPackagesWeb
               installHfdisk
               fetchHardDiskDrivers
               preparePythonCommon
               cachePipPackages
-              installRaScsiWebInterface
+              installPiscsiWebInterface
               echo "Configuring PiSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
@@ -1367,9 +1368,9 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
               sudoCheck
-              stopRaScsi
+              stopPiscsi
               configureTokenAuth
-              enableRaScsiService
+              enablePiscsiService
               echo "Enabling or disabling PiSCSI back-end authentication - Complete!"
           ;;
           13)
@@ -1386,7 +1387,7 @@ function runChoice() {
           ;;
           15)
               installPackagesStandalone
-              compileRaScsi
+              compilePiscsi
           ;;
           -h|--help|h|help)
               showMenu
@@ -1433,7 +1434,7 @@ function showMenu() {
     echo " 13) Enable or disable PiSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
     echo " 14) Share the images dir over AppleShare (requires Netatalk)"
-    echo " 15) Compile RaSCSI binaries"
+    echo " 15) Compile PiSCSI binaries"
 }
 
 # parse arguments passed to the script
