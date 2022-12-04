@@ -31,6 +31,6 @@ EXAMPLES
 SEE ALSO
        scsictl(1), piscsi(1), scsidump(1)
 
-       Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>
+       Full documentation is available at: <https://www.piscsi.com>
 
                                                                                                                         scsimon(1)
