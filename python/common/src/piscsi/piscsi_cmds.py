@@ -7,6 +7,7 @@ from piscsi.return_codes import ReturnCodes
 from piscsi.socket_cmds import SocketCmds
 import logging
 
+
 class PiscsiCmds:
     """
     Class for commands sent to the PiSCSI backend service.
