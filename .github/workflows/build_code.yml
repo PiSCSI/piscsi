@@ -33,4 +33,4 @@ jobs:
     uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "FULLSPEC"
-      debug-flag: "DEBUG=1"
+      debug-flag: true
