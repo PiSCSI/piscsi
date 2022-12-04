@@ -428,7 +428,7 @@ TEST_F(PiscsiExecutorTest, ShutDown)
 
 	EXPECT_FALSE(executor.ShutDown(context, ""));
 	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
-	EXPECT_TRUE(executor.ShutDown(context, "piscsi"));
+	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
 	EXPECT_FALSE(executor.ShutDown(context, "system"));
 	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
 }

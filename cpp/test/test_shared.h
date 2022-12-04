@@ -34,9 +34,9 @@ path CreateTempFile(int);
 
 
 // create a file with the specified data
-void CreateTempFileWithData(string filename, vector<uint8_t> &data);
+void CreateTempFileWithData(const string&, vector<uint8_t>&);
 
-void DeleteTempFile(string filename);
+void DeleteTempFile(const string&);
 // Call this at the end of every test case to make sure things are cleaned up
 void CleanupAllTempFiles();
 
