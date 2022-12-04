@@ -64,7 +64,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push backend image to DockerHub
-        if: env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
+        if: (success() || failure()) && env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
         run: docker compose -f docker-compose.ci.yml push backend
 
       - name: Upload test artifacts
