@@ -17,3 +17,19 @@ jobs:
     uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
     with:
       connect-type: "STANDARD"
+
+  aibom:
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "AIBOM"
+
+  gamernium:
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "GAMERNIUM"
+
+  debug:
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
+    with:
+      connect-type: "FULLSPEC"
+      debug-flag: "DEBUG=1"

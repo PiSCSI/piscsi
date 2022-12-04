@@ -4,6 +4,10 @@ on:
       connect-type:
         required: true
         type: string
+      debug-flag:
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build_arm:
@@ -36,7 +40,7 @@ jobs:
         run: sudo apt-get --yes install ${{ env.APT_ARM_TOOLCHAIN }} ${{ env.APT_LIBRARIES }}
 
       - name: Compile
-        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} CROSS_COMPILE=arm-linux-gnueabihf-
+        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ inputs.debug-flag }} CROSS_COMPILE=arm-linux-gnueabihf-
 
       # We need to tar the binary outputs to retain the executable
       # file permission. Currently, actions/upload-artifact only
