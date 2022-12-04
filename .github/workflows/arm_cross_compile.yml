@@ -6,7 +6,7 @@ on:
         type: string
       # Debug flag should either be an empty string or "DEBUG=1"
       debug-flag:
-        required: false
+        required: true
         type: string
 
 jobs:
