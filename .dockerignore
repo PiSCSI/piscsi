@@ -3,7 +3,7 @@
 
 # Paths to include
 !/docker/backend/piscsi_wrapper.sh
-!/docker/web/start.sh
+!/docker/web/web_start_wrapper.sh
 !/doc
 !/python
 !/cpp
