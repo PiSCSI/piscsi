@@ -13,14 +13,14 @@ RUN useradd --create-home --shell /bin/bash -g pi pi
 RUN echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER pi
-WORKDIR /home/pi/PISCSI
+WORKDIR /home/pi/RASCSI
 COPY --chown=pi:pi . .
 
-# Install PiSCSI standalone
+# Install RaSCSI standalone
 RUN ./easyinstall.sh --run_choice=10 --cores=`nproc`
 
 USER root
 WORKDIR /home/pi
-COPY docker/piscsi/piscsi_wrapper.sh /usr/local/bin/piscsi_wrapper.sh
-RUN chmod +x /usr/local/bin/piscsi_wrapper.sh
-CMD ["/usr/local/bin/piscsi_wrapper.sh", "-L", "trace", "-r", "7", "-F", "/home/pi/images"]
+COPY docker/rascsi/rascsi_wrapper.sh /usr/local/bin/rascsi_wrapper.sh
+RUN chmod +x /usr/local/bin/rascsi_wrapper.sh
+CMD ["/usr/local/bin/rascsi_wrapper.sh", "-L", "trace", "-r", "7", "-F", "/home/pi/images"]

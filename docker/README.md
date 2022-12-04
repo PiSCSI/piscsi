@@ -1,8 +1,8 @@
 # Docker Environment for Development and Testing
 
-⚠️ **Important:** The Docker environment is unable to connect to the PiSCSI board and is
-intended for development and testing purposes only. To setup PiSCSI on a Raspberry Pi
-refer to the [setup instructions](https://github.com/akuker/PISCSI/wiki/Setup-Instructions)
+⚠️ **Important:** The Docker environment is unable to connect to the RaSCSI board and is
+intended for development and testing purposes only. To setup RaSCSI on a Raspberry Pi
+refer to the [setup instructions](https://github.com/akuker/RASCSI/wiki/Setup-Instructions)
 on the wiki instead.
 
 ## Introduction
@@ -20,7 +20,7 @@ cd docker
 docker compose up
 ```
 
-Containers will be built and started for the PiSCSI server and the web UI.
+Containers will be built and started for the RaSCSI server and the web UI.
 
 The web UI can be accessed at:
 
@@ -42,10 +42,10 @@ The following environment variables are available when using Docker Compose:
 | `WEB_HTTP_PORT`      | 8080     |
 | `WEB_HTTPS_PORT`     | 8443     |
 | `WEB_LOG_LEVEL`      | info     |
-| `PISCSI_HOST`        | piscsi   |
-| `PISCSI_PORT`        | 6868     |
-| `PISCSI_PASSWORD`    | *[None]* |
-| `PISCSI_LOG_LEVEL`   | debug    |
+| `RASCSI_HOST`        | rascsi   |
+| `RASCSI_PORT`        | 6868     |
+| `RASCSI_PASSWORD`    | *[None]* |
+| `RASCSI_LOG_LEVEL`   | debug    |
 
 **Examples:**
 
@@ -66,7 +66,7 @@ When using Docker Compose the following volumes will be mounted automatically:
 | Local Path              | Container Path           |
 | ----------------------- | ------------------------ |
 | docker/volumes/images/  | /home/pi/images/         |
-| docker/volumes/config/  | /home/pi/.config/piscsi/ |
+| docker/volumes/config/  | /home/pi/.config/rascsi/ |
 
 
 ## How To
@@ -74,7 +74,7 @@ When using Docker Compose the following volumes will be mounted automatically:
 ### Rebuild Containers
 
 You should rebuild the container images after checking out a different version of
-PiSCSI or making changes which affect the environment at build time, e.g. 
+RaSCSI or making changes which affect the environment at build time, e.g. 
 `easyinstall.sh`.
 
 ```
@@ -83,7 +83,7 @@ docker compose up --build
 
 ### Open a Shell on a Running Container
 
-Run the following command, replacing `[CONTAINER]` with `piscsi` or `piscsi_web`.
+Run the following command, replacing `[CONTAINER]` with `rascsi` or `rascsi_web`.
 
 ```
 docker compose exec [CONTAINER] bash
@@ -92,7 +92,7 @@ docker compose exec [CONTAINER] bash
 ### Setup Live Editing for the Web UI
 
 Use a `docker-compose.override.yml` to mount the local `python` directory to
-`/home/pi/PISCSI/python/` in the `piscsi_web` container.
+`/home/pi/RASCSI/python/` in the `rascsi_web` container.
 
 Any changes to *.py files on the host computer (i.e. in your IDE) will trigger
 the web UI process to be restarted in the container.
@@ -100,16 +100,16 @@ the web UI process to be restarted in the container.
 **Example:**
 ```
 services:
-  piscsi_web:
+  rascsi_web:
     volumes:
-      - ../python:/home/pi/PISCSI/python:delegated
+      - ../python:/home/pi/RASCSI/python:delegated
 ```
 
-### Connect the Web UI to a Real PiSCSI
+### Connect the Web UI to a Real RaSCSI
 
-This can be useful for testing, but there are some caveats, e.g. the PiSCSI and the
+This can be useful for testing, but there are some caveats, e.g. the RaSCSI and the
 web UI will be accessing separate `images` directories.
 
 ```
-PISCSI_HOST=foo PISCSI_PASSWORD=bar docker compose up
+RASCSI_HOST=foo RASCSI_PASSWORD=bar docker compose up
 ```
