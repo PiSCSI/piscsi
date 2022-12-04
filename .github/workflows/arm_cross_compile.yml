@@ -4,9 +4,9 @@ on:
       connect-type:
         required: true
         type: string
+      # Debug flag should either be an empty string or "DEBUG=1"
       debug-flag:
         required: false
-        default: ''
         type: string
 
 jobs:
