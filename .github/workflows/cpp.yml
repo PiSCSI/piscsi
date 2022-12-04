@@ -36,7 +36,7 @@ jobs:
 
   sonarcloud:
     runs-on: ubuntu-22.04
-    if: github.repository == 'akuker/PISCSI'
+    if: github.repository == 'PiSCSI/piscsi'
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed

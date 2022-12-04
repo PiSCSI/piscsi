@@ -38,8 +38,10 @@ PiSCSI will determine the type of device based upon the file extension of the FI
 For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
     sudo piscsi -ID0 /path/to/drive/hdimage.hda
 
+Note: PiSCSI is a fork of RaSCSI. The two cannot be run in parallel on the same system.
+
 Once PiSCSI starts, it will open a socket (default port is 6868) to allow external management commands.
-If another process is using the piscsi port, PiSCSI will terminate, since it is likely another instance of PiSCSI.
+If another process is using this port, PiSCSI will terminate, since it is likely another instance of PiSCSI or RaSCSI.
 Once PiSCSI has initialized, the scsictl utility can be used to send commands.
 
 To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
@@ -108,4 +110,4 @@ In case the fallocate command is available a much faster alternative to the dd c
 .SH SEE ALSO
 scsictl(1), scsimon(1), scsidump(1)
  
-Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>
+Full documentation is available at: <https://www.piscsi.com>
