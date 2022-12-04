@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "command_context.h"
@@ -18,7 +18,7 @@
 #include <csignal>
 
 using namespace piscsi_interface;
-using namespace pis_util;
+using namespace piscsi_util;
 
 void PiscsiService::Cleanup() const
 {

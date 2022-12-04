@@ -13,7 +13,7 @@
 // TODO Send IDENTIFY message in order to support LUNS > 7
 
 #include "shared/log.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
 #include "hal/gpiobus_factory.h"
@@ -31,7 +31,7 @@
 using namespace std;
 using namespace spdlog;
 using namespace scsi_defs;
-using namespace pis_util;
+using namespace piscsi_util;
 
 void RasDump::CleanUp()
 {
@@ -49,7 +49,7 @@ void RasDump::KillHandler(int)
 
 bool RasDump::Banner(const vector<char *>& args) const
 {
-	cout << pis_util::Banner("PiSCSI hard disk dump/restore utility");
+	cout << piscsi_util::Banner("PiSCSI hard disk dump/restore utility");
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
 		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"

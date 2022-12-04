@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "controllers/scsi_controller.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
@@ -24,13 +24,13 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace pis_util;
+using namespace piscsi_util;
 using namespace protobuf_util;
 
 void ScsiCtl::Banner(const vector<char *>& args) const
 {
 	if (args.size() < 2) {
-		cout << pis_util::Banner("Controller");
+		cout << piscsi_util::Banner("Controller");
 
 		cout << "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";

@@ -11,7 +11,7 @@
 
 #include "shared/config.h"
 #include "shared/log.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_serializer.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
@@ -39,13 +39,13 @@ using namespace std;
 using namespace filesystem;
 using namespace spdlog;
 using namespace piscsi_interface;
-using namespace pis_util;
+using namespace piscsi_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
 void Piscsi::Banner(const vector<char *>& args) const
 {
-	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
+	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";

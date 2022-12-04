@@ -12,13 +12,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsihd_nec.h"
 #include <fstream>
 
-using namespace pis_util;
+using namespace piscsi_util;
 using namespace scsi_command_util;
 
 void SCSIHD_NEC::Open()
