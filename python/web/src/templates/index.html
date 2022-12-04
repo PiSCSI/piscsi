@@ -709,7 +709,11 @@
     <label for="locale">{{ _("Language:") }}</label>
     <select name="locale" id="locale">
     {% for locale in locales %}
-        <option value="{{ locale.language }}">
+        {% if locale.language == env['locale'] %}
+            <option value="{{ locale.language }}" selected="selected">
+        {% else %}
+            <option value="{{ locale.language }}">
+        {% endif %}
         {{ locale.language }} - {{ locale.display_name }}
         </option>
     {% endfor %}

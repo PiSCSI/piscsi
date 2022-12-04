@@ -5,7 +5,7 @@ Module for commands sent to the PiSCSI backend service.
 import piscsi_interface_pb2 as proto
 from piscsi.return_codes import ReturnCodes
 from piscsi.socket_cmds import SocketCmds
-
+import logging
 
 class PiscsiCmds:
     """
@@ -16,6 +16,12 @@ class PiscsiCmds:
         self.sock_cmd = sock_cmd
         self.token = token
         self.locale = locale
+
+    def send_pb_command(self, command):
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            logging.debug(self.format_pb_command(command))
+
+        return self.sock_cmd.send_pb_command(command.SerializeToString())
 
     def get_server_info(self):
         """
@@ -35,7 +41,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         version = (
@@ -93,7 +99,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         scsi_ids = []
@@ -114,7 +120,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         ifs = result.network_interfaces_info.name
@@ -133,7 +139,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         device_types = {}
@@ -199,7 +205,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.token
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         images_dir = result.image_files_info.default_image_folder
@@ -273,7 +279,7 @@ class PiscsiCmds:
 
         command.devices.append(devices)
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -295,7 +301,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -310,7 +316,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -332,7 +338,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -360,7 +366,7 @@ class PiscsiCmds:
                 device.unit = int(unit)
             command.devices.append(device)
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
 
@@ -430,7 +436,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -447,7 +453,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -466,7 +472,7 @@ class PiscsiCmds:
         command.params["token"] = self.token
         command.params["locale"] = self.locale
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -480,7 +486,37 @@ class PiscsiCmds:
         command = proto.PbCommand()
         command.operation = proto.PbOperation.CHECK_AUTHENTICATION
 
-        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        data = self.send_pb_command(command)
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
+
+    def format_pb_command(self, command):
+        """
+        Formats the Protobuf command for output
+        """
+        message = f"Sending: {proto.PbOperation.Name(command.operation)}"
+
+        params = {
+            name: "***" if name == "token" else value
+            for (name, value) in sorted(command.params.items())
+        }
+        message += f", params: {params}"
+
+        for device in command.devices:
+            formatted_device = {
+                key: value
+                for (key, value) in {
+                    "id": device.id,
+                    "unit": device.unit,
+                    "type": proto.PbDeviceType.Name(device.type) if device.type else None,
+                    "params": device.params,
+                    "vendor": device.vendor,
+                    "product": device.product,
+                    "revision": device.revision,
+                }.items()
+                if key == "id" or value
+            }
+            message += f", device: {formatted_device}"
+
+        return message

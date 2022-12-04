@@ -1,5 +1,12 @@
-FROM python:3.7-bullseye
+FROM python:3.7-slim
 ENV DOCKER=1
 
-COPY python/web/requirements-dev.txt /requirements-dev.txt
-RUN pip install -r /requirements-dev.txt
+WORKDIR /src
+
+COPY python/web/requirements-dev.txt /src/requirements-dev.txt
+COPY python/web/pyproject.toml /src/pyproject.toml
+COPY python/web/tests /src/tests
+
+RUN pip install --no-cache-dir -r /src/requirements-dev.txt
+
+ENTRYPOINT ["pytest"]

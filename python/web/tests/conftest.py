@@ -5,7 +5,7 @@ import os
 
 
 def pytest_addoption(parser):
-    default_base_url = "http://piscsi_web" if os.getenv("DOCKER") else "http://localhost:8080"
+    default_base_url = "http://web" if os.getenv("DOCKER") else "http://localhost:8080"
 
     parser.addoption("--home_dir", action="store", default="/home/pi")
     parser.addoption("--base_url", action="store", default=default_base_url)

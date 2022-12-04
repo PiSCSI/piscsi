@@ -1,13 +1,15 @@
 venv
 *.pyc
+*.swp
+*.log
+*~
 core
 .idea/
+.vscode
 .DS_Store
-*.swp
 __pycache__
 current
 piscsi_interface_pb2.py
-*~
 messages.pot
 messages.mo
 report.xml
