@@ -55,7 +55,7 @@ endif
 
 PISCSI = piscsi
 SCSICTL = scsictl
-RASDUMP = scsidump
+SCSIDUMP = scsidump
 SCSIMON = scsimon
 PISCSI_TEST = piscsi_test
 SCSILOOP = scsiloop
@@ -78,7 +78,7 @@ BIN_ALL = \
 	$(BINDIR)/$(PISCSI) \
 	$(BINDIR)/$(SCSICTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP) \
+	$(BINDIR)/$(SCSIDUMP) \
 	$(BINDIR)/$(SCSILOOP)
 
 SRC_PROTOC = piscsi_interface.proto
@@ -108,9 +108,9 @@ SRC_SCSICTL_CORE = $(shell find ./scsictl -name '*.cpp')
 
 SRC_SCSICTL = scsictl.cpp
 
-SRC_RASDUMP = scsidump.cpp
-SRC_RASDUMP += $(shell find ./scsidump -name '*.cpp')
-SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
+SRC_SCSIDUMP = scsidump.cpp
+SRC_SCSIDUMP += $(shell find ./scsidump -name '*.cpp')
+SRC_SCSIDUMP += $(shell find ./hal -name '*.cpp')
 
 SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp')
 SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp')
@@ -134,7 +134,7 @@ OBJ_PISCSI_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_CORE:%.cpp=%.o))
 OBJ_PISCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI:%.cpp=%.o)))
 OBJ_SCSICTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL_CORE:%.cpp=%.o)))
 OBJ_SCSICTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL:%.cpp=%.o)))
-OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
+OBJ_SCSIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_PISCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_TEST:%.cpp=%.o)))
 OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
@@ -151,7 +151,7 @@ TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -204,8 +204,8 @@ $(BINDIR)/$(PISCSI): $(SRC_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHA
 $(BINDIR)/$(SCSICTL): $(SRC_GENERATED) $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED)
+$(BINDIR)/$(SCSIDUMP): $(OBJ_SCSIDUMP) $(OBJ_SHARED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIDUMP) $(OBJ_SHARED)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
@@ -217,10 +217,10 @@ $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
 # Phony rules for building individual utilities
-.PHONY: $(PISCSI) $(SCSICTL) $(RASDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)
+.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)
 $(PISCSI) : $(BINDIR)/$(PISCSI) 
 $(SCSICTL) : $(BINDIR)/$(SCSICTL) 
-$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+$(SCSIDUMP) : $(BINDIR)/$(SCSIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 $(PISCSI_TEST): $(BINDIR)/$(PISCSI_TEST)
 $(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
@@ -254,7 +254,7 @@ install: \
 	$(USR_LOCAL_BIN)/$(PISCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
 	$(USR_LOCAL_BIN)/$(SCSILOOP) \
-	$(USR_LOCAL_BIN)/$(RASDUMP) \
+	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)
