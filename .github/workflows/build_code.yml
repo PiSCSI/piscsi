@@ -10,31 +10,31 @@ on:
 
 jobs:
   fullspec:
-    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "FULLSPEC"
       debug-flag: ""
 
   standard:
-    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "STANDARD"
       debug-flag: ""
 
   aibom:
-    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "AIBOM"
       debug-flag: ""
 
   gamernium:
-    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "GAMERNIUM"
       debug-flag: ""
 
   debug:
-    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "FULLSPEC"
       debug-flag: "DEBUG=1"
