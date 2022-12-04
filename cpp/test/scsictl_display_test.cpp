@@ -13,17 +13,17 @@
 
 #include "scsictl/scsictl_display.h"
 
-TEST(RasctlDisplayTest, DisplayDevicesInfo)
+TEST(ScsictlDisplayTest, DisplayDevicesInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbDevicesInfo info;
 
 	EXPECT_FALSE(display.DisplayDevicesInfo(info).empty());
 }
 
-TEST(RasctlDisplayTest, DisplayDeviceInfo)
+TEST(ScsictlDisplayTest, DisplayDeviceInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbDevice device;
 
 	EXPECT_FALSE(display.DisplayDeviceInfo(device).empty());
@@ -70,9 +70,9 @@ TEST(RasctlDisplayTest, DisplayDeviceInfo)
 	EXPECT_NE(string::npos, s.find("key2=value2"));
 }
 
-TEST(RasctlDisplayTest, DisplayVersionInfo)
+TEST(ScsictlDisplayTest, DisplayVersionInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbVersionInfo info;
 
 	info.set_major_version(1);
@@ -90,9 +90,9 @@ TEST(RasctlDisplayTest, DisplayVersionInfo)
 	EXPECT_NE(string::npos, s.find("01.02"));
 }
 
-TEST(RasctlDisplayTest, DisplayLogLevelInfo)
+TEST(ScsictlDisplayTest, DisplayLogLevelInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbLogLevelInfo info;
 
 	string s = display.DisplayLogLevelInfo(info);
@@ -104,9 +104,9 @@ TEST(RasctlDisplayTest, DisplayLogLevelInfo)
 	EXPECT_NE(string::npos, s.find("test"));
 }
 
-TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
+TEST(ScsictlDisplayTest, DisplayDeviceTypesInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbDeviceTypesInfo info;
 
 	// Start with 2 instead of 1. 1 was the removed SASI drive type.
@@ -148,9 +148,9 @@ TEST(RasctlDisplayTest, DisplayDeviceTypesInfo)
 	EXPECT_NE(string::npos, s.find("key2=value2"));
 }
 
-TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
+TEST(ScsictlDisplayTest, DisplayReservedIdsInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbReservedIdsInfo info;
 
 	string s = display.DisplayReservedIdsInfo(info);
@@ -167,9 +167,9 @@ TEST(RasctlDisplayTest, DisplayReservedIdsInfo)
 	EXPECT_NE(string::npos, s.find("5, 6"));
 }
 
-TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
+TEST(ScsictlDisplayTest, DisplayNetworkInterfacesInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbNetworkInterfacesInfo info;
 
 	string s = display.DisplayNetworkInterfaces(info);
@@ -186,9 +186,9 @@ TEST(RasctlDisplayTest, DisplayNetworkInterfacesInfo)
 	EXPECT_NE(string::npos, s.find("eth0, wlan0"));
 }
 
-TEST(RasctlDisplayTest, DisplayImageFile)
+TEST(ScsictlDisplayTest, DisplayImageFile)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbImageFile file;
 
 	string s = display.DisplayImageFile(file);
@@ -214,9 +214,9 @@ TEST(RasctlDisplayTest, DisplayImageFile)
 	EXPECT_NE(string::npos, s.find("SCHD"));
 }
 
-TEST(RasctlDisplayTest, DisplayImageFilesInfo)
+TEST(ScsictlDisplayTest, DisplayImageFilesInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbImageFilesInfo info;
 
 	string s = display.DisplayImageFilesInfo(info);
@@ -230,9 +230,9 @@ TEST(RasctlDisplayTest, DisplayImageFilesInfo)
 	EXPECT_NE(string::npos, s.find("filename"));
 }
 
-TEST(RasctlDisplayTest, DisplayMappingInfo)
+TEST(ScsictlDisplayTest, DisplayMappingInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbMappingInfo info;
 
 	string s = display.DisplayMappingInfo(info);
@@ -245,9 +245,9 @@ TEST(RasctlDisplayTest, DisplayMappingInfo)
 	EXPECT_NE(string::npos, s.find("key->SCHD"));
 }
 
-TEST(RasctlDisplayTest, DisplayOperationInfo)
+TEST(ScsictlDisplayTest, DisplayOperationInfo)
 {
-	RasctlDisplay display;
+	ScsictlDisplay display;
 	PbOperationInfo info;
 
 	string s = display.DisplayOperationInfo(info);

@@ -27,7 +27,7 @@ using namespace piscsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-void RasCtl::Banner(const vector<char *>& args) const
+void ScsiCtl::Banner(const vector<char *>& args) const
 {
 	if (args.size() < 2) {
 		cout << ras_util::Banner("Controller");
@@ -56,13 +56,13 @@ void RasCtl::Banner(const vector<char *>& args) const
 	}
 }
 
-int RasCtl::run(const vector<char *>& args) const
+int ScsiCtl::run(const vector<char *>& args) const
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	Banner(args);
 
-	RasctlParser parser;
+	ScsictlParser parser;
 	PbCommand command;
 	PbDeviceDefinition* device = command.add_devices();
 	device->set_id(-1);
@@ -259,7 +259,7 @@ int RasCtl::run(const vector<char *>& args) const
 	SetParam(command, "token", token);
 	SetParam(command, "locale", locale);
 
-	RasctlCommands scsictl_commands(command, hostname, port);
+	ScsictlCommands scsictl_commands(command, hostname, port);
 
 	bool status;
 	try {

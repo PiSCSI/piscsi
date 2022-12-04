@@ -16,12 +16,12 @@
 using namespace std;
 using namespace piscsi_interface;
 
-class RasctlDisplay
+class ScsictlDisplay
 {
 public:
 
-	RasctlDisplay() = default;
-	~RasctlDisplay() = default;
+	ScsictlDisplay() = default;
+	~ScsictlDisplay() = default;
 
 	string DisplayDevicesInfo(const PbDevicesInfo&) const;
 	string DisplayDeviceInfo(const PbDevice&) const;

@@ -16,12 +16,12 @@
 using namespace std;
 using namespace piscsi_interface;
 
-class RasCtl
+class ScsiCtl
 {
 	public:
 
-	RasCtl() = default;
-	~RasCtl() = default;
+	ScsiCtl() = default;
+	~ScsiCtl() = default;
 
 	int run(const vector<char *>&) const;
 
