@@ -47,11 +47,11 @@ RUN ./easyinstall.sh --run_choice=5 --headless
 USER root
 WORKDIR /home/pi
 RUN pip3 install --no-cache-dir PyYAML watchdog
-COPY docker/web/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+COPY docker/web/web_start_wrapper.sh /usr/local/bin/web_start_wrapper.sh
+RUN chmod +x /usr/local/bin/web_start_wrapper.sh
 
 EXPOSE 80 443
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/web_start_wrapper.sh"]
 
 HEALTHCHECK --interval=5m --timeout=3s \
   CMD wget --quiet --server-response http://localhost/healthcheck 2>&1 | grep "200 OK"
