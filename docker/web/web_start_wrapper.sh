@@ -16,7 +16,7 @@ export PATH="/home/pi/piscsi/python/web/mock/bin:$PATH"
 
 # Pass args to web UI start script
 if [[ $BACKEND_PASSWORD ]]; then
-    /home/pi/piscsi/python/web/web_start_wrapper.sh "$@" --password=$BACKEND_PASSWORD
+    /home/pi/piscsi/python/web/start.sh "$@" --password=$BACKEND_PASSWORD
 else
     /home/pi/piscsi/python/web/start.sh "$@"
 fi
