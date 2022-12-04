@@ -70,8 +70,8 @@ string piscsi_util::Banner(const string& app)
 {
 	ostringstream s;
 
-	s << "SCSI Target Emulator PiSCSI " << app << " version " << piscsi_get_version_string()
-			<< "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
+	s << "SCSI Target Emulator PiSCSI " << app << "\n";
+	s << "Version " << piscsi_get_version_string() << "  (" << __DATE__ << ' ' << __TIME__ << ")\n";
 	s << "Powered by XM6 TypeG Technology / ";
 	s << "Copyright (C) 2016-2020 GIMONS\n";
 	s << "Copyright (C) 2020-2022 Contributors to the PiSCSI project\n";
