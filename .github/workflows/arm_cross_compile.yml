@@ -53,10 +53,10 @@ jobs:
       # supports .ZIP files.
       # This is workaround for https://github.com/actions/upload-artifact/issues/38
       - name: Tar binary output
-        run: tar -czvf rascsi${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz ./bin
+        run: tar -czvf ${{ env.debug_flag_filename }}rascsi-${{ inputs.connect-type }}.tar.gz ./bin
 
       - name: Upload binaries
         uses: actions/upload-artifact@v3
         with:
-          name: arm-binaries${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz
-          path: cpp/rascsi${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz
+          name: ${{ env.debug_flag_filename }}arm-binaries-${{ inputs.connect-type }}.tar.gz
+          path: cpp/${{ env.debug_flag_filename }}rascsi-${{ inputs.connect-type }}.tar.gz

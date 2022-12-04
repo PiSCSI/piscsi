@@ -29,7 +29,8 @@ jobs:
     with:
       connect-type: "GAMERNIUM"
 
-  debug:
+  # The fullspec connection board is the most common
+  debug-fullspec:
     uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@feature_debug_build_1012
     with:
       connect-type: "FULLSPEC"
