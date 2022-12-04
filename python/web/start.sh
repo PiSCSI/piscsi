@@ -121,13 +121,14 @@ while [ "$1" != "" ]; do
 done
 
 PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
-echo "Starting web server for RaSCSI Web Interface..."
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
 
 if [[ $ARG_DEV_MODE ]]; then
+    echo "Starting web UI (dev mode) ..."
     watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
     python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 else
+    echo "Starting web UI ..."
     python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 fi

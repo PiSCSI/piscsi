@@ -1,0 +1,57 @@
+ARG DEBIAN_FRONTEND=noninteractive
+ARG OS_VERSION=buster
+
+FROM "debian:${OS_VERSION}-slim"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sudo systemd rsyslog procps man-db wget git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd pi \
+    && useradd --create-home --shell /bin/bash -g pi pi \
+    && echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+    && echo "pi:rascsi" | chpasswd
+
+# Allows custom PATH for mock commands to work when executing with sudo
+RUN sed -i 's/^Defaults\tsecure_path/#Defaults\tsecure_path./' /etc/sudoers
+
+RUN mkdir -p /home/pi/shared_files \
+    && mkdir /home/pi/images \
+    && mkdir -p /etc/network/interfaces.d \
+    && touch /etc/dhcpcd.conf
+
+USER pi
+WORKDIR /home/pi/RASCSI
+
+RUN mkdir /home/pi/RASCSI/{python,cpp}
+COPY --chown=pi:pi easyinstall.sh .
+COPY --chown=pi:pi cpp/os_integration cpp/os_integration
+COPY --chown=pi:pi cpp/rascsi_interface.proto cpp/rascsi_interface.proto
+COPY --chown=pi:pi python/web python/web
+COPY --chown=pi:pi python/common python/common
+
+# Install standalone RaSCSI web UI
+RUN ./easyinstall.sh --run_choice=11 \
+    && sudo apt-get remove build-essential --yes \
+    && sudo apt autoremove -y \
+    && sudo apt-get clean \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+# Enable web UI authentication
+RUN ./easyinstall.sh --run_choice=13
+
+# Setup wired network bridge
+RUN ./easyinstall.sh --run_choice=5 --headless
+
+USER root
+WORKDIR /home/pi
+RUN pip3 install --no-cache-dir PyYAML watchdog
+COPY docker/web/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+EXPOSE 80 443
+ENTRYPOINT ["/usr/local/bin/start.sh"]
+
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD wget --quiet --server-response http://localhost/healthcheck 2>&1 | grep "200 OK"

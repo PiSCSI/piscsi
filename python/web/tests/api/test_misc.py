@@ -112,3 +112,9 @@ def test_show_manpage(http_client):
 
     assert response.status_code == 200
     assert "rascsi" in response_data["data"]["manpage"]
+
+
+# route("/healthcheck", methods=["GET"])
+def test_healthcheck(http_client):
+    response = http_client.get("/healthcheck")
+    assert response.status_code == 200

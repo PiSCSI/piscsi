@@ -1,4 +1,7 @@
 services:
-  rascsi_web:
+  web:
     volumes:
       - ../python:/home/pi/RASCSI/python:delegated
+  pytest:
+    volumes:
+      - ../python/web:/src:delegated

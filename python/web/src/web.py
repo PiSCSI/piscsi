@@ -2,8 +2,8 @@
 Module for the Flask app rendering and endpoints
 """
 
-import sys
 import logging
+import logging.config
 import argparse
 from pathlib import Path, PurePath
 from functools import wraps
@@ -168,16 +168,16 @@ def get_locale():
     """
     Uses the session language, or tries to detect based on accept-languages header
     """
-    try:
-        language = session["language"]
-    except KeyError:
-        language = ""
-        logging.info("The default locale could not be detected. Falling back to English.")
-    if language:
-        return language
-    # Hardcoded fallback to "en" when the user agent does not send an accept-language header
-    language = request.accept_languages.best_match(LANGUAGES) or "en"
-    return language
+    session_locale = session.get("language")
+    if session_locale:
+        return session_locale
+
+    client_locale = request.accept_languages.best_match(LANGUAGES)
+    if client_locale:
+        return client_locale
+
+    logging.info("The default locale could not be detected. Falling back to English.")
+    return "en"
 
 
 def get_supported_locales():
@@ -994,7 +994,7 @@ def create_file():
 
     message_postfix = ""
 
-    # Formatting and injecting driver, if one is choosen
+    # Formatting and injecting driver, if one is chosen
     if drive_format:
         volume_name = f"HD {size / 1024 / 1024:0.0f}M"
         known_formats = [
@@ -1285,6 +1285,11 @@ def change_theme():
     return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
 
 
+@APP.route("/healthcheck", methods=["GET"])
+def healthcheck():
+    return "", 200
+
+
 @APP.before_first_request
 def detect_locale():
     """
@@ -1294,6 +1299,22 @@ def detect_locale():
     session["language"] = get_locale()
     ractl_cmd.locale = session["language"]
     file_cmd.locale = session["language"]
+
+
+@APP.before_request
+def log_http_request():
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        message = f"HTTP request: {request.method} {request.path}"
+
+        if request.method == "POST":
+            if request.path == "/login":
+                message += " (<hidden>)"
+            elif len(request.get_data()) > 100:
+                message += f" (payload: {request.get_data()[:100]} <truncated>)"
+            else:
+                message += f" (payload: {request.get_data()})"
+
+        logging.debug(message)
 
 
 if __name__ == "__main__":
@@ -1347,6 +1368,27 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     APP.config["RASCSI_TOKEN"] = arguments.password
 
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "[%(asctime)s] [%(levelname)s] %(filename)s:%(lineno)s %(message)s",
+                }
+            },
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                }
+            },
+            "root": {
+                "level": arguments.log_level.upper(),
+                "handlers": ["wsgi"],
+            },
+        }
+    )
+
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
     ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["RASCSI_TOKEN"])
     file_cmd = FileCmds(sock_cmd=sock_cmd, ractl=ractl_cmd, token=APP.config["RASCSI_TOKEN"])
@@ -1365,14 +1407,9 @@ if __name__ == "__main__":
         APP.config["RASCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
-    logging.basicConfig(
-        stream=sys.stdout,
-        format="%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(message)s",
-        level=arguments.log_level.upper(),
-    )
-
+    logging.info("Starting WSGI server...")
     if arguments.dev_mode:
-        print("Running rascsi-web in development mode ...")
+        logging.info("Dev mode enabled")
         APP.debug = True
         from werkzeug.debug import DebuggedApplication
 
@@ -1381,5 +1418,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             pass
     else:
-        print("Serving rascsi-web...")
         bjoern.run(APP, "0.0.0.0", arguments.port)
