@@ -21,7 +21,7 @@ using namespace piscsi_interface;
 using namespace ras_util;
 using namespace protobuf_util;
 
-bool RasctlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
+bool ScsictlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
 		const string& image_params, const string& filename)
 {
 	switch(command.operation()) {
@@ -86,7 +86,7 @@ bool RasctlCommands::Execute(const string& log_level, const string& default_fold
     return false;
 }
 
-bool RasctlCommands::SendCommand()
+bool ScsictlCommands::SendCommand()
 {
 	sockaddr_in server_addr = {};
 	if (!ResolveHostName(hostname, &server_addr)) {
@@ -128,7 +128,7 @@ bool RasctlCommands::SendCommand()
 	return true;
 }
 
-bool RasctlCommands::CommandDevicesInfo()
+bool ScsictlCommands::CommandDevicesInfo()
 {
 	SendCommand();
 
@@ -137,21 +137,21 @@ bool RasctlCommands::CommandDevicesInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandLogLevel(const string& log_level)
+bool ScsictlCommands::CommandLogLevel(const string& log_level)
 {
 	SetParam(command, "level", log_level);
 
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandReserveIds(const string& reserved_ids)
+bool ScsictlCommands::CommandReserveIds(const string& reserved_ids)
 {
 	SetParam(command, "ids", reserved_ids);
 
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandCreateImage(const string& image_params)
+bool ScsictlCommands::CommandCreateImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		SetParam(command, "file", string_view(image_params).substr(0, separator_pos));
@@ -168,14 +168,14 @@ bool RasctlCommands::CommandCreateImage(const string& image_params)
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandDeleteImage(const string& filename)
+bool ScsictlCommands::CommandDeleteImage(const string& filename)
 {
 	SetParam(command, "file", filename);
 
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandRenameImage(const string& image_params)
+bool ScsictlCommands::CommandRenameImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
@@ -190,7 +190,7 @@ bool RasctlCommands::CommandRenameImage(const string& image_params)
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandCopyImage(const string& image_params)
+bool ScsictlCommands::CommandCopyImage(const string& image_params)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
@@ -205,14 +205,14 @@ bool RasctlCommands::CommandCopyImage(const string& image_params)
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandDefaultImageFolder(const string& folder)
+bool ScsictlCommands::CommandDefaultImageFolder(const string& folder)
 {
 	SetParam(command, "folder", folder);
 
 	return SendCommand();
 }
 
-bool RasctlCommands::CommandDeviceInfo()
+bool ScsictlCommands::CommandDeviceInfo()
 {
 	SendCommand();
 
@@ -225,7 +225,7 @@ bool RasctlCommands::CommandDeviceInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandDeviceTypesInfo()
+bool ScsictlCommands::CommandDeviceTypesInfo()
 {
 	SendCommand();
 
@@ -234,7 +234,7 @@ bool RasctlCommands::CommandDeviceTypesInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandVersionInfo()
+bool ScsictlCommands::CommandVersionInfo()
 {
 	SendCommand();
 
@@ -243,7 +243,7 @@ bool RasctlCommands::CommandVersionInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandServerInfo()
+bool ScsictlCommands::CommandServerInfo()
 {
 	SendCommand();
 
@@ -274,7 +274,7 @@ bool RasctlCommands::CommandServerInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandDefaultImageFilesInfo()
+bool ScsictlCommands::CommandDefaultImageFilesInfo()
 {
 	SendCommand();
 
@@ -283,7 +283,7 @@ bool RasctlCommands::CommandDefaultImageFilesInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandImageFileInfo(const string& filename)
+bool ScsictlCommands::CommandImageFileInfo(const string& filename)
 {
 	SetParam(command, "file", filename);
 
@@ -294,7 +294,7 @@ bool RasctlCommands::CommandImageFileInfo(const string& filename)
 	return true;
 }
 
-bool RasctlCommands::CommandNetworkInterfacesInfo()
+bool ScsictlCommands::CommandNetworkInterfacesInfo()
 {
 	SendCommand();
 
@@ -303,7 +303,7 @@ bool RasctlCommands::CommandNetworkInterfacesInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandLogLevelInfo()
+bool ScsictlCommands::CommandLogLevelInfo()
 {
 	SendCommand();
 
@@ -312,7 +312,7 @@ bool RasctlCommands::CommandLogLevelInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandReservedIdsInfo()
+bool ScsictlCommands::CommandReservedIdsInfo()
 {
 	SendCommand();
 
@@ -321,7 +321,7 @@ bool RasctlCommands::CommandReservedIdsInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandMappingInfo()
+bool ScsictlCommands::CommandMappingInfo()
 {
 	SendCommand();
 
@@ -330,7 +330,7 @@ bool RasctlCommands::CommandMappingInfo()
 	return true;
 }
 
-bool RasctlCommands::CommandOperationInfo()
+bool ScsictlCommands::CommandOperationInfo()
 {
 	SendCommand();
 
@@ -339,7 +339,7 @@ bool RasctlCommands::CommandOperationInfo()
 	return true;
 }
 
-bool RasctlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
+bool ScsictlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
 {
 	addrinfo hints = {};
 	hints.ai_family = AF_INET;

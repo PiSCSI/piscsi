@@ -9,13 +9,13 @@
 
 #include "scsictl_parser.h"
 
-PbOperation RasctlParser::ParseOperation(const string& operation) const
+PbOperation ScsictlParser::ParseOperation(const string& operation) const
 {
 	const auto& it = operations.find(tolower(operation[0]));
 	return it != operations.end() ? it->second : NO_OPERATION;
 }
 
-PbDeviceType RasctlParser::ParseType(const string& type) const
+PbDeviceType ScsictlParser::ParseType(const string& type) const
 {
 	string t = type;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);

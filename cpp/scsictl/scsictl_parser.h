@@ -14,13 +14,13 @@
 using namespace std;
 using namespace piscsi_interface;
 
-class RasctlParser
+class ScsictlParser
 {
 
 public:
 
-	RasctlParser() = default;
-	~RasctlParser() = default;
+	ScsictlParser() = default;
+	~ScsictlParser() = default;
 
 	PbOperation ParseOperation(const string&) const;
 	PbDeviceType ParseType(const string&) const;

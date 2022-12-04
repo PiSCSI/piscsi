@@ -18,13 +18,13 @@ using namespace piscsi_interface;
 
 struct sockaddr_in;
 
-class RasctlCommands
+class ScsictlCommands
 {
 public:
 
-	RasctlCommands(PbCommand& command, const string& hostname, int port)
+	ScsictlCommands(PbCommand& command, const string& hostname, int port)
 		: command(command), hostname(hostname), port(port) {}
-	~RasctlCommands() = default;
+	~ScsictlCommands() = default;
 
 	bool Execute(const string&, const string&, const string&, const string&, const string&);
 
@@ -61,5 +61,5 @@ private:
 
 	PbResult result;
 
-	RasctlDisplay scsictl_display;
+	ScsictlDisplay scsictl_display;
 };

@@ -11,9 +11,9 @@
 
 #include "scsictl/scsictl_parser.h"
 
-TEST(RasctlParserTest, ParseOperation)
+TEST(ScsictlParserTest, ParseOperation)
 {
-	RasctlParser parser;
+	ScsictlParser parser;
 
 	EXPECT_EQ(ATTACH, parser.ParseOperation("A"));
 	EXPECT_EQ(ATTACH, parser.ParseOperation("a"));
@@ -26,9 +26,9 @@ TEST(RasctlParserTest, ParseOperation)
 	EXPECT_EQ(NO_OPERATION, parser.ParseOperation("xyz"));
 }
 
-TEST(RasctlParserTest, ParseType)
+TEST(ScsictlParserTest, ParseType)
 {
-	RasctlParser parser;
+	ScsictlParser parser;
 
 	EXPECT_EQ(SCBR, parser.ParseType("SCBR"));
 	EXPECT_EQ(SCBR, parser.ParseType("scbr"));

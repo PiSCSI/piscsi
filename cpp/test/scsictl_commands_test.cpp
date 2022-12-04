@@ -20,10 +20,10 @@ using namespace testing;
 using namespace piscsi_interface;
 using namespace protobuf_util;
 
-TEST(RasctlCommandsTest, Execute)
+TEST(ScsictlCommandsTest, Execute)
 {
 	PbCommand command;
-	RasctlCommands commands(command, "localhost", 0);
+	ScsictlCommands commands(command, "localhost", 0);
 
 	command.set_operation(LOG_LEVEL);
 	EXPECT_THROW(commands.Execute("log_level", "", "", "", ""), io_exception);
@@ -96,13 +96,13 @@ TEST(RasctlCommandsTest, Execute)
 	EXPECT_THROW(commands.Execute("", "", "", "", ""), io_exception);
 }
 
-TEST(RasctlCommandsTest, CommandDevicesInfo)
+TEST(ScsictlCommandsTest, CommandDevicesInfo)
 {
 	PbCommand command;
 
-	RasctlCommands commands1(command, "/invalid_host_name", 0);
+	ScsictlCommands commands1(command, "/invalid_host_name", 0);
 	EXPECT_THROW(commands1.CommandDevicesInfo(), io_exception);
 
-	RasctlCommands commands2(command, "localhost", 0);
+	ScsictlCommands commands2(command, "localhost", 0);
 	EXPECT_THROW(commands2.CommandDevicesInfo(), io_exception);
 }

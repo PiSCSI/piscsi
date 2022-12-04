@@ -18,7 +18,7 @@ using namespace std;
 using namespace piscsi_interface;
 using namespace protobuf_util;
 
-string RasctlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
+string ScsictlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
 {
 	ostringstream s;
 
@@ -29,7 +29,7 @@ string RasctlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) cons
 	return s.str();
 }
 
-string RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
+string ScsictlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 {
 	ostringstream s;
 
@@ -99,7 +99,7 @@ string RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 	return s.str();
 }
 
-string RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
+string ScsictlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) const
 {
 	ostringstream s;
 
@@ -118,7 +118,7 @@ string RasctlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) cons
 	return s.str();
 }
 
-string RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) const
+string ScsictlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) const
 {
 	ostringstream s;
 
@@ -138,7 +138,7 @@ string RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info) 
 	return s.str();
 }
 
-string RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
+string ScsictlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info) const
 {
 	ostringstream s;
 
@@ -169,7 +169,7 @@ string RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_typ
 	return s.str();
 }
 
-string RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info) const
+string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info) const
 {
 	ostringstream s;
 
@@ -193,7 +193,7 @@ string RasctlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_i
 	return s.str();
 }
 
-string RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
+string ScsictlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 {
 	ostringstream s;
 
@@ -212,7 +212,7 @@ string RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info) const
 	return s.str();
 }
 
-string RasctlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files_info) const
+string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files_info) const
 {
 	ostringstream s;
 
@@ -237,7 +237,7 @@ string RasctlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files_
 	return s.str();
 }
 
-string RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
+string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info) const
 {
 	ostringstream s;
 
@@ -263,7 +263,7 @@ string RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& ne
 	return s.str();
 }
 
-string RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
+string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) const
 {
 	ostringstream s;
 
@@ -278,7 +278,7 @@ string RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) cons
 	return s.str();
 }
 
-string RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
+string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info) const
 {
 	ostringstream s;
 
@@ -318,7 +318,7 @@ string RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info
 	return s.str();
 }
 
-void RasctlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
+void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
 	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
 
@@ -333,7 +333,7 @@ void RasctlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) c
 	}
 }
 
-void RasctlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
+void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
 {
 	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
 		s << "Properties: ";
@@ -365,7 +365,7 @@ void RasctlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties
 	}
 }
 
-void RasctlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
+void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
 {
 	if (properties.supports_params() && properties.default_params_size()) {
 		s << "Default parameters: ";
@@ -385,7 +385,7 @@ void RasctlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePro
 
 }
 
-void RasctlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
+void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
 {
 	if (properties.block_sizes_size()) {
 		s << "Configurable block sizes in bytes: ";
@@ -404,7 +404,7 @@ void RasctlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties
 	}
 }
 
-void RasctlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaData& meta_data) const
+void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaData& meta_data) const
 {
 	list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
 	sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
@@ -426,7 +426,7 @@ void RasctlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaDat
 	}
 }
 
-void RasctlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
+void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
 {
 	if (parameter.permitted_values_size()) {
 		s << "      Permitted values: ";

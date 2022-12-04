@@ -15,5 +15,5 @@ int main(int argc, char *argv[])
 {
 	const vector<char *> args(argv, argv + argc);
 
-	return RasCtl().run(args);
+	return ScsiCtl().run(args);
 }
