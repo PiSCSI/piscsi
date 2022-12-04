@@ -25,7 +25,7 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace ras_util;
+using namespace pis_util;
 
 DeviceFactory::DeviceFactory()
 {

@@ -28,7 +28,7 @@
 #endif
 
 using namespace std;
-using namespace ras_util;
+using namespace pis_util;
 
 //---------------------------------------------------------------------------
 //
@@ -60,10 +60,10 @@ CTapDriver::~CTapDriver()
 		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
 			LOGERROR("Can't open bridge socket: %s", strerror(errno))
 		} else {
-			LOGDEBUG("brctl delif %s ras0", BRIDGE_NAME)
-			if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", false)) { //NOSONAR No exception is raised here
-				LOGWARN("Warning: Removing ras0 from the bridge failed.")
-				LOGWARN("You may need to manually remove the ras0 tap device from the bridge")
+			LOGDEBUG("brctl delif %s pis0", BRIDGE_NAME)
+			if (!br_setif(br_socket_fd, BRIDGE_NAME, "pis0", false)) { //NOSONAR No exception is raised here
+				LOGWARN("Warning: Removing pis0 from the bridge failed.")
+				LOGWARN("You may need to manually remove the pis0 tap device from the bridge")
 			}
 			close(br_socket_fd);
 		}
@@ -148,7 +148,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	string dev = "ras0";
+	string dev = "pis0";
 	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
 
 	LOGTRACE("Going to open %s", ifr.ifr_name)
@@ -315,18 +315,18 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		LOGINFO("%s is already available", BRIDGE_NAME)
 	}
 
-	LOGTRACE("ip link set ras0 up")
+	LOGTRACE("ip link set pis0 up")
 
-	if (!ip_link(ip_fd, "ras0", true)) {
+	if (!ip_link(ip_fd, "pis0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
 		return false;
 	}
 
-	LOGTRACE("brctl addif %s ras0", BRIDGE_NAME)
+	LOGTRACE("brctl addif %s pis0", BRIDGE_NAME)
 
-	if (!br_setif(br_socket_fd, BRIDGE_NAME, "ras0", true)) {
+	if (!br_setif(br_socket_fd, BRIDGE_NAME, "pis0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
@@ -378,8 +378,8 @@ void CTapDriver::OpenDump(const string& path) {
 bool CTapDriver::Enable() const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__)
-	const bool result = ip_link(fd, "ras0", true);
+	LOGDEBUG("%s: ip link set pis0 up", __PRETTY_FUNCTION__)
+	const bool result = ip_link(fd, "pis0", true);
 	close(fd);
 	return result;
 }
@@ -387,8 +387,8 @@ bool CTapDriver::Enable() const
 bool CTapDriver::Disable() const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__)
-	const bool result = ip_link(fd, "ras0", false);
+	LOGDEBUG("%s: ip link set pis0 down", __PRETTY_FUNCTION__)
+	const bool result = ip_link(fd, "pis0", false);
 	close(fd);
 	return result;
 }

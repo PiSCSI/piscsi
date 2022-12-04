@@ -25,7 +25,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace ras_util;
+using namespace pis_util;
 
 void ScsiMon::KillHandler(int)
 {
@@ -155,7 +155,7 @@ int ScsiMon::run(const vector<char *> &args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    ras_util::Banner("SCSI Monitor Capture Tool");
+    pis_util::Banner("SCSI Monitor Capture Tool");
 
     ParseArguments(args);
 

@@ -24,13 +24,13 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace ras_util;
+using namespace pis_util;
 using namespace protobuf_util;
 
 void ScsiCtl::Banner(const vector<char *>& args) const
 {
 	if (args.size() < 2) {
-		cout << ras_util::Banner("Controller");
+		cout << pis_util::Banner("Controller");
 
 		cout << "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
