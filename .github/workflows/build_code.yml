@@ -6,6 +6,7 @@ on:
     paths:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
+      - '.github/workflows/arm_cross_compile.yml'
 
 jobs:
   fullspec:
