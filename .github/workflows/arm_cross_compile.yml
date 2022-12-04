@@ -4,7 +4,7 @@ on:
       connect-type:
         required: true
         type: string
-      # Debug flag should either be an empty string or "DEBUG=1"
+      # Debug flag indicates whether to build a debug build (no optimization, debugger symbols)
       debug-flag:
         required: false
         type: boolean
@@ -44,7 +44,6 @@ jobs:
         run: |
           echo "debug_flag_compile=DEBUG\=1" >> $GITHUB_ENV
           echo "debug_flag_filename=-debug" >> $GITHUB_ENV
-          echo "IM DEBUGGING"
 
       - name: Compile
         run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=arm-linux-gnueabihf-
@@ -54,10 +53,10 @@ jobs:
       # supports .ZIP files.
       # This is workaround for https://github.com/actions/upload-artifact/issues/38
       - name: Tar binary output
-        run: tar -czvf rascsi-${{ inputs.connect-type }}.tar.gz ./bin
+        run: tar -czvf rascsi${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz ./bin
 
       - name: Upload binaries
         uses: actions/upload-artifact@v3
         with:
-          name: arm-binaries-${{ inputs.connect-type }}${{ env.debug_flag_filename }}.tar.gz
-          path: cpp/rascsi-${{ inputs.connect-type }}${{ env.debug_flag_filename }}.tar.gz
+          name: arm-binaries${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz
+          path: cpp/rascsi${{ env.debug_flag_filename }}-${{ inputs.connect-type }}.tar.gz
