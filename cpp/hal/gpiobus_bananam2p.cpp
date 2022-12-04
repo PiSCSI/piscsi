@@ -533,6 +533,7 @@ void GPIOBUS_BananaM2p::SetREQ(bool ast)
 uint8_t GPIOBUS_BananaM2p::GetDAT()
 {
     GPIO_FUNCTION_TRACE
+    (void)Acquire();
     // TODO: This is inefficient, but it works...
     uint32_t data =
         ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
