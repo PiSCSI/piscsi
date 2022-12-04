@@ -10,28 +10,28 @@ on:
 
 jobs:
   fullspec:
-    uses: akuker/PISCSI/.github/workflows/arm_cross_compile.yml@develop
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@develop
     with:
       connect-type: "FULLSPEC"
 
   standard:
-    uses: akuker/PISCSI/.github/workflows/arm_cross_compile.yml@develop
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@rdmark-rebrand-piscsi
     with:
       connect-type: "STANDARD"
 
   aibom:
-    uses: akuker/PISCSI/.github/workflows/arm_cross_compile.yml@develop
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@rdmark-rebrand-piscsi
     with:
       connect-type: "AIBOM"
 
   gamernium:
-    uses: akuker/PISCSI/.github/workflows/arm_cross_compile.yml@develop
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@rdmark-rebrand-piscsi
     with:
       connect-type: "GAMERNIUM"
 
   # The fullspec connection board is the most common
   debug-fullspec:
-    uses: akuker/PISCSI/.github/workflows/arm_cross_compile.yml@develop
+    uses: akuker/RASCSI/.github/workflows/arm_cross_compile.yml@rdmark-rebrand-piscsi
     with:
       connect-type: "FULLSPEC"
       debug-flag: true
