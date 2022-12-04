@@ -8,13 +8,13 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "pisutil.h"
+#include "piscsi_util.h"
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include <sstream>
 
 using namespace std;
-using namespace pis_util;
+using namespace piscsi_util;
 using namespace piscsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )

@@ -14,7 +14,7 @@
 
 #include "shared/log.h"
 #include "shared/piscsi_version.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #include "scsiloop/scsiloop_core.h"
@@ -44,8 +44,8 @@ string current_log_level = "unknown"; // Some versions of spdlog do not support 
 
 void ScsiLoop::Banner(const vector<char *> &args) const
 {
-    cout << pis_util::Banner("SCSI Loopback Test");
-    cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
+    cout << piscsi_util::Banner("SCSI Loopback Test");
+    cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
     if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)) {
         cout << "\nUsage: " << args[0] << " [-L log_level] ...\n\n";

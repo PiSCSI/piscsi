@@ -7,7 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
@@ -18,7 +18,7 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace pis_util;
+using namespace piscsi_util;
 using namespace protobuf_util;
 
 bool ScsictlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,

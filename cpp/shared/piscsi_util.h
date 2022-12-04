@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace pis_util
+namespace piscsi_util
 {
 	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';

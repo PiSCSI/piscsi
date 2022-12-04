@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "generated/piscsi_interface.pb.h"
 #ifdef __linux__
 #include <sched.h>
@@ -17,7 +17,7 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace pis_util;
+using namespace piscsi_util;
 
 TEST(RasUtilTest, ProcessId)
 {

@@ -16,7 +16,7 @@
 #include "monitor/sm_reports.h"
 #include "shared/log.h"
 #include "shared/piscsi_version.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include <climits>
 #include <csignal>
 #include <getopt.h>
@@ -25,7 +25,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace pis_util;
+using namespace piscsi_util;
 
 void ScsiMon::KillHandler(int)
 {
@@ -155,7 +155,7 @@ int ScsiMon::run(const vector<char *> &args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    pis_util::Banner("SCSI Monitor Capture Tool");
+    piscsi_util::Banner("SCSI Monitor Capture Tool");
 
     ParseArguments(args);
 

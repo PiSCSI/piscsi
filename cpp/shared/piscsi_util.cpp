@@ -8,14 +8,14 @@
 //---------------------------------------------------------------------------
 
 #include "piscsi_version.h"
-#include "pisutil.h"
+#include "piscsi_util.h"
 #include <cassert>
 #include <sstream>
 #include <algorithm>
 
 using namespace std;
 
-bool pis_util::GetAsUnsignedInt(const string& value, int& result)
+bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
 		return false;
@@ -35,7 +35,7 @@ bool pis_util::GetAsUnsignedInt(const string& value, int& result)
 	return true;
 }
 
-string pis_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
+string piscsi_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
 {
 	assert(max_luns > 0);
 
@@ -66,7 +66,7 @@ string pis_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lu
 	return "";
 }
 
-string pis_util::Banner(const string& app)
+string piscsi_util::Banner(const string& app)
 {
 	ostringstream s;
 
@@ -79,7 +79,7 @@ string pis_util::Banner(const string& app)
 	return s.str();
 }
 
-string pis_util::GetExtensionLowerCase(const string& filename)
+string piscsi_util::GetExtensionLowerCase(const string& filename)
 {
 	string ext;
 	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
@@ -92,7 +92,7 @@ string pis_util::GetExtensionLowerCase(const string& filename)
 
 // Pin the thread to a specific CPU
 // TODO Check whether just using a single CPU really makes sense
-void pis_util::FixCpu(int cpu)
+void piscsi_util::FixCpu(int cpu)
 {
 #ifdef __linux__
 	// Get the number of CPUs

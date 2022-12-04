@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/pisutil.h"
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "controllers/controller_manager.h"
@@ -26,7 +26,7 @@
 
 using namespace spdlog;
 using namespace protobuf_util;
-using namespace pis_util;
+using namespace piscsi_util;
 
 bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)
