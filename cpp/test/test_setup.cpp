@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -11,7 +11,7 @@
 
 #include "spdlog/spdlog.h"
 
-// Also used by the RascsiExecutor tests
+// Also used by the PiscsiExecutor tests
 bool enable_logging; //NOSONAR Must be global in order to be shared with the tests
 
 class Environment final : public ::testing::Environment

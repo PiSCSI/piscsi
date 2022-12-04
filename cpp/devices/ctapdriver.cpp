@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -10,8 +10,8 @@
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/rasutil.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/pisutil.h"
+#include "shared/piscsi_exceptions.h"
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>

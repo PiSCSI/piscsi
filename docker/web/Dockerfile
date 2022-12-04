@@ -11,7 +11,7 @@ RUN apt-get update \
 RUN groupadd pi \
     && useradd --create-home --shell /bin/bash -g pi pi \
     && echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && echo "pi:rascsi" | chpasswd
+    && echo "pi:piscsi" | chpasswd
 
 # Allows custom PATH for mock commands to work when executing with sudo
 RUN sed -i 's/^Defaults\tsecure_path/#Defaults\tsecure_path./' /etc/sudoers
@@ -27,7 +27,7 @@ WORKDIR /home/pi/RASCSI
 RUN mkdir /home/pi/RASCSI/{python,cpp}
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi cpp/os_integration cpp/os_integration
-COPY --chown=pi:pi cpp/rascsi_interface.proto cpp/rascsi_interface.proto
+COPY --chown=pi:pi cpp/piscsi_interface.proto cpp/piscsi_interface.proto
 COPY --chown=pi:pi python/web python/web
 COPY --chown=pi:pi python/common python/common
 

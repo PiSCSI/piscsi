@@ -1,24 +1,24 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating\n\n
-rascsi(1)                   General Commands Manual                  rascsi(1)
+!!   ------ The native file is scsictl.1. Re-run 'make docs' after updating\n\n
+piscsi(1)                   General Commands Manual                  piscsi(1)
 
 NAME
-       rasctl - Sends management commands to the rascsi process
+       scsictl - Sends management commands to the piscsi process
 
 SYNOPSIS
-       rasctl -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V |
+       scsictl -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V |
        -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F  IMAGE_FOLDER]  [-R  CUR‐
        RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
        [-i ID[:LUN] [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-x  CUR‐
        RENT_NAME:NEW_NAME] [-z LOCALE]
 
 DESCRIPTION
-       rasctl  sends  commands to the rascsi process to make configuration ad‐
+       scsictl  sends  commands to the piscsi process to make configuration ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
-       You do NOT need root privileges to use rasctl.
+       You do NOT need root privileges to use scsictl.
 
        Note: The command and type arguments are  case  insensitive.  Only  the
        first letter of the command/type is evaluated by the tool.
@@ -39,26 +39,26 @@ OPTIONS
        -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
-              Set the rascsi log level (trace, debug, info, warn, err, off).
+              Set the piscsi log level (trace, debug, info, warn, err, off).
 
        -h HOST
-              The rascsi host to connect to, default is 'localhost'.
+              The piscsi host to connect to, default is 'localhost'.
 
        -e     List all images files in the default image folder.
 
        -N     Lists all available network interfaces provided  that  they  are
               up.
 
-       -O     Display  the  available rascsi server log levels and the current
+       -O     Display  the  available piscsi server log levels and the current
               log level.
 
-       -P     Prompt for the access token in case rascsi requires  authentica‐
+       -P     Prompt for the access token in case piscsi requires  authentica‐
               tion.
 
        -l     List  all  of  the  devices that are currently being emulated by
-              RaSCSI, as well as their current status.
+              PiSCSI, as well as their current status.
 
-       -m     List all file extensions recognized by  RaSCSI  and  the  device
+       -m     List all file extensions recognized by  PiSCSI  and  the  device
               types they map to.
 
        -o     Display operation meta data information.
@@ -67,7 +67,7 @@ OPTIONS
               Rename an image file in the default image folder.
 
        -p PORT
-              The rascsi port to connect to, default is 6868.
+              The piscsi port to connect to, default is 6868.
 
        -r RESERVED_IDS
               Comma-separated  list  of  IDs to reserve. Pass an empty list in
@@ -78,11 +78,11 @@ OPTIONS
 
        -T     Display all device types and their properties.
 
-       -v     Display the rascsi server version.
+       -v     Display the piscsi server version.
 
-       -V     Display the rasctl version.
+       -V     Display the scsictl version.
 
-       -X     Shut down the rascsi process.
+       -X     Shut down the piscsi process.
 
        -d FILENAME
               Delete an image file in the default image folder.
@@ -116,13 +116,13 @@ OPTIONS
 
        -f FILE|PARAM
               Device-specific: Either a path to a disk image file, or a param‐
-              eter for a non-disk device. See the rascsi(1) man page for  per‐
+              eter for a non-disk device. See the piscsi(1) man page for  per‐
               mitted file types.
 
        -t TYPE
               Specifies  the device type. This type overrides the type derived
               from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1)  man  page  for  the  available device types. For some
+              piscsi(1)  man  page  for  the  available device types. For some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -148,7 +148,7 @@ OPTIONS
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.
-          rasctl -l
+          scsictl -l
 
        Example output:
           +----+-----+------+-------------------------------------
@@ -157,14 +157,14 @@ EXAMPLES
           |  0 |   1 | SCHD | /home/pi/harddisk.hda
           +----+-----+------+-------------------------------------
 
-       Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with
+       Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with
        the contents of the file system image "HDIIMAGE0.HDS".
-          rasctl -i 0 -f HDIIMAGE0.HDS
+          scsictl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       rascsi(1), scsimon(1), rasdump(1)
+       piscsi(1), scsimon(1), scsidump(1)
 
        Full          documentation          is          available          at:
-       <https://www.github.com/akuker/RASCSI/wiki/>
+       <https://www.github.com/akuker/PISCSI/wiki/>
 
-                                                                     rascsi(1)
+                                                                     piscsi(1)

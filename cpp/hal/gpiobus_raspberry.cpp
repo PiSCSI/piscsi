@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -183,12 +183,12 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // GPIO chip open
     fd = open("/dev/gpiochip0", 0);
     if (fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
+        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI already running?")
         return false;
     }
 
     // Event request setting
-    strcpy(selevreq.consumer_label, "RaSCSI");
+    strcpy(selevreq.consumer_label, "PiSCSI");
     selevreq.lineoffset  = PIN_SEL;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
@@ -199,7 +199,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-        LOGERROR("Unable to register event request. Is RaSCSI already running?")
+        LOGERROR("Unable to register event request. Is PiSCSI already running?")
         close(fd);
         return false;
     }

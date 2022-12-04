@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -30,9 +30,9 @@ public:
 
 	static inline const int UNKNOWN_INITIATOR_ID = -1;
 
-	enum class rascsi_shutdown_mode {
+	enum class piscsi_shutdown_mode {
 		NONE,
-		STOP_RASCSI,
+		STOP_PISCSI,
 		STOP_PI,
 		RESTART_PI
 	};
@@ -49,7 +49,7 @@ public:
 	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
 
-	virtual void ScheduleShutdown(rascsi_shutdown_mode) = 0;
+	virtual void ScheduleShutdown(piscsi_shutdown_mode) = 0;
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }

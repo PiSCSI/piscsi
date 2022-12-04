@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "devices/host_services.h"
 
@@ -34,7 +34,7 @@ TEST(HostServicesTest, TestUnitReady)
 
 TEST(HostServicesTest, Inquiry)
 {
-	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, "RaSCSI  Host Services   ", 0x1f, false);
+	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, "PiSCSI  Host Services   ", 0x1f, false);
 }
 
 TEST(HostServicesTest, StartStopUnit)
@@ -47,21 +47,21 @@ TEST(HostServicesTest, StartStopUnit)
     auto& cmd = controller->GetCmd();
 
     // STOP
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI));
+    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller->GetStatus());
 
     // LOAD
     cmd[4] = 0x02;
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI));
+    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller->GetStatus());
 
     // UNLOAD
     cmd[4] = 0x03;
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI));
+    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::GOOD, controller->GetStatus());

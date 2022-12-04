@@ -1,13 +1,13 @@
-# Spanish translations for RaSCSI.
+# Spanish translations for PiSCSI.
 # Copyright (C) 2022 akuker
-# This file is distributed under the same license as the RaSCSI 68kmla
+# This file is distributed under the same license as the PiSCSI 68kmla
 # project.
 # Nemanja Lukic <nemluk@pm.me>, 2022.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: RaSCSI 68kmla Edition\n"
-"Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
+"Project-Id-Version: PiSCSI 68kmla Edition\n"
+"Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
 "POT-Creation-Date: 2022-10-09 17:19+0200\n"
 "PO-Revision-Date: 2022-10-10 08:38+0200\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
@@ -113,35 +113,35 @@ msgstr "No se puede extraer el archivo: %(error)s"
 #: src/socket_cmds_flask.py:34
 #, python-format
 msgid ""
-"The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s with "
-"error: %(error_msg)s. The RaSCSI process is not running or may have crashed."
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s with "
+"error: %(error_msg)s. The PiSCSI process is not running or may have crashed."
 msgstr ""
-"La interfaz web de RaSCSI no pudo conectarse a RaSCSI en %(host)s:%(port)s con "
-"el error: %(error_msg)s. El proceso RaSCSI no se está ejecutando o puede haber "
+"La interfaz web de PiSCSI no pudo conectarse a PiSCSI en %(host)s:%(port)s con "
+"el error: %(error_msg)s. El proceso PiSCSI no se está ejecutando o puede haber "
 "fallado."
 
 #: src/socket_cmds_flask.py:45
 msgid ""
-"The RaSCSI Web Interface lost connection to RaSCSI. Please go back and try "
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and try "
 "again. If the issue persists, please report a bug."
 msgstr ""
-"La interfaz web de RaSCSI ha perdido la conexión con RaSCSI. Por favor, vuelva "
+"La interfaz web de PiSCSI ha perdido la conexión con PiSCSI. Por favor, vuelva "
 "a intentarlo. Si el problema persiste, informe de un error."
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The RaSCSI Web Interface did not get a valid response from RaSCSI. Please go "
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please go "
 "back and try again. If the issue persists, please report a bug."
 msgstr ""
-"La interfaz web de RaSCSI no ha obtenido una respuesta válida de RaSCSI. Por "
+"La interfaz web de PiSCSI no ha obtenido una respuesta válida de PiSCSI. Por "
 "favor, vuelva a intentarlo. Si el problema persiste, informe de un error."
 
 #: src/web.py:182
 msgid ""
-"RaSCSI is password protected. Start the Web Interface with the --password "
+"PiSCSI is password protected. Start the Web Interface with the --password "
 "parameter."
 msgstr ""
-"RaSCSI está protegido por contraseña. Inicie la Interfaz Web con el parámetro —"
+"PiSCSI está protegido por contraseña. Inicie la Interfaz Web con el parámetro —"
 "password."
 
 #: src/web.py:318
@@ -162,8 +162,8 @@ msgstr "Se ha producido un error al obtener la información del disco: %(error)s
 
 #: src/web.py:493
 #, python-format
-msgid "%(app)s is not a recognized RaSCSI app"
-msgstr "%(app)s no es una aplicación RaSCSI reconocida"
+msgid "%(app)s is not a recognized PiSCSI app"
+msgstr "%(app)s no es una aplicación PiSCSI reconocida"
 
 #: src/web.py:527
 #, python-format
@@ -211,11 +211,11 @@ msgstr ""
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of %(block_size)s. "
-"RaSCSI will ignore the trailing data. The image may be corrupted, so proceed "
+"PiSCSI will ignore the trailing data. The image may be corrupted, so proceed "
 "with caution."
 msgstr ""
 "El tamaño del archivo de imagen %(file_size)s bytes no es un múltiplo de "
-"%(block_size)s. RaSCSI ignorará los datos finales. La imagen puede estar "
+"%(block_size)s. PiSCSI ignorará los datos finales. La imagen puede estar "
 "corrupta, así que proceda con precaución."
 
 #: src/web.py:698
@@ -428,8 +428,8 @@ msgid "File upload successful!"
 msgstr "¡La carga de archivos se ha realizado con éxito!"
 
 #: src/templates/base.html:4 src/templates/base.html:68
-msgid "RaSCSI Reloaded Control Page"
-msgstr "Página de control RaSCSI Reloaded"
+msgid "PiSCSI Control Page"
+msgstr "Página de control PiSCSI"
 
 #: src/templates/base.html:29
 msgid ""
@@ -498,8 +498,8 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy se está ejecutando en %(ip_addr)s (puerto por defecto: 5000)"
 
 #: src/templates/base.html:104
-msgid "RaSCSI Reloaded version: "
-msgstr "Versión de RaSCSI Reloaded: "
+msgid "PiSCSI version: "
+msgstr "Versión de PiSCSI: "
 
 #: src/templates/base.html:107
 msgid "Pi environment: "
@@ -643,8 +643,8 @@ msgid "%(disk_space)s MiB disk space remaining on the Pi"
 msgstr "%(disk_space)s MiB de espacio en disco restante en la Pi"
 
 #: src/templates/index.html:6
-msgid "Current RaSCSI Configuration"
-msgstr "Configuración actual de RaSCSI"
+msgid "Current PiSCSI Configuration"
+msgstr "Configuración actual de PiSCSI"
 
 #: src/templates/index.html:9
 #, python-format
@@ -657,11 +657,11 @@ msgstr ""
 
 #: src/templates/index.html:10
 msgid ""
-"To have a particular device configuration load when RaSCSI starts, save it as "
+"To have a particular device configuration load when PiSCSI starts, save it as "
 "<em>default</em>."
 msgstr ""
 "Para que se cargue una configuración de dispositivo concreta cuando se inicie "
-"RaSCSI, guárdela como <em>default</em>."
+"PiSCSI, guárdela como <em>default</em>."
 
 #: src/templates/index.html:16 src/templates/index.html:37
 #: src/templates/index.html:71
@@ -762,11 +762,11 @@ msgstr "Gestión de archivos de imagen"
 #: src/templates/index.html:174
 #, python-format
 msgid ""
-"Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> "
+"Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> "
 "with a scan depth of %(scan_depth)s."
 msgstr ""
 "Gestionar los archivos de imagen en el directorio activo de las imágenes de "
-"RaSCSI:  <tt>%(directory)s</tt> con la profundidad de escaneo de %(scan_depth)s."
+"PiSCSI:  <tt>%(directory)s</tt> con la profundidad de escaneo de %(scan_depth)s."
 
 #: src/templates/index.html:175
 #, python-format
@@ -857,18 +857,18 @@ msgstr "Conectar dispositivo periférico"
 
 #: src/templates/index.html:345
 msgid ""
-"The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an "
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an "
 "emulated network adapter!"
 msgstr ""
-"¡El puente de red <tt>rascsi_bridge</tt> está activo y listo para ser utilizado "
+"¡El puente de red <tt>piscsi_bridge</tt> está activo y listo para ser utilizado "
 "por un adaptador de red emulado!"
 
 #: src/templates/index.html:347
 msgid ""
-"Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an "
+"Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an "
 "emulated network adapter!"
 msgstr ""
-"Configure el puente de red <tt>rascsi_bridge</tt> antes de conectar un "
+"Configure el puente de red <tt>piscsi_bridge</tt> antes de conectar un "
 "adaptador de red emulado!"
 
 #: src/templates/index.html:349
@@ -1171,8 +1171,8 @@ msgid "Shut Down Raspberry Pi"
 msgstr "Apagar la Raspberry Pi"
 
 #: src/templates/index.html:689
-msgid "Read the RaSCSI Manual"
-msgstr "Lea el manual de RaSCSI"
+msgid "Read the PiSCSI Manual"
+msgstr "Lea el manual de PiSCSI"
 
 #: src/templates/logs.html:4
 #, python-format

@@ -1,8 +1,8 @@
-.TH rasdump 1
+.TH scsidump 1
 .SH NAME
-rasdump \- SCSI disk dumping tool for RaSCSI
+scsidump \- SCSI disk dumping tool for PiSCSI
 .SH SYNOPSIS
-.B rasdump
+.B scsidump
 \fB\-t\fR \fIID[:LUN]\fR
 [\fB\-i\fR \fIBID\fR]
 \fB\-f\fR \fIFILE\fR
@@ -10,8 +10,8 @@ rasdump \- SCSI disk dumping tool for RaSCSI
 [\fB\-r\fR]
 [\fB\-v\fR]
 .SH DESCRIPTION
-.B rasdump
-samples the data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through a STANDARD RaSCSI board, or a FULLSPEC RaSCSI board.
+.B scsidump
+samples the data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through a STANDARD PiSCSI board, or a FULLSPEC PiSCSI board.
 
 Set its own ID with the BID option. Defaults to 7 if ommitted.
 
@@ -21,7 +21,7 @@ Set its own ID with the BID option. Defaults to 7 if ommitted.
 SCSI ID and optional LUN of the target device.
 .TP
 .BR \-i\fI " "\fIBID
-SCSI ID of the RaSCSI device.
+SCSI ID of the PiSCSI device.
 .TP
 .BR \-f\fI " "\fIFILE
 Path to the dump file.
@@ -36,6 +36,6 @@ Run in restore mode.
 Enable verbose logging.
 
 .SH SEE ALSO
-rasctl(1), rascsi(1), scsimon(1)
+scsictl(1), piscsi(1), scsimon(1)
  
-Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
+Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>

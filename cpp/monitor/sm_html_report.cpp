@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/rascsi_version.h"
+#include "shared/piscsi_version.h"
 #include "sm_reports.h"
 #include <iostream>
 #include <fstream>
@@ -66,11 +66,11 @@ pre {
 static void print_copyright_info(ofstream& html_fp)
 {
     html_fp << "<table>" << endl \
-            << "<h1>RaSCSI scsimon Capture Tool</h1>" << endl \
-            << "<pre>Version " << rascsi_get_version_string() \
+            << "<h1>PiSCSI scsimon Capture Tool</h1>" << endl \
+            << "<pre>Version " << piscsi_get_version_string() \
             << __DATE__ << " " << __TIME__ << endl \
             << "Copyright (C) 2016-2020 GIMONS" << endl \
-            << "Copyright (C) 2020-2021 Contributors to the RaSCSI project" << endl \
+            << "Copyright (C) 2020-2021 Contributors to the PiSCSI project" << endl \
             << "</pre></table>" << endl \
             << "<br>" << endl;
 }

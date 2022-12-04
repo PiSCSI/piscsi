@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -9,9 +9,9 @@
 
 #include "mocks.h"
 #include "shared/protobuf_util.h"
-#include "generated/rascsi_interface.pb.h"
+#include "generated/piscsi_interface.pb.h"
 
-using namespace rascsi_interface;
+using namespace piscsi_interface;
 using namespace protobuf_util;
 
 void TestSpecialDevice(const string& name)

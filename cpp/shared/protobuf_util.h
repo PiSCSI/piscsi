@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
@@ -12,12 +12,12 @@
 #pragma once
 
 #include "google/protobuf/message.h"
-#include "generated/rascsi_interface.pb.h"
+#include "generated/piscsi_interface.pb.h"
 #include <string>
 #include <list>
 
 using namespace std;
-using namespace rascsi_interface;
+using namespace piscsi_interface;
 
 namespace protobuf_util
 {

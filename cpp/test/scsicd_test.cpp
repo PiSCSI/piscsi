@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include <filesystem>
 #include <fstream>
 
@@ -29,7 +29,7 @@ void ScsiCdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiCdTest, Inquiry)
 {
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "RaSCSI  SCSI CD-ROM     ", 0x1f, true);
+	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 }
 
 TEST(ScsiCdTest, SetUpModePages)
@@ -105,7 +105,7 @@ TEST(ScsiCdTest, Open)
 
 	filename = CreateTempFile(2* 2048);
 	cd_physical.SetFilename("\\" + string(filename));
-	// The respective code in SCSICD appears to be broken, see https://github.com/akuker/RASCSI/issues/919
+	// The respective code in SCSICD appears to be broken, see https://github.com/akuker/PISCSI/issues/919
 	EXPECT_THROW(cd_physical.Open(), io_exception) << "Invalid physical CD-ROM file";
 	remove(filename);
 }

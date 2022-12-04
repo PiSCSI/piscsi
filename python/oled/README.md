@@ -1,4 +1,4 @@
-# RaSCSI OLED Screen
+# PiSCSI OLED Screen
 
 ## Run as standalone script for development / troubleshooting
 
@@ -9,7 +9,7 @@ $ python3 -m venv venv
 $ source venv/bin/activate
 # Install requirements
 $ pip3 install -r requirements.txt
-$ PYTHONPATH=$PWD/src:$(dirname $PWD)/common/src python3 src/rascsi_oled_monitor.py
+$ PYTHONPATH=$PWD/src:$(dirname $PWD)/common/src python3 src/piscsi_oled_monitor.py
 ```
 
 ### Parameters
@@ -20,7 +20,7 @@ The script takes two positional parameters:
 
 Ex.
 ```
-$ python3 rascsi_oled_monitor.py --rotation 180 --height 64
+$ python3 piscsi_oled_monitor.py --rotation 180 --height 64
 ```
 
 _Note:_ Both parameters must be passed for the script to read them. Ordering is also important.

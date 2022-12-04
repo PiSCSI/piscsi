@@ -57,11 +57,11 @@ scsi_io_gpio = 22
 scsi_bsy_gpio = 37
 scsi_sel_gpio = 13
 
-# Pin numbers of the direction controllers of the RaSCSI board
-rascsi_ind_gpio = 31
-rascsi_tad_gpio = 26
-rascsi_dtd_gpio = 24
-rascsi_none = -1
+# Pin numbers of the direction controllers of the PiSCSI board
+piscsi_ind_gpio = 31
+piscsi_tad_gpio = 26
+piscsi_dtd_gpio = 24
+piscsi_none = -1
 
 # Matrix showing all of the SCSI signals, along what signal they're looped back to.
 # dir_ctrl indicates which direction control pin is associated with that output
@@ -69,92 +69,92 @@ gpio_map = [
     {
         "gpio_num": scsi_d0_gpio,
         "attached_to": scsi_ack_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d1_gpio,
         "attached_to": scsi_sel_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d2_gpio,
         "attached_to": scsi_atn_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d3_gpio,
         "attached_to": scsi_rst_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d4_gpio,
         "attached_to": scsi_cd_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d5_gpio,
         "attached_to": scsi_io_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d6_gpio,
         "attached_to": scsi_msg_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_d7_gpio,
         "attached_to": scsi_req_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_dp_gpio,
         "attached_to": scsi_bsy_gpio,
-        "dir_ctrl": rascsi_dtd_gpio,
+        "dir_ctrl": piscsi_dtd_gpio,
     },
     {
         "gpio_num": scsi_atn_gpio,
         "attached_to": scsi_d2_gpio,
-        "dir_ctrl": rascsi_ind_gpio,
+        "dir_ctrl": piscsi_ind_gpio,
     },
     {
         "gpio_num": scsi_rst_gpio,
         "attached_to": scsi_d3_gpio,
-        "dir_ctrl": rascsi_ind_gpio,
+        "dir_ctrl": piscsi_ind_gpio,
     },
     {
         "gpio_num": scsi_ack_gpio,
         "attached_to": scsi_d0_gpio,
-        "dir_ctrl": rascsi_ind_gpio,
+        "dir_ctrl": piscsi_ind_gpio,
     },
     {
         "gpio_num": scsi_req_gpio,
         "attached_to": scsi_d7_gpio,
-        "dir_ctrl": rascsi_tad_gpio,
+        "dir_ctrl": piscsi_tad_gpio,
     },
     {
         "gpio_num": scsi_msg_gpio,
         "attached_to": scsi_d6_gpio,
-        "dir_ctrl": rascsi_tad_gpio,
+        "dir_ctrl": piscsi_tad_gpio,
     },
     {
         "gpio_num": scsi_cd_gpio,
         "attached_to": scsi_d4_gpio,
-        "dir_ctrl": rascsi_tad_gpio,
+        "dir_ctrl": piscsi_tad_gpio,
     },
     {
         "gpio_num": scsi_io_gpio,
         "attached_to": scsi_d5_gpio,
-        "dir_ctrl": rascsi_tad_gpio,
+        "dir_ctrl": piscsi_tad_gpio,
     },
     {
         "gpio_num": scsi_bsy_gpio,
         "attached_to": scsi_dp_gpio,
-        "dir_ctrl": rascsi_tad_gpio,
+        "dir_ctrl": piscsi_tad_gpio,
     },
     {
         "gpio_num": scsi_sel_gpio,
         "attached_to": scsi_d1_gpio,
-        "dir_ctrl": rascsi_ind_gpio,
+        "dir_ctrl": piscsi_ind_gpio,
     },
 ]
 
@@ -194,47 +194,47 @@ def print_all():
 
 # Set transceivers IC1 and IC2 to OUTPUT
 def set_dtd_out():
-    gpio.output(rascsi_dtd_gpio, gpio.LOW)
+    gpio.output(piscsi_dtd_gpio, gpio.LOW)
 
 
 # Set transceivers IC1 and IC2 to INPUT
 def set_dtd_in():
-    gpio.output(rascsi_dtd_gpio, gpio.HIGH)
+    gpio.output(piscsi_dtd_gpio, gpio.HIGH)
 
 
 # Set transceiver IC4 to OUTPUT
 def set_ind_out():
-    gpio.output(rascsi_ind_gpio, gpio.HIGH)
+    gpio.output(piscsi_ind_gpio, gpio.HIGH)
 
 
 # Set transceiver IC4 to INPUT
 def set_ind_in():
-    gpio.output(rascsi_ind_gpio, gpio.LOW)
+    gpio.output(piscsi_ind_gpio, gpio.LOW)
 
 
 # Set transceiver IC3 to OUTPUT
 def set_tad_out():
-    gpio.output(rascsi_tad_gpio, gpio.HIGH)
+    gpio.output(piscsi_tad_gpio, gpio.HIGH)
 
 
 # Set transceiver IC3 to INPUT
 def set_tad_in():
-    gpio.output(rascsi_tad_gpio, gpio.LOW)
+    gpio.output(piscsi_tad_gpio, gpio.LOW)
 
 
 # Set the specified transciever to an OUTPUT. All of the other transceivers
 # will be set to inputs. If a non-existent direction gpio is specified, this
 # will set all of the transceivers to inputs.
 def set_output_channel(out_gpio):
-    if out_gpio == rascsi_tad_gpio:
+    if out_gpio == piscsi_tad_gpio:
         set_tad_out()
     else:
         set_tad_in()
-    if out_gpio == rascsi_dtd_gpio:
+    if out_gpio == piscsi_dtd_gpio:
         set_dtd_out()
     else:
         set_dtd_in()
-    if out_gpio == rascsi_ind_gpio:
+    if out_gpio == piscsi_ind_gpio:
         set_ind_out()
     else:
         set_ind_in()
@@ -288,7 +288,7 @@ def test_gpio_pin(gpio_rec):
 
     ############################################
     # set the transceivers to input
-    set_output_channel(rascsi_none)
+    set_output_channel(piscsi_none)
 
     time.sleep(pin_settle_delay)
 
@@ -357,9 +357,9 @@ def setup():
         gpio.setup(cur_gpio["gpio_num"], gpio.OUT, initial=gpio.HIGH)
 
     # Setup direction control
-    gpio.setup(rascsi_ind_gpio, gpio.OUT)
-    gpio.setup(rascsi_tad_gpio, gpio.OUT)
-    gpio.setup(rascsi_dtd_gpio, gpio.OUT)
+    gpio.setup(piscsi_ind_gpio, gpio.OUT)
+    gpio.setup(piscsi_tad_gpio, gpio.OUT)
+    gpio.setup(piscsi_dtd_gpio, gpio.OUT)
 
 
 # Main functions for running the actual test.

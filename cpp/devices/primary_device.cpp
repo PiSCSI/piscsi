@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "primary_device.h"
 #include <sstream>
@@ -24,7 +24,7 @@ bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdInquiry, [this] { Inquiry(); });
 	AddCommand(scsi_command::eCmdReportLuns, [this] { ReportLuns(); });
 
-	// Optional commands supported by all RaSCSI devices
+	// Optional commands supported by all PiSCSI devices
 	AddCommand(scsi_command::eCmdRequestSense, [this] { RequestSense(); });
 	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
 	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });

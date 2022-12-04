@@ -100,11 +100,11 @@ while [ "$1" != "" ]; do
     -P | --password)
         ARG_PASSWORD="--password $VALUE"
         ;;
-    -h | --rascsi-host)
-        ARG_RASCSI_HOST="--rascsi-host $VALUE"
+    -h | --piscsi-host)
+        ARG_PISCSI_HOST="--piscsi-host $VALUE"
         ;;
-    -o | --rascsi-port)
-        ARG_RASCSI_PORT="--rascsi-port $VALUE"
+    -o | --piscsi-port)
+        ARG_PISCSI_PORT="--piscsi-port $VALUE"
         ;;
     -l | --log-level)
         ARG_LOG_LEVEL="--log-level $VALUE"
@@ -125,10 +125,9 @@ export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
 
 if [[ $ARG_DEV_MODE ]]; then
-    echo "Starting web UI (dev mode) ..."
+    echo "Dev mode enabled."
     watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
-    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
-else
-    echo "Starting web UI ..."
-    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 fi
+
+echo "Starting PiSCSI Web UI..."
+python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_PISCSI_HOST} ${ARG_PISCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}

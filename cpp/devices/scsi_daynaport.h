@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //  Copyright (C) 2020 akuker
@@ -107,7 +107,7 @@ private:
 	};
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
-		// TODO Remove this hard-coded MAC address, see https://github.com/akuker/RASCSI/issues/598
+		// TODO Remove this hard-coded MAC address, see https://github.com/akuker/PISCSI/issues/598
 		.mac_address = { byte{0x00}, byte{0x80}, byte{0x19}, byte{0x10}, byte{0x98}, byte{0xe3} },
 		.frame_alignment_errors = 0,
 		.crc_errors = 0,

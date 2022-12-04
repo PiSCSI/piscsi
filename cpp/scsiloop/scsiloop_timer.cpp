@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded for Raspberry Pi
+//	SCSI Target Emulator PiSCSI for Raspberry Pi
 //  Loopback tester utility
 //
 //	Copyright (C) 2022 akuker

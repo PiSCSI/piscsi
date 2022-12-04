@@ -1,12 +1,12 @@
 .TH scsiloop 1
 .SH NAME
-scsiloop \- Tool for testing the RaSCSI board with a loopback adapter installed
+scsiloop \- Tool for testing the PiSCSI board with a loopback adapter installed
 .SH SYNOPSIS
 .B scsiloop
 [\fB\-L\fR \fILOG_LEVEL\fR]
 .SH DESCRIPTION
 .B scsiloop
-Performs a self-test of the RaSCSI hardware to ensure that the board is functioning properly. In order for this tool to work, a special loopback cable MUST be attached to the RaSCSI SCSI connector.
+Performs a self-test of the PiSCSI hardware to ensure that the board is functioning properly. In order for this tool to work, a special loopback cable MUST be attached to the PiSCSI SCSI connector.
 
 In addition to testing the GPIO signals, scsiloop will perform a self-test of the hardware timers that are built into the system on a chip (SoC).
 
@@ -27,9 +27,9 @@ The loopback connections for the DB25 connector are shown here:
 .SH OPTIONS
 .TP
 .BR \-L\fI " " \fILOG_LEVEL
-The rascsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
+The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
 
 .SH SEE ALSO
-rasctl(1), rascsi(1), scsimon(1)
+scsictl(1), piscsi(1), scsimon(1)
  
-Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
+Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>

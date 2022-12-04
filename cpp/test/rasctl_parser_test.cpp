@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "rasctl/rasctl_parser.h"
+#include "scsictl/scsictl_parser.h"
 
 TEST(RasctlParserTest, ParseOperation)
 {

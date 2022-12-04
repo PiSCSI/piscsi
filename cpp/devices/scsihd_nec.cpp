@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
@@ -12,8 +12,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rasutil.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/pisutil.h"
+#include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsihd_nec.h"
 #include <fstream>

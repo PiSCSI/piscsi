@@ -7,7 +7,7 @@
 *.vcd
 *.json
 *.html
-rascsi.dat
+piscsi.dat
 obj
 bin
 coverage

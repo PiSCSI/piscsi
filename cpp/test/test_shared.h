@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -10,14 +10,14 @@
 #pragma once
 
 #include "shared/scsi.h"
-#include "generated/rascsi_interface.pb.h"
+#include "generated/piscsi_interface.pb.h"
 #include <string>
 #include <memory>
 #include <filesystem>
 
 using namespace std;
 using namespace filesystem;
-using namespace rascsi_interface;
+using namespace piscsi_interface;
 
 class PrimaryDevice;
 class MockAbstractController;

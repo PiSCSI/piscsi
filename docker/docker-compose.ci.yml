@@ -20,7 +20,7 @@ services:
     volumes:
       - ./volumes/images:/home/pi/images:delegated
     init: true
-    command: ["--rascsi-host=backend", "--log-level=debug"]
+    command: ["--backend-host=backend", "--log-level=debug"]
     healthcheck:
       interval: 5s
       start_period: 5s

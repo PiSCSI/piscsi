@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -10,8 +10,8 @@
 #include "test_shared.h"
 #include "controllers/controller_manager.h"
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
-#include "shared/rascsi_version.h"
+#include "shared/piscsi_exceptions.h"
+#include "shared/piscsi_version.h"
 #include <filesystem>
 #include <sstream>
 #include <unistd.h>
@@ -23,7 +23,7 @@ using namespace filesystem;
 // Inlude the process id in the temp file path so that multiple instances of the test procedures
 // could run on the same host.
 const path test_data_temp_path(temp_directory_path() /
-                               path(fmt::format("rascsi-test-{}",
+                               path(fmt::format("piscsi-test-{}",
                                                 getpid()))); // NOSONAR Publicly writable directory is fine here
 
 shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController &controller, const string &extension)
@@ -62,7 +62,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string &i
     string product_data;
     if (ident.size() == 24) {
         ostringstream s;
-        s << ident << setw(2) << setfill('0') << rascsi_major_version << rascsi_minor_version;
+        s << ident << setw(2) << setfill('0') << piscsi_major_version << piscsi_minor_version;
         product_data = s.str();
     } else {
         product_data = ident;
@@ -73,7 +73,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string &i
 pair<int, path> OpenTempFile()
 {
     const string filename =
-        string(test_data_temp_path) + "/rascsi_test-XXXXXX"; // NOSONAR Publicly writable directory is fine here
+        string(test_data_temp_path) + "/piscsi_test-XXXXXX"; // NOSONAR Publicly writable directory is fine here
     vector<char> f(filename.begin(), filename.end());
     f.push_back(0);
 

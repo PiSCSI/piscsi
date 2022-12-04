@@ -525,7 +525,7 @@ section > details ul {
 
 /*
  ------------------------------------------------------------------------------
- Index > Section: Current RaSCSI configuration
+ Index > Section: Current PiSCSI configuration
  ------------------------------------------------------------------------------
  */
 body:not(.logged-in) section:not(#current-config, #manual) {

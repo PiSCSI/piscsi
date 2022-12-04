@@ -61,7 +61,7 @@ def test_show_logs(http_client):
         "/logs/show",
         data={
             "lines": 100,
-            "scope": "rascsi",
+            "scope": "piscsi",
         },
     )
 
@@ -69,7 +69,7 @@ def test_show_logs(http_client):
 
     assert response.status_code == 200
     assert response_data["data"]["lines"] == "100"
-    assert response_data["data"]["scope"] == "rascsi"
+    assert response_data["data"]["scope"] == "piscsi"
 
 
 # route("/config/save", methods=["POST"])

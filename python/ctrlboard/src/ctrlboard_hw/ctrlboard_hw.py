@@ -1,4 +1,4 @@
-"""Module providing the interface to the RaSCSI Control Board hardware"""
+"""Module providing the interface to the PiSCSI Control Board hardware"""
 # noinspection PyUnresolvedReferences
 import logging
 import time
@@ -15,19 +15,19 @@ from observable import Observable
 
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardHardware(Observable):
-    """Class implements the RaSCSI Control Board hardware and provides an interface to it."""
+    """Class implements the PiSCSI Control Board hardware and provides an interface to it."""
 
     def __init__(self, display_i2c_address, pca9554_i2c_address, debounce_ms=200):
         self.display_i2c_address = display_i2c_address
         self.pca9554_i2c_address = pca9554_i2c_address
         self.debounce_ms = debounce_ms
-        self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
+        self.piscsi_controlboard_detected = self.detect_piscsi_controlboard()
         log = logging.getLogger(__name__)
-        log.info("RaSCSI Control Board detected: %s", str(self.rascsi_controlboard_detected))
+        log.info("PiSCSI Control Board detected: %s", str(self.piscsi_controlboard_detected))
         self.display_detected = self.detect_display()
         log.info("Display detected: %s", str(self.display_detected))
 
-        if self.rascsi_controlboard_detected is False:
+        if self.piscsi_controlboard_detected is False:
             return
 
         self.pos = 0
@@ -234,8 +234,8 @@ class CtrlBoardHardware(Observable):
 
         return detected_i2c_addresses
 
-    def detect_rascsi_controlboard(self):
-        """Detects whether the RaSCSI Control Board is attached by checking whether
+    def detect_piscsi_controlboard(self):
+        """Detects whether the PiSCSI Control Board is attached by checking whether
         the expected i2c addresses are detected."""
         # pylint: disable=c-extension-no-member
         i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
@@ -247,7 +247,7 @@ class CtrlBoardHardware(Observable):
         )
 
     def detect_display(self):
-        """Detects whether an i2c display is connected to the RaSCSI hat."""
+        """Detects whether an i2c display is connected to the PiSCSI hat."""
         # pylint: disable=c-extension-no-member
         i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
         return bool(int(self.display_i2c_address) in i2c_addresses)
