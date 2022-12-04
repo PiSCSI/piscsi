@@ -1,0 +1,12 @@
+[Unit]
+Description=PiSCSI-Web service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/pi/PISCSI/python/web/start.sh
+SyslogIdentifier=PISCSIWEB
+
+[Install]
+WantedBy=multi-user.target

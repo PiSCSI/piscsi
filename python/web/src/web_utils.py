@@ -1,5 +1,5 @@
 """
-Module for RaSCSI Web Interface utility methods
+Module for PiSCSI Web Interface utility methods
 """
 
 import logging
@@ -12,7 +12,7 @@ from flask import request, make_response
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
-from rascsi.sys_cmds import SysCmds
+from piscsi.sys_cmds import SysCmds
 
 
 def get_valid_scsi_ids(devices, reserved_ids):
@@ -79,7 +79,7 @@ def sort_and_format_devices(devices):
 
 def map_device_types_and_names(device_types):
     """
-    Takes a (dict) corresponding to the data structure returned by RaCtlCmds.get_device_types()
+    Takes a (dict) corresponding to the data structure returned by PiscsiCmds.get_device_types()
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
     for device in device_types.keys():
@@ -229,7 +229,7 @@ def is_bridge_configured(interface):
     PATH_SYSCTL = "/etc/sysctl.conf"
     PATH_IPTV4 = "/etc/iptables/rules.v4"
     PATH_DHCPCD = "/etc/dhcpcd.conf"
-    PATH_BRIDGE = "/etc/network/interfaces.d/rascsi_bridge"
+    PATH_BRIDGE = "/etc/network/interfaces.d/piscsi_bridge"
     return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
     to_configure = []
     sys_cmd = SysCmds()

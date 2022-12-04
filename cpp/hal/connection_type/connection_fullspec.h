@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -14,7 +14,7 @@
 #include <string>
 
 //
-// RaSCSI standard (SCSI logic, standard pin assignment)
+// PiSCSI standard (SCSI logic, standard pin assignment)
 //
 
 const std::string CONNECT_DESC = "FULLSPEC"; // Startup message

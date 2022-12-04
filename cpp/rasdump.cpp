@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "rasdump/rasdump_core.h"
+#include "scsidump/scsidump_core.h"
 
 using namespace std;
 

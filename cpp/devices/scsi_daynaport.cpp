@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //  Copyright (C) 2020 akuker
@@ -19,12 +19,12 @@
 //
 //  Additional documentation and clarification is available at the
 //  following link:
-//    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
+//    - https://github.com/akuker/PISCSI/wiki/Dayna-Port-SCSI-Link
 //
 //  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_daynaport.h"
 #include <sstream>
@@ -208,7 +208,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t)
 			// }
 			int size = rx_packet_size;
 			if (size < 64) {
-				// A frame must have at least 64 bytes (see https://github.com/akuker/RASCSI/issues/619)
+				// A frame must have at least 64 bytes (see https://github.com/akuker/PISCSI/issues/619)
 				// Note that this work-around breaks the checksum. As currently there are no known drivers
 				// that care for the checksum, and the Daynaport driver for the Atari expects frames of
 				// 64 bytes it was decided to accept the broken checksum. If a driver should pop up that

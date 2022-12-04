@@ -1,10 +1,10 @@
-"""Module providing the profile cycler class for the RaSCSI Control Board UI"""
+"""Module providing the profile cycler class for the PiSCSI Control Board UI"""
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.cycler import Cycler
 
 
-class RascsiProfileCycler(Cycler):
-    """Class implementing the profile cycler for the RaSCSI Control Baord UI"""
+class PiscsiProfileCycler(Cycler):
+    """Class implementing the profile cycler for the PiSCSI Control Baord UI"""
 
     def populate_cycle_entries(self):
         cycle_entries = self.file_cmd.list_config_files()

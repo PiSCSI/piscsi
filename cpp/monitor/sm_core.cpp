@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -15,8 +15,8 @@
 #include "hal/gpiobus_factory.h"
 #include "monitor/sm_reports.h"
 #include "shared/log.h"
-#include "shared/rascsi_version.h"
-#include "shared/rasutil.h"
+#include "shared/piscsi_version.h"
+#include "shared/pisutil.h"
 #include <climits>
 #include <csignal>
 #include <getopt.h>

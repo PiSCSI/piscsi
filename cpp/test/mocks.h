@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -22,8 +22,8 @@
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/host_services.h"
-#include "rascsi/command_context.h"
-#include "rascsi/rascsi_executor.h"
+#include "piscsi/command_context.h"
+#include "piscsi/piscsi_executor.h"
 #include <fcntl.h>
 
 using namespace testing;
@@ -99,8 +99,8 @@ public:
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
-	friend shared_ptr<PrimaryDevice> CreateDevice(rascsi_interface::PbDeviceType, AbstractController&, int);
-	friend void TestInquiry(rascsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
+	friend shared_ptr<PrimaryDevice> CreateDevice(piscsi_interface::PbDeviceType, AbstractController&, int);
+	friend void TestInquiry(piscsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
 			scsi_defs::scsi_level, const std::string&, int, bool);
 
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
@@ -163,7 +163,7 @@ public:
 	MOCK_METHOD(void, Command, (), ());
 	MOCK_METHOD(void, MsgIn, (), ());
 	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, ScheduleShutdown, (rascsi_shutdown_mode), (override));
+	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
 	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
 		: AbstractController(controller_manager, target_id, 32) {
@@ -228,7 +228,7 @@ class MockPrimaryDevice : public PrimaryDevice
 	FRIEND_TEST(PrimaryDeviceTest, Inquiry);
 	FRIEND_TEST(PrimaryDeviceTest, GetSetSendDelay);
 	FRIEND_TEST(ScsiControllerTest, RequestSense);
-	FRIEND_TEST(RascsiExecutorTest, ValidateOperationAgainstDevice);
+	FRIEND_TEST(PiscsiExecutorTest, ValidateOperationAgainstDevice);
 
 public:
 
@@ -349,7 +349,7 @@ class MockSCSIHD : public SCSIHD //NOSONAR Ignore inheritance hierarchy depth in
 	FRIEND_TEST(ScsiHdTest, FinalizeSetup);
 	FRIEND_TEST(ScsiHdTest, GetProductData);
 	FRIEND_TEST(ScsiHdTest, SetUpModePages);
-	FRIEND_TEST(RascsiExecutorTest, SetSectorSize);
+	FRIEND_TEST(PiscsiExecutorTest, SetSectorSize);
 	FRIEND_TEST(ScsiHdTest, ModeSelect);
 
 	using SCSIHD::SCSIHD;
@@ -360,7 +360,7 @@ class MockSCSIHD_NEC : public SCSIHD_NEC //NOSONAR Ignore inheritance hierarchy 
 	FRIEND_TEST(ScsiHdNecTest, SetUpModePages);
 	FRIEND_TEST(ScsiHdNecTest, TestAddFormatPage);
 	FRIEND_TEST(ScsiHdNecTest, TestAddDrivePage);
-	FRIEND_TEST(RascsiExecutorTest, ProcessDeviceCmd);
+	FRIEND_TEST(PiscsiExecutorTest, ProcessDeviceCmd);
 
 	using SCSIHD_NEC::SCSIHD_NEC;
 };
@@ -400,12 +400,12 @@ public:
 	~MockCommandContext() = default;
 };
 
-class MockRascsiExecutor : public RascsiExecutor
+class MockPiscsiExecutor : public PiscsiExecutor
 {
 public:
 
 	MOCK_METHOD(bool, Start, (shared_ptr<PrimaryDevice>, bool), (const));
 	MOCK_METHOD(bool, Stop, (shared_ptr<PrimaryDevice>, bool), (const));
 
-	using RascsiExecutor::RascsiExecutor;
+	using PiscsiExecutor::PiscsiExecutor;
 };

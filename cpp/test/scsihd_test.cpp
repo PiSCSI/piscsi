@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "devices/scsihd.h"
 
 void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
@@ -23,9 +23,9 @@ void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiHdTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "RaSCSI                  ", 0x1f, false);
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "PiSCSI                  ", 0x1f, false);
 
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "RaSCSI                  ", 0x1f, false, ".hd1");
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, ".hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)

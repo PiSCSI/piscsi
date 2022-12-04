@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded for Raspberry Pi
+//	SCSI Target Emulator PiSCSI for Raspberry Pi
 //  Loopback tester utility
 //
 //	Copyright (C) 2022 akuker
@@ -8,13 +8,13 @@
 //	[ Loopback tester utility ]
 //
 //  For more information, see:
-//     https://github.com/akuker/RASCSI/wiki/Troubleshooting#Loopback_Testing
+//     https://github.com/akuker/PISCSI/wiki/Troubleshooting#Loopback_Testing
 //
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/rascsi_version.h"
-#include "shared/rasutil.h"
+#include "shared/piscsi_version.h"
+#include "shared/pisutil.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #include "scsiloop/scsiloop_core.h"
@@ -132,7 +132,7 @@ int ScsiLoop::run(const vector<char *> &args)
     // The -v option should be available for any user, which requires special handling.
     for (auto this_arg : args) {
         if (!strcasecmp(this_arg, "-v")) {
-            cout << rascsi_get_version_string() << endl;
+            cout << piscsi_get_version_string() << endl;
             return 0;
         }
     }

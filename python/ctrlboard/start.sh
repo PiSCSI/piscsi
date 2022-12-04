@@ -50,7 +50,7 @@ if [ $ERROR = 1 ] ; then
 fi
 
 if pgrep -f "python3 src/main.py" &> /dev/null; then
-    echo "Detected active rascsi control board service"
+    echo "Detected active piscsi control board service"
     echo "Terminating before launching a new one."
     sudo pkill -f "python3 src/main.py"
 fi
@@ -79,7 +79,7 @@ fi
 
 # Create the venv if it doesn't exist
 if ! test -e venv; then
-    echo "Creating python venv for RaSCSI control board service"
+    echo "Creating python venv for PiSCSI control board service"
     python3 -m venv venv --system-site-packages
     echo "Activating venv"
     source venv/bin/activate
@@ -115,7 +115,7 @@ set -e
 
 export PYTHONPATH=${PWD}/src:${PWD}/../common/src
 
-echo "Starting RaSCSI control board service..."
+echo "Starting PiSCSI control board service..."
 
 if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] ||
   [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then

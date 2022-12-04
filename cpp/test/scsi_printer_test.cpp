@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "devices/scsi_printer.h"
 
@@ -45,7 +45,7 @@ TEST(ScsiPrinterTest, TestUnitReady)
 
 TEST(ScsiPrinterTest, Inquiry)
 {
-	TestInquiry(SCLP, device_type::PRINTER, scsi_level::SCSI_2,	"RaSCSI  SCSI PRINTER    ", 0x1f, false);
+	TestInquiry(SCLP, device_type::PRINTER, scsi_level::SCSI_2,	"PiSCSI  SCSI PRINTER    ", 0x1f, false);
 }
 
 TEST(ScsiPrinterTest, ReserveUnit)

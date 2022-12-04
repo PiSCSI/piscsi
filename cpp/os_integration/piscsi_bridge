@@ -1,0 +1,13 @@
+#
+# Defines the 'piscsi_bridge' bridge that connects the PiSCSI network
+# interface (ex DaynaPort SCSI/Link) to the outside world.
+#
+# Depending upon your system configuration, you may need to update this
+# file to change 'eth0' to your Ethernet interface
+#
+# This file should be place in /etc/network/interfaces.d
+
+auto piscsi_bridge
+iface piscsi_bridge inet dhcp
+	bridge_ports eth0
+

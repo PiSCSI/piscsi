@@ -1,7 +1,7 @@
 """Module that implements a button cycling functionality"""
 from abc import abstractmethod
 from menu.timer import Timer
-from rascsi.file_cmds import FileCmds
+from piscsi.file_cmds import FileCmds
 
 
 class Cycler:
@@ -13,7 +13,7 @@ class Cycler:
         self,
         menu_controller,
         sock_cmd,
-        ractl_cmd,
+        piscsi_cmd,
         cycle_timeout=3,
         return_string="Return ->",
         return_entry=True,
@@ -22,8 +22,8 @@ class Cycler:
         self._cycle_profile_timer_flag = Timer(activation_delay=cycle_timeout)
         self._menu_controller = menu_controller
         self.sock_cmd = sock_cmd
-        self.ractl_cmd = ractl_cmd
-        self.file_cmd = FileCmds(sock_cmd=self.sock_cmd, ractl=self.ractl_cmd)
+        self.piscsi_cmd = piscsi_cmd
+        self.file_cmd = FileCmds(sock_cmd=self.sock_cmd, piscsi=self.piscsi_cmd)
         self.cycle_entries = self.populate_cycle_entries()
         self.return_string = return_string
         self.return_entry = return_entry

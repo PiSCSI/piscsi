@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
-#include "shared/rascsi_version.h"
+#include "shared/piscsi_exceptions.h"
+#include "shared/piscsi_version.h"
 #include "controllers/controller_manager.h"
 #include "devices/device.h"
 #include "devices/device_factory.h"
@@ -156,7 +156,7 @@ TEST(DeviceFactoryTest, SCHD_Device_Defaults)
 
 	EXPECT_EQ("QUANTUM", device->GetVendor()) << "Invalid default vendor for Apple drive";
 	EXPECT_EQ("FIREBALL", device->GetProduct()) << "Invalid default vendor for Apple drive";
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
 	device = device_factory.CreateDevice(UNDEFINED, 0, "test.hds");
@@ -191,9 +191,9 @@ void TestRemovableDrive(PbDeviceType type, const string& filename, const string&
 	EXPECT_TRUE(device->IsStoppable());
 	EXPECT_FALSE(device->IsStopped());
 
-	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ(product, device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 
 }
@@ -227,9 +227,9 @@ TEST(DeviceFactoryTest, SCCD_Device_Defaults)
 	EXPECT_TRUE(device->IsStoppable());
 	EXPECT_FALSE(device->IsStopped());
 
-	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI CD-ROM", device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }
 
@@ -252,9 +252,9 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_FALSE(device->IsStoppable());
 	EXPECT_FALSE(device->IsStopped());
 
-	EXPECT_EQ("RaSCSI", device->GetVendor());
-	EXPECT_EQ("RASCSI BRIDGE", device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ("PiSCSI", device->GetVendor());
+	EXPECT_EQ("PISCSI BRIDGE", device->GetProduct());
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }
 
@@ -301,9 +301,9 @@ TEST(DeviceFactoryTest, SCHS_Device_Defaults)
 	EXPECT_FALSE(device->IsStoppable());
 	EXPECT_FALSE(device->IsStopped());
 
-	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("Host Services", device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }
 
@@ -326,8 +326,8 @@ TEST(DeviceFactoryTest, SCLP_Device_Defaults)
 	EXPECT_FALSE(device->IsStoppable());
 	EXPECT_FALSE(device->IsStopped());
 
-	EXPECT_EQ("RaSCSI", device->GetVendor());
+	EXPECT_EQ("PiSCSI", device->GetVendor());
 	EXPECT_EQ("SCSI PRINTER", device->GetProduct());
-	EXPECT_EQ(string(rascsi_get_version_string()).substr(0, 2) + string(rascsi_get_version_string()).substr(3, 2),
+	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }

@@ -2,9 +2,9 @@
 /*
 
 # Paths to include
-!/docker/rascsi/rascsi_wrapper.sh
-!/docker/rascsi/cfilesystem.patch
-!/docker/rascsi-web/start.sh
+!/docker/piscsi/piscsi_wrapper.sh
+!/docker/piscsi/cfilesystem.patch
+!/docker/piscsi-web/start.sh
 !/doc
 !/python
 !/cpp
@@ -22,7 +22,7 @@ core
 *.swp
 __pycache__
 current
-rascsi_interface_pb2.py
+piscsi_interface_pb2.py
 src/raspberrypi/hfdisk/
 *~
 messages.pot

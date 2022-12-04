@@ -1,6 +1,6 @@
 """Module for mapping between return codes and translated strings"""
 
-from rascsi.return_codes import ReturnCodes
+from piscsi.return_codes import ReturnCodes
 from flask_babel import _, lazy_gettext
 
 

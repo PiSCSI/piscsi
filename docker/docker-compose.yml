@@ -1,64 +1,64 @@
 services:
-  rascsi:
-    container_name: rascsi
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-standalone
+  piscsi:
+    container_name: piscsi
+    image: piscsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-standalone
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi/Dockerfile
+      dockerfile: docker/piscsi/Dockerfile
       args:
         - OS_DISTRO=${OS_DISTRO:-debian}
         - OS_VERSION=${OS_VERSION:-buster}
         - OS_ARCH=${OS_ARCH:-amd64}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/rascsi:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
-      - "127.0.0.1:${RASCSI_PORT:-6868}:6868"
+      - "127.0.0.1:${PISCSI_PORT:-6868}:6868"
     environment:
-     - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
+     - PISCSI_PASSWORD=${PISCSI_PASSWORD:-}
     init: true
     command: [
-      "/usr/local/bin/rascsi_wrapper.sh",
+      "/usr/local/bin/piscsi_wrapper.sh",
       "-L",
-      "${RASCSI_LOG_LEVEL:-trace}",
+      "${PISCSI_LOG_LEVEL:-trace}",
       "-r",
       "7",
       "-F",
       "/home/pi/images"
     ]
 
-  rascsi_web:
-    container_name: rascsi_web
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-web
+  piscsi_web:
+    container_name: piscsi_web
+    image: piscsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-web
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi-web/Dockerfile
+      dockerfile: docker/piscsi-web/Dockerfile
       args:
         - OS_DISTRO=${OS_DISTRO:-debian}
         - OS_VERSION=${OS_VERSION:-buster}
         - OS_ARCH=${OS_ARCH:-amd64}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/rascsi:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
       - "127.0.0.1:${WEB_HTTP_PORT:-8080}:80"
       - "127.0.0.1:${WEB_HTTPS_PORT:-8443}:443"
     environment:
-     - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
+     - PISCSI_PASSWORD=${PISCSI_PASSWORD:-}
     init: true
     command: [
       "start.sh",
-      "--rascsi-host=${RASCSI_HOST:-rascsi}",
-      "--rascsi-port=${RASCSI_PORT:-6868}",
+      "--piscsi-host=${PISCSI_HOST:-piscsi}",
+      "--piscsi-port=${PISCSI_PORT:-6868}",
       "--log-level=${WEB_LOG_LEVEL:-info}",
       "--dev-mode"
     ]
 
   pytest:
     container_name: pytest
-    image: rascsi:pytest
+    image: piscsi:pytest
     pull_policy: never
     profiles:
       - webui-tests

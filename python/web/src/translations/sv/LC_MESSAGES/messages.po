@@ -1,12 +1,12 @@
-# Swedish translations for RaSCSI.
+# Swedish translations for PiSCSI.
 # Copyright (C) 2021 akuker
-# This file is distributed under the same license as the RaSCSI project.
+# This file is distributed under the same license as the PiSCSI project.
 # Daniel Markstedt <markstedt@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: RaSCSI Reloaded\n"
-"Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
+"Project-Id-Version: PiSCSI\n"
+"Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
 "POT-Creation-Date: 2022-10-07 21:10-0700\n"
 "PO-Revision-Date: 2022-10-07 20:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
@@ -112,36 +112,36 @@ msgstr "Kunde ej packa upp arkivet: %(error)s"
 #: src/socket_cmds_flask.py:34
 #, python-format
 msgid ""
-"The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s"
-" with error: %(error_msg)s. The RaSCSI process is not running or may have"
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
+" with error: %(error_msg)s. The PiSCSI process is not running or may have"
 " crashed."
 msgstr ""
-"RaSCSIs webbgränssnitt kunde inte ansluta till RaSCSI på "
-"%(host)s:%(port)s med felmeddelandet %(error_msg)s. RaSCSI-processen är "
+"PiSCSIs webbgränssnitt kunde inte ansluta till PiSCSI på "
+"%(host)s:%(port)s med felmeddelandet %(error_msg)s. PiSCSI-processen är "
 "antingen avslagen eller har krashat."
 
 #: src/socket_cmds_flask.py:45
 msgid ""
-"The RaSCSI Web Interface lost connection to RaSCSI. Please go back and "
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
 "try again. If the issue persists, please report a bug."
 msgstr ""
-"RaSCSIs webbgränssnitt tappade kontaken med RaSCSI. Gå tillbaks och "
+"PiSCSIs webbgränssnitt tappade kontaken med PiSCSI. Gå tillbaks och "
 "försök igen. Om samma fel upprepas så rapportera en bugg."
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The RaSCSI Web Interface did not get a valid response from RaSCSI. Please"
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
 " go back and try again. If the issue persists, please report a bug."
 msgstr ""
-"RaSCSIs webbgränssnitt fick en ogiltig respons från RaSCSI. Gå tillbaks "
+"PiSCSIs webbgränssnitt fick en ogiltig respons från PiSCSI. Gå tillbaks "
 "och försök igen. Om samma fel upprepas så rapportera en bugg."
 
 #: src/web.py:182
 msgid ""
-"RaSCSI is password protected. Start the Web Interface with the --password"
+"PiSCSI is password protected. Start the Web Interface with the --password"
 " parameter."
 msgstr ""
-"RaSCSI är lösenordsskyddat. Start webbgränssnittet med parametern "
+"PiSCSI är lösenordsskyddat. Start webbgränssnittet med parametern "
 "--password ."
 
 #: src/web.py:318
@@ -161,8 +161,8 @@ msgstr "Ett fel inträffade när vi hämtade skivinfo: %(error)s"
 
 #: src/web.py:493
 #, python-format
-msgid "%(app)s is not a recognized RaSCSI app"
-msgstr "%(app)s är inte en giltig RaSCSI-app"
+msgid "%(app)s is not a recognized PiSCSI app"
+msgstr "%(app)s är inte en giltig PiSCSI-app"
 
 #: src/web.py:527
 #, python-format
@@ -212,11 +212,11 @@ msgstr ""
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of "
-"%(block_size)s. RaSCSI will ignore the trailing data. The image may be "
+"%(block_size)s. PiSCSI will ignore the trailing data. The image may be "
 "corrupted, so proceed with caution."
 msgstr ""
 "Filstorleken %(file_size)s byte är inte en multipel av %(block_size)s. "
-"RaSCSI ignorerar den överflödiga datan. Skivbilden är möjligen förstörd, "
+"PiSCSI ignorerar den överflödiga datan. Skivbilden är möjligen förstörd, "
 "så var försiktig när du använder den."
 
 #: src/web.py:698
@@ -432,8 +432,8 @@ msgid "File upload successful!"
 msgstr "Filen har laddas upp!"
 
 #: src/templates/base.html:4 src/templates/base.html:68
-msgid "RaSCSI Reloaded Control Page"
-msgstr "RaSCSI Reloaded kontrollsida"
+msgid "PiSCSI Control Page"
+msgstr "PiSCSI kontrollsida"
 
 #: src/templates/base.html:29
 msgid ""
@@ -501,8 +501,8 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy är tillgängligt på %(ip_addr)s (vanligtvis port 5000)"
 
 #: src/templates/base.html:104
-msgid "RaSCSI Reloaded version: "
-msgstr "RaSCSI Reloaded-version: "
+msgid "PiSCSI version: "
+msgstr "PiSCSI-version: "
 
 #: src/templates/base.html:107
 msgid "Pi environment: "
@@ -646,8 +646,8 @@ msgid "%(disk_space)s MiB disk space remaining on the Pi"
 msgstr "%(disk_space)s MiB återstår på Pi-systemets skiva"
 
 #: src/templates/index.html:6
-msgid "Current RaSCSI Configuration"
-msgstr "Nuvarande RaSCSI-konfiguration"
+msgid "Current PiSCSI Configuration"
+msgstr "Nuvarande PiSCSI-konfiguration"
 
 #: src/templates/index.html:9
 #, python-format
@@ -660,11 +660,11 @@ msgstr ""
 
 #: src/templates/index.html:10
 msgid ""
-"To have a particular device configuration load when RaSCSI starts, save "
+"To have a particular device configuration load when PiSCSI starts, save "
 "it as <em>default</em>."
 msgstr ""
 "Om du sparar en enhetskonfiguration som <em>default</em> så laddas den "
-"när RaSCSI startar."
+"när PiSCSI startar."
 
 #: src/templates/index.html:16 src/templates/index.html:37
 #: src/templates/index.html:71
@@ -764,7 +764,7 @@ msgstr "Bildfilshanterare"
 #: src/templates/index.html:174
 #, python-format
 msgid ""
-"Manage image files in the active RaSCSI image directory: "
+"Manage image files in the active PiSCSI image directory: "
 "<tt>%(directory)s</tt> with a scan depth of %(scan_depth)s."
 msgstr ""
 "Hantera filer i den aktiva bildfilskatalogen: <tt>%(directory)s</tt> med "
@@ -858,18 +858,18 @@ msgstr "Anslut tillbehör"
 
 #: src/templates/index.html:345
 msgid ""
-"The <tt>rascsi_bridge</tt> network bridge is active and ready to be used "
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
 msgstr ""
-"Nätverksbryggan <tt>rascsi_bridge</tt> är påslagen och kan användas av "
+"Nätverksbryggan <tt>piscsi_bridge</tt> är påslagen och kan användas av "
 "det emulerade gränssnittet!"
 
 #: src/templates/index.html:347
 msgid ""
-"Please configure the <tt>rascsi_bridge</tt> network bridge before "
+"Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
 msgstr ""
-"Se till att ställa in och sätta på <tt>rascsi_bridge</tt> innan du "
+"Se till att ställa in och sätta på <tt>piscsi_bridge</tt> innan du "
 "ansluter det emulerade nätverksgränssnittet!"
 
 #: src/templates/index.html:349
@@ -1170,8 +1170,8 @@ msgid "Shut Down Raspberry Pi"
 msgstr "Stäng av Raspberry Pi"
 
 #: src/templates/index.html:689
-msgid "Read the RaSCSI Manual"
-msgstr "Läs manualen för RaSCSI"
+msgid "Read the PiSCSI Manual"
+msgstr "Läs manualen för PiSCSI"
 
 #: src/templates/logs.html:4
 #, python-format

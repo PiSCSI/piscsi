@@ -1,0 +1,38 @@
+//---------------------------------------------------------------------------
+//
+//	SCSI Target Emulator PiSCSI
+//	for Raspberry Pi
+//
+//	Copyright (C) 2020 akuker
+//	[ Define the version string ]
+//
+//---------------------------------------------------------------------------
+
+#include "piscsi_version.h"
+#include <sstream>
+#include <iomanip>
+
+// The following should be updated for each release
+const int piscsi_major_version = 22; // Last two digits of year
+const int piscsi_minor_version = 11; // Month
+const int piscsi_patch_version = -1;  // Patch number - increment for each update
+
+using namespace std;
+
+string piscsi_get_version_string()
+{
+	stringstream s;
+
+	s << setw(2) << setfill('0') << piscsi_major_version << '.' << piscsi_minor_version;
+
+	if (piscsi_patch_version < 0) {
+		s << " --DEVELOPMENT BUILD--";
+    }
+    else {
+		s << '.' << piscsi_patch_version;
+    }
+
+	return s.str();
+}
+
+

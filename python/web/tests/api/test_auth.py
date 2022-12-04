@@ -3,12 +3,12 @@ from conftest import STATUS_SUCCESS, STATUS_ERROR
 
 # route("/login", methods=["POST"])
 def test_login_with_valid_credentials(pytestconfig, http_client_unauthenticated):
-    # Note: This test depends on the rascsi group existing and 'username' a member the group
+    # Note: This test depends on the piscsi group existing and 'username' a member the group
     response = http_client_unauthenticated.post(
         "/login",
         data={
-            "username": pytestconfig.getoption("rascsi_username"),
-            "password": pytestconfig.getoption("rascsi_password"),
+            "username": pytestconfig.getoption("piscsi_username"),
+            "password": pytestconfig.getoption("piscsi_password"),
         },
     )
 
@@ -34,7 +34,7 @@ def test_login_with_invalid_credentials(http_client_unauthenticated):
     assert response.status_code == 401
     assert response_data["status"] == STATUS_ERROR
     assert response_data["messages"][0]["message"] == (
-        "You must log in with valid credentials for a user in the 'rascsi' group"
+        "You must log in with valid credentials for a user in the 'piscsi' group"
     )
 
 

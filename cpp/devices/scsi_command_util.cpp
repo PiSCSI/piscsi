@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "device_logger.h"
 #include "scsi_command_util.h"
 #include <cstring>
@@ -54,9 +54,9 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 			// drives support this, e.g FUJITSU M2624S
 			// We are fine as long as the current sector size remains unchanged
 			if (GetInt16(buf, offset + 12) != sector_size) {
-				// With rascsi it is not possible to permanently (by formatting) change the sector size,
+				// With piscsi it is not possible to permanently (by formatting) change the sector size,
 				// because the size is an externally configurable setting only
-				logger.Warn("In order to change the sector size use the -b option when launching rascsi");
+				logger.Warn("In order to change the sector size use the -b option when launching piscsi");
 				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
 			}
 

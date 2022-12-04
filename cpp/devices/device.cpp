@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_version.h"
+#include "shared/piscsi_version.h"
 #include "device.h"
 #include <cassert>
 #include <sstream>
@@ -18,7 +18,7 @@ using namespace std;
 Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 {
 	ostringstream os;
-	os << setw(2) << setfill('0') << rascsi_major_version << setw(2) << setfill('0') << rascsi_minor_version;
+	os << setw(2) << setfill('0') << piscsi_major_version << setw(2) << setfill('0') << piscsi_minor_version;
 	revision = os.str();
 }
 

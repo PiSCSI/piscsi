@@ -5,14 +5,14 @@ import os
 
 
 def pytest_addoption(parser):
-    default_base_url = "http://rascsi_web" if os.getenv("DOCKER") else "http://localhost:8080"
+    default_base_url = "http://piscsi_web" if os.getenv("DOCKER") else "http://localhost:8080"
 
     parser.addoption("--home_dir", action="store", default="/home/pi")
     parser.addoption("--base_url", action="store", default=default_base_url)
     parser.addoption("--httpserver_host", action="store", default=socket.gethostname())
     parser.addoption("--httpserver_listen_address", action="store", default="0.0.0.0")
-    parser.addoption("--rascsi_username", action="store", default="pi")
-    parser.addoption("--rascsi_password", action="store", default="rascsi")
+    parser.addoption("--piscsi_username", action="store", default="pi")
+    parser.addoption("--piscsi_password", action="store", default="piscsi")
 
 
 @pytest.fixture(scope="session")
@@ -21,7 +21,7 @@ def env(pytestconfig):
     return {
         "is_docker": bool(os.getenv("DOCKER")),
         "home_dir": home_dir,
-        "cfg_dir": f"{home_dir}/.config/rascsi",
+        "cfg_dir": f"{home_dir}/.config/piscsi",
         "images_dir": f"{home_dir}/images",
         "file_server_dir": f"{home_dir}/shared_files",
     }
@@ -63,8 +63,8 @@ def create_http_client(pytestconfig):
             session.post(
                 "/login",
                 data={
-                    "username": pytestconfig.getoption("rascsi_username"),
-                    "password": pytestconfig.getoption("rascsi_password"),
+                    "username": pytestconfig.getoption("piscsi_username"),
+                    "password": pytestconfig.getoption("piscsi_password"),
                 },
             )
         return session

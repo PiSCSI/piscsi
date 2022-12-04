@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //  Copyright (C) 2022 akuker
@@ -99,7 +99,7 @@ void SysTimer_AllWinner::disable_hs_timer()
 
 uint32_t SysTimer_AllWinner::GetTimerLow()
 {
-    // RaSCSI expects the timer to count UP, but the Allwinner HS timer counts
+    // PiSCSI expects the timer to count UP, but the Allwinner HS timer counts
     // down. So, we subtract the current timer value from UINT32_MAX
     return UINT32_MAX - (hsitimer_regs->hs_tmr_curnt_lo_reg / 200);
 }

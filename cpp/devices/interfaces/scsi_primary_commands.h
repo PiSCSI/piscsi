@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
@@ -24,7 +24,7 @@ public:
 	virtual void Inquiry() = 0;
 	virtual void ReportLuns() = 0;
 
-	// Optional commands implemented by all RaSCSI device types
+	// Optional commands implemented by all PiSCSI device types
 	virtual void RequestSense() = 0;
 	virtual void ReleaseUnit() = 0;
 	virtual void ReserveUnit() = 0;

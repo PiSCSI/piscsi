@@ -1,21 +1,21 @@
 """
-Module for sending and receiving data over a socket connection with the RaSCSI backend
+Module for sending and receiving data over a socket connection with the PiSCSI backend
 """
 
 from flask import abort
 from flask_babel import _
 
-from rascsi.exceptions import (
+from piscsi.exceptions import (
     EmptySocketChunkException,
     InvalidProtobufResponse,
     FailedSocketConnectionException,
 )
-from rascsi.socket_cmds import SocketCmds
+from piscsi.socket_cmds import SocketCmds
 
 
 class SocketCmdsFlask(SocketCmds):
     """
-    Class for sending and receiving data over a socket connection with the RaSCSI backend
+    Class for sending and receiving data over a socket connection with the PiSCSI backend
     """
 
     # pylint: disable=useless-super-delegation
@@ -25,7 +25,7 @@ class SocketCmdsFlask(SocketCmds):
     def send_pb_command(self, payload):
         """
         Takes a (str) containing a serialized protobuf as argument.
-        Establishes a socket connection with RaSCSI.
+        Establishes a socket connection with PiSCSI.
         """
         try:
             return super().send_pb_command(payload)
@@ -34,8 +34,8 @@ class SocketCmdsFlask(SocketCmds):
             abort(
                 404,
                 _(
-                    "The RaSCSI Web Interface failed to connect to RaSCSI at "
-                    "%(host)s:%(port)s with error: %(error_msg)s. The RaSCSI "
+                    "The PiSCSI Web Interface failed to connect to PiSCSI at "
+                    "%(host)s:%(port)s with error: %(error_msg)s. The PiSCSI "
                     "process is not running or may have crashed.",
                     host=self.host,
                     port=self.port,
@@ -52,7 +52,7 @@ class SocketCmdsFlask(SocketCmds):
             abort(
                 503,
                 _(
-                    "The RaSCSI Web Interface lost connection to RaSCSI. "
+                    "The PiSCSI Web Interface lost connection to PiSCSI. "
                     "Please go back and try again. "
                     "If the issue persists, please report a bug."
                 ),
@@ -62,7 +62,7 @@ class SocketCmdsFlask(SocketCmds):
             abort(
                 500,
                 _(
-                    "The RaSCSI Web Interface did not get a valid response from RaSCSI. "
+                    "The PiSCSI Web Interface did not get a valid response from PiSCSI. "
                     "Please go back and try again. "
                     "If the issue persists, please report a bug."
                 ),

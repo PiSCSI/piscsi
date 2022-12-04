@@ -107,8 +107,8 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
 # route("/sys/manpage", methods=["POST"])
 def test_show_manpage(http_client):
-    response = http_client.get("/sys/manpage?app=rascsi")
+    response = http_client.get("/sys/manpage?app=piscsi")
     response_data = response.json()
 
     assert response.status_code == 200
-    assert "rascsi" in response_data["data"]["manpage"]
+    assert "piscsi" in response_data["data"]["manpage"]

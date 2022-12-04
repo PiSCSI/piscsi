@@ -1,6 +1,6 @@
-# RaSCSI Reloaded Python Apps 
+# PiSCSI Python Apps 
 
-This directory contains Python-based clients for RaSCSI Reloaded as well as common 
+This directory contains Python-based clients for PiSCSI as well as common 
 packages that are shared among the clients. 
 
 The following paragraphs in this README contain instructions that are shared 

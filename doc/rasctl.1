@@ -1,8 +1,8 @@
-.TH rascsi 1
+.TH piscsi 1
 .SH NAME
-rasctl \- Sends management commands to the rascsi process
+scsictl \- Sends management commands to the piscsi process
 .SH SYNOPSIS
-.B rasctl
+.B scsictl
 \fB\-e\fR |
 \fB\-l\fR |
 \fB\-m\fR |
@@ -33,12 +33,12 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 [\fB\-z\fR \fILOCALE\fR]
 .SH DESCRIPTION
-.B rasctl
-sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
+.B scsictl
+sends commands to the piscsi process to make configuration adjustments at runtime or to check the status of the devices.
 
 Either the -i or -l option should be specified at one time. Not both. 
 
-You do NOT need root privileges to use rasctl.
+You do NOT need root privileges to use scsictl.
 
 Note: The command and type arguments are case insensitive. Only the first letter of the command/type is evaluated by the tool.
 
@@ -60,10 +60,10 @@ Set the default image folder.
 Gets the list of reserved device IDs.
 .TP
 .BR \-L\fI " "\fILOG_LEVEL
-Set the rascsi log level (trace, debug, info, warn, err, off).
+Set the piscsi log level (trace, debug, info, warn, err, off).
 .TP
 .BR \-h\fI " " \fIHOST
-The rascsi host to connect to, default is 'localhost'.
+The piscsi host to connect to, default is 'localhost'.
 .TP
 .BR \-e\fI
 List all images files in the default image folder.
@@ -72,16 +72,16 @@ List all images files in the default image folder.
 Lists all available network interfaces provided that they are up.
 .TP
 .BR \-O\fI
-Display the available rascsi server log levels and the current log level.
+Display the available piscsi server log levels and the current log level.
 .TP
 .BR \-P\fI
-Prompt for the access token in case rascsi requires authentication.
+Prompt for the access token in case piscsi requires authentication.
 .TP
 .BR \-l\fI
-List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
+List all of the devices that are currently being emulated by PiSCSI, as well as their current status.
 .TP
 .BR \-m\fI
-List all file extensions recognized by RaSCSI and the device types they map to.
+List all file extensions recognized by PiSCSI and the device types they map to.
 .TP
 .BR \-o\fI
 Display operation meta data information.
@@ -90,7 +90,7 @@ Display operation meta data information.
 Rename an image file in the default image folder.
 .TP
 .BR \-p\fI " " \fIPORT
-The rascsi port to connect to, default is 6868.
+The piscsi port to connect to, default is 6868.
 .TP
 .BR \-r\fI " " \fIRESERVED_IDS
 Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
@@ -102,13 +102,13 @@ Display server-side settings like available images or supported device types.
 Display all device types and their properties.
 .TP
 .BR \-v\fI " " \fI
-Display the rascsi server version.
+Display the piscsi server version.
 .TP
 .BR \-V\fI " " \fI
-Display the rasctl version.
+Display the scsictl version.
 .TP
 .BR \-X\fI " " \fI
-Shut down the rascsi process.
+Shut down the piscsi process.
 .TP
 .BR \-d\fI " "\fIFILENAME
 Delete an image file in the default image folder.
@@ -138,10 +138,10 @@ eject, protect and unprotect are idempotent.
 The optional block size, either 512, 1024, 2048 or 4096 bytes. The default size is 512 bytes.
 .TP
 .BR \-f\fI " " \fIFILE|PARAM
-Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the rascsi(1) man page for permitted file types.
+Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the piscsi(1) man page for permitted file types.
 .TP 
 .BR \-t\fI " " \fITYPE
-Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the rascsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
+Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the piscsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
    hd: SCSI hard disk drive
    rm: SCSI removable media drive
    cd: CD-ROM
@@ -159,7 +159,7 @@ Unit number (0-31). This will default to 0. This option is only used when there 
 
 .SH EXAMPLES
 Show a listing of all of the SCSI devices and their current status.
-   rasctl -l
+   scsictl -l
 
 
 Example output:
@@ -169,10 +169,10 @@ Example output:
    |  0 |   1 | SCHD | /home/pi/harddisk.hda
    +----+-----+------+-------------------------------------
 
-Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
-   rasctl -i 0 -f HDIIMAGE0.HDS
+Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
+   scsictl -i 0 -f HDIIMAGE0.HDS
 
 .SH SEE ALSO
-rascsi(1), scsimon(1), rasdump(1)
+piscsi(1), scsimon(1), scsidump(1)
 
-Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
+Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>

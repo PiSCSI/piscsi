@@ -1,18 +1,18 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rasdump.1. Re-run 'make docs' after updating\n\n
-rasdump(1)                  General Commands Manual                 rasdump(1)
+!!   ------ The native file is scsidump.1. Re-run 'make docs' after updating\n\n
+scsidump(1)                  General Commands Manual                 scsidump(1)
 
 NAME
-       rasdump - SCSI disk dumping tool for RaSCSI
+       scsidump - SCSI disk dumping tool for PiSCSI
 
 SYNOPSIS
-       rasdump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
+       scsidump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
 
 DESCRIPTION
-       rasdump samples the data on physical SCSI storage media, including hard
+       scsidump samples the data on physical SCSI storage media, including hard
        drives and MO drives, and stores it to an image file. It can  also  re‐
        store  from a dumped file onto physical SCSI storage media. Can be con‐
-       nected directly, through a STANDARD RaSCSI board, or a FULLSPEC  RaSCSI
+       nected directly, through a STANDARD PiSCSI board, or a FULLSPEC  PiSCSI
        board.
 
        Set its own ID with the BID option. Defaults to 7 if ommitted.
@@ -21,7 +21,7 @@ OPTIONS
        -t ID[:LUN]
               SCSI ID and optional LUN of the target device.
 
-       -i BID SCSI ID of the RaSCSI device.
+       -i BID SCSI ID of the PiSCSI device.
 
        -f FILE
               Path to the dump file.
@@ -34,9 +34,9 @@ OPTIONS
        -v     Enable verbose logging.
 
 SEE ALSO
-       rasctl(1), rascsi(1), scsimon(1)
+       scsictl(1), piscsi(1), scsimon(1)
 
        Full          documentation          is          available          at:
-       <https://www.github.com/akuker/RASCSI/wiki/>
+       <https://www.github.com/akuker/PISCSI/wiki/>
 
-                                                                    rasdump(1)
+                                                                    scsidump(1)

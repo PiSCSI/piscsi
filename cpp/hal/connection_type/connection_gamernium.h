@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -14,7 +14,7 @@
 #include <string>
 
 //
-// RaSCSI Adapter GAMERnium.com version
+// PiSCSI Adapter GAMERnium.com version
 //
 
 const std::string CONNECT_DESC = "GAMERnium.com version"; // Startup message

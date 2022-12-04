@@ -1,4 +1,4 @@
-# RaSCSI Control Board UI
+# PiSCSI Control Board UI
 
 ## Run as standalone script for development / troubleshooting
 

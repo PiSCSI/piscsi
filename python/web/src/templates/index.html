@@ -4,11 +4,11 @@
 <section id="current-config">
 <details>
     <summary class="heading">
-        {{ _("Current RaSCSI Configuration") }}
+        {{ _("Current PiSCSI Configuration") }}
     </summary>
     <ul>
         <li>{{ _("Save and load device configurations, stored as json files in <tt>%(config_dir)s</tt>", config_dir=CFG_DIR) }}</li>
-        <li>{{ _("To have a particular device configuration load when RaSCSI starts, save it as <em>default</em>.") }}</li>
+        <li>{{ _("To have a particular device configuration load when PiSCSI starts, save it as <em>default</em>.") }}</li>
     </ul>
 </details>
 
@@ -112,11 +112,11 @@
             {% endif %}
             </td>
             <td class="product" align="center">
-                {% if device.vendor != "RaSCSI" %}
+                {% if device.vendor != "PiSCSI" %}
                 {{ device.vendor }}
                 {% endif %}
                 {{ device.product }}
-                {% if device.vendor != "RaSCSI" %}
+                {% if device.vendor != "PiSCSI" %}
                 {{ device.revision }}
                 {% endif %}
             </td>
@@ -180,7 +180,7 @@
         {{ _("Image File Management") }}
     </summary>
     <ul>
-        <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=env["image_dir"], scan_depth=scan_depth) }}</li>
+        <li>{{ _("Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=env["image_dir"], scan_depth=scan_depth) }}</li>
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>
@@ -361,13 +361,13 @@
     <ul>
         </li>
         {% if bridge_configured %}
-        <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
+        <li>{{ _("The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
         {% else %}
-        <li>{{ _("Please configure the <tt>rascsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
+        <li>{{ _("Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an emulated network adapter!") }}</li>
         {% endif %}
-        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
+        <li>{{ _("To browse the modern web, install a vintage web proxy such as <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>.", url="https://github.com/akuker/PISCSI/wiki/Vintage-Web-Proxy#macproxy") }}</li>
         </li>
-        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types") }}
+        <li>{{ _("Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> on the wiki.", url="https://github.com/akuker/PISCSI/wiki/Supported-Device-Types") }}
         </li>
     </ul>
 </details>
@@ -587,7 +587,7 @@
         {{ _("Create Empty Disk Image File") }}
     </summary>
     <ul>
-        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/RASCSI/wiki/Supported-Device-Types#image-types") }}</li>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/akuker/PISCSI/wiki/Supported-Device-Types#image-types") }}</li>
         <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
     </ul>
 </details>
@@ -661,17 +661,17 @@
         <option value="">
             {{ _("All logs") }}
         </option>
-        <option value="rascsi">
-            rascsi
+        <option value="piscsi">
+            piscsi
         </option>
-        <option value="rascsi-web">
-            rascsi-web
+        <option value="piscsi-web">
+            piscsi-web
         </option>
-        <option value="rascsi-oled">
-            rascsi-oled
+        <option value="piscsi-oled">
+            piscsi-oled
         </option>
-        <option value="rascsi-ctrlboard">
-            rascsi-ctrlboard
+        <option value="piscsi-ctrlboard">
+            piscsi-ctrlboard
         </option>
     </select>
     <input type="submit" value="{{ _("Show Logs") }}">
@@ -755,7 +755,7 @@
 <hr/>
 
 <section id="manual">
-<a href="/sys/manpage?app=rascsi"><p>{{ _("Read the RaSCSI Manual") }}</p></a>
+<a href="/sys/manpage?app=piscsi"><p>{{ _("Read the PiSCSI Manual") }}</p></a>
 </section>
 
 {% endblock content %}

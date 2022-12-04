@@ -1,0 +1,111 @@
+.TH piscsi 1
+.SH NAME
+piscsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
+.SH SYNOPSIS
+.B piscsi
+[\fB\-F\fR \fIFOLDER\fR]
+[\fB\-L\fR \fILOG_LEVEL[:ID:[LUN]]\fR]
+[\fB\-P\fR \fIACCESS_TOKEN_FILE\fR]
+[\fB\-R\fR \fISCAN_DEPTH\fR]
+[\fB\-h\fR]
+[\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
+[\fB\-p\fR \fIPORT\fR]
+[\fB\-r\fR \fIRESERVED_IDS\fR]
+[\fB\-n\fR \fITYPE\fR]
+[\fB\-v\fR]
+[\fB\-z\fR \fILOCALE\fR]
+[\fB\-IDn:[u]\fR \fIFILE\fR]
+[\fB\-HDn[:u]\fR \fIFILE\fR]...
+.SH DESCRIPTION
+.B piscsi
+emulates SCSI devices using the Raspberry Pi GPIO pins.
+.PP
+In the arguments to PiSCSI, one or more SCSI (-IDn[:u]) devices can be specified.
+The number (n) after the ID or HD identifier specifies the ID number for that device. The optional number (u) specifies the LUN (logical unit) for that device. The default LUN is 0.
+For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for the "initiator" (the host computer). The LUN is limited from 0-31.
+.PP
+PiSCSI will determine the type of device based upon the file extension of the FILE argument.
+    hd1: SCSI Hard Disk image (generic, non-removable, SCSI-1)
+    hds: SCSI Hard Disk image (generic, non-removable)
+    hdr: SCSI Hard Disk image (generic, removable)
+    hdn: SCSI Hard Disk image (NEC compatible - only used with PC-98 computers)
+    hdi: SCSI Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
+    nhd: SCSI Hard Disk image (T98Next proprietary - only used with PC-98 computers)
+    hda: SCSI Hard Disk image (Apple compatible - typically used with Macintosh computers)
+    mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
+    iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
+  
+For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
+    sudo piscsi -ID0 /path/to/drive/hdimage.hda
+
+Once PiSCSI starts, it will open a socket (default port is 6868) to allow external management commands.
+If another process is using the piscsi port, PiSCSI will terminate, since it is likely another instance of PiSCSI.
+Once PiSCSI has initialized, the scsictl utility can be used to send commands.
+
+To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
+
+.SH OPTIONS
+.TP
+.BR \-b\fI " " \fIBLOCK_SIZE
+The optional block size, either 512, 1024, 2048 or 4096 bytes. Default size is 512 bytes.
+.TP
+.BR \-F\fI " " \fIFOLDER
+The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
+.TP
+.BR \-L\fI " " \fILOG_LEVEL[:ID:[LUN]]
+The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info' for all devices unless a particular device ID and an optional LUN was provided.
+.TP
+.BR \-P\fI " " \fIACCESS_TOKEN_FILE
+Enable authentication and read the access token from the specified file. The access token file must be owned by root and must be readable by root only.
+.TP
+.BR \-R\fI " " \fISCAN_DEPTH
+Scan for image files recursively, up to a depth of SCAN_DEPTH. Depth 0 means to ignore any folders within the default image filder. Be careful when using this option with many sub-folders in the default image folder. The default depth is 1.
+.TP
+.BR \-h\fI " " \fI
+Show a help page.
+.TP
+.BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
+Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
+.TP
+.BR \-p\fI " " \fIPORT
+The piscsi server port, default is 6868.
+.TP
+.BR \-r\fI " " \fIRESERVED_IDS
+Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
+.BR \-p\fI " " \fITYPE
+The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP, SCLP, SCHS). If no type is specified for devices that support an image file, piscsi tries to derive the type from the file extension.
+.TP
+.BR \-v\fI " " \fI
+Display the piscsi version.
+.TP
+.BR \-z\fI " "\fILOCALE
+Overrides the default locale for client-faces error messages. The client can override the locale.
+.TP
+.BR \-ID\fIn[:u] " " \fIFILE
+n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
+.IP
+FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP, SCLP, SCHS) the filename may have a special meaning or a dummy name can be provided. For SCBR and SCDP it is an optioinal prioritized list of network interfaces, an optional IP address and netmask, e.g. "interface=eth0,eth1,wlan0:inet=10.10.20.1/24". For SCLP it is the print command to be used and a reservation timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
+.IP
+FILE is the name of the image file to use for the SCSI device.
+.IP
+
+.SH EXAMPLES
+Launch PiSCSI with no emulated drives attached:
+   piscsi
+
+Launch PiSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
+   piscsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
+
+Launch PiSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
+   piscsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
+
+To create an empty, 100MiB HD image, use the following command:
+   dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
+
+In case the fallocate command is available a much faster alternative to the dd command is:
+   fallocate -l 104857600 /path/to/newimage.hda
+
+.SH SEE ALSO
+scsictl(1), scsimon(1), scsidump(1)
+ 
+Full documentation is available at: <https://www.github.com/akuker/PISCSI/wiki/>

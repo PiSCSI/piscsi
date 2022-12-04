@@ -1,15 +1,15 @@
-"""Module providing the shutdown cycler for the RaSCSI Control Board UI """
+"""Module providing the shutdown cycler for the PiSCSI Control Board UI """
 from menu.cycler import Cycler
 
 
-class RascsiShutdownCycler(Cycler):
-    """Class implementing the shutdown cycler for the RaSCSI Control Board UI"""
+class PiscsiShutdownCycler(Cycler):
+    """Class implementing the shutdown cycler for the PiSCSI Control Board UI"""
 
-    def __init__(self, menu_controller, sock_cmd, ractl_cmd):
+    def __init__(self, menu_controller, sock_cmd, piscsi_cmd):
         super().__init__(
             menu_controller,
             sock_cmd,
-            ractl_cmd,
+            piscsi_cmd,
             return_entry=True,
             empty_messages=False,
         )
@@ -24,7 +24,7 @@ class RascsiShutdownCycler(Cycler):
         if self.executed_once is False:
             self.executed_once = True
             self._menu_controller.show_timed_message("Shutting down...")
-            self.ractl_cmd.shutdown("system")
+            self.piscsi_cmd.shutdown("system")
             return "shutdown"
 
         return None

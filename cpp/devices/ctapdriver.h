@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -22,7 +22,7 @@ using namespace std;
 
 class CTapDriver
 {
-	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
+	static constexpr const char *BRIDGE_NAME = "piscsi_bridge";
 
 public:
 

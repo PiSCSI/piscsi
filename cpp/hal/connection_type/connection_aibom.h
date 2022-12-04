@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -14,7 +14,7 @@
 #include <string>
 
 //
-// RaSCSI Adapter Aibom version
+// PiSCSI Adapter Aibom version
 //
 
 const std::string CONNECT_DESC = "AIBOM PRODUCTS version"; // Startup message

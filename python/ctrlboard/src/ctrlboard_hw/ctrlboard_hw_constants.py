@@ -1,9 +1,9 @@
-"""Module containing the RaSCSI Control Board hardware constants"""
+"""Module containing the PiSCSI Control Board hardware constants"""
 
 
 # pylint: disable=too-few-public-methods
 class CtrlBoardHardwareConstants:
-    """Class containing the RaSCSI Control Board hardware constants"""
+    """Class containing the PiSCSI Control Board hardware constants"""
 
     DISPLAY_I2C_ADDRESS = 0x3C
     PCA9554_I2C_ADDRESS = 0x3F

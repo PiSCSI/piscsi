@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -87,7 +87,7 @@ int GPIOBUS::CommandHandShake(vector<uint8_t> &buf)
     // UltraSatan or GigaFile) that can directly be connected to the Atari's ACSI port also support ICD
     // semantics. I fact, these semantics have become a standard in the Atari world.
 
-    // RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
+    // PiSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
     if (buf[0] == 0x1F) {
         SetREQ(ON);
 

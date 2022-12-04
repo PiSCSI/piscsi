@@ -47,10 +47,10 @@ if [ $ERROR = 1 ] ; then
   exit 1
 fi
 
-if pgrep -f "python3 src/rascsi_oled_monitor.py" &> /dev/null; then
-    echo "Detected active rascsi_oled_monitor.py process"
+if pgrep -f "python3 src/piscsi_oled_monitor.py" &> /dev/null; then
+    echo "Detected active piscsi_oled_monitor.py process"
     echo "Terminating before launching a new one."
-    sudo pkill -f "python3 src/rascsi_oled_monitor.py"
+    sudo pkill -f "python3 src/piscsi_oled_monitor.py"
 fi
 
 if ! i2cdetect -y 1 &> /dev/null ; then
@@ -155,4 +155,4 @@ fi
 
 PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
-python3 src/rascsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${INTERVAL} ${PASSWORD}
+python3 src/piscsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${INTERVAL} ${PASSWORD}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Mock responses to rascsi-web
+# Mock responses to piscsi-web
 case $1 in
   is-active)
     echo "is-active"
