@@ -8,7 +8,7 @@
 //	[ Loopback tester utility ]
 //
 //  For more information, see:
-//     https://github.com/akuker/PISCSI/wiki/Troubleshooting#Loopback_Testing
+//     https://github.com/PiSCSI/piscsi/wiki/Troubleshooting#Loopback_Testing
 //
 //---------------------------------------------------------------------------
 
