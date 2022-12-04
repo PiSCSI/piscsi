@@ -43,7 +43,7 @@ jobs:
         if: ${{ inputs.debug-flag }}
         run: |
           echo "debug_flag_compile=DEBUG\=1" >> $GITHUB_ENV
-          echo "debug_flag_filename=-debug" >> $GITHUB_ENV
+          echo "debug_flag_filename=debug-" >> $GITHUB_ENV
 
       - name: Compile
         run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=arm-linux-gnueabihf-
