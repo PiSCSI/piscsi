@@ -122,12 +122,13 @@ done
 
 PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
-cd src
+cd src || exit 1
 
 if [[ $ARG_DEV_MODE ]]; then
-    echo "Dev mode enabled."
+    echo "Starting PiSCSI Web UI (dev mode) ..."
     watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+else
+    echo "Starting PiSCSI Web UI ..."
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 fi
-
-echo "Starting PiSCSI Web UI..."
-python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_PISCSI_HOST} ${ARG_PISCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}

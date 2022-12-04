@@ -1368,7 +1368,6 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     APP.config["PISCSI_TOKEN"] = arguments.password
 
-<<<<<<< HEAD
     logging.config.dictConfig(
         {
             "version": 1,
