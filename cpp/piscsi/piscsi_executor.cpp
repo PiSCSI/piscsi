@@ -26,7 +26,7 @@
 
 using namespace spdlog;
 using namespace protobuf_util;
-using namespace ras_util;
+using namespace pis_util;
 
 bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const PbCommand& command, bool dryRun)

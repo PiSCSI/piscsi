@@ -18,7 +18,7 @@
 #include "scsihd_nec.h"
 #include <fstream>
 
-using namespace ras_util;
+using namespace pis_util;
 using namespace scsi_command_util;
 
 void SCSIHD_NEC::Open()

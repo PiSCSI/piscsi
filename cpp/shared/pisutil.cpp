@@ -15,7 +15,7 @@
 
 using namespace std;
 
-bool ras_util::GetAsUnsignedInt(const string& value, int& result)
+bool pis_util::GetAsUnsignedInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
 		return false;
@@ -35,7 +35,7 @@ bool ras_util::GetAsUnsignedInt(const string& value, int& result)
 	return true;
 }
 
-string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
+string pis_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lun)
 {
 	assert(max_luns > 0);
 
@@ -66,7 +66,7 @@ string ras_util::ProcessId(const string& id_spec, int max_luns, int& id, int& lu
 	return "";
 }
 
-string ras_util::Banner(const string& app)
+string pis_util::Banner(const string& app)
 {
 	ostringstream s;
 
@@ -79,7 +79,7 @@ string ras_util::Banner(const string& app)
 	return s.str();
 }
 
-string ras_util::GetExtensionLowerCase(const string& filename)
+string pis_util::GetExtensionLowerCase(const string& filename)
 {
 	string ext;
 	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
@@ -92,7 +92,7 @@ string ras_util::GetExtensionLowerCase(const string& filename)
 
 // Pin the thread to a specific CPU
 // TODO Check whether just using a single CPU really makes sense
-void ras_util::FixCpu(int cpu)
+void pis_util::FixCpu(int cpu)
 {
 #ifdef __linux__
 	// Get the number of CPUs

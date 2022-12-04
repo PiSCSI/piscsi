@@ -18,7 +18,7 @@
 
 using namespace std;
 using namespace piscsi_interface;
-using namespace ras_util;
+using namespace pis_util;
 using namespace protobuf_util;
 
 bool ScsictlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,

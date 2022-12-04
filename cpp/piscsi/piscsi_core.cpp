@@ -39,13 +39,12 @@ using namespace std;
 using namespace filesystem;
 using namespace spdlog;
 using namespace piscsi_interface;
-using namespace ras_util;
+using namespace pis_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
 void Piscsi::Banner(const vector<char *>& args) const
 {
-	cout << ras_util::Banner("Reloaded");
 	cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){

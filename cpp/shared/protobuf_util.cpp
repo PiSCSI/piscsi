@@ -14,7 +14,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace ras_util;
+using namespace pis_util;
 using namespace piscsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
