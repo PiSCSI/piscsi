@@ -50,7 +50,7 @@ class FileCmds:
     def send_pb_command(self, command):
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             # TODO: Uncouple/move to common dependency
-            logging.debug(self.ractl.format_pb_command(command))
+            logging.debug(self.piscsi.format_pb_command(command))
 
         return self.sock_cmd.send_pb_command(command.SerializeToString())
 

@@ -33,4 +33,4 @@ EXPOSE 6868
 ENTRYPOINT ["/usr/local/bin/piscsi_wrapper.sh", "-r", "7", "-F", "/home/pi/images"]
 CMD ["-L", "trace"]
 
-HEALTHCHECK --interval=5m --timeout=1s CMD rasctl -v
+HEALTHCHECK --interval=5m --timeout=1s CMD scsictl -v
