@@ -65,8 +65,8 @@ class SocketCmds:
         Reads data from socket in 2048 bytes chunks until all data is received.
         """
 
-        # Sending the magic word "PISCSI" to authenticate with the server
-        sock.send(b"PISCSI")
+        # Sending the magic word "RASCSI" to authenticate with the server
+        sock.send(b"RASCSI")
         # Prepending a little endian 32bit header with the message size
         sock.send(pack("<i", len(payload)))
         sock.send(payload)
