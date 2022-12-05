@@ -253,7 +253,7 @@ TEST(DeviceFactoryTest, SCBR_Device_Defaults)
 	EXPECT_FALSE(device->IsStopped());
 
 	EXPECT_EQ("PiSCSI", device->GetVendor());
-	EXPECT_EQ("PISCSI BRIDGE", device->GetProduct());
+	EXPECT_EQ("RASCSI BRIDGE", device->GetProduct());
 	EXPECT_EQ(string(piscsi_get_version_string()).substr(0, 2) + string(piscsi_get_version_string()).substr(3, 2),
 			device->GetRevision());
 }
