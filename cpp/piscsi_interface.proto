@@ -138,9 +138,12 @@ enum PbOperation {
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE_IDS = 22;
     
-    // Shut down the piscsi process or shut down/reboot the Raspberry Pi
+    // Shut down the piscsi process or shut down/reboot the Pi
     // Parameters:
-    //   "mode": The shutdown mode, one of "piscsi", "system", "reboot"
+    //   "mode": The shutdown mode, one of
+    //     "rascsi": Shuts down the piscsi process ("rascsi" instead of "piscsi" for backwards compatibility)
+    //     "system": Shuts down the Pi
+    //     "reboot": Reboots the Pi
     SHUT_DOWN = 23;
 
     // Create an image file. The image file must not yet exist.

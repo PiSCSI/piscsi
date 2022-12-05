@@ -41,7 +41,7 @@ uint32_t bcm_host_get_peripheral_address();
 
 TEST(GpiobusRaspberry, GetDtRanges)
 {
-    string soc_ranges_file = "/proc/device-tree/soc/ranges";
+    const string soc_ranges_file = "/proc/device-tree/soc/ranges";
 
     vector<uint8_t> data;
     // If bytes 4-7 are non-zero, get_peripheral address should return those bytes

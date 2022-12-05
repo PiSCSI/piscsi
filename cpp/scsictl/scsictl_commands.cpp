@@ -106,7 +106,7 @@ bool ScsictlCommands::SendCommand()
 				+ ": " + strerror(errno));
 	}
 
-	if (write(fd, "PISCSI", 6) != 6) {
+	if (write(fd, "RASCSI", 6) != 6) {
 		close(fd);
 
 		throw io_exception("Can't write magic");

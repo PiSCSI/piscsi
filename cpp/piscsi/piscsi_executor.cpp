@@ -465,7 +465,8 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	PbResult result;
 	result.set_status(true);
 
-	if (mode == "piscsi") {
+	// The PiSCSI shutdown mode is "rascsi" instead of "piscsi" for backwards compatibility
+	if (mode == "rascsi") {
 		LOGINFO("PiSCSI shutdown requested")
 
 		serializer.SerializeMessage(context.GetFd(), result);

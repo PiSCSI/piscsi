@@ -128,7 +128,7 @@ PbCommand PiscsiService::ReadCommand(CommandContext& context) const
 		return command;
 	}
 
-	if (bytes_read != magic.size() || memcmp(magic.data(), "PISCSI", magic.size())) {
+	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 		throw io_exception("Invalid magic");
 	}
 
