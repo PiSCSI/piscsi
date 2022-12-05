@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/home/pi/PISCSI/python/web/start.sh
+ExecStart=/home/pi/piscsi/python/web/start.sh
 SyslogIdentifier=PISCSIWEB
 
 [Install]

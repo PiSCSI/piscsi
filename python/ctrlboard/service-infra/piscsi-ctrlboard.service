@@ -6,7 +6,7 @@ After=network.target piscsi.service
 Type=simple
 Restart=always
 RestartSec=2s
-ExecStart=/home/pi/PISCSI/python/ctrlboard/start.sh
+ExecStart=/home/pi/piscsi/python/ctrlboard/start.sh
 ExecStop=/bin/pkill --signal 2 -f "python3 src/main.py"
 SyslogIdentifier=PISCSICTRLB
 
