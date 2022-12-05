@@ -44,7 +44,7 @@ string current_log_level = "unknown"; // Some versions of spdlog do not support 
 
 void ScsiLoop::Banner(const vector<char *> &args) const
 {
-    cout << piscsi_util::Banner("SCSI Loopback Test");
+    cout << piscsi_util::Banner("(SCSI Loopback Test)");
     cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
     if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)) {

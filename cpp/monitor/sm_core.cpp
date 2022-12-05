@@ -155,7 +155,7 @@ int ScsiMon::run(const vector<char *> &args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    piscsi_util::Banner("SCSI Monitor Capture Tool");
+    piscsi_util::Banner("(SCSI Monitor Capture Tool)");
 
     ParseArguments(args);
 

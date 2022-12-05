@@ -49,7 +49,7 @@ void RasDump::KillHandler(int)
 
 bool RasDump::Banner(const vector<char *>& args) const
 {
-	cout << piscsi_util::Banner("PiSCSI hard disk dump/restore utility");
+	cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
 	if (args.size() < 2 || string(args[1]) == "-h") {
 		cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"

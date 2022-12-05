@@ -30,7 +30,7 @@ using namespace protobuf_util;
 void ScsiCtl::Banner(const vector<char *>& args) const
 {
 	if (args.size() < 2) {
-		cout << piscsi_util::Banner("Controller");
+		cout << piscsi_util::Banner("(Controller App)");
 
 		cout << "\nUsage: " << args[0] << " -i ID[:LUN] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cout << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
