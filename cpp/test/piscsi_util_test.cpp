@@ -19,7 +19,7 @@ using namespace std;
 using namespace piscsi_interface;
 using namespace piscsi_util;
 
-TEST(RasUtilTest, ProcessId)
+TEST(PiscsiUtilTest, ProcessId)
 {
 	int id = -1;
 	int lun = -1;
@@ -55,7 +55,7 @@ TEST(RasUtilTest, ProcessId)
 	EXPECT_EQ(31, lun);
 }
 
-TEST(RasUtilTest, GetAsUnsignedInt)
+TEST(PiscsiUtilTest, GetAsUnsignedInt)
 {
 	int result;
 
@@ -69,12 +69,12 @@ TEST(RasUtilTest, GetAsUnsignedInt)
 	EXPECT_EQ(1234, result);
 }
 
-TEST(RasUtilTest, Banner)
+TEST(PiscsiUtilTest, Banner)
 {
 	EXPECT_FALSE(Banner("Test").empty());
 }
 
-TEST(RasUtilTest, GetExtensionLowerCase)
+TEST(PiscsiUtilTest, GetExtensionLowerCase)
 {
 	EXPECT_EQ("", GetExtensionLowerCase(""));
 	EXPECT_EQ("", GetExtensionLowerCase("."));
@@ -86,7 +86,7 @@ TEST(RasUtilTest, GetExtensionLowerCase)
 }
 
 #ifdef __linux__
-TEST(RasUtilTest, FixCpu)
+TEST(PiscsiUtilTest, FixCpu)
 {
 	cpu_set_t mask;
 
