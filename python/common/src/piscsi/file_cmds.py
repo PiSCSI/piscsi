@@ -783,7 +783,7 @@ class FileCmds:
                         if row["image"]:
                             kwargs["params"]["file"] = row["image"]
                         self.piscsi.attach_device(row["id"], **kwargs)
-                # The config file format in PiSCSI 21.10 is using a list data type at the top level.
+                # The config file format in RaSCSI 21.10 is using a list data type at the top level.
                 # If future config file formats return to the list data type,
                 # introduce more sophisticated format detection logic here.
                 elif isinstance(config, list):

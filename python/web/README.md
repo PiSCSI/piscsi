@@ -118,7 +118,7 @@ msgstr ""
 
 ### Contributing to the project
 
-New or updated localizations are treated just like any other code change. See the [project README](https://github.com/akuker/PISCSI/tree/rdmark-readme-contributions#how-do-i-contribute) for further information.
+New or updated localizations are treated just like any other code change. See the [project README](https://github.com/PiSCSI/piscsi/tree/master#how-do-i-contribute) for further information.
 
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.
