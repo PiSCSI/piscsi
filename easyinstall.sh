@@ -298,9 +298,9 @@ function backupPiscsiService() {
 
 # Offers the choice of enabling token-based authentication for PiSCSI, or disables it if enabled
 function configureTokenAuth() {
-    if [[ -f "$HOME/.piscsi_secret" ]]; then
-        sudo rm "$HOME/.piscsi_secret"
-        echo "Removed (legacy) PiSCSI token file"
+    if [[ -f "$HOME/.rascsi_secret" ]]; then
+        sudo rm "$HOME/.rascsi_secret"
+        echo "Removed (legacy) RaSCSI token file"
     fi
 
     if [[ -f $SECRET_FILE ]]; then
