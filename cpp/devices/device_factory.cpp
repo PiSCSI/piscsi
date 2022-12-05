@@ -123,7 +123,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCBR:
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
-		device->SetProduct("PISCSI BRIDGE");
+		device->SetProduct("RASCSI BRIDGE");
 		device->SetDefaultParams(default_params.find(SCBR)->second);
 		break;
 
