@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rasutil.h"
+#include "shared/piscsi_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -24,8 +24,8 @@
 #include <unistd.h>
 
 using namespace std;
-using namespace rascsi_interface;
-using namespace ras_util;
+using namespace piscsi_interface;
+using namespace piscsi_util;
 
 DeviceFactory::DeviceFactory()
 {
@@ -139,7 +139,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCHS:
 		device = make_shared<HostServices>(lun);
 		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-		device->SetVendor("RaSCSI");
+		device->SetVendor("PiSCSI");
 		device->SetProduct("Host Services");
 		break;
 
@@ -179,7 +179,7 @@ vector<string> DeviceFactory::GetNetworkInterfaces() const
 
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
-	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
+	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "piscsi_bridge")) {
 	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        ifreq ifr = {};

@@ -1,0 +1,16 @@
+[Unit]
+Description=PiSCSI-OLED Monitor service
+After=network.target piscsi.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=2s
+ExecStart=/home/pi/piscsi/python/oled/start.sh
+ExecStop=/bin/pkill --signal 2 -f "python3 src/piscsi_oled_monitor.py"
+# Sleep 2s as a crude way for the python interrupt handler to take effect and show the shutdown splash
+ExecStop=/bin/sleep 2
+SyslogIdentifier=PISCSIMON
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -74,7 +74,7 @@ using namespace std;
 //	  False : 3.3V -> (CONVERT) -> Open collector output
 //
 //	 2:Positive logic specification (when using the conversion board for positive logic -> SCSI logic)
-//	    RaSCSI Adapter Rev.C @132sync etc.
+//	    PiSCSI Adapter Rev.C @132sync etc.
 //
 //	  True  : 3.3V -> (CONVERT) -> 0V
 //	  False : 0V   -> (CONVERT) -> Open collector output

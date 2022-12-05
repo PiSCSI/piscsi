@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="{{ env["locale"] }}">
 <head>
-    <title>{{ _("RaSCSI Reloaded Control Page") }} [{{ env["host"] }}]</title>
+    <title>{{ _("PiSCSI Control Page") }} [{{ env["host"] }}]</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
@@ -66,13 +66,13 @@
             {% endif %}
         {% else %}
             <div align="center" class="login-status authentication-disabled">
-                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}
+                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/PiSCSI/piscsi/wiki/Web-Interface#enable-authentication") }}
             </div>
         {% endif %}
 
         <div align="center" class="title">
             <a href="/">
-                <h1>{{ _("RaSCSI Reloaded") }}</h1>
+                <h1>{{ _("PiSCSI") }}</h1>
             </a>
         </div>
 
@@ -125,7 +125,7 @@
             {% endif %}
         </div>
         <div>
-            {{ _("RaSCSI Reloaded version:") }} <b>{{ env["version"] }} <a href="https://github.com/akuker/RASCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+            {{ _("PiSCSI version:") }} <b>{{ env["version"] }} <a href="https://github.com/PiSCSI/piscsi/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
         </div>
         <div>
             {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}

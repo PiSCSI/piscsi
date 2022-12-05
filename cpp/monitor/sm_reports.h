@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Copyright (C) 2020-2021 akuker

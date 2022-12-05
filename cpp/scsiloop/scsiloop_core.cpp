@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded for Raspberry Pi
+//	SCSI Target Emulator PiSCSI for Raspberry Pi
 //  Loopback tester utility
 //
 //	Copyright (C) 2022 akuker
@@ -8,13 +8,13 @@
 //	[ Loopback tester utility ]
 //
 //  For more information, see:
-//     https://github.com/akuker/RASCSI/wiki/Troubleshooting#Loopback_Testing
+//     https://github.com/PiSCSI/piscsi/wiki/Troubleshooting#Loopback_Testing
 //
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "shared/rascsi_version.h"
-#include "shared/rasutil.h"
+#include "shared/piscsi_version.h"
+#include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #include "scsiloop/scsiloop_core.h"
@@ -44,8 +44,8 @@ string current_log_level = "unknown"; // Some versions of spdlog do not support 
 
 void ScsiLoop::Banner(const vector<char *> &args) const
 {
-    cout << ras_util::Banner("SCSI Loopback Test");
-    cout << "Connect type: " << CONNECT_DESC << '\n' << flush;
+    cout << piscsi_util::Banner("(SCSI Loopback Test)");
+    cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
 
     if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)) {
         cout << "\nUsage: " << args[0] << " [-L log_level] ...\n\n";
@@ -132,7 +132,7 @@ int ScsiLoop::run(const vector<char *> &args)
     // The -v option should be available for any user, which requires special handling.
     for (auto this_arg : args) {
         if (!strcasecmp(this_arg, "-v")) {
-            cout << rascsi_get_version_string() << endl;
+            cout << piscsi_get_version_string() << endl;
             return 0;
         }
     }

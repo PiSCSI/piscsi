@@ -1,38 +1,38 @@
-"""Module for interfacing between the menu controller and the RaSCSI Control Board hardware"""
+"""Module for interfacing between the menu controller and the PiSCSI Control Board hardware"""
 import logging
 from typing import Optional
 
-from ctrlboard_event_handler.rascsi_profile_cycler import RascsiProfileCycler
-from ctrlboard_event_handler.rascsi_shutdown_cycler import RascsiShutdownCycler
+from ctrlboard_event_handler.piscsi_profile_cycler import PiscsiProfileCycler
+from ctrlboard_event_handler.piscsi_shutdown_cycler import PiscsiShutdownCycler
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.encoder import Encoder
 from observer import Observer
-from rascsi.file_cmds import FileCmds
-from rascsi.ractl_cmds import RaCtlCmds
-from rascsi.socket_cmds import SocketCmds
-from rascsi_menu_controller import RascsiMenuController
+from piscsi.file_cmds import FileCmds
+from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.socket_cmds import SocketCmds
+from piscsi_menu_controller import PiscsiMenuController
 
 
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardMenuUpdateEventHandler(Observer):
-    """Class interfacing the menu controller the RaSCSI Control Board hardware."""
+    """Class interfacing the menu controller the PiSCSI Control Board hardware."""
 
     def __init__(
         self,
-        menu_controller: RascsiMenuController,
+        menu_controller: PiscsiMenuController,
         sock_cmd: SocketCmds,
-        ractl_cmd: RaCtlCmds,
+        piscsi_cmd: PiscsiCmds,
     ):
         self.message = None
         self._menu_controller = menu_controller
         self._menu_renderer_config = self._menu_controller.get_menu_renderer().get_config()
         self.sock_cmd = sock_cmd
-        self.ractl_cmd = ractl_cmd
+        self.piscsi_cmd = piscsi_cmd
         self.context_stack = []
-        self.rascsi_profile_cycler: Optional[RascsiProfileCycler] = None
-        self.rascsi_shutdown_cycler: Optional[RascsiShutdownCycler] = None
+        self.piscsi_profile_cycler: Optional[PiscsiProfileCycler] = None
+        self.piscsi_shutdown_cycler: Optional[PiscsiShutdownCycler] = None
 
     def update(self, updated_object):
         if isinstance(updated_object, HardwareButton):
@@ -62,35 +62,35 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
     def update_events(self):
         """Method handling non-blocking event handling for the cycle buttons."""
-        if self.rascsi_profile_cycler is not None:
-            result = self.rascsi_profile_cycler.update()
+        if self.piscsi_profile_cycler is not None:
+            result = self.piscsi_profile_cycler.update()
             if result is not None:
-                self.rascsi_profile_cycler = None
+                self.piscsi_profile_cycler = None
                 self.context_stack = []
                 self._menu_controller.segue(result)
-        if self.rascsi_shutdown_cycler is not None:
-            self.rascsi_shutdown_cycler.empty_messages = False
-            result = self.rascsi_shutdown_cycler.update()
+        if self.piscsi_shutdown_cycler is not None:
+            self.piscsi_shutdown_cycler.empty_messages = False
+            result = self.piscsi_shutdown_cycler.update()
             if result == "return":
-                self.rascsi_shutdown_cycler = None
+                self.piscsi_shutdown_cycler = None
 
     def handle_button1(self):
         """Method for handling the first cycle button (cycle profiles)"""
-        if self.rascsi_profile_cycler is None:
-            self.rascsi_profile_cycler = RascsiProfileCycler(
-                self._menu_controller, self.sock_cmd, self.ractl_cmd, return_entry=True
+        if self.piscsi_profile_cycler is None:
+            self.piscsi_profile_cycler = PiscsiProfileCycler(
+                self._menu_controller, self.sock_cmd, self.piscsi_cmd, return_entry=True
             )
         else:
-            self.rascsi_profile_cycler.cycle()
+            self.piscsi_profile_cycler.cycle()
 
     def handle_button2(self):
         """Method for handling the second cycle button (cycle shutdown)"""
-        if self.rascsi_shutdown_cycler is None:
-            self.rascsi_shutdown_cycler = RascsiShutdownCycler(
-                self._menu_controller, self.sock_cmd, self.ractl_cmd
+        if self.piscsi_shutdown_cycler is None:
+            self.piscsi_shutdown_cycler = PiscsiShutdownCycler(
+                self._menu_controller, self.sock_cmd, self.piscsi_cmd
             )
         else:
-            self.rascsi_shutdown_cycler.cycle()
+            self.piscsi_shutdown_cycler.cycle()
 
     def route_rotary_button_handler(self, info_object):
         """Method for handling the rotary button press for the menu navigation"""
@@ -195,7 +195,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         """Method handles the rotary button press in the profile selection menu
         for selecting a profile to load."""
         if info_object is not None and "name" in info_object:
-            file_cmd = FileCmds(sock_cmd=self.sock_cmd, ractl=self.ractl_cmd)
+            file_cmd = FileCmds(sock_cmd=self.sock_cmd, piscsi=self.piscsi_cmd)
             result = file_cmd.read_config(file_name=info_object["name"])
             if result["status"] is True:
                 self._menu_controller.show_message("Profile loaded!")
@@ -211,7 +211,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
         """Method handles the rotary button press on 'Shutdown' in the action menu."""
-        self.ractl_cmd.shutdown("system")
+        self.piscsi_cmd.shutdown("system")
         self._menu_controller.show_message("Shutting down!", 150)
         self._menu_controller.segue(
             CtrlBoardMenuBuilder.SCSI_ID_MENU,
@@ -248,7 +248,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
         params = {"file": image_name}
-        result = self.ractl_cmd.attach_device(
+        result = self.piscsi_cmd.attach_device(
             scsi_id=scsi_id, device_type=device_type, params=params
         )
 
@@ -261,7 +261,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         """Helper method to detach/eject an image on a scsi id given through the menu context"""
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
-        device_info = self.ractl_cmd.list_devices(scsi_id)
+        device_info = self.piscsi_cmd.list_devices(scsi_id)
 
         if not device_info["device_list"]:
             return
@@ -269,20 +269,20 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         device_type = device_info["device_list"][0]["device_type"]
         image = device_info["device_list"][0]["image"]
         if device_type in ("SCHD", "SCBR", "SCDP", "SCLP", "SCHS"):
-            result = self.ractl_cmd.detach_by_id(scsi_id)
+            result = self.piscsi_cmd.detach_by_id(scsi_id)
             if result["status"] is True:
                 self.show_id_action_message(scsi_id, "detached")
             else:
                 self._menu_controller.show_message("Detach failed!")
         elif device_type in ("SCRM", "SCMO", "SCCD"):
             if image:
-                result = self.ractl_cmd.eject_by_id(scsi_id)
+                result = self.piscsi_cmd.eject_by_id(scsi_id)
                 if result["status"] is True:
                     self.show_id_action_message(scsi_id, "ejected")
                 else:
                     self._menu_controller.show_message("Eject failed!")
             else:
-                result = self.ractl_cmd.detach_by_id(scsi_id)
+                result = self.piscsi_cmd.detach_by_id(scsi_id)
                 if result["status"] is True:
                     self.show_id_action_message(scsi_id, "detached")
                 else:

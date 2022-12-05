@@ -7,7 +7,7 @@ RUN groupadd pi \
     && echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER pi
-WORKDIR /home/pi/RASCSI
+WORKDIR /home/pi/piscsi
 
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi cpp cpp
@@ -18,8 +18,8 @@ FROM debian:bullseye-slim AS runner
 USER root
 WORKDIR /home/pi
 
-COPY --from=build /home/pi/RASCSI/cpp/bin/fullspec/* /usr/local/bin/
-COPY docker/backend/rascsi_wrapper.sh /usr/local/bin/rascsi_wrapper.sh
+COPY --from=build /home/pi/piscsi/cpp/bin/fullspec/* /usr/local/bin/
+COPY docker/backend/piscsi_wrapper.sh /usr/local/bin/piscsi_wrapper.sh
 RUN chmod +x /usr/local/bin/*
 RUN mkdir -p /home/pi/images
 
@@ -30,7 +30,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 6868
-ENTRYPOINT ["/usr/local/bin/rascsi_wrapper.sh", "-r", "7", "-F", "/home/pi/images"]
+ENTRYPOINT ["/usr/local/bin/piscsi_wrapper.sh", "-r", "7", "-F", "/home/pi/images"]
 CMD ["-L", "trace"]
 
-HEALTHCHECK --interval=5m --timeout=1s CMD rasctl -v
+HEALTHCHECK --interval=5m --timeout=1s CMD scsictl -v

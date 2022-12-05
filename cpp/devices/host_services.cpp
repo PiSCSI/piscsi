@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -14,13 +14,13 @@
 //
 // 1. Vendor-specific mode page 0x20 returns the current date and time, see mode_page_datetime
 //
-// 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
-//   a) !start && !load (STOP): Shut down RaSCSI
+// 2. START/STOP UNIT shuts down PiSCSI or shuts down/reboots the Raspberry Pi
+//   a) !start && !load (STOP): Shut down PiSCSI
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "controllers/scsi_controller.h"
 #include "scsi_command_util.h"
 #include "host_services.h"
@@ -59,14 +59,14 @@ void HostServices::StartStopUnit() const
 
 	if (!start) {
 		if (load) {
-			GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
+			GetController()->ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
+			GetController()->ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI);
 		}
 	}
 	else if (load) {
-		GetController()->ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
+		GetController()->ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI);
 	}
 	else {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);

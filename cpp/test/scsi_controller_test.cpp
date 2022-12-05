@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -9,7 +9,7 @@
 
 #include "mocks.h"
 #include "shared/scsi.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "controllers/scsi_controller.h"
 
 using namespace scsi_defs;
@@ -72,19 +72,19 @@ TEST(ScsiControllerTest, BusFree)
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
 	EXPECT_EQ(status::GOOD, controller.GetStatus());
 
-	controller.ScheduleShutdown(AbstractController::rascsi_shutdown_mode::NONE);
+	controller.ScheduleShutdown(AbstractController::piscsi_shutdown_mode::NONE);
 	controller.SetPhase(phase_t::reserved);
 	controller.BusFree();
 
-	controller.ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_PI);
+	controller.ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI);
 	controller.SetPhase(phase_t::reserved);
 	controller.BusFree();
 
-	controller.ScheduleShutdown(AbstractController::rascsi_shutdown_mode::RESTART_PI);
+	controller.ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI);
 	controller.SetPhase(phase_t::reserved);
 	controller.BusFree();
 
-	controller.ScheduleShutdown(AbstractController::rascsi_shutdown_mode::STOP_RASCSI);
+	controller.ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI);
 	controller.SetPhase(phase_t::reserved);
 	EXPECT_EXIT(controller.BusFree(), ExitedWithCode(EXIT_SUCCESS), "");
 }

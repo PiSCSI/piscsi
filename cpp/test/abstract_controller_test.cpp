@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "controllers/abstract_controller.h"
 
 using namespace scsi_defs;

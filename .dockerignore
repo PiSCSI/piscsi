@@ -2,8 +2,8 @@
 /*
 
 # Paths to include
-!/docker/backend/rascsi_wrapper.sh
-!/docker/web/start.sh
+!/docker/backend/piscsi_wrapper.sh
+!/docker/web/web_start_wrapper.sh
 !/doc
 !/python
 !/cpp
@@ -22,7 +22,7 @@
 **/*.pyc
 **/__pycache__
 **/.pytest_cache
-**/rascsi_interface_pb2.py
+**/piscsi_interface_pb2.py
 **/report.xml
 
 **/.idea

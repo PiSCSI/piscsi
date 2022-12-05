@@ -1,0 +1,41 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is scsidump.1. Re-run 'make docs' after updating
+
+
+scsidump(1)                                           General Commands Manual                                          scsidump(1)
+
+NAME
+       scsidump - SCSI disk dumping tool for PiSCSI
+
+SYNOPSIS
+       scsidump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
+
+DESCRIPTION
+       scsidump  samples  the  data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image
+       file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through  a  STAN‐
+       DARD PiSCSI board, or a FULLSPEC PiSCSI board.
+
+       Set its own ID with the BID option. Defaults to 7 if ommitted.
+
+OPTIONS
+       -t ID[:LUN]
+              SCSI ID and optional LUN of the target device.
+
+       -i BID SCSI ID of the PiSCSI device.
+
+       -f FILE
+              Path to the dump file.
+
+       -s BUFFER_SIZE
+              The transfer buffer size, at least 64 KiB. Default is 64 KiB.
+
+       -r     Run in restore mode.
+
+       -v     Enable verbose logging.
+
+SEE ALSO
+       scsictl(1), piscsi(1), scsimon(1)
+
+       Full documentation is available at: <https://www.piscsi.com>
+
+                                                                                                                       scsidump(1)

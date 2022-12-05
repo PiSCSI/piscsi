@@ -1,10 +1,10 @@
-# What is RaSCSI Reloaded?
-RaSCSI Reloaded is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/akuker/RASCSI/wiki/Compatibility)) from the 1980's and 1990's.
+# What is PiSCSI?
+PiSCSI is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/PiSCSI/piscsi/wiki/Compatibility)) from the 1980's and 1990's.
 
-Please check out the full story with much more detail on the [wiki](https://github.com/akuker/RASCSI/wiki)!
+Please check out the full story with much more detail on the [wiki](https://github.com/PiSCSI/piscsi/wiki)!
 
 # How do I contribute?
-RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
+PiSCSI is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
 
 - The *master* branch should always reflect the contents of the last stable release
 - The *develop* branch should contain the latest tested & approved updates. Pull requests should be used to merge changes into develop.
@@ -13,11 +13,11 @@ RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/Introdu
   
 Typically, releases will only be planned every few months.
 
-When you are ready to contribute code to RaSCSI Reloaded, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
+When you are ready to contribute code to PiSCSI, follow the <a href="https://docs.github.com/en/get-started/quickstart/contributing-to-projects">GitHub Forking and Pull Request workflow</a> to create your own fork where you can make changes, and then contribute it back to the project. Please remember to always make Pull Requests against the *develop* branch.
 
-If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/akuker/RASCSI/blob/develop/python/web/README.md#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
+If you want to add a new translation, or improve upon an existing one, please follow the <a href="https://github.com/PiSCSI/piscsi/tree/master/python/web#localizing-the-web-interface">instructions in the Web Interface README</a>. Once the translation is complete, please use the same workflow as above to contribute it to the project.
 
-<a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=akuker_RASCSI)
+<a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg)](https://sonarcloud.io/summary/new_code?id=akuker_PISCSI)
 
 # GitHub Sponsors
 Thank you to all of the GitHub sponsors who support the development community!

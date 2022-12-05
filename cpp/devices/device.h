@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
@@ -10,16 +10,16 @@
 #pragma once
 
 #include "shared/log.h"
-#include "generated/rascsi_interface.pb.h"
+#include "generated/piscsi_interface.pb.h"
 #include <unordered_map>
 #include <string>
 
 using namespace std;
-using namespace rascsi_interface;
+using namespace piscsi_interface;
 
 class Device //NOSONAR The number of fields and methods is justified, the complexity is low
 {
-	const string DEFAULT_VENDOR = "RaSCSI";
+	const string DEFAULT_VENDOR = "PiSCSI";
 
 	PbDeviceType type;
 

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "rascsi/localizer.h"
+#include "piscsi/localizer.h"
 
 TEST(Localizer, Localize)
 {

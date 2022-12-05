@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -22,7 +22,7 @@ class SCSIPrinter : public PrimaryDevice, private ScsiPrinterCommands
 {
 	static const int NOT_RESERVED = -2;
 
-	static constexpr const char *PRINTER_FILE_PATTERN = "/rascsi_sclp-XXXXXX";
+	static constexpr const char *PRINTER_FILE_PATTERN = "/piscsi_sclp-XXXXXX";
 
 public:
 

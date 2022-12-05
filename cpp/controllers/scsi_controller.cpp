@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
@@ -13,7 +13,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "devices/interfaces/byte_writer.h"
@@ -108,29 +108,29 @@ void ScsiController::BusFree()
 
 		SetByteTransfer(false);
 
-		if (shutdown_mode != rascsi_shutdown_mode::NONE) {
+		if (shutdown_mode != piscsi_shutdown_mode::NONE) {
 			// Prepare the shutdown by flushing all caches
 			for (const auto& device : GetControllerManager()->GetAllDevices()) {
 				device->FlushCache();
 			}
 		}
 
-		// When the bus is free RaSCSI or the Pi may be shut down.
+		// When the bus is free PiSCSI or the Pi may be shut down.
 		// This code has to be executed in the bus free phase and thus has to be located in the controller.
 		switch(shutdown_mode) {
-		case rascsi_shutdown_mode::STOP_RASCSI:
-			logger.Info("RaSCSI shutdown requested");
+		case piscsi_shutdown_mode::STOP_PISCSI:
+			logger.Info("PiSCSI shutdown requested");
 			exit(EXIT_SUCCESS);
 			break;
 
-		case rascsi_shutdown_mode::STOP_PI:
+		case piscsi_shutdown_mode::STOP_PI:
 			logger.Info("Raspberry Pi shutdown requested");
 			if (system("init 0") == -1) {
 				logger.Error("Raspberry Pi shutdown failed: " + string(strerror(errno)));
 			}
 			break;
 
-		case rascsi_shutdown_mode::RESTART_PI:
+		case piscsi_shutdown_mode::RESTART_PI:
 			logger.Info("Raspberry Pi restart requested");
 			if (system("init 6") == -1) {
 				logger.Error("Raspberry Pi restart failed: " + string(strerror(errno)));

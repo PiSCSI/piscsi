@@ -357,7 +357,7 @@
     "name": "Iomega Floptical 1.44MB",
     "file_type": "hdr",
     "description": "Iomega Floptical 1.44MB SCSI drive",
-    "url": "https://github.com/akuker/RASCSI/wiki/Iomega-Floptical"
+    "url": "https://github.com/PiSCSI/piscsi/wiki/Iomega-Floptical"
 },
 {
     "device_type": "SCRM",

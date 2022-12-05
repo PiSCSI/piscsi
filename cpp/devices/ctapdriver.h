@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -22,7 +22,7 @@ using namespace std;
 
 class CTapDriver
 {
-	static constexpr const char *BRIDGE_NAME = "rascsi_bridge";
+	static constexpr const char *BRIDGE_NAME = "piscsi_bridge";
 
 public:
 
@@ -37,8 +37,8 @@ public:
 	int Receive(uint8_t *buf);
 	int Send(const uint8_t *buf, int len);
 	bool PendingPackets() const;		// Check if there are IP packets available
-	bool Enable() const;		// Enable the ras0 interface
-	bool Disable() const;		// Disable the ras0 interface
+	bool Enable() const;		// Enable the piscsi0 interface
+	bool Disable() const;		// Disable the piscsi0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
 	static uint32_t Crc32(const uint8_t *, int);

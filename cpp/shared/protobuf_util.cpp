@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2021-2022 Uwe Seimet
@@ -8,14 +8,14 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "rasutil.h"
+#include "piscsi_util.h"
 #include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include <sstream>
 
 using namespace std;
-using namespace ras_util;
-using namespace rascsi_interface;
+using namespace piscsi_util;
+using namespace piscsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 

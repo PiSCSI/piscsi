@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "storage_device.h"
 #include <sys/stat.h>
 #include <unistd.h>
@@ -36,7 +36,7 @@ void StorageDevice::ValidateFile()
 		throw io_exception("Drive capacity cannot exceed 2 TiB");
 	}
 
-	// TODO Check for duplicate handling of these properties (-> rascsi_executor.cpp)
+	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
 	if (access(filename.c_str(), W_OK)) {
 		// Permanently write-protected
 		SetReadOnly(true);

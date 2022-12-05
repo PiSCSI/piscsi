@@ -41,7 +41,7 @@ ifeq "$(GCCVERSION10)" "1"
 endif
 
 
-##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
+##   CONNECT_TYPE=FULLSPEC : Specify the type of PiSCSI board type
 ##              that you are using. The typical options are 
 ##              STANDARD or FULLSPEC. The default is FULLSPEC
 ##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
@@ -53,90 +53,90 @@ ifdef CONNECT_TYPE
 CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 
-RASCSI = rascsi
-RASCTL = rasctl
-RASDUMP = rasdump
+PISCSI = piscsi
+SCSICTL = scsictl
+SCSIDUMP = scsidump
 SCSIMON = scsimon
-RASCSI_TEST = rascsi_test
+PISCSI_TEST = piscsi_test
 SCSILOOP = scsiloop
 
-SYSTEMD_CONF = /etc/systemd/system/rascsi.service
-RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
-RSYSLOG_LOG  = /var/log/rascsi.log
+SYSTEMD_CONF = /etc/systemd/system/piscsi.service
+RSYSLOG_CONF = /etc/rsyslog.d/piscsi.conf
+RSYSLOG_LOG  = /var/log/piscsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../doc
 COVERAGE_DIR = coverage
-COVERAGE_FILE = rascsi.dat
+COVERAGE_FILE = piscsi.dat
 OS_FILES = os_integration
 
 OBJDIR := obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BINDIR := bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 
 BIN_ALL = \
-	$(BINDIR)/$(RASCSI) \
-	$(BINDIR)/$(RASCTL) \
+	$(BINDIR)/$(PISCSI) \
+	$(BINDIR)/$(SCSICTL) \
 	$(BINDIR)/$(SCSIMON) \
-	$(BINDIR)/$(RASDUMP) \
+	$(BINDIR)/$(SCSIDUMP) \
 	$(BINDIR)/$(SCSILOOP)
 
-SRC_PROTOC = rascsi_interface.proto
+SRC_PROTOC = piscsi_interface.proto
 
-SRC_GENERATED = $(GENERATED_DIR)/rascsi_interface.pb.cpp
+SRC_GENERATED = $(GENERATED_DIR)/piscsi_interface.pb.cpp
 
 SRC_PROTOBUF = \
 	shared/protobuf_util.cpp \
 	shared/protobuf_serializer.cpp
 
 SRC_SHARED = \
-	shared/rascsi_version.cpp \
-	shared/rasutil.cpp
+	shared/piscsi_version.cpp \
+	shared/piscsi_util.cpp
 
-SRC_RASCSI_CORE = $(shell find ./rascsi -name '*.cpp')
-SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
-SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
-SRC_RASCSI_CORE += $(shell find ./hal -name '*.cpp')
+SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp')
+SRC_PISCSI_CORE += $(shell find ./controllers -name '*.cpp')
+SRC_PISCSI_CORE += $(shell find ./devices -name '*.cpp')
+SRC_PISCSI_CORE += $(shell find ./hal -name '*.cpp')
 
-SRC_RASCSI = rascsi.cpp
+SRC_PISCSI = piscsi.cpp
 
 SRC_SCSIMON = scsimon.cpp
 SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 SRC_SCSIMON += $(shell find ./hal -name '*.cpp')
 
-SRC_RASCTL_CORE = $(shell find ./rasctl -name '*.cpp')
+SRC_SCSICTL_CORE = $(shell find ./scsictl -name '*.cpp')
 
-SRC_RASCTL = rasctl.cpp
+SRC_SCSICTL = scsictl.cpp
 
-SRC_RASDUMP = rasdump.cpp
-SRC_RASDUMP += $(shell find ./rasdump -name '*.cpp')
-SRC_RASDUMP += $(shell find ./hal -name '*.cpp')
+SRC_SCSIDUMP = scsidump.cpp
+SRC_SCSIDUMP += $(shell find ./scsidump -name '*.cpp')
+SRC_SCSIDUMP += $(shell find ./hal -name '*.cpp')
 
-SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
-SRC_RASCSI_TEST += $(shell find ./rasdump -name '*.cpp')
-SRC_RASCSI_TEST += $(shell find ./monitor -name '*.cpp')
+SRC_PISCSI_TEST = $(shell find ./test -name '*.cpp')
+SRC_PISCSI_TEST += $(shell find ./scsidump -name '*.cpp')
+SRC_PISCSI_TEST += $(shell find ./monitor -name '*.cpp')
 
 SRC_SCSILOOP = scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp')
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
 vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
-	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
 	./scsiloop
 vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
-	./hal/boards ./hal/pi_defs ./rascsi ./rasctl ./rasdump \
+	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
 	./scsiloop ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
 
-OBJ_RASCSI_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_CORE:%.cpp=%.o)))
-OBJ_RASCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI:%.cpp=%.o)))
-OBJ_RASCTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL_CORE:%.cpp=%.o)))
-OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
-OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
+OBJ_PISCSI_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_CORE:%.cpp=%.o)))
+OBJ_PISCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI:%.cpp=%.o)))
+OBJ_SCSICTL_CORE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL_CORE:%.cpp=%.o)))
+OBJ_SCSICTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSICTL:%.cpp=%.o)))
+OBJ_SCSIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
-OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
+OBJ_PISCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_TEST:%.cpp=%.o)))
 OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
@@ -151,7 +151,7 @@ TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_RASCSI_TEST) $(OBJ_SCSILOOP))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -165,7 +165,7 @@ $(SRC_GENERATED) : $(SRC_PROTOC)
 	@echo "-- Generating protobuf-based source files"
 	mkdir -p $(GENERATED_DIR)
 	protoc --cpp_out=$(GENERATED_DIR) $(SRC_PROTOC)
-	mv $(GENERATED_DIR)/rascsi_interface.pb.cc $@
+	mv $(GENERATED_DIR)/piscsi_interface.pb.cc $@
 
 $(OBJ_GENERATED) : $(SRC_GENERATED)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -183,46 +183,46 @@ $(OBJ_GENERATED) : $(SRC_GENERATED)
 .PHONY: all ALL docs test coverage lcov
 all: $(BIN_ALL) docs
 
-test: $(BINDIR)/$(RASCSI_TEST)
-	$(BINDIR)/$(RASCSI_TEST)
+test: $(BINDIR)/$(PISCSI_TEST)
+	$(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
 
 lcov: CXXFLAGS += --coverage
 lcov: test
-	lcov -q -c -d . --include '*/cpp/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/rascsi_interface.pb*'
+	lcov -q -c -d . --include '*/cpp/*' -o $(COVERAGE_FILE) --exclude '*/test/*' --exclude '*/interfaces/*' --exclude '*/piscsi_interface.pb*'
 	genhtml -q -o $(COVERAGE_DIR) --legend $(COVERAGE_FILE)
 
-docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/rasdump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
+docs: $(DOC_DIR)/piscsi_man_page.txt $(DOC_DIR)/scsictl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt $(DOC_DIR)/scsidump_man_page.txt $(DOC_DIR)/scsiloop_man_page.txt
 
-$(SRC_RASCSI_CORE) $(SRC_RASCTL_CORE) : $(OBJ_GENERATED)
+$(SRC_PISCSI_CORE) $(SRC_SCSICTL_CORE) : $(OBJ_GENERATED)
 
-$(BINDIR)/$(RASCSI): $(SRC_GENERATED) $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs
+$(BINDIR)/$(PISCSI): $(SRC_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_PISCSI) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs
 
-$(BINDIR)/$(RASCTL): $(SRC_GENERATED) $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL_CORE) $(OBJ_RASCTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lprotobuf
+$(BINDIR)/$(SCSICTL): $(SRC_GENERATED) $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSICTL_CORE) $(OBJ_SCSICTL) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lprotobuf
 
-$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(OBJ_SHARED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP) $(OBJ_SHARED)
+$(BINDIR)/$(SCSIDUMP): $(OBJ_SCSIDUMP) $(OBJ_SHARED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIDUMP) $(OBJ_SHARED)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) $(OBJ_SHARED) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) $(OBJ_SHARED)
 
-$(BINDIR)/$(RASCSI_TEST): $(SRC_GENERATED) $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_RASCTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(TEST_WRAPS) -o $@ $(OBJ_RASCSI_CORE) $(OBJ_RASCTL_CORE) $(OBJ_RASCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
+$(BINDIR)/$(PISCSI_TEST): $(SRC_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SCSICTL_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(TEST_WRAPS) -o $@ $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI_TEST) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_GENERATED) -lpthread -lpcap -lprotobuf -lstdc++fs -lgmock -lgtest
 
 $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
 # Phony rules for building individual utilities
-.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SCSIMON) $(RASCSI_TEST) $(SCSILOOP)
-$(RASCSI) : $(BINDIR)/$(RASCSI) 
-$(RASCTL) : $(BINDIR)/$(RASCTL) 
-$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)
+$(PISCSI) : $(BINDIR)/$(PISCSI) 
+$(SCSICTL) : $(BINDIR)/$(SCSICTL) 
+$(SCSIDUMP) : $(BINDIR)/$(SCSIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
-$(RASCSI_TEST): $(BINDIR)/$(RASCSI_TEST)
+$(PISCSI_TEST): $(BINDIR)/$(PISCSI_TEST)
 $(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
 
 ##   clean    : Remove all of the object files, intermediate 
@@ -233,28 +233,28 @@ clean:
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
-##              Configures the Systemd and RSyslog services to auto-run RaSCSI
+##              Configures the Systemd and RSyslog services to auto-run PiSCSI
 ##              * This target needs to be run with sudo (ex: sudo make install)
-##              * Before running this, you need to stop the rascsi service if
+##              * Before running this, you need to stop the piscsi service if
 ##              * it is already running:
-##              *   sudo systemctl stop rascsi
+##              *   sudo systemctl stop piscsi
 ##              * After running this, you will need to reboot or run:
 ##              *   sudo systemctl daemon-reload
 ##              *   sudo systemctl restart rsyslog
-##              *   sudo systemctl enable rascsi
-##              *   sudo systemctl start rascsi
+##              *   sudo systemctl enable piscsi
+##              *   sudo systemctl start piscsi
 .PHONY: install
 install: \
-	$(MAN_PAGE_DIR)/rascsi.1 \
-	$(MAN_PAGE_DIR)/rasctl.1 \
+	$(MAN_PAGE_DIR)/piscsi.1 \
+	$(MAN_PAGE_DIR)/scsictl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
 	$(MAN_PAGE_DIR)/scsiloop.1 \
-	$(MAN_PAGE_DIR)/rasdump.1 \
-	$(USR_LOCAL_BIN)/$(RASCTL) \
-	$(USR_LOCAL_BIN)/$(RASCSI) \
+	$(MAN_PAGE_DIR)/scsidump.1 \
+	$(USR_LOCAL_BIN)/$(SCSICTL) \
+	$(USR_LOCAL_BIN)/$(PISCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
 	$(USR_LOCAL_BIN)/$(SCSILOOP) \
-	$(USR_LOCAL_BIN)/$(RASDUMP) \
+	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)
@@ -283,8 +283,8 @@ $(RSYSLOG_CONF) : $(OS_FILES)/$(notdir $(RSYSLOG_CONF))
 
 $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
-	touch /var/log/rascsi.log
-	chown root:adm /var/log/rascsi.log
+	touch /var/log/piscsi.log
+	chown root:adm /var/log/piscsi.log
 
 $(MAN_PAGE_DIR)/:
 	echo "-- Creating directory $@"

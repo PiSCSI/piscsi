@@ -10,7 +10,7 @@ from functools import wraps
 from grp import getgrall
 
 import bjoern
-from rascsi.return_codes import ReturnCodes
+from piscsi.return_codes import ReturnCodes
 from simplepam import authenticate
 from flask_babel import Babel, Locale, refresh, _
 
@@ -28,11 +28,11 @@ from flask import (
     jsonify,
 )
 
-from rascsi.ractl_cmds import RaCtlCmds
-from rascsi.file_cmds import FileCmds
-from rascsi.sys_cmds import SysCmds
+from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.file_cmds import FileCmds
+from piscsi.sys_cmds import SysCmds
 
-from rascsi.common_settings import (
+from piscsi.common_settings import (
     CFG_DIR,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
@@ -79,7 +79,7 @@ def get_env_info():
     """
     Get information about the app/host environment
     """
-    server_info = ractl_cmd.get_server_info()
+    server_info = piscsi_cmd.get_server_info()
     ip_addr, host = sys_cmd.get_ip_and_host()
 
     if "username" in session:
@@ -198,18 +198,18 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
-    if not ractl_cmd.is_token_auth()["status"] and not APP.config["RASCSI_TOKEN"]:
+    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
         abort(
             403,
             _(
-                "RaSCSI is password protected. "
+                "PiSCSI is password protected. "
                 "Start the Web Interface with the --password parameter."
             ),
         )
 
-    server_info = ractl_cmd.get_server_info()
-    devices = ractl_cmd.list_devices()
-    device_types = map_device_types_and_names(ractl_cmd.get_device_types()["device_types"])
+    server_info = piscsi_cmd.get_server_info()
+    devices = piscsi_cmd.list_devices()
+    device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
     image_files = file_cmd.list_images()
     config_files = file_cmd.list_config_files()
     ip_addr, host = sys_cmd.get_ip_and_host()
@@ -251,7 +251,7 @@ def index():
     return response(
         template="index.html",
         locales=get_supported_locales(),
-        netinfo=ractl_cmd.get_network_info(),
+        netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
         attached_images=attached_images,
@@ -267,16 +267,16 @@ def index():
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
+        drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
         CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
-        REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
-        DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
-        PERIPHERAL_DEVICE_TYPES=ractl_cmd.get_peripheral_device_types(),
+        REMOVABLE_DEVICE_TYPES=piscsi_cmd.get_removable_device_types(),
+        DISK_DEVICE_TYPES=piscsi_cmd.get_disk_device_types(),
+        PERIPHERAL_DEVICE_TYPES=piscsi_cmd.get_peripheral_device_types(),
     )
 
 
@@ -297,7 +297,7 @@ def drive_list():
     return response(
         template="drives.html",
         files=file_cmd.list_images()["files"],
-        drive_properties=format_drive_properties(APP.config["RASCSI_DRIVE_PROPERTIES"]),
+        drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
     )
 
 
@@ -365,7 +365,7 @@ def drive_create():
     drive_name = request.form.get("drive_name")
     file_name = Path(request.form.get("file_name")).name
 
-    properties = get_properties_by_drive_name(APP.config["RASCSI_DRIVE_PROPERTIES"], drive_name)
+    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
 
     if not properties:
         return response(
@@ -409,7 +409,7 @@ def drive_cdrom():
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = get_properties_by_drive_name(APP.config["RASCSI_DRIVE_PROPERTIES"], drive_name)
+    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
 
     if not properties:
         return response(
@@ -478,7 +478,7 @@ def show_diskinfo():
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    server_info = ractl_cmd.get_server_info()
+    server_info = piscsi_cmd.get_server_info()
     returncode, diskinfo = sys_cmd.get_diskinfo(Path(server_info["image_dir"]) / file_name)
     if returncode == 0:
         return response(
@@ -498,12 +498,12 @@ def show_manpage():
     """
     Displays manpage
     """
-    app_allowlist = ["rascsi", "rasctl", "rasdump", "scsimon"]
+    app_allowlist = ["piscsi", "scsictl", "scsidump", "scsimon"]
 
     app = request.args.get("app", type=str)
 
     if app not in app_allowlist:
-        return response(error=True, message=_("%(app)s is not a recognized RaSCSI app", app=app))
+        return response(error=True, message=_("%(app)s is not a recognized PiSCSI app", app=app))
 
     file_path = f"{WEB_DIR}/../../../doc/{app}.1"
     html_to_strip = [
@@ -567,11 +567,11 @@ def show_logs():
 @login_required
 def log_level():
     """
-    Sets RaSCSI backend log level
+    Sets PiSCSI backend log level
     """
     level = request.form.get("level") or "info"
 
-    process = ractl_cmd.set_log_level(level)
+    process = piscsi_cmd.set_log_level(level)
     if process["status"]:
         return response(message=_("Log level set to %(value)s", value=level))
 
@@ -595,7 +595,7 @@ def attach_device():
     # Attempt to fetch the drive properties based on drive name
     drive_props = None
     if drive_name:
-        for drive in APP.config["RASCSI_DRIVE_PROPERTIES"]:
+        for drive in APP.config["PISCSI_DRIVE_PROPERTIES"]:
             if drive["name"] == drive_name:
                 drive_props = drive
                 break
@@ -625,7 +625,7 @@ def attach_device():
         kwargs["revision"] = drive_props["revision"]
         kwargs["block_size"] = drive_props["block_size"]
 
-    process = ractl_cmd.attach_device(scsi_id, **kwargs)
+    process = piscsi_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         return response(
@@ -661,7 +661,7 @@ def attach_image():
 
     if device_type:
         kwargs["device_type"] = device_type
-        device_types = ractl_cmd.get_device_types()
+        device_types = piscsi_cmd.get_device_types()
         expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
 
     # Attempt to load the device properties file:
@@ -679,13 +679,13 @@ def attach_image():
         kwargs["block_size"] = conf["block_size"]
         expected_block_size = conf["block_size"]
 
-    process = ractl_cmd.attach_device(scsi_id, **kwargs)
+    process = piscsi_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         if int(file_size) % int(expected_block_size):
             logging.warning(
                 "The image file size %s bytes is not a multiple of %s. "
-                "RaSCSI will ignore the trailing data. "
+                "PiSCSI will ignore the trailing data. "
                 "The image may be corrupted, so proceed with caution.",
                 file_size,
                 expected_block_size,
@@ -710,7 +710,7 @@ def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    process = ractl_cmd.detach_all()
+    process = piscsi_cmd.detach_all()
     if process["status"]:
         return response(message=_("Detached all SCSI devices"))
 
@@ -725,7 +725,7 @@ def detach():
     """
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
-    process = ractl_cmd.detach_by_id(scsi_id, unit)
+    process = piscsi_cmd.detach_by_id(scsi_id, unit)
     if process["status"]:
         return response(
             message=_(
@@ -747,7 +747,7 @@ def eject():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
-    process = ractl_cmd.eject_by_id(scsi_id, unit)
+    process = piscsi_cmd.eject_by_id(scsi_id, unit)
     if process["status"]:
         return response(
             message=_(
@@ -765,7 +765,7 @@ def device_info():
     """
     Displays detailed info for all attached devices
     """
-    process = ractl_cmd.list_devices()
+    process = piscsi_cmd.list_devices()
     if process["status"]:
         return response(
             template="deviceinfo.html",
@@ -783,9 +783,9 @@ def reserve_id():
     """
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
-    reserved_ids = ractl_cmd.get_reserved_ids()["ids"]
+    reserved_ids = piscsi_cmd.get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
-    process = ractl_cmd.reserve_scsi_ids(reserved_ids)
+    process = piscsi_cmd.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
         return response(message=_("Reserved SCSI ID %(id_number)s", id_number=scsi_id))
@@ -800,9 +800,9 @@ def release_id():
     Releases the reservation of a SCSI ID as well as the memo for the reservation
     """
     scsi_id = request.form.get("scsi_id")
-    reserved_ids = ractl_cmd.get_reserved_ids()["ids"]
+    reserved_ids = piscsi_cmd.get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
-    process = ractl_cmd.reserve_scsi_ids(reserved_ids)
+    process = piscsi_cmd.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
         return response(
@@ -896,7 +896,7 @@ def download_to_iso():
             ),
         )
 
-    process_attach = ractl_cmd.attach_device(
+    process_attach = piscsi_cmd.attach_device(
         scsi_id,
         device_type="SCCD",
         params={"file": process["file_name"]},
@@ -936,7 +936,7 @@ def download_file():
     if destination == "file_server":
         destination_dir = FILE_SERVER_DIR
     else:
-        server_info = ractl_cmd.get_server_info()
+        server_info = piscsi_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
     process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
@@ -967,7 +967,7 @@ def upload_file():
     if destination == "file_server":
         destination_dir = FILE_SERVER_DIR
     else:
-        server_info = ractl_cmd.get_server_info()
+        server_info = piscsi_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
     return upload_with_dropzonejs(destination_dir)
 
@@ -1056,7 +1056,7 @@ def create_file():
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
-        properties = get_properties_by_drive_name(APP.config["RASCSI_DRIVE_PROPERTIES"], drive_name)
+        properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
         if properties:
             prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
             process = file_cmd.write_drive_properties(prop_file_name, properties)
@@ -1095,7 +1095,7 @@ def download():
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    server_info = ractl_cmd.get_server_info()
+    server_info = piscsi_cmd.get_server_info()
     return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
 
 
@@ -1262,7 +1262,7 @@ def change_language():
     """
     locale = request.form.get("locale")
     session["language"] = locale
-    ractl_cmd.locale = session["language"]
+    piscsi_cmd.locale = session["language"]
     file_cmd.locale = session["language"]
     refresh()
 
@@ -1297,7 +1297,7 @@ def detect_locale():
     This requires the Flask app to have started first.
     """
     session["language"] = get_locale()
-    ractl_cmd.locale = session["language"]
+    piscsi_cmd.locale = session["language"]
     file_cmd.locale = session["language"]
 
 
@@ -1318,11 +1318,11 @@ def log_http_request():
 
 
 if __name__ == "__main__":
-    APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
+    APP.secret_key = "piscsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    parser = argparse.ArgumentParser(description="RaSCSI Web Interface command line arguments")
+    parser = argparse.ArgumentParser(description="PiSCSI Web Interface command line arguments")
     parser.add_argument(
         "--port",
         type=int,
@@ -1335,21 +1335,21 @@ if __name__ == "__main__":
         type=str,
         default="",
         action="store",
-        help="Token password string for authenticating with RaSCSI",
+        help="Token password string for authenticating with PiSCSI",
     )
     parser.add_argument(
-        "--rascsi-host",
+        "--backend-host",
         type=str,
         default="localhost",
         action="store",
-        help="RaSCSI host. Default: localhost",
+        help="PiSCSI backend hostname. Default: localhost",
     )
     parser.add_argument(
-        "--rascsi-port",
+        "--backend-port",
         type=int,
         default=6868,
         action="store",
-        help="RaSCSI port. Default: 6868",
+        help="PiSCSI backend port number. Default: 6868",
     )
     parser.add_argument(
         "--log-level",
@@ -1366,7 +1366,7 @@ if __name__ == "__main__":
     )
 
     arguments = parser.parse_args()
-    APP.config["RASCSI_TOKEN"] = arguments.password
+    APP.config["PISCSI_TOKEN"] = arguments.password
 
     logging.config.dictConfig(
         {
@@ -1389,9 +1389,9 @@ if __name__ == "__main__":
         }
     )
 
-    sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
-    ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["RASCSI_TOKEN"])
-    file_cmd = FileCmds(sock_cmd=sock_cmd, ractl=ractl_cmd, token=APP.config["RASCSI_TOKEN"])
+    sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
+    piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
+    file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
     sys_cmd = SysCmds()
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
@@ -1399,12 +1399,12 @@ if __name__ == "__main__":
     if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
         process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
         if process["status"]:
-            APP.config["RASCSI_DRIVE_PROPERTIES"] = process["conf"]
+            APP.config["PISCSI_DRIVE_PROPERTIES"] = process["conf"]
         else:
-            APP.config["RASCSI_DRIVE_PROPERTIES"] = []
+            APP.config["PISCSI_DRIVE_PROPERTIES"] = []
             logging.error(process["msg"])
     else:
-        APP.config["RASCSI_DRIVE_PROPERTIES"] = []
+        APP.config["PISCSI_DRIVE_PROPERTIES"] = []
         logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
 
     logging.info("Starting WSGI server...")

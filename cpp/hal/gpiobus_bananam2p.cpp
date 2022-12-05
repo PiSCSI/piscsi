@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi (And Banana Pi)
 //
 //  Copyright (c) 2012-2015 Ben Croston
@@ -277,13 +277,13 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
 
     int gpio_fd = open(gpio_dev.c_str(), 0);
     if (gpio_fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
+        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
         return false;
     }
 
     // Event request setting
     LOGTRACE("%s Event request setting (pin sel: %d)", __PRETTY_FUNCTION__, gpio_pin)
-    strncpy(selevreq.consumer_label, "RaSCSI", ARRAY_SIZE(selevreq.consumer_label));
+    strncpy(selevreq.consumer_label, "PiSCSI", ARRAY_SIZE(selevreq.consumer_label));
     selevreq.lineoffset  = gpio_pin;
     selevreq.handleflags = GPIOHANDLE_REQUEST_INPUT;
 #if SIGNAL_CONTROL_MODE < 2
@@ -297,7 +297,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     // Get event request
     if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
         LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd)
-        LOGERROR("Unable to register event request. Is RaSCSI already running?")
+        LOGERROR("Unable to register event request. Is PiSCSI or RaSCSI already running?")
         LOGERROR("[%08X] %s", errno, strerror(errno))
         close(gpio_fd);
         return false;

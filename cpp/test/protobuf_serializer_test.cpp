@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -9,12 +9,12 @@
 
 #include "mocks.h"
 #include "shared/protobuf_serializer.h"
-#include "shared/rascsi_exceptions.h"
-#include "generated/rascsi_interface.pb.h"
+#include "shared/piscsi_exceptions.h"
+#include "generated/piscsi_interface.pb.h"
 #include <filesystem>
 
 using namespace filesystem;
-using namespace rascsi_interface;
+using namespace piscsi_interface;
 
 TEST(ProtobufSerializerTest, SerializeMessage)
 {

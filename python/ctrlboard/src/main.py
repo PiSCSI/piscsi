@@ -1,4 +1,4 @@
-"""Module is the entry point for the RaSCSI Control Board UI"""
+"""Module is the entry point for the PiSCSI Control Board UI"""
 import argparse
 import sys
 import logging
@@ -12,21 +12,21 @@ from ctrlboard_event_handler.ctrlboard_menu_update_event_handler import (
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_renderer_config import MenuRendererConfig
 from menu.menu_renderer_luma_oled import MenuRendererLumaOled
-from rascsi.exceptions import (
+from piscsi.exceptions import (
     EmptySocketChunkException,
     InvalidProtobufResponse,
     FailedSocketConnectionException,
 )
-from rascsi.ractl_cmds import RaCtlCmds
-from rascsi.socket_cmds import SocketCmds
+from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.socket_cmds import SocketCmds
 
-from rascsi_menu_controller import RascsiMenuController
+from piscsi_menu_controller import PiscsiMenuController
 
 
 def parse_config():
-    """Parses the command line parameters and configured the RaSCSI Control Board UI accordingly"""
+    """Parses the command line parameters and configured the PiSCSI Control Board UI accordingly"""
     config = CtrlboardConfig()
-    cmdline_args_parser = argparse.ArgumentParser(description="RaSCSI ctrlboard service")
+    cmdline_args_parser = argparse.ArgumentParser(description="PiSCSI ctrlboard service")
     cmdline_args_parser.add_argument(
         "--rotation",
         type=int,
@@ -44,25 +44,25 @@ def parse_config():
         help="The pixel height of the screen buffer. Default: 64",
     )
     cmdline_args_parser.add_argument(
-        "--rascsi-host",
+        "--piscsi-host",
         type=str,
         default="localhost",
         action="store",
-        help="RaSCSI host. Default: localhost",
+        help="PiSCSI host. Default: localhost",
     )
     cmdline_args_parser.add_argument(
-        "--rascsi-port",
+        "--piscsi-port",
         type=int,
         default=6868,
         action="store",
-        help="RaSCSI port. Default: 6868",
+        help="PiSCSI port. Default: 6868",
     )
     cmdline_args_parser.add_argument(
         "--password",
         type=str,
         default="",
         action="store",
-        help="Token password string for authenticating with RaSCSI",
+        help="Token password string for authenticating with PiSCSI",
     )
     cmdline_args_parser.add_argument(
         "--loglevel",
@@ -93,19 +93,19 @@ def parse_config():
     config.TOKEN = args.password
     config.WIDTH = 128
     config.BORDER = 5
-    config.RASCSI_HOST = args.rascsi_host
-    config.RASCSI_PORT = args.rascsi_port
+    config.PISCSI_HOST = args.piscsi_host
+    config.PISCSI_PORT = args.piscsi_port
     config.LOG_LEVEL = args.loglevel
     config.TRANSITIONS = bool(args.transitions)
 
     return config
 
 
-def check_rascsi_connection(ractl_cmd):
-    """Checks whether a RaSCSI connection exists by polling the RaSCSI server info.
+def check_piscsi_connection(piscsi_cmd):
+    """Checks whether a PiSCSI connection exists by polling the PiSCSI server info.
     Returns true if connection works, false if connection fails."""
     try:
-        info = ractl_cmd.get_reserved_ids()
+        info = piscsi_cmd.get_reserved_ids()
         return bool(info["status"] is True)
     except FailedSocketConnectionException:
         log = logging.getLogger(__name__)
@@ -114,40 +114,40 @@ def check_rascsi_connection(ractl_cmd):
 
 
 def main():
-    """Main function for the RaSCSI Control Board UI"""
+    """Main function for the PiSCSI Control Board UI"""
     config = parse_config()
 
     log_format = "%(asctime)s:%(name)s:%(levelname)s - %(message)s"
     logging.basicConfig(stream=sys.stdout, format=log_format, level=config.LOG_LEVEL)
     log = logging.getLogger(__name__)
-    log.debug("RaSCSI ctrlboard service started.")
+    log.debug("PiSCSI ctrlboard service started.")
 
     ctrlboard_hw = CtrlBoardHardware(
         display_i2c_address=config.DISPLAY_I2C_ADDRESS,
         pca9554_i2c_address=config.PCA9554_I2C_ADDRESS,
     )
 
-    # for now, we require the complete rascsi ctrlboard hardware.
+    # for now, we require the complete piscsi ctrlboard hardware.
     # Oled only will be supported as well at some later point in time.
-    if ctrlboard_hw.rascsi_controlboard_detected is False:
+    if ctrlboard_hw.piscsi_controlboard_detected is False:
         log.error("Ctrlboard hardware not detected. Stopping service")
         exit(1)
 
     sock_cmd = None
-    ractl_cmd = None
+    piscsi_cmd = None
     try:
-        sock_cmd = SocketCmds(host=config.RASCSI_HOST, port=config.RASCSI_PORT)
-        ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=config.TOKEN)
+        sock_cmd = SocketCmds(host=config.PISCSI_HOST, port=config.PISCSI_PORT)
+        piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=config.TOKEN)
     except EmptySocketChunkException:
-        log.error("Retrieved empty data from RaSCSI. Stopping service")
+        log.error("Retrieved empty data from PiSCSI. Stopping service")
         exit(1)
     except InvalidProtobufResponse:
-        log.error("Retrieved unexpected data from RaSCSI. Stopping service")
+        log.error("Retrieved unexpected data from PiSCSI. Stopping service")
         exit(1)
 
-    if check_rascsi_connection(ractl_cmd) is False:
+    if check_piscsi_connection(piscsi_cmd) is False:
         log.error(
-            "Communication with RaSCSI failed. Please check if password token must be set "
+            "Communication with PiSCSI failed. Please check if password token must be set "
             "and whether is set correctly."
         )
         exit(1)
@@ -160,8 +160,8 @@ def main():
     menu_renderer_config.i2c_address = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
     menu_renderer_config.rotation = config.ROTATION
 
-    menu_builder = CtrlBoardMenuBuilder(ractl_cmd)
-    menu_controller = RascsiMenuController(
+    menu_builder = CtrlBoardMenuBuilder(piscsi_cmd)
+    menu_controller = PiscsiMenuController(
         config.MENU_REFRESH_INTERVAL,
         menu_builder=menu_builder,
         menu_renderer=MenuRendererLumaOled(menu_renderer_config),
@@ -174,7 +174,7 @@ def main():
     menu_controller.show_splash_screen("resources/splash_start_64.bmp")
 
     menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(
-        menu_controller, sock_cmd=sock_cmd, ractl_cmd=ractl_cmd
+        menu_controller, sock_cmd=sock_cmd, piscsi_cmd=piscsi_cmd
     )
     ctrlboard_hw.attach(menu_update_event_handler)
     menu_controller.set_active_menu(CtrlBoardMenuBuilder.SCSI_ID_MENU)

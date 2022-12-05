@@ -1,0 +1,14 @@
+[Unit]
+Description=PiSCSI Control Board service
+After=network.target piscsi.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=2s
+ExecStart=/home/pi/piscsi/python/ctrlboard/start.sh
+ExecStop=/bin/pkill --signal 2 -f "python3 src/main.py"
+SyslogIdentifier=PISCSICTRLB
+
+[Install]
+WantedBy=multi-user.target

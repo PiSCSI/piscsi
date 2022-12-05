@@ -14,7 +14,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/rascsi_exceptions.h"
+#include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "disk.h"
 #include <sstream>

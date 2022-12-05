@@ -1,12 +1,12 @@
-# German translations for RaSCSI.
+# German translations for PiSCSI.
 # Copyright (C) 2021 akuker
-# This file is distributed under the same license as the RaSCSI project.
+# This file is distributed under the same license as the PiSCSI project.
 # Christian Victor <christian.victor@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: RaSCSI 68kmla Edition\n"
-"Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
+"Project-Id-Version: PiSCSI 68kmla Edition\n"
+"Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
 "POT-Creation-Date: 2022-05-06 18:47+0200\n"
 "PO-Revision-Date: 2022-05-06 20:22+0200\n"
 "Last-Translator: Christian Victor <christian.victor@gmail.com>\n"
@@ -104,36 +104,36 @@ msgstr ""
 #: src/socket_cmds_flask.py:34
 #, python-format
 msgid ""
-"The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s with "
-"error: %(error_msg)s. The RaSCSI process is not running or may have crashed."
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s with "
+"error: %(error_msg)s. The PiSCSI process is not running or may have crashed."
 msgstr ""
-"Das RaSCSI-Webinterface konnte sich mit Fehler %(error_msg)s nicht mit RaSCSI "
-"an %(host)s:%(port)s verbinden. Der RaSCSI-Prozess läuft nicht oder könnte "
+"Das PiSCSI-Webinterface konnte sich mit Fehler %(error_msg)s nicht mit PiSCSI "
+"an %(host)s:%(port)s verbinden. Der PiSCSI-Prozess läuft nicht oder könnte "
 "abgestürzt sein."
 
 #: src/socket_cmds_flask.py:45
 msgid ""
-"The RaSCSI Web Interface lost connection to RaSCSI. Please go back and try "
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and try "
 "again. If the issue persists, please report a bug."
 msgstr ""
-"Das RaSCSI-Webinterface hat die Verbindung verloren. Bitte gehe zurück und "
+"Das PiSCSI-Webinterface hat die Verbindung verloren. Bitte gehe zurück und "
 "versuche es nochmals. Wenn das Problem bestehen bleibt, melde bitte einen Bug."
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The RaSCSI Web Interface did not get a valid response from RaSCSI. Please go "
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please go "
 "back and try again. If the issue persists, please report a bug."
 msgstr ""
-"Das RaSCSI-Webinterface hat keine gültige Antwort von RaSCSI bekommen. Bitte "
+"Das PiSCSI-Webinterface hat keine gültige Antwort von PiSCSI bekommen. Bitte "
 "gehe zurück und versuche es nochmals. Wenn das Problem bestehen bleibt, melde "
 "bitte einen Bug."
 
 #: src/web.py:105
 msgid ""
-"RaSCSI is password protected. Start the Web Interface with the --password "
+"PiSCSI is password protected. Start the Web Interface with the --password "
 "parameter."
 msgstr ""
-"RaSCSI ist passwortgeschützt. Starte das Webinterface mit dem —password "
+"PiSCSI ist passwortgeschützt. Starte das Webinterface mit dem —password "
 "Parameter."
 
 #: src/web.py:209
@@ -184,11 +184,11 @@ msgstr ""
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of %(block_size)s. "
-"RaSCSI will ignore the trailing data. The image may be corrupted, so proceed "
+"PiSCSI will ignore the trailing data. The image may be corrupted, so proceed "
 "with caution."
 msgstr ""
 "Die Imagedateigröße %(file_size)s Bytes ist kein Vielfaches von %(block_size)s. "
-"RaSCSI wird die hinten überstehenden Daten ignorieren. Das Image könnte "
+"PiSCSI wird die hinten überstehenden Daten ignorieren. Das Image könnte "
 "beschädigt werden. Verfahre bitte mit Vorsicht."
 
 #: src/web.py:576
@@ -434,8 +434,8 @@ msgid "File upload successful!"
 msgstr "Dateiupload erfolgreich!"
 
 #: src/templates/base.html:4 src/templates/base.html:67
-msgid "RaSCSI Control Page"
-msgstr "RaSCSI Kontrollseite"
+msgid "PiSCSI Control Page"
+msgstr "PiSCSI Kontrollseite"
 
 #: src/templates/base.html:29
 msgid ""
@@ -484,8 +484,8 @@ msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr "Siehe <a href=„%(url)s“ target=„_blank“>Wiki</a> für mehr Informationen"
 
 #: src/templates/base.html:92
-msgid "RaSCSI version: "
-msgstr "RaSCSI-Version: "
+msgid "PiSCSI version: "
+msgstr "PiSCSI-Version: "
 
 #: src/templates/base.html:93
 msgid "Pi environment: "
@@ -585,8 +585,8 @@ msgid "%(disk_space)s MB disk space remaining on the Pi"
 msgstr "%(disk_space)s MB Festplattenplatz auf dem Pi übrig"
 
 #: src/templates/index.html:6
-msgid "Current RaSCSI Configuration"
-msgstr "Aktuelle RaSCSI-Konfiguration"
+msgid "Current PiSCSI Configuration"
+msgstr "Aktuelle PiSCSI-Konfiguration"
 
 #: src/templates/index.html:9
 msgid "Displays the currently attached devices for each available SCSI ID."
@@ -603,10 +603,10 @@ msgstr ""
 
 #: src/templates/index.html:11
 msgid ""
-"To have a particular device configuration load when RaSCSI starts, save it as "
+"To have a particular device configuration load when PiSCSI starts, save it as "
 "<em>default</em>."
 msgstr ""
-"Um eine bestimmte Gerätekonfiguration zu laden wenn RaSCSI startet, speichere "
+"Um eine bestimmte Gerätekonfiguration zu laden wenn PiSCSI startet, speichere "
 "sie als <em>default</em>."
 
 #: src/templates/index.html:25
@@ -718,10 +718,10 @@ msgstr "Image-Dateiverwaltung"
 #: src/templates/index.html:155
 #, python-format
 msgid ""
-"Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> "
+"Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> "
 "with a scan depth of %(scan_depth)s."
 msgstr ""
-"Verwalte Imagedateien im aktiven RaSCSI Imageverzeichnis <tt>%(directory)s</tt> "
+"Verwalte Imagedateien im aktiven PiSCSI Imageverzeichnis <tt>%(directory)s</tt> "
 "mit einer Scantiefe von %(scan_depth)s."
 
 #: src/templates/index.html:156
@@ -735,10 +735,10 @@ msgstr ""
 
 #: src/templates/index.html:158
 msgid ""
-"If RaSCSI was unable to detect the media type associated with the image, you "
+"If PiSCSI was unable to detect the media type associated with the image, you "
 "get to choose the type from the dropdown."
 msgstr ""
-"Wenn RaSCSI den zugehörigen Medientyp des Images nicht erkennen konnte, kannst "
+"Wenn PiSCSI den zugehörigen Medientyp des Images nicht erkennen konnte, kannst "
 "Du ihn im Dropdown auswählen."
 
 #: src/templates/index.html:166
@@ -828,10 +828,10 @@ msgstr ""
 
 #: src/templates/index.html:310
 msgid ""
-"The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an "
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an "
 "emulated network adapter!"
 msgstr ""
-"Die <tt>rascsi_bridge</tt>-Netzwerk-Bridge ist aktiv und bereit vom emulierten "
+"Die <tt>piscsi_bridge</tt>-Netzwerk-Bridge ist aktiv und bereit vom emulierten "
 "Netzwerkadapter verwendet zu werden!"
 
 #: src/templates/index.html:314
@@ -1090,11 +1090,11 @@ msgstr ""
 
 #: src/templates/index.html:540
 msgid ""
-"APPLE GENUINE (.hda) and NEC GENUINE (.hdn) image types will make RaSCSI behave "
+"APPLE GENUINE (.hda) and NEC GENUINE (.hdn) image types will make PiSCSI behave "
 "as a particular drive type that are recognized by Mac and PC98 systems, "
 "respectively."
 msgstr ""
-"APPLE GENUINE (.hda) und NEC GENUINE (.hdn) Imagetypen lassen RaSCSI sich wie "
+"APPLE GENUINE (.hda) und NEC GENUINE (.hdn) Imagetypen lassen PiSCSI sich wie "
 "ein bestimmter Laufwerkstyp, der von jeweils Mac und PC98-Systemen erkannt "
 "wird, verhalten."
 
@@ -1151,10 +1151,10 @@ msgstr ""
 
 #: src/templates/index.html:584
 msgid ""
-"This will make RaSCSI use certain vendor strings and block sizes that may "
+"This will make PiSCSI use certain vendor strings and block sizes that may "
 "improve compatibility with certain systems."
 msgstr ""
-"Dies bewirkt daß RaSCSI bestimmte Vendor-Strings und Blockgrößen verwendet die "
+"Dies bewirkt daß PiSCSI bestimmte Vendor-Strings und Blockgrößen verwendet die "
 "die Kompatibilität mit bestimmten Systemen verbessern könnten."
 
 #: src/templates/index.html:587
@@ -1191,8 +1191,8 @@ msgid "Server Log Level"
 msgstr "Server Log Level"
 
 #: src/templates/index.html:636
-msgid "Change the log level of the RaSCSI backend process."
-msgstr "Ändere den Log-Level des RaSCSI Hintergrundprozesses."
+msgid "Change the log level of the PiSCSI backend process."
+msgstr "Ändere den Log-Level des PiSCSI Hintergrundprozesses."
 
 #: src/templates/index.html:637
 msgid "The current dropdown selection indicates the active log level."
@@ -1227,8 +1227,8 @@ msgid "Raspberry Pi Operations"
 msgstr "Raspberry Pi Operationen"
 
 #: src/templates/index.html:693
-msgid "Reboot or shut down the Raspberry Pi that RaSCSI is running on."
-msgstr "Den Raspberry Pi auf dem RaSCSI läuft neustarten oder herunterfahren."
+msgid "Reboot or shut down the Raspberry Pi that PiSCSI is running on."
+msgstr "Den Raspberry Pi auf dem PiSCSI läuft neustarten oder herunterfahren."
 
 #: src/templates/index.html:694
 msgid ""

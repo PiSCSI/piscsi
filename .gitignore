@@ -10,6 +10,7 @@ core
 __pycache__
 current
 rascsi_interface_pb2.py
+piscsi_interface_pb2.py
 messages.pot
 messages.mo
 report.xml

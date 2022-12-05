@@ -1,0 +1,41 @@
+.TH scsidump 1
+.SH NAME
+scsidump \- SCSI disk dumping tool for PiSCSI
+.SH SYNOPSIS
+.B scsidump
+\fB\-t\fR \fIID[:LUN]\fR
+[\fB\-i\fR \fIBID\fR]
+\fB\-f\fR \fIFILE\fR
+[\fB\-s\fR \fIBUFFER_SIZE\fR]
+[\fB\-r\fR]
+[\fB\-v\fR]
+.SH DESCRIPTION
+.B scsidump
+samples the data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through a STANDARD PiSCSI board, or a FULLSPEC PiSCSI board.
+
+Set its own ID with the BID option. Defaults to 7 if ommitted.
+
+.SH OPTIONS
+.TP
+.BR \-t\fI " "\fIID[:LUN]
+SCSI ID and optional LUN of the target device.
+.TP
+.BR \-i\fI " "\fIBID
+SCSI ID of the PiSCSI device.
+.TP
+.BR \-f\fI " "\fIFILE
+Path to the dump file.
+.TP
+.BR \-s\fI " "\fIBUFFER_SIZE
+The transfer buffer size, at least 64 KiB. Default is 64 KiB.
+.TP
+.BR \-r\fI
+Run in restore mode.
+.TP
+.BR \-v\fI
+Enable verbose logging.
+
+.SH SEE ALSO
+scsictl(1), piscsi(1), scsimon(1)
+ 
+Full documentation is available at: <https://www.piscsi.com>

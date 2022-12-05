@@ -1,7 +1,7 @@
 services:
   web:
     volumes:
-      - ../python:/home/pi/RASCSI/python:delegated
+      - ../python:/home/pi/piscsi/python:delegated
   pytest:
     volumes:
       - ../python/web:/src:delegated

@@ -26,25 +26,25 @@ jobs:
         run: make -j $(nproc) test
 
       - name: Run unit tests
-        run: (set -o pipefail && bin/fullspec/rascsi_test | tee rascsi_test_log.txt)
+        run: (set -o pipefail && bin/fullspec/piscsi_test | tee piscsi_test_log.txt)
 
       - name: Upload logs
         uses: actions/upload-artifact@v3
         with:
-          name: rascsi_test_log.txt
-          path: cpp/rascsi_test_log.txt
+          name: piscsi_test_log.txt
+          path: cpp/piscsi_test_log.txt
 
   sonarcloud:
     runs-on: ubuntu-22.04
-    if: github.repository == 'akuker/RASCSI'
+    if: github.repository == 'PiSCSI/piscsi'
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
       SONAR_SCANNER_VERSION: 4.7.0.2747
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: "akuker_RASCSI"
-      SONAR_ORGANIZATION: "rascsi"
+      SONAR_PROJECT_KEY: "akuker_PISCSI"
+      SONAR_ORGANIZATION: "piscsi"
     steps:
       - uses: actions/checkout@v3
         with:

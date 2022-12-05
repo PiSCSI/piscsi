@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
@@ -83,7 +83,7 @@ public:
 	// e.g. by using ifdef __arm__. Currently the unit tests require this method to be public.
 	virtual void Execute();
 
-	void ScheduleShutdown(rascsi_shutdown_mode mode) override { shutdown_mode = mode; }
+	void ScheduleShutdown(piscsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 private:
 
@@ -117,6 +117,6 @@ private:
 
 	scsi_t scsi = {};
 
-	AbstractController::rascsi_shutdown_mode shutdown_mode = AbstractController::rascsi_shutdown_mode::NONE;
+	AbstractController::piscsi_shutdown_mode shutdown_mode = AbstractController::piscsi_shutdown_mode::NONE;
 };
 

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-// SCSI Target Emulator RaSCSI Reloaded
+// SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
 // Copyright (C) 2022 Uwe Seimet
@@ -22,7 +22,7 @@ void ScsiMo_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiMoTest, Inquiry)
 {
-	TestInquiry(SCMO, device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, "RaSCSI  SCSI MO         ", 0x1f, true);
+	TestInquiry(SCMO, device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, "PiSCSI  SCSI MO         ", 0x1f, true);
 }
 
 TEST(ScsiMoTest, SupportsSaveParameters)

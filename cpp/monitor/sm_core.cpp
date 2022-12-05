@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI Reloaded
+//	SCSI Target Emulator PiSCSI
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
@@ -15,8 +15,8 @@
 #include "hal/gpiobus_factory.h"
 #include "monitor/sm_reports.h"
 #include "shared/log.h"
-#include "shared/rascsi_version.h"
-#include "shared/rasutil.h"
+#include "shared/piscsi_version.h"
+#include "shared/piscsi_util.h"
 #include <climits>
 #include <csignal>
 #include <getopt.h>
@@ -25,7 +25,7 @@
 #include <sys/time.h>
 
 using namespace std;
-using namespace ras_util;
+using namespace piscsi_util;
 
 void ScsiMon::KillHandler(int)
 {
@@ -155,7 +155,7 @@ int ScsiMon::run(const vector<char *> &args)
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
 
-    ras_util::Banner("SCSI Monitor Capture Tool");
+    piscsi_util::Banner("(SCSI Monitor Capture Tool)");
 
     ParseArguments(args);
 
