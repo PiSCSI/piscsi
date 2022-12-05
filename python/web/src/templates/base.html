@@ -66,7 +66,7 @@
             {% endif %}
         {% else %}
             <div align="center" class="login-status authentication-disabled">
-                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/PISCSI/wiki/Web-Interface#enable-authentication") }}
+                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/PiSCSI/piscsi/wiki/Web-Interface#enable-authentication") }}
             </div>
         {% endif %}
 
@@ -125,7 +125,7 @@
             {% endif %}
         </div>
         <div>
-            {{ _("PiSCSI version:") }} <b>{{ env["version"] }} <a href="https://github.com/akuker/PISCSI/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+            {{ _("PiSCSI version:") }} <b>{{ env["version"] }} <a href="https://github.com/PiSCSI/piscsi/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
         </div>
         <div>
             {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}
