@@ -55,7 +55,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	signal(SIGPIPE, SIG_IGN);
 
 	if (bind(service_socket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
-		cerr << "Error: Port " << port << " is in use, is piscsi already running?" << endl;
+		cerr << "Error: Port " << port << " is in use, is piscsi or rascsi already running?" << endl;
 		return false;
 	}
 

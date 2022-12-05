@@ -183,7 +183,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // GPIO chip open
     fd = open("/dev/gpiochip0", 0);
     if (fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI already running?")
+        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
         return false;
     }
 
@@ -199,7 +199,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-        LOGERROR("Unable to register event request. Is PiSCSI already running?")
+        LOGERROR("Unable to register event request. Is PiSCSI or RaSCSI already running?")
         close(fd);
         return false;
     }

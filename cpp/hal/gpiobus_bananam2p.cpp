@@ -277,7 +277,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
 
     int gpio_fd = open(gpio_dev.c_str(), 0);
     if (gpio_fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI already running?")
+        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
         return false;
     }
 
@@ -297,7 +297,7 @@ bool GPIOBUS_BananaM2p::SetupSelEvent()
     // Get event request
     if (ioctl(gpio_fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
         LOGERROR("selevreq.fd = %d %08X", selevreq.fd, (unsigned int)selevreq.fd)
-        LOGERROR("Unable to register event request. Is PiSCSI already running?")
+        LOGERROR("Unable to register event request. Is PiSCSI or RaSCSI already running?")
         LOGERROR("[%08X] %s", errno, strerror(errno))
         close(gpio_fd);
         return false;
