@@ -1338,18 +1338,18 @@ if __name__ == "__main__":
         help="Token password string for authenticating with PiSCSI",
     )
     parser.add_argument(
-        "--piscsi-host",
+        "--backend-host",
         type=str,
         default="localhost",
         action="store",
-        help="PiSCSI host. Default: localhost",
+        help="PiSCSI backend hostname. Default: localhost",
     )
     parser.add_argument(
-        "--piscsi-port",
+        "--backend-port",
         type=int,
         default=6868,
         action="store",
-        help="PiSCSI port. Default: 6868",
+        help="PiSCSI backend port number. Default: 6868",
     )
     parser.add_argument(
         "--log-level",
@@ -1389,7 +1389,7 @@ if __name__ == "__main__":
         }
     )
 
-    sock_cmd = SocketCmdsFlask(host=arguments.piscsi_host, port=arguments.piscsi_port)
+    sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
     file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
     sys_cmd = SysCmds()

@@ -100,11 +100,11 @@ while [ "$1" != "" ]; do
     -P | --password)
         ARG_PASSWORD="--password $VALUE"
         ;;
-    -h | --piscsi-host)
-        ARG_BACKEND_HOST="--backend_host $VALUE"
+    -h | --backend-host)
+        ARG_BACKEND_HOST="--backend-host $VALUE"
         ;;
-    -o | --piscsi-port)
-        ARG_BACKEND_PORT="--backend_port $VALUE"
+    -o | --backend-port)
+        ARG_BACKEND_PORT="--backend-port $VALUE"
         ;;
     -l | --log-level)
         ARG_LOG_LEVEL="--log-level $VALUE"
