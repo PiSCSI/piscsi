@@ -14,7 +14,7 @@
 #include <string>
 
 //
-// PiSCSI Adapter Aibom version
+// RaSCSI Adapter Aibom version
 //
 
 const std::string CONNECT_DESC = "AIBOM PRODUCTS version"; // Startup message

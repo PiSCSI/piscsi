@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 //
-// Each piscsi message sent to the piscsi server is preceded by the magic string "PISCSI".
+// Each piscsi message sent to the piscsi server is preceded by the magic string "RASCSI".
 // A message starts with a little endian 32 bit header which contains the protobuf message size.
 // Unless explicitly specified the order of repeated data returned is undefined.
 // All operations accept an optional access token, specified by the "token" parameter.

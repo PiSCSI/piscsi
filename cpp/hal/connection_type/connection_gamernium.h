@@ -14,7 +14,7 @@
 #include <string>
 
 //
-// PiSCSI Adapter GAMERnium.com version
+// RaSCSI Adapter GAMERnium.com version
 //
 
 const std::string CONNECT_DESC = "GAMERnium.com version"; // Startup message
