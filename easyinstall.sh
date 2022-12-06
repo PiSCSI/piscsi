@@ -1420,7 +1420,7 @@ while [ "$1" != "" ]; do
         -s | --skip_packages)
             SKIP_PACKAGES=1
             ;;
-        -c | --skip_make_clean)
+        -l | --skip_make_clean)
             SKIP_MAKE_CLEAN=1
             ;;
         *)
