@@ -205,6 +205,13 @@ function installPiscsiWebInterface() {
 
     sudo usermod -a -G $USER www-data
 
+    if [ -f "$SSL_CERTS_PATH/rascsi-web.crt" ]; then
+        sudo rm "$SSL_CERTS_PATH/rascsi-web.crt"
+    fi
+    if [ -f "$SSL_KEYS_PATH/rascsi-web.key" ]; then
+        sudo rm "$SSL_KEYS_PATH/rascsi-web.key"
+    fi
+
     if [ -f "$SSL_CERTS_PATH/piscsi-web.crt" ]; then
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
     else
@@ -369,30 +376,39 @@ function installWebInterfaceService() {
 }
 
 # Checks for and disables legacy systemd services
-function disableLegacyServices() {
+function migrateLegacyData() {
     if [[ -f "$SYSTEMD_PATH/rascsi.service" ]]; then
         stopService "rascsi"
         disableService "rascsi"
         sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/piscsi.service"
+        echo "Renamed rascsi.service to piscsi.service"
     fi
     if [[ -f "$SYSTEMD_PATH/rascsi-web.service" ]]; then
         stopService "rascsi-web"
         disableService "rascsi-web"
         sudo mv "$SYSTEMD_PATH/rascsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
+        echo "Renamed rascsi-web.service to piscsi-web.service"
     fi
     if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
         stopService "rascsi-oled"
         disableService "rascsi-oled"
         sudo mv "$SYSTEMD_PATH/rascsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
+        echo "Renamed rascsi-oled.service to piscsi-oled.service"
     elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
         stopService "monitor_rascsi"
         disableService "monitor_rascsi"
         sudo mv "$SYSTEMD_PATH/monitor_rascsi.service" "$SYSTEMD_PATH/piscsi-oled.service"
+        echo "Renamed monitor_rascsi.service to piscsi-oled.service"
     fi
     if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
         stopService "rascsi-ctrlboard"
         disableService "rascsi-ctrlboard"
         sudo mv "$SYSTEMD_PATH/rascsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        echo "Renamed rascsi-ctrlboard.service to piscsi-ctrlboard.service"
+    fi
+    if [ $(getent group rascsi) ]; then
+        sudo groupmod --new-name piscsi rascsi
+        echo "Renamed the rascsi group to piscsi"
     fi
 }
 
@@ -1124,7 +1140,7 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              disableLegacyServices
+              migrateLegacyData
               stopService "piscsi-web"
               updatePiscsiGit
               installPackages
@@ -1170,7 +1186,7 @@ function runChoice() {
               createCfgDir
               updatePiscsiGit
               installPackagesStandalone
-              disableLegacyServices
+              migrateLegacyData
               stopService "piscsi-ctrlboard"
               stopService "piscsi-oled"
               stopService "piscsi"
