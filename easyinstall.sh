@@ -177,31 +177,23 @@ function installPiscsi() {
     echo "Configured piscsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 }
 
+# Delete file if it exists
+function deleteFile() {
+    if [ -f "$1" ]; then
+        sudo rm "$1" || exit 1
+        echo "Deleted $1"
+    fi
+}
+
+# Prepare shared Python code
 function preparePythonCommon() {
-    if [ -f "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    fi
-    if [ -f "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    fi
-    if [ -f "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
-    fi
-    if [ -f "$WEB_INSTALL_PATH/src/piscsi_interface_pb2.py" ]; then
-        sudo rm "$WEB_INSTALL_PATH/src/piscsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $WEB_INSTALL_PATH/src/piscsi_interface_pb2.py"
-    fi
-    if [ -f "$OLED_INSTALL_PATH/src/piscsi_interface_pb2.py" ]; then
-        sudo rm "$OLED_INSTALL_PATH/src/piscsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $OLED_INSTALL_PATH/src/piscsi_interface_pb2.py"
-    fi
-    if [ -f "$PYTHON_COMMON_PATH/src/piscsi_interface_pb2.py" ]; then
-        sudo rm "$PYTHON_COMMON_PATH/src/piscsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $PYTHON_COMMON_PATH/src/piscsi_interface_pb2.py"
-    fi
+    deleteFile "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
+    deleteFile "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
+    deleteFile "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
+    deleteFile "$WEB_INSTALL_PATH/src/piscsi_interface_pb2.py"
+    deleteFile "$OLED_INSTALL_PATH/src/piscsi_interface_pb2.py"
+    deleteFile "$PYTHON_COMMON_PATH/src/piscsi_interface_pb2.py"
+
     echo "Compiling the Python protobuf library piscsi_interface_pb2.py..."
     protoc -I="$CPP_PATH" --python_out="$PYTHON_COMMON_PATH/src" piscsi_interface.proto
 }
@@ -402,8 +394,6 @@ function disableLegacyServices() {
         disableService "rascsi-ctrlboard"
         sudo mv "$SYSTEMD_PATH/rascsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     fi
-
-    sudo systemctl daemon-reload
 }
 
 # Stops a service if it is running
