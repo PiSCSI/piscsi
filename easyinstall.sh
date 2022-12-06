@@ -532,25 +532,6 @@ function showMacproxyStatus() {
     systemctl status macproxy | tee
 }
 
-# Creates a drive image file with specific parameters
-function createDrive600M() {
-    createDrive 600 "HD600"
-}
-
-# Creates a drive image file and prompts for parameters
-function createDriveCustom() {
-    driveSize=-1
-    until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
-        echo "What drive size would you like (in MiB) (10-4000)"
-        read driveSize
-
-        echo "How would you like to name that drive?"
-        read driveName
-    done
-
-    createDrive "$driveSize" "$driveName"
-}
-
 # Clone, compile and install 'hfdisk', partition tool
 function installHfdisk() {
     HFDISK_VERSION="2022.11"
