@@ -94,6 +94,14 @@ function sudoCheck() {
     sudo -v
 }
 
+# Delete file if it exists
+function deleteFile() {
+    if sudo test -f "$1"; then
+        sudo rm "$1" || exit 1
+        echo "Deleted $1"
+    fi
+}
+
 # install all dependency packages for PiSCSI Service
 function installPackages() {
     if [[ $SKIP_PACKAGES ]]; then
@@ -129,7 +137,6 @@ function installPackagesWeb() {
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
 }
-
 
 # cache the pip packages
 function cachePipPackages(){
@@ -181,14 +188,6 @@ function installPiscsi() {
     echo "Configured piscsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 }
 
-# Delete file if it exists
-function deleteFile() {
-    if [ -f "$1" ]; then
-        sudo rm "$1" || exit 1
-        echo "Deleted $1"
-    fi
-}
-
 # Prepare shared Python code
 function preparePythonCommon() {
     deleteFile "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
@@ -209,12 +208,8 @@ function installPiscsiWebInterface() {
 
     sudo usermod -a -G $USER www-data
 
-    if [ -f "$SSL_CERTS_PATH/rascsi-web.crt" ]; then
-        sudo rm "$SSL_CERTS_PATH/rascsi-web.crt"
-    fi
-    if [ -f "$SSL_KEYS_PATH/rascsi-web.key" ]; then
-        sudo rm "$SSL_KEYS_PATH/rascsi-web.key"
-    fi
+    deleteFile "$SSL_CERTS_PATH/rascsi-web.crt"
+    deleteFile "$SSL_KEYS_PATH/rascsi-web.key"
 
     if [ -f "$SSL_CERTS_PATH/piscsi-web.crt" ]; then
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
