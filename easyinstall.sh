@@ -245,7 +245,7 @@ function createImagesDir() {
 function createCfgDir() {
     if [ -d "$HOME/.config/rascsi" ]; then
         sudo mv "$HOME/.config/rascsi" "$CFG_PATH"
-        echo "Renamed the rascsi config dir at $CFG_PATH."
+        echo "Renamed the rascsi config dir as $CFG_PATH."
     elif [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
