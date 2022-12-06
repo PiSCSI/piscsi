@@ -801,7 +801,11 @@ function installMacproxy {
         echo "Using the default port $PORT"
     fi
 
-    ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes </dev/null
+    fi
 
     MACPROXY_VER="22.8"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
@@ -929,7 +933,11 @@ function installPiscsiScreen() {
     disableService "piscsi-ctrlboard"
     updatePiscsiGit
 
-    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
@@ -999,9 +1007,13 @@ function installPiscsiCtrlBoard() {
     stopService "piscsi-ctrlboard"
     updatePiscsiGit
 
-    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
-    # install python packages through apt that need compilation
-    sudo apt-get install python3-cbor2 -y </dev/null
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+        # install python packages through apt that need compilation
+        sudo apt-get install python3-cbor2 -y </dev/null
+    fi
 
     # enable i2c
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
