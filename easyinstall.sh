@@ -1201,7 +1201,7 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              disableLegacyServices
+              migrateLegacyData
               installPiscsiScreen
               showPiscsiScreenStatus
               echo "Installing / Updating PiSCSI OLED Screen - Complete!"
@@ -1215,7 +1215,7 @@ function runChoice() {
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              disableLegacyServices
+              migrateLegacyData
               installPiscsiCtrlBoard
               showPiscsiCtrlBoardStatus
               echo "Installing / Updating PiSCSI Control Board UI - Complete!"
