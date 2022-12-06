@@ -96,9 +96,9 @@ function sudoCheck() {
 
 # Delete file if it exists
 function deleteFile() {
-    if sudo test -f "$1"; then
-        sudo rm "$1" || exit 1
-        echo "Deleted $1"
+    if sudo test -f "$1/$2"; then
+        sudo rm "$1/$2" || exit 1
+        echo "Deleted $1/$2"
     fi
 }
 
@@ -159,21 +159,25 @@ function compilePiscsi() {
     make CXX="$COMPILER" CONNECT_TYPE="$CONNECT_TYPE" -j "$CORES" all </dev/null
 }
 
-function cleanupOutdatedManPage() {
-    OUTDATED_MAN_PAGE_DIR=/usr/share/man/man1/
-    if [ -f "${OUTDATED_MAN_PAGE_DIR}/$1" ]; then
-      sudo rm "${OUTDATED_MAN_PAGE_DIR}/$1"
-    fi
-}
-
 # install the PiSCSI binaries and modify the service configuration
 function installPiscsi() {
-    # clean up outdated man pages if they exist
-    cleanupOutdatedManPage "rascsi.1"
-    cleanupOutdatedManPage "rasctl.1"
-    cleanupOutdatedManPage "scsimon.1"
-    cleanupOutdatedManPage "rasdump.1"
-    cleanupOutdatedManPage "sasidump.1"
+    OUTDATED_MAN_PAGE_DIR="/usr/share/man/man1"
+    CURRENT_MAN_PAGE_DIR="/usr/local/man/man1"
+    CURRENT_BIN_DIR="/usr/local/bin"
+    # clean up outdated binaries and man pages if they exist
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rascsi.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasctl.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "scsimon.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasdump.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "sasidump.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rascsi.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasctl.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasdump.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "sasidump.1"
+    deleteFile "$CURRENT_BIN_DIR" "rascsi"
+    deleteFile "$CURRENT_BIN_DIR" "rasctl"
+    deleteFile "$CURRENT_BIN_DIR" "rasdump"
+    deleteFile "$CURRENT_BIN_DIR" "sasidump"
 
     # install
     sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
@@ -190,14 +194,15 @@ function installPiscsi() {
 
 # Prepare shared Python code
 function preparePythonCommon() {
-    deleteFile "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    deleteFile "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    deleteFile "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
-    deleteFile "$WEB_INSTALL_PATH/src/piscsi_interface_pb2.py"
-    deleteFile "$OLED_INSTALL_PATH/src/piscsi_interface_pb2.py"
-    deleteFile "$PYTHON_COMMON_PATH/src/piscsi_interface_pb2.py"
+    PISCSI_PYTHON_PROTO="piscsi_interface_pb2.py"
+    deleteFile "$WEB_INSTALL_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$OLED_INSTALL_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$PYTHON_COMMON_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$WEB_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
+    deleteFile "$OLED_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
+    deleteFile "$PYTHON_COMMON_PATH/src" "$PISCSI_PYTHON_PROTO"
 
-    echo "Compiling the Python protobuf library piscsi_interface_pb2.py..."
+    echo "Compiling the Python protobuf library $PISCSI_PYTHON_PROTO..."
     protoc -I="$CPP_PATH" --python_out="$PYTHON_COMMON_PATH/src" piscsi_interface.proto
 }
 
@@ -208,8 +213,8 @@ function installPiscsiWebInterface() {
 
     sudo usermod -a -G $USER www-data
 
-    deleteFile "$SSL_CERTS_PATH/rascsi-web.crt"
-    deleteFile "$SSL_KEYS_PATH/rascsi-web.key"
+    deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
+    deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
 
     if [ -f "$SSL_CERTS_PATH/piscsi-web.crt" ]; then
         echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
