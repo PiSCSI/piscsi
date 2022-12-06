@@ -48,7 +48,7 @@ echo -e $logo
 
 COMPILER="clang++-11"
 CONNECT_TYPE="FULLSPEC"
-CORES=1
+CORES=$(nproc)
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
