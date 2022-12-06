@@ -143,7 +143,11 @@ function compilePiscsi() {
     cd "$CPP_PATH" || exit 1
 
     echo "Compiling $CONNECT_TYPE with $COMPILER on $CORES simultaneous cores..."
-    make clean </dev/null
+    if [[ $SKIP_MAKE_CLEAN ]]; then
+        echo "Skipping 'make clean'"
+    else
+        make clean </dev/null
+    fi
 
     make CXX="$COMPILER" CONNECT_TYPE="$CONNECT_TYPE" -j "$CORES" all </dev/null
 }
@@ -1415,6 +1419,9 @@ while [ "$1" != "" ]; do
             ;;
         -s | --skip_packages)
             SKIP_PACKAGES=1
+            ;;
+        -c | --skip_make_clean)
+            SKIP_MAKE_CLEAN=1
             ;;
         *)
             echo "ERROR: Unknown parameter \"$PARAM\""
