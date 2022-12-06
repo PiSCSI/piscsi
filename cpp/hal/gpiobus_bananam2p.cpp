@@ -77,6 +77,8 @@ bool GPIOBUS_BananaM2p::Init(mode_e mode)
 
     InitializeGpio();
 
+    MakeTable();
+
     // SetupSelEvent needs to be called AFTER Initialize GPIO. This function
     // reconfigures the SEL signal.
     if (!SetupSelEvent()) {
@@ -533,8 +535,8 @@ void GPIOBUS_BananaM2p::SetREQ(bool ast)
 uint8_t GPIOBUS_BananaM2p::GetDAT()
 {
     GPIO_FUNCTION_TRACE
-    (void)Acquire();
-    // TODO: This is inefficient, but it works...
+    
+    (void) Acquire();
     uint32_t data =
         ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
         ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
@@ -549,27 +551,27 @@ void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
 {
     GPIO_FUNCTION_TRACE
 
-    SetMode(BPI_PIN_DT0, OUT);
-    SetMode(BPI_PIN_DT1, OUT);
-    SetMode(BPI_PIN_DT2, OUT);
-    SetMode(BPI_PIN_DT3, OUT);
-    SetMode(BPI_PIN_DT4, OUT);
-    SetMode(BPI_PIN_DT5, OUT);
-    SetMode(BPI_PIN_DT6, OUT);
-    SetMode(BPI_PIN_DT7, OUT);
-    SetMode(BPI_PIN_DP, OUT);
+    array<uint32_t, 12> gpio_reg_values = {0};
 
-    // TODO: This is inefficient, but it works...
-    PinSetSignal(BPI_PIN_DT0, (dat & (1 << 0)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT1, (dat & (1 << 1)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT2, (dat & (1 << 2)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT3, (dat & (1 << 3)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT4, (dat & (1 << 4)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT5, (dat & (1 << 5)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT6, (dat & (1 << 6)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
-    PinSetSignal(BPI_PIN_DT7, (dat & (1 << 7)) == 0); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
+    for (size_t gpio_num = 0; gpio_num < pintbl.size(); gpio_num++) {
+        uint8_t value;
+        if (gpio_num < 8) {
+            // data bits
+            value = !(dat & (1 << gpio_num));
+        } else {
+            // parity bit
+            value = (__builtin_parity(dat) == 1);
+        }
 
-    PinSetSignal(BPI_PIN_DP, __builtin_parity(dat) == 1);
+        if (value) {
+            uint32_t this_gpio = pintbl[gpio_num];
+            int bank           = SunXI::GPIO_BANK(this_gpio);
+            int offset         = SunXI::GPIO_NUM(this_gpio);
+            gpio_reg_values[bank] |= (1 << offset);
+        }
+    }
+
+    sunxi_set_all_gpios(gpio_data_masks, gpio_reg_values);
 }
 
 //---------------------------------------------------------------------------
@@ -589,89 +591,12 @@ const array<int, 19> GPIOBUS_BananaM2p::SignalTable = {BPI_PIN_DT0, BPI_PIN_DT1,
 //---------------------------------------------------------------------------
 void GPIOBUS_BananaM2p::MakeTable(void)
 {
-    const array<int, 9> pintbl = {BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
-                                  BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP};
+    for (auto this_gpio : pintbl) {
+        int bank   = SunXI::GPIO_BANK(this_gpio);
+        int offset = (SunXI::GPIO_NUM(this_gpio));
 
-    array<bool, 256> tblParity;
-
-    // Create parity table
-    for (uint32_t i = 0; i < 0x100; i++) {
-        uint32_t bits   = i;
-        uint32_t parity = 0;
-        for (int j = 0; j < 8; j++) {
-            parity ^= bits & 1;
-            bits >>= 1;
-        }
-        parity       = ~parity;
-        tblParity[i] = parity & 1;
+        gpio_data_masks[bank] |= (1 << offset);
     }
-
-#if SIGNAL_CONTROL_MODE == 0
-    // Mask and setting data generation
-    for (auto &tbl : tblDatMsk) {
-        tbl.fill(-1);
-    }
-    for (auto &tbl : tblDatSet) {
-        tbl.fill(0);
-    }
-
-    for (uint32_t i = 0; i < 0x100; i++) {
-        // Bit string for inspection
-        uint32_t bits = i;
-
-        // Get parity
-        if (tblParity[i]) {
-            bits |= (1 << 8);
-        }
-
-        // Bit check
-        for (int j = 0; j < 9; j++) {
-            // Index and shift amount calculation
-            int index = pintbl[j] / 10;
-            int shift = (pintbl[j] % 10) * 3;
-
-            // Mask data
-            tblDatMsk[index][i] &= ~(0x7 << shift);
-
-            // Setting data
-            if (bits & 1) {
-                tblDatSet[index][i] |= (1 << shift);
-            }
-
-            bits >>= 1;
-        }
-    }
-#else
-    for (uint32_t i = 0; i < 0x100; i++) {
-        // Bit string for inspection
-        uint32_t bits = i;
-
-        // Get parity
-        if (tblParity[i]) {
-            bits |= (1 << 8);
-        }
-
-#if SIGNAL_CONTROL_MODE == 1
-        // Negative logic is inverted
-        bits = ~bits;
-#endif
-
-        // Create GPIO register information
-        uint32_t gpclr = 0;
-        uint32_t gpset = 0;
-        for (int j = 0; j < 9; j++) {
-            if (bits & 1) {
-                gpset |= (1 << pintbl[j]);
-            } else {
-                gpclr |= (1 << pintbl[j]);
-            }
-            bits >>= 1;
-        }
-
-        tblDatMsk[i] = gpclr;
-        tblDatSet[i] = gpset;
-    }
-#endif
 }
 
 bool GPIOBUS_BananaM2p::GetDP() const
@@ -1056,6 +981,28 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int pin, int value)
         pio->DAT &= ~(1 << num);
     else
         pio->DAT |= (1 << num);
+}
+
+void GPIOBUS_BananaM2p::sunxi_set_all_gpios(array<uint32_t, 12> &mask, array<uint32_t, 12> &value)
+{
+    GPIO_FUNCTION_TRACE
+    for (size_t bank = 0; bank < mask.size(); bank++) {
+        if (mask[bank] == 0) {
+            continue;
+        }
+
+        volatile SunXI::sunxi_gpio_t *pio;
+        if (bank < 11) {
+            pio = &(pio_map->gpio_bank[bank]);
+        } else {
+            pio = &(r_pio_map->gpio_bank[bank - 11]);
+        }
+
+        uint32_t reg_val = pio->DAT;
+        reg_val &= ~mask[bank];
+        reg_val |= value[bank];
+        pio->DAT = reg_val;
+    }
 }
 
 int GPIOBUS_BananaM2p::sunxi_input_gpio(int pin) const
