@@ -491,7 +491,7 @@ function isPiscsiCtrlBoardRunning() {
 function startPiscsiScreen() {
     if [[ $(isPiscsiScreenInstalled) -eq 0 ]] && [[ $(isPiscsiScreenRunning) -ne 1 ]]; then
         sudo systemctl start piscsi-oled.service
-        showPiscsiScreenStatus
+        showServiceStatus "piscsi-oled"
     fi
 }
 
@@ -499,7 +499,7 @@ function startPiscsiScreen() {
 function startPiscsiCtrlBoard() {
     if [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isPiscsiCtrlBoardRunning) -ne 1 ]]; then
         sudo systemctl start piscsi-ctrlboard.service
-        showPiscsiCtrlBoardStatus
+        showServiceStatus "piscsi-ctrlboard"
     fi
 }
 
@@ -507,33 +507,13 @@ function startPiscsiCtrlBoard() {
 function startMacproxy() {
     if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
         sudo systemctl start macproxy.service
-        showMacproxyStatus
+        showServiceStatus "macproxy"
     fi
 }
 
 # Shows status for the piscsi service
-function showPiscsiStatus() {
-    systemctl status piscsi | tee
-}
-
-# Shows status for the piscsi-web service
-function showPiscsiWebStatus() {
-    systemctl status piscsi-web | tee
-}
-
-# Shows status for the piscsi-oled service
-function showPiscsiScreenStatus() {
-    systemctl status piscsi-oled | tee
-}
-
-# Shows status for the piscsi-ctrlboard service
-function showPiscsiCtrlBoardStatus() {
-    systemctl status piscsi-ctrlboard | tee
-}
-
-# Shows status for the macproxy service
-function showMacproxyStatus() {
-    systemctl status macproxy | tee
+function showServiceStatus() {
+    systemctl status "$1.service" | tee
 }
 
 # Clone, compile and install 'hfdisk', partition tool
@@ -1161,10 +1141,10 @@ function runChoice() {
               cachePipPackages
               installPiscsiWebInterface
               installWebInterfaceService
-              showPiscsiScreenStatus
-              showPiscsiCtrlBoardStatus
-              showPiscsiStatus
-              showPiscsiWebStatus
+              showServiceStatus "piscsi-oled"
+              showServiceStatus "piscsi-ctrlboard"
+              showServiceStatus "piscsi"
+              showServiceStatus "piscsi-web"
               notifyBackup
               echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) + Web Interface - Complete!"
           ;;
@@ -1199,9 +1179,9 @@ function runChoice() {
                   echo "Detected piscsi control board service; will run the installation steps for the control board ui."
                   installPiscsiCtrlBoard
               fi
-              showPiscsiScreenStatus
-              showPiscsiCtrlBoardStatus
-              showPiscsiStatus
+              showServiceStatus "piscsi-oled"
+              showServiceStatus "piscsi-ctrlboard"
+              showServiceStatus "piscsi"
               notifyBackup
               echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) - Complete!"
           ;;
@@ -1215,7 +1195,7 @@ function runChoice() {
               preparePythonCommon
               migrateLegacyData
               installPiscsiScreen
-              showPiscsiScreenStatus
+              showServiceStatus "piscsi-oled"
               echo "Installing / Updating PiSCSI OLED Screen - Complete!"
           ;;
           4)
@@ -1229,7 +1209,7 @@ function runChoice() {
               preparePythonCommon
               migrateLegacyData
               installPiscsiCtrlBoard
-              showPiscsiCtrlBoardStatus
+              showServiceStatus "piscsi-ctrlboard"
               echo "Installing / Updating PiSCSI Control Board UI - Complete!"
           ;;
           5)
