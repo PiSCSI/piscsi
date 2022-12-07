@@ -416,7 +416,7 @@ function migrateLegacyData() {
         echo "Replaced rascsi.conf with piscsi.conf"
     fi
     if [[ -f "/etc/network/interfaces.d/rascsi_bridge" ]]; then
-        sudo rm "/etc/rsyslog.d/rascsi.conf"
+        sudo rm "/etc/network/interfaces.d/rascsi_bridge"
         sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
         echo "Replaced rascsi_bridge with piscsi_bridge"
     fi
