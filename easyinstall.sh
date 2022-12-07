@@ -1348,7 +1348,7 @@ function readChoice() {
    choice=-1
 
    until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
-       echo -n "Enter your choice (0-14) or CTRL-C to exit: "
+       echo -n "Enter your choice (0-15) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1396,7 +1396,7 @@ while [ "$1" != "" ]; do
             ;;
         -r | --run_choice)
             if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 14"
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
