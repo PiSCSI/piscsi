@@ -124,7 +124,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Set SCSI I/O mode
     int GetMode(int pin) override;
 
-    bool GetSignal(int pin) const override;
+    inline bool GetSignal(int pin) const override;
 
     // Set SCSI output signal value
     void SetSignal(int pin, bool ast) override;
@@ -153,34 +153,11 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     bool SetupSelEvent();
 
-#if !defined(__x86_64__) && !defined(__X86__)
-    uint32_t baseaddr = 0; // Base address
-#endif
-
     volatile uint32_t *gpio_map = nullptr;
 
     // Timer control register
     volatile uint32_t *tmr_ctrl;
-
-#if !defined(__x86_64__) && !defined(__X86__)
-    volatile uint32_t *gicd = nullptr; // GIC Interrupt distributor register
-#endif
-
-    volatile uint32_t *gicc = nullptr; // GIC CPU interface register
-
-    array<uint32_t, 4> gpfsel; // GPFSEL0-4 backup values
-
     array<uint32_t, 12> signals = {0}; // All bus signals
-
-#if SIGNAL_CONTROL_MODE == 0
-    array<array<uint32_t, 256>, 3> tblDatMsk; // Data mask table
-
-    array<array<uint32_t, 256>, 3> tblDatSet; // Data setting table
-#else
-    array<uint32_t, 256> tblDatMsk = {}; // Data mask table
-
-    array<uint32_t, 256> tblDatSet = {}; // Table setting table
-#endif
 
     int sunxi_setup(void);
 
@@ -206,12 +183,18 @@ class GPIOBUS_BananaM2p : public GPIOBUS
 
     SBC_Version::sbc_version_type sbc_version;
 
-    SunXI::sunxi_gpio_reg_t saved_gpio_config;
-
     static const array<int, 19> SignalTable;
 
     void InitializeGpio();
     std::vector<int> gpio_banks;
+
+    // Note: These MUST be in order from bit 0 to bit 7 with parity as the last item in the array
+    const array<int, 9> pintbl = {BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
+                                  BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP};
+
+    void sunxi_set_all_gpios(array<uint32_t, 12> &mask, array<uint32_t, 12> &value);
+
+    array<uint32_t, 12> gpio_data_masks = {0};
 
 #if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     // The SEL_EVENT functions need to do something to prevent SonarCloud from
