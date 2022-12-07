@@ -188,6 +188,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     void InitializeGpio();
     std::vector<int> gpio_banks;
 
+    // Note: These MUST be in order from bit 0 to bit 7 with parity as the last item in the array
     const array<int, 9> pintbl = {BPI_PIN_DT0, BPI_PIN_DT1, BPI_PIN_DT2, BPI_PIN_DT3, BPI_PIN_DT4,
                                   BPI_PIN_DT5, BPI_PIN_DT6, BPI_PIN_DT7, BPI_PIN_DP};
 

@@ -535,8 +535,8 @@ void GPIOBUS_BananaM2p::SetREQ(bool ast)
 uint8_t GPIOBUS_BananaM2p::GetDAT()
 {
     GPIO_FUNCTION_TRACE
-    
-    (void) Acquire();
+
+    Acquire();
     uint32_t data =
         ((GetSignal(BPI_PIN_DT0) ? 0x01 : 0x00) << 0) | ((GetSignal(BPI_PIN_DT1) ? 0x01 : 0x00) << 1) |
         ((GetSignal(BPI_PIN_DT2) ? 0x01 : 0x00) << 2) | ((GetSignal(BPI_PIN_DT3) ? 0x01 : 0x00) << 3) |
@@ -554,10 +554,10 @@ void GPIOBUS_BananaM2p::SetDAT(uint8_t dat)
     array<uint32_t, 12> gpio_reg_values = {0};
 
     for (size_t gpio_num = 0; gpio_num < pintbl.size(); gpio_num++) {
-        uint8_t value;
+        bool value;
         if (gpio_num < 8) {
             // data bits
-            value = !(dat & (1 << gpio_num));
+            value = !(dat & (1 << gpio_num)); // NOSONAR: GCC 10 doesn't support shift operations on std::byte
         } else {
             // parity bit
             value = (__builtin_parity(dat) == 1);
