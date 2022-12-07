@@ -410,6 +410,16 @@ function migrateLegacyData() {
         sudo mv "$SYSTEMD_PATH/rascsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
         echo "Renamed rascsi-ctrlboard.service to piscsi-ctrlboard.service"
     fi
+    if [[ -f "/etc/rsyslog.d/rascsi.conf" ]]; then
+        sudo rm "/etc/rsyslog.d/rascsi.conf"
+        sudo cp "$CPP_PATH/os_integration/piscsi.conf" "/etc/rsyslog.d"
+        echo "Replaced rascsi.conf with piscsi.conf"
+    fi
+    if [[ -f "/etc/network/interfaces.d/rascsi_bridge" ]]; then
+        sudo rm "/etc/rsyslog.d/rascsi.conf"
+        sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
+        echo "Replaced rascsi_bridge with piscsi_bridge"
+    fi
     if [ $(getent group rascsi) ]; then
         sudo groupmod --new-name piscsi rascsi
         echo "Renamed the rascsi group to piscsi"
