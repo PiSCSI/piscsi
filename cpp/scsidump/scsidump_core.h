@@ -17,14 +17,14 @@
 
 using namespace std;
 
-class RasDump
+class ScsiDump
 {
     static const int MINIMUM_BUFFER_SIZE = 1024 * 64;
     static const int DEFAULT_BUFFER_SIZE = 1024 * 1024;
 
   public:
-    RasDump()  = default;
-    ~RasDump() = default;
+    ScsiDump()  = default;
+    ~ScsiDump() = default;
 
     int run(const vector<char *> &);
 

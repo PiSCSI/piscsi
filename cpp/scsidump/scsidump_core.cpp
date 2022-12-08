@@ -35,21 +35,21 @@ using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
 
-void RasDump::CleanUp()
+void ScsiDump::CleanUp()
 {
     if (bus != nullptr) {
         bus->Cleanup();
     }
 }
 
-void RasDump::KillHandler(int)
+void ScsiDump::KillHandler(int)
 {
     CleanUp();
 
     exit(EXIT_SUCCESS);
 }
 
-bool RasDump::Banner(const vector<char *> &args) const
+bool ScsiDump::Banner(const vector<char *> &args) const
 {
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
@@ -71,7 +71,7 @@ bool RasDump::Banner(const vector<char *> &args) const
     return true;
 }
 
-bool RasDump::Init() const
+bool ScsiDump::Init() const
 {
     // Interrupt handler setting
     if (signal(SIGINT, KillHandler) == SIG_ERR || signal(SIGHUP, KillHandler) == SIG_ERR ||
@@ -84,7 +84,7 @@ bool RasDump::Init() const
     return bus != nullptr;
 }
 
-void RasDump::ParseArguments(const vector<char *> &args)
+void ScsiDump::ParseArguments(const vector<char *> &args)
 {
     int opt;
 
@@ -141,7 +141,7 @@ void RasDump::ParseArguments(const vector<char *> &args)
     buffer = vector<uint8_t>(buffer_size);
 }
 
-void RasDump::WaitPhase(phase_t phase) const
+void ScsiDump::WaitPhase(phase_t phase) const
 {
     LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
 
@@ -158,7 +158,7 @@ void RasDump::WaitPhase(phase_t phase) const
                            string(BUS::GetPhaseStrRaw(bus->GetPhase())));
 }
 
-void RasDump::Selection() const
+void ScsiDump::Selection() const
 {
     // Set initiator and target ID
     auto data = static_cast<byte>(1 << initiator_id);
@@ -172,7 +172,7 @@ void RasDump::Selection() const
     bus->SetSEL(false);
 }
 
-void RasDump::Command(scsi_command cmd, vector<uint8_t> &cdb) const
+void ScsiDump::Command(scsi_command cmd, vector<uint8_t> &cdb) const
 {
     LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
 
@@ -190,7 +190,7 @@ void RasDump::Command(scsi_command cmd, vector<uint8_t> &cdb) const
     }
 }
 
-void RasDump::DataIn(int length)
+void ScsiDump::DataIn(int length)
 {
     WaitPhase(phase_t::datain);
 
@@ -199,7 +199,7 @@ void RasDump::DataIn(int length)
     }
 }
 
-void RasDump::DataOut(int length)
+void ScsiDump::DataOut(int length)
 {
     WaitPhase(phase_t::dataout);
 
@@ -208,7 +208,7 @@ void RasDump::DataOut(int length)
     }
 }
 
-void RasDump::Status() const
+void ScsiDump::Status() const
 {
     WaitPhase(phase_t::status);
 
@@ -217,7 +217,7 @@ void RasDump::Status() const
     }
 }
 
-void RasDump::MessageIn() const
+void ScsiDump::MessageIn() const
 {
     WaitPhase(phase_t::msgin);
 
@@ -226,12 +226,12 @@ void RasDump::MessageIn() const
     }
 }
 
-void RasDump::BusFree() const
+void ScsiDump::BusFree() const
 {
     bus->Reset();
 }
 
-void RasDump::TestUnitReady() const
+void ScsiDump::TestUnitReady() const
 {
     vector<uint8_t> cdb(6);
     Command(scsi_command::eCmdTestUnitReady, cdb);
@@ -243,7 +243,7 @@ void RasDump::TestUnitReady() const
     BusFree();
 }
 
-void RasDump::RequestSense()
+void ScsiDump::RequestSense()
 {
     vector<uint8_t> cdb(6);
     cdb[4] = 0xff;
@@ -258,7 +258,7 @@ void RasDump::RequestSense()
     BusFree();
 }
 
-void RasDump::Inquiry()
+void ScsiDump::Inquiry()
 {
     vector<uint8_t> cdb(6);
     cdb[4] = 0xff;
@@ -273,7 +273,7 @@ void RasDump::Inquiry()
     BusFree();
 }
 
-pair<uint64_t, uint32_t> RasDump::ReadCapacity()
+pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
     vector<uint8_t> cdb(10);
     Command(scsi_command::eCmdReadCapacity10, cdb);
@@ -321,7 +321,7 @@ pair<uint64_t, uint32_t> RasDump::ReadCapacity()
     return make_pair(capacity, sector_size);
 }
 
-void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
+void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
 {
     vector<uint8_t> cdb(10);
     cdb[2] = (uint8_t)(bstart >> 24);
@@ -341,7 +341,7 @@ void RasDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
     BusFree();
 }
 
-void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
+void ScsiDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
 {
     vector<uint8_t> cdb(10);
     cdb[2] = (uint8_t)(bstart >> 24);
@@ -361,7 +361,7 @@ void RasDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
     BusFree();
 }
 
-void RasDump::WaitForBusy() const
+void ScsiDump::WaitForBusy() const
 {
     // Wait for busy for up to 2 s
     int count = 10000;
@@ -381,7 +381,7 @@ void RasDump::WaitForBusy() const
     }
 }
 
-int RasDump::run(const vector<char *> &args)
+int ScsiDump::run(const vector<char *> &args)
 {
     if (!Banner(args)) {
         return EXIT_SUCCESS;
@@ -416,7 +416,7 @@ int RasDump::run(const vector<char *> &args)
     return EXIT_SUCCESS;
 }
 
-int RasDump::DumpRestore()
+int ScsiDump::DumpRestore()
 {
     const auto inq_info = GetDeviceInfo();
 
@@ -515,7 +515,7 @@ int RasDump::DumpRestore()
     return EXIT_SUCCESS;
 }
 
-RasDump::inquiry_info_t RasDump::GetDeviceInfo()
+ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
 {
     // Assert RST for 1 ms
     bus->SetRST(true);
@@ -571,7 +571,7 @@ RasDump::inquiry_info_t RasDump::GetDeviceInfo()
     return inq_info;
 }
 
-void RasDump::GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info)
+void ScsiDump::GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info)
 {
     string prop_filename = filename + ".properties";
     string prop_str;

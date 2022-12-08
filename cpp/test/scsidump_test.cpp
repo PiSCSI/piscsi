@@ -17,12 +17,12 @@
 using namespace std;
 using namespace filesystem;
 
-class TestableScsidump : public RasDump
+class TestableScsidump : public ScsiDump
 {
   public:
     static void PublicGeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info)
     {
-        RasDump::GeneratePropertiesFile(filename, inq_info);
+        ScsiDump::GeneratePropertiesFile(filename, inq_info);
     }
 };
 
@@ -30,7 +30,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
 {
     // Basic test
     const string prop_file_name       = "test.properties";
-    RasDump::inquiry_info_t test_data = {
+    ScsiDump::inquiry_info_t test_data = {
         .vendor = "PISCSI", .product = "TEST PRODUCT", .revision = "REV1", .sector_size = 1000, .capacity = 100};
     TestableScsidump::PublicGeneratePropertiesFile("test", test_data);
 
