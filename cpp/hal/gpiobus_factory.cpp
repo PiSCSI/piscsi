@@ -43,7 +43,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         }
         return_ptr->Reset();
     } catch (const invalid_argument &) {
-        LOGERROR("Exception while trying to initialize GPIO bus. Are you running as root?");
+        LOGERROR("Exception while trying to initialize GPIO bus. Are you running as root?")
         return_ptr = nullptr;
     }
 
