@@ -81,5 +81,7 @@ class ScsiDump
 
     bool restore = false;
 
+    bool properties_file = false;
+
     static inline const string divider_str = "----------------------------------------";
 };

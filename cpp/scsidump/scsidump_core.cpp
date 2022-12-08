@@ -6,6 +6,7 @@
 // Powered by XM6 TypeG Technology.
 // Copyright (C) 2016-2020 GIMONS
 // Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022 akuker
 //
 //---------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ bool ScsiDump::Banner(const vector<char*>& args) const
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
-        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE]\n"
+        cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p]\n"
              << " ID is the target device ID (0-7).\n"
              << " LUN is the optional target device LUN (0-7). Default is 0.\n"
              << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
@@ -63,6 +64,7 @@ bool ScsiDump::Banner(const vector<char*>& args) const
              << " bytes. Default is 1 MiB.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
+             << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
              << flush;
 
         return false;
@@ -91,7 +93,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rv")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvp")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -123,6 +125,10 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
         case 'r':
             restore = true;
+            break;
+
+        case 'p':
+            properties_file = true;
             break;
 
         default:
@@ -508,7 +514,7 @@ int ScsiDump::DumpRestore()
          << " KiB per second)\n";
     cout << divider_str << "\n";
 
-    if (!restore) {
+    if (properties_file && !restore) {
         GeneratePropertiesFile(filename, inq_info);
     }
 

@@ -2,29 +2,25 @@
 !!   ------ The native file is scsidump.1. Re-run 'make docs' after updating
 
 
-scsidump(1)                                                                                                        General Commands Manual                                                                                                        scsidump(1)
+scsidump(1)                                                                                                               General Commands Manual                                                                                                              scsidump(1)
 
 NAME
        scsidump - SCSI disk dumping tool for PiSCSI
 
 SYNOPSIS
-       scsidump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v]
+       scsidump -t ID[:LUN] [-i BID] -f FILE [-s BUFFER_SIZE] [-r] [-v] [-p]
 
 DESCRIPTION
-       scsidump has two modes of operation: download and restore. These can be used with physical storage media, including hard drives and magneto optical drives. Download mode can be used with read-only media such as CD/DVD drives.
+       scsidump has two modes of operation: dump and restore. These can be used with physical storage media, including hard drives and magneto optical drives. Dump mode can be used with read-only media such as CD/DVD drives.
 
-       When operating in download mode, scsidump will copy all data from a remote SCSI drive to an image on the local filesystem. Additionally, it will generate a .properties file that can be used to more closely emulate the source drive.
+       When operating in dump mode, scsidump will copy all data from a remote SCSI drive to an image on the local filesystem. If enabled, it will also generate a .properties file that can be used to more closely emulate the source drive.
 
        If you are operating in restore mode, scsidump will copy the data from a local binary image to a remote physical SCSI drive. The remote SCSI drive MUST be writable.
 
 NOTES
        scsidump requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
 
-       If the generated drive image is intended to be used with PiSCSI:
-
-       -      The drive image should be moved to ~/images (or the location specified to the piscsi service).
-
-       -      The <filename>.properties file should be moved to ~/.config/piscsi/. The properties file should match the drive image filename with ".properties" appended at the end.
+       If the generated drive image is intended to be used with PiSCSI, the drive image should be moved to ~/images (or the location specified to the piscsi service).
 
 OPTIONS
        -t ID[:LUN]
@@ -38,15 +34,18 @@ OPTIONS
        -s BUFFER_SIZE
               The transfer buffer size, specified in bytes. Default is 1 MiB. This is specified in bytes with a minimum value of 65536 (64 KiB).
 
-       -r     Run in restore mode. Defaults to download mode if not specified.
+       -r     Run in restore mode. Defaults to dump mode if not specified.
 
        -v     Enable verbose logging.
 
-EXAMPLES
-       [SCSI Drive] ---> [PiSCSI host] Launch scsidump to download an all data from SCSI ID 3 and store it to the local filesystem as a drive image, with block size 64 KiB:
-          scsidump -t 3 -f ./outimage.hda -s 65536
+       -p     Generate a .properties file that is compatible with the PiSCSI web interface. The output filename will match the image filename with ".properties" appended. The generated file should be moved to ~/.config/piscsi.
 
-       [PiSCSI host] ---> [SCSI Drive] Launch scsidump to restore/upload a drive image from the local file system to SCSI ID 0 with block size 1MiB:
+EXAMPLES
+       Dump  Mode: [SCSI Drive] ---> [PiSCSI host] Launch scsidump to dump an all data from SCSI ID 3 with block size 64 KiB, store it to the local filesystem as a drive image named outimage.hda, and generate the outimage.hda.properties file with the drive's INQUIRY
+       information:
+          scsidump -t 3 -f ./outimage.hda -s 65536 -p
+
+       Restore Mode: [PiSCSI host] ---> [SCSI Drive] Launch scsidump to restore/upload a drive image from the local file system to SCSI ID 0 with block size 1MiB:
           scsidump -r -t 0 -f ./outimage.hda -s 1048576
 
 SEE ALSO
@@ -54,4 +53,4 @@ SEE ALSO
 
        Full documentation is available at: <https://www.piscsi.com>
 
-                                                                                                                                                                                                                                                  scsidump(1)
+                                                                                                                                                                                                                                                               scsidump(1)

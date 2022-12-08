@@ -137,8 +137,8 @@ void CleanupAllTempFiles()
 string ReadTempFileToString(const string& filename)
 {
     path temp_file = test_data_temp_path / path(filename);
-    std::ifstream in_fs(temp_file);
-    std::stringstream buffer;
+    ifstream in_fs(temp_file);
+    stringstream buffer;
     buffer << in_fs.rdbuf();
 
     return buffer.str();
