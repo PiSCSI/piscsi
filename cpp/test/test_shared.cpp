@@ -28,7 +28,7 @@ const path test_data_temp_path(temp_directory_path() /
                                path(fmt::format("piscsi-test-{}",
                                                 getpid()))); // NOSONAR Publicly writable directory is fine here
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController &controller, const string &extension)
+shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
 {
     DeviceFactory device_factory;
 
@@ -41,21 +41,21 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
     return device;
 }
 
-void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string &ident, int additional_length,
-                 bool removable, const string &extension)
+void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
+                 bool removable, const string& extension)
 {
     auto bus                = make_shared<MockBus>();
     auto controller_manager = make_shared<ControllerManager>(*bus);
     auto controller         = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
     auto device             = CreateDevice(type, *controller, extension);
 
-    auto &cmd = controller->GetCmd();
+    auto& cmd = controller->GetCmd();
 
     // ALLOCATION LENGTH
     cmd[4] = 255;
     EXPECT_CALL(*controller, DataIn());
     device->Dispatch(scsi_command::eCmdInquiry);
-    const vector<uint8_t> &buffer = controller->GetBuffer();
+    const vector<uint8_t>& buffer = controller->GetBuffer();
     EXPECT_EQ(t, static_cast<device_type>(buffer[0]));
     EXPECT_EQ(removable ? 0x80 : 0x00, buffer[1]);
     EXPECT_EQ(l, static_cast<scsi_level>(buffer[2]));
@@ -101,14 +101,14 @@ path CreateTempFile(int size)
 
 // TODO Replace old-fashinoned C I/O by C++ streams I/O.
 // This also avoids potential issues with data type sizes and there is no need for c_str().
-void CreateTempFileWithData(const string &filename, vector<uint8_t> &data)
+void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
 {
     path new_filename = test_data_temp_path;
     new_filename += path(filename);
 
     create_directories(new_filename.parent_path());
 
-    FILE *fp = fopen(new_filename.c_str(), "wb");
+    FILE* fp = fopen(new_filename.c_str(), "wb");
     if (fp == nullptr) {
         printf("ERROR: Unable to open file %s\n", new_filename.c_str());
         return;
@@ -122,7 +122,7 @@ void CreateTempFileWithData(const string &filename, vector<uint8_t> &data)
     fclose(fp);
 }
 
-void DeleteTempFile(const string &filename)
+void DeleteTempFile(const string& filename)
 {
     path temp_file = test_data_temp_path;
     temp_file += path(filename);
@@ -134,7 +134,7 @@ void CleanupAllTempFiles()
     remove_all(test_data_temp_path);
 }
 
-string ReadTempFileToString(const string &filename)
+string ReadTempFileToString(const string& filename)
 {
     path temp_file = test_data_temp_path / path(filename);
     std::ifstream in_fs(temp_file);
@@ -144,14 +144,14 @@ string ReadTempFileToString(const string &filename)
     return buffer.str();
 }
 
-int GetInt16(const vector<byte> &buf, int offset)
+int GetInt16(const vector<byte>& buf, int offset)
 {
     assert(buf.size() > static_cast<size_t>(offset) + 1);
 
     return (to_integer<int>(buf[offset]) << 8) | to_integer<int>(buf[offset + 1]);
 }
 
-uint32_t GetInt32(const vector<byte> &buf, int offset)
+uint32_t GetInt32(const vector<byte>& buf, int offset)
 {
     assert(buf.size() > static_cast<size_t>(offset) + 3);
 

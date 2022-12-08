@@ -26,7 +26,7 @@ class ScsiDump
     ScsiDump()  = default;
     ~ScsiDump() = default;
 
-    int run(const vector<char *> &);
+    int run(const vector<char*>&);
 
     struct inquiry_info_struct {
         string vendor;
@@ -35,21 +35,21 @@ class ScsiDump
         uint32_t sector_size;
         uint64_t capacity;
     };
-	using inquiry_info_t = struct inquiry_info_struct;
+    using inquiry_info_t = struct inquiry_info_struct;
 
   protected:
     // Protected for testability
-    static void GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info);
+    static void GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info);
 
   private:
-    bool Banner(const vector<char *> &) const;
+    bool Banner(const vector<char*>&) const;
     bool Init() const;
-    void ParseArguments(const vector<char *> &);
+    void ParseArguments(const vector<char*>&);
     int DumpRestore();
     inquiry_info_t GetDeviceInfo();
     void WaitPhase(phase_t) const;
     void Selection() const;
-    void Command(scsi_defs::scsi_command, vector<uint8_t> &) const;
+    void Command(scsi_defs::scsi_command, vector<uint8_t>&) const;
     void DataIn(int);
     void DataOut(int);
     void Status() const;
@@ -81,5 +81,5 @@ class ScsiDump
 
     bool restore = false;
 
-    const string divider_str = "----------------------------------------";
+    static inline const string divider_str = "----------------------------------------";
 };

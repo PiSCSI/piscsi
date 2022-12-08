@@ -49,7 +49,7 @@ void ScsiDump::KillHandler(int)
     exit(EXIT_SUCCESS);
 }
 
-bool ScsiDump::Banner(const vector<char *> &args) const
+bool ScsiDump::Banner(const vector<char*>& args) const
 {
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
@@ -84,7 +84,7 @@ bool ScsiDump::Init() const
     return bus != nullptr;
 }
 
-void ScsiDump::ParseArguments(const vector<char *> &args)
+void ScsiDump::ParseArguments(const vector<char*>& args)
 {
     int opt;
 
@@ -172,7 +172,7 @@ void ScsiDump::Selection() const
     bus->SetSEL(false);
 }
 
-void ScsiDump::Command(scsi_command cmd, vector<uint8_t> &cdb) const
+void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
     LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
 
@@ -381,7 +381,7 @@ void ScsiDump::WaitForBusy() const
     }
 }
 
-int ScsiDump::run(const vector<char *> &args)
+int ScsiDump::run(const vector<char*>& args)
 {
     if (!Banner(args)) {
         return EXIT_SUCCESS;
@@ -403,7 +403,7 @@ int ScsiDump::run(const vector<char *> &args)
 #endif
 
         return DumpRestore();
-    } catch (const parser_exception &e) {
+    } catch (const parser_exception& e) {
         cerr << "Error: " << e.what() << endl;
 
         CleanUp();
@@ -458,11 +458,11 @@ int ScsiDump::DumpRestore()
     int i;
     for (i = 0; i < dnum; i++) {
         if (restore) {
-            fs.read((char *)buffer.data(), dsiz);
+            fs.read((char*)buffer.data(), dsiz);
             Write10(i * duni, duni, dsiz);
         } else {
             Read10(i * duni, duni, dsiz);
-            fs.write((const char *)buffer.data(), dsiz);
+            fs.write((const char*)buffer.data(), dsiz);
         }
 
         if (fs.fail()) {
@@ -479,13 +479,13 @@ int ScsiDump::DumpRestore()
     dsiz = dnum * inq_info.sector_size;
     if (dnum > 0) {
         if (restore) {
-            fs.read((char *)buffer.data(), dsiz);
+            fs.read((char*)buffer.data(), dsiz);
             if (!fs.fail()) {
                 Write10(i * duni, dnum, dsiz);
             }
         } else {
             Read10(i * duni, dnum, dsiz);
-            fs.write((const char *)buffer.data(), dsiz);
+            fs.write((const char*)buffer.data(), dsiz);
         }
 
         if (fs.fail()) {
@@ -571,7 +571,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     return inq_info;
 }
 
-void ScsiDump::GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info)
+void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info)
 {
     string prop_filename = filename + ".properties";
     string prop_str;
@@ -584,12 +584,12 @@ void ScsiDump::GeneratePropertiesFile(const string &filename, const inquiry_info
     prop_stream << "   \"block_size\": \"" << to_string(inq_info.sector_size) << "\"," << endl;
     prop_stream << "}" << endl;
 
-    FILE *fp = fopen(prop_filename.c_str(), "w");
+    FILE* fp = fopen(prop_filename.c_str(), "w");
     if (fp) {
-        fputs( prop_stream.str().c_str(), fp);
+        fputs(prop_stream.str().c_str(), fp);
     } else {
         LOGWARN("Unable to open output file %s", prop_filename.c_str())
-		return;
+        return;
     }
 
     fclose(fp);
