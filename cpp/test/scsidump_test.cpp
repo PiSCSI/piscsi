@@ -40,7 +40,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                           "   \"revision\": \"REV1\",\n"
                           "   \"block_size\": \"1000\",\n}"
                           "\n";
-    EXPECT_EQ(ReadFileToString(prop_file_name), expected_str);
+    EXPECT_EQ(ReadTempFileToString(prop_file_name), expected_str);
 
     // Long string test
     test_data = {.vendor      = "01234567",
@@ -56,7 +56,7 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                    "   \"revision\": \"0123\",\n"
                    "   \"block_size\": \"4294967295\",\n"
                    "}\n";
-    EXPECT_EQ(ReadFileToString(prop_file_name), expected_str);
+    EXPECT_EQ(ReadTempFileToString(prop_file_name), expected_str);
 
     // Empty data test
     test_data = {.vendor = "", .product = "", .revision = "", .sector_size = 0, .capacity = 0};
@@ -68,5 +68,5 @@ TEST(ScsiDumpTest, GeneratePropertiesFile)
                    "   \"revision\": \"\",\n"
                    "   \"block_size\": \"0\",\n"
                    "}\n";
-    EXPECT_EQ(ReadFileToString(prop_file_name), expected_str);
+    EXPECT_EQ(ReadTempFileToString(prop_file_name), expected_str);
 }

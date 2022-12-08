@@ -13,9 +13,9 @@
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
 #include <filesystem>
-#include <sstream>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include <vector>
 
@@ -134,9 +134,10 @@ void CleanupAllTempFiles()
     remove_all(test_data_temp_path);
 }
 
-string ReadFileToString(const string &filename)
+string ReadTempFileToString(const string &filename)
 {
-    std::ifstream in_fs(filename);
+    path temp_file = test_data_temp_path / path(filename);
+    std::ifstream in_fs(temp_file);
     std::stringstream buffer;
     buffer << in_fs.rdbuf();
 

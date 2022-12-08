@@ -26,6 +26,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -498,14 +499,14 @@ int RasDump::DumpRestore()
 
     auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
-	cout << divider_str << "\n";
+    cout << divider_str << "\n";
     cout << "Transfered : " << to_string(inq_info.capacity * inq_info.sector_size) << " bytes ["
          << to_string(inq_info.capacity * inq_info.sector_size / 1024 / 1024) << "MiB]\n";
-    cout << "Total time: " << to_string(duration) << " seconds (" << to_string(duration/60) << " minutes\n";
+    cout << "Total time: " << to_string(duration) << " seconds (" << to_string(duration / 60) << " minutes\n";
     cout << "Averate transfer rate: " << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration)
          << " bytes per second (" << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration / 1024)
          << " KiB per second)\n";
-	cout << divider_str << "\n";
+    cout << divider_str << "\n";
 
     if (!restore) {
         GeneratePropertiesFile(filename, inq_info);
@@ -572,15 +573,23 @@ RasDump::inquiry_info_t RasDump::GetDeviceInfo()
 
 void RasDump::GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info)
 {
-    fstream prop_fs;
+    string prop_filename = filename + ".properties";
+    string prop_str;
+    stringstream prop_stream(prop_str);
 
-    cout << "Creating " + filename + ".properties" << endl << flush;
+    prop_stream << "{" << endl;
+    prop_stream << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
+    prop_stream << "   \"product\": \"" << inq_info.product << "\"," << endl;
+    prop_stream << "   \"revision\": \"" << inq_info.revision << "\"," << endl;
+    prop_stream << "   \"block_size\": \"" << to_string(inq_info.sector_size) << "\"," << endl;
+    prop_stream << "}" << endl;
 
-    prop_fs.open(filename + ".properties", ios::out);
-    prop_fs << "{" << endl;
-    prop_fs << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
-    prop_fs << "   \"product\": \"" << inq_info.product << "\"," << endl;
-    prop_fs << "   \"revision\": \"" << inq_info.revision << "\"," << endl;
-    prop_fs << "   \"block_size\": \"" << to_string(inq_info.sector_size) << "\"," << endl;
-    prop_fs << "}" << endl;
+    FILE *fp = fopen(prop_filename.c_str(), "w");
+    if (fp) {
+        fputs( prop_stream.str().c_str(), fp);
+    } else {
+        LOGWARN("Unable to open output file %s", prop_filename.c_str());
+    }
+
+    fclose(fp);
 }
