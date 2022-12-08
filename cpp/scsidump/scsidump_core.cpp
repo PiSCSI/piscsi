@@ -588,7 +588,7 @@ void RasDump::GeneratePropertiesFile(const string &filename, const inquiry_info_
     if (fp) {
         fputs( prop_stream.str().c_str(), fp);
     } else {
-        LOGWARN("Unable to open output file %s", prop_filename.c_str());
+        LOGWARN("Unable to open output file %s", prop_filename.c_str())
     }
 
     fclose(fp);
