@@ -567,7 +567,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     inq_info.capacity                  = capacity;
     inq_info.sector_size               = sector_size;
 
-    cout << "Ssectors:     " << capacity << "\n"
+    cout << "Sectors:      " << capacity << "\n"
          << "Sector size:  " << sector_size << " bytes\n"
          << "Capacity:     " << sector_size * capacity / 1024 / 1024 << " MiB (" << sector_size * capacity
          << " bytes)\n"
