@@ -14,6 +14,8 @@
 #include "shared/piscsi_version.h"
 #include <filesystem>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 #include <unistd.h>
 #include <vector>
 
@@ -99,7 +101,7 @@ path CreateTempFile(int size)
 
 // TODO Replace old-fashinoned C I/O by C++ streams I/O.
 // This also avoids potential issues with data type sizes and there is no need for c_str().
-void CreateTempFileWithData(const string& filename, vector<uint8_t> &data)
+void CreateTempFileWithData(const string &filename, vector<uint8_t> &data)
 {
     path new_filename = test_data_temp_path;
     new_filename += path(filename);
@@ -113,14 +115,14 @@ void CreateTempFileWithData(const string& filename, vector<uint8_t> &data)
     }
 
     if (const size_t size_written = fwrite(&data[0], sizeof(uint8_t), data.size(), fp);
-    	size_written != sizeof(vector<uint8_t>::value_type) * data.size()) {
+        size_written != sizeof(vector<uint8_t>::value_type) * data.size()) {
         printf("Expected to write %zu bytes, but only wrote %zu to %s", size_written,
                sizeof(vector<uint8_t>::value_type) * data.size(), filename.c_str());
     }
     fclose(fp);
 }
 
-void DeleteTempFile(const string& filename)
+void DeleteTempFile(const string &filename)
 {
     path temp_file = test_data_temp_path;
     temp_file += path(filename);
@@ -130,6 +132,15 @@ void DeleteTempFile(const string& filename)
 void CleanupAllTempFiles()
 {
     remove_all(test_data_temp_path);
+}
+
+string ReadFileToString(string filename)
+{
+    std::ifstream in_fs(filename);
+    std::stringstream buffer;
+    buffer << in_fs.rdbuf();
+
+    return buffer.str();
 }
 
 int GetInt16(const vector<byte> &buf, int offset)

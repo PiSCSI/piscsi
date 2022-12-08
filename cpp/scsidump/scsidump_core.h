@@ -28,7 +28,6 @@ class RasDump
 
     int run(const vector<char *> &);
 
-  protected:
     struct inquiry_info_struct {
         string vendor;
         string product;
@@ -36,9 +35,10 @@ class RasDump
         uint32_t sector_size;
         uint64_t capacity;
     };
-    // Protected for testability
     typedef inquiry_info_struct inquiry_info_t;
 
+  protected:
+    // Protected for testability
     static void GeneratePropertiesFile(const string &filename, const inquiry_info_t &inq_info);
 
   private:
@@ -81,5 +81,5 @@ class RasDump
 
     bool restore = false;
 
-	const string divider_str = "----------------------------------------";
+    const string divider_str = "----------------------------------------";
 };
