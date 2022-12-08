@@ -34,7 +34,7 @@ FILE *__wrap_fopen(const char *__restrict __filename, const char *__restrict __m
 #endif
 {
     path new_filename;
-    path in_filename      = path(__filename);
+    auto in_filename      = path(__filename);
     bool create_directory = false;
 
     // If we're trying to open up the device tree soc ranges,
@@ -43,7 +43,7 @@ FILE *__wrap_fopen(const char *__restrict __filename, const char *__restrict __m
         (string(__filename).find(".properties") != string::npos)) {
         create_directory = true;
         new_filename     = test_data_temp_path;
-        if (not in_filename.has_parent_path()) {
+        if (!in_filename.has_parent_path()) {
             new_filename += "/";
         }
         new_filename += in_filename;
