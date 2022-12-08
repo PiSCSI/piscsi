@@ -40,7 +40,7 @@ void DeleteTempFile(const string&);
 // Call this at the end of every test case to make sure things are cleaned up
 void CleanupAllTempFiles();
 
-string ReadFileToString(string filename);
+string ReadFileToString(const string &filename);
 
 int GetInt16(const vector<byte>&, int);
 uint32_t GetInt32(const vector<byte>&, int);

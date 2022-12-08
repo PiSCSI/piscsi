@@ -134,7 +134,7 @@ void CleanupAllTempFiles()
     remove_all(test_data_temp_path);
 }
 
-string ReadFileToString(string filename)
+string ReadFileToString(const string &filename)
 {
     std::ifstream in_fs(filename);
     std::stringstream buffer;
