@@ -17,7 +17,14 @@ DESCRIPTION
 
        If you are operating in restore mode, scsidump will copy the data from a local binary image to a remote physical SCSI drive. The remote SCSI drive MUST be writable.
 
+NOTES
        scsidump requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
+
+       If the generated drive image is intended to be used with PiSCSI:
+
+       -      The drive image should be moved to ~/images (or the location specified to the piscsi service).
+
+       -      The <filename>.properties file should be moved to ~/.config/piscsi/. The properties file should match the drive image filename with ".properties" appended at the end.
 
 OPTIONS
        -t ID[:LUN]
