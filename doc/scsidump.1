@@ -11,29 +11,42 @@ scsidump \- SCSI disk dumping tool for PiSCSI
 [\fB\-v\fR]
 .SH DESCRIPTION
 .B scsidump
-samples the data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through a STANDARD PiSCSI board, or a FULLSPEC PiSCSI board.
+has two modes of operation: download and restore. These can be used with physical storage media, including hard drives and magneto optical drives. Download mode can be used with read-only media such as CD/DVD drives.
 
-Set its own ID with the BID option. Defaults to 7 if ommitted.
+When operating in download mode, scsidump will copy all data from a remote SCSI drive to an image on the local filesystem. Additionally, it will generate a .properties file that can be used to more closely emulate the source drive.
+
+If you are operating in restore mode, scsidump will copy the data from a local binary image to a remote physical SCSI drive. The remote SCSI drive MUST be writable. 
+
+scsidump requires either a direct connection (one without transceivers) or a FULLSPEC PiSCSI/RaSCSI board.
 
 .SH OPTIONS
 .TP
 .BR \-t\fI " "\fIID[:LUN]
-SCSI ID and optional LUN of the target device.
+SCSI ID and optional LUN of the remote SCSI device. The remote SCSI device will be functioning as the "Target" device.
 .TP
 .BR \-i\fI " "\fIBID
-SCSI ID of the PiSCSI device.
+SCSI ID of the PiSCSI device. If not specified, the PiSCSI device will use ID 7. The PiSCSI host will be functioning as the "Initiator" device.
 .TP
 .BR \-f\fI " "\fIFILE
 Path to the dump file.
 .TP
 .BR \-s\fI " "\fIBUFFER_SIZE
-The transfer buffer size, at least 64 KiB. Default is 64 KiB.
+The transfer buffer size, specified in bytes. Default is 1 MiB. This is specified in bytes with a minimum value of 65536 (64 KiB).
 .TP
 .BR \-r\fI
-Run in restore mode.
+Run in restore mode. Defaults to download mode if not specified.
 .TP
 .BR \-v\fI
 Enable verbose logging.
+
+.SH EXAMPLES
+[SCSI Drive] ---> [PiSCSI host]
+Launch scsidump to download an all data from SCSI ID 3 and store it to the local filesystem as a drive image, with block size 64 KiB:
+   scsidump -t 3 -f ./outimage.hda -s 65536
+
+[PiSCSI host] ---> [SCSI Drive]
+Launch scsidump to restore/upload a drive image from the local file system to SCSI ID 0 with block size 1MiB:
+   scsidump -r -t 0 -f ./outimage.hda -s 1048576
 
 .SH SEE ALSO
 scsictl(1), piscsi(1), scsimon(1)
