@@ -35,7 +35,7 @@ class RasDump
         uint32_t sector_size;
         uint64_t capacity;
     };
-    typedef inquiry_info_struct inquiry_info_t;
+	using inquiry_info_t = struct inquiry_info_struct;
 
   protected:
     // Protected for testability
