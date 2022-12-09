@@ -241,6 +241,10 @@ div.header div.hostname span {
   font-size: 0.75rem;
 }
 
+div.header div.hostname span.label {
+  display: none;
+}
+
 div.header div.login-status {
   order: 10;
 }

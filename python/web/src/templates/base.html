@@ -51,13 +51,13 @@
             {% else %}
                 <div align="center" class="login-status logged-out">
                     <form method="POST" action="/login">
-                        <div class="login-form-title">{{ _("Log In to Use Web Interface") }}</div>
+                        <div class="login-form-title">{{ _("Log in to use Web Interface") }}</div>
                         <span>
-                            <label for="username">{{ _("Username") }}</label>
+                            <label for="username">{{ _("Username:") }}</label>
                             <input type="text" name="username" id="username">
                         </span>
                         <span>
-                            <label for="password">{{ _("Password") }}</label>
+                            <label for="password">{{ _("Password:") }}</label>
                             <input type="password" name="password" id="password">
                         </span>
                         <input type="submit" value="Login">
@@ -72,11 +72,15 @@
 
         <div align="center" class="title">
             <a href="/">
-                <h1>{{ _("PiSCSI") }}</h1>
+                <h1>
+                    <span>{{ _("PiSCSI") }}</span>
+                    <span class="subtitle">{{ _("Control Page") }}</span>
+                </h1>
             </a>
         </div>
 
         <div class="hostname">
+            <span class="label">{{ _("System Name:") }}</span>
             <span>{{ env['system_name'] }}</span>
         </div>
     </div>
