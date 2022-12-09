@@ -9,3 +9,4 @@ AlignTrailingComments: True
 AllowShortEnumsOnASingleLine: True
 AlignConsecutiveAssignments: Consecutive
 ColumnLimit: 120
+PointerAlignment: Left

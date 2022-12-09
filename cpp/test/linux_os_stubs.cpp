@@ -34,16 +34,21 @@ FILE *__wrap_fopen(const char *__restrict __filename, const char *__restrict __m
 #endif
 {
     path new_filename;
+    auto in_filename      = path(__filename);
     bool create_directory = false;
 
     // If we're trying to open up the device tree soc ranges,
     // re-direct it to a temporary local file.
-    if (string(__filename) == "/proc/device-tree/soc/ranges") {
+    if ((string(__filename) == "/proc/device-tree/soc/ranges") ||
+        (string(__filename).find(".properties") != string::npos)) {
         create_directory = true;
         new_filename     = test_data_temp_path;
-        new_filename += path(__filename);
+        if (!in_filename.has_parent_path()) {
+            new_filename += "/";
+        }
+        new_filename += in_filename;
     } else {
-        new_filename = path(__filename);
+        new_filename = in_filename;
     }
 
     if (create_directory) {
