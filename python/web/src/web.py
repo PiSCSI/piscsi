@@ -209,7 +209,9 @@ def index():
 
     server_info = piscsi_cmd.get_server_info()
     devices = piscsi_cmd.list_devices()
-    device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
+    device_types = map_device_types_and_names(
+        piscsi_cmd.get_device_types()["device_types"]
+    )
     image_files = file_cmd.list_images()
     config_files = file_cmd.list_config_files()
     ip_addr, host = sys_cmd.get_ip_and_host()
@@ -224,7 +226,9 @@ def index():
     units = 0
     # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
-        attached_images.append(device["image"].replace(server_info["image_dir"] + "/", ""))
+        attached_images.append(
+            device["image"].replace(server_info["image_dir"] + "/", "")
+        )
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
@@ -245,7 +249,10 @@ def index():
     )
 
     valid_image_suffixes = (
-        server_info["schd"] + server_info["scrm"] + server_info["scmo"] + server_info["sccd"]
+        server_info["schd"]
+        + server_info["scrm"]
+        + server_info["scmo"]
+        + server_info["sccd"]
     )
 
     return response(
@@ -365,12 +372,16 @@ def drive_create():
     drive_name = request.form.get("drive_name")
     file_name = Path(request.form.get("file_name")).name
 
-    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
+    properties = get_properties_by_drive_name(
+        APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name
+    )
 
     if not properties:
         return response(
             error=True,
-            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+            message=_(
+                "No properties data for drive %(drive_name)s", drive_name=drive_name
+            ),
         )
 
     # Creating the image file
@@ -409,12 +420,16 @@ def drive_cdrom():
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
+    properties = get_properties_by_drive_name(
+        APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name
+    )
 
     if not properties:
         return response(
             error=True,
-            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+            message=_(
+                "No properties data for drive %(drive_name)s", drive_name=drive_name
+            ),
         )
 
     process = file_cmd.write_drive_properties(file_name, properties)
@@ -479,7 +494,9 @@ def show_diskinfo():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
-    returncode, diskinfo = sys_cmd.get_diskinfo(Path(server_info["image_dir"]) / file_name)
+    returncode, diskinfo = sys_cmd.get_diskinfo(
+        Path(server_info["image_dir"]) / file_name
+    )
     if returncode == 0:
         return response(
             template="diskinfo.html",
@@ -489,7 +506,9 @@ def show_diskinfo():
 
     return response(
         error=True,
-        message=_("An error occurred when getting disk info: %(error)s", error=diskinfo),
+        message=_(
+            "An error occurred when getting disk info: %(error)s", error=diskinfo
+        ),
     )
 
 
@@ -503,7 +522,9 @@ def show_manpage():
     app = request.args.get("app", type=str)
 
     if app not in app_allowlist:
-        return response(error=True, message=_("%(app)s is not a recognized PiSCSI app", app=app))
+        return response(
+            error=True, message=_("%(app)s is not a recognized PiSCSI app", app=app)
+        )
 
     file_path = f"{WEB_DIR}/../../../doc/{app}.1"
     html_to_strip = [
@@ -536,7 +557,9 @@ def show_manpage():
 
     return response(
         error=True,
-        message=_("An error occurred when accessing man page: %(error)s", error=manpage),
+        message=_(
+            "An error occurred when accessing man page: %(error)s", error=manpage
+        ),
     )
 
 
@@ -662,7 +685,9 @@ def attach_image():
     if device_type:
         kwargs["device_type"] = device_type
         device_types = piscsi_cmd.get_device_types()
-        expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
+        expected_block_size = min(
+            device_types["device_types"][device_type]["block_sizes"]
+        )
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
@@ -806,7 +831,9 @@ def release_id():
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
         return response(
-            message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id)
+            message=_(
+                "Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id
+            )
         )
 
     return response(error=True, message=process["msg"])
@@ -825,7 +852,9 @@ def rename_system():
         process = sys_cmd.set_pretty_host(name)
         if process:
             if name:
-                return response(message=_("System name changed to '%(name)s'.", name=name))
+                return response(
+                    message=_("System name changed to '%(name)s'.", name=name)
+                )
             return response(message=_("System name reset to default."))
 
     return response(error=True, message=_("Failed to change system name."))
@@ -1056,7 +1085,9 @@ def create_file():
 
     # Creating the drive properties file, if one is chosen
     if drive_name:
-        properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
+        properties = get_properties_by_drive_name(
+            APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name
+        )
         if properties:
             prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
             process = file_cmd.write_drive_properties(prop_file_name, properties)
@@ -1096,7 +1127,9 @@ def download():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
-    return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
+    return send_from_directory(
+        server_info["image_dir"], str(file_name), as_attachment=True
+    )
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -1252,7 +1285,9 @@ def extract_image():
 
         return response(message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
 
-    return response(error=True, message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
+    return response(
+        error=True, message=ReturnCodeMapper.add_msg(extract_result).get("msg")
+    )
 
 
 @APP.route("/language", methods=["POST"])
@@ -1268,7 +1303,9 @@ def change_language():
 
     language = Locale.parse(locale)
     language_name = language.get_language_name(locale)
-    return response(message=_("Changed Web Interface language to %(locale)s", locale=language_name))
+    return response(
+        message=_("Changed Web Interface language to %(locale)s", locale=language_name)
+    )
 
 
 @APP.route("/theme", methods=["GET", "POST"])
@@ -1322,7 +1359,9 @@ if __name__ == "__main__":
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    parser = argparse.ArgumentParser(description="PiSCSI Web Interface command line arguments")
+    parser = argparse.ArgumentParser(
+        description="PiSCSI Web Interface command line arguments"
+    )
     parser.add_argument(
         "--port",
         type=int,
@@ -1391,7 +1430,9 @@ if __name__ == "__main__":
 
     sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
-    file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
+    file_cmd = FileCmds(
+        sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"]
+    )
     sys_cmd = SysCmds()
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
@@ -1405,7 +1446,9 @@ if __name__ == "__main__":
             logging.error(process["msg"])
     else:
         APP.config["PISCSI_DRIVE_PROPERTIES"] = []
-        logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
+        logging.warning(
+            "Could not read drive properties from %s", DRIVE_PROPERTIES_FILE
+        )
 
     logging.info("Starting WSGI server...")
     if arguments.dev_mode:
@@ -1414,7 +1457,9 @@ if __name__ == "__main__":
         from werkzeug.debug import DebuggedApplication
 
         try:
-            bjoern.run(DebuggedApplication(APP, evalex=False), "0.0.0.0", arguments.port)
+            bjoern.run(
+                DebuggedApplication(APP, evalex=False), "0.0.0.0", arguments.port
+            )
         except KeyboardInterrupt:
             pass
     else:

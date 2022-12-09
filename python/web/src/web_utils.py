@@ -230,7 +230,9 @@ def is_bridge_configured(interface):
     PATH_IPTV4 = "/etc/iptables/rules.v4"
     PATH_DHCPCD = "/etc/dhcpcd.conf"
     PATH_BRIDGE = "/etc/network/interfaces.d/piscsi_bridge"
-    return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
+    return_msg = _(
+        "Configure the network bridge for %(interface)s first: ", interface=interface
+    )
     to_configure = []
     sys_cmd = SysCmds()
     if interface.startswith("wlan"):
@@ -239,7 +241,9 @@ def is_bridge_configured(interface):
         if not Path(PATH_IPTV4).is_file():
             to_configure.append("NAT")
     else:
-        if not sys_cmd.introspect_file(PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"):
+        if not sys_cmd.introspect_file(
+            PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"
+        ):
             to_configure.append(PATH_DHCPCD)
         if not Path(PATH_BRIDGE).is_file():
             to_configure.append(PATH_BRIDGE)
@@ -295,7 +299,9 @@ def upload_with_dropzonejs(image_dir):
     if current_chunk + 1 == total_chunks:
         # Validate the resulting file size after writing the last chunk
         if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error("File size mismatch between the original file and transferred file.")
+            log.error(
+                "File size mismatch between the original file and transferred file."
+            )
             return make_response(_("Transferred file corrupted!"), 500)
 
     return make_response(_("File upload successful!"), 200)
@@ -325,7 +331,9 @@ def browser_supports_modern_themes():
 
     current_ua_family = user_agent["user_agent"]["family"]
     current_ua_version = user_agent["user_agent"]["major"]
-    logging.info(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
+    logging.info(
+        f"Identified browser as family={current_ua_family}, version={current_ua_version}"
+    )
 
     # Supported browsers cannot be identified without a version
     if not current_ua_version:
