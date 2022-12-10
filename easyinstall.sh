@@ -823,6 +823,20 @@ function installMacproxy {
     echo ""
 }
 
+# Installs vsftpd (FTP server)
+function installFtp() {
+    sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
+
+    echo
+    echo "Connect to the FTP server with:"
+    echo -n "ftp://"
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
+    echo "/"
+    echo
+    echo "Authenticate with username '$USER' and your password on this Pi."
+    echo
+}
+
 # Installs and configures Samba (SMB server)
 function installSamba() {
     SAMBA_CONFIG_PATH="/etc/samba"
@@ -1251,6 +1265,17 @@ function runChoice() {
               echo "Installing AppleShare File Server - Complete!"
           ;;
           8)
+              echo "Installing FTP File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable the vsftpd systemd service"
+              echo "WARNING: The FTP server may transfer unencrypted data over the network."
+              echo "Proceed with this installation only if you are on a private, secure network."
+              sudoCheck
+              installFtp
+              echo "Installing FTP File Server - Complete!"
+          ;;
+          9)
               echo "Installing SMB File Server"
               echo "This script will make the following changes to your system:"
               echo " - Install packages with apt-get"
@@ -1261,7 +1286,7 @@ function runChoice() {
               installSamba
               echo "Installing SMB File Server - Complete!"
           ;;
-          9)
+          10)
               echo "Installing Web Proxy Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1271,7 +1296,7 @@ function runChoice() {
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
-          10)
+          11)
               echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1288,7 +1313,7 @@ function runChoice() {
               echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE) - Complete!"
               echo "Use 'piscsi' to launch PiSCSI, and 'scsictl' to control the running process."
           ;;
-          11)
+          12)
               echo "Configuring PiSCSI Web Interface stand-alone"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1308,7 +1333,7 @@ function runChoice() {
               echo "Configuring PiSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
-          12)
+          13)
               echo "Enabling or disabling PiSCSI back-end authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1318,7 +1343,7 @@ function runChoice() {
               enablePiscsiService
               echo "Enabling or disabling PiSCSI back-end authentication - Complete!"
           ;;
-          13)
+          14)
               echo "Enabling or disabling Web Interface authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1326,11 +1351,11 @@ function runChoice() {
               enableWebInterfaceAuth
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
-          14)
+          15)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
-          15)
+          16)
               installPackagesStandalone
               compilePiscsi
           ;;
@@ -1347,8 +1372,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
-       echo -n "Enter your choice (0-15) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "16" ]; do
+       echo -n "Enter your choice (0-16) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1370,16 +1395,17 @@ function showMenu() {
     echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
     echo "  7) Install AppleShare File Server (Netatalk)"
-    echo "  8) Install SMB File Server (Samba)"
-    echo "  9) Install Web Proxy Server (Macproxy)"
+    echo "  8) Install FTP File Server (vsftpd)"
+    echo "  9) Install SMB File Server (Samba)"
+    echo " 10) Install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) Compile and install PiSCSI stand-alone"
-    echo " 11) Configure the PiSCSI Web Interface stand-alone"
-    echo " 12) Enable or disable PiSCSI back-end authentication"
-    echo " 13) Enable or disable PiSCSI Web Interface authentication"
+    echo " 11) Compile and install PiSCSI stand-alone"
+    echo " 12) Configure the PiSCSI Web Interface stand-alone"
+    echo " 13) Enable or disable PiSCSI back-end authentication"
+    echo " 14) Enable or disable PiSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 14) Share the images dir over AppleShare (requires Netatalk)"
-    echo " 15) Compile PiSCSI binaries"
+    echo " 15) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 16) Compile PiSCSI binaries"
 }
 
 # parse arguments passed to the script
@@ -1395,8 +1421,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 16 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 16"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
