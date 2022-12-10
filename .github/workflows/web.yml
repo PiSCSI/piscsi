@@ -7,6 +7,7 @@ on:
       - 'python/web/**'
       - 'python/common/**'
       - '.github/workflows/web.yml'
+      - 'easyinstall.sh'
 
 jobs:
   backend_checks:
