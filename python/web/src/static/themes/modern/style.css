@@ -241,6 +241,10 @@ div.header div.hostname span {
   font-size: 0.75rem;
 }
 
+div.header div.hostname span.label {
+  display: none;
+}
+
 div.header div.login-status {
   order: 10;
 }
@@ -273,6 +277,10 @@ div.header div.authentication-disabled {
   body:not(.logged-in) div.header {
     flex-wrap: wrap;
     min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  div.header div.title span.subtitle {
+    display: none;
   }
 
   div.header div.title a {
