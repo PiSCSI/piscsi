@@ -817,7 +817,7 @@ function installMacproxy {
     startMacproxy
 
     echo -n "Macproxy is now running on IP "
-    echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
