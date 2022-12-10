@@ -110,7 +110,7 @@ function installPackages() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND \
         $APT_PACKAGES_PYTHON \
@@ -123,7 +123,7 @@ function installPackagesStandalone() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND
 }
@@ -134,7 +134,7 @@ function installPackagesWeb() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
@@ -667,7 +667,7 @@ function setupWirelessNetworking() {
     if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
         echo "iptables is already installed"
     else
-        sudo apt-get install iptables --assume-yes </dev/null
+        sudo apt-get install iptables --assume-yes --no-install-recommends </dev/null
     fi
 
     sudo iptables --flush
@@ -684,7 +684,7 @@ function setupWirelessNetworking() {
         echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
     else
-        sudo apt-get install iptables-persistent --assume-yes </dev/null
+        sudo apt-get install iptables-persistent --assume-yes --no-install-recommends </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
@@ -796,7 +796,7 @@ function installMacproxy {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes </dev/null
+        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
     fi
 
     MACPROXY_VER="22.8"
@@ -942,7 +942,7 @@ function installPiscsiScreen() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
     fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -1016,9 +1016,9 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
         # install python packages through apt that need compilation
-        sudo apt-get install python3-cbor2 -y </dev/null
+        sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
     fi
 
     # enable i2c
