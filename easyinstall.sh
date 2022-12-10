@@ -67,6 +67,7 @@ HFDISK_BIN=/usr/bin/hfdisk
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
+AUTH_GROUP="piscsi"
 SECRET_FILE="$HOME/.config/piscsi/secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
@@ -422,7 +423,10 @@ function migrateLegacyData() {
         sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
         echo "Replaced rascsi_bridge with piscsi_bridge"
     fi
-    if [ $(getent group rascsi) ]; then
+    if [[ $(getent group rascsi) && $(getent group "$AUTH_GROUP") ]]; then
+        sudo groupdel rascsi
+        echo "Deleted the rascsi group in favor of the existing piscsi group"
+    elif [ $(getent group rascsi) ]; then
         sudo groupmod --new-name piscsi rascsi
         echo "Renamed the rascsi group to piscsi"
     fi
@@ -1105,8 +1109,6 @@ function notifyBackup {
 
 # Creates the group and modifies current user for Web Interface auth
 function enableWebInterfaceAuth {
-    AUTH_GROUP="piscsi"
-
     if [ $(getent group "$AUTH_GROUP") ]; then
         echo "The '$AUTH_GROUP' group already exists."
         echo "Do you want to disable Web Interface authentication? (y/N)"
