@@ -32,14 +32,14 @@ COPY --chown=pi:pi python/web python/web
 COPY --chown=pi:pi python/common python/common
 
 # Install standalone PiSCSI Web UI
-RUN ./easyinstall.sh --run_choice=11 \
+RUN ./easyinstall.sh --run_choice=12 \
     && sudo apt-get remove build-essential --yes \
     && sudo apt autoremove -y \
     && sudo apt-get clean \
     && sudo rm -rf /var/lib/apt/lists/*
 
 # Enable web UI authentication
-RUN ./easyinstall.sh --run_choice=13
+RUN ./easyinstall.sh --run_choice=14
 
 # Setup wired network bridge
 RUN ./easyinstall.sh --run_choice=5 --headless
