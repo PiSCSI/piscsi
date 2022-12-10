@@ -279,6 +279,10 @@ div.header div.authentication-disabled {
     min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
   }
 
+  div.header div.title span.subtitle {
+    display: none;
+  }
+
   div.header div.title a {
     display: block;
     background: url("/static/logo.png") no-repeat;
