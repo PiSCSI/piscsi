@@ -12,7 +12,7 @@ WORKDIR /home/pi/piscsi
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi cpp cpp
 COPY --chown=pi:pi doc doc
-RUN ./easyinstall.sh --run_choice=15 --cores=`nproc`
+RUN ./easyinstall.sh --run_choice=16 --cores=`nproc`
 
 FROM debian:bullseye-slim AS runner
 USER root

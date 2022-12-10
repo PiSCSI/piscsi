@@ -67,6 +67,7 @@ HFDISK_BIN=/usr/bin/hfdisk
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
+AUTH_GROUP="piscsi"
 SECRET_FILE="$HOME/.config/piscsi/secret"
 FILE_SHARE_PATH="$HOME/shared_files"
 FILE_SHARE_NAME="Pi File Server"
@@ -110,7 +111,7 @@ function installPackages() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND \
         $APT_PACKAGES_PYTHON \
@@ -123,7 +124,7 @@ function installPackagesStandalone() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_BACKEND
 }
@@ -134,7 +135,7 @@ function installPackagesWeb() {
         echo "Skipping package installation"
         return 0
     fi
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
         $APT_PACKAGES_COMMON \
         $APT_PACKAGES_PYTHON \
         $APT_PACKAGES_WEB
@@ -422,7 +423,10 @@ function migrateLegacyData() {
         sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
         echo "Replaced rascsi_bridge with piscsi_bridge"
     fi
-    if [ $(getent group rascsi) ]; then
+    if [[ $(getent group rascsi) && $(getent group "$AUTH_GROUP") ]]; then
+        sudo groupdel rascsi
+        echo "Deleted the rascsi group in favor of the existing piscsi group"
+    elif [ $(getent group rascsi) ]; then
         sudo groupmod --new-name piscsi rascsi
         echo "Renamed the rascsi group to piscsi"
     fi
@@ -667,7 +671,7 @@ function setupWirelessNetworking() {
     if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
         echo "iptables is already installed"
     else
-        sudo apt-get install iptables --assume-yes </dev/null
+        sudo apt-get install iptables --assume-yes --no-install-recommends </dev/null
     fi
 
     sudo iptables --flush
@@ -684,7 +688,7 @@ function setupWirelessNetworking() {
         echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
     else
-        sudo apt-get install iptables-persistent --assume-yes </dev/null
+        sudo apt-get install iptables-persistent --assume-yes --no-install-recommends </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
@@ -796,7 +800,7 @@ function installMacproxy {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes </dev/null
+        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
     fi
 
     MACPROXY_VER="22.8"
@@ -817,10 +821,24 @@ function installMacproxy {
     startMacproxy
 
     echo -n "Macproxy is now running on IP "
-    echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
+}
+
+# Installs vsftpd (FTP server)
+function installFtp() {
+    sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
+
+    echo
+    echo "Connect to the FTP server with:"
+    echo -n "ftp://"
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
+    echo "/"
+    echo
+    echo "Authenticate with username '$USER' and your password on this Pi."
+    echo
 }
 
 # Installs and configures Samba (SMB server)
@@ -928,7 +946,7 @@ function installPiscsiScreen() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
     fi
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -1002,9 +1020,9 @@ function installPiscsiCtrlBoard() {
     if [[ $SKIP_PACKAGES ]]; then
         echo "Skipping package installation"
     else
-        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
         # install python packages through apt that need compilation
-        sudo apt-get install python3-cbor2 -y </dev/null
+        sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
     fi
 
     # enable i2c
@@ -1091,8 +1109,6 @@ function notifyBackup {
 
 # Creates the group and modifies current user for Web Interface auth
 function enableWebInterfaceAuth {
-    AUTH_GROUP="piscsi"
-
     if [ $(getent group "$AUTH_GROUP") ]; then
         echo "The '$AUTH_GROUP' group already exists."
         echo "Do you want to disable Web Interface authentication? (y/N)"
@@ -1251,6 +1267,17 @@ function runChoice() {
               echo "Installing AppleShare File Server - Complete!"
           ;;
           8)
+              echo "Installing FTP File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable the vsftpd systemd service"
+              echo "WARNING: The FTP server may transfer unencrypted data over the network."
+              echo "Proceed with this installation only if you are on a private, secure network."
+              sudoCheck
+              installFtp
+              echo "Installing FTP File Server - Complete!"
+          ;;
+          9)
               echo "Installing SMB File Server"
               echo "This script will make the following changes to your system:"
               echo " - Install packages with apt-get"
@@ -1261,7 +1288,7 @@ function runChoice() {
               installSamba
               echo "Installing SMB File Server - Complete!"
           ;;
-          9)
+          10)
               echo "Installing Web Proxy Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1271,7 +1298,7 @@ function runChoice() {
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
-          10)
+          11)
               echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1288,7 +1315,7 @@ function runChoice() {
               echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE) - Complete!"
               echo "Use 'piscsi' to launch PiSCSI, and 'scsictl' to control the running process."
           ;;
-          11)
+          12)
               echo "Configuring PiSCSI Web Interface stand-alone"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1308,7 +1335,7 @@ function runChoice() {
               echo "Configuring PiSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
-          12)
+          13)
               echo "Enabling or disabling PiSCSI back-end authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1318,7 +1345,7 @@ function runChoice() {
               enablePiscsiService
               echo "Enabling or disabling PiSCSI back-end authentication - Complete!"
           ;;
-          13)
+          14)
               echo "Enabling or disabling Web Interface authentication"
               echo "This script will make the following changes to your system:"
               echo "- Modify user groups and permissions"
@@ -1326,11 +1353,11 @@ function runChoice() {
               enableWebInterfaceAuth
               echo "Enabling or disabling Web Interface authentication - Complete!"
           ;;
-          14)
+          15)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
           ;;
-          15)
+          16)
               installPackagesStandalone
               compilePiscsi
           ;;
@@ -1347,8 +1374,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "15" ]; do
-       echo -n "Enter your choice (0-15) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "16" ]; do
+       echo -n "Enter your choice (0-16) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1370,16 +1397,17 @@ function showMenu() {
     echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
     echo "  7) Install AppleShare File Server (Netatalk)"
-    echo "  8) Install SMB File Server (Samba)"
-    echo "  9) Install Web Proxy Server (Macproxy)"
+    echo "  8) Install FTP File Server (vsftpd)"
+    echo "  9) Install SMB File Server (Samba)"
+    echo " 10) Install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) Compile and install PiSCSI stand-alone"
-    echo " 11) Configure the PiSCSI Web Interface stand-alone"
-    echo " 12) Enable or disable PiSCSI back-end authentication"
-    echo " 13) Enable or disable PiSCSI Web Interface authentication"
+    echo " 11) Compile and install PiSCSI stand-alone"
+    echo " 12) Configure the PiSCSI Web Interface stand-alone"
+    echo " 13) Enable or disable PiSCSI back-end authentication"
+    echo " 14) Enable or disable PiSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 14) Share the images dir over AppleShare (requires Netatalk)"
-    echo " 15) Compile PiSCSI binaries"
+    echo " 15) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 16) Compile PiSCSI binaries"
 }
 
 # parse arguments passed to the script
@@ -1395,8 +1423,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 15 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 15"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 16 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 16"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
