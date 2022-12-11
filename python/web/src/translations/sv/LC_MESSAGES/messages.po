@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2022-12-10 09:52-0800\n"
+"POT-Creation-Date: 2022-12-11 11:53-0800\n"
 "PO-Revision-Date: 2022-12-10 20:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -136,7 +136,7 @@ msgstr ""
 "PiSCSIs webbgränssnitt fick en ogiltig respons från PiSCSI. Gå tillbaks "
 "och försök igen. Om samma fel upprepas så rapportera en bugg."
 
-#: src/web.py:204
+#: src/web.py:214
 msgid ""
 "PiSCSI is password protected. Start the Web Interface with the --password"
 " parameter."
@@ -144,62 +144,62 @@ msgstr ""
 "PiSCSI är lösenordsskyddat. Start webbgränssnittet med parametern "
 "--password ."
 
-#: src/web.py:320
+#: src/web.py:330
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr "Du måste logga in som en användare som tillhör %(group)s-gruppen"
 
-#: src/web.py:373 src/web.py:417
+#: src/web.py:383 src/web.py:427
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "Saknar egenskapsdata för skivan %(drive_name)s"
 
-#: src/web.py:394
+#: src/web.py:404
 #, python-format
 msgid "Image file with properties created: %(file_name)s"
 msgstr "Skapade skivbildsfil med egenskaper: %(file_name)s"
 
-#: src/web.py:492
+#: src/web.py:502
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr "Ett fel inträffade när vi hämtade skivinfo: %(error)s"
 
-#: src/web.py:506
+#: src/web.py:516
 #, python-format
 msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s är inte en giltig PiSCSI-app"
 
-#: src/web.py:539
+#: src/web.py:549
 #, python-format
 msgid "An error occurred when accessing man page: %(error)s"
 msgstr "Ett fel inträffade när vi skaffade manualsidan: %(error)s"
 
-#: src/web.py:562
+#: src/web.py:572
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
 msgstr "Ett fel inträffade när vi skaffade loggar: %(error)s"
 
-#: src/web.py:576
+#: src/web.py:586
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Bytte loggnivån till %(value)s"
 
-#: src/web.py:593 src/web.py:656
+#: src/web.py:603 src/web.py:666
 msgid "No SCSI ID specified"
 msgstr "Inget SCSI-id angett"
 
-#: src/web.py:634
+#: src/web.py:644
 #, python-format
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr ""
 "Anslöt %(device_type)s till SCSI-id %(id_number)s enhetsnummer "
 "%(unit_number)s"
 
-#: src/web.py:658
+#: src/web.py:668
 msgid "No image file to insert"
 msgstr "Ingen skivfil att ansluta"
 
-#: src/web.py:698
+#: src/web.py:708
 #, python-format
 msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
@@ -208,58 +208,58 @@ msgstr ""
 "Anslöt %(file_name)s som %(device_type)s till SCSI-id %(id_number)s "
 "enhetsnummer %(unit_number)s"
 
-#: src/web.py:715
+#: src/web.py:725
 msgid "Detached all SCSI devices"
 msgstr "Kopplade ifrån alla SCSI-enheter"
 
-#: src/web.py:731
+#: src/web.py:741
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kopplade ifrån SCSI-id %(id_number)s enhetsnummer %(unit_number)s"
 
-#: src/web.py:753
+#: src/web.py:763
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Matade ut SCSI-id %(id_number)s enhetsnummer %(unit_number)s"
 
-#: src/web.py:775
+#: src/web.py:785
 msgid "No devices attached"
 msgstr "Inga enheter anslutna"
 
-#: src/web.py:791
+#: src/web.py:801
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "Reserverat SCSI-id %(id_number)s"
 
-#: src/web.py:809
+#: src/web.py:819
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Frigjorde SCSI-id %(id_number)s"
 
-#: src/web.py:828
+#: src/web.py:838
 #, python-format
 msgid "System name changed to '%(name)s'."
 msgstr "Ändrade systemnamnet till '%(name)s'."
 
-#: src/web.py:829
+#: src/web.py:839
 msgid "System name reset to default."
 msgstr "Återställde systemnamnet till grundvärdet."
 
-#: src/web.py:831
+#: src/web.py:841
 msgid "Failed to change system name."
 msgstr "Kunde ej ändra systemnamnet."
 
-#: src/web.py:885
+#: src/web.py:895
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
 msgstr "%(iso_type)s är inte ett giltigt cd-romformat"
 
-#: src/web.py:893
+#: src/web.py:903
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr "Ett fel inträffade när vi skapade en cd-romskivbild: %(error)s"
 
-#: src/web.py:907
+#: src/web.py:917
 #, python-format
 msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created and "
@@ -268,7 +268,7 @@ msgstr ""
 "Cd-rombildfilen %(file_name)s av typ %(iso_type)s har skapats och "
 "anslutits till scsi-s %(id_number)s"
 
-#: src/web.py:918
+#: src/web.py:928
 #, python-format
 msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created but could "
@@ -277,66 +277,66 @@ msgstr ""
 "Cd-rombildfilen %(file_name)s av typ %(iso_type)s har skapats men kunde "
 "inte anslutas: %(error)s"
 
-#: src/web.py:948
+#: src/web.py:958
 #, python-format
 msgid "The following error occurred when downloading: %(error)s"
 msgstr "Ett fel inträffade under nedladdningen: %(error)s"
 
-#: src/web.py:1011 src/web.py:1024
+#: src/web.py:1021 src/web.py:1034
 #, python-format
 msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s är inte ett giltigt hårddisksformat."
 
-#: src/web.py:1069
+#: src/web.py:1079
 #, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
 msgstr "Skapade skivbildsfil med egenstakper: %(file_name)s%(drive_format)s"
 
-#: src/web.py:1079
+#: src/web.py:1089
 #, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
 msgstr "Skapade skivbildsfil %(file_name)s%(drive_format)s"
 
-#: src/web.py:1125
+#: src/web.py:1135
 #, python-format
 msgid "Image file with properties deleted: %(file_name)s"
 msgstr "Bildfil med egenskaper has blivit raderad: %(file_name)s"
 
-#: src/web.py:1134
+#: src/web.py:1144
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Filen %(file_name)s har blivit raderad"
 
-#: src/web.py:1167
+#: src/web.py:1177
 #, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
 msgstr "Filen med egenskaper har blivit omdöpt till %(file_name)s"
 
-#: src/web.py:1176
+#: src/web.py:1186
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Filen har blivit omdöpt till %(file_name)s"
 
-#: src/web.py:1209
+#: src/web.py:1219
 #, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr "Kopierade filen med egenskaper och sparade den som %(file_name)s"
 
-#: src/web.py:1218
+#: src/web.py:1228
 #, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "Kopierade filen och sparade den som %(file_name)s"
 
-#: src/web.py:1271
+#: src/web.py:1281
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Bytte webbgränssnittets språk till %(locale)s"
 
-#: src/web.py:1282
+#: src/web.py:1292
 msgid "The requested theme does not exist."
 msgstr "Detta tema existerar inte."
 
-#: src/web.py:1285
+#: src/web.py:1295
 #, python-format
 msgid "Theme changed to '%(theme)s'."
 msgstr "Bytte till temat '%(theme)s'."
@@ -472,56 +472,56 @@ msgstr "Lösenord:"
 msgid "Web Interface Authentication Disabled"
 msgstr "Webbgränssnittets autensisering är avstängt"
 
-#: src/templates/base.html:69
+#: src/templates/base.html:71
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr "Se <a href=\"%(url)s\" target=\"_blank\">wikin</a> för vidare information"
 
-#: src/templates/base.html:76
+#: src/templates/base.html:78
 msgid "PiSCSI"
 msgstr "PiSCSI"
 
-#: src/templates/base.html:77
+#: src/templates/base.html:79
 msgid "Control Page"
 msgstr "kontrollsida"
 
-#: src/templates/base.html:83 src/templates/index.html:740
+#: src/templates/base.html:85 src/templates/index.html:740
 msgid "System Name:"
 msgstr "Systemnamn:"
 
-#: src/templates/base.html:110 src/templates/base.html:112
+#: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
 msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
 msgstr "Byt till temat <a href=\"/theme?name=%(theme)s\">%(theme)s</a>"
 
-#: src/templates/base.html:118
+#: src/templates/base.html:120
 msgid "The AppleShare server is running. No active connections."
 msgstr "AppleShare-servern är aktiv. Inga klienter är anslutna."
 
-#: src/templates/base.html:121
+#: src/templates/base.html:123
 #, python-format
 msgid "%(value)d active AFP connection"
 msgstr "%(value)d aktiv AFP-klient"
 
-#: src/templates/base.html:123
+#: src/templates/base.html:125
 #, python-format
 msgid "%(value)d active AFP connections"
 msgstr "%(value)d aktiva AFP-klienter"
 
-#: src/templates/base.html:128
+#: src/templates/base.html:130
 #, python-format
 msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy är tillgängligt på %(ip_addr)s (vanligtvis port 5000)"
 
-#: src/templates/base.html:132
+#: src/templates/base.html:134
 msgid "PiSCSI version:"
 msgstr "PiSCSI-version:"
 
-#: src/templates/base.html:135
+#: src/templates/base.html:137
 msgid "Hardware and OS:"
 msgstr "Hårdvara och operativsystem:"
 
-#: src/templates/base.html:138
+#: src/templates/base.html:140
 msgid "Network Address:"
 msgstr "Närverksadress:"
 
@@ -965,8 +965,7 @@ msgstr ""
 msgid ""
 "To access shared files remotely, you may have to install one of the file "
 "servers first."
-msgstr ""
-"För att använda fildelning så kan du behöva installera en filserver först."
+msgstr "För att använda fildelning så kan du behöva installera en filserver först."
 
 #: src/templates/index.html:470 src/templates/index.html:521
 msgid "Target directory:"
@@ -1115,8 +1114,7 @@ msgstr ""
 msgid ""
 "It is not recommended to use the Lido hard disk driver with the Macintosh"
 " Plus."
-msgstr ""
-"Det är inte rekommenderat att använda Lido-drivrutiner med Macintosh Plus."
+msgstr "Det är inte rekommenderat att använda Lido-drivrutiner med Macintosh Plus."
 
 #: src/templates/index.html:606
 msgid "Size:"
@@ -1187,15 +1185,16 @@ msgid ""
 "The System Name is the \"pretty\" hostname if set, with a fallback to the"
 " regular hostname."
 msgstr ""
-"Vi använder \"pretty hostname\" som systemnamn, med vanligt hostname som reserv."
+"Vi använder \"pretty hostname\" som systemnamn, med vanligt hostname som "
+"reserv."
 
 #: src/templates/index.html:734
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
 msgstr ""
-"VIKTIGT: Stäng alltid av systemet innan du kopplar ur strömmen. På så "
-"vis undviker du risken att förlora data."
+"VIKTIGT: Stäng alltid av systemet innan du kopplar ur strömmen. På så vis"
+" undviker du risken att förlora data."
 
 #: src/templates/index.html:746
 msgid "Reset"
@@ -1238,3 +1237,4 @@ msgstr "Systemloggar: %(scope)s %(lines)s rader"
 #, python-format
 msgid "Manual for %(app)s"
 msgstr "Manual för %(app)s"
+
