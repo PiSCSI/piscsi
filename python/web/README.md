@@ -73,12 +73,14 @@ When adding a localization for a new language, initialize the directory structur
 $ pybabel init -i messages.pot -d src/translations -l xx
 ```
 
-### Update an existing loclization
+### Update an existing localization
+
+Tip: Use the script **translation_update.sh** in this dir to automatically extract strings, update existing localizations, and print translation statistics.
 
 After strings have been added or changed in the code, update the existing localizations.
 
 ```
-pybabel update -i messages.pot -d src/translations
+$ pybabel update -i messages.pot -d src/translations
 ```
 
 Then edit the updated messages.po file for your language. Make sure to update fuzzy strings and translate new ones.
