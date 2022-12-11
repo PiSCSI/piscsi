@@ -62,7 +62,7 @@ Once this is done, it is time to localize the Python code. The below steps are d
 First, generate the raw messages.pot file containing extracted strings.
 
 ```
-$ pybabel extract -F babel.cfg -o messages.pot .
+$ pybabel extract -F babel.cfg -o messages.pot src
 ```
 
 ### Initialize a new localization

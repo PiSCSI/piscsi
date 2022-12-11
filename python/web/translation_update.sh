@@ -10,7 +10,7 @@ fi
 
 source venv/bin/activate
 
-pybabel extract -F babel.cfg -o messages.pot .
+pybabel extract -F babel.cfg -o messages.pot src
 pybabel update -i messages.pot -d src/translations
 
 echo
