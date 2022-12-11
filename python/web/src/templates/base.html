@@ -39,7 +39,7 @@
     <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 </head>
 
-<body class="{{ body_class }}{% if env["logged_in"] %} logged-in{% endif %}">
+<body class="{{ body_classes|join(' ') }}">
     <div class="header">
         {% if env["auth_active"] %}
             {% if env["logged_in"] %}
@@ -66,7 +66,9 @@
             {% endif %}
         {% else %}
             <div align="center" class="login-status authentication-disabled">
-                {{ _("Web Interface Authentication Disabled") }} - {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/PiSCSI/piscsi/wiki/Web-Interface#enable-authentication") }}
+                <span class="authentication-disabled-text">{{ _("Web Interface Authentication Disabled") }}</span>
+                <span class="separator">-</span>
+                <span class="wiki-help-text">{{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/PiSCSI/piscsi/wiki/Web-Interface#enable-authentication") }}</span>
             </div>
         {% endif %}
 
