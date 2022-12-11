@@ -13,8 +13,8 @@ RUN groupadd pi \
     && echo "pi ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && echo "pi:piscsi" | chpasswd
 
-# Allows custom PATH for mock commands to work when executing with sudo
-RUN sed -i 's/^Defaults\tsecure_path/#Defaults\tsecure_path./' /etc/sudoers
+# Make mock commands available when executing sudo
+RUN sed -i 's/^Defaults\tsecure_path="\/usr/Defaults\tsecure_path="\/home\/pi\/piscsi\/python\/web\/mock\/bin:\/usr/' /etc/sudoers
 
 RUN mkdir -p /home/pi/shared_files \
     && mkdir /home/pi/images \
