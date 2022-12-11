@@ -151,8 +151,18 @@ def response(
         else:
             theme = TEMPLATE_THEME_LEGACY
 
-        kwargs["env"] = get_env_info()
-        kwargs["body_class"] = f"page-{PurePath(template).stem.lower()}"
+        body_classes = [f"page-{PurePath(template).stem.lower()}"]
+
+        env_info = get_env_info()
+        if env_info["auth_active"]:
+            body_classes.append("auth-enabled")
+            if env_info["logged_in"]:
+                body_classes.append("logged-in")
+        else:
+            body_classes.append("auth-disabled")
+
+        kwargs["env"] = env_info
+        kwargs["body_classes"] = body_classes
         kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
         kwargs["current_theme"] = theme
         kwargs["available_themes"] = TEMPLATE_THEMES

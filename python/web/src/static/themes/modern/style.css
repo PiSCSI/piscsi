@@ -262,10 +262,16 @@ div.header div.login-form-title {
   display: none;
 }
 
-div.header div.authentication-disabled {
-  background: var(--danger);
-  border-radius: var(--border-radius);
-  padding: 0 0.5rem;
+div.header div.authentication-disabled span.separator {
+  display: none;
+}
+
+div.header div.authentication-disabled span.wiki-help-text {
+  display: block;
+}
+
+div.header div.authentication-disabled a {
+  color: #fff;
 }
 
 @media (max-width: 900px) {
@@ -274,9 +280,14 @@ div.header div.authentication-disabled {
     background: var(--dark);
   }
 
-  body:not(.logged-in) div.header {
+  body.auth-enabled:not(.logged-in) div.header {
     flex-wrap: wrap;
     min-height: 8.875rem; /* Safari 14 iOS and iPad OS */
+  }
+
+  body.auth-disabled div.header {
+    flex-wrap: wrap;
+    min-height: 7rem;
   }
 
   div.header div.title span.subtitle {
@@ -340,6 +351,14 @@ div.header div.authentication-disabled {
     color: var(--secondary);
     text-decoration: none;
   }
+
+  div.header div.authentication-disabled {
+    flex: 0 0 100%;
+    align-items: end;
+    padding: 0.5rem;
+    background: var(--danger);
+    color: #fff;
+  }
 }
 
 @media (min-width: 901px) {
@@ -402,7 +421,8 @@ div.header div.authentication-disabled {
   }
 
   div.header div.login-status.logged-in a {
-    background: var(--danger) url("icons/log-out.svg") no-repeat right 0.5rem center;
+    background: var(--danger) no-repeat right 0.5rem center;
+    background-image: url("icons/log-out.svg");
     background-size: var(--icon-size);
     border-radius: var(--border-radius);
     padding: 0.25rem 2.25rem 0.25rem 0.75rem;
@@ -417,6 +437,13 @@ div.header div.authentication-disabled {
 
   div.header div.login-status.logged-in span.separator {
     display: none;
+  }
+
+  div.header div.authentication-disabled {
+    background: var(--danger);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -533,28 +560,33 @@ section > details ul {
 
 /*
  ------------------------------------------------------------------------------
+ Index > Hide sections requiring auth
+ ------------------------------------------------------------------------------
+ */
+body.auth-enabled:not(.logged-in) section:not(#current-config, #manual) {
+  display: none;
+}
+
+body.auth-enabled:not(.logged-in) section#current-config form#config-actions,
+body.auth-enabled:not(.logged-in) section#current-config form#config-save {
+  display: none;
+}
+
+body.auth-enabled:not(.logged-in) section#current-config table#attached-devices th.actions,
+body.auth-enabled:not(.logged-in) section#current-config table#attached-devices td.actions,
+body.auth-enabled:not(.logged-in) section#current-config table#attached-devices form {
+  display: none;
+}
+
+body.auth-enabled:not(.logged-in) section#current-config form#detach-all-devices {
+  display: none;
+}
+
+/*
+ ------------------------------------------------------------------------------
  Index > Section: Current PiSCSI configuration
  ------------------------------------------------------------------------------
  */
-body:not(.logged-in) section:not(#current-config, #manual) {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config form#config-actions,
-body:not(.logged-in) section#current-config form#config-save {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config table#attached-devices th.actions,
-body:not(.logged-in) section#current-config table#attached-devices td.actions,
-body:not(.logged-in) section#current-config table#attached-devices form {
-  display: none;
-}
-
-body:not(.logged-in) section#current-config form#detach-all-devices {
-  display: none;
-}
-
 section#current-config form#config-actions select,
 section#current-config form#config-save input[type="text"] {
   max-width: 10rem;
