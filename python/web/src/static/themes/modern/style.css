@@ -421,7 +421,8 @@ div.header div.authentication-disabled a {
   }
 
   div.header div.login-status.logged-in a {
-    background: var(--danger) url("icons/log-out.svg") no-repeat right 0.5rem center;
+    background: var(--danger) no-repeat right 0.5rem center;
+    background-image: url("icons/log-out.svg");
     background-size: var(--icon-size);
     border-radius: var(--border-radius);
     padding: 0.25rem 2.25rem 0.25rem 0.75rem;
