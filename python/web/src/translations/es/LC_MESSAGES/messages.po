@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PiSCSI 68kmla Edition\n"
-"Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
 "POT-Creation-Date: 2022-12-12 10:07+0100\n"
 "PO-Revision-Date: 2022-12-12 10:44+0100\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
@@ -1245,87 +1245,3 @@ msgstr "Registros del sistema: %(scope)s %(lines)s líneas"
 #, python-format
 msgid "Manual for %(app)s"
 msgstr "Manual para %(app)s"
-
-#~ msgid "Please follow the instructions at %(url)s"
-#~ msgstr "Siga las instrucciones en %(url)s"
-
-#~ msgid ""
-#~ "The image file size %(file_size)s bytes is not a multiple of %(block_size)s. "
-#~ "PiSCSI will ignore the trailing data. The image may be corrupted, so proceed "
-#~ "with caution."
-#~ msgstr ""
-#~ "El tamaño del archivo de imagen %(file_size)s bytes no es un múltiplo de "
-#~ "%(block_size)s. PiSCSI ignorará los datos finales. La imagen puede estar "
-#~ "corrupta, así que proceda con precaución."
-
-#~ msgid ""
-#~ "Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr ""
-#~ "No se ha podido conectar %(file_name)s a SCSI ID %(id_number)s LUN "
-#~ "%(unit_number)s"
-
-#~ msgid "Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr "Fallo en la desconexión de SCSI ID  %(id_number)s LUN %(unit_number)s"
-
-#~ msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr "Fallo en la expulsión de SCSI ID %(id_number)s LUN %(unit_number)s"
-
-#~ msgid "Failed to reserve SCSI ID %(id_number)s"
-#~ msgstr "No se ha podido reservar el SCSI ID %(id_number)s"
-
-#~ msgid "Failed to release the reservation for SCSI ID %(id_number)s"
-#~ msgstr "No se ha podido liberar la reserva para el SCSI ID %(id_number)s"
-
-#~ msgid "Failed to create CD-ROM image from %(url)s"
-#~ msgstr "No se ha podido crear la imagen del CD-ROM desde  %(url)s"
-
-#~ msgid "Saved image as: %(file_name)s"
-#~ msgstr "Imagen guardada como: %(file_name)s"
-
-#~ msgid "Attached to SCSI ID %(id_number)s"
-#~ msgstr "Conectado a SCSI ID %(id_number)s"
-
-#~ msgid ""
-#~ "Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually."
-#~ msgstr ""
-#~ "No se ha podido conectar la imagen al SCSI ID %(id_number)s. Intente "
-#~ "conectarla manualmente."
-
-#~ msgid "Failed to download file from %(url)s"
-#~ msgstr "No se ha podido descargar el archivo de %(url)s"
-
-#~ msgid "Properties file %(file)s moved to %(directory)s"
-#~ msgstr "Archivo de propiedades %(file)s trasladado a %(directory)s"
-
-#~ msgid "Failed to move properties file %(file)s to %(directory)s"
-#~ msgstr "Error al mover el archivo de propiedades %(file)s a %(directory)s"
-
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgid "Configure IPv4 forwarding before using a wireless network device."
-#~ msgstr ""
-#~ "Configure el reenvío de IPv4 antes de utilizar un dispositivo de red "
-#~ "inalámbrico."
-
-#~ msgid "Configure NAT before using a wireless network device."
-#~ msgstr "Configure NAT antes de utilizar un dispositivo de red inalámbrico."
-
-#~ msgid "Pi environment: "
-#~ msgstr "Entorno Pi: "
-
-#~ msgid "Extract All"
-#~ msgstr "Extraer todo"
-
-#~ msgid ""
-#~ "Install <a href=\"%(url)s\" target=\"_blank\">Netatalk</a> to use the AFP "
-#~ "File Server."
-#~ msgstr ""
-#~ "Instale <a href=“%(url)s” target=“_blank”>Netatalk</a> para utilizar el "
-#~ "servidor de archivos AFP."
-
-#~ msgid "Reboot Raspberry Pi"
-#~ msgstr "Reiniciar la Raspberry Pi"
-
-#~ msgid "Shut Down Raspberry Pi"
-#~ msgstr "Apagar la Raspberry Pi"
