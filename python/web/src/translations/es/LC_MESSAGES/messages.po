@@ -494,7 +494,7 @@ msgstr "Nombre del sistema:"
 #: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
 msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
-msgstr "Cambia al tema <a href=“/theme?name=%(theme)s”>%(theme)s </a>"
+msgstr "Cambia al tema <a href=\"/theme?name=%(theme)s\">%(theme)s </a>"
 
 #: src/templates/base.html:120
 msgid "The AppleShare server is running. No active connections."
