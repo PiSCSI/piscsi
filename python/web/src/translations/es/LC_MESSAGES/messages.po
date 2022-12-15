@@ -8,15 +8,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PiSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2022-12-12 10:07+0100\n"
-"PO-Revision-Date: 2022-12-12 10:44+0100\n"
+"POT-Creation-Date: 2022-12-15 09:40+0100\n"
+"PO-Revision-Date: 2022-12-15 09:47+0100\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
-"Language-Team: es N/A\n"
 "Language: es\n"
+"Language-Team: es N/A\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.10.1\n"
 "X-Generator: Poedit 2.4.3\n"
 
@@ -488,14 +488,13 @@ msgid "Control Page"
 msgstr "Página de control"
 
 #: src/templates/base.html:85 src/templates/index.html:740
-#, fuzzy
 msgid "System Name:"
-msgstr "Nombre de usuario"
+msgstr "Nombre del sistema:"
 
 #: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
 msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
-msgstr ""
+msgstr "Cambia al tema <a href=\"/theme?name=%(theme)s\">%(theme)s </a>"
 
 #: src/templates/base.html:120
 msgid "The AppleShare server is running. No active connections."
@@ -517,17 +516,16 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy se está ejecutando en %(ip_addr)s (puerto por defecto: 5000)"
 
 #: src/templates/base.html:134
-#, fuzzy
 msgid "PiSCSI version:"
-msgstr "Versión de PiSCSI: "
+msgstr "Versión de PiSCSI:"
 
 #: src/templates/base.html:137
 msgid "Hardware and OS:"
-msgstr ""
+msgstr "Hardware y sistema operativo:"
 
 #: src/templates/base.html:140
 msgid "Network Address:"
-msgstr ""
+msgstr "Dirección de red:"
 
 #: src/templates/deviceinfo.html:4
 msgid "Detailed Info for Attached Devices"
