@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2022-12-11 11:53-0800\n"
-"PO-Revision-Date: 2022-12-10 20:16-0800\n"
+"POT-Creation-Date: 2022-12-16 12:49-0800\n"
+"PO-Revision-Date: 2022-12-16 20:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
 "Language-Team: N/A\n"
@@ -98,7 +98,7 @@ msgstr "Packade upp %(count)s fil(er)"
 
 #: src/return_code_mapper.py:44
 msgid "Unable to extract archive: No files were specified"
-msgstr "Kunde ej packa upp arkivet: Inga filer valdes"
+msgstr "Kunde ej packa upp arkivet: Inga filer blev valda"
 
 #: src/return_code_mapper.py:46
 msgid "No files were extracted (existing files are skipped)"
@@ -117,8 +117,8 @@ msgid ""
 " crashed."
 msgstr ""
 "PiSCSIs webbgränssnitt kunde inte ansluta till PiSCSI på "
-"%(host)s:%(port)s med felmeddelandet %(error_msg)s. PiSCSI-processen är "
-"antingen avslagen eller har krashat."
+"%(host)s:%(port)s med felmeddelandet '%(error_msg)s'. PiSCSI-processen är"
+" antingen avslagen eller har krashat."
 
 #: src/socket_cmds_flask.py:54
 msgid ""
@@ -141,8 +141,8 @@ msgid ""
 "PiSCSI is password protected. Start the Web Interface with the --password"
 " parameter."
 msgstr ""
-"PiSCSI är lösenordsskyddat. Start webbgränssnittet med parametern "
-"--password ."
+"PiSCSI är lösenordsskyddat. Start webbgränssnittet med parametern '--"
+"password'."
 
 #: src/web.py:330
 #, python-format
@@ -177,7 +177,7 @@ msgstr "Ett fel inträffade när vi skaffade manualsidan: %(error)s"
 #: src/web.py:572
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
-msgstr "Ett fel inträffade när vi skaffade loggar: %(error)s"
+msgstr "Ett fel inträffade när vi hämtade loggar: %(error)s"
 
 #: src/web.py:586
 #, python-format
@@ -257,7 +257,7 @@ msgstr "%(iso_type)s är inte ett giltigt cd-romformat"
 #: src/web.py:903
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
-msgstr "Ett fel inträffade när vi skapade en cd-romskivbild: %(error)s"
+msgstr "Ett fel inträffade när vi skapade en cd-bildfil: %(error)s"
 
 #: src/web.py:917
 #, python-format
@@ -265,8 +265,8 @@ msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created and "
 "attached to SCSI ID %(id_number)s"
 msgstr ""
-"Cd-rombildfilen %(file_name)s av typ %(iso_type)s har skapats och "
-"anslutits till scsi-s %(id_number)s"
+"Cd-bildfilen %(file_name)s av typ %(iso_type)s har skapats och anslutits "
+"till scsi-s %(id_number)s"
 
 #: src/web.py:928
 #, python-format
@@ -274,8 +274,8 @@ msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created but could "
 "not be attached: %(error)s"
 msgstr ""
-"Cd-rombildfilen %(file_name)s av typ %(iso_type)s har skapats men kunde "
-"inte anslutas: %(error)s"
+"Cd-bildfilen %(file_name)s av typ %(iso_type)s har skapats men kunde inte"
+" anslutas: %(error)s"
 
 #: src/web.py:958
 #, python-format
@@ -334,7 +334,7 @@ msgstr "Bytte webbgränssnittets språk till %(locale)s"
 
 #: src/web.py:1292
 msgid "The requested theme does not exist."
-msgstr "Detta tema existerar inte."
+msgstr "Temat existerar inte."
 
 #: src/web.py:1295
 #, python-format
@@ -351,7 +351,7 @@ msgstr "Uttagbar skivenhet"
 
 #: src/web_utils.py:102
 msgid "Magneto-Optical Drive"
-msgstr "Magnetoptisk skiva"
+msgstr "Magnetoptisk enhet"
 
 #: src/web_utils.py:104
 msgid "CD/DVD Drive"
@@ -523,11 +523,11 @@ msgstr "Hårdvara och operativsystem:"
 
 #: src/templates/base.html:140
 msgid "Network Address:"
-msgstr "Närverksadress:"
+msgstr "Nätverksadress:"
 
 #: src/templates/deviceinfo.html:4
 msgid "Detailed Info for Attached Devices"
-msgstr "Detaljerad info för anslutna enheter"
+msgstr "Detaljerad info om anslutna enheter"
 
 #: src/templates/deviceinfo.html:9
 msgid "SCSI ID"
@@ -639,7 +639,7 @@ msgstr "Skapa"
 
 #: src/templates/drives.html:42
 msgid "CD/DVD Drives"
-msgstr "Cd- och dvd-skivor"
+msgstr "Cd- och dvd-spelare"
 
 #: src/templates/drives.html:43
 msgid ""
@@ -1027,7 +1027,7 @@ msgstr "Radera fil"
 
 #: src/templates/index.html:496
 msgid "You can not upload any more files."
-msgstr "Du kan inte ladda upp några fler filer."
+msgstr "Du kan inte ladda upp vidare filer."
 
 #: src/templates/index.html:498
 msgid "TiB"
@@ -1126,7 +1126,7 @@ msgstr "Formatera som:"
 
 #: src/templates/index.html:640
 msgid "Create a named disk image that mimics real-life drives"
-msgstr "Skapa en benämnd skivbildfil som låtsas vara en verklig enhet"
+msgstr "Skapa en benämnd skivbildfil som maskeras som en verklig enhet"
 
 #: src/templates/index.html:648
 msgid "Logging"
@@ -1138,7 +1138,7 @@ msgstr "Det nuvarande valet i rullgardinsmenyn påvisar aktiv loggnivå."
 
 #: src/templates/index.html:657
 msgid "Log Lines:"
-msgstr "Antal loggar:"
+msgstr "Antal loggrader:"
 
 #: src/templates/index.html:659
 msgid "Scope:"
@@ -1150,7 +1150,7 @@ msgstr "Alla loggar"
 
 #: src/templates/index.html:677
 msgid "Show Logs"
-msgstr "Skaffa loggar"
+msgstr "Visa loggar"
 
 #: src/templates/index.html:683
 msgid "Log Level:"
@@ -1226,7 +1226,7 @@ msgstr "Stäng av"
 
 #: src/templates/index.html:762
 msgid "Read the PiSCSI Manual"
-msgstr "Läs manualen för PiSCSI"
+msgstr "Läs manualen för PiSCSI (engelska)"
 
 #: src/templates/logs.html:4
 #, python-format
