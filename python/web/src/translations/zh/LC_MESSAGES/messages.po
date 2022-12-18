@@ -51,17 +51,17 @@ msgstr "%(file_name)s 下载到 %(save_dir)s"
 #: src/return_code_mapper.py:26
 #, fuzzy, python-format
 msgid "File created: %(target_path)s"
-msgstr "文件移动到：%(target_path)s"
+msgstr "文件创建到：%(target_path)s"
 
 #: src/return_code_mapper.py:28
 #, fuzzy, python-format
 msgid "Could not create file: %(target_path)s"
-msgstr "无法写入文件：%(file_name)s"
+msgstr "无法创建文件：%(file_name)s"
 
 #: src/return_code_mapper.py:30
 #, python-format
 msgid "Loaded configurations from: %(file_name)s"
-msgstr "从 %(file_name)s 加载的配置"
+msgstr "从 %(file_name)s 加载配置"
 
 #: src/return_code_mapper.py:32
 #, python-format
@@ -100,7 +100,7 @@ msgstr "无法提取存档：未指定文件"
 
 #: src/return_code_mapper.py:46
 msgid "No files were extracted (existing files are skipped)"
-msgstr "未提取任何文件（跳过现有文件"
+msgstr "未提取任何文件（跳过现有文件）"
 
 #: src/return_code_mapper.py:48
 #, python-format
@@ -138,22 +138,22 @@ msgstr "PiSCSI 受密码保护。 请使用 --password 参数启动 Web 界面�
 #: src/web.py:330
 #, fuzzy, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
-msgstr "您必须使用 '%(group)s' 组中用户的凭据登录"
+msgstr "您必须使用 '%(group)s' 组中用户的凭据登录。"
 
 #: src/web.py:383 src/web.py:427
 #, fuzzy, python-format
 msgid "No properties data for drive %(drive_name)s"
-msgstr "从文件中读取属性：%(file_path)s"
+msgstr "驱动器 %(drive_name)s 中没有属性数据。"
 
 #: src/web.py:404
 #, fuzzy, python-format
 msgid "Image file with properties created: %(file_name)s"
-msgstr "创建的映像文件：%(file_name)s"
+msgstr "创建映像文件：%(file_name)s"
 
 #: src/web.py:502
 #, fuzzy, python-format
 msgid "An error occurred when getting disk info: %(error)s"
-msgstr "获取日志时出错。"
+msgstr "获取磁盘信息时出错。"
 
 #: src/web.py:516
 #, python-format
@@ -163,7 +163,7 @@ msgstr "%(app)s不是可识别的 PiSCSI 应用程序"
 #: src/web.py:549
 #, fuzzy, python-format
 msgid "An error occurred when accessing man page: %(error)s"
-msgstr "获取日志时出错。"
+msgstr "获取帮助页面时出错。"
 
 #: src/web.py:572
 #, fuzzy, python-format
@@ -202,7 +202,7 @@ msgstr "已断开所有 SCSI 设备"
 #: src/web.py:741
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
-msgstr "断开的 SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "断开 SCSI ID %(id_number)s LUN %(unit_number)s"
 
 #: src/web.py:763
 #, python-format
@@ -252,7 +252,7 @@ msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created and "
 "attached to SCSI ID %(id_number)s"
 msgstr "已创建类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 并且 "
-"附加到 SCSI ID %(id_number)s"
+"加载到 SCSI ID %(id_number)s"
 
 #: src/web.py:928
 #, python-format
@@ -260,12 +260,12 @@ msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created but could "
 "not be attached: %(error)s"
 msgstr "类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 已创建，但无法“
-“未附加：%(error)s"
+“加载：%(error)s"
 
 #: src/web.py:958
 #, fuzzy, python-format
 msgid "The following error occurred when downloading: %(error)s"
-msgstr "获取日志时出错。"
+msgstr "下载时出错：%(error)s"
 
 #: src/web.py:1021 src/web.py:1034
 #, python-format
@@ -275,17 +275,17 @@ msgstr "%(drive_format)s 不是有效的硬盘格式。"
 #: src/web.py:1079
 #, fuzzy, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
-msgstr "创建的映像文件：%(file_name)s"
+msgstr "创建带属性的映像文件：%(file_name)s"
 
 #: src/web.py:1089
 #, fuzzy, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
-msgstr "创建的映像文件：%(file_name)s"
+msgstr "创建映像文件：%(file_name)s"
 
 #: src/web.py:1135
 #, fuzzy, python-format
 msgid "Image file with properties deleted: %(file_name)s"
-msgstr "映像文件已删除：%(file_name)s"
+msgstr "带属性的映像文件已删除：%(file_name)s"
 
 #: src/web.py:1144
 #, python-format
@@ -295,7 +295,7 @@ msgstr "映像文件已删除：%(file_name)s"
 #: src/web.py:1177
 #, fuzzy, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
-msgstr "映像文件重命名为：%(file_name)s"
+msgstr "带属性的映像文件重命名为：%(file_name)s"
 
 #: src/web.py:1186
 #, python-format
@@ -305,17 +305,17 @@ msgstr "映像文件重命名为：%(file_name)s"
 #: src/web.py:1219
 #, fuzzy, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
-msgstr "映像文件重命名为：%(file_name)s"
+msgstr "带属性的映像文件的拷贝已保存为：%(file_name)s"
 
 #: src/web.py:1228
 #, fuzzy, python-format
 msgid "Copy of image file saved as: %(file_name)s"
-msgstr "创建的映像文件：%(file_name)s"
+msgstr "映像文件的拷贝已保存为：%(file_name)s"
 
 #: src/web.py:1281
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
-msgstr "将 Web 界面语言更改为 %(locale)s"
+msgstr "Web 界面语言已更改为 %(locale)s"
 
 #: src/web.py:1292
 msgid "The requested theme does not exist."
@@ -351,7 +351,7 @@ msgstr "主机桥"
 #: src/web_utils.py:108
 #, fuzzy
 msgid "Ethernet Adapter"
-msgstr "连接以太网适配器"
+msgstr "以太网适配器"
 
 #: src/web_utils.py:110
 msgid "Printer"
@@ -373,7 +373,7 @@ msgstr "硬盘映像（Apple)"
 #: src/web_utils.py:139
 #, fuzzy
 msgid "Hard Disk Image (NEC)"
-msgstr "SCSI 硬盘映像（通用）[.hds]"
+msgstr "硬盘映像（NEC）"
 
 #: src/web_utils.py:141
 msgid "Hard Disk Image (SCSI-1)"
@@ -395,7 +395,7 @@ msgstr "您必须登录才能使用此功能"
 #: src/web_utils.py:233
 #, fuzzy, python-format
 msgid "Configure the network bridge for %(interface)s first: "
-msgstr "在使用有线网络设备之前配置网桥。"
+msgstr "请首先为界面 %(interface)s 配置网桥。"
 
 #: src/web_utils.py:262
 #, python-format
@@ -478,7 +478,7 @@ msgstr "控制页面"
 #: src/templates/base.html:85 src/templates/index.html:740
 #, fuzzy
 msgid "System Name:"
-msgstr "用户名"
+msgstr "系统名"
 
 #: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
