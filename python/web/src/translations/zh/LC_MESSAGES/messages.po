@@ -511,15 +511,15 @@ msgstr "PiSCSI 版本："
 
 #: src/templates/base.html:137
 msgid "Hardware and OS:"
-msgstr "硬件和操作系统"
+msgstr "硬件和操作系统："
 
 #: src/templates/base.html:140
 msgid "Network Address:"
-msgstr "网络地址"
+msgstr "网络地址："
 
 #: src/templates/deviceinfo.html:4
 msgid "Detailed Info for Attached Devices"
-msgstr "连接设备的详细信息"
+msgstr "已加载设备的详细信息"
 
 #: src/templates/deviceinfo.html:9
 msgid "SCSI ID"
@@ -548,7 +548,7 @@ msgstr "参数"
 
 #: src/templates/deviceinfo.html:33
 msgid "Vendor"
-msgstr "供应商名称"
+msgstr "供应商"
 
 #: src/templates/deviceinfo.html:37 src/templates/index.html:54
 msgid "Product"
@@ -570,12 +570,12 @@ msgstr "磁盘映像大小"
 #: src/templates/drives.html:115 src/templates/logs.html:6
 #: src/templates/manpage.html:10
 msgid "Go to Home"
-msgstr ""
+msgstr "回到主页"
 
 #: src/templates/diskinfo.html:4
 #, fuzzy, python-format
 msgid "Disk Image Details: %(file_name)s"
-msgstr "映像文件保存为：%(file_name)s"
+msgstr "映像文件：%(file_name)s"
 
 #: src/templates/drives.html:4
 msgid "Disclaimer"
@@ -597,7 +597,7 @@ msgstr ""
 #: src/templates/drives.html:6
 #, fuzzy
 msgid "Hard Disk Drives"
-msgstr "硬盘"
+msgstr "硬盘驱动器"
 
 #: src/templates/drives.html:11 src/templates/drives.html:47
 #: src/templates/drives.html:86
@@ -662,7 +662,7 @@ msgstr "当前的 PiSCSI 配置"
 msgid ""
 "Save and load device configurations, stored as json files in "
 "<tt>%(config_dir)s</tt>"
-msgstr "保存和加载设备配置，存储为 <tt>%(config_dir)s</tt> 中的 json 文件"
+msgstr "保存和加载设备配置，在 <tt>%(config_dir)s</tt> 目录下存储为 json 文件"
 
 #: src/templates/index.html:11
 msgid ""
@@ -673,7 +673,7 @@ msgstr "若需在 PiSCSI 启动时加载特定的设备配置，请将其保存�
 #: src/templates/index.html:17 src/templates/index.html:38
 #: src/templates/index.html:596
 msgid "File Name:"
-msgstr "文件名:"
+msgstr "文件名："
 
 #: src/templates/index.html:27
 msgid "No saved configurations"
@@ -720,7 +720,7 @@ msgstr "文件名"
 #: src/templates/index.html:96 src/templates/index.html:322
 #: src/templates/index.html:446
 msgid "Attach"
-msgstr "加载"
+msgstr "加载/连接"
 
 #: src/templates/index.html:126
 msgid "Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!"
@@ -753,7 +753,7 @@ msgstr "预订 ID"
 #: src/templates/index.html:156
 #, fuzzy
 msgid "Release"
-msgstr "删除"
+msgstr "释放"
 
 #: src/templates/index.html:166
 msgid "Detach all SCSI Devices?"
@@ -787,11 +787,11 @@ msgstr "选择一个有效的 SCSI ID 和要加载到的 <a href=\"%(url)s\">LUN
 
 #: src/templates/index.html:187
 msgid "Recognized image file types:"
-msgstr "识别的图像文件类型"
+msgstr "识别的图像文件类型："
 
 #: src/templates/index.html:192
 msgid "Recognized archive file types:"
-msgstr "公认的存档文件类型"
+msgstr "识别到的存档文件类型："
 
 #: src/templates/index.html:203
 msgid "Size"
@@ -799,7 +799,7 @@ msgstr "大小"
 
 #: src/templates/index.html:209
 msgid "The images directory is currently empty."
-msgstr "图片目录当前为空"
+msgstr "图片目录当前为空。"
 
 #: src/templates/index.html:227
 msgid "Properties File"
@@ -809,7 +809,7 @@ msgstr "属性文件"
 #: src/templates/index.html:288
 #, fuzzy
 msgid "Extract"
-msgstr "断开"
+msgstr "解压"
 
 #: src/templates/index.html:249 src/templates/index.html:261
 #, fuzzy
@@ -837,7 +837,7 @@ msgstr "未知"
 #: src/templates/index.html:325
 #, python-format
 msgid "Enter new file name for: %(file_name)s"
-msgstr "输入新文件名：%(file_name)s"
+msgstr "为 %(file_name)s 输入新文件名："
 
 #: src/templates/index.html:328 src/templates/index.html:742
 msgid "Rename"
@@ -846,12 +846,12 @@ msgstr "重命名"
 #: src/templates/index.html:330
 #, fuzzy, python-format
 msgid "Save copy of %(file_name)s as:"
-msgstr "映像文件保存为：%(file_name)s"
+msgstr "将文件 %(file_name)s 副本保存为："
 
 #: src/templates/index.html:333
 #, fuzzy
 msgid "Copy"
-msgstr "范围："
+msgstr "拷贝"
 
 #: src/templates/index.html:335
 #, python-format
@@ -869,7 +869,7 @@ msgstr "信息"
 #: src/templates/index.html:351
 #, fuzzy, python-format
 msgid "%(disk_space)s MiB disk space remaining on the system"
-msgstr "在 Pi 上剩余%(disk_space)s MB 磁盘空间"
+msgstr "系统剩余磁盘空间为%(disk_space)s MB "
 
 #: src/templates/index.html:359
 msgid "Attach Peripheral Device"
@@ -880,32 +880,32 @@ msgstr "连接外围设备"
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
-msgstr "<tt>piscsi_bridge</tt> 接口处于活动状态，可供 DaynaPORT 使用！"
+msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:366
 #, fuzzy
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
-msgstr "在使用有线网络设备之前配置网桥。"
+msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网桥。"
 
 #: src/templates/index.html:368
 #, python-format
 msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
-msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
+msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
 
 #: src/templates/index.html:370
 #, fuzzy, python-format
 msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
 "types</a> on the wiki."
-msgstr "查看<a href=\"%(url)\" target=\"_blank\">wiki</a>了解更多信息"
+msgstr "请查看<a href=\"%(url)\" target=\"_blank\">wiki</a>了解更多信息。"
 
 #: src/templates/index.html:377
 msgid "Key"
-msgstr "钥匙"
+msgstr "秘钥"
 
 #: src/templates/index.html:378
 msgid "Parameters and Actions"
@@ -913,12 +913,12 @@ msgstr "参数和操作"
 
 #: src/templates/index.html:408 src/templates/index.html:608
 msgid "Masquerade as:"
-msgstr "伪装成"
+msgstr "伪装为："
 
 #: src/templates/index.html:411 src/templates/index.html:611
 #: src/templates/index.html:622
 msgid "None"
-msgstr "没有任何"
+msgstr "空"
 
 #: src/templates/index.html:459
 msgid "Upload File from Local Computer"
@@ -929,24 +929,24 @@ msgstr "从本地计算机上传文件"
 msgid ""
 "The largest file size accepted in this form is %(max_file_size)s MiB. Use"
 " other file transfer means for larger files."
-msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对较大的文件使用其他文件传输方式"
+msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输方式"
 
 #: src/templates/index.html:463
 msgid ""
 "File uploads will progress only if you stay on this page. If you navigate"
 " away before the transfer is completed, you will end up with an "
 "incomplete file."
-msgstr "仅当您停留在此页面上时，文件上传才会进行。如果您在传输完成之前离开，您将得到一个不完整的文件。"
+msgstr "文件上传仅当您停留在此页面上时才会进行。如果您在传输完成之前离开此页面，您将得到一个不完整的文件。"
 
 #: src/templates/index.html:464 src/templates/index.html:516
 msgid ""
 "To access shared files remotely, you may have to install one of the file "
 "servers first."
-msgstr "要远程访问共享文件，您可能必须安装其中一个文件服务器第一。"
+msgstr "要远程访问共享文件，您必须首先安装一个文件服务器。"
 
 #: src/templates/index.html:470 src/templates/index.html:521
 msgid "Target directory:"
-msgstr "目标目录"
+msgstr "目标目录："
 
 #: src/templates/index.html:472 src/templates/index.html:523
 msgid "Disk Images"
@@ -955,7 +955,7 @@ msgstr "磁盘映像"
 #: src/templates/index.html:473 src/templates/index.html:524
 #, fuzzy
 msgid "File Server"
-msgstr "预订"
+msgstr "文件服务器"
 
 #: src/templates/index.html:486
 msgid "Drop files here to upload"
@@ -963,21 +963,21 @@ msgstr "将文件拖放到此处以上传"
 
 #: src/templates/index.html:487
 msgid "Your browser does not support drag'n'drop file uploads."
-msgstr "您的浏览器不支持拖放文件上传"
+msgstr "您的浏览器不支持拖放文件上传。"
 
 #: src/templates/index.html:488
 msgid ""
 "Please use the fallback form below to upload your files like in the olden"
 " days."
-msgstr "请像过去一样使用下面的后备表格上传您的文件"
+msgstr "请和老时候一样使用下面的后备表格上传您的文件。"
 
 #: src/templates/index.html:489
 msgid "File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB."
-msgstr 文件太大：{{filesize}}MiB。最大文件大小：{{maxFilesize}}MiB"
+msgstr "文件太大：{{filesize}}MiB。最大可允许的大小为：{{maxFilesize}}MiB。"
 
 #: src/templates/index.html:490
 msgid "You can't upload files of this type."
-msgstr "您不能上传这种类型的文件"
+msgstr "您不能上传这种类型的文件。"
 
 #: src/templates/index.html:491
 msgid "Server responded with code: {{statusCode}}"
@@ -989,7 +989,7 @@ msgstr "取消上传"
 
 #: src/templates/index.html:493
 msgid "Upload canceled."
-msgstr "上传已取消"
+msgstr "上传已取消。"
 
 #: src/templates/index.html:494
 msgid "Are you sure you want to cancel this upload?"
@@ -1001,7 +1001,7 @@ msgstr "删除文件"
 
 #: src/templates/index.html:496
 msgid "You can not upload any more files."
-msgstr "您不能再上传任何文件"
+msgstr "您不能再上传任何文件。"
 
 #: src/templates/index.html:498
 msgid "TiB"
@@ -1035,7 +1035,7 @@ msgstr "下载"
 #: src/templates/index.html:528
 #, fuzzy
 msgid "Downloading File..."
-msgstr "正在下载文件到映像..."
+msgstr "正在下载文件..."
 
 #: src/templates/index.html:537
 #, fuzzy
@@ -1046,11 +1046,11 @@ msgstr "下载文件并创建 CD-ROM 映像"
 msgid ""
 "Create an ISO file system CD-ROM image with the downloaded file, and "
 "mount it on the given SCSI ID."
-msgstr "使用下载的文件创建 ISO 文件系统 CD-ROM 映像，并将其安装在给定的 SCSI ID 上。"
+msgstr "使用下载的文件创建 ISO 文件系统 CD-ROM 映像，并将其加载到给定的 SCSI ID 上。"
 
 #: src/templates/index.html:541
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
-msgstr "HFS 适用于 Mac OS，Joliet 适用于 Windows，而 Rock Ridge 适用于 POSIX。"
+msgstr "HFS 适用于 Mac OS，Joliet 适用于 Windows，Rock Ridge 适用于 POSIX。"
 
 #: src/templates/index.html:542
 msgid ""
@@ -1064,7 +1064,7 @@ msgstr "类型:"
 
 #: src/templates/index.html:578
 msgid "Download and Mount CD-ROM image"
-msgstr "下载并挂载 CD-ROM 映像"
+msgstr "下载并加载 CD-ROM 映像"
 
 #: src/templates/index.html:578
 msgid "Downloading File and generating CD-ROM image..."
@@ -1079,21 +1079,21 @@ msgstr "创建空磁盘映像文件"
 msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
 "documentation</a> to learn more about the supported image file types."
-msgstr "查看<a href=\"%(url)\" target=\"_blank\">wiki</a>了解更多信息"
+msgstr "请查看<a href=\"%(url)\" target=\"_blank\">wiki</a>了解更多支持的映像文件类型。"
 
 #: src/templates/index.html:591
 msgid ""
 "It is not recommended to use the Lido hard disk driver with the Macintosh"
 " Plus."
-msgstr "不建议在Macintosh Plus上使用丽都硬盘驱动器"
+msgstr "不建议在Macintosh Plus上使用Lido硬盘驱动。"
 
 #: src/templates/index.html:606
 msgid "Size:"
-msgstr "大小:"
+msgstr "大小："
 
 #: src/templates/index.html:619
 msgid "Format as:"
-msgstr "格式为"
+msgstr "格式为："
 
 #: src/templates/index.html:640
 msgid "Create a named disk image that mimics real-life drives"
@@ -1133,7 +1133,7 @@ msgstr "设置日志级别"
 
 #: src/templates/index.html:701
 msgid "Language"
-msgstr "语"
+msgstr "语言"
 
 #: src/templates/index.html:704
 msgid "Change the Web Interface language."
@@ -1141,7 +1141,7 @@ msgstr "更改 Web 界面语言"
 
 #: src/templates/index.html:709
 msgid "Language:"
-msgstr "语:"
+msgstr "语言："
 
 #: src/templates/index.html:721
 msgid "Change Language"
@@ -1150,21 +1150,20 @@ msgstr "改变语言"
 #: src/templates/index.html:730
 #, fuzzy
 msgid "System Operations"
-msgstr "树莓派操作"
+msgstr "系统操作"
 
 #: src/templates/index.html:733
 msgid ""
 "The System Name is the \"pretty\" hostname if set, with a fallback to the"
 " regular hostname."
-msgstr "The System Name is the "pretty" hostname if set, with a fallback to the
-"regular hostname""
+msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:734
 #, fuzzy
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
-msgstr "重要提示：务必在切断电源之前关闭树莓派，否则可能会导致数据丢失。"
+msgstr "重要提示：务必在切断电源之前关闭系统，否则可能会导致数据丢失。"
 
 #: src/templates/index.html:746
 msgid "Reset"
@@ -1173,12 +1172,12 @@ msgstr "重置"
 #: src/templates/index.html:750
 #, fuzzy
 msgid "Reboot the System?"
-msgstr "重启树莓派？"
+msgstr "重启系统？"
 
 #: src/templates/index.html:750
 #, fuzzy
 msgid "Rebooting the system..."
-msgstr "正在重启树莓派..."
+msgstr "正在重启系统..."
 
 #: src/templates/index.html:751
 msgid "Reboot System"
@@ -1187,12 +1186,12 @@ msgstr "重启系统"
 #: src/templates/index.html:753
 #, fuzzy
 msgid "Shut Down the System?"
-msgstr "关闭树莓派?"
+msgstr "关闭系统?"
 
 #: src/templates/index.html:753
 #, fuzzy
 msgid "Shutting down the system..."
-msgstr "正在关闭树莓派..."
+msgstr "正在关闭系统..."
 
 #: src/templates/index.html:754
 msgid "Shut Down System"
@@ -1336,7 +1335,7 @@ msgstr "%(app)s 手册"
 #~ msgstr "取消"
 
 #~ msgid "Ref."
-#~ msgstr "参考."
+#~ msgstr "参考："
 
 #~ msgid "Link"
 #~ msgstr "链接"
@@ -1386,7 +1385,7 @@ msgstr "%(app)s 手册"
 #~ "Emulates a SCSI DaynaPORT Ethernet "
 #~ "Adapter. <a href=\"%(url)s\">Host drivers and"
 #~ " configuration required</a>."
-#~ msgstr "模拟 SCSI DaynaPORT 以太网适配器。 <a href=\"%(url)s\">需要主机驱动程序和配置</a>。"
+#~ msgstr "模拟 SCSI DaynaPORT 以太网适配器。 <a href=\"%(url)s\">主机驱动和需要的配置见此处</a>。"
 
 #~ msgid ""
 #~ "If you have a DHCP setup, choose"
@@ -1488,7 +1487,7 @@ msgstr "%(app)s 手册"
 #~ msgstr "在 Mac OS 上，需要 <a href=\"%(url)s\">兼容的 CD-ROM 驱动程序</a>。"
 
 #~ msgid "The Generic image type is recommended for most computer platforms."
-#~ msgstr "建议大多数计算机平台使用The Generic映像类型。"
+#~ msgstr "建议大多数计算机平台使用 Generic 映像类型。"
 
 #~ msgid ""
 #~ "APPLE GENUINE (.hda) and NEC GENUINE "
@@ -1497,16 +1496,15 @@ msgstr "%(app)s 手册"
 #~ "that are recognized by Mac and "
 #~ "PC98 systems, respectively."
 #~ msgstr ""
-#~ "APPLE GENUINE (.hda) 和 NEC GENUINE "
-#~ "(.hdn) 映像类型将使 PiSCSI 表现为 Mac 和 "
-#~ "PC98 系统分别识别的特定驱动器类型。"
+#~ "APPLE GENUINE (.hda) 映像类型将使PiSCISI 呈现为Mac能够识别的驱动器类型，"
+#~ "而 NEC NEGUNE (.hdn) 映像类型将使 PiSCSI 呈现为 PC98 系统能够识别的驱动器类型。"
 
 #~ msgid ""
 #~ "SASI images should only be used on"
 #~ " the original Sharp X68000, or other"
 #~ " legacy systems that utilize this "
 #~ "pre-SCSI standard."
-#~ msgstr "SASI 映像只能用于原始的 Sharp X68000，或其他使用此 SCSI 前标准的旧系统。"
+#~ msgstr "SASI 映像只能用于原始的 Sharp X68000，或其他使用更早于此 SCSI 标准的旧系统。"
 
 #~ msgid "SCSI Hard Disk image (APPLE GENUINE) [.hda]"
 #~ msgstr "SCSI 硬盘映像 (APPLE GENUINE) [.hda]"
@@ -1515,10 +1513,10 @@ msgstr "%(app)s 手册"
 #~ msgstr "SCSI 硬盘映像 (NEC GENUINE) [.hdn]"
 
 #~ msgid "SCSI Removable Media Disk image (Generic) [.hdr]"
-#~ msgstr "SCSI 可移动媒体磁盘映像（通用）[.hdr]"
+#~ msgstr "SCSI 可移动媒体磁盘映像（Generic）[.hdr]"
 
 #~ msgid "SASI Hard Disk image (Legacy) [.hdf]"
-#~ msgstr "SASI 硬盘映像（旧版）[.hdf]"
+#~ msgstr "SASI 硬盘映像（Legacy）[.hdf]"
 
 #~ msgid "Create Named Drive"
 #~ msgstr "创建命名驱动器"
@@ -1527,7 +1525,7 @@ msgstr "%(app)s 手册"
 #~ "Create pairs of images and properties"
 #~ " files from a list of real-life"
 #~ " drives."
-#~ msgstr "从现实的驱动器列表创建图像和属性文件对。"
+#~ msgstr "从真实的驱动器列表创建图像和属性文件对。"
 
 #~ msgid ""
 #~ "This will make PiSCSI use certain "
