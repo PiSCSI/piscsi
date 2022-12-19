@@ -359,6 +359,8 @@
         {{ _("Transfer Files to the PiSCSI") }}
     </summary>
     <ul>
+        <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+        <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
         <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
     </ul>
 </details>
@@ -366,11 +368,10 @@
 <form action="/files/download_url" method="post">
     <label for="download_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
-    <label for="download_destination">{{ _("Destination:") }}</label>
-    <select name="destination" id="download_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
+    <label for="disk_images">{{ _("Disk Images") }}</label>
+    <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
+    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <input type="radio" name="destination" id="shared_files" value="shared_files">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 </section>

@@ -955,7 +955,7 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "file_server":
+    if destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
     else:
         server_info = piscsi_cmd.get_server_info()

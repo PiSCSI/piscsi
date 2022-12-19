@@ -6,16 +6,16 @@
 <ul>
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
     <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
+        <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+        <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
 </ul>
 
+<h3>{{ _("Destination") }}</h3>
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
-    <p>
-    <label for="upload_destination">{{ _("Destination:") }}</label>
-    <select name="destination" id="upload_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
-    </p>
+    <label for="disk_images">{{ _("Disk Images") }}</label>
+    <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
+    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <input type="radio" name="destination" id="shared_files" value="shared_files">
 </form>
 
 <script type="application/javascript">
