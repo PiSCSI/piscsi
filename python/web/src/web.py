@@ -311,6 +311,17 @@ def drive_list():
     )
 
 
+@APP.route("/upload", methods=["GET"])
+def upload_page():
+    """
+    Sets up the data structures and kicks off the rendering of the file uploading page
+    """
+
+    return response(
+        template="upload.html",
+    )
+
+
 @APP.route("/login", methods=["POST"])
 def login():
     """

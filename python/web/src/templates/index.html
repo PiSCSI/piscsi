@@ -453,69 +453,10 @@
 
 <hr/>
 
-<section id="upload">
-<details>
-    <summary class="heading">
-        {{ _("Upload File from Local Computer") }}
-    </summary>
-    <ul>
-        <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
-        <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling or moving away from this page.") }}</li>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
-    </ul>
-</details>
-
-<form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
-    <p>
-    <label for="upload_destination">{{ _("Target directory:") }}</label>
-    <select name="destination" id="upload_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
-    </p>
-</form>
-
-<script type="application/javascript">
-    Dropzone.options.dropper = {
-        paramName: 'file',
-        url: '/files/upload',
-        maxFilesize: {{ max_file_size }}, // max allowed file size in MiB
-        chunking: true,
-        forceChunking: true,
-        parallelChunkUploads: false,
-        chunkSize: 1048576, // 1 MiB
-        retryChunks: true,
-        retryChunksLimit: 3,
-        createImageThumbnails: false,
-        addRemoveLinks: true,
-        dictDefaultMessage: "{{ _("Drop files here to upload") }}",
-        dictFallbackMessage: "{{ _("Your browser does not support drag'n'drop file uploads.") }}",
-        dictFallbackText: "{{ _("Please use the fallback form below to upload your files like in the olden days.") }}",
-        dictFileTooBig: "{{ _("File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB.") }}",
-        dictInvalidFileType: "{{ _("You can't upload files of this type.") }}",
-        dictResponseError: "{{ _("Server responded with code: {{statusCode}}") }}",
-        dictCancelUpload:" {{ _("Click here to cancel; stay on page to continue") }}",
-        dictUploadCanceled: "{{ _("Upload canceled.") }}",
-        dictCancelUploadConfirmation: "{{ _("Are you sure you want to cancel this upload?") }}",
-        dictRemoveFile: "{{ _("Dismiss") }}",
-        dictMaxFilesExceeded: "{{ _("You can not upload any more files.") }}",
-        dictFileSizeUnits: {
-            tb: "{{ _("TiB") }}",
-            gb: "{{ _("GiB") }}",
-            mb: "{{ _("MiB") }}",
-            kb: "{{ _("KiB") }}",
-            b: "{{ _("B") }}"
-        }
-    }
-</script>
-</section>
-
-<hr/>
-
 <section id="download-url">
 <details>
     <summary class="heading">
-        {{ _("Download File from the Web") }}
+        {{ _("Transfer files to the PiSCSI") }}
     </summary>
     <ul>
         <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
@@ -532,6 +473,7 @@
     <input name="url" id="download_url" required="" type="url">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
+<p><a href="/upload" target="_blank">{{ _("Go to file uploading page (new tab)") }}</a></p>
 </section>
 
 <hr/>
