@@ -463,16 +463,19 @@
     </ul>
 </details>
 
+<p>
 <form action="/files/download_url" method="post">
-    <label for="download_destination">{{ _("Target directory:") }}</label>
+    <label for="download_url">{{ _("Download file from URL:") }}</label>
+    <input name="url" id="download_url" required="" type="url">
+    <label for="download_destination">{{ _("Destination:") }}</label>
     <select name="destination" id="download_destination">
         <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
         <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
     </select>
-    <label for="download_url">{{ _("URL:") }}</label>
-    <input name="url" id="download_url" required="" type="url">
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
+</p>
+
 <p><a href="/upload" target="_blank">{{ _("Go to file uploading page (new tab)") }}</a></p>
 </section>
 

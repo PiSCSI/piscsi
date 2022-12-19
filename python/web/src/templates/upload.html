@@ -5,13 +5,12 @@
 <section id="upload">
 <ul>
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
-    <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling or moving away from this page.") }}</li>
-    <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
+    <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
 </ul>
 
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
     <p>
-    <label for="upload_destination">{{ _("Target directory:") }}</label>
+    <label for="upload_destination">{{ _("Destination:") }}</label>
     <select name="destination" id="upload_destination">
         <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
         <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
@@ -38,7 +37,7 @@
         dictFileTooBig: "{{ _("File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB.") }}",
         dictInvalidFileType: "{{ _("You can't upload files of this type.") }}",
         dictResponseError: "{{ _("Server responded with code: {{statusCode}}") }}",
-        dictCancelUpload:" {{ _("Click here to cancel; stay on page to continue") }}",
+        dictCancelUpload:" {{ _("Cancel upload") }}",
         dictUploadCanceled: "{{ _("Upload canceled.") }}",
         dictCancelUploadConfirmation: "{{ _("Are you sure you want to cancel this upload?") }}",
         dictRemoveFile: "{{ _("Dismiss") }}",
@@ -53,6 +52,5 @@
     }
 </script>
 </section>
-<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
 
 {% endblock content %}
