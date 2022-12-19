@@ -21,7 +21,7 @@ DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 AUTH_GROUP = "piscsi"
 
 # The language locales supported by PiSCSI
-LANGUAGES = ["en", "de", "sv", "fr", "es"]
+LANGUAGES = ["en", "de", "sv", "fr", "es", "zh"]
 
 # Available themes
 TEMPLATE_THEMES = ["classic", "modern"]
