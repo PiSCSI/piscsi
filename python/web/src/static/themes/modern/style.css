@@ -777,13 +777,13 @@ section#upload {
 section#upload a {
   margin: auto;
   display: block;
-  padding: 0 0 0 2rem;
+  padding: 0.25rem 0 0.25rem 2rem;
   background: url("icons/upload-in-progress.svg") no-repeat left center;
-  font-size: medium;
+  font-weight: bold;
 }
 
 section#upload a p {
-  margin: 1;
+  margin: 0;
 }
 
 /*
@@ -837,13 +837,13 @@ section#create-drive {
 section#create-drive a {
   margin: auto;
   display: block;
-  padding: 0 0 0 2rem;
+  padding: 0.25rem 0 0.25rem 2rem;
   background: url("icons/device-other.svg") no-repeat left center;
-  font-size: medium;
+  font-weight: bold;
 }
 
 section#create-drive a p {
-  margin: 1;
+  margin: 0;
 }
 
 /*
@@ -884,9 +884,9 @@ section#manual {
 section#manual a {
   margin: auto;
   display: block;
-  padding: 0 0 0 2rem;
+  padding: 0.25rem 0 0.25rem 2rem;
   background: url("icons/manual.svg") no-repeat left center;
-  font-size: medium;
+  font-weight: bold;
 }
 
 section#manual a p {
