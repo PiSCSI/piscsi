@@ -56,7 +56,7 @@ msgstr "文件创建到：%(target_path)s"
 #: src/return_code_mapper.py:28
 #, fuzzy, python-format
 msgid "Could not create file: %(target_path)s"
-msgstr "无法创建文件：%(file_name)s"
+msgstr "无法创建文件：%(target_path)s"
 
 #: src/return_code_mapper.py:30
 #, python-format
@@ -182,7 +182,7 @@ msgstr "未指定 SCSI ID"
 #: src/web.py:644
 #, fuzzy, python-format
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-msgstr "将 %(file_name)s 加载到 SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "将 %(device_type)s 加载到 SCSI ID %(id_number)s LUN %(unit_number)s"
 
 #: src/web.py:668
 msgid "No image file to insert"
@@ -259,8 +259,8 @@ msgstr "已创建类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 并且 "
 msgid ""
 "CD-ROM image %(file_name)s with type %(iso_type)s was created but could "
 "not be attached: %(error)s"
-msgstr "类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 已创建，但无法“
-“加载：%(error)s"
+msgstr "类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 已创建，但无法"
+"加载：%(error)s"
 
 #: src/web.py:958
 #, fuzzy, python-format
