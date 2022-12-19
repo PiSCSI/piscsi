@@ -2,12 +2,11 @@
 
 {% block content %}
 <h2>{{ _("Upload File from Local Computer") }}</h2>
-<section id="upload">
 <ul>
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
     <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
-        <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
-        <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
+    <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+    <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
 </ul>
 
 <h3>{{ _("Destination") }}</h3>
@@ -51,6 +50,5 @@
         }
     }
 </script>
-</section>
 
 {% endblock content %}

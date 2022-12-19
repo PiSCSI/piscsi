@@ -142,6 +142,10 @@ select {
   flex-wrap: wrap;
 }
 
+.dropzone label {
+  padding: 1rem 1rem;
+}
+
 .dropzone p,
 .dropzone .dz-default {
   flex: 0 0 100%;
