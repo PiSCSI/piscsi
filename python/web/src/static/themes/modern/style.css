@@ -767,6 +767,27 @@ section#files p {
 
 /*
  ------------------------------------------------------------------------------
+ Index > Section: Upload
+ ------------------------------------------------------------------------------
+ */
+section#upload {
+  margin: 1rem 0 1rem;
+}
+
+section#upload a {
+  margin: auto;
+  display: block;
+  padding: 0 0 0 2rem;
+  background: url("icons/upload-in-progress.svg") no-repeat left center;
+  font-size: medium;
+}
+
+section#upload a p {
+  margin: 1;
+}
+
+/*
+ ------------------------------------------------------------------------------
  Index > Section: Attach peripheral devices
  ------------------------------------------------------------------------------
  */
@@ -802,6 +823,27 @@ section#attach-devices form {
 section#create-image > p a {
   display: block;
   margin-top: 1rem;
+}
+
+/*
+ ------------------------------------------------------------------------------
+ Index > Section: Create drive
+ ------------------------------------------------------------------------------
+ */
+section#create-drive {
+  margin: 1rem 0 1rem;
+}
+
+section#create-drive a {
+  margin: auto;
+  display: block;
+  padding: 0 0 0 2rem;
+  background: url("icons/device-other.svg") no-repeat left center;
+  font-size: medium;
+}
+
+section#create-drive a p {
+  margin: 1;
 }
 
 /*
@@ -844,7 +886,7 @@ section#manual a {
   display: block;
   padding: 0 0 0 2rem;
   background: url("icons/manual.svg") no-repeat left center;
-  font-weight: bold;
+  font-size: medium;
 }
 
 section#manual a p {

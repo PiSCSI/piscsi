@@ -353,6 +353,34 @@
 
 <hr/>
 
+<section id="download-url">
+<details>
+    <summary class="heading">
+        {{ _("Transfer Files to the PiSCSI") }}
+    </summary>
+    <ul>
+        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
+    </ul>
+</details>
+
+<form action="/files/download_url" method="post">
+    <label for="download_url">{{ _("Download file from URL:") }}</label>
+    <input name="url" id="download_url" required="" type="url">
+    <label for="download_destination">{{ _("Destination:") }}</label>
+    <select name="destination" id="download_destination">
+        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
+        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
+    </select>
+    <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
+</form>
+</section>
+
+<section id="upload">
+    <a href="/upload" target="_blank"><p>{{ _("Upload Files (new tab)") }}</p></a>
+</section>
+
+<hr/>
+
 <section id="attach-devices">
 <details>
     <summary class="heading">
@@ -449,34 +477,6 @@
     </tr>
     {% endfor %}
 </table>
-</section>
-
-<hr/>
-
-<section id="download-url">
-<details>
-    <summary class="heading">
-        {{ _("Transfer files to the PiSCSI") }}
-    </summary>
-    <ul>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
-    </ul>
-</details>
-
-<p>
-<form action="/files/download_url" method="post">
-    <label for="download_url">{{ _("Download file from URL:") }}</label>
-    <input name="url" id="download_url" required="" type="url">
-    <label for="download_destination">{{ _("Destination:") }}</label>
-    <select name="destination" id="download_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
-    <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
-</form>
-</p>
-
-<p><a href="/upload" target="_blank">{{ _("Go to file uploading page (new tab)") }}</a></p>
 </section>
 
 <hr/>
@@ -586,8 +586,10 @@
     </select>
     <input type="submit" value="{{ _("Create") }}">
 </form>
+</section>
 
-<p><a href="/drive/list">{{ _("Create a named disk image that mimics real-life drives") }}</a></p>
+<section id="create-drive">
+    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
 </section>
 
 <hr/>
