@@ -635,28 +635,46 @@ class FileCmds:
                         )
                         tmp_full_path.unlink(True)
 
-            try:
-                run(
-                    [
-                        "genisoimage",
-                        *iso_args,
-                        "-o",
-                        str(iso_filename),
-                        tmp_dir,
-                    ],
-                    capture_output=True,
-                    check=True,
-                )
-            except CalledProcessError as error:
-                logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-                return {"status": False, "msg": error.stderr.decode("utf-8")}
+            process = self.generate_iso(iso_filename, tmp_dir, *iso_args)
 
-            parameters = {"value": " ".join(iso_args)}
+            if not process["status"]:
+                return {"status": False, "msg": process["msg"]}
+
             return {
                 "status": True,
+                "return_code": process["return_code"],
+                "parameters": process["parameters"],
+                "file_name": process["file_name"],
+            }
+
+    def generate_iso(self, iso_file, target_path, *iso_args):
+        """
+        Takes
+        - (Path) iso_file - the path to the file to create
+        - (str) target_path - the path to the file or dir to generate the iso from
+        - (*str) iso_args - the tuple of arguments to pass to genisoimage
+        """
+        try:
+            run(
+                [
+                    "genisoimage",
+                    *iso_args,
+                    "-o",
+                    str(iso_file),
+                    target_path,
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {
+                "status": True,
                 "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
-                "parameters": parameters,
-                "file_name": iso_filename.name,
+                "parameters": {"value": " ".join(iso_args)},
+                "file_name": iso_file.name,
             }
 
     # noinspection PyMethodMayBeStatic

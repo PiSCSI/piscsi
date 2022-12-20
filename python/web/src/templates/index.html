@@ -494,8 +494,9 @@
     </ul>
 </details>
 
+<div>
 <form action="/files/download_to_iso" method="post">
-    <label for="iso_url">{{ _("Download file from URL:") }}</label>
+    <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_type">{{ _("Type:") }}</label>
     <select name="type" id="iso_type">
@@ -528,6 +529,47 @@
     </select>
     <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
 </form>
+</div>
+<div>
+<form action="/files/download_to_iso" method="post">
+    <label for="iso_file">{{ _("Create ISO from local file:") }}</label>
+    <select name="file" id="iso_file">
+        {% for f in files|sort(attribute='name') %}
+            <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+        {% endfor %}
+    </select>
+    <label for="iso_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_type">
+        <option value="HFS">
+            HFS
+        </option>
+        <option value="ISO-9660 Level 1">
+            ISO-9660 Level 1
+        </option>
+        <option value="ISO-9660 Level 2">
+            ISO-9660 Level 2
+        </option>
+        <option value="ISO-9660 Level 3">
+            ISO-9660 Level 3
+        </option>
+        <option value="Joliet">
+            Joliet
+        </option>
+        <option value="Rock Ridge">
+            Rock Ridge
+        </option>
+    </select>
+    <label for="iso_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_scsi_id">
+        {% for id in scsi_ids["valid_ids"] %}
+        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
+            {{ id }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Create and Mount CD-ROM image") }}">
+</form>
+</div>
 </section>
 
 <hr/>

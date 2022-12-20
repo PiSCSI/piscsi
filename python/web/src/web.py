@@ -888,6 +888,7 @@ def download_to_iso():
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     iso_type = request.form.get("type")
+    local_file = request.form.get("file")
 
     if iso_type == "HFS":
         iso_args = ["-hfs"]
@@ -907,16 +908,28 @@ def download_to_iso():
             message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type),
         )
 
-    process = file_cmd.download_file_to_iso(url, *iso_args)
-    process = ReturnCodeMapper.add_msg(process)
-    if not process["status"]:
-        return response(
-            error=True,
-            message=_(
-                "The following error occurred when creating the CD-ROM image: %(error)s",
-                error=process["msg"],
-            ),
-        )
+    if url:
+        process = file_cmd.download_file_to_iso(url, *iso_args)
+        process = ReturnCodeMapper.add_msg(process)
+        if not process["status"]:
+            return response(
+                error=True,
+                message=_(
+                    "The following error occurred when creating the CD-ROM image: %(error)s",
+                    error=process["msg"],
+                ),
+            )
+    elif local_file:
+        process = file_cmd.generate_iso(local_file + ".iso", local_file, *iso_args)
+        process = ReturnCodeMapper.add_msg(process)
+        if not process["status"]:
+            return response(
+                error=True,
+                message=_(
+                    "The following error occurred when creating the CD-ROM image: %(error)s",
+                    error=process["msg"],
+                ),
+            )
 
     process_attach = piscsi_cmd.attach_device(
         scsi_id,
