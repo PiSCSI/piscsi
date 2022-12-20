@@ -330,7 +330,6 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
 
 # route("/files/create_iso", methods=["POST"])
 def test_download_url_to_iso(
-    env,
     httpserver,
     http_client,
     list_files,
