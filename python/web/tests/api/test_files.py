@@ -382,12 +382,13 @@ def test_download_url_to_iso(
 # route("/files/create_iso", methods=["POST"])
 def test_local_file_to_iso(
     http_client,
+    create_test_image,
     list_files,
     list_attached_images,
     detach_devices,
     delete_file,
 ):
-    test_file_name = str(uuid.uuid4())
+    test_file_name = create_test_image()
     iso_file_name = f"{test_file_name}.iso"
 
     ISO_TYPE = "HFS"
