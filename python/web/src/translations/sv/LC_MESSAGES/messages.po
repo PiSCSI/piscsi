@@ -1170,7 +1170,7 @@ msgid ""
 "cancelling the upload or closing this page."
 msgstr ""
 "Du bör städa upp ofullständiga filer själv efter att ha avbrytit "
-"ellerstängt ner den här sidan."
+"eller stängt ner den här sidan."
 
 #: src/templates/upload.html:12
 msgid "Destination"
