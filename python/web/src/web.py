@@ -276,7 +276,6 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
-        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
@@ -308,6 +307,19 @@ def drive_list():
         template="drives.html",
         files=file_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+    )
+
+
+@APP.route("/upload", methods=["GET"])
+def upload_page():
+    """
+    Sets up the data structures and kicks off the rendering of the file uploading page
+    """
+
+    return response(
+        template="upload.html",
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        FILE_SERVER_DIR=FILE_SERVER_DIR,
     )
 
 
@@ -943,7 +955,7 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "file_server":
+    if destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
     else:
         server_info = piscsi_cmd.get_server_info()

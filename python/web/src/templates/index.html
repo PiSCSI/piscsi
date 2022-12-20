@@ -353,6 +353,35 @@
 
 <hr/>
 
+<section id="download-url">
+<details>
+    <summary class="heading">
+        {{ _("Transfer Files to the PiSCSI") }}
+    </summary>
+    <ul>
+        <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+        <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
+        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
+    </ul>
+</details>
+
+<form action="/files/download_url" method="post">
+    <label for="download_url">{{ _("Download file from URL:") }}</label>
+    <input name="url" id="download_url" required="" type="url">
+    <label for="disk_images">{{ _("Disk Images") }}</label>
+    <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
+    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <input type="radio" name="destination" id="shared_files" value="shared_files">
+    <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
+</form>
+</section>
+
+<section id="upload">
+    <a href="/upload" target="_blank"><p>{{ _("Upload Files (new tab)") }}</p></a>
+</section>
+
+<hr/>
+
 <section id="attach-devices">
 <details>
     <summary class="heading">
@@ -453,84 +482,6 @@
 
 <hr/>
 
-<section id="upload">
-<details>
-    <summary class="heading">
-        {{ _("Upload File from Local Computer") }}
-    </summary>
-    <ul>
-        <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
-        <li>{{ _("File uploads will progress only if you stay on this page. If you navigate away before the transfer is completed, you will end up with an incomplete file.") }}</li>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
-    </ul>
-</details>
-
-<form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
-    <p>
-    <label for="upload_destination">{{ _("Target directory:") }}</label>
-    <select name="destination" id="upload_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
-    </p>
-</form>
-
-<script type="application/javascript">
-    Dropzone.options.dropper = {
-        paramName: 'file',
-        chunking: true,
-        forceChunking: true,
-        url: '/files/upload',
-        maxFilesize: {{ max_file_size }}, // MiB
-        chunkSize: 1000000, // bytes
-        dictDefaultMessage: "{{ _("Drop files here to upload") }}",
-        dictFallbackMessage: "{{ _("Your browser does not support drag'n'drop file uploads.") }}",
-        dictFallbackText: "{{ _("Please use the fallback form below to upload your files like in the olden days.") }}",
-        dictFileTooBig: "{{ _("File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB.") }}",
-        dictInvalidFileType: "{{ _("You can't upload files of this type.") }}",
-        dictResponseError: "{{ _("Server responded with code: {{statusCode}}") }}",
-        dictCancelUpload:" {{ _("Cancel upload") }}",
-        dictUploadCanceled: "{{ _("Upload canceled.") }}",
-        dictCancelUploadConfirmation: "{{ _("Are you sure you want to cancel this upload?") }}",
-        dictRemoveFile: "{{ _("Remove file") }}",
-        dictMaxFilesExceeded: "{{ _("You can not upload any more files.") }}",
-        dictFileSizeUnits: {
-            tb: "{{ _("TiB") }}",
-            gb: "{{ _("GiB") }}",
-            mb: "{{ _("MiB") }}",
-            kb: "{{ _("KiB") }}",
-            b: "{{ _("B") }}"
-        }
-    }
-</script>
-</section>
-
-<hr/>
-
-<section id="download-url">
-<details>
-    <summary class="heading">
-        {{ _("Download File from the Web") }}
-    </summary>
-    <ul>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
-    </ul>
-</details>
-
-<form action="/files/download_url" method="post">
-    <label for="download_destination">{{ _("Target directory:") }}</label>
-    <select name="destination" id="download_destination">
-        <option value="images">{{ _("Disk Images") }} - {{ env["image_dir"] }}</option>
-        <option value="file_server">{{ _("File Server") }} - {{ FILE_SERVER_DIR }}</option>
-    </select>
-    <label for="download_url">{{ _("URL:") }}</label>
-    <input name="url" id="download_url" required="" type="url">
-    <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
-</form>
-</section>
-
-<hr/>
-
 <section id="download-to-iso">
 <details>
     <summary class="heading">
@@ -544,7 +495,7 @@
 </details>
 
 <form action="/files/download_to_iso" method="post">
-    <label for="iso_url">{{ _("URL:") }}</label>
+    <label for="iso_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_type">{{ _("Type:") }}</label>
     <select name="type" id="iso_type">
@@ -636,8 +587,10 @@
     </select>
     <input type="submit" value="{{ _("Create") }}">
 </form>
+</section>
 
-<p><a href="/drive/list">{{ _("Create a named disk image that mimics real-life drives") }}</a></p>
+<section id="create-drive">
+    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
 </section>
 
 <hr/>
