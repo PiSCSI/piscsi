@@ -329,7 +329,7 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
 
 
 # route("/files/create_iso", methods=["POST"])
-def test_download_url_to_iso(
+def test_create_iso_from_url(
     httpserver,
     http_client,
     list_files,
@@ -380,7 +380,7 @@ def test_download_url_to_iso(
 
 
 # route("/files/create_iso", methods=["POST"])
-def test_local_file_to_iso(
+def test_create_iso_from_local_file(
     http_client,
     create_test_image,
     list_files,
