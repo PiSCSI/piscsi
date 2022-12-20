@@ -671,11 +671,11 @@ class FileCmds:
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
         return {
-                "status": True,
-                "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
-                "parameters": {"value": " ".join(iso_args)},
-                "file_name": iso_file.name,
-            }
+            "status": True,
+            "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
+            "parameters": {"value": " ".join(iso_args)},
+            "file_name": iso_file.name,
+        }
 
     # noinspection PyMethodMayBeStatic
     def download_to_dir(self, url, save_dir, file_name):
