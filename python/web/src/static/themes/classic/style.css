@@ -110,6 +110,7 @@ ul.inline_list {
 
 .dropzone {
   position: relative;
+  word-break: break-all;
 }
 
 .dropzone .dz-button {
@@ -123,7 +124,7 @@ ul.inline_list {
 .dropzone .dz-preview {
   position: relative;
   display: inline-block;
-  width: 120px;
+  width: 180px;
   margin: .5em;
 }
 
@@ -147,17 +148,6 @@ ul.inline_list {
 
 .dropzone .dz-preview.dz-error .dz-error-message {
   display: block;
-}
-
-.dropzone .dz-preview.dz-error .dz-error-mark {
-  display: block;
-  filter: drop-shadow(0px 0px 2px red);
-  opacity: 0;
-}
-
-.dropzone .dz-preview.dz-success .dz-success-mark {
-  display: block;
-  filter: drop-shadow(0px 0px 2px green);
 }
 
 .dropzone .dz-preview .dz-error-mark, .dropzone .dz-preview .dz-success-mark {
