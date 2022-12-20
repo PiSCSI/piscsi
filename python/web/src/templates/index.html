@@ -394,7 +394,7 @@
 </details>
 
 <div>
-<form action="/files/create_iso" method="post">
+<form action="/files/create_iso" method="post" class="iso-attach">
     <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_url_type">{{ _("Type:") }}</label>
@@ -430,7 +430,7 @@
 </form>
 </div>
 <div>
-<form action="/files/create_iso" method="post">
+<form action="/files/create_iso" method="post" class="iso-attach">
     <label for="iso_file">{{ _("Create ISO from local file:") }}</label>
     <select name="file" id="iso_file">
         {% for f in files|sort(attribute='name') %}
