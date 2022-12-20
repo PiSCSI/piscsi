@@ -397,8 +397,8 @@
 <form action="/files/create_iso" method="post">
     <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
-    <label for="iso_type">{{ _("Type:") }}</label>
-    <select name="type" id="iso_type">
+    <label for="iso_url_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_url_type">
         <option value="HFS">
             HFS
         </option>
@@ -418,8 +418,8 @@
             Rock Ridge
         </option>
     </select>
-    <label for="iso_scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="iso_scsi_id">
+    <label for="iso_url_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_url_scsi_id">
         {% for id in scsi_ids["valid_ids"] %}
         <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
             {{ id }}
@@ -437,8 +437,8 @@
             <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
         {% endfor %}
     </select>
-    <label for="iso_type">{{ _("Type:") }}</label>
-    <select name="type" id="iso_type">
+    <label for="iso_file_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_file_type">
         <option value="HFS">
             HFS
         </option>
@@ -458,8 +458,8 @@
             Rock Ridge
         </option>
     </select>
-    <label for="iso_scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="iso_scsi_id">
+    <label for="iso_file_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_file_scsi_id">
         {% for id in scsi_ids["valid_ids"] %}
         <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
             {{ id }}

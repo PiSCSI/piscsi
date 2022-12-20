@@ -382,8 +382,6 @@ def test_download_url_to_iso(
 
 # route("/files/create_iso", methods=["POST"])
 def test_local_file_to_iso(
-    env,
-    httpserver,
     http_client,
     list_files,
     list_attached_images,
