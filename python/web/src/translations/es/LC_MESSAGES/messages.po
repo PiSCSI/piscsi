@@ -1249,27 +1249,3 @@ msgstr "KiB"
 msgid "B"
 msgstr "B"
 
-#~ msgid ""
-#~ "File uploads will progress only if you stay on this page. If you navigate "
-#~ "away before the transfer is completed, you will end up with an incomplete "
-#~ "file."
-#~ msgstr ""
-#~ "La carga de archivos sólo avanzará si permanece en esta página. Si se cambia "
-#~ "antes de que se complete la transferencia, terminará con un archivo "
-#~ "incompleto."
-
-#~ msgid "Target directory:"
-#~ msgstr "Directorio de destino:"
-
-#~ msgid "File Server"
-#~ msgstr "Servidor de archivos"
-
-#~ msgid "Remove file"
-#~ msgstr "Eliminar el archivo"
-
-#~ msgid "URL:"
-#~ msgstr "URL:"
-
-#~ msgid "Create a named disk image that mimics real-life drives"
-#~ msgstr ""
-#~ "Crear una imagen de disco con nombre que imite las unidades de la vida real"
