@@ -485,10 +485,9 @@
 <section id="download-to-iso">
 <details>
     <summary class="heading">
-        {{ _("Download File and Create CD-ROM Image") }}
+        {{ _("Create CD-ROM Image With File") }}
     </summary>
     <ul>
-        <li>{{ _("Create an ISO file system CD-ROM image with the downloaded file, and mount it on the given SCSI ID.") }}</li>
         <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
         <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
     </ul>
@@ -527,7 +526,7 @@
         </option>
         {% endfor %}
     </select>
-    <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
+    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Downloading file and generating CD-ROM image...") }}')">
 </form>
 </div>
 <div>
@@ -567,7 +566,7 @@
         </option>
         {% endfor %}
     </select>
-    <input type="submit" value="{{ _("Create and Mount CD-ROM image") }}">
+    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Generating CD-ROM image...") }}')">
 </form>
 </div>
 </section>

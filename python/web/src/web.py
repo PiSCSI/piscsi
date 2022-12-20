@@ -920,7 +920,10 @@ def download_to_iso():
                 ),
             )
     elif local_file:
-        process = file_cmd.generate_iso(local_file + ".iso", local_file, *iso_args)
+        server_info = piscsi_cmd.get_server_info()
+        file_path = Path(server_info["image_dir"]) / local_file
+        iso_path = Path(str(file_path) + ".iso")
+        process = file_cmd.generate_iso(iso_path, file_path, *iso_args)
         process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
             return response(

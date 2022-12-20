@@ -635,7 +635,7 @@ class FileCmds:
                         )
                         tmp_full_path.unlink(True)
 
-            process = self.generate_iso(iso_filename, tmp_dir, *iso_args)
+            process = self.generate_iso(iso_filename, Path(tmp_dir), *iso_args)
 
             if not process["status"]:
                 return {"status": False, "msg": process["msg"]}
@@ -651,7 +651,7 @@ class FileCmds:
         """
         Takes
         - (Path) iso_file - the path to the file to create
-        - (str) target_path - the path to the file or dir to generate the iso from
+        - (Path) target_path - the path to the file or dir to generate the iso from
         - (*str) iso_args - the tuple of arguments to pass to genisoimage
         """
         try:
@@ -661,7 +661,7 @@ class FileCmds:
                     *iso_args,
                     "-o",
                     str(iso_file),
-                    target_path,
+                    str(target_path),
                 ],
                 capture_output=True,
                 check=True,
