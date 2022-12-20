@@ -382,7 +382,7 @@
 
 <hr/>
 
-<section id="download-to-iso">
+<section id="create-iso">
 <details>
     <summary class="heading">
         {{ _("Create CD-ROM Image With File") }}
@@ -394,7 +394,7 @@
 </details>
 
 <div>
-<form action="/files/download_to_iso" method="post">
+<form action="/files/create_iso" method="post">
     <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_type">{{ _("Type:") }}</label>
