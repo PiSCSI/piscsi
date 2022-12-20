@@ -530,7 +530,7 @@
 </form>
 </div>
 <div>
-<form action="/files/download_to_iso" method="post">
+<form action="/files/create_iso" method="post">
     <label for="iso_file">{{ _("Create ISO from local file:") }}</label>
     <select name="file" id="iso_file">
         {% for f in files|sort(attribute='name') %}

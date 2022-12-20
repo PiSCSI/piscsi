@@ -879,7 +879,7 @@ def shutdown():
     return response(error=True, message=message)
 
 
-@APP.route("/files/download_to_iso", methods=["POST"])
+@APP.route("/files/create_iso", methods=["POST"])
 @login_required
 def download_to_iso():
     """
