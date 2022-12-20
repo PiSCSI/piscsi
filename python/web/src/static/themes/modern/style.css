@@ -140,9 +140,6 @@ select {
 .dropzone {
   display: flex;
   flex-wrap: wrap;
-}
-
-.dropzone form {
   align-items: center;
 }
 
