@@ -910,29 +910,21 @@ def download_to_iso():
 
     if url:
         process = file_cmd.download_file_to_iso(url, *iso_args)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(
-                error=True,
-                message=_(
-                    "The following error occurred when creating the CD-ROM image: %(error)s",
-                    error=process["msg"],
-                ),
-            )
     elif local_file:
         server_info = piscsi_cmd.get_server_info()
         file_path = Path(server_info["image_dir"]) / local_file
         iso_path = Path(str(file_path) + ".iso")
         process = file_cmd.generate_iso(iso_path, file_path, *iso_args)
-        process = ReturnCodeMapper.add_msg(process)
-        if not process["status"]:
-            return response(
-                error=True,
-                message=_(
-                    "The following error occurred when creating the CD-ROM image: %(error)s",
-                    error=process["msg"],
-                ),
-            )
+
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(
+            error=True,
+            message=_(
+                "The following error occurred when creating the CD-ROM image: %(error)s",
+                error=process["msg"],
+            ),
+        )
 
     process_attach = piscsi_cmd.attach_device(
         scsi_id,
