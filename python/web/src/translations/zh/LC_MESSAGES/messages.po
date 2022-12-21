@@ -49,12 +49,12 @@ msgid "%(file_name)s downloaded to %(save_dir)s"
 msgstr "%(file_name)s 下载到 %(save_dir)s"
 
 #: src/return_code_mapper.py:26
-#, fuzzy, python-format
+#, python-format
 msgid "File created: %(target_path)s"
-msgstr "文件创建到：%(target_path)s"
+msgstr "文件已创建到：%(target_path)s"
 
 #: src/return_code_mapper.py:28
-#, fuzzy, python-format
+#, python-format
 msgid "Could not create file: %(target_path)s"
 msgstr "无法创建文件：%(target_path)s"
 
@@ -136,24 +136,24 @@ msgid ""
 msgstr "PiSCSI 受密码保护。 请使用 --password 参数启动 Web 界面。"
 
 #: src/web.py:342
-#, fuzzy, python-format
+#, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
-msgstr "您必须使用 '%(group)s' 组中用户的凭据登录。"
+msgstr "您必须使用 '%(group)s' 组中用户的有效身份凭证登录。"
 
 #: src/web.py:395 src/web.py:439
-#, fuzzy, python-format
+#,python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "驱动器 %(drive_name)s 中没有属性数据。"
 
 #: src/web.py:416
-#, fuzzy, python-format
+#, python-format
 msgid "Image file with properties created: %(file_name)s"
-msgstr "创建映像文件：%(file_name)s"
+msgstr "已创建含属性的映像文件：%(file_name)s"
 
 #: src/web.py:514
-#, fuzzy, python-format
+#,  python-format
 msgid "An error occurred when getting disk info: %(error)s"
-msgstr "获取磁盘信息时出错。"
+msgstr "获取磁盘信息时产生错误：%(error)s。"
 
 #: src/web.py:528
 #, python-format
@@ -161,14 +161,14 @@ msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s不是可识别的 PiSCSI 应用程序"
 
 #: src/web.py:561
-#, fuzzy, python-format
+#,  python-format
 msgid "An error occurred when accessing man page: %(error)s"
-msgstr "获取帮助页面时出错。"
+msgstr "获取帮助页面时产生错误：%(error)s。"
 
 #: src/web.py:584
-#, fuzzy, python-format
+#, python-format
 msgid "An error occurred when fetching logs: %(error)s"
-msgstr "获取日志时出错。"
+msgstr "获取日志时产生错误：%(error)s。"
 
 #: src/web.py:598
 #, python-format
@@ -180,20 +180,20 @@ msgid "No SCSI ID specified"
 msgstr "未指定 SCSI ID"
 
 #: src/web.py:656
-#, fuzzy, python-format
+#, python-format
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-msgstr "将 %(device_type)s 加载到 SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "已将 %(device_type)s 加载到 SCSI ID %(id_number)s 的LUN %(unit_number)s"
 
 #: src/web.py:680
 msgid "No image file to insert"
 msgstr "没有要插入的图像文件"
 
 #: src/web.py:720
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
-msgstr "将 %(file_name)s 加载到 SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "已将 %(file_name)s 加载到 SCSI ID %(id_number)s的 LUN %(unit_number)s"
 
 #: src/web.py:737
 msgid "Detached all SCSI devices"
@@ -261,9 +261,9 @@ msgid ""
 msgstr "类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 已创建，但无法加载：%(error)s"
 
 #: src/web.py:970
-#, fuzzy, python-format
+#, python-format
 msgid "The following error occurred when downloading: %(error)s"
-msgstr "下载时出错：%(error)s"
+msgstr "下载时产生以下错误：%(error)s"
 
 #: src/web.py:1033 src/web.py:1046
 #, python-format
@@ -271,19 +271,19 @@ msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s 不是有效的硬盘格式。"
 
 #: src/web.py:1091
-#, fuzzy, python-format
+#, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
-msgstr "创建带属性的映像文件：%(file_name)s"
+msgstr "已创建带属性的映像文件：%(file_name)s%(drive_format)s"
 
 #: src/web.py:1101
-#, fuzzy, python-format
+#, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
-msgstr "创建映像文件：%(file_name)s"
+msgstr "已创建映像文件：%(file_name)s%(drive_format)s"
 
 #: src/web.py:1147
-#, fuzzy, python-format
+#, python-format
 msgid "Image file with properties deleted: %(file_name)s"
-msgstr "带属性的映像文件已删除：%(file_name)s"
+msgstr "已删除带属性的映像文件：%(file_name)s"
 
 #: src/web.py:1156
 #, python-format
@@ -291,9 +291,9 @@ msgid "Image file deleted: %(file_name)s"
 msgstr "映像文件已删除：%(file_name)s"
 
 #: src/web.py:1189
-#, fuzzy, python-format
+#, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
-msgstr "带属性的映像文件重命名为：%(file_name)s"
+msgstr "带属性的映像文件已重命名为：%(file_name)s"
 
 #: src/web.py:1198
 #, python-format
@@ -301,14 +301,14 @@ msgid "Image file renamed to: %(file_name)s"
 msgstr "映像文件重命名为：%(file_name)s"
 
 #: src/web.py:1231
-#, fuzzy, python-format
+#,  python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
-msgstr "带属性的映像文件的拷贝已保存为：%(file_name)s"
+msgstr "已保存带属性映像文件的拷贝：%(file_name)s"
 
 #: src/web.py:1240
-#, fuzzy, python-format
+#,  python-format
 msgid "Copy of image file saved as: %(file_name)s"
-msgstr "映像文件的拷贝已保存为：%(file_name)s"
+msgstr "已保存映像文件的拷贝：%(file_name)s"
 
 #: src/web.py:1293
 #, python-format
@@ -325,14 +325,14 @@ msgid "Theme changed to '%(theme)s'."
 msgstr "主题更改为 '%(theme)s'."
 
 #: src/web_utils.py:98
-#, fuzzy
+#, 
 msgid "Hard Disk Drive"
 msgstr "硬盘"
 
 #: src/web_utils.py:100
-#, fuzzy
+#, 
 msgid "Removable Disk Drive"
-msgstr "可移动驱动器"
+msgstr "可移动磁盘"
 
 #: src/web_utils.py:102
 msgid "Magneto-Optical Drive"
@@ -347,7 +347,7 @@ msgid "Host Bridge"
 msgstr "主机桥"
 
 #: src/web_utils.py:108
-#, fuzzy
+#,  
 msgid "Ethernet Adapter"
 msgstr "以太网适配器"
 
@@ -360,16 +360,16 @@ msgid "Host Services"
 msgstr "主机服务"
 
 #: src/web_utils.py:135
-#, fuzzy
+#, 
 msgid "Hard Disk Image (Generic)"
-msgstr "SCSI 硬盘映像（通用）[.hds]"
+msgstr "硬盘映像（通用）"
 
 #: src/web_utils.py:137
 msgid "Hard Disk Image (Apple)"
 msgstr "硬盘映像（Apple)"
 
 #: src/web_utils.py:139
-#, fuzzy
+#,  
 msgid "Hard Disk Image (NEC)"
 msgstr "硬盘映像（NEC）"
 
@@ -378,9 +378,9 @@ msgid "Hard Disk Image (SCSI-1)"
 msgstr "硬盘映像 (SCSI-1)"
 
 #: src/web_utils.py:143
-#, fuzzy
+#, 
 msgid "Removable Disk Image"
-msgstr "可移动驱动器"
+msgstr "可移动磁盘映像"
 
 #: src/web_utils.py:145
 msgid "Magneto-Optical Disk Image"
@@ -391,7 +391,7 @@ msgid "You must log in to use this function"
 msgstr "您必须登录才能使用此功能"
 
 #: src/web_utils.py:233
-#, fuzzy, python-format
+#, python-format
 msgid "Configure the network bridge for %(interface)s first: "
 msgstr "请首先为界面 %(interface)s 配置网桥。"
 
@@ -442,17 +442,17 @@ msgid "Log Out"
 msgstr "注销"
 
 #: src/templates/base.html:54
-#, fuzzy
+#,  
 msgid "Log in to use Web Interface"
-msgstr "登录以使用 Web 界面"
+msgstr "请登录后再使用 Web 界面"
 
 #: src/templates/base.html:56
-#, fuzzy
+#,  
 msgid "Username:"
 msgstr "用户名"
 
 #: src/templates/base.html:60
-#, fuzzy
+#,  
 msgid "Password:"
 msgstr "密码"
 
@@ -461,9 +461,9 @@ msgid "Web Interface Authentication Disabled"
 msgstr "Web 界面身份验证已禁用"
 
 #: src/templates/base.html:71
-#, fuzzy, python-format
+#,python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
-msgstr "查看<a href=\"%(url)s\" target=\"_blank\">wiki</a>了解更多信息"
+msgstr "查看<a href=\"%(url)s\" target=\"_blank\">Wiki</a>以了解更多信息"
 
 #: src/templates/base.html:78
 msgid "PiSCSI"
@@ -474,7 +474,7 @@ msgid "Control Page"
 msgstr "控制页面"
 
 #: src/templates/base.html:85 src/templates/index.html:693
-#, fuzzy
+#, 
 msgid "System Name:"
 msgstr "系统名"
 
@@ -493,7 +493,7 @@ msgid "%(value)d active AFP connection"
 msgstr "%(value)d 个活动的 AFP 连接"
 
 #: src/templates/base.html:125
-#, fuzzy, python-format
+#, python-format
 msgid "%(value)d active AFP connections"
 msgstr "%(value)d 个活动的 AFP 连接"
 
@@ -503,7 +503,7 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy 正在 %(ip_addr)s（默认端口 5000）上运行"
 
 #: src/templates/base.html:134
-#, fuzzy
+#,  
 msgid "PiSCSI version:"
 msgstr "PiSCSI 版本："
 
@@ -571,9 +571,9 @@ msgid "Go to Home"
 msgstr "回到主页"
 
 #: src/templates/diskinfo.html:4
-#, fuzzy, python-format
+#, python-format
 msgid "Disk Image Details: %(file_name)s"
-msgstr "映像文件：%(file_name)s"
+msgstr "映像文件详情：%(file_name)s"
 
 #: src/templates/drives.html:4
 msgid "Disclaimer"
@@ -593,7 +593,7 @@ msgstr ""
 "如果您想看到已修改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提问。 "
 
 #: src/templates/drives.html:6
-#, fuzzy
+#, 
 msgid "Hard Disk Drives"
 msgstr "硬盘驱动器"
 
@@ -603,7 +603,7 @@ msgid "Name"
 msgstr "名称"
 
 #: src/templates/drives.html:12 src/templates/drives.html:87
-#, fuzzy
+#,
 msgid "Size (MiB)"
 msgstr "大小 (MB)"
 
@@ -631,23 +631,23 @@ msgid "CD/DVD Drives"
 msgstr "CD/DVD 驱动器"
 
 #: src/templates/drives.html:43
-#, fuzzy
+#,
 msgid ""
 "This will create a properties file for the given CD-ROM or DVD image. No "
 "new image file will be created."
-msgstr "这将为给定的CD-ROM映像创建一个属性文件，不会创建新的映像文件。"
+msgstr "这将为给定的CD-ROM或DVD映像创建一个属性文件，不会创建新的映像文件。"
 
 #: src/templates/drives.html:64
 msgid "Create for:"
 msgstr "创建对象："
 
 #: src/templates/drives.html:82
-#, fuzzy
+#, 
 msgid "Removable Disk Drives"
-msgstr "可移动驱动器"
+msgstr "可移动磁盘"
 
 #: src/templates/drives.html:114
-#, fuzzy, python-format
+#, python-format
 msgid "%(disk_space)s MiB disk space remaining on the Pi"
 msgstr "在 Pi 上剩余%(disk_space)s MB 磁盘空间"
 
@@ -711,7 +711,7 @@ msgid "Actions"
 msgstr "操作"
 
 #: src/templates/index.html:78
-#, fuzzy
+#,  
 msgid "File name"
 msgstr "文件名"
 
@@ -749,7 +749,7 @@ msgid "Reserved ID"
 msgstr "预订 ID"
 
 #: src/templates/index.html:156
-#, fuzzy
+#,  
 msgid "Release"
 msgstr "释放"
 
@@ -777,11 +777,11 @@ msgid ""
 msgstr "管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 %(scan_depth)s。"
 
 #: src/templates/index.html:184
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
 "to attach to. Unless you know what you're doing, always use LUN 0."
-msgstr "选择一个有效的 SCSI ID 和要加载到的 <a href=\"%(url)s\">LUN</a>。如果不确定，则请使用 LUN 0。"
+msgstr "选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使用 LUN 0。"
 
 #: src/templates/index.html:187
 msgid "Recognized image file types:"
@@ -805,12 +805,12 @@ msgstr "属性文件"
 
 #: src/templates/index.html:249 src/templates/index.html:261
 #: src/templates/index.html:288
-#, fuzzy
+#,  
 msgid "Extract"
 msgstr "解压"
 
 #: src/templates/index.html:249 src/templates/index.html:261
-#, fuzzy
+#,  
 msgid "Extracting a single file..."
 msgstr "解压单个文件..."
 
@@ -824,7 +824,7 @@ msgid "In use"
 msgstr "正在使用"
 
 #: src/templates/index.html:288
-#, fuzzy
+#,  
 msgid "Extracting all files..."
 msgstr "正在解压所有文件..."
 
@@ -842,14 +842,14 @@ msgid "Rename"
 msgstr "重命名"
 
 #: src/templates/index.html:330
-#, fuzzy, python-format
+#,  python-format
 msgid "Save copy of %(file_name)s as:"
-msgstr "将文件 %(file_name)s 副本保存为："
+msgstr "将文件 %(file_name)s 的副本保存为："
 
 #: src/templates/index.html:333
-#, fuzzy
+#,  
 msgid "Copy"
-msgstr "拷贝"
+msgstr "复制"
 
 #: src/templates/index.html:335
 #, python-format
@@ -865,7 +865,7 @@ msgid "Info"
 msgstr "信息"
 
 #: src/templates/index.html:351
-#, fuzzy, python-format
+#,  python-format
 msgid "%(disk_space)s MiB disk space remaining on the system"
 msgstr "系统剩余磁盘空间为%(disk_space)s MB "
 
@@ -890,16 +890,16 @@ msgid ""
 msgstr "要远程访问共享文件，您必须首先安装一个文件服务器。"
 
 #: src/templates/index.html:369 src/templates/index.html:498
-#, fuzzy
+#,  
 msgid "Download file from URL:"
-msgstr "无法从 %(url)s 下载文件"
+msgstr "从 %(url)s 下载文件"
 
 #: src/templates/index.html:375
 msgid "Download"
 msgstr "下载"
 
 #: src/templates/index.html:375
-#, fuzzy
+#,  
 msgid "Downloading File..."
 msgstr "正在下载文件..."
 
@@ -912,14 +912,14 @@ msgid "Attach Peripheral Device"
 msgstr "连接外围设备"
 
 #: src/templates/index.html:393
-#, fuzzy
+#,  
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:395
-#, fuzzy
+#,  
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
@@ -933,11 +933,11 @@ msgid ""
 msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
 
 #: src/templates/index.html:399
-#, fuzzy, python-format
+# , python-format
 msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
 "types</a> on the wiki."
-msgstr "请查看<a href=\"%(url)\" target=\"_blank\">wiki</a>了解更多信息。"
+msgstr "请查看wiki页面<a href=\"%(url)\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
 
 #: src/templates/index.html:406
 msgid "Key"
@@ -957,7 +957,7 @@ msgid "None"
 msgstr "空"
 
 #: src/templates/index.html:488
-#, fuzzy
+#,  
 msgid "Download File and Create CD-ROM Image"
 msgstr "下载文件并创建 CD-ROM 映像"
 
@@ -994,11 +994,11 @@ msgid "Create Empty Disk Image File"
 msgstr "创建空磁盘映像文件"
 
 #: src/templates/index.html:541
-#, fuzzy, python-format
+# , python-format
 msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
 "documentation</a> to learn more about the supported image file types."
-msgstr "请查看<a href=\"%(url)s\" target=\"_blank\">wiki</a>了解更多支持的映像文件类型。"
+msgstr "请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类型。"
 
 #: src/templates/index.html:542
 msgid ""
@@ -1067,7 +1067,7 @@ msgid "Change Language"
 msgstr "改变语言"
 
 #: src/templates/index.html:683
-#, fuzzy
+#,  
 msgid "System Operations"
 msgstr "系统操作"
 
@@ -1078,23 +1078,23 @@ msgid ""
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:687
-#, fuzzy
+#,  
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
-msgstr "重要提示：务必在切断电源之前关闭系统，否则可能会导致数据丢失。"
+msgstr "重要提示：务必在切断电源之前先关闭系统，否则可能会导致数据丢失。"
 
 #: src/templates/index.html:699
 msgid "Reset"
 msgstr "重置"
 
 #: src/templates/index.html:703
-#, fuzzy
+#,  
 msgid "Reboot the System?"
 msgstr "重启系统？"
 
 #: src/templates/index.html:703
-#, fuzzy
+#,  
 msgid "Rebooting the system..."
 msgstr "正在重启系统..."
 
@@ -1103,12 +1103,12 @@ msgid "Reboot System"
 msgstr "重启系统"
 
 #: src/templates/index.html:706
-#, fuzzy
+#,  
 msgid "Shut Down the System?"
 msgstr "关闭系统?"
 
 #: src/templates/index.html:706
-#, fuzzy
+#,  
 msgid "Shutting down the system..."
 msgstr "正在关闭系统..."
 
@@ -1148,9 +1148,9 @@ msgid ""
 msgstr ""
 
 #: src/templates/upload.html:12
-#, fuzzy
+#, 
 msgid "Destination"
-msgstr "描述"
+msgstr "文件存放位置"
 
 #: src/templates/upload.html:33
 msgid "Drop files here to upload"
@@ -1236,4 +1236,3 @@ msgstr "B"
 
 #~ msgid "Create a named disk image that mimics real-life drives"
 #~ msgstr "创建一个模拟真实驱动器的命名磁盘映像"
-
