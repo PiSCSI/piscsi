@@ -648,16 +648,18 @@
 
 <hr/>
 
-<section id="language">
+<section id="system">
 <details>
     <summary class="heading">
-        {{ _("Language") }}
+        {{ _("System Operations") }}
     </summary>
     <ul>
-        <li>{{ _("Change the Web Interface language.") }}</li>
+        <li>{{ _("The System Name is the \"pretty\" hostname if set, with a fallback to the regular hostname.") }}</li>
+        <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
     </ul>
 </details>
 
+<div>
 <form action="/language" method="post">
     <label for="locale">{{ _("Language:") }}</label>
     <select name="locale" id="locale">
@@ -673,21 +675,7 @@
     </select>
     <input type="submit" value="{{ _("Change Language") }}">
 </form>
-</section>
-
-<hr/>
-
-<section id="system">
-<details>
-    <summary class="heading">
-        {{ _("System Operations") }}
-    </summary>
-    <ul>
-        <li>{{ _("The System Name is the \"pretty\" hostname if set, with a fallback to the regular hostname.") }}</li>
-        <li>{{ _("IMPORTANT: Always shut down the system before turning off the power. Failing to do so may lead to data loss.") }}</li>
-    </ul>
-</details>
-
+</div>
 <div>
 <form action="/sys/rename" method="post">
     <label for="system_name">{{ _("System Name:") }}</label>
