@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
 "POT-Creation-Date: 2022-12-22 16:48+0100\n"
-"PO-Revision-Date: 2022-12-22 20:31+0100\n"
+"PO-Revision-Date: 2022-12-22 21:56+0100\n"
 "Last-Translator: Christian Victor <christian.victor@gmail.com>\n"
 "Language-Team: de N/A\n"
 "Language: de\n"
@@ -42,7 +42,7 @@ msgstr "Datei kann nicht verschoben werden nach: %(target_path)s"
 #: src/return_code_mapper.py:22
 #, python-format
 msgid "Created CD-ROM ISO image with arguments \"%(value)s\""
-msgstr "CD-ROM ISO-Image mit Parametern “%(value)s“ erzeugt"
+msgstr "CD-ROM ISO-Image mit Parametern \"%(value)s\" erzeugt"
 
 #: src/return_code_mapper.py:24
 #, python-format
@@ -238,7 +238,7 @@ msgstr "Reservierung für SCSI-ID %(id_number)s entfernt"
 #: src/web.py:850
 #, python-format
 msgid "System name changed to '%(name)s'."
-msgstr "Systemname in ‘%(name)s‘ geändert."
+msgstr "Systemname in '%(name)s' geändert."
 
 #: src/web.py:851
 msgid "System name reset to default."
@@ -338,7 +338,7 @@ msgstr "Das angeforderte Theme existiert nicht."
 #: src/web.py:1307
 #, python-format
 msgid "Theme changed to '%(theme)s'."
-msgstr "Theme geändert zu ‘%(theme)s‘."
+msgstr "Theme geändert zu '%(theme)s'."
 
 #: src/web_utils.py:98
 msgid "Hard Disk Drive"
@@ -474,7 +474,8 @@ msgstr "Webinterface-Authentifizierung deaktiviert"
 #: src/templates/base.html:71
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
-msgstr "Siehe <a href=“%(url)s“ target=“_blank“>Wiki</a> für mehr Informationen"
+msgstr ""
+"Siehe <a href=\"%(url)s\" target=\"_blank\">Wiki</a> für mehr Informationen"
 
 #: src/templates/base.html:78
 msgid "PiSCSI"
@@ -491,7 +492,7 @@ msgstr "Systemname:"
 #: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
 msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
-msgstr "Wechsle zum <a href=“/theme?name=%(theme)s“>%(theme)s Theme</a>"
+msgstr "Wechsle zum <a href=\"/theme?name=%(theme)s\">%(theme)s Theme</a>"
 
 #: src/templates/base.html:120
 msgid "The AppleShare server is running. No active connections."
@@ -603,7 +604,7 @@ msgstr ""
 "Konfigurationsparameter liefern damit sie ordentlich funktionieren. Möchtest Du "
 "gerne Daten geändert haben oder hast zusätzliche Geräte die der Liste "
 "hinzugefügt werden sollen dann eröffne bitte ein Ticket auf  <a "
-"href=“%(url)s“>GitHub</a>."
+"href=\"%(url)s\">GitHub</a>."
 
 #: src/templates/drives.html:6
 msgid "Hard Disk Drives"
@@ -797,7 +798,7 @@ msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to "
 "attach to. Unless you know what you're doing, always use LUN 0."
 msgstr ""
-"Wähle eine gültige SCSI-ID und <a href=“%(url)s“ target=“_blank“>LUN</a> zum "
+"Wähle eine gültige SCSI-ID und <a href=\"%(url)s\" target=\"_blank\">LUN</a> zum "
 "Verbinden. Wenn Du nicht sicher bist dann benutze immer LUN 0."
 
 #: src/templates/index.html:187
@@ -947,7 +948,7 @@ msgid ""
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 msgstr ""
 "Um das moderne Web zu browsen, installiere einen Vintage Web-Proxy wie z.B. <a "
-"href=“%(url)s“ target=“_blank“>Macproxy</a>."
+"href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 
 #: src/templates/index.html:399
 #, python-format
@@ -955,8 +956,8 @@ msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</a> "
 "on the wiki."
 msgstr ""
-"Lies mehr über <a href=“%(url)s“ target=“_blank“>unterstützte Gerätetypen</a> "
-"auf dem Wiki."
+"Lies mehr über <a href=\"%(url)s\" target=\"_blank\">unterstützte Gerätetypen</"
+"a> auf dem Wiki."
 
 #: src/templates/index.html:406
 msgid "Key"
@@ -1021,8 +1022,8 @@ msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to "
 "learn more about the supported image file types."
 msgstr ""
-"Siehe <a href=“%(url)s“ target=“_blank“>wiki documentation</a> um mehr über die "
-"unterstützten Imagedatei-Typen zu erfahren."
+"Siehe <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> um mehr über "
+"die unterstützten Imagedatei-Typen zu erfahren."
 
 #: src/templates/index.html:542
 msgid ""
@@ -1084,7 +1085,7 @@ msgid ""
 "The System Name is the \"pretty\" hostname if set, with a fallback to the "
 "regular hostname."
 msgstr ""
-"Der Systemname ist der “schöne“ Hostname wenn gesetzt, mit Fallback auf den "
+"Der Systemname ist der \"schöne\" Hostname wenn gesetzt, mit Fallback auf den "
 "gewöhnlichen Hostnamen."
 
 #: src/templates/index.html:658
