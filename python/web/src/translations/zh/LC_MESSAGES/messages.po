@@ -1213,26 +1213,3 @@ msgstr "KiB"
 #: src/templates/upload.html:49
 msgid "B"
 msgstr "B"
-
-#~ msgid ""
-#~ "File uploads will progress only if "
-#~ "you stay on this page. If you "
-#~ "navigate away before the transfer is "
-#~ "completed, you will end up with an"
-#~ " incomplete file."
-#~ msgstr "文件上传仅当您停留在此页面上时才会进行。如果您在传输完成之前离开此页面，您将得到一个不完整的文件。"
-
-#~ msgid "Target directory:"
-#~ msgstr "目标目录："
-
-#~ msgid "File Server"
-#~ msgstr "文件服务器"
-
-#~ msgid "Remove file"
-#~ msgstr "删除文件"
-
-#~ msgid "URL:"
-#~ msgstr "URL:"
-
-#~ msgid "Create a named disk image that mimics real-life drives"
-#~ msgstr "创建一个模拟真实驱动器的命名磁盘映像"
