@@ -345,7 +345,6 @@ msgid "Host Bridge"
 msgstr "主机桥"
 
 #: src/web_utils.py:108
-#, 
 msgid "Ethernet Adapter"
 msgstr "以太网适配器"
 
@@ -366,7 +365,6 @@ msgid "Hard Disk Image (Apple)"
 msgstr "硬盘映像（Apple)"
 
 #: src/web_utils.py:139
-#, 
 msgid "Hard Disk Image (NEC)"
 msgstr "硬盘映像（NEC）"
 
@@ -438,17 +436,14 @@ msgid "Log Out"
 msgstr "注销"
 
 #: src/templates/base.html:54
-#, 
 msgid "Log in to use Web Interface"
 msgstr "请登录后再使用 Web 界面"
 
 #: src/templates/base.html:56
-#, 
 msgid "Username:"
 msgstr "用户名"
 
 #: src/templates/base.html:60
-#, 
 msgid "Password:"
 msgstr "密码"
 
@@ -498,7 +493,6 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy 正在 %(ip_addr)s（默认端口 5000）上运行"
 
 #: src/templates/base.html:134
-#, 
 msgid "PiSCSI version:"
 msgstr "PiSCSI 版本："
 
@@ -702,7 +696,6 @@ msgid "Actions"
 msgstr "操作"
 
 #: src/templates/index.html:78
-#, 
 msgid "File name"
 msgstr "文件名"
 
@@ -740,7 +733,6 @@ msgid "Reserved ID"
 msgstr "预订 ID"
 
 #: src/templates/index.html:156
-#, 
 msgid "Release"
 msgstr "释放"
 
@@ -796,12 +788,10 @@ msgstr "属性文件"
 
 #: src/templates/index.html:249 src/templates/index.html:261
 #: src/templates/index.html:288
-#, 
 msgid "Extract"
 msgstr "解压"
 
 #: src/templates/index.html:249 src/templates/index.html:261
-#, 
 msgid "Extracting a single file..."
 msgstr "解压单个文件..."
 
@@ -815,7 +805,6 @@ msgid "In use"
 msgstr "正在使用"
 
 #: src/templates/index.html:288
-#, 
 msgid "Extracting all files..."
 msgstr "正在解压所有文件..."
 
@@ -838,7 +827,6 @@ msgid "Save copy of %(file_name)s as:"
 msgstr "将文件 %(file_name)s 的副本保存为："
 
 #: src/templates/index.html:333
-#, 
 msgid "Copy"
 msgstr "复制"
 
@@ -902,14 +890,12 @@ msgid "Attach Peripheral Device"
 msgstr "连接外围设备"
 
 #: src/templates/index.html:393
-#, 
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:395
-#, 
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
@@ -947,7 +933,6 @@ msgid "None"
 msgstr "空"
 
 #: src/templates/index.html:488
-#, 
 msgid "Download File and Create CD-ROM Image"
 msgstr "下载文件并创建 CD-ROM 映像"
 
@@ -1058,7 +1043,6 @@ msgid "Change Language"
 msgstr "改变语言"
 
 #: src/templates/index.html:683
-#, 
 msgid "System Operations"
 msgstr "系统操作"
 
@@ -1069,7 +1053,6 @@ msgid ""
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:687
-#, 
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
@@ -1080,12 +1063,10 @@ msgid "Reset"
 msgstr "重置"
 
 #: src/templates/index.html:703
-#, 
 msgid "Reboot the System?"
 msgstr "重启系统？"
 
 #: src/templates/index.html:703
-#, 
 msgid "Rebooting the system..."
 msgstr "正在重启系统..."
 
@@ -1094,12 +1075,10 @@ msgid "Reboot System"
 msgstr "重启系统"
 
 #: src/templates/index.html:706
-#, 
 msgid "Shut Down the System?"
 msgstr "关闭系统?"
 
 #: src/templates/index.html:706
-#, 
 msgid "Shutting down the system..."
 msgstr "正在关闭系统..."
 
