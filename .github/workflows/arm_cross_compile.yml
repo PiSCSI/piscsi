@@ -1,0 +1,62 @@
+on:
+  workflow_call:
+    inputs:
+      connect-type:
+        required: true
+        type: string
+      # Debug flag indicates whether to build a debug build (no optimization, debugger symbols)
+      debug-flag:
+        required: false
+        type: boolean
+
+jobs:
+  build_arm:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: cpp
+    env:
+      APT_ARM_TOOLCHAIN: "gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev"
+      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add armhf as architecture
+        run: sudo dpkg --add-architecture armhf
+
+      - name: Reconfigure apt for arch amd64
+        run: sudo sed -i "s/deb /deb [arch=amd64] /g" /etc/apt/sources.list
+
+      - name: Add armhf repos (jammy)
+        run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy main multiverse restricted universe\" >> /etc/apt/sources.list"
+
+      - name: Add armhf repos (jammy-updates)
+        run: sudo bash -c "echo \"deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main multiverse restricted universe\" >> /etc/apt/sources.list"
+
+      - name: Update apt
+        run: sudo apt update
+
+      - name: Install apt packages
+        run: sudo apt-get --yes install ${{ env.APT_ARM_TOOLCHAIN }} ${{ env.APT_LIBRARIES }}
+
+      - name: Build debug strings
+        if: ${{ inputs.debug-flag }}
+        run: |
+          echo "debug_flag_compile=DEBUG\=1" >> $GITHUB_ENV
+          echo "debug_flag_filename=debug-" >> $GITHUB_ENV
+
+      - name: Compile
+        run: make all -j 6 CONNECT_TYPE=${{ inputs.connect-type }} ${{ env.debug_flag_compile }} CROSS_COMPILE=arm-linux-gnueabihf-
+
+      # We need to tar the binary outputs to retain the executable
+      # file permission. Currently, actions/upload-artifact only
+      # supports .ZIP files.
+      # This is workaround for https://github.com/actions/upload-artifact/issues/38
+      - name: Tar binary output
+        run: tar -czvf ${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}.tar.gz ./bin
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.debug_flag_filename }}arm-binaries-${{ inputs.connect-type }}.tar.gz
+          path: cpp/${{ env.debug_flag_filename }}piscsi-${{ inputs.connect-type }}.tar.gz

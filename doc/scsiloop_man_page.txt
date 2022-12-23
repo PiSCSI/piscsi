@@ -1,0 +1,43 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is scsiloop.1. Re-run 'make docs' after updating
+
+
+scsiloop(1)                                           General Commands Manual                                          scsiloop(1)
+
+NAME
+       scsiloop - Tool for testing the PiSCSI board with a loopback adapter installed
+
+SYNOPSIS
+       scsiloop [-L LOG_LEVEL]
+
+DESCRIPTION
+       scsiloop  Performs  a  self-test of the PiSCSI hardware to ensure that the board is functioning properly. In order for this
+       tool to work, a special loopback cable MUST be attached to the PiSCSI SCSI connector.
+
+       In addition to testing the GPIO signals, scsiloop will perform a self-test of the hardware timers that are built  into  the
+       system on a chip (SoC).
+
+       The loopback connections for the DB25 connector are shown here:
+
+           |Pin | Name | Pin | Name |
+           +----+------+-----+------+
+           |  1 | REQ  | 13  | DB7  |
+           |  2 | MSG  | 12  | DB6  |
+           |  3 | I/O  | 11  | DB5  |
+           |  4 | RST  | 10  | DB3  |
+           |  5 | ACK  |  8  | DB0  |
+           |  6 | BSY  | 20  | DBP  |
+           | 15 | C/D  | 23  | DB4  |
+           | 17 | ATN  | 22  | DB2  |
+           | 19 | SEL  | 21  | DB1  |
+
+OPTIONS
+       -L LOG_LEVEL
+              The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info'.
+
+SEE ALSO
+       scsictl(1), piscsi(1), scsimon(1)
+
+       Full documentation is available at: <https://www.piscsi.com>
+
+                                                                                                                       scsiloop(1)

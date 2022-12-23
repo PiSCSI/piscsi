@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+TMP_FILE="/tmp/hostnamectl_pretty.tmp"
+
+if [[ "$1" == "set-hostname" && "$2" == "--pretty" ]]; then
+    if [[ -z "$3" ]]; then
+        rm "$TMP_FILE" 2>/dev/null || true
+    else
+        echo "$3" > $TMP_FILE
+    fi
+
+    exit 0
+fi
+
+if [[ "$1" == "status" ]]; then
+    cat "$TMP_FILE" 2>/dev/null
+    exit 0
+fi
+
+echo "Mock does not recognize: $0 $@"
+exit 1

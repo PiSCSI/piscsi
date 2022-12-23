@@ -13,6 +13,7 @@ from conftest import STATUS_SUCCESS
         ("fr", "Langue de l’interface web changée pour français"),
         ("sv", "Bytte webbgränssnittets språk till svenska"),
         ("en", "Changed Web Interface language to English"),
+        ("zh", "Web 界面语言已更改为 中文"),
     ],
 )
 def test_set_language(http_client, locale, confirm_message):
@@ -31,7 +32,7 @@ def test_set_language(http_client, locale, confirm_message):
 
 
 # route("/logs/level", methods=["POST"])
-@pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "critical", "off"])
+@pytest.mark.parametrize("level", ["trace", "debug", "info", "warn", "err", "off"])
 def test_set_log_level(http_client, level):
     response = http_client.post(
         "/logs/level",
@@ -61,7 +62,7 @@ def test_show_logs(http_client):
         "/logs/show",
         data={
             "lines": 100,
-            "scope": "rascsi",
+            "scope": "piscsi",
         },
     )
 
@@ -69,7 +70,7 @@ def test_show_logs(http_client):
 
     assert response.status_code == 200
     assert response_data["data"]["lines"] == "100"
-    assert response_data["data"]["scope"] == "rascsi"
+    assert response_data["data"]["scope"] == "piscsi"
 
 
 # route("/config/save", methods=["POST"])
@@ -150,3 +151,95 @@ def test_save_load_and_delete_configs(env, http_client):
     )
 
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
+
+
+# route("/theme", methods=["POST"])
+@pytest.mark.parametrize(
+    "theme",
+    [
+        "modern",
+        "classic",
+    ],
+)
+def test_set_theme(http_client, theme):
+    response = http_client.post(
+        "/theme",
+        data={
+            "name": theme,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
+
+
+# route("/theme", methods=["GET"])
+@pytest.mark.parametrize(
+    "theme",
+    [
+        "modern",
+        "classic",
+    ],
+)
+def test_set_theme_via_query_string(http_client, theme):
+    response = http_client.get(
+        "/theme",
+        params={
+            "name": theme,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"Theme changed to '{theme}'."
+
+
+# route("/sys/rename", methods=["POST"])
+def test_rename_system(env, http_client):
+    new_name = "SYSTEM NAME TEST"
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    old_name = response_data["data"]["system_name"]
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "system_name": new_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"System name changed to '{new_name}'."
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == new_name
+
+    response = http_client.post(
+        "/sys/rename",
+        data={
+            "system_name": old_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["messages"][0]["message"] == f"System name changed to '{old_name}'."
+
+    response = http_client.get("/env")
+    response_data = response.json()
+
+    assert response_data["data"]["system_name"] == old_name

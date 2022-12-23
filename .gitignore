@@ -1,17 +1,23 @@
 venv
 *.pyc
+*.swp
+*.log
+*~
 core
 .idea/
+.vscode
 .DS_Store
-*.swp
 __pycache__
 current
 rascsi_interface_pb2.py
-src/raspberrypi/hfdisk/
-*~
+piscsi_interface_pb2.py
 messages.pot
 messages.mo
 report.xml
+node_modules
+
+# Intermediate files from astyle
+*.orig
 
 docker/docker-compose.override.yml
 /docker/volumes/images/*
@@ -24,3 +30,10 @@ s.sh
 
 # temporary kicad files
 *-backups
+
+# VSCode temp file
+settings.json
+
+# submodules
+hfdisk*
+mac-hard-disk-drivers

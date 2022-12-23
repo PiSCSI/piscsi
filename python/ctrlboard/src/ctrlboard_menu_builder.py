@@ -3,12 +3,13 @@ import logging
 
 from menu.menu import Menu
 from menu.menu_builder import MenuBuilder
-from rascsi.file_cmds import FileCmds
-from rascsi.ractl_cmds import RaCtlCmds
+from piscsi.file_cmds import FileCmds
+from piscsi.piscsi_cmds import PiscsiCmds
 
 
 class CtrlBoardMenuBuilder(MenuBuilder):
     """Class fgor building the control board UI specific menus"""
+
     SCSI_ID_MENU = "scsi_id_menu"
     ACTION_MENU = "action_menu"
     IMAGES_MENU = "images_menu"
@@ -24,11 +25,15 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     ACTION_LOADPROFILE = "loadprofile"
     ACTION_IMAGE_ATTACHINSERT = "image_attachinsert"
 
-    def __init__(self, ractl_cmd: RaCtlCmds):
+    def __init__(self, piscsi_cmd: PiscsiCmds):
         super().__init__()
-        self._rascsi_client = ractl_cmd
-        self.file_cmd = FileCmds(sock_cmd=ractl_cmd.sock_cmd, ractl=ractl_cmd,
-                                 token=ractl_cmd.token, locale=ractl_cmd.locale)
+        self._piscsi_client = piscsi_cmd
+        self.file_cmd = FileCmds(
+            sock_cmd=piscsi_cmd.sock_cmd,
+            piscsi=piscsi_cmd,
+            token=piscsi_cmd.token,
+            locale=piscsi_cmd.locale,
+        )
 
     def build(self, name: str, context_object=None) -> Menu:
         if name == CtrlBoardMenuBuilder.SCSI_ID_MENU:
@@ -50,8 +55,8 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     # pylint: disable=unused-argument
     def create_scsi_id_list_menu(self, context_object=None):
         """Method creates the menu displaying the 7 scsi slots"""
-        devices = self._rascsi_client.list_devices()
-        reserved_ids = self._rascsi_client.get_reserved_ids()
+        devices = self._piscsi_client.list_devices()
+        reserved_ids = self._piscsi_client.get_reserved_ids()
 
         devices_by_id = {}
         for device in devices["device_list"]:
@@ -93,9 +98,14 @@ class CtrlBoardMenuBuilder(MenuBuilder):
                 if device_type != "":
                     menu_str += " [" + device_type + "]"
 
-            menu.add_entry(menu_str, {"context": self.SCSI_ID_MENU,
-                                      "action": self.ACTION_OPENACTIONMENU,
-                                      "scsi_id": scsi_id})
+            menu.add_entry(
+                menu_str,
+                {
+                    "context": self.SCSI_ID_MENU,
+                    "action": self.ACTION_OPENACTIONMENU,
+                    "scsi_id": scsi_id,
+                },
+            )
 
         return menu
 
@@ -103,18 +113,30 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def create_action_menu(self, context_object=None):
         """Method creates the action submenu with action that can be performed on a scsi slot"""
         menu = Menu(CtrlBoardMenuBuilder.ACTION_MENU)
-        menu.add_entry("Return", {"context": self.ACTION_MENU,
-                                  "action": self.ACTION_RETURN})
-        menu.add_entry("Attach/Insert", {"context": self.ACTION_MENU,
-                                         "action": self.ACTION_SLOT_ATTACHINSERT})
-        menu.add_entry("Detach/Eject", {"context": self.ACTION_MENU,
-                                        "action": self.ACTION_SLOT_DETACHEJECT})
-        menu.add_entry("Info", {"context": self.ACTION_MENU,
-                                "action": self.ACTION_SLOT_INFO})
-        menu.add_entry("Load Profile", {"context": self.ACTION_MENU,
-                                        "action": self.ACTION_LOADPROFILE})
-        menu.add_entry("Shutdown", {"context": self.ACTION_MENU,
-                                    "action": self.ACTION_SHUTDOWN})
+        menu.add_entry(
+            "Return",
+            {"context": self.ACTION_MENU, "action": self.ACTION_RETURN},
+        )
+        menu.add_entry(
+            "Attach/Insert",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_ATTACHINSERT},
+        )
+        menu.add_entry(
+            "Detach/Eject",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_DETACHEJECT},
+        )
+        menu.add_entry(
+            "Info",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SLOT_INFO},
+        )
+        menu.add_entry(
+            "Load Profile",
+            {"context": self.ACTION_MENU, "action": self.ACTION_LOADPROFILE},
+        )
+        menu.add_entry(
+            "Shutdown",
+            {"context": self.ACTION_MENU, "action": self.ACTION_SHUTDOWN},
+        )
         return menu
 
     def create_images_menu(self, context_object=None):
@@ -123,12 +145,15 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         images_info = self.file_cmd.list_images()
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
         images = images_info["files"]
-        sorted_images = sorted(images, key=lambda d: d['name'])
+        sorted_images = sorted(images, key=lambda d: d["name"])
         for image in sorted_images:
             image_str = image["name"] + " [" + image["detected_type"] + "]"
-            image_context = {"context": self.IMAGES_MENU, "name": str(image["name"]),
-                             "device_type": str(image["detected_type"]),
-                             "action": self.ACTION_IMAGE_ATTACHINSERT}
+            image_context = {
+                "context": self.IMAGES_MENU,
+                "name": str(image["name"]),
+                "device_type": str(image["detected_type"]),
+                "action": self.ACTION_IMAGE_ATTACHINSERT,
+            }
             menu.add_entry(image_str, image_context)
         return menu
 
@@ -138,9 +163,14 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
         config_files = self.file_cmd.list_config_files()
         for config_file in config_files:
-            menu.add_entry(str(config_file),
-                           {"context": self.PROFILES_MENU, "name": str(config_file),
-                            "action": self.ACTION_LOADPROFILE})
+            menu.add_entry(
+                str(config_file),
+                {
+                    "context": self.PROFILES_MENU,
+                    "name": str(config_file),
+                    "action": self.ACTION_LOADPROFILE,
+                },
+            )
 
         return menu
 
@@ -149,7 +179,7 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         menu = Menu(CtrlBoardMenuBuilder.DEVICEINFO_MENU)
         menu.add_entry("Return", {"context": self.DEVICEINFO_MENU, "action": self.ACTION_RETURN})
 
-        device_info = self._rascsi_client.list_devices(context_object["scsi_id"])
+        device_info = self._piscsi_client.list_devices(context_object["scsi_id"])
 
         if not device_info["device_list"]:
             return menu
@@ -180,6 +210,6 @@ class CtrlBoardMenuBuilder(MenuBuilder):
 
         return menu
 
-    def get_rascsi_client(self):
-        """Returns an instance of the rascsi client"""
-        return self._rascsi_client
+    def get_piscsi_client(self):
+        """Returns an instance of the piscsi client"""
+        return self._piscsi_client

@@ -1,4 +1,4 @@
-"""Module providing the interface to the RaSCSI Control Board hardware"""
+"""Module providing the interface to the PiSCSI Control Board hardware"""
 # noinspection PyUnresolvedReferences
 import logging
 import time
@@ -15,81 +15,97 @@ from observable import Observable
 
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardHardware(Observable):
-    """Class implements the RaSCSI Control Board hardware and provides an interface to it."""
+    """Class implements the PiSCSI Control Board hardware and provides an interface to it."""
+
     def __init__(self, display_i2c_address, pca9554_i2c_address, debounce_ms=200):
         self.display_i2c_address = display_i2c_address
         self.pca9554_i2c_address = pca9554_i2c_address
         self.debounce_ms = debounce_ms
-        self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
+        self.piscsi_controlboard_detected = self.detect_piscsi_controlboard()
         log = logging.getLogger(__name__)
-        log.info("RaSCSI Control Board detected: %s", str(self.rascsi_controlboard_detected))
+        log.info("PiSCSI Control Board detected: %s", str(self.piscsi_controlboard_detected))
         self.display_detected = self.detect_display()
         log.info("Display detected: %s", str(self.display_detected))
 
-        if self.rascsi_controlboard_detected is False:
+        if self.piscsi_controlboard_detected is False:
             return
 
         self.pos = 0
         self.pca_driver = pca9554multiplexer.PCA9554Multiplexer(self.pca9554_i2c_address)
 
         # setup pca9554
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_ENC_A,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_ENC_B,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_BUTTON_1,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_BUTTON_2,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_BUTTON_ROTARY,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_LED_1,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT)
-        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
-                                                          PCA9554_PIN_LED_2,
-                                                          PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT)
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A,
+            PCA9554Multiplexer.PIN_ENABLED_AS_INPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B,
+            PCA9554Multiplexer.PIN_ENABLED_AS_INPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_1,
+            PCA9554Multiplexer.PIN_ENABLED_AS_INPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2,
+            PCA9554Multiplexer.PIN_ENABLED_AS_INPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY,
+            PCA9554Multiplexer.PIN_ENABLED_AS_INPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_LED_1,
+            PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT,
+        )
+        self.pca_driver.write_configuration_register_port(
+            CtrlBoardHardwareConstants.PCA9554_PIN_LED_2,
+            PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT,
+        )
         self.input_register_buffer = 0
 
         # pylint: disable=no-member
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(CtrlBoardHardwareConstants.PI_PIN_INTERRUPT, GPIO.IN)
-        GPIO.add_event_detect(CtrlBoardHardwareConstants.PI_PIN_INTERRUPT, GPIO.FALLING,
-                              callback=self.button_pressed_callback)
+        GPIO.add_event_detect(
+            CtrlBoardHardwareConstants.PI_PIN_INTERRUPT,
+            GPIO.FALLING,
+            callback=self.button_pressed_callback,
+        )
 
         # configure button of the rotary encoder
-        self.rotary_button = HardwareButton(self.pca_driver,
-                                            CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY)
+        self.rotary_button = HardwareButton(
+            self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY
+        )
         self.rotary_button.state = True
         self.rotary_button.name = CtrlBoardHardwareConstants.ROTARY_BUTTON
 
         # configure button 1
-        self.button1 = HardwareButton(self.pca_driver,
-                                      CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_1)
+        self.button1 = HardwareButton(
+            self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_1
+        )
         self.button1.state = True
         self.button1.name = CtrlBoardHardwareConstants.BUTTON_1
 
         # configure button 2
-        self.button2 = HardwareButton(self.pca_driver,
-                                      CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2)
+        self.button2 = HardwareButton(
+            self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2
+        )
         self.button2.state = True
         self.button2.name = CtrlBoardHardwareConstants.BUTTON_2
 
         # configure rotary encoder pin a
-        self.rotary_a = HardwareButton(self.pca_driver,
-                                       CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A)
+        self.rotary_a = HardwareButton(
+            self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A
+        )
         self.rotary_a.state = True
         self.rotary_a.directionalTransition = False
         self.rotary_a.name = CtrlBoardHardwareConstants.ROTARY_A
 
         # configure rotary encoder pin b
-        self.rotary_b = HardwareButton(self.pca_driver,
-                                       CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B)
+        self.rotary_b = HardwareButton(
+            self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B
+        )
         self.rotary_b.state = True
         self.rotary_b.directionalTransition = False
         self.rotary_b.name = CtrlBoardHardwareConstants.ROTARY_B
@@ -117,7 +133,7 @@ class CtrlBoardHardware(Observable):
 
         # ignore button press if debounce time is not reached
         if button.last_press is not None:
-            elapsed = (time.time_ns() - button.last_press)/1000000
+            elapsed = (time.time_ns() - button.last_press) / 1000000
             if elapsed < self.debounce_ms:
                 return
 
@@ -149,8 +165,8 @@ class CtrlBoardHardware(Observable):
     @staticmethod
     def button_value_shifted_list(input_register_buffer, bit):
         """Helper method for dealing with multiple buffered input registers"""
-        input_register_buffer_length = int(len(format(input_register_buffer, 'b'))/8)
-        shiftval = (input_register_buffer_length-1)*8
+        input_register_buffer_length = int(len(format(input_register_buffer, "b")) / 8)
+        shiftval = (input_register_buffer_length - 1) * 8
         tmp = input_register_buffer >> shiftval
         bitmask = 1 << bit
         tmp &= bitmask
@@ -162,12 +178,12 @@ class CtrlBoardHardware(Observable):
         input_register_buffer = self.input_register_buffer
         self.input_register_buffer = 0
 
-        input_register_buffer_length = int(len(format(input_register_buffer, 'b'))/8)
+        input_register_buffer_length = int(len(format(input_register_buffer, "b")) / 8)
         if input_register_buffer_length < 1:
             return
 
         for i in range(0, input_register_buffer_length):
-            shiftval = (input_register_buffer_length-1-i)*8
+            shiftval = (input_register_buffer_length - 1 - i) * 8
             input_register = (input_register_buffer >> shiftval) & 0b11111111
 
             rot_a = self.button_value(input_register, 0)
@@ -211,23 +227,27 @@ class CtrlBoardHardware(Observable):
             if 2 < _address < 120:
                 try:
                     _bus.read_byte(_address)
-                    address = '%02x' % _address
+                    address = "%02x" % _address
                     detected_i2c_addresses.append(int(address, base=16))
                 except IOError:  # simply skip unsuccessful i2c probes
                     pass
 
         return detected_i2c_addresses
 
-    def detect_rascsi_controlboard(self):
-        """Detects whether the RaSCSI Control Board is attached by checking whether
+    def detect_piscsi_controlboard(self):
+        """Detects whether the PiSCSI Control Board is attached by checking whether
         the expected i2c addresses are detected."""
         # pylint: disable=c-extension-no-member
         i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
-        return bool((int(self.display_i2c_address) in i2c_addresses and
-                     (int(self.pca9554_i2c_address) in i2c_addresses)))
+        return bool(
+            (
+                int(self.display_i2c_address) in i2c_addresses
+                and (int(self.pca9554_i2c_address) in i2c_addresses)
+            )
+        )
 
     def detect_display(self):
-        """Detects whether an i2c display is connected to the RaSCSI hat."""
+        """Detects whether an i2c display is connected to the PiSCSI hat."""
         # pylint: disable=c-extension-no-member
         i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
         return bool(int(self.display_i2c_address) in i2c_addresses)

@@ -1,5 +1,0 @@
-(sym_lib_table
-  (lib (name "PCA9554APW_118")(type "Legacy")(uri "${KIPRJMOD}/PCA9554APW_118/PCA9554APW_118.lib")(options "")(descr ""))
-  (lib (name "ctrl_board_symbols")(type "Legacy")(uri "${KIPRJMOD}/ctrl_board_symbols.lib")(options "")(descr ""))
-  (lib (name "graphics")(type "KiCad")(uri "${KIPRJMOD}/graphics.kicad_sym")(options "")(descr ""))
-)

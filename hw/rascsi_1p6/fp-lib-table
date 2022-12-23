@@ -1,5 +1,0 @@
-(fp_lib_table
-  (lib (name rascsi_din)(type KiCad)(uri "$(KIPRJMOD)/rascsi_din.pretty")(options "")(descr ""))
-  (lib (name rascsi_1p6)(type KiCad)(uri C:/Users/theto/Downloads/RASCSI-Master/hw/rascsi_1p6.pretty)(options "")(descr ""))
-  (lib (name SamacSys_Parts)(type KiCad)(uri ${KIPRJMOD}/SamacSys_Parts.pretty)(options "")(descr ""))
-)

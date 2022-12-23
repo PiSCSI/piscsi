@@ -1,71 +1,57 @@
 services:
-  rascsi:
-    container_name: rascsi
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-standalone
+  backend:
+    container_name: piscsi_backend
+    image: piscsi-backend
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi/Dockerfile
-      args:
-        - OS_DISTRO=${OS_DISTRO:-debian}
-        - OS_VERSION=${OS_VERSION:-buster}
-        - OS_ARCH=${OS_ARCH:-amd64}
+      dockerfile: docker/backend/Dockerfile
     volumes:
       - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/rascsi:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
-      - "127.0.0.1:${RASCSI_PORT:-6868}:6868"
+      - "127.0.0.1:${BACKEND_PORT:-6868}:6868"
     environment:
-     - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
+     - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
     init: true
     command: [
-      "/usr/local/bin/rascsi_wrapper.sh",
       "-L",
-      "${RASCSI_LOG_LEVEL:-trace}",
-      "-r",
-      "7",
-      "-F",
-      "/home/pi/images"
+      "${BACKEND_LOG_LEVEL:-trace}",
     ]
 
-  rascsi_web:
-    container_name: rascsi_web
-    image: rascsi:develop-${OS_DISTRO:-debian}-${OS_VERSION:-buster}-${OS_ARCH:-amd64}-web
+  web:
+    container_name: piscsi_web
+    image: piscsi-web:${OS_VERSION:-buster}
     pull_policy: never
     build:
       context: ..
-      dockerfile: docker/rascsi-web/Dockerfile
+      dockerfile: docker/web/Dockerfile
       args:
-        - OS_DISTRO=${OS_DISTRO:-debian}
         - OS_VERSION=${OS_VERSION:-buster}
-        - OS_ARCH=${OS_ARCH:-amd64}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
-      - ./volumes/config:/home/pi/.config/rascsi:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
       - "127.0.0.1:${WEB_HTTP_PORT:-8080}:80"
       - "127.0.0.1:${WEB_HTTPS_PORT:-8443}:443"
     environment:
-     - RASCSI_PASSWORD=${RASCSI_PASSWORD:-}
+     - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
     init: true
     command: [
-      "start.sh",
-      "--rascsi-host=${RASCSI_HOST:-rascsi}",
-      "--rascsi-port=${RASCSI_PORT:-6868}",
-      "--log-level=${WEB_LOG_LEVEL:-info}",
+      "--backend-host=${BACKEND_HOST:-backend}",
+      "--backend-port=${BACKEND_PORT:-6868}",
+      "--log-level=${WEB_LOG_LEVEL:-debug}",
       "--dev-mode"
     ]
 
   pytest:
-    container_name: pytest
-    image: rascsi:pytest
+    container_name: piscsi_pytest
+    image: piscsi-pytest
     pull_policy: never
     profiles:
       - webui-tests
     build:
       context: ..
       dockerfile: docker/pytest/Dockerfile
-    volumes:
-      - ../python/web:/src:delegated
     working_dir: /src
-    entrypoint: "pytest"
+    command: ["-vv"]

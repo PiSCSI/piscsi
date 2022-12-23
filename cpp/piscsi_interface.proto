@@ -1,0 +1,433 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
+//
+// Copyright (C) 2021-2022 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
+//
+// Each piscsi message sent to the piscsi server is preceded by the magic string "RASCSI".
+// A message starts with a little endian 32 bit header which contains the protobuf message size.
+// Unless explicitly specified the order of repeated data returned is undefined.
+// All operations accept an optional access token, specified by the "token" parameter.
+// All operations also accept an optional locale, specified with the "locale" parameter. If there is
+// a localized error message piscsi returns it, with English being the fallback language.
+//
+
+syntax = "proto3";
+
+package piscsi_interface;
+
+// The available device types
+enum PbDeviceType {
+    UNDEFINED = 0;
+    // Non-removable SASI drive, not supported anymore
+    SAHD = 1 [deprecated = true];
+    // Non-removable SCSI drive
+    SCHD = 2;
+    // Removable SCSI drive
+    SCRM = 3;
+    // Magnoto-Optical drive
+    SCMO = 4;
+    // CD-ROM drive
+    SCCD = 5;
+    // Network bridge
+    SCBR = 6;
+    // DaynaPort network adapter
+    SCDP = 7;
+    // Host services device
+    SCHS = 8;
+    // Printer device
+    SCLP = 9;
+}
+
+// piscsi remote operations, returning PbResult
+enum PbOperation {
+    NO_OPERATION = 0;
+
+    // Attach devices and return the new device list (PbDevicesInfo)
+    // Parameters (depending on the device type):
+    //   "file": The filename relative to the default image folder
+    //   "interface": A prioritized comma-separated list of interfaces to create a network bridge for
+    //   "inet": The IP address and netmask for the network bridge
+    //   "cmd": The command to be used for printing, with "%f" as file placeholder
+    ATTACH = 1;
+
+    // Detach a device and return the new device list (PbDevicesInfo)
+    // Detaches all LUNs of that device which are equal to or higher than the LUN specified.
+    DETACH = 2;
+
+    // Detach all devices, does not require a device list
+    DETACH_ALL = 3;
+
+    // Start device
+    START = 4;
+
+    // Stop device, e.g. park drive
+    STOP = 5;
+
+    // Insert medium
+    // Parameters:
+    //   "file": The filename, relative to the default image folder
+    INSERT = 6;
+
+    // Eject medium
+    EJECT = 7;
+
+    // Write-protect medium (not possible for read-only media)
+    PROTECT = 8;
+
+    // Make medium writable (not possible for read-only media)
+    UNPROTECT = 9;
+
+    // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
+    // may return a lot of data. More specific other operations should be used instead.
+    // Parameters:
+    //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    SERVER_INFO = 10;
+
+    // Get piscsi server version (PbVersionInfo)
+    VERSION_INFO = 11;
+
+    // Get information on attached devices (PbDevicesInfo)
+    // Returns data for all attached devices if the device list is empty.
+    DEVICES_INFO = 12;
+
+    // Get device properties by device type (PbDeviceTypesInfo)
+    DEVICE_TYPES_INFO = 13;
+
+    // Get information on available image files in the default image folder (PbImageFilesInfo)
+    // Parameters:
+    //   "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    //   "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    DEFAULT_IMAGE_FILES_INFO = 14;
+    
+    // Get information on an image file (not necessarily in the default image folder).
+    // Parameters:
+    //   "file": The filename. Either an absolute path or a path relative to the default image folder.
+    IMAGE_FILE_INFO = 15;
+
+    // Get information on the available log levels and the current log level (PbLogLevelInfo)
+    LOG_LEVEL_INFO = 16;
+
+    // Get the names of the available network interfaces (PbNetworkInterfacesInfo)
+    // Only lists interfaces that are up.
+    NETWORK_INTERFACES_INFO = 17;
+    
+    // Get the mapping of extensions to device types (PbMappingInfo)
+    MAPPING_INFO = 18;
+    
+    // Get the list of reserved device IDs (PbReservedIdsInfo)
+    RESERVED_IDS_INFO = 19;
+
+    // Set the default folder for image files. This folder must be located in /home.
+    // Parameters:
+    //   "folder": The path of the default folder, relative to the user's home folder if relative.
+    DEFAULT_FOLDER = 20;
+
+    // Set the log level.
+    // Parameters:
+    //   "level": The new log level
+    LOG_LEVEL = 21;
+
+    // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
+    // Parameters:
+    //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
+    RESERVE_IDS = 22;
+    
+    // Shut down the piscsi process or shut down/reboot the Pi
+    // Parameters:
+    //   "mode": The shutdown mode, one of
+    //     "rascsi": Shuts down the piscsi process ("rascsi" instead of "piscsi" for backwards compatibility)
+    //     "system": Shuts down the Pi
+    //     "reboot": Reboots the Pi
+    SHUT_DOWN = 23;
+
+    // Create an image file. The image file must not yet exist.
+    // Parameters:
+    //   "file": The filename, relative to the default image folder
+    //   "size": The file size in bytes, must be a multiple of 512
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
+    CREATE_IMAGE = 24;
+
+    // Delete an image file.
+    // Parameters:
+    //    "file": The filename, relative to the default image folder.
+    DELETE_IMAGE = 25;
+
+    // Rename/Move an image file.
+    // Parameters:
+    //   "from": The old filename, relative to the default image folder
+    //   "to": The new filename, relative to the default image folder
+    // The new filename must not yet exist.
+    RENAME_IMAGE = 26;
+
+    // Copy an image file.
+    // Parameters:
+    //   "from": The source filename, relative to the default image folder
+    //   "to": The destination filename, relative to the default image folder
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
+    // The destination filename must not yet exist.
+    COPY_IMAGE = 27;
+    
+    // Write-protect an image file.
+    // Parameters:
+    //  "file": The filename, relative to the default image folder
+    PROTECT_IMAGE = 28;
+
+    // Make an image file writable.
+    // Parameters:
+    //   "file": The filename, relative to the default image folder
+    UNPROTECT_IMAGE = 29;
+
+    // Check whether an authentication token is valid. A client can use this operation in order to
+    // find out whether piscsi authentication is enable or to use piscsi authentication for securing
+    // client-internal operations.
+    CHECK_AUTHENTICATION = 30;
+
+    // Get operation meta data (PbOperationInfo)
+    OPERATION_INFO = 31;
+}
+
+// The operation parameter meta data. The parameter data type is provided by the protobuf API.
+message PbOperationParameter {
+    string name = 1;
+    // Optional short description
+    string description = 2;
+    // There is no specific set of permitted values if empty
+    repeated string permitted_values = 3;
+    // Optional default value
+    string default_value = 4;
+    // True if this parameter is mandatory
+    bool is_mandatory = 5;
+}
+
+// The list of parameters supported by an operation
+message PbOperationMetaData {
+    // The operation name at the time the server-side protobuf code was generated.
+    string server_side_name = 1;
+    // Optional short description
+    string description = 2;
+    repeated PbOperationParameter parameters = 3;
+}
+
+// Mapping of operations to their ordinals
+message PbOperationInfo {
+    map<int32, PbOperationMetaData> operations = 1;
+}
+
+// piscsi special purpose error codes for cases where a textual error message may not be not sufficient.
+// The client may react on this code, e.g. by prompting the user for an authentication token.
+enum PbErrorCode {
+    // No error code available
+    NO_ERROR_CODE = 0;
+    // The client sent an operation code not supported by this server
+    UNKNOWN_OPERATION = 1;
+    // Authentication/Authorization error
+    UNAUTHORIZED = 2;
+}
+
+// The supported file extensions mapped to their respective device types
+message PbMappingInfo {
+    map<string, PbDeviceType> mapping = 1;
+}
+
+// The properties supported by a device
+message PbDeviceProperties {
+     // Read-only media (e.g. CD-ROMs) are not protectable but permanently read-only
+    bool read_only = 1;
+    // Medium can be write-protected
+    bool protectable = 2;
+    // Device can be stopped, e.g. parked
+    bool stoppable = 3;
+    // Medium can be removed
+    bool removable = 4;
+    // Medium can be locked
+    bool lockable = 5;
+    // Device supports image file as a parameter
+    bool supports_file = 6;
+    // Device supports parameters other than a filename
+    bool supports_params = 7;
+    // List of default parameters, if any (requires supports_params to be true)
+    map<string, string> default_params = 8;
+    // LUN numbers this device can have, usually 32
+    int32 luns = 9;
+    // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
+    repeated uint32 block_sizes = 10;
+}
+
+// The status of a device, only meaningful if the respective feature is supported
+message PbDeviceStatus {
+    // Medium is write-protected
+    bool protected = 1;
+    // Device is stopped, e.g. parked
+    bool stopped = 2;
+    // Medium is removed
+    bool removed = 3;
+    // Medium is locked
+    bool locked = 4;
+}
+
+// Device properties by device type. (Note that a protobuf map cannot be used because enums cannot be map keys.)
+message PbDeviceTypeProperties {
+    PbDeviceType type = 1;
+    PbDeviceProperties properties = 2;
+}
+
+message PbDeviceTypesInfo {
+    repeated PbDeviceTypeProperties properties = 1;
+}
+
+// The image file data
+message PbImageFile {
+    string name = 1;
+    // The assumed device type, based on the filename extension
+    PbDeviceType type = 2;
+    // The file size in bytes, 0 for block devices
+    uint64 size = 3;
+    bool read_only = 4;
+}
+
+// The default image folder and the image files it contains
+message PbImageFilesInfo {
+    string default_image_folder = 1;
+    repeated PbImageFile image_files = 2;
+    // The maximum nesting depth, configured with the -R option
+    int32 depth = 3;
+}
+
+// Log level information
+message PbLogLevelInfo {
+    // List of available log levels, ordered by increasing by severity
+    repeated string log_levels = 2;
+    string current_log_level = 3;
+}
+
+// The network interfaces information
+message PbNetworkInterfacesInfo {
+    repeated string name = 1;
+}
+
+// The device definition, sent from the client to the server
+message PbDeviceDefinition {
+    int32 id = 1;
+    int32 unit = 2;
+    PbDeviceType type = 3;
+    // Device specific named parameters, e.g. the name of an image file
+    map<string, string> params = 4;
+    // The optional block size in bytes per sector, must be one of the supported block sizes
+    int32 block_size = 5;
+    // The device name components
+    string vendor = 6;
+    string product = 7;
+    string revision = 8;
+    // Create a write-protected device
+    bool protected = 9;
+}
+
+// The device data, sent from the server to the client
+message PbDevice {
+    int32 id = 1;
+    int32 unit = 2;
+    PbDeviceType type = 3;
+    PbDeviceProperties properties = 4;
+    PbDeviceStatus status = 5;
+    // Image file information, if the device supports image files
+    PbImageFile file = 6;
+    // Effective parameters the device was created with
+    map<string, string> params = 7;
+    string vendor = 8;
+    string product = 9;
+    string revision = 10;
+    // Block size in bytes
+    int32 block_size = 11;
+    // Number of blocks
+    uint64 block_count = 12;
+}
+
+message PbDevicesInfo {
+    repeated PbDevice devices = 1;
+}
+
+// The reserved device IDs
+message PbReservedIdsInfo {
+    repeated int32 ids = 1;
+}
+
+// Piscsi server version information
+message PbVersionInfo {
+    // The piscsi version
+    int32 major_version = 1;
+    int32 minor_version = 2;
+    // < 0 for a development version, = 0 if there is no patch yet
+    int32 patch_version = 3;
+}
+
+// Commands piscsi can execute and their parameters
+message PbCommand {
+    PbOperation operation = 1;
+    // The non-empty list of devices for this command
+    repeated PbDeviceDefinition devices = 2;
+    // The named parameters for the operation, e.g. a filename, or a network interface list
+    map<string, string> params = 3;
+}
+
+// The result of a command
+message PbResult {
+    // false means that an error occurred
+    bool status = 1;
+    // An optional error or information message, depending on the status. A string without trailing CR/LF.
+    string msg = 2;
+    // An optional error code. Only to be used in cases where textual information is not sufficient.
+    PbErrorCode error_code = 14;
+    // Optional additional result data
+    oneof result {
+        // The result of a SERVER_INFO command
+        PbServerInfo server_info = 3;
+        // The result of a VERSION_INFO command
+        PbVersionInfo version_info = 4;
+        // The result of a LOG_LEVEL_INFO command
+        PbLogLevelInfo log_level_info = 5;
+        // The result of a DEVICES_INFO, ATTACH or DETACH command
+        PbDevicesInfo devices_info = 6;
+        // The result of a DEVICE_TYPES_INFO command
+        PbDeviceTypesInfo device_types_info = 7;
+        // The result of a DEFAULT_IMAGE_FILES_INFO command
+        PbImageFilesInfo image_files_info = 8;
+        // The result of an IMAGE_FILE_INFO command
+        PbImageFile image_file_info = 9;
+        // The result of a NETWORK_INTERFACES_INFO command
+        PbNetworkInterfacesInfo network_interfaces_info = 10;
+        // The result of an MAPPING_INFO command
+        PbMappingInfo mapping_info = 11;
+        // The result of a RESERVED_IDS_INFO command
+        PbReservedIdsInfo reserved_ids_info = 12;
+        // The result of an OPERATION_INFO command
+        PbOperationInfo operation_info = 13;
+    }
+}
+
+// The piscsi server information. All data can also be requested with individual commands.
+message PbServerInfo {
+    // The piscsi server version data
+    PbVersionInfo version_info = 1;
+    // The available log levels and the current log level
+    PbLogLevelInfo log_level_info = 2;
+    // Supported device types and their properties
+    PbDeviceTypesInfo device_types_info = 3;
+    // The image files in the default folder
+    PbImageFilesInfo image_files_info = 4;
+    // The available (up) network interfaces
+    PbNetworkInterfacesInfo network_interfaces_info = 5;
+    // The extensions to device types mapping
+    PbMappingInfo mapping_info = 6;
+    // The reserved device IDs
+    PbReservedIdsInfo reserved_ids_info = 7;
+    // The attached devices
+    PbDevicesInfo devices_info = 8;
+    // The operation meta data
+    PbOperationInfo operation_info = 9;
+}

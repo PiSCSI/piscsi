@@ -100,11 +100,11 @@ while [ "$1" != "" ]; do
     -P | --password)
         ARG_PASSWORD="--password $VALUE"
         ;;
-    -h | --rascsi-host)
-        ARG_RASCSI_HOST="--rascsi-host $VALUE"
+    -h | --backend-host)
+        ARG_BACKEND_HOST="--backend-host $VALUE"
         ;;
-    -o | --rascsi-port)
-        ARG_RASCSI_PORT="--rascsi-port $VALUE"
+    -o | --backend-port)
+        ARG_BACKEND_PORT="--backend-port $VALUE"
         ;;
     -l | --log-level)
         ARG_LOG_LEVEL="--log-level $VALUE"
@@ -121,13 +121,14 @@ while [ "$1" != "" ]; do
 done
 
 PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
-echo "Starting web server for RaSCSI Web Interface..."
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
-cd src
+cd src || exit 1
 
 if [[ $ARG_DEV_MODE ]]; then
+    echo "Starting PiSCSI Web UI (dev mode) ..."
     watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
-    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_BACKEND_HOST} ${ARG_BACKEND_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 else
-    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+    echo "Starting PiSCSI Web UI ..."
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_BACKEND_HOST} ${ARG_BACKEND_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
 fi

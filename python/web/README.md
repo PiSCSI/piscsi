@@ -1,4 +1,4 @@
-# RaSCSI Web
+# PiSCSI Web
 
 ## Setup local dev env
 
@@ -18,16 +18,16 @@ $ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd python/web && PYTHON_COMMO
 ### Mocks for local development
 
 You may edit the files under `mock/bin` to simulate Linux command responses.
-TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
+TODO:  piscsi-web uses protobuf commands to send and receive data from piscsi.
 A separate mocking solution will be needed for this interface.
 
 ## (Optional) Pushing to the Pi via git
 
 This is a setup for pushing code changes from your local development environment to the Raspberry Pi without a roundtrip to the remote GitHub repository.
 
-Setup a bare repo on the rascsi
+Setup a bare repo on the piscsi
 ```
-$ ssh pi@rascsi
+$ ssh pi@piscsi
 $ mkdir /home/pi/dev.git && cd /home/pi/dev.git
 $ git --bare init
 Initialized empty Git repository in /home/pi/dev.git
@@ -35,8 +35,8 @@ Initialized empty Git repository in /home/pi/dev.git
 
 Locally
 ```
-$ cd ~/source/RASCSI
-$ git remote add pi ssh://pi@rascsi/home/pi/dev.git
+$ cd ~/source/PISCSI
+$ git remote add pi ssh://pi@piscsi/home/pi/dev.git
 $ git push pi master
 ```
 
@@ -54,15 +54,15 @@ $ pybabel --help
 ```
 
 To create a new localization, it needs to be added to the LANGAUGES constant in
-web/settings.py. To localize messages coming from the RaSCSI backend, update also code in
-raspberrypi/localizer.cpp in the RaSCSI C++ code.
+web/settings.py. To localize messages coming from the PiSCSI backend, update also code in
+raspberrypi/localizer.cpp in the PiSCSI C++ code.
 
 Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://python-babel.github.io/flask-babel/index.html#translating-applications).
 
 First, generate the raw messages.pot file containing extracted strings.
 
 ```
-$ pybabel extract -F babel.cfg -o messages.pot .
+$ pybabel extract -F babel.cfg -o messages.pot src
 ```
 
 ### Initialize a new localization
@@ -73,12 +73,14 @@ When adding a localization for a new language, initialize the directory structur
 $ pybabel init -i messages.pot -d src/translations -l xx
 ```
 
-### Update an existing loclization
+### Update an existing localization
+
+Tip: Use the script **translation_update.sh** in this dir to automatically extract strings, update existing localizations, and print translation statistics.
 
 After strings have been added or changed in the code, update the existing localizations.
 
 ```
-pybabel update -i messages.pot -d src/translations
+$ pybabel update -i messages.pot -d src/translations
 ```
 
 Then edit the updated messages.po file for your language. Make sure to update fuzzy strings and translate new ones.
@@ -118,7 +120,7 @@ msgstr ""
 
 ### Contributing to the project
 
-New or updated localizations are treated just like any other code change. See the [project README](https://github.com/akuker/RASCSI/tree/rdmark-readme-contributions#how-do-i-contribute) for further information.
+New or updated localizations are treated just like any other code change. See the [project README](https://github.com/PiSCSI/piscsi/tree/master#how-do-i-contribute) for further information.
 
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.

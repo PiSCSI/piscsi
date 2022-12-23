@@ -17,6 +17,7 @@ class Transition:
 
 class PushTransition(Transition):
     """Class implementing a push left/right transition."""
+
     PUSH_LEFT_TRANSITION = "push_left"
     PUSH_RIGHT_TRANSITION = "push_right"
 
@@ -32,7 +33,7 @@ class PushTransition(Transition):
         if transition_attributes is not None and transition_attributes != {}:
             direction = transition_attributes["direction"]
 
-        transition_image = Image.new('1', (self.disp.width, self.disp.height))
+        transition_image = Image.new("1", (self.disp.width, self.disp.height))
 
         if direction == PushTransition.PUSH_LEFT_TRANSITION:
             self.perform_push_left(end_image, start_image, transition_image)
@@ -57,8 +58,8 @@ class PushTransition(Transition):
         """Implements a push right transition. Is called by perform depending on the transition
         attribute 'direction'."""
         for x_pos in range(0, 128, self.transition_attributes["transition_speed"]):
-            left_region = start_image.crop((0, 0, 128-x_pos, 64))
-            right_region = end_image.crop((128-x_pos, 0, 128, 64))
+            left_region = start_image.crop((0, 0, 128 - x_pos, 64))
+            right_region = end_image.crop((128 - x_pos, 0, 128, 64))
             transition_image.paste(left_region, (x_pos, 0, 128, 64))
             transition_image.paste(right_region, (0, 0, x_pos, 64))
             self.disp.display(transition_image)

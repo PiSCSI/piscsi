@@ -4,31 +4,27 @@ Utility module for running system commands with basic logging
 
 import asyncio
 import logging
-import os
 
 
 def run(program, args=None):
-    """ Run a command and return its output """
+    """Run a command and return its output"""
     return asyncio.run(run_async(program, args))
 
 
 async def run_async(program, args=None):
-    """ Run a command in the background """
+    """Run a command in the background"""
     proc = await asyncio.create_subprocess_exec(
-        program,
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-        )
+        program, *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
 
     stdout, stderr = await proc.communicate()
 
     logging.info(
-        "Executed command \"%s %s\" with status code %d",
+        'Executed command "%s %s" with status code %d',
         program,
         " ".join(args),
-        proc.returncode
-        )
+        proc.returncode,
+    )
 
     if stdout:
         stdout = stdout.decode()
@@ -42,4 +38,4 @@ async def run_async(program, args=None):
         "returncode": proc.returncode,
         "stdout": stdout,
         "stderr": stderr,
-        }
+    }

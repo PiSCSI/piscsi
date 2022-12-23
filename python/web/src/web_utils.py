@@ -1,17 +1,19 @@
 """
-Module for RaSCSI Web Interface utility methods
+Module for PiSCSI Web Interface utility methods
 """
 
 import logging
 from grp import getgrall
 from os import path
 from pathlib import Path
+from ua_parser import user_agent_parser
 
 from flask import request, make_response
 from flask_babel import _
 from werkzeug.utils import secure_filename
 
-from rascsi.sys_cmds import SysCmds
+from piscsi.sys_cmds import SysCmds
+
 
 def get_valid_scsi_ids(devices, reserved_ids):
     """
@@ -42,7 +44,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
         "valid_ids": valid_ids,
         "occupied_ids": occupied_ids,
         "recommended_id": recommended_id,
-        }
+    }
 
 
 def sort_and_format_devices(devices):
@@ -77,7 +79,7 @@ def sort_and_format_devices(devices):
 
 def map_device_types_and_names(device_types):
     """
-    Takes a (dict) corresponding to the data structure returned by RaCtlCmds.get_device_types()
+    Takes a (dict) corresponding to the data structure returned by PiscsiCmds.get_device_types()
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
     for device in device_types.keys():
@@ -153,29 +155,25 @@ def format_drive_properties(drive_properties):
     cd_conf = []
     rm_conf = []
     mo_conf = []
-    FORMAT_FILTER = "{:,.2f}"
 
     for device in drive_properties:
-        # Add fallback device names, since other code relies on this data for display
-        if not device["name"]:
-            if device["product"]:
-                device["name"] = device["product"]
-            else:
-                device["name"] = "Unknown Device"
+        # Fallback for when the properties data is corrupted, to avoid crashing the web app.
+        # The integration tests will catch this scenario, but relies on the web app not crashing.
+        if not device.get("name"):
+            device["name"] = ""
+
+        device["secure_name"] = secure_filename(device["name"])
+
+        if device.get("size"):
+            device["size_mb"] = f'{device["size"] / 1024 / 1024:,.2f}'
+
         if device["device_type"] == "SCHD":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             hd_conf.append(device)
         elif device["device_type"] == "SCCD":
-            device["size_mb"] = _("N/A")
             cd_conf.append(device)
         elif device["device_type"] == "SCRM":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
         elif device["device_type"] == "SCMO":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = FORMAT_FILTER.format(device["size"] / 1024 / 1024)
             mo_conf.append(device)
 
     return {
@@ -183,7 +181,8 @@ def format_drive_properties(drive_properties):
         "cd_conf": cd_conf,
         "rm_conf": rm_conf,
         "mo_conf": mo_conf,
-        }
+    }
+
 
 def get_properties_by_drive_name(drives, drive_name):
     """
@@ -192,33 +191,20 @@ def get_properties_by_drive_name(drives, drive_name):
     """
     drives.sort(key=lambda item: item.get("name"))
 
-    drive_props = None
-    prev_drive = {"name": ""}
     for drive in drives:
-        # TODO: Make this check into an integration test
-        if "name" not in drive:
-            logging.warning(
-                "Device without a name exists in the drive properties database. This is a bug."
-                )
-            break
-        # TODO: Make this check into an integration test
-        if drive["name"] == prev_drive["name"]:
-            logging.warning(
-                "Device with duplicate name \"%s\" in drive properties database. This is a bug.",
-                drive["name"],
-                )
-        prev_drive = drive
         if drive["name"] == drive_name:
-            drive_props = drive
+            return {
+                "file_type": drive["file_type"],
+                "vendor": drive["vendor"],
+                "product": drive["product"],
+                "revision": drive["revision"],
+                "block_size": drive["block_size"],
+                "size": drive["size"],
+            }
 
-    return {
-        "file_type": drive_props["file_type"],
-        "vendor": drive_props["vendor"],
-        "product": drive_props["product"],
-        "revision": drive_props["revision"],
-        "block_size": drive_props["block_size"],
-        "size": drive_props["size"],
-        }
+    logging.error("Properties for drive '%s' does not exist in database", drive_name)
+    return False
+
 
 def auth_active(group):
     """
@@ -229,9 +215,9 @@ def auth_active(group):
     groups = [g.gr_name for g in getgrall()]
     if group in groups:
         return {
-                "status": True,
-                "msg": _("You must log in to use this function"),
-                }
+            "status": True,
+            "msg": _("You must log in to use this function"),
+        }
     return {"status": False, "msg": ""}
 
 
@@ -240,29 +226,43 @@ def is_bridge_configured(interface):
     Takes (str) interface of a network device being attached.
     Returns a (dict) with (bool) status and (str) msg
     """
-    # TODO: Reduce the nesting of these checks, and streamline how the results are notified
-    status = True
-    return_msg = ""
+    PATH_SYSCTL = "/etc/sysctl.conf"
+    PATH_IPTV4 = "/etc/iptables/rules.v4"
+    PATH_DHCPCD = "/etc/dhcpcd.conf"
+    PATH_BRIDGE = "/etc/network/interfaces.d/piscsi_bridge"
+    return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
+    to_configure = []
     sys_cmd = SysCmds()
     if interface.startswith("wlan"):
-        if not sys_cmd.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            status = False
-            return_msg = _("Configure IPv4 forwarding before using a wireless network device.")
-        elif not Path("/etc/iptables/rules.v4").is_file():
-            status = False
-            return_msg = _("Configure NAT before using a wireless network device.")
+        if not sys_cmd.introspect_file(PATH_SYSCTL, r"^net\.ipv4\.ip_forward=1$"):
+            to_configure.append("IPv4 forwarding")
+        if not Path(PATH_IPTV4).is_file():
+            to_configure.append("NAT")
     else:
-        if not sys_cmd.introspect_file(
-                "/etc/dhcpcd.conf",
-                r"^denyinterfaces " + interface + r"$",
-                ):
-            status = False
-            return_msg = _("Configure the network bridge before using a wired network device.")
-        elif not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            status = False
-            return_msg = _("Configure the network bridge before using a wired network device.")
+        if not sys_cmd.introspect_file(PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"):
+            to_configure.append(PATH_DHCPCD)
+        if not Path(PATH_BRIDGE).is_file():
+            to_configure.append(PATH_BRIDGE)
 
-    return {"status": status, "msg": return_msg + f" ({interface})"}
+    if to_configure:
+        return {"status": False, "msg": return_msg + ", ".join(to_configure)}
+
+    return {"status": True, "msg": ""}
+
+
+def is_safe_path(file_name):
+    """
+    Takes (Path) file_name with the path to a file on the file system
+    Returns True if the path is safe
+    Returns False if the path is either absolute, or tries to traverse the file system
+    """
+    if file_name.is_absolute() or ".." in str(file_name):
+        return {
+            "status": False,
+            "msg": _("%(file_name)s is not a valid path", file_name=file_name),
+        }
+
+    return {"status": True, "msg": ""}
 
 
 def upload_with_dropzonejs(image_dir):
@@ -275,7 +275,7 @@ def upload_with_dropzonejs(image_dir):
     file_name = secure_filename(file_object.filename)
 
     save_path = path.join(image_dir, file_name)
-    current_chunk = int(request.form['dzchunkindex'])
+    current_chunk = int(request.form["dzchunkindex"])
 
     # Makes sure not to overwrite an existing file,
     # but continues writing to a file transfer in progress
@@ -299,3 +299,42 @@ def upload_with_dropzonejs(image_dir):
             return make_response(_("Transferred file corrupted!"), 500)
 
     return make_response(_("File upload successful!"), 200)
+
+
+def browser_supports_modern_themes():
+    """
+    Determines if the browser supports the HTML/CSS/JS features used in non-legacy themes.
+    """
+    user_agent_string = request.headers.get("User-Agent")
+    if not user_agent_string:
+        return False
+
+    user_agent = user_agent_parser.Parse(user_agent_string)
+    if not user_agent["user_agent"]["family"]:
+        return False
+
+    # (family, minimum version)
+    supported_browsers = [
+        ("Safari", 14),
+        ("Chrome", 100),
+        ("Firefox", 100),
+        ("Edge", 100),
+        ("Mobile Safari", 14),
+        ("Chrome Mobile", 100),
+    ]
+
+    current_ua_family = user_agent["user_agent"]["family"]
+    current_ua_version = user_agent["user_agent"]["major"]
+    logging.info(f"Identified browser as family={current_ua_family}, version={current_ua_version}")
+
+    # Supported browsers cannot be identified without a version
+    if not current_ua_version:
+        return False
+
+    for supported_browser, supported_version in supported_browsers:
+        if (
+            current_ua_family == supported_browser
+            and float(current_ua_version) >= supported_version
+        ):
+            return True
+    return False

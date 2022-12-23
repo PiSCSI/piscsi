@@ -39,6 +39,19 @@ def test_show_named_drive_presets(http_client):
     response = http_client.get("/drive/list")
     response_data = response.json()
 
+    prev_drive = {"name": ""}
+    for drive in (
+        response_data["data"]["drive_properties"]["hd_conf"]
+        + response_data["data"]["drive_properties"]["cd_conf"]
+        + response_data["data"]["drive_properties"]["rm_conf"]
+        + response_data["data"]["drive_properties"]["mo_conf"]
+    ):
+        # Test that the named drive has a name
+        assert drive["name"] != ""
+        # Test that "name" is unique for each named drive
+        assert drive["name"] != prev_drive["name"]
+        prev_drive = drive
+
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert "files" in response_data["data"]
@@ -83,7 +96,10 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == f"Image file created: {file_name}"
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
 
     # Cleanup
     delete_file(file_name)
@@ -91,8 +107,14 @@ def test_create_image_with_properties_file(http_client, delete_file):
 
 # route("/sys/manpage", methods=["POST"])
 def test_show_manpage(http_client):
-    response = http_client.get("/sys/manpage?app=rascsi")
+    response = http_client.get("/sys/manpage?app=piscsi")
     response_data = response.json()
 
     assert response.status_code == 200
-    assert "rascsi" in response_data["data"]["manpage"]
+    assert "piscsi" in response_data["data"]["manpage"]
+
+
+# route("/healthcheck", methods=["GET"])
+def test_healthcheck(http_client):
+    response = http_client.get("/healthcheck")
+    assert response.status_code == 200

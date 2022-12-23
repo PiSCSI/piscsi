@@ -1,0 +1,130 @@
+name: Web Tests/Analysis
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'python/web/**'
+      - 'python/common/**'
+      - '.github/workflows/web.yml'
+      - 'easyinstall.sh'
+
+jobs:
+  backend_checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.7.15
+          cache: 'pip'
+
+      - run: pip install -r web/requirements-dev.txt
+        id: pip
+
+      - run: black --check .
+
+      - run: flake8 .
+        if: success() || failure() && steps.pip.outcome == 'success'
+
+  backend_tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docker
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check DockerHub for existing backend image
+        run: |
+          export DOCKER_BACKEND_IMAGE="piscsi/backend-standalone:`git ls-files -s python .github/workflows/web.yml | git hash-object --stdin`"
+          echo "DOCKER_BACKEND_IMAGE=${DOCKER_BACKEND_IMAGE}" >> $GITHUB_ENV
+          docker pull --quiet ${DOCKER_BACKEND_IMAGE} || echo "DOCKER_BACKEND_NEEDS_PUSH=1" >> $GITHUB_ENV
+
+      - name: Build and launch containers
+        run: docker compose -f docker-compose.ci.yml up -d
+
+      - name: Run test suite
+        run: docker compose -f docker-compose.ci.yml run pytest -v
+
+      - name: Check if DockerHub secrets defined
+        run: if [[ $DOCKERHUB_USERNAME && $DOCKERHUB_TOKEN ]]; then echo "DOCKERHUB_SECRETS_DEFINED=1" >> $GITHUB_ENV; fi
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        if: env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push backend image to DockerHub
+        if: (success() || failure()) && env.DOCKERHUB_SECRETS_DEFINED && env.DOCKER_BACKEND_NEEDS_PUSH
+        run: docker compose -f docker-compose.ci.yml push backend
+
+      - name: Upload test artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pytest-output.zip
+          path: |
+            docker/volumes/pytest/report.xml
+            docker/volumes/pytest/pytest.log
+
+      - name: Output container logs
+        if: success() || failure()
+        run: |
+          docker compose -f docker-compose.ci.yml logs backend > backend.log
+          docker compose -f docker-compose.ci.yml logs web > web.log
+          docker compose -f docker-compose.ci.yml logs -t | sort -u -k 3 > combined.log
+
+      - name: Upload backend log
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend.log
+          path: docker/backend.log
+
+      - name: Upload web log
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: web.log
+          path: docker/web.log
+
+      - name: Upload combined log
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: combined.log
+          path: docker/combined.log
+
+  frontend_checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python/web
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        cache-dependency-path: python/web/package-lock.json
+
+    - run: npm ci
+      id: npm
+
+    - name: Stylelint
+      run: npx stylelint src/static/themes/modern/style.css
+
+    - name: Prettier
+      run: npx prettier --check src/static/themes/modern/style.css
+      if: success() || failure() && steps.npm.outcome == 'success'

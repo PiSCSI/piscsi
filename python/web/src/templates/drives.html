@@ -2,7 +2,7 @@
 
 {% block content %}
 <h2>{{ _("Disclaimer") }}</h2>
-<p>{{ _("These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>.", url="https://github.com/akuker/RASCSI/issues") }}</p>
+<p>{{ _("These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>.", url="https://github.com/PiSCSI/piscsi/issues") }}</p>
 <h2>{{ _("Hard Disk Drives") }}</h2>
 
 <table cellpadding="3" border="black" summary="List of hard drives">
@@ -13,7 +13,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for hd in env['drive_properties']['hd_conf']|sort(attribute='name') %}
+{% for hd in drive_properties['hd_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if hd.url != "" %}
@@ -48,7 +48,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for cd in env['drive_properties']['cd_conf']|sort(attribute='name') %}
+{% for cd in drive_properties['cd_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if cd.url != "" %}
@@ -88,7 +88,7 @@
     <th scope="col">{{ _("Description") }}</th>
     <th scope="col">{{ _("Action") }}</th>
 </tr>
-{% for rm in env['drive_properties']['rm_conf']|sort(attribute='name') %}
+{% for rm in drive_properties['rm_conf']|sort(attribute='name') %}
 <tr>
     <td align="center">
         {% if rm.url != "" %}
@@ -112,6 +112,6 @@
 </tbody>
 </table>
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the Pi", disk_space=env["free_disk_space"]) }}</small></p>
-<p><a href="/">{{ _("Go to Home") }}</a></p>
+<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
 
 {% endblock content %}

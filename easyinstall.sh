@@ -4,7 +4,7 @@
 # Author @sonique6784
 # Copyright (c) 2020, sonique6784
 
-function showRaSCSILogo(){
+function showPiSCSILogo(){
 logo="""
     .~~.   .~~.\n
   '. \ ' ' / .'\n
@@ -13,7 +13,7 @@ logo="""
  ~ (║|_____|║) ~\n
 ( : ║ .  __ ║ : )\n
  ~ .╚╦═════╦╝. ~\n
-  (  ¯¯¯¯¯¯¯  ) RaSCSI Reloaded Assistant\n
+  (  ¯¯¯¯¯¯¯  ) PiSCSI Assistant\n
    '~ .~~~. ~'\n
        '~'\n
 """
@@ -46,10 +46,16 @@ logo="""
 echo -e $logo
 }
 
+CONNECT_TYPE="FULLSPEC"
+# clang v11 is the latest distributed by Buster
+COMPILER="clang++-11"
+# Takes half of the CPU cores available, to avoid running out of memory on low spec devices
+CORES=$(awk 'BEGIN { x = '$(nproc)'; y = 2; print (x / y) }' | numfmt --round=up --format=%.0f)
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
+CPP_PATH="$BASE/cpp"
 VIRTUAL_DRIVER_PATH="$HOME/images"
-CFG_PATH="$HOME/.config/rascsi"
+CFG_PATH="$HOME/.config/piscsi"
 WEB_INSTALL_PATH="$BASE/python/web"
 OLED_INSTALL_PATH="$BASE/python/oled"
 CTRLBOARD_INSTALL_PATH="$BASE/python/ctrlboard"
@@ -57,13 +63,19 @@ PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 SSL_CERTS_PATH="/etc/ssl/certs"
 SSL_KEYS_PATH="/etc/ssl/private"
-HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
-LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 TOKEN=""
-SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+AUTH_GROUP="piscsi"
+SECRET_FILE="$HOME/.config/piscsi/secret"
+FILE_SHARE_PATH="$HOME/shared_files"
+FILE_SHARE_NAME="Pi File Server"
+
+APT_PACKAGES_COMMON="build-essential git protobuf-compiler bridge-utils"
+APT_PACKAGES_BACKEND="libspdlog-dev libpcap-dev libprotobuf-dev protobuf-compiler libgmock-dev clang-11"
+APT_PACKAGES_PYTHON="python3 python3-dev python3-pip python3-venv python3-setuptools python3-wheel libev-dev libevdev2"
+APT_PACKAGES_WEB="nginx-light genisoimage man2html hfsutils dosfstools kpartx unzip unar disktype gettext"
 
 set -e
 
@@ -77,133 +89,155 @@ function initialChecks() {
 
 # checks that the current user has sudoers privileges
 function sudoCheck() {
+    if [[ $HEADLESS ]]; then
+        echo "Skipping password check in headless mode"
+        return 0
+    fi
     echo "Input your password to allow this script to make the above changes."
     sudo -v
 }
 
-# install all dependency packages for RaSCSI Service
-function installPackages() {
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
-        build-essential \
-        git \
-        libspdlog-dev \
-        libpcap-dev \
-        libprotobuf-dev \
-        genisoimage \
-        python3 \
-        python3-dev \
-        python3-pip \
-        python3-venv \
-        python3-setuptools \
-        python3-wheel \
-        nginx-light \
-        protobuf-compiler \
-        bridge-utils \
-        libev-dev \
-        libevdev2 \
-        unzip \
-        unar \
-        disktype \
-        libgmock-dev \
-        man2html
+# Delete file if it exists
+function deleteFile() {
+    if sudo test -f "$1/$2"; then
+        sudo rm "$1/$2" || exit 1
+        echo "Deleted $1/$2"
+    fi
 }
 
-# install Debian packges for RaSCSI standalone
+# install all dependency packages for PiSCSI Service
+function installPackages() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_BACKEND \
+        $APT_PACKAGES_PYTHON \
+        $APT_PACKAGES_WEB
+}
+
+# install Debian packages for PiSCSI standalone
 function installPackagesStandalone() {
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
-        build-essential \
-        libspdlog-dev \
-        libpcap-dev \
-        libprotobuf-dev \
-        protobuf-compiler \
-        disktype \
-        libgmock-dev \
-        man2html
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_BACKEND
+}
+
+# install Debian packages for PiSCSI web UI standalone
+function installPackagesWeb() {
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+        return 0
+    fi
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes -qq \
+        $APT_PACKAGES_COMMON \
+        $APT_PACKAGES_PYTHON \
+        $APT_PACKAGES_WEB
 }
 
 # cache the pip packages
 function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
     sudo pip3 install -r ./requirements.txt
     popd
 }
 
-# compile the RaSCSI binaries
-function compileRaScsi() {
-    cd "$BASE/src/raspberrypi" || exit 1
+# compile the PiSCSI binaries
+function compilePiscsi() {
+    cd "$CPP_PATH" || exit 1
 
-    echo "Compiling with ${CORES:-1} simultaneous cores..."
-    make clean </dev/null
-
-    # Refresh the sudo authentication, which shouldn't trigger another password prompt
-    sudo -v
-    make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
-}
-
-function cleanupOutdatedManPage() {
-    OUTDATED_MAN_PAGE_DIR=/usr/share/man/man1/
-    if [ -f "${OUTDATED_MAN_PAGE_DIR}/$1" ]; then
-      sudo rm "${OUTDATED_MAN_PAGE_DIR}/$1"
+    echo "Compiling $CONNECT_TYPE with $COMPILER on $CORES simultaneous cores..."
+    if [[ $SKIP_MAKE_CLEAN ]]; then
+        echo "Skipping 'make clean'"
+    else
+        make clean </dev/null
     fi
+
+    make CXX="$COMPILER" CONNECT_TYPE="$CONNECT_TYPE" -j "$CORES" all </dev/null
 }
 
-# install the RaSCSI binaries and modify the service configuration
-function installRaScsi() {
-    # clean up outdated man pages if they exist
-    cleanupOutdatedManPage "rascsi.1"
-    cleanupOutdatedManPage "rasctl.1"
-    cleanupOutdatedManPage "scsimon.1"
-    cleanupOutdatedManPage "rasdump.1"
-    cleanupOutdatedManPage "sasidump.1"
+# install the PiSCSI binaries and modify the service configuration
+function installPiscsi() {
+    OUTDATED_MAN_PAGE_DIR="/usr/share/man/man1"
+    CURRENT_MAN_PAGE_DIR="/usr/local/man/man1"
+    CURRENT_BIN_DIR="/usr/local/bin"
+    # clean up outdated binaries and man pages if they exist
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rascsi.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasctl.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "scsimon.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "rasdump.1"
+    deleteFile "$OUTDATED_MAN_PAGE_DIR" "sasidump.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rascsi.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasctl.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "rasdump.1"
+    deleteFile "$CURRENT_MAN_PAGE_DIR" "sasidump.1"
+    deleteFile "$CURRENT_BIN_DIR" "rascsi"
+    deleteFile "$CURRENT_BIN_DIR" "rasctl"
+    deleteFile "$CURRENT_BIN_DIR" "rasdump"
+    deleteFile "$CURRENT_BIN_DIR" "sasidump"
+
     # install
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+    sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+
+    # update launch parameters
+    if [[ -f $SECRET_FILE ]]; then
+        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
+        echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
+    else
+        sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/piscsi.service"
+    fi
+    echo "Configured piscsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 }
 
+# Prepare shared Python code
 function preparePythonCommon() {
-    if [ -f "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    fi
-    if [ -f "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-    fi
-    if [ -f "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library $PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
-    fi
-    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto
+    PISCSI_PYTHON_PROTO="piscsi_interface_pb2.py"
+    deleteFile "$WEB_INSTALL_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$OLED_INSTALL_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$PYTHON_COMMON_PATH/src" "rascsi_interface_pb2.py"
+    deleteFile "$WEB_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
+    deleteFile "$OLED_INSTALL_PATH/src" "$PISCSI_PYTHON_PROTO"
+    deleteFile "$PYTHON_COMMON_PATH/src" "$PISCSI_PYTHON_PROTO"
+
+    echo "Compiling the Python protobuf library $PISCSI_PYTHON_PROTO..."
+    protoc -I="$CPP_PATH" --python_out="$PYTHON_COMMON_PATH/src" piscsi_interface.proto
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
-function installRaScsiWebInterface() {
+function installPiscsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
 
-    if [ -f "$SSL_CERTS_PATH/rascsi-web.crt" ]; then
-        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt already exists."
+    deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
+    deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
+
+    if [ -f "$SSL_CERTS_PATH/piscsi-web.crt" ]; then
+        echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt already exists."
     else
-        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt does not exist; creating self-signed certificate..."
+        echo "SSL certificate $SSL_CERTS_PATH/piscsi-web.crt does not exist; creating self-signed certificate..."
         sudo mkdir -p "$SSL_CERTS_PATH" || true
         sudo mkdir -p "$SSL_KEYS_PATH" || true
         sudo openssl req -x509 -nodes -sha256 -days 3650 \
             -newkey rsa:4096 \
-            -keyout "$SSL_KEYS_PATH/rascsi-web.key" \
-            -out "$SSL_CERTS_PATH/rascsi-web.crt" \
-            -subj '/CN=rascsi' \
-            -addext 'subjectAltName=DNS:rascsi' \
+            -keyout "$SSL_KEYS_PATH/piscsi-web.key" \
+            -out "$SSL_CERTS_PATH/piscsi-web.crt" \
+            -subj '/CN=piscsi' \
+            -addext 'subjectAltName=DNS:piscsi' \
             -addext 'extendedKeyUsage=serverAuth'
     fi
 
     sudo systemctl reload nginx || true
 }
 
-# Creates the dir that RaSCSI uses to store image files
+# Creates the dir that PiSCSI uses to store image files
 function createImagesDir() {
     if [ -d "$VIRTUAL_DRIVER_PATH" ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
@@ -216,7 +250,10 @@ function createImagesDir() {
 
 # Creates the dir that the Web Interface uses to store configuration files
 function createCfgDir() {
-    if [ -d "$CFG_PATH" ]; then
+    if [ -d "$HOME/.config/rascsi" ]; then
+        sudo mv "$HOME/.config/rascsi" "$CFG_PATH"
+        echo "Renamed the rascsi config dir as $CFG_PATH."
+    elif [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."
@@ -225,20 +262,8 @@ function createCfgDir() {
     fi
 }
 
-# Stops the rascsi-web and apache2 processes
-function stopOldWebInterface() {
-    stopRaScsiWeb
-
-    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
-    if [ "$APACHE_STATUS" -eq 0 ] ; then
-        echo "Stopping old Apache2 RaSCSI Web..."
-        sudo systemctl disable apache2
-        sudo systemctl stop apache2
-    fi
-}
-
 # Checks for upstream changes to the git repo and fast-forwards changes if needed
-function updateRaScsiGit() {
+function updatePiscsiGit() {
     cd "$BASE" || exit 1
 
     set +e
@@ -251,8 +276,8 @@ function updateRaScsiGit() {
 
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
-        echo "There are local changes to the RaSCSI code; we will stash and reapply them."
-        git -c user.name="${GIT_COMMITTER_NAME-rascsi}" -c user.email="${GIT_COMMITTER_EMAIL-rascsi@rascsi.com}" stash
+        echo "There are local changes to the PiSCSI code; we will stash and reapply them."
+        git -c user.name="${GIT_COMMITTER_NAME-piscsi}" -c user.email="${GIT_COMMITTER_EMAIL-piscsi@piscsi.com}" stash
         stashed=1
     fi
 
@@ -269,269 +294,228 @@ function updateRaScsiGit() {
     fi
 }
 
-# Takes a backup copy of the rascsi.service file if it exists
-function backupRaScsiService() {
-    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
-        sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/rascsi.service.old"
+# Takes a backup copy of the piscsi.service file if it exists
+function backupPiscsiService() {
+    if [ -f "$SYSTEMD_PATH/piscsi.service" ]; then
+        sudo mv "$SYSTEMD_PATH/piscsi.service" "$SYSTEMD_PATH/piscsi.service.old"
         SYSTEMD_BACKUP=true
-        echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+        echo "Existing version of piscsi.service detected; Backing up to piscsi.service.old"
     else
         SYSTEMD_BACKUP=false
     fi
 }
 
-# Offers the choice of enabling token-based authentication for RaSCSI
+# Offers the choice of enabling token-based authentication for PiSCSI, or disables it if enabled
 function configureTokenAuth() {
     if [[ -f "$HOME/.rascsi_secret" ]]; then
-        sudo rm "$HOME/.rascsi_secret"
-        echo "Removed (legacy) RaSCSI token file"
+        sudo mv "$HOME/.rascsi_secret" "$SECRET_FILE"
+        echo "Renamed legacy RaSCSI token file for use with PiSCSI"
+        return
+    fi
+
+    if [[ -f "$CFG_PATH/rascsi_secret" ]]; then
+        sudo mv "$CFG_PATH/rascsi_secret" "$SECRET_FILE"
+        echo "Renamed legacy RaSCSI token file for use with PiSCSI"
+        return
     fi
 
     if [[ -f $SECRET_FILE ]]; then
         sudo rm "$SECRET_FILE"
-        echo "Removed RaSCSI token file"
-    fi
-
-    if [[ $SKIP_TOKEN ]]; then
-        echo "Skipping RaSCSI token setup"
-        return 0
-    fi
-
-    if [[ -z $TOKEN ]]; then
-        echo ""
-        echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
+        echo "PiSCSI token file $SECRET_FILE already exists. Do you want to disable authentication? (y/N)"
         read REPLY
 
-        if ! [[ $REPLY =~ ^[Yy]$ ]]; then
-            return 0
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo sed -i 's@-P '"$SECRET_FILE"'@@' "$SYSTEMD_PATH/piscsi.service"
+            return
         fi
-
-        echo -n "Enter the password that you want to use: "
-        read -r TOKEN
     fi
+
+    echo -n "Enter the token password for protecting PiSCSI: "
+    read -r TOKEN
 
     echo "$TOKEN" > "$SECRET_FILE"
 
 	# Make the secret file owned and only readable by root
     sudo chown root:root "$SECRET_FILE"
     sudo chmod 600 "$SECRET_FILE"
+
+    sudo sed -i "s@^ExecStart.*@& -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
+
     echo ""
-    echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
-    echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
+    echo "Configured PiSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
+    echo "Make note of your password: you will need it to use scsictl and other PiSCSI clients."
+    echo "If you have PiSCSI clients installed, please re-run the installation scripts, or update the systemd config manually."
 }
 
-# Modifies and installs the rascsi service
-function enableRaScsiService() {
-    if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/rascsi.service"
-    else
-        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
-    fi
-    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
-
+# Enables and starts the piscsi service
+function enablePiscsiService() {
     sudo systemctl daemon-reload
     sudo systemctl restart rsyslog
-    sudo systemctl enable rascsi # optional - start rascsi at boot
-    sudo systemctl start rascsi
+    sudo systemctl enable piscsi # start piscsi at boot
+    sudo systemctl start piscsi
 
 }
 
-# Modifies and installs the rascsi-web service
+# Modifies and installs the piscsi-web service
 function installWebInterfaceService() {
-    echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$WEB_INSTALL_PATH/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
-    echo "$TOKEN"
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
+    echo "Installing the piscsi-web.service configuration..."
+    sudo cp -f "$WEB_INSTALL_PATH/service-infra/piscsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-web.service"
+
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/piscsi-web.service"
 	# Make the service file readable by root only, to protect the token string
-        sudo chmod 600 "$SYSTEMD_PATH/rascsi-web.service"
-        echo "Granted access to the Web Interface with the token password that you configured for RaSCSI."
+        sudo chmod 600 "$SYSTEMD_PATH/piscsi-web.service"
+        echo "Granted access to the Web Interface with the token password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/piscsi-web.service"
     fi
 
     sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-web
-    sudo systemctl start rascsi-web
+    sudo systemctl enable piscsi-web
+    sudo systemctl start piscsi-web
 }
 
-# Stops the rascsi service if it is running
-function stopRaScsi() {
+# Checks for and disables legacy systemd services
+function migrateLegacyData() {
     if [[ -f "$SYSTEMD_PATH/rascsi.service" ]]; then
-        SERVICE_RASCSI_RUNNING=0
-        sudo systemctl is-active --quiet rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_RUNNING=$?
-        if [[ $SERVICE_RASCSI_RUNNING -eq 0 ]]; then
-            sudo systemctl stop rascsi.service
-        fi
+        stopService "rascsi"
+        disableService "rascsi"
+        sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/piscsi.service"
+        echo "Renamed rascsi.service to piscsi.service"
     fi
-}
-
-# Stops the rascsi-web service if it is running
-function stopRaScsiWeb() {
     if [[ -f "$SYSTEMD_PATH/rascsi-web.service" ]]; then
-        SERVICE_RASCSI_WEB_RUNNING=0
-        sudo systemctl is-active --quiet rascsi-web.service >/dev/null 2>&1 || SERVICE_RASCSI_WEB_RUNNING=$?
-        if [[ $SERVICE_RASCSI_WEB_RUNNING -eq 0 ]]; then
-            sudo systemctl stop rascsi-web.service
-        fi
-    fi
-}
-
-# Stops the rascsi-oled service if it is running
-function stopRaScsiScreen() {
-    if [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
-        SERVICE_MONITOR_RASCSI_RUNNING=0
-        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_RUNNING=$?
-        if [[ $SERVICE_MONITOR_RASCSI_RUNNING -eq 0 ]]; then
-          sudo systemctl stop monitor_rascsi.service
-        fi
+        stopService "rascsi-web"
+        disableService "rascsi-web"
+        sudo mv "$SYSTEMD_PATH/rascsi-web.service" "$SYSTEMD_PATH/piscsi-web.service"
+        echo "Renamed rascsi-web.service to piscsi-web.service"
     fi
     if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
-        SERVICE_RASCSI_OLED_RUNNING=0
-        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
-        if  [[ $SERVICE_RASCSI_OLED_RUNNING -eq 0 ]]; then
-          sudo systemctl stop rascsi-oled.service
-        fi
-    fi
-}
-
-# Stops the rascsi-ctrlboard service if it is running
-function stopRaScsiCtrlBoard() {
-    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
-        SERVICE_RASCSI_CTRLBOARD_RUNNING=0
-        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
-        if  [[ SERVICE_RASCSI_CTRLBOARD_RUNNING -eq 0 ]]; then
-          sudo systemctl stop rascsi-ctrlboard.service
-        fi
-    fi
-}
-
-# disables and removes the old monitor_rascsi service
-function disableOldRaScsiMonitorService() {
-    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
-        SERVICE_MONITOR_RASCSI_RUNNING=0
-        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_RUNNING=$?
-        if [[ $SERVICE_MONITOR_RASCSI_RUNNING -eq 0 ]]; then
-          sudo systemctl stop monitor_rascsi.service
-        fi
-
-        SERVICE_MONITOR_RASCSI_ENABLED=0
-        sudo systemctl is-enabled --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_ENABLED=$?
-        if [[ $SERVICE_MONITOR_RASCSI_ENABLED -eq 0 ]]; then
-          sudo systemctl disable monitor_rascsi.service
-        fi
-        sudo rm $SYSTEMD_PATH/monitor_rascsi.service
-    fi
-}
-
-# disables the rascsi-oled service
-function disableRaScsiOledService() {
-    if [ -f "$SYSTEMD_PATH/rascsi-oled.service" ]; then
-        SERVICE_RASCSI_OLED_RUNNING=0
-        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
-        if [[ $SERVICE_RASCSI_OLED_RUNNING -eq 0 ]]; then
-          sudo systemctl stop rascsi-oled.service
-        fi
-
-        SERVICE_RASCSI_OLED_ENABLED=0
-        sudo systemctl is-enabled --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
-        if [[ $SERVICE_RASCSI_OLED_ENABLED -eq 0 ]]; then
-          sudo systemctl disable rascsi-oled.service
-        fi
-    fi
-}
-
-# disables the rascsi-ctrlboard service
-function disableRaScsiCtrlBoardService() {
-    if [ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]; then
-        SERVICE_RASCSI_CTRLBOARD_RUNNING=0
-        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
-        if [[ $SERVICE_RASCSI_CTRLBOARD_RUNNING -eq 0 ]]; then
-          sudo systemctl stop rascsi-ctrlboard.service
-        fi
-
-        SERVICE_RASCSI_CTRLBOARD_ENABLED=0
-        sudo systemctl is-enabled --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_ENABLED=$?
-        if [[ $SERVICE_RASCSI_CTRLBOARD_ENABLED -eq 0 ]]; then
-          sudo systemctl disable rascsi-ctrlboard.service
-        fi
-    fi
-}
-
-# Stops the macproxy service if it is running
-function stopMacproxy() {
-    if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
-        sudo systemctl stop macproxy.service
-    fi
-}
-
-# Checks whether the rascsi-oled service is installed
-function isRaScsiScreenInstalled() {
-    SERVICE_RASCSI_OLED_ENABLED=0
-    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
-        sudo systemctl is-enabled --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
+        stopService "rascsi-oled"
+        disableService "rascsi-oled"
+        sudo mv "$SYSTEMD_PATH/rascsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
+        echo "Renamed rascsi-oled.service to piscsi-oled.service"
     elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
-        sudo systemctl is-enabled --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
-    else
-        SERVICE_RASCSI_OLED_ENABLED=1
+        stopService "monitor_rascsi"
+        disableService "monitor_rascsi"
+        sudo mv "$SYSTEMD_PATH/monitor_rascsi.service" "$SYSTEMD_PATH/piscsi-oled.service"
+        echo "Renamed monitor_rascsi.service to piscsi-oled.service"
     fi
-
-    echo $SERVICE_RASCSI_OLED_ENABLED
-}
-
-# Checks whether the rascsi-ctrlboard service is installed
-function isRaScsiCtrlBoardInstalled() {
-    SERVICE_RASCSI_CTRLBOARD_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
-        sudo systemctl is-enabled --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_ENABLED=$?
+        stopService "rascsi-ctrlboard"
+        disableService "rascsi-ctrlboard"
+        sudo mv "$SYSTEMD_PATH/rascsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        echo "Renamed rascsi-ctrlboard.service to piscsi-ctrlboard.service"
+    fi
+    if [[ -f "/etc/rsyslog.d/rascsi.conf" ]]; then
+        sudo rm "/etc/rsyslog.d/rascsi.conf"
+        sudo cp "$CPP_PATH/os_integration/piscsi.conf" "/etc/rsyslog.d"
+        echo "Replaced rascsi.conf with piscsi.conf"
+    fi
+    if [[ -f "/etc/network/interfaces.d/rascsi_bridge" ]]; then
+        sudo rm "/etc/network/interfaces.d/rascsi_bridge"
+        sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
+        echo "Replaced rascsi_bridge with piscsi_bridge"
+    fi
+    if [[ $(getent group rascsi) && $(getent group "$AUTH_GROUP") ]]; then
+        sudo groupdel rascsi
+        echo "Deleted the rascsi group in favor of the existing piscsi group"
+    elif [ $(getent group rascsi) ]; then
+        sudo groupmod --new-name piscsi rascsi
+        echo "Renamed the rascsi group to piscsi"
+    fi
+}
+
+# Stops a service if it is running
+function stopService() {
+    if [[ -f "$SYSTEMD_PATH/$1.service" ]]; then
+        SERVICE_RUNNING=0
+        sudo systemctl is-active --quiet "$1.service" >/dev/null 2>&1 || SERVICE_RUNNING=$?
+        if [[ $SERVICE_RUNNING -eq 0 ]]; then
+            sudo systemctl stop "$1.service"
+        fi
+    fi
+}
+
+# disables a service if it is enabled
+function disableService() {
+    if [ -f "$SYSTEMD_PATH/$1.service" ]; then
+        SERVICE_ENABLED=0
+        sudo systemctl is-enabled --quiet "$1.service" >/dev/null 2>&1 || SERVICE_ENABLED=$?
+        if [[ $SERVICE_ENABLED -eq 0 ]]; then
+          sudo systemctl disable "$1.service"
+        fi
+    fi
+}
+
+# Checks whether the piscsi-oled service is installed
+function isPiscsiScreenInstalled() {
+    SERVICE_PISCSI_OLED_ENABLED=0
+    if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
+        sudo systemctl is-enabled --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_ENABLED=$?
     else
-        SERVICE_RASCSI_CTRLBOARD_ENABLED=1
+        SERVICE_PISCSI_OLED_ENABLED=1
     fi
 
-    echo $SERVICE_RASCSI_CTRLBOARD_ENABLED
+    echo $SERVICE_PISCSI_OLED_ENABLED
 }
 
-# Checks whether the rascsi-oled service is running
-function isRaScsiScreenRunning() {
-    SERVICE_RASCSI_OLED_RUNNING=0
-    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
-        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
-    elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
-        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+# Checks whether the piscsi-ctrlboard service is installed
+function isPiscsiCtrlBoardInstalled() {
+    SERVICE_PISCSI_CTRLBOARD_ENABLED=0
+    if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
+        sudo systemctl is-enabled --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_ENABLED=$?
     else
-        SERVICE_RASCSI_OLED_RUNNING=1
+        SERVICE_PISCSI_CTRLBOARD_ENABLED=1
     fi
 
-    echo $SERVICE_RASCSI_OLED_RUNNING
+    echo $SERVICE_PISCSI_CTRLBOARD_ENABLED
 }
 
-# Checks whether the rascsi-oled service is running
-function isRaScsiCtrlBoardRunning() {
-    SERVICE_RASCSI_CTRLBOARD_RUNNING=0
-    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
-        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
+# Checks whether the piscsi-oled service is running
+function isPiscsiScreenRunning() {
+    SERVICE_PISCSI_OLED_RUNNING=0
+    if [[ -f "$SYSTEMD_PATH/piscsi-oled.service" ]]; then
+        sudo systemctl is-active --quiet piscsi-oled.service >/dev/null 2>&1 || SERVICE_PISCSI_OLED_RUNNING=$?
     else
-        SERVICE_RASCSI_CTRLBOARD_RUNNING=1
+        SERVICE_PISCSI_OLED_RUNNING=1
     fi
 
-    echo $SERVICE_RASCSI_CTRLBOARD_RUNNING
+    echo $SERVICE_PISCSI_OLED_RUNNING
+}
+
+# Checks whether the piscsi-oled service is running
+function isPiscsiCtrlBoardRunning() {
+    SERVICE_PISCSI_CTRLBOARD_RUNNING=0
+    if [[ -f "$SYSTEMD_PATH/piscsi-ctrlboard.service" ]]; then
+        sudo systemctl is-active --quiet piscsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_PISCSI_CTRLBOARD_RUNNING=$?
+    else
+        SERVICE_PISCSI_CTRLBOARD_RUNNING=1
+    fi
+
+    echo $SERVICE_PISCSI_CTRLBOARD_RUNNING
 }
 
 
-# Starts the rascsi-oled service if installed
-function startRaScsiScreen() {
-    if [[ $(isRaScsiScreenInstalled) -eq 0 ]] && [[ $(isRaScsiScreenRunning) -ne 1 ]]; then
-        sudo systemctl start rascsi-oled.service
-        showRaScsiScreenStatus
+# Starts the piscsi-oled service if installed
+function startPiscsiScreen() {
+    if [[ $(isPiscsiScreenInstalled) -eq 0 ]] && [[ $(isPiscsiScreenRunning) -ne 1 ]]; then
+        sudo systemctl start piscsi-oled.service
+        showServiceStatus "piscsi-oled"
     fi
 }
 
-# Starts the rascsi-ctrlboard service if installed
-function startRaScsiCtrlBoard() {
-    if [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isRaScsiCtrlBoardRunning) -ne 1 ]]; then
-        sudo systemctl start rascsi-ctrlboard.service
-        showRaScsiCtrlBoardStatus
+# Starts the piscsi-ctrlboard service if installed
+function startPiscsiCtrlBoard() {
+    if [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isPiscsiCtrlBoardRunning) -ne 1 ]]; then
+        sudo systemctl start piscsi-ctrlboard.service
+        showServiceStatus "piscsi-ctrlboard"
     fi
 }
 
@@ -539,146 +523,41 @@ function startRaScsiCtrlBoard() {
 function startMacproxy() {
     if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
         sudo systemctl start macproxy.service
-        showMacproxyStatus
+        showServiceStatus "macproxy"
     fi
 }
 
-# Shows status for the rascsi service
-function showRaScsiStatus() {
-    systemctl status rascsi | tee
+# Shows status for the piscsi service
+function showServiceStatus() {
+    systemctl status "$1.service" | tee
 }
 
-# Shows status for the rascsi-web service
-function showRaScsiWebStatus() {
-    systemctl status rascsi-web | tee
-}
-
-# Shows status for the rascsi-oled service
-function showRaScsiScreenStatus() {
-    systemctl status rascsi-oled | tee
-}
-
-# Shows status for the rascsi-ctrlboard service
-function showRaScsiCtrlBoardStatus() {
-    systemctl status rascsi-ctrlboard | tee
-}
-
-# Shows status for the macproxy service
-function showMacproxyStatus() {
-    systemctl status macproxy | tee
-}
-
-# Creates a drive image file with specific parameters
-function createDrive600M() {
-    createDrive 600 "HD600"
-}
-
-# Creates a drive image file and prompts for parameters
-function createDriveCustom() {
-    driveSize=-1
-    until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
-        echo "What drive size would you like (in MiB) (10-4000)"
-        read driveSize
-
-        echo "How would you like to name that drive?"
-        read driveName
-    done
-
-    createDrive "$driveSize" "$driveName"
-}
-
-# Creates an HFS file system
-function formatDrive() {
-    diskPath="$1"
-    volumeName="$2"
-
-    if [ ! -x $HFS_FORMAT ]; then
-        # Install hfsutils to have hformat to format HFS
-        sudo apt-get install hfsutils --assume-yes </dev/null
-    fi
-
-    if [ ! -x $HFDISK_BIN ]; then
-        # Clone, compile and install 'hfdisk', partition tool
-        git clone git://www.codesrc.com/git/hfdisk.git
-        cd hfdisk || exit 1
+# Clone, compile and install 'hfdisk', partition tool
+function installHfdisk() {
+    HFDISK_VERSION="2022.11"
+    if [ ! -x "$HFDISK_BIN" ]; then
+        cd "$BASE" || exit 1
+        wget -O "hfdisk-$HFDISK_VERSION.tar.gz" "https://github.com/rdmark/hfdisk/archive/refs/tags/$HFDISK_VERSION.tar.gz" </dev/null
+        tar -xzvf "hfdisk-$HFDISK_VERSION.tar.gz"
+        rm "hfdisk-$HFDISK_VERSION.tar.gz"
+        cd "hfdisk-$HFDISK_VERSION" || exit 1
         make
 
-        sudo cp hfdisk /usr/bin/hfdisk
-    fi
+        sudo cp hfdisk "$HFDISK_BIN"
 
-    # Inject hfdisk commands to create Drive with correct partitions
-    # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-    # i                         initialize partition map
-    # continue with default first block
-    # C                         Create 1st partition with type specified next) 
-    # continue with default
-    # 32                        32 blocks (required for HFS+)
-    # Driver_Partition          Partition Name
-    # Apple_Driver              Partition Type  (available types: Apple_Driver, Apple_Driver43, Apple_Free, Apple_HFS...)
-    # C                         Create 2nd partition with type specified next
-    # continue with default first block
-    # continue with default block size (rest of the disk)
-    # ${volumeName}             Partition name provided by user
-    # Apple_HFS                 Partition Type
-    # w                         Write partition map to disk
-    # y                         Confirm partition table
-    # p                         Print partition map
-    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
-    partitionOk=$?
-
-    if [ $partitionOk -eq 0 ]; then
-        if [ ! -f "$LIDO_DRIVER" ];then
-            echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
-            return 1
-        fi
-
-        # Burn Lido driver to the disk
-        dd if="$LIDO_DRIVER" of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
-
-        driverInstalled=$?
-        if [ $driverInstalled -eq 0 ]; then
-            # Format the partition with HFS file system
-            $HFS_FORMAT -l "${volumeName}" "$diskPath" 1
-            hfsFormattedOk=$?
-            if [ $hfsFormattedOk -eq 0 ]; then
-                echo "Disk created with success."
-            else
-                echo "Unable to format HFS partition."
-                return 4
-            fi
-        else
-            echo "Unable to install Lido Driver."
-            return 3
-        fi
-    else
-        echo "Unable to create the partition."
-        return 2
+        echo "Installed $HFDISK_BIN"
     fi
 }
 
-# Creates an image file
-function createDrive() {
-    if [ $# -ne 2 ]; then
-        echo "To create a Drive, volume size and volume name must be provided"
-        echo "$ createDrive 600 \"RaSCSI Drive\""
-        echo "Drive wasn't created."
-        return
-    fi
-
-    driveSize=$1
-    driveName=$2
-    mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}M.hda"
-
-    if [ ! -f "$drivePath" ]; then
-        echo "Creating a ${driveSize}MiB Drive"
-        truncate --size "${driveSize}m" "$drivePath"
-
-        echo "Formatting drive with HFS"
-        formatDrive "$drivePath" "$driveName"
-
-    else
-        echo "Error: drive already exists"
+# Fetch HFS drivers that the Web Interface uses
+function fetchHardDiskDrivers() {
+    DRIVER_ARCHIVE="mac-hard-disk-drivers"
+    if [ ! -d "$BASE/$DRIVER_ARCHIVE" ]; then
+        cd "$BASE" || exit 1
+        # -N option overwrites if downloaded file is newer than existing file
+        wget -N "https://www.dropbox.com/s/gcs4v5pcmk7rxtb/$DRIVER_ARCHIVE.zip?dl=1" -O "$DRIVER_ARCHIVE.zip"
+        unzip -d "$DRIVER_ARCHIVE" "$DRIVER_ARCHIVE.zip"
+        rm "$DRIVER_ARCHIVE.zip"
     fi
 }
 
@@ -722,13 +601,13 @@ function setupWiredNetworking() {
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
-    echo "Modified /etc/network/interfaces.d/rascsi_bridge"
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$CPP_PATH"'/os_integration/piscsi_bridge > /etc/network/interfaces.d/piscsi_bridge'
+    echo "Modified /etc/network/interfaces.d/piscsi_bridge"
 
     echo "Configuration completed!"
-    echo "Please make sure you attach a DaynaPORT network adapter to your RaSCSI configuration."
+    echo "Please make sure you attach a DaynaPORT network adapter to your PiSCSI configuration."
     echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
-    echo "rasctl -i 6 -c attach -t scdp -f $LAN_INTERFACE"
+    echo "scsictl -i 6 -c attach -t scdp -f $LAN_INTERFACE"
     echo ""
 
     if [[ $HEADLESS ]]; then
@@ -792,7 +671,7 @@ function setupWirelessNetworking() {
     if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
         echo "iptables is already installed"
     else
-        sudo apt-get install iptables --assume-yes </dev/null
+        sudo apt-get install iptables --assume-yes --no-install-recommends </dev/null
     fi
 
     sudo iptables --flush
@@ -809,15 +688,15 @@ function setupWirelessNetworking() {
         echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
     else
-        sudo apt-get install iptables-persistent --assume-yes </dev/null
+        sudo apt-get install iptables-persistent --assume-yes --no-install-recommends </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
     echo "Configuration completed!"
     echo ""
-    echo "Please make sure you attach a DaynaPORT network adapter to your RaSCSI configuration"
+    echo "Please make sure you attach a DaynaPORT network adapter to your PiSCSI configuration"
     echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
-    echo "rasctl -i 6 -c attach -t scdp -f $WLAN_INTERFACE:$ROUTER_IP/$CIDR"
+    echo "scsictl -i 6 -c attach -t scdp -f $WLAN_INTERFACE:$ROUTER_IP/$CIDR"
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -830,15 +709,13 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-220801"
-    AFP_SHARE_PATH="$HOME/afpshare"
-    AFP_SHARE_NAME="Pi File Server"
+    NETATALK_VERSION="2-221101"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
         echo "WARNING: Netatalk configuration dir $NETATALK_CONFIG_PATH already exists."
-        echo "This installation process will overwrite existing Netatalk applications and configurations."
+        echo "This installation process will overwrite existing binaries and configurations."
         echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
         echo
         echo "Do you want to proceed with the installation? [y/N]"
@@ -848,13 +725,27 @@ function installNetatalk() {
         fi
     fi
 
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    fi
+
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
+    tar -xzvf "netatalk-$NETATALK_VERSION.tar.gz"
+    rm "netatalk-$NETATALK_VERSION.tar.gz"
 
     cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
+    ./debian_install.sh -j="$CORES" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -881,11 +772,11 @@ function shareImagesWithNetatalk() {
 
     sudo systemctl stop afpd
     echo "Appended to AppleVolumes.default:"
-    echo "$VIRTUAL_DRIVER_PATH \"RaSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
+    echo "$VIRTUAL_DRIVER_PATH \"PiSCSI Images\"" | sudo tee -a "$APPLEVOLUMES_PATH"
     sudo systemctl start afpd
 
     echo
-    echo "WARNING: Do not inadvertently move or rename image files that are in use by RaSCSI."
+    echo "WARNING: Do not inadvertently move or rename image files that are in use by PiSCSI."
     echo "Doing so may lead to data loss."
     echo
 }
@@ -906,7 +797,11 @@ function installMacproxy {
         echo "Using the default port $PORT"
     fi
 
-    ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes --no-install-recommends </dev/null
+    fi
 
     MACPROXY_VER="22.8"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
@@ -926,16 +821,95 @@ function installMacproxy {
     startMacproxy
 
     echo -n "Macproxy is now running on IP "
-    echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
 }
 
+# Installs vsftpd (FTP server)
+function installFtp() {
+    sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
+
+    echo
+    echo "Connect to the FTP server with:"
+    echo -n "ftp://"
+    echo -n `ip -4 addr show scope global | grep -o -m 1 -P '(?<=inet\s)\d+(\.\d+){3}'`
+    echo "/"
+    echo
+    echo "Authenticate with username '$USER' and your password on this Pi."
+    echo
+}
+
+# Installs and configures Samba (SMB server)
+function installSamba() {
+    SAMBA_CONFIG_PATH="/etc/samba"
+
+    if [ -d "$SAMBA_CONFIG_PATH" ]; then
+        echo
+        echo "Samba configuration dir $SAMBA_CONFIG_PATH already exists."
+        echo "This installation process may overwrite existing binaries and configurations."
+        echo "No shared files will be deleted, but you may have to manually restore your settings after the installation."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
+
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    elif [ -d "$FILE_SHARE_PATH" ]; then
+        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
+    else
+        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$FILE_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        chmod -Rv 775 "$FILE_SHARE_PATH"
+    fi
+
+    echo ""
+    echo "Installing dependencies..."
+    sudo apt-get update || true
+    sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
+    echo ""
+    echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
+    if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Allow Windows XP clients and earlier to connect to the server
+        sudo sed -i 's/\[global\]/\[global\]\nserver min protocol = NT1/' "$SAMBA_CONFIG_PATH/smb.conf"
+        echo "server min prototol = NT1"
+    fi
+    if [[ `sudo grep -c "\[Pi File Server\]" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
+        # Define a shared directory with full read/write privileges, while aggressively hiding dot files
+        echo -e '\n[Pi File Server]\npath = '"$FILE_SHARE_PATH"'\nbrowseable = yes\nwriteable = yes\nhide dot files = yes\nveto files = /.*/' | sudo tee -a "$SAMBA_CONFIG_PATH/smb.conf"
+    fi
+
+    sudo systemctl restart smbd
+
+    echo "Please create a Samba password for user $USER"
+    sudo smbpasswd -a "$USER"
+}
+
 # updates configuration files and installs packages needed for the OLED screen script
-function installRaScsiScreen() {
-    echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
-    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
+function installPiscsiScreen() {
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
+    echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your PiSCSI board."
+    echo "See wiki for more information: https://github.com/akuker/PISCSI/wiki/OLED-Status-Display-(Optional)"
     echo ""
     echo "Choose screen rotation:"
     echo "  1) 0 degrees"
@@ -964,21 +938,16 @@ function installRaScsiScreen() {
         SCREEN_HEIGHT="32"
     fi
 
-    if [ -z "$TOKEN" ]; then
-        echo ""
-        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
-            read -r TOKEN
-        fi
+    stopService "piscsi-oled"
+    stopService "piscsi-ctrlboard"
+    disableService "piscsi-ctrlboard"
+    updatePiscsiGit
+
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
     fi
-
-    stopRaScsiScreen
-    disableRaScsiCtrlBoardService
-    updateRaScsiGit
-
-    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
@@ -990,29 +959,26 @@ function installRaScsiScreen() {
         REBOOT=1
     fi
 
-    echo "Installing the rascsi-oled.service configuration..."
-    sudo cp -f "$OLED_INSTALL_PATH/service-infra/rascsi-oled.service" "$SYSTEMD_PATH/rascsi-oled.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-oled.service"
+    echo "Installing the piscsi-oled.service configuration..."
+    sudo cp -f "$OLED_INSTALL_PATH/service-infra/piscsi-oled.service" "$SYSTEMD_PATH/piscsi-oled.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-oled.service"
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/rascsi-oled.service"
+        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/piscsi-oled.service"
 	# Make the service file readable by root only, to protect the token string
-        sudo chmod 600 "$SYSTEMD_PATH/rascsi-oled.service"
-        echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
+        sudo chmod 600 "$SYSTEMD_PATH/piscsi-oled.service"
+        echo "Granted access to the OLED Monitor with the password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/rascsi-oled.service"
+        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/piscsi-oled.service"
     fi
 
     sudo systemctl daemon-reload
 
-    # ensure that the old monitor_rascsi service is disabled and removed before the new one is installed
-    disableOldRaScsiMonitorService
-
     sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-oled
+    sudo systemctl enable piscsi-oled
 
     if [ $REBOOT -eq 1 ]; then
         echo ""
-        echo "The rascsi-oled service will start on the next Pi boot."
+        echo "The piscsi-oled service will start on the next Pi boot."
         echo "Press Enter to reboot or CTRL-C to exit"
         read
 
@@ -1021,13 +987,19 @@ function installRaScsiScreen() {
         sudo reboot
     fi
 
-    sudo systemctl start rascsi-oled
+    sudo systemctl start piscsi-oled
 }
 
 # updates configuration files and installs packages needed for the CtrlBoard script
-function installRaScsiCtrlBoard() {
-    echo "IMPORTANT: This configuration requires a RaSCSI Control Board connected to your RaSCSI board."
-    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/RaSCSI-Control-Board"
+function installPiscsiCtrlBoard() {
+    if [[ -f "$SECRET_FILE" && -z "$TOKEN" ]] ; then
+        echo ""
+        echo "Secret token file $SECRET_FILE detected. You must enter the password, or press Ctrl+C to cancel installation."
+        read -r TOKEN
+    fi
+
+    echo "IMPORTANT: This configuration requires a PiSCSI Control Board connected to your PiSCSI board."
+    echo "See wiki for more information: https://github.com/akuker/PISCSI/wiki/PiSCSI-Control-Board"
     echo ""
     echo "Choose screen rotation:"
     echo "  1) 0 degrees"
@@ -1042,22 +1014,16 @@ function installRaScsiCtrlBoard() {
         ROTATION="180"
     fi
 
-    if [ -z "$TOKEN" ]; then
-        echo ""
-        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
-            read -r TOKEN
-        fi
+    stopService "piscsi-ctrlboard"
+    updatePiscsiGit
+
+    if [[ $SKIP_PACKAGES ]]; then
+        echo "Skipping package installation"
+    else
+        sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config --assume-yes --no-install-recommends </dev/null
+        # install python packages through apt that need compilation
+        sudo apt-get install python3-cbor2 --assume-yes --no-install-recommends </dev/null
     fi
-
-    stopRaScsiCtrlBoard
-    updateRaScsiGit
-
-    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
-    # install python packages through apt that need compilation
-    sudo apt-get install python3-cbor2 -y </dev/null
 
     # enable i2c
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -1097,29 +1063,28 @@ function installRaScsiCtrlBoard() {
     fi
     set -e
 
-    echo "Installing the rascsi-ctrlboard.service configuration..."
-    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/rascsi-ctrlboard.service" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+    echo "Installing the piscsi-ctrlboard.service configuration..."
+    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/piscsi-ctrlboard.service" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
-        sudo chmod 600 "$SYSTEMD_PATH/rascsi-ctrlboard.service"
-        echo "Granted access to the RaSCSI Control Board UI with the password that you configured for RaSCSI."
+        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        sudo chmod 600 "$SYSTEMD_PATH/piscsi-ctrlboard.service"
+        echo "Granted access to the PiSCSI Control Board UI with the password that you configured for PiSCSI."
     else
-        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION" "$SYSTEMD_PATH/piscsi-ctrlboard.service"
     fi
 
     sudo systemctl daemon-reload
 
-    # ensure that the old monitor_rascsi or rascsi-oled service is disabled and removed before the new one is installed
-    disableOldRaScsiMonitorService
-    disableRaScsiOledService
+    stopService "piscsi-oled"
+    disableService "piscsi-oled"
 
     sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-ctrlboard
+    sudo systemctl enable piscsi-ctrlboard
 
     if [ $REBOOT -eq 1 ]; then
         echo ""
-        echo "The rascsi-ctrlboard service will start on the next Pi boot."
+        echo "The piscsi-ctrlboard service will start on the next Pi boot."
         echo "Press Enter to reboot or CTRL-C to exit"
         read
 
@@ -1128,15 +1093,15 @@ function installRaScsiCtrlBoard() {
         sudo reboot
     fi
 
-    sudo systemctl start rascsi-ctrlboard
+    sudo systemctl start piscsi-ctrlboard
 }
 
-# Prints a notification if the rascsi.service file was backed up
+# Prints a notification if the piscsi.service file was backed up
 function notifyBackup {
     if "$SYSTEMD_BACKUP"; then
         echo ""
-        echo "IMPORTANT: $SYSTEMD_PATH/rascsi.service has been overwritten."
-        echo "A backup copy was saved as rascsi.service.old in the same directory."
+        echo "IMPORTANT: $SYSTEMD_PATH/piscsi.service has been overwritten."
+        echo "A backup copy was saved as piscsi.service.old in the same directory."
         echo "Please inspect the backup file and restore configurations that are important to your setup."
         echo ""
     fi
@@ -1144,10 +1109,15 @@ function notifyBackup {
 
 # Creates the group and modifies current user for Web Interface auth
 function enableWebInterfaceAuth {
-    AUTH_GROUP="rascsi"
-
     if [ $(getent group "$AUTH_GROUP") ]; then
         echo "The '$AUTH_GROUP' group already exists."
+        echo "Do you want to disable Web Interface authentication? (y/N)"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo groupdel "$AUTH_GROUP"
+            echo "The '$AUTH_GROUP' group has been deleted."
+            exit 0
+        fi
     else
         echo "Creating the '$AUTH_GROUP' group."
         sudo groupadd "$AUTH_GROUP"
@@ -1161,11 +1131,11 @@ function enableWebInterfaceAuth {
 function runChoice() {
   case $1 in
           1)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface"
+              echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) + Web Interface"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
-              echo "- Modify and enable Apache2 and Nginx web services"
+              echo "- Install the Nginx web server"
               echo "- Create files and directories"
               echo "- Change permissions of files and directories"
               echo "- Modify user groups and permissions"
@@ -1175,37 +1145,39 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              configureTokenAuth
-              stopOldWebInterface
-              updateRaScsiGit
+              migrateLegacyData
+              stopService "piscsi-web"
+              updatePiscsiGit
               installPackages
-              stopRaScsiScreen
-              stopRaScsi
-              compileRaScsi
-              backupRaScsiService
-              installRaScsi
-              enableRaScsiService
+              installHfdisk
+              fetchHardDiskDrivers
+              stopService "piscsi-ctrlboard"
+              stopService "piscsi-oled"
+              stopService "piscsi"
+              compilePiscsi
+              backupPiscsiService
+              installPiscsi
+              enablePiscsiService
               preparePythonCommon
-              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
-                  echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
-                  installRaScsiScreen
-              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
-                  echo "Detected rascsi control board service; will run the installation steps for the control board ui."
-                  installRaScsiCtrlBoard
+              if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
+                  echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
+                  installPiscsiScreen
+              elif [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]]; then
+                  echo "Detected piscsi control board service; will run the installation steps for the control board ui."
+                  installPiscsiCtrlBoard
               fi
               cachePipPackages
-              installRaScsiWebInterface
+              installPiscsiWebInterface
               installWebInterfaceService
-              enableWebInterfaceAuth
-              showRaScsiScreenStatus
-              showRaScsiCtrlBoardStatus
-              showRaScsiStatus
-              showRaScsiWebStatus
+              showServiceStatus "piscsi-oled"
+              showServiceStatus "piscsi-ctrlboard"
+              showServiceStatus "piscsi"
+              showServiceStatus "piscsi-web"
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface - Complete!"
+              echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) + Web Interface - Complete!"
           ;;
           2)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC})"
+              echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
@@ -1217,52 +1189,58 @@ function runChoice() {
               sudoCheck
               createImagesDir
               createCfgDir
-              configureTokenAuth
-              updateRaScsiGit
-              installPackages
-              stopRaScsiScreen
-              stopRaScsi
-              compileRaScsi
-              backupRaScsiService
+              updatePiscsiGit
+              installPackagesStandalone
+              migrateLegacyData
+              stopService "piscsi-ctrlboard"
+              stopService "piscsi-oled"
+              stopService "piscsi"
+              compilePiscsi
+              backupPiscsiService
               preparePythonCommon
-              installRaScsi
-              enableRaScsiService
-              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
-                  echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
-                  installRaScsiScreen
-              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
-                  echo "Detected rascsi control board service; will run the installation steps for the control board ui."
-                  installRaScsiCtrlBoard
+              installPiscsi
+              enablePiscsiService
+              if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
+                  echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
+                  installPiscsiScreen
+              elif [[ $(isPiscsiCtrlBoardInstalled) -eq 0 ]]; then
+                  echo "Detected piscsi control board service; will run the installation steps for the control board ui."
+                  installPiscsiCtrlBoard
               fi
-              showRaScsiScreenStatus
-              showRaScsiCtrlBoardStatus
-              showRaScsiStatus
+              showServiceStatus "piscsi-oled"
+              showServiceStatus "piscsi-ctrlboard"
+              showServiceStatus "piscsi"
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
+              echo "Installing / Updating PiSCSI Service ($CONNECT_TYPE) - Complete!"
           ;;
           3)
-              echo "Installing / Updating RaSCSI OLED Screen"
+              echo "Installing / Updating PiSCSI OLED Screen"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               preparePythonCommon
-              installRaScsiScreen
-              showRaScsiScreenStatus
-              echo "Installing / Updating RaSCSI OLED Screen - Complete!"
+              migrateLegacyData
+              installPiscsiScreen
+              showServiceStatus "piscsi-oled"
+              echo "Installing / Updating PiSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver"
-              createDrive600M
-              echo "Creating an HFS formatted 600 MiB drive image with LIDO driver - Complete!"
+              echo "Installing / Updating PiSCSI Control Board UI"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Stop and disable the PiSCSI OLED service if it is running"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
+              sudoCheck
+              preparePythonCommon
+              migrateLegacyData
+              installPiscsiCtrlBoard
+              showServiceStatus "piscsi-ctrlboard"
+              echo "Installing / Updating PiSCSI Control Board UI - Complete!"
           ;;
           5)
-              echo "Creating an HFS formatted drive image with LIDO driver"
-              createDriveCustom
-              echo "Creating an HFS formatted drive image with LIDO driver - Complete!"
-          ;;
-          6)
               echo "Configuring wired network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
@@ -1272,7 +1250,7 @@ function runChoice() {
               setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
-          7)
+          6)
               echo "Configuring wifi network bridge"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1283,22 +1261,45 @@ function runChoice() {
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
-          8)
+          7)
+              echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
+          8)
+              echo "Installing FTP File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable the vsftpd systemd service"
+              echo "WARNING: The FTP server may transfer unencrypted data over the network."
+              echo "Proceed with this installation only if you are on a private, secure network."
+              sudoCheck
+              installFtp
+              echo "Installing FTP File Server - Complete!"
+          ;;
           9)
+              echo "Installing SMB File Server"
+              echo "This script will make the following changes to your system:"
+              echo " - Install packages with apt-get"
+              echo " - Enable Samba systemd services"
+              echo " - Create a directory in the current user's home directory where shared files will be stored"
+              echo " - Create a Samba user for the current user"
+              sudoCheck
+              installSamba
+              echo "Installing SMB File Server - Complete!"
+          ;;
+          10)
               echo "Installing Web Proxy Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               sudoCheck
-              stopMacproxy
+              stopService "macproxy"
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
-          10)
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
+          11)
+              echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE)"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Create directories and change permissions"
@@ -1306,52 +1307,59 @@ function runChoice() {
               echo "- Install manpages to /usr/local/man"
               sudoCheck
               createImagesDir
-              configureTokenAuth
-              updateRaScsiGit
+              updatePiscsiGit
               installPackagesStandalone
-              stopRaScsi
-              compileRaScsi
-              installRaScsi
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
-              echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
+              stopService "piscsi"
+              compilePiscsi
+              installPiscsi
+              echo "Configuring PiSCSI stand-alone ($CONNECT_TYPE) - Complete!"
+              echo "Use 'piscsi' to launch PiSCSI, and 'scsictl' to control the running process."
           ;;
-          11)
-              echo "Configuring RaSCSI Web Interface stand-alone"
+          12)
+              echo "Configuring PiSCSI Web Interface stand-alone"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
-              echo "- Modify user groups and permissions"
               echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               createCfgDir
-              configureTokenAuth
-              updateRaScsiGit
-              installPackages
+              updatePiscsiGit
+              installPackagesWeb
+              installHfdisk
+              fetchHardDiskDrivers
               preparePythonCommon
               cachePipPackages
-              installRaScsiWebInterface
-              enableWebInterfaceAuth
-              echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
+              installPiscsiWebInterface
+              echo "Configuring PiSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
-          12)
-              echo "Installing / Updating RaSCSI Control Board UI"
-              echo "This script will make the following changes to your system:"
-              echo "- Install additional packages with apt-get"
-              echo "- Add and modify systemd services"
-              echo "- Stop and disable the RaSCSI OLED service if it is running"
-              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
-              sudoCheck
-              preparePythonCommon
-              installRaScsiCtrlBoard
-              showRaScsiCtrlBoardStatus
-              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
-          ;;
           13)
+              echo "Enabling or disabling PiSCSI back-end authentication"
+              echo "This script will make the following changes to your system:"
+              echo "- Modify user groups and permissions"
+              sudoCheck
+              stopService "piscsi"
+              configureTokenAuth
+              enablePiscsiService
+              echo "Enabling or disabling PiSCSI back-end authentication - Complete!"
+          ;;
+          14)
+              echo "Enabling or disabling Web Interface authentication"
+              echo "This script will make the following changes to your system:"
+              echo "- Modify user groups and permissions"
+              sudoCheck
+              enableWebInterfaceAuth
+              echo "Enabling or disabling Web Interface authentication - Complete!"
+          ;;
+          15)
               shareImagesWithNetatalk
               echo "Configuring AppleShare File Server - Complete!"
+          ;;
+          16)
+              installPackagesStandalone
+              compilePiscsi
           ;;
           -h|--help|h|help)
               showMenu
@@ -1366,8 +1374,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
-       echo -n "Enter your choice (0-13) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "16" ]; do
+       echo -n "Enter your choice (0-16) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1376,28 +1384,30 @@ function readChoice() {
 
 # Shows the interactive main menu of the script
 function showMenu() {
+    echo "Board Type: $CONNECT_TYPE | Compiler: $COMPILER | Compiler Cores: $CORES"
     echo ""
     echo "Choose among the following options:"
-    echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
-    echo "  1) install or update RaSCSI Service + Web Interface"
-    echo "  2) install or update RaSCSI Service"
-    echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
-    echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
-    echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  4) 600 MiB drive (suggested size)"
-    echo "  5) custom drive size (up to 4000 MiB)"
+    echo "INSTALL/UPDATE PISCSI"
+    echo "  1) Install or update PiSCSI Service + Web Interface"
+    echo "  2) Install or update PiSCSI Service"
+    echo "  3) Install or update PiSCSI OLED Screen (requires hardware)"
+    echo "  4) Install or update PiSCSI Control Board UI (requires hardware)"
     echo "NETWORK BRIDGE ASSISTANT"
-    echo "  6) configure network bridge for Ethernet (DHCP)"
-    echo "  7) configure network bridge for WiFi (static IP + NAT)" 
+    echo "  5) Configure network bridge for Ethernet (DHCP)"
+    echo "  6) Configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
-    echo "  8) install AppleShare File Server (Netatalk)"
-    echo "  9) install Web Proxy Server (Macproxy)"
+    echo "  7) Install AppleShare File Server (Netatalk)"
+    echo "  8) Install FTP File Server (vsftpd)"
+    echo "  9) Install SMB File Server (Samba)"
+    echo " 10) Install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) compile and install RaSCSI stand-alone"
-    echo " 11) configure the RaSCSI Web Interface stand-alone"
+    echo " 11) Compile and install PiSCSI stand-alone"
+    echo " 12) Configure the PiSCSI Web Interface stand-alone"
+    echo " 13) Enable or disable PiSCSI back-end authentication"
+    echo " 14) Enable or disable PiSCSI Web Interface authentication"
     echo "EXPERIMENTAL FEATURES"
-    echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
-    echo " 13) share the images dir over AppleShare (requires Netatalk)"
+    echo " 15) Share the images dir over AppleShare (requires Netatalk)"
+    echo " 16) Compile PiSCSI binaries"
 }
 
 # parse arguments passed to the script
@@ -1413,8 +1423,8 @@ while [ "$1" != "" ]; do
             CONNECT_TYPE=$VALUE
             ;;
         -r | --run_choice)
-            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 12 ]]; then
-                echo "ERROR: The run choice parameter must have a numeric value between 1 and 12"
+            if ! [[ $VALUE =~ ^[1-9][0-9]?$ && $VALUE -ge 1 && $VALUE -le 16 ]]; then
+                echo "ERROR: The run choice parameter must have a numeric value between 1 and 16"
                 exit 1
             fi
             RUN_CHOICE=$VALUE
@@ -1433,11 +1443,17 @@ while [ "$1" != "" ]; do
             fi
             TOKEN=$VALUE
             ;;
-        -s | --skip-token)
-            SKIP_TOKEN=1
-            ;;
         -h | --headless)
             HEADLESS=1
+            ;;
+        -g | --with_gcc)
+            COMPILER="g++"
+            ;;
+        -s | --skip_packages)
+            SKIP_PACKAGES=1
+            ;;
+        -l | --skip_make_clean)
+            SKIP_MAKE_CLEAN=1
             ;;
         *)
             echo "ERROR: Unknown parameter \"$PARAM\""
@@ -1447,7 +1463,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-showRaSCSILogo
+showPiSCSILogo
 initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu

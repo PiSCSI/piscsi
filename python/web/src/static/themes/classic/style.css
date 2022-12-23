@@ -1,0 +1,161 @@
+body {
+  color: black;
+  background-color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  text-decoration: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+form {
+  display: inline;
+}
+
+table, tr, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  margin: none;
+}
+
+h1 {
+  color: white;
+  font-size: 20px;
+}
+
+h2 {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 3px;
+}
+
+summary.heading {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 3px;
+}
+
+div.header {
+  color: white;
+  background-color: black;
+}
+
+div.footer {
+  font-family: monospace;
+}
+
+div.footer div.theme-change-hint {
+    margin-bottom: 15px;
+}
+
+div.logged-in {
+  background-color: green;
+}
+
+div.logged-out {
+  background-color: red;
+}
+
+input.lun {
+  width: 36px;
+}
+
+div.flash {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+div.flash div {
+  color: white;
+  padding: 2px 5px;
+  font-size: 18px;
+}
+
+div.flash div div {
+  white-space: pre-line;
+}
+
+div.flash div.success {
+  background-color: green;
+}
+
+div.flash div.warning {
+  background-color: orange;
+  color: black;
+}
+
+div.flash div.error {
+  background-color: red;
+}
+
+div.flash div.info {
+  background-color: #0d6efd;
+}
+
+td.inactive {
+  text-align: center;
+  background-color: tan;
+}
+
+ul.inline_list {
+  list-style: none;
+}
+
+.dropzone, .dropzone * {
+  box-sizing: border-box;
+}
+
+.dropzone {
+  position: relative;
+  word-break: break-all;
+}
+
+.dropzone .dz-button {
+  position: relative;
+  background-color: white;
+  color: black;
+  border: 2px dashed blue;
+  padding: 12px 28px;
+}
+
+.dropzone .dz-preview {
+  position: relative;
+  display: inline-block;
+  width: 180px;
+  margin: .5em;
+}
+
+.dropzone .dz-preview .dz-progress {
+  display: block;
+  height: 15px;
+  border: 1px solid #aaa;
+}
+
+.dropzone .dz-preview .dz-progress .dz-upload {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: green;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  color: red;
+  display: none;
+}
+
+.dropzone .dz-preview.dz-error .dz-error-message {
+  display: block;
+}
+
+.dropzone .dz-preview .dz-error-mark, .dropzone .dz-preview .dz-success-mark {
+  position: absolute;
+  display: none;
+  top: 30px;
+  width: 54px;
+  height: 58px;
+  left: 50%;
+  margin-left: -27px;
+}

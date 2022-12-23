@@ -1,0 +1,118 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is piscsi.1. Re-run 'make docs' after updating
+
+
+piscsi(1)                                             General Commands Manual                                            piscsi(1)
+
+NAME
+       piscsi - Emulates SCSI devices using the Raspberry Pi GPIO pins
+
+SYNOPSIS
+       piscsi  [-F  FOLDER] [-L LOG_LEVEL[:ID:[LUN]]] [-P ACCESS_TOKEN_FILE] [-R SCAN_DEPTH] [-h] [-n VENDOR:PRODUCT:REVISION] [-p
+       PORT] [-r RESERVED_IDS] [-n TYPE] [-v] [-z LOCALE] [-IDn:[u] FILE] [-HDn[:u] FILE]...
+
+DESCRIPTION
+       piscsi emulates SCSI devices using the Raspberry Pi GPIO pins.
+
+       In the arguments to PiSCSI, one or more SCSI (-IDn[:u]) devices can be specified.  The number (n) after the ID or HD  iden‐
+       tifier  specifies  the ID number for that device. The optional number (u) specifies the LUN (logical unit) for that device.
+       The default LUN is 0.  For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for  the  "initiator"
+       (the host computer). The LUN is limited from 0-31.
+
+       PiSCSI will determine the type of device based upon the file extension of the FILE argument.
+           hd1: SCSI Hard Disk image (generic, non-removable, SCSI-1)
+           hds: SCSI Hard Disk image (generic, non-removable)
+           hdr: SCSI Hard Disk image (generic, removable)
+           hdn: SCSI Hard Disk image (NEC compatible - only used with PC-98 computers)
+           hdi: SCSI Hard Disk image (Anex86 proprietary - only used with PC-98 computers)
+           nhd: SCSI Hard Disk image (T98Next proprietary - only used with PC-98 computers)
+           hda: SCSI Hard Disk image (Apple compatible - typically used with Macintosh computers)
+           mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
+           iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
+
+       For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
+           sudo piscsi -ID0 /path/to/drive/hdimage.hda
+
+       Note: PiSCSI is a fork of RaSCSI. The two cannot be run in parallel on the same system.
+
+       Once PiSCSI starts, it will open a socket (default port is 6868) to allow external management commands.  If another process
+       is using this port, PiSCSI will terminate, since it is likely another instance of PiSCSI or RaSCSI.  Once PiSCSI  has  ini‐
+       tialized, the scsictl utility can be used to send commands.
+
+       To quit PiSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
+
+OPTIONS
+       -b BLOCK_SIZE
+              The optional block size, either 512, 1024, 2048 or 4096 bytes. Default size is 512 bytes.
+
+       -F FOLDER
+              The default folder for image files. For files in this folder no absolute path needs to be specified. The initial de‐
+              fault folder is '~/images'.
+
+       -L LOG_LEVEL[:ID:[LUN]]
+              The piscsi log level (trace, debug, info, warn, err, off). The default log level is 'info' for all devices unless  a
+              particular device ID and an optional LUN was provided.
+
+       -P ACCESS_TOKEN_FILE
+              Enable authentication and read the access token from the specified file. The access token file must be owned by root
+              and must be readable by root only.
+
+       -R SCAN_DEPTH
+              Scan for image files recursively, up to a depth of SCAN_DEPTH. Depth 0 means to ignore any folders  within  the  de‐
+              fault image filder. Be careful when using this option with many sub-folders in the default image folder. The default
+              depth is 1.
+
+       -h     Show a help page.
+
+       -n VENDOR:PRODUCT:REVISION
+              Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete  set  of  name
+              components  must  be  provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with
+              blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
+
+       -p PORT
+              The piscsi server port, default is 6868.
+
+       -r RESERVED_IDS
+              Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.  -p TYPE  The  optional
+              case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP, SCLP, SCHS). If no type is specified for de‐
+              vices that support an image file, piscsi tries to derive the type from the file extension.
+
+       -v     Display the piscsi version.
+
+       -z LOCALE
+              Overrides the default locale for client-faces error messages. The client can override the locale.
+
+       -IDn[:u] FILE
+              n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
+
+              FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file  (SCBR,
+              SCDP,  SCLP,  SCHS) the filename may have a special meaning or a dummy name can be provided. For SCBR and SCDP it is
+              an  optioinal  prioritized  list  of  network  interfaces,  an  optional  IP  address  and  netmask,  e.g.   "inter‐
+              face=eth0,eth1,wlan0:inet=10.10.20.1/24".  For  SCLP it is the print command to be used and a reservation timeout in
+              seconds, e.g. "cmd=lp -oraw %f:timeout=60".
+
+              FILE is the name of the image file to use for the SCSI device.
+
+EXAMPLES
+       Launch PiSCSI with no emulated drives attached:
+          piscsi
+
+       Launch PiSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
+          piscsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
+
+       Launch PiSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort
+       network adapter as ID 6:
+          piscsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
+
+       To create an empty, 100MiB HD image, use the following command:
+          dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
+
+       In case the fallocate command is available a much faster alternative to the dd command is:
+          fallocate -l 104857600 /path/to/newimage.hda
+
+SEE ALSO
+       scsictl(1), scsimon(1), scsidump(1)
+
+       Full documentation is available at: <https://www.piscsi.com>
+
+                                                                                                                         piscsi(1)

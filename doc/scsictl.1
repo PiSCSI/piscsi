@@ -1,0 +1,178 @@
+.TH piscsi 1
+.SH NAME
+scsictl \- Sends management commands to the piscsi process
+.SH SYNOPSIS
+.B scsictl
+\fB\-e\fR |
+\fB\-l\fR |
+\fB\-m\fR |
+\fB\-o\fR |
+\fB\-s\fR |
+\fB\-v\fR |
+\fB\-D\fR |
+\fB\-I\fR |
+\fB\-L\fR |
+\fB\-O\fR |
+\fB\-P\fR |
+\fB\-T\fR |
+\fB\-V\fR |
+\fB\-X\fR |
+[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
+[\fB\-E\fR \fIFILENAME\fR]
+[\fB\-F\fR \fIIMAGE_FOLDER\fR]
+[\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR]
+[\fB\-c\fR \fICMD\fR]
+[\fB\-f\fR \fIFILE|PARAM\fR]
+[\fB\-g\fR \fILOG_LEVEL\fR]
+[\fB\-h\fR \fIHOST\fR]
+[\fB\-i\fR \fIID[:LUN]\fR
+[\fB\-n\fR \fINAME\fR]
+[\fB\-p\fR \fIPORT\fR]
+[\fB\-r\fR \fIRESERVED_IDS\fR]
+[\fB\-t\fR \fITYPE\fR]
+[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
+[\fB\-z\fR \fILOCALE\fR]
+.SH DESCRIPTION
+.B scsictl
+sends commands to the piscsi process to make configuration adjustments at runtime or to check the status of the devices.
+
+Either the -i or -l option should be specified at one time. Not both. 
+
+You do NOT need root privileges to use scsictl.
+
+Note: The command and type arguments are case insensitive. Only the first letter of the command/type is evaluated by the tool.
+
+.SH OPTIONS
+.TP
+.BR \-C\fI " "\fIFILENAME:FILESIZE
+Create an image file in the default image folder with the specified name and size in bytes.
+.TP
+.BR \-D\fI
+Detach all devices.
+.TP
+.BR \-E\fI " " \fIFILENAME
+Display information on an image file.
+.TP
+.BR \-F\fI " "\fIIMAGE_FOLDER
+Set the default image folder.
+.TP
+.BR \-I\fI
+Gets the list of reserved device IDs.
+.TP
+.BR \-L\fI " "\fILOG_LEVEL
+Set the piscsi log level (trace, debug, info, warn, err, off).
+.TP
+.BR \-h\fI " " \fIHOST
+The piscsi host to connect to, default is 'localhost'.
+.TP
+.BR \-e\fI
+List all images files in the default image folder.
+.TP
+.BR \-N\fI
+Lists all available network interfaces provided that they are up.
+.TP
+.BR \-O\fI
+Display the available piscsi server log levels and the current log level.
+.TP
+.BR \-P\fI
+Prompt for the access token in case piscsi requires authentication.
+.TP
+.BR \-l\fI
+List all of the devices that are currently being emulated by PiSCSI, as well as their current status.
+.TP
+.BR \-m\fI
+List all file extensions recognized by PiSCSI and the device types they map to.
+.TP
+.BR \-o\fI
+Display operation meta data information.
+.TP
+.BR \-R\fI " "\fICURRENT_NAME:NEW_NAME
+Rename an image file in the default image folder.
+.TP
+.BR \-p\fI " " \fIPORT
+The piscsi port to connect to, default is 6868.
+.TP
+.BR \-r\fI " " \fIRESERVED_IDS
+Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
+.TP
+.BR \-s\fI
+Display server-side settings like available images or supported device types.
+.TP
+.BR \-T\fI
+Display all device types and their properties.
+.TP
+.BR \-v\fI " " \fI
+Display the piscsi server version.
+.TP
+.BR \-V\fI " " \fI
+Display the scsictl version.
+.TP
+.BR \-X\fI " " \fI
+Shut down the piscsi process.
+.TP
+.BR \-d\fI " "\fIFILENAME
+Delete an image file in the default image folder.
+.TP
+.BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
+Copy an image file in the default image folder.
+.TP
+.BR \-z\fI " "\fILOCALE
+Overrides the default locale for client-facing error messages.
+.TP
+.BR \-i\fI " " \fIID[:LUN]
+The SCSI ID and optional LUN that you want to control. (0-7:0-31)
+.TP 
+.BR \-c\fI " " \fICMD
+Command is the operation being requested. Options are:
+   a(ttach): Attach disk
+   d(etach): Detach disk
+   i(nsert): Insert media (removable media devices only)
+   e(ject): Eject media (removable media devices only)
+   p(rotect): Write protect the medium (not for CD-ROMs, which are always read-only)
+   u(nprotect): Remove write protection from the medium (not for CD-ROMs, which are always read-only)
+   s(how): Display device information
+.IP
+eject, protect and unprotect are idempotent.
+.TP 
+.BR \-b\fI " " \fIBLOCK_SIZE
+The optional block size, either 512, 1024, 2048 or 4096 bytes. The default size is 512 bytes.
+.TP
+.BR \-f\fI " " \fIFILE|PARAM
+Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the piscsi(1) man page for permitted file types.
+.TP 
+.BR \-t\fI " " \fITYPE
+Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the piscsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
+   hd: SCSI hard disk drive
+   rm: SCSI removable media drive
+   cd: CD-ROM
+   mo: Magneto-Optical disk
+   lp: SCSI printer
+   bridge: Bridge device (Only applicable to the Sharp X68000)
+   daynaport: DaynaPort network adapter
+   services: Host services device
+.TP 
+.BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
+The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
+.TP 
+.BR \-u\fI " " \fIUNIT
+Unit number (0-31). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
+
+.SH EXAMPLES
+Show a listing of all of the SCSI devices and their current status.
+   scsictl -l
+
+
+Example output:
+   +----+-----+------+-------------------------------------
+   | ID | LUN | TYPE | IMAGE FILE
+   +----+-----+------+-------------------------------------
+   |  0 |   1 | SCHD | /home/pi/harddisk.hda
+   +----+-----+------+-------------------------------------
+
+Request the PiSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
+   scsictl -i 0 -f HDIIMAGE0.HDS
+
+.SH SEE ALSO
+piscsi(1), scsimon(1), scsidump(1)
+
+Full documentation is available at: <https://www.piscsi.com>

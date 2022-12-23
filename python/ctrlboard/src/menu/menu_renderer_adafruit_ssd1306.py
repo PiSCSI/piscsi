@@ -11,8 +11,9 @@ class MenuRendererAdafruitSSD1306(MenuRenderer):
 
     def display_init(self):
         i2c = busio.I2C(SCL, SDA)
-        self.disp = adafruit_ssd1306.SSD1306_I2C(self._config.width, self._config.height, i2c,
-                                                 addr=self._config.i2c_address)
+        self.disp = adafruit_ssd1306.SSD1306_I2C(
+            self._config.width, self._config.height, i2c, addr=self._config.i2c_address
+        )
         self.disp.rotation = self._config.get_mapped_rotation()
         self.disp.fill(0)
         self.disp.show()

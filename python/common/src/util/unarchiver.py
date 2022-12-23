@@ -25,7 +25,8 @@ def extract_archive(file_path, **kwargs):
     Takes (str) file_path, and kwargs:
     - (list) members - list of (str) files to be extracted (all files are extracted if None)
     - (str) output_dir - directory to place the extracted files
-    - (str) fork_output_type - output type for resource forks; "visible" for *.rsrc files, "hidden" for ._* files
+    - (str) fork_output_type - output type for resource forks;
+            "visible" for *.rsrc files, "hidden" for ._* files
     Returns (dict) of extracted and skipped members
     """
     members = kwargs.get("members")
@@ -39,7 +40,9 @@ def extract_archive(file_path, **kwargs):
 
     if kwargs.get("fork_output_type"):
         if kwargs["fork_output_type"] not in FORK_OUTPUT_TYPES:
-            raise ValueError(f"Argument fork_output_type must be one of: {','.join(FORK_OUTPUT_TYPES)} ")
+            raise ValueError(
+                f"Argument fork_output_type must be one of: {','.join(FORK_OUTPUT_TYPES)} "
+            )
         fork_output_type = kwargs["fork_output_type"]
         fork_output_type_args = ["-forks", fork_output_type or FORK_OUTPUT_TYPE_VISIBLE]
     else:
@@ -53,9 +56,9 @@ def extract_archive(file_path, **kwargs):
             "-force-skip",
             "-no-directory",
             *fork_output_type_args,
-            '--',
+            "--",
             file_path,
-            ]
+        ]
 
         if members:
             for member in members:
@@ -68,8 +71,10 @@ def extract_archive(file_path, **kwargs):
 
         unar_result_success = r'^Successfully extracted to "(?P<destination>.+)".$'
         unar_result_no_files = "No files extracted."
-        unar_file_extracted = \
-            r"^ {2}(?P<path>.+). \(((?P<size>\d+) B)?(?P<types>(dir)?(, )?(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
+        unar_file_extracted = (
+            r"^ {2}(?P<path>.+). \(((?P<size>\d+) B)?(?P<types>(dir)?(, )?"
+            r"(rsrc)?)\)\.\.\. (?P<status>[A-Z]+)\.$"
+        )
 
         lines = process["stdout"].rstrip("\n").split("\n")
 
@@ -90,7 +95,7 @@ def extract_archive(file_path, **kwargs):
                         "is_dir": False,
                         "is_resource_fork": False,
                         "absolute_path": str(pathlib.PurePath(tmp_dir).joinpath(matches["path"])),
-                        }
+                    }
 
                     member_types = matches.get("types", "")
                     if member_types.startswith(", "):
@@ -112,10 +117,14 @@ def extract_archive(file_path, **kwargs):
                             member["name"] = f"._{member['name']}"
                         else:
                             member["name"] += ".rsrc"
-                        member["path"] = str(pathlib.PurePath(member["path"]).parent.joinpath(member["name"]))
-                        member["absolute_path"] = str(pathlib.PurePath(tmp_dir).joinpath(member["path"]))
+                        member["path"] = str(
+                            pathlib.PurePath(member["path"]).parent.joinpath(member["name"])
+                        )
+                        member["absolute_path"] = str(
+                            pathlib.PurePath(tmp_dir).joinpath(member["path"])
+                        )
 
-                    logging.debug("Extracted: %s -> %s", member['path'], member['absolute_path'])
+                    logging.debug("Extracted: %s -> %s", member["path"], member["absolute_path"])
                     extracted_members.append(member)
                 else:
                     raise UnarUnexpectedOutputError(f"Unexpected output: {line}")
@@ -128,7 +137,10 @@ def extract_archive(file_path, **kwargs):
                 member["absolute_path"] = str(target_path)
 
                 if target_path.exists():
-                    logging.info("Skipping temp file/dir as the target already exists: %s", target_path)
+                    logging.info(
+                        "Skipping temp file/dir as the target already exists: %s",
+                        target_path,
+                    )
                     skipped.append(member)
                     continue
 
@@ -147,7 +159,7 @@ def extract_archive(file_path, **kwargs):
             return {
                 "extracted": moved,
                 "skipped": skipped,
-                }
+            }
 
         raise UnarUnexpectedOutputError(lines[-1])
 
@@ -171,37 +183,41 @@ def inspect_archive(file_path):
     except JSONDecodeError as error:
         raise LsarOutputError(f"Unable to read JSON output from lsar: {error.msg}") from error
 
-    members = [{
-        "name": pathlib.PurePath(member.get("XADFileName")).name,
-        "path": member.get("XADFileName"),
-        "size": member.get("XADFileSize"),
-        "is_dir": member.get("XADIsDirectory"),
-        "is_resource_fork": member.get("XADIsResourceFork"),
-        "raw": member,
-        } for member in archive_info.get("lsarContents", [])]
+    members = [
+        {
+            "name": pathlib.PurePath(member.get("XADFileName")).name,
+            "path": member.get("XADFileName"),
+            "size": member.get("XADFileSize"),
+            "is_dir": member.get("XADIsDirectory"),
+            "is_resource_fork": member.get("XADIsResourceFork"),
+            "raw": member,
+        }
+        for member in archive_info.get("lsarContents", [])
+    ]
 
     return {
         "format": archive_info.get("lsarFormatName"),
         "members": members,
-        }
+    }
 
 
 class UnarCommandError(Exception):
-    """ Command execution was unsuccessful """
+    """Command execution was unsuccessful"""
+
     pass
 
 
 class UnarNoFilesExtractedError(Exception):
-    """ Command completed, but no files extracted """
+    """Command completed, but no files extracted"""
 
 
 class UnarUnexpectedOutputError(Exception):
-    """ Command output not recognized """
+    """Command output not recognized"""
 
 
 class LsarCommandError(Exception):
-    """ Command execution was unsuccessful """
+    """Command execution was unsuccessful"""
 
 
 class LsarOutputError(Exception):
-    """ Command output could not be parsed"""
+    """Command output could not be parsed"""

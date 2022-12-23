@@ -1,4 +1,4 @@
-name: Generate a RaSCSI OS image, based upon the official Rapsberry Pi OS
+name: Generate a PiSCSI OS image, based upon the official Rapsberry Pi OS
 
 # Controls when the workflow will run
 on:
@@ -22,13 +22,13 @@ jobs:
     # TODO: I don't think this step is needed....
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout RaSCSI
+      - name: Checkout PiSCSI
         uses: actions/checkout@v2
         with:
-          path: RASCSI
+          path: PISCSI
       
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout RaSCSI
+      - name: Checkout PiSCSI
         uses: actions/checkout@v2
         with:
           repository: akuker/pi-gen
@@ -40,8 +40,8 @@ jobs:
       - name: Configure the build
         run: |
           echo -----------------------------------------------------
-          echo "IMG_NAME=RaSCSI-$GITHUB_RUN_ID" > config
-          echo "TARGET_HOSTNAME=rascsi" >> config
+          echo "IMG_NAME=PiSCSI-$GITHUB_RUN_ID" > config
+          echo "TARGET_HOSTNAME=piscsi" >> config
           echo "ENABLE_SSH=1" >> config
           echo "LOCALE_DEFAULT=en_US.UTF-8" >> config
           echo "KEYBOARD_KEYMAP=us" >> config
