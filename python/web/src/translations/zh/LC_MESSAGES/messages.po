@@ -968,7 +968,6 @@ msgstr "正在下载文件并生成 CD-ROM 映像..."
 msgid "Create Empty Disk Image File"
 msgstr "创建空磁盘映像文件"
 
-# , python-format
 #: src/templates/index.html:541
 #, python-format
 msgid ""
