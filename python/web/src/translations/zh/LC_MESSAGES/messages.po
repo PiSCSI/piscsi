@@ -702,11 +702,11 @@ msgstr "文件名"
 #: src/templates/index.html:96 src/templates/index.html:322
 #: src/templates/index.html:475
 msgid "Attach"
-msgstr "加载/连接"
+msgstr "挂载"
 
 #: src/templates/index.html:126
 msgid "Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!"
-msgstr "弹出磁盘？ 警告：在 Mac OS 上，请在 Finder 中弹出磁盘！"
+msgstr "弹出磁盘？ 警告：如果是您使用的是Mac OS，请在 Finder 中弹出磁盘！"
 
 #: src/templates/index.html:129
 msgid "Eject"
@@ -722,7 +722,7 @@ msgstr "断开"
 
 #: src/templates/index.html:138
 msgid "Enter a memo for this reservation"
-msgstr "为此预订输入备忘"
+msgstr "为此预订输入备注"
 
 #: src/templates/index.html:141
 msgid "Reserve"
@@ -850,7 +850,7 @@ msgstr "系统剩余磁盘空间为%(disk_space)s MB "
 
 #: src/templates/index.html:359
 msgid "Transfer Files to the PiSCSI"
-msgstr ""
+msgstr "将文件传输至PiSCSI"
 
 #: src/templates/index.html:362 src/templates/index.html:371
 #: src/templates/upload.html:8 src/templates/upload.html:14
@@ -991,7 +991,7 @@ msgstr "格式为："
 
 #: src/templates/index.html:593
 msgid "Create Disk Image With Properties"
-msgstr ""
+msgstr "创建带属性的磁盘映像"
 
 #: src/templates/index.html:601
 msgid "Logging"
@@ -1114,7 +1114,7 @@ msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对更�
 msgid ""
 "You have to manually clean up partially uploaded files, as a result of "
 "cancelling the upload or closing this page."
-msgstr ""
+msgstr "取消上传或关闭此页面"
 
 #: src/templates/upload.html:12
 msgid "Destination"
@@ -1160,7 +1160,7 @@ msgstr "您确定要取消此上传吗？"
 
 #: src/templates/upload.html:42
 msgid "Dismiss"
-msgstr ""
+msgstr "取消"
 
 #: src/templates/upload.html:43
 msgid "You can not upload any more files."
