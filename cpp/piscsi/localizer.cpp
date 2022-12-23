@@ -83,14 +83,14 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "sv", "Kommando för id %1 som ej existerar");
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "fr", "Commande pour ID %1 non-existant");
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "es", "Comando para ID %1 no existente");
-	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "zh", "不存在的 ID %1 的命令");
+	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "zh", "不存在的 ID %1 的指令");
 	
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "en", "Command for non-existing ID %1, unit %2");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "de", "Kommando für nicht existente ID %1, Einheit %2");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "sv", "Kommando för id %1, enhetsnummer %2 som ej existerar");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "fr", "Command pour ID %1, unité %2 non-existant");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "es", "Comando para ID %1 inexistente, unidad %2");
-	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "zh", "不存在的 ID %1, 单元 %2 的命令");
+	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "zh", "不存在的 ID %1, 单元 %2 的指令");
 	
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
@@ -117,7 +117,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_DETACH, "de", "Geräte konnte nicht entfernt werden");
 	Add(LocalizationKey::ERROR_DETACH, "sv", "Kunde ej koppla ifrån enheten");
 	Add(LocalizationKey::ERROR_DETACH, "es", "No se ha podido desconectar el dispositivo");
-	Add(LocalizationKey::ERROR_DETACH, "zh", "无法分离设备");
+	Add(LocalizationKey::ERROR_DETACH, "zh", "无法卸载设备");
 
 	Add(LocalizationKey::ERROR_EJECT_REQUIRED, "en", "Existing medium must first be ejected");
 	Add(LocalizationKey::ERROR_EJECT_REQUIRED, "de", "Das vorhandene Medium muss erst ausgeworfen werden");
@@ -131,7 +131,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "sv", "Enhetsnamn kan ej ändras efter att ha fastställts en gång");
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "fr", "Une fois défini, le nom de périphérique ne peut plus être changé");
 	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "es", "Una vez establecido el nombre del dispositivo ya no se puede cambiar");
-	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "zh", "一旦设置设备名称不能再更改");
+	Add(LocalizationKey::ERROR_DEVICE_NAME_UPDATE, "zh", "设备名称设置后不能再更改");
 
 	Add(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING, "en", "Missing shutdown mode");
 	Add(LocalizationKey::ERROR_SHUTDOWN_MODE_MISSING, "de", "Fehlender Shutdown-Modus");
@@ -197,7 +197,7 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_LUN0, "de", "LUN 0 kann nicht entfernt werden, solange noch eine andere LUN existiert");
 	Add(LocalizationKey::ERROR_LUN0, "sv", "Enhetsnummer 0 kan ej bli frånkopplat så länge som andra enhetsnummer är anslutna");
 	Add(LocalizationKey::ERROR_LUN0, "es", "El LUN 0 no se puede desconectar mientras haya otro LUN");
-	Add(LocalizationKey::ERROR_LUN0, "zh", "只要还有另一个 LUN,LUN 0 就无法分离");
+	Add(LocalizationKey::ERROR_LUN0, "zh", "LUN 0 无法卸载，因为当前仍有另一个 LUN。");
 
 	Add(LocalizationKey::ERROR_INITIALIZATION, "en", "Initialization of %1 device, ID %2, LUN %3 failed");
 	Add(LocalizationKey::ERROR_INITIALIZATION, "de", "Initialisierung von %1-Gerät, ID %2, LUN %3 fehlgeschlagen");
