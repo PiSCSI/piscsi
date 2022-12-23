@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2022-12-20 02:53+0000\n"
+"POT-Creation-Date: 2022-12-23 08:37-0800\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Tony Kuker <akuker@gmail.com>\n"
 "Language: zh\n"
@@ -141,7 +141,7 @@ msgid "You must log in with valid credentials for a user in the '%(group)s' grou
 msgstr "您必须使用 '%(group)s' 组中用户的有效身份凭证登录。"
 
 #: src/web.py:395 src/web.py:439
-#,python-format
+#, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "驱动器 %(drive_name)s 中没有属性数据。"
 
@@ -151,7 +151,7 @@ msgid "Image file with properties created: %(file_name)s"
 msgstr "已创建含属性的映像文件：%(file_name)s"
 
 #: src/web.py:514
-#,  python-format
+#, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr "获取磁盘信息时产生错误：%(error)s。"
 
@@ -161,7 +161,7 @@ msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s不是可识别的 PiSCSI 应用程序"
 
 #: src/web.py:561
-#,  python-format
+#, python-format
 msgid "An error occurred when accessing man page: %(error)s"
 msgstr "获取帮助页面时产生错误：%(error)s。"
 
@@ -301,12 +301,12 @@ msgid "Image file renamed to: %(file_name)s"
 msgstr "映像文件重命名为：%(file_name)s"
 
 #: src/web.py:1231
-#,  python-format
+#, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr "已保存带属性映像文件的拷贝：%(file_name)s"
 
 #: src/web.py:1240
-#,  python-format
+#, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "已保存映像文件的拷贝：%(file_name)s"
 
@@ -345,7 +345,7 @@ msgid "Host Bridge"
 msgstr "主机桥"
 
 #: src/web_utils.py:108
-#,  
+#, 
 msgid "Ethernet Adapter"
 msgstr "以太网适配器"
 
@@ -366,7 +366,7 @@ msgid "Hard Disk Image (Apple)"
 msgstr "硬盘映像（Apple)"
 
 #: src/web_utils.py:139
-#,  
+#, 
 msgid "Hard Disk Image (NEC)"
 msgstr "硬盘映像（NEC）"
 
@@ -438,17 +438,17 @@ msgid "Log Out"
 msgstr "注销"
 
 #: src/templates/base.html:54
-#,  
+#, 
 msgid "Log in to use Web Interface"
 msgstr "请登录后再使用 Web 界面"
 
 #: src/templates/base.html:56
-#,  
+#, 
 msgid "Username:"
 msgstr "用户名"
 
 #: src/templates/base.html:60
-#,  
+#, 
 msgid "Password:"
 msgstr "密码"
 
@@ -457,7 +457,7 @@ msgid "Web Interface Authentication Disabled"
 msgstr "Web 界面身份验证已禁用"
 
 #: src/templates/base.html:71
-#,python-format
+#, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr "查看<a href=\"%(url)s\" target=\"_blank\">Wiki</a>以了解更多信息"
 
@@ -498,7 +498,7 @@ msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy 正在 %(ip_addr)s（默认端口 5000）上运行"
 
 #: src/templates/base.html:134
-#,  
+#, 
 msgid "PiSCSI version:"
 msgstr "PiSCSI 版本："
 
@@ -702,7 +702,7 @@ msgid "Actions"
 msgstr "操作"
 
 #: src/templates/index.html:78
-#,  
+#, 
 msgid "File name"
 msgstr "文件名"
 
@@ -740,7 +740,7 @@ msgid "Reserved ID"
 msgstr "预订 ID"
 
 #: src/templates/index.html:156
-#,  
+#, 
 msgid "Release"
 msgstr "释放"
 
@@ -796,12 +796,12 @@ msgstr "属性文件"
 
 #: src/templates/index.html:249 src/templates/index.html:261
 #: src/templates/index.html:288
-#,  
+#, 
 msgid "Extract"
 msgstr "解压"
 
 #: src/templates/index.html:249 src/templates/index.html:261
-#,  
+#, 
 msgid "Extracting a single file..."
 msgstr "解压单个文件..."
 
@@ -815,7 +815,7 @@ msgid "In use"
 msgstr "正在使用"
 
 #: src/templates/index.html:288
-#,  
+#, 
 msgid "Extracting all files..."
 msgstr "正在解压所有文件..."
 
@@ -833,12 +833,12 @@ msgid "Rename"
 msgstr "重命名"
 
 #: src/templates/index.html:330
-#,  python-format
+#, python-format
 msgid "Save copy of %(file_name)s as:"
 msgstr "将文件 %(file_name)s 的副本保存为："
 
 #: src/templates/index.html:333
-#,  
+#, 
 msgid "Copy"
 msgstr "复制"
 
@@ -856,7 +856,7 @@ msgid "Info"
 msgstr "信息"
 
 #: src/templates/index.html:351
-#,  python-format
+#, python-format
 msgid "%(disk_space)s MiB disk space remaining on the system"
 msgstr "系统剩余磁盘空间为%(disk_space)s MB "
 
@@ -902,14 +902,14 @@ msgid "Attach Peripheral Device"
 msgstr "连接外围设备"
 
 #: src/templates/index.html:393
-#,  
+#, 
 msgid ""
 "The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
 "by an emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:395
-#,  
+#, 
 msgid ""
 "Please configure the <tt>piscsi_bridge</tt> network bridge before "
 "attaching an emulated network adapter!"
@@ -947,7 +947,7 @@ msgid "None"
 msgstr "空"
 
 #: src/templates/index.html:488
-#,  
+#, 
 msgid "Download File and Create CD-ROM Image"
 msgstr "下载文件并创建 CD-ROM 映像"
 
@@ -983,8 +983,9 @@ msgstr "正在下载文件并生成 CD-ROM 映像..."
 msgid "Create Empty Disk Image File"
 msgstr "创建空磁盘映像文件"
 
-#: src/templates/index.html:541
 # , python-format
+#: src/templates/index.html:541
+#, python-format
 msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
 "documentation</a> to learn more about the supported image file types."
@@ -1057,7 +1058,7 @@ msgid "Change Language"
 msgstr "改变语言"
 
 #: src/templates/index.html:683
-#,  
+#, 
 msgid "System Operations"
 msgstr "系统操作"
 
@@ -1068,7 +1069,7 @@ msgid ""
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:687
-#,  
+#, 
 msgid ""
 "IMPORTANT: Always shut down the system before turning off the power. "
 "Failing to do so may lead to data loss."
@@ -1079,12 +1080,12 @@ msgid "Reset"
 msgstr "重置"
 
 #: src/templates/index.html:703
-#,  
+#, 
 msgid "Reboot the System?"
 msgstr "重启系统？"
 
 #: src/templates/index.html:703
-#,  
+#, 
 msgid "Rebooting the system..."
 msgstr "正在重启系统..."
 
@@ -1093,12 +1094,12 @@ msgid "Reboot System"
 msgstr "重启系统"
 
 #: src/templates/index.html:706
-#,  
+#, 
 msgid "Shut Down the System?"
 msgstr "关闭系统?"
 
 #: src/templates/index.html:706
-#,  
+#, 
 msgid "Shutting down the system..."
 msgstr "正在关闭系统..."
 
@@ -1202,3 +1203,4 @@ msgstr "KiB"
 #: src/templates/upload.html:49
 msgid "B"
 msgstr "B"
+
