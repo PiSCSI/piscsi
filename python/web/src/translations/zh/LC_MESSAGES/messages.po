@@ -10,7 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2022-12-20 02:53+0000\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Tony Kuker <akuker@gmail.com>\n"
-"Language: sv\n"
+"Language: zh\n"
 "Language-Team: N/A\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
@@ -325,12 +325,10 @@ msgid "Theme changed to '%(theme)s'."
 msgstr "主题更改为 '%(theme)s'."
 
 #: src/web_utils.py:98
-#, 
 msgid "Hard Disk Drive"
 msgstr "硬盘"
 
 #: src/web_utils.py:100
-#, 
 msgid "Removable Disk Drive"
 msgstr "可移动磁盘"
 
@@ -360,7 +358,6 @@ msgid "Host Services"
 msgstr "主机服务"
 
 #: src/web_utils.py:135
-#, 
 msgid "Hard Disk Image (Generic)"
 msgstr "硬盘映像（通用）"
 
@@ -378,7 +375,6 @@ msgid "Hard Disk Image (SCSI-1)"
 msgstr "硬盘映像 (SCSI-1)"
 
 #: src/web_utils.py:143
-#, 
 msgid "Removable Disk Image"
 msgstr "可移动磁盘映像"
 
@@ -474,7 +470,6 @@ msgid "Control Page"
 msgstr "控制页面"
 
 #: src/templates/base.html:85 src/templates/index.html:693
-#, 
 msgid "System Name:"
 msgstr "系统名"
 
@@ -593,7 +588,6 @@ msgstr ""
 "如果您想看到已修改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提问。 "
 
 #: src/templates/drives.html:6
-#, 
 msgid "Hard Disk Drives"
 msgstr "硬盘驱动器"
 
@@ -603,7 +597,6 @@ msgid "Name"
 msgstr "名称"
 
 #: src/templates/drives.html:12 src/templates/drives.html:87
-#,
 msgid "Size (MiB)"
 msgstr "大小 (MB)"
 
@@ -631,7 +624,6 @@ msgid "CD/DVD Drives"
 msgstr "CD/DVD 驱动器"
 
 #: src/templates/drives.html:43
-#,
 msgid ""
 "This will create a properties file for the given CD-ROM or DVD image. No "
 "new image file will be created."
@@ -642,7 +634,6 @@ msgid "Create for:"
 msgstr "创建对象："
 
 #: src/templates/drives.html:82
-#, 
 msgid "Removable Disk Drives"
 msgstr "可移动磁盘"
 
@@ -890,7 +881,7 @@ msgid ""
 msgstr "要远程访问共享文件，您必须首先安装一个文件服务器。"
 
 #: src/templates/index.html:369 src/templates/index.html:498
-#,  
+#, fuzzy
 msgid "Download file from URL:"
 msgstr "从 %(url)s 下载文件"
 
@@ -899,7 +890,6 @@ msgid "Download"
 msgstr "下载"
 
 #: src/templates/index.html:375
-#,  
 msgid "Downloading File..."
 msgstr "正在下载文件..."
 
@@ -933,11 +923,11 @@ msgid ""
 msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
 
 #: src/templates/index.html:399
-# , python-format
+#, python-format
 msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
 "types</a> on the wiki."
-msgstr "请查看wiki页面<a href=\"%(url)\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
+msgstr "请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
 
 #: src/templates/index.html:406
 msgid "Key"
@@ -1148,7 +1138,6 @@ msgid ""
 msgstr ""
 
 #: src/templates/upload.html:12
-#, 
 msgid "Destination"
 msgstr "文件存放位置"
 
