@@ -13,6 +13,7 @@ from conftest import STATUS_SUCCESS
         ("fr", "Langue de l’interface web changée pour français"),
         ("sv", "Bytte webbgränssnittets språk till svenska"),
         ("en", "Changed Web Interface language to English"),
+        ("zh", "Web 界面语言已更改为 中文"),
     ],
 )
 def test_set_language(http_client, locale, confirm_message):
