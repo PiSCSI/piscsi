@@ -67,5 +67,5 @@ private:
 	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
 	// Supported locales, always lower case
-	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es" };
+	unordered_set<string> supported_languages = { "en", "de", "sv", "fr", "es", "zh" };
 };
