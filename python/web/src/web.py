@@ -879,7 +879,7 @@ def shutdown():
     return response(error=True, message=message)
 
 
-@APP.route("/files/download_to_iso", methods=["POST"])
+@APP.route("/files/create_iso", methods=["POST"])
 @login_required
 def download_to_iso():
     """
@@ -888,6 +888,7 @@ def download_to_iso():
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     iso_type = request.form.get("type")
+    local_file = request.form.get("file")
 
     if iso_type == "HFS":
         iso_args = ["-hfs"]
@@ -907,7 +908,14 @@ def download_to_iso():
             message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type),
         )
 
-    process = file_cmd.download_file_to_iso(url, *iso_args)
+    if url:
+        process = file_cmd.download_file_to_iso(url, *iso_args)
+    elif local_file:
+        server_info = piscsi_cmd.get_server_info()
+        file_path = Path(server_info["image_dir"]) / local_file
+        iso_path = Path(str(file_path) + ".iso")
+        process = file_cmd.generate_iso(iso_path, file_path, *iso_args)
+
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(

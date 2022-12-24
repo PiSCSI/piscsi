@@ -328,9 +328,8 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
     delete_file(file_name)
 
 
-# route("/files/download_to_iso", methods=["POST"])
-def test_download_url_to_iso(
-    env,
+# route("/files/create_iso", methods=["POST"])
+def test_create_iso_from_url(
     httpserver,
     http_client,
     list_files,
@@ -354,11 +353,52 @@ def test_download_url_to_iso(
     )
 
     response = http_client.post(
-        "/files/download_to_iso",
+        "/files/create_iso",
         data={
             "scsi_id": SCSI_ID,
             "type": ISO_TYPE,
             "url": url,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert iso_file_name in list_files()
+    assert iso_file_name in list_attached_images()
+
+    assert (
+        response_data["messages"][0]["message"]
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
+        f"and attached to SCSI ID {SCSI_ID}"
+    )
+
+    # Cleanup
+    detach_devices()
+    delete_file(iso_file_name)
+
+
+# route("/files/create_iso", methods=["POST"])
+def test_create_iso_from_local_file(
+    http_client,
+    create_test_image,
+    list_files,
+    list_attached_images,
+    detach_devices,
+    delete_file,
+):
+    test_file_name = create_test_image()
+    iso_file_name = f"{test_file_name}.iso"
+
+    ISO_TYPE = "HFS"
+
+    response = http_client.post(
+        "/files/create_iso",
+        data={
+            "scsi_id": SCSI_ID,
+            "type": ISO_TYPE,
+            "file": test_file_name,
         },
     )
 

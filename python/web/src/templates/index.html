@@ -382,6 +382,161 @@
 
 <hr/>
 
+<section id="create-iso">
+<details>
+    <summary class="heading">
+        {{ _("Create CD-ROM Image With File") }}
+    </summary>
+    <ul>
+        <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
+        <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
+    </ul>
+</details>
+
+<div>
+<form action="/files/create_iso" method="post" class="iso-attach">
+    <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
+    <input name="url" id="iso_url" required="" type="url">
+    <label for="iso_url_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_url_type">
+        <option value="HFS">
+            HFS
+        </option>
+        <option value="ISO-9660 Level 1">
+            ISO-9660 Level 1
+        </option>
+        <option value="ISO-9660 Level 2">
+            ISO-9660 Level 2
+        </option>
+        <option value="ISO-9660 Level 3">
+            ISO-9660 Level 3
+        </option>
+        <option value="Joliet">
+            Joliet
+        </option>
+        <option value="Rock Ridge">
+            Rock Ridge
+        </option>
+    </select>
+    <label for="iso_url_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_url_scsi_id">
+        {% for id in scsi_ids["valid_ids"] %}
+        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
+            {{ id }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Downloading file and generating CD-ROM image...") }}')">
+</form>
+</div>
+<div>
+<form action="/files/create_iso" method="post" class="iso-attach">
+    <label for="iso_file">{{ _("Create ISO from local file:") }}</label>
+    <select name="file" id="iso_file">
+        {% for f in files|sort(attribute='name') %}
+            <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
+        {% endfor %}
+    </select>
+    <label for="iso_file_type">{{ _("Type:") }}</label>
+    <select name="type" id="iso_file_type">
+        <option value="HFS">
+            HFS
+        </option>
+        <option value="ISO-9660 Level 1">
+            ISO-9660 Level 1
+        </option>
+        <option value="ISO-9660 Level 2">
+            ISO-9660 Level 2
+        </option>
+        <option value="ISO-9660 Level 3">
+            ISO-9660 Level 3
+        </option>
+        <option value="Joliet">
+            Joliet
+        </option>
+        <option value="Rock Ridge">
+            Rock Ridge
+        </option>
+    </select>
+    <label for="iso_file_scsi_id">{{ _("ID") }}</label>
+    <select name="scsi_id" id="iso_file_scsi_id">
+        {% for id in scsi_ids["valid_ids"] %}
+        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
+            {{ id }}
+        </option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Generating CD-ROM image...") }}')">
+</form>
+</div>
+</section>
+
+<hr/>
+
+<section id="create-image">
+<details>
+    <summary class="heading">
+        {{ _("Create Empty Disk Image File") }}
+    </summary>
+    <ul>
+        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types") }}</li>
+        <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
+    </ul>
+</details>
+
+<form action="/files/create" method="post">
+    <label for="image_create_file_name">{{ _("File Name:") }}</label>
+    <input name="file_name" id="image_create_file_name" required="" type="text">
+    <label for="image_create_type">{{ _("Type:") }}</label>
+    <select name="type" id="image_create_type">
+        {% for key, value in image_suffixes_to_create.items() %}
+        <option value="{{ key }}">
+        {{ value }} [.{{ key }}]
+        </option>
+        {% endfor %}
+    </select>
+    <label for="image_create_size">{{ _("Size:") }}</label>
+    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
+    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
+    <select name="drive_name" id="image_create_drive_name">
+    <option value="">
+    {{ _("None") }}
+    </option>
+    {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
+    <option value="{{ drive.name }}">
+    {{ drive.name }}
+    </option>
+    {% endfor %}
+    </select>
+    <label for="drive_format">{{ _("Format as:") }}</label>
+    <select name="drive_format" id="drive_format">
+    <option value="">
+    {{ _("None") }}
+    </option>
+    <option value="Lido 7.56">
+    HFS + Lido
+    </option>
+    <option value="SpeedTools 3.6">
+    HFS + SpeedTools
+    </option>
+    <option value="FAT16">
+    FAT16
+    </option>
+    <option value="FAT32">
+    FAT32
+    </option>
+    </select>
+    <input type="submit" value="{{ _("Create") }}">
+</form>
+</section>
+
+<section id="create-drive">
+    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
+</section>
+
+<hr/>
+
+<section id="logging">
 <section id="attach-devices">
 <details>
     <summary class="heading">
@@ -482,120 +637,6 @@
 
 <hr/>
 
-<section id="download-to-iso">
-<details>
-    <summary class="heading">
-        {{ _("Download File and Create CD-ROM Image") }}
-    </summary>
-    <ul>
-        <li>{{ _("Create an ISO file system CD-ROM image with the downloaded file, and mount it on the given SCSI ID.") }}</li>
-        <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
-        <li>{{ _("If the downloaded file is a zip archive, we will attempt to unzip it and store the resulting files.") }}</li>
-    </ul>
-</details>
-
-<form action="/files/download_to_iso" method="post">
-    <label for="iso_url">{{ _("Download file from URL:") }}</label>
-    <input name="url" id="iso_url" required="" type="url">
-    <label for="iso_type">{{ _("Type:") }}</label>
-    <select name="type" id="iso_type">
-        <option value="HFS">
-            HFS
-        </option>
-        <option value="ISO-9660 Level 1">
-            ISO-9660 Level 1
-        </option>
-        <option value="ISO-9660 Level 2">
-            ISO-9660 Level 2
-        </option>
-        <option value="ISO-9660 Level 3">
-            ISO-9660 Level 3
-        </option>
-        <option value="Joliet">
-            Joliet
-        </option>
-        <option value="Rock Ridge">
-            Rock Ridge
-        </option>
-    </select>
-    <label for="iso_scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="iso_scsi_id">
-        {% for id in scsi_ids["valid_ids"] %}
-        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
-            {{ id }}
-        </option>
-        {% endfor %}
-    </select>
-    <input type="submit" value="{{ _("Download and Mount CD-ROM image") }}" onclick="processNotify('{{ _("Downloading File and generating CD-ROM image...") }}')">
-</form>
-</section>
-
-<hr/>
-
-<section id="create-image">
-<details>
-    <summary class="heading">
-        {{ _("Create Empty Disk Image File") }}
-    </summary>
-    <ul>
-        <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types") }}</li>
-        <li>{{ _("It is not recommended to use the Lido hard disk driver with the Macintosh Plus.") }}</li>
-    </ul>
-</details>
-
-<form action="/files/create" method="post">
-    <label for="image_create_file_name">{{ _("File Name:") }}</label>
-    <input name="file_name" id="image_create_file_name" required="" type="text">
-    <label for="image_create_type">{{ _("Type:") }}</label>
-    <select name="type" id="image_create_type">
-        {% for key, value in image_suffixes_to_create.items() %}
-        <option value="{{ key }}">
-        {{ value }} [.{{ key }}]
-        </option>
-        {% endfor %}
-    </select>
-    <label for="image_create_size">{{ _("Size:") }}</label>
-    <input name="size" id="image_create_size" type="number" placeholder="{{ _("MiB") }}" min="1" max="262144" required>
-    <label for="image_create_drive_name">{{ _("Masquerade as:") }}</label>
-    <select name="drive_name" id="image_create_drive_name">
-    <option value="">
-    {{ _("None") }}
-    </option>
-    {% for drive in drive_properties["hd_conf"] | sort(attribute='name') %}
-    <option value="{{ drive.name }}">
-    {{ drive.name }}
-    </option>
-    {% endfor %}
-    </select>
-    <label for="drive_format">{{ _("Format as:") }}</label>
-    <select name="drive_format" id="drive_format">
-    <option value="">
-    {{ _("None") }}
-    </option>
-    <option value="Lido 7.56">
-    HFS + Lido
-    </option>
-    <option value="SpeedTools 3.6">
-    HFS + SpeedTools
-    </option>
-    <option value="FAT16">
-    FAT16
-    </option>
-    <option value="FAT32">
-    FAT32
-    </option>
-    </select>
-    <input type="submit" value="{{ _("Create") }}">
-</form>
-</section>
-
-<section id="create-drive">
-    <a href="/drive/list"><p>{{ _("Create Disk Image With Properties") }}</p></a>
-</section>
-
-<hr/>
-
-<section id="logging">
 <details>
     <summary class="heading">
         {{ _("Logging") }}
