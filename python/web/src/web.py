@@ -260,6 +260,7 @@ def index():
 
     return response(
         template="index.html",
+        page_title=_("PiSCSI Control Page"),
         locales=get_supported_locales(),
         netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
@@ -305,6 +306,7 @@ def drive_list():
 
     return response(
         template="drives.html",
+        page_title=_("PiSCSI Create Drive"),
         files=file_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
     )
@@ -318,6 +320,7 @@ def upload_page():
 
     return response(
         template="upload.html",
+        page_title=_("PiSCSI File Upload"),
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         FILE_SERVER_DIR=FILE_SERVER_DIR,
     )
@@ -505,6 +508,7 @@ def show_diskinfo():
     if returncode == 0:
         return response(
             template="diskinfo.html",
+            page_title=_("PiSCSI Image Info"),
             file_name=str(file_name),
             diskinfo=diskinfo,
         )
@@ -552,13 +556,14 @@ def show_manpage():
 
         return response(
             template="manpage.html",
+            page_title=_("PiSCSI Manual"),
             app=app,
             manpage=formatted_manpage,
         )
 
     return response(
         error=True,
-        message=_("An error occurred when accessing man page: %(error)s", error=manpage),
+        message=_("An error occurred when accessing manual page: %(error)s", error=manpage),
     )
 
 
@@ -574,6 +579,7 @@ def show_logs():
     if returncode == 0:
         return response(
             template="logs.html",
+            page_title=_("PiSCSI System Logs"),
             scope=scope,
             lines=lines,
             logs=logs,
@@ -791,6 +797,7 @@ def device_info():
     if process["status"]:
         return response(
             template="deviceinfo.html",
+            page_title=_("PiSCSI Device Info"),
             devices=process["device_list"],
         )
 
