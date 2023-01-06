@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
     string product_data;
     if (ident.size() == 24) {
         ostringstream s;
-        s << ident << setw(2) << setfill('0') << piscsi_major_version << piscsi_minor_version;
+        s << ident << setw(2) << setfill('0') << piscsi_major_version << setw(2) << piscsi_minor_version;
         product_data = s.str();
     } else {
         product_data = ident;
