@@ -23,13 +23,13 @@ string piscsi_get_version_string()
 {
 	stringstream s;
 
-	s << setw(2) << setfill('0') << piscsi_major_version << '.' << piscsi_minor_version;
+	s << setw(2) << setfill('0') << piscsi_major_version << '.' << setw(2) << piscsi_minor_version;
 
 	if (piscsi_patch_version < 0) {
 		s << " --DEVELOPMENT BUILD--";
     }
     else {
-		s << '.' << piscsi_patch_version;
+		s << '.' << setw(2) << piscsi_patch_version;
     }
 
 	return s.str();
