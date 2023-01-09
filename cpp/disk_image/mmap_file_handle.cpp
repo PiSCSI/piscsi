@@ -21,7 +21,7 @@
 //---------------------------------------------------------------------------
 
 #include "mmap_file_handle.h"
-#include "log.h"
+#include "shared/log.h"
 #include <sys/mman.h>
 #include <errno.h>
 #include <unistd.h>
@@ -31,25 +31,25 @@
 //	Direct file access that will map the file into virtual memory space
 //
 //===========================================================================
-MmapFileHandle::MmapFileHandle(const Filepath &path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
+MmapFileHandle::MmapFileHandle(const string &path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
-	ASSERT(blocks > 0);
-	ASSERT(imgoff >= 0);
+	assert(blocks > 0);
+	assert(imgoff >= 0);
 
-	fd = open(path.GetPath(), O_RDWR);
+	fd = open(path.c_str(), O_RDWR);
 	if (fd < 0)
 	{
-		LOGWARN("Unable to open file %s. Errno:%d", path.GetPath(), errno)
+		LOGWARN("Unable to open file %s. Errno:%d", path.c_str(), errno)
 	}
-	LOGWARN("%s opened %s", __PRETTY_FUNCTION__, path.GetPath());
+	LOGWARN("%s opened %s", __PRETTY_FUNCTION__, path.c_str())
 	struct stat sb;
 	if (fstat(fd, &sb) < 0)
 	{
-		LOGWARN("Unable to run fstat. Errno:%d", errno);
+		LOGWARN("Unable to run fstat. Errno:%d", errno)
 	}
-	printf("Size: %llu\n", (uint64_t)sb.st_size);
+	printf("Size: %zu\n", sb.st_size);
 
-	LOGWARN("%s mmap-ed file of size: %llu", __PRETTY_FUNCTION__, (uint64_t)sb.st_size);
+	LOGWARN("%s mmap-ed file of size: %zu", __PRETTY_FUNCTION__, sb.st_size)
 
 	// int x =    EACCES;
 
@@ -57,7 +57,7 @@ MmapFileHandle::MmapFileHandle(const Filepath &path, int size, uint32_t blocks, 
 	int errno_val = errno;
 	if (memory_block == MAP_FAILED)
 	{
-		LOGWARN("Unabled to memory map file %s", path.GetPath());
+		LOGWARN("Unabled to memory map file %s", path.c_str());
 		LOGWARN("   Errno:%d", errno_val);
 		return;
 	}
@@ -73,12 +73,12 @@ MmapFileHandle::~MmapFileHandle()
 	sync();
 }
 
-bool MmapFileHandle::ReadSector(BYTE *buf, int block)
+bool MmapFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 {
-	ASSERT(sec_size != 0);
-	ASSERT(buf);
-	ASSERT(block < sec_blocks);
-	ASSERT(memory_block);
+	assert(sec_size != 0);
+	assert(buf);
+	assert(block < sec_blocks);
+	assert(memory_block);
 
 	int sector_size_bytes = (off_t)1 << sec_size;
 
@@ -86,21 +86,21 @@ bool MmapFileHandle::ReadSector(BYTE *buf, int block)
 	off_t offset = GetTrackOffset(block);
 	offset += GetSectorOffset(block);
 
-	memcpy(buf, &memory_block[offset], sector_size_bytes);
+	memcpy(buf.data(), &memory_block[offset], sector_size_bytes);
 
 	return true;
 }
 
-bool MmapFileHandle::WriteSector(const BYTE *buf, int block)
+bool MmapFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 {
 
-	ASSERT(buf);
-	ASSERT(block < sec_blocks);
-	ASSERT(memory_block);
+	assert(buf);
+	assert(block < sec_blocks);
+	assert(memory_block);
 
-	ASSERT((block * sec_size) <= (sb.st_size + sec_size));
+	assert((block * sec_size) <= (sb.st_size + sec_size));
 
-	memcpy((void *)&memory_block[(block * sec_size)], buf, sec_size);
+	memcpy((void *)&memory_block[(block * sec_size)], buf.data(), sec_size);
 
 	return true;
 }

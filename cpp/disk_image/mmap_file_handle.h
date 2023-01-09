@@ -22,23 +22,24 @@
 
 #pragma once
 
-#include "filepath.h"
+#include <string>
+#include <sys/stat.h>
 #include "disk_image/disk_image_handle.h"
+
+using namespace std;
 
 class MmapFileHandle : public DiskImageHandle
 {
 
 public:
-	MmapFileHandle(const Filepath &path, int size, uint32_t blocks, off_t imgoff = 0);
+	MmapFileHandle(const string &path, int size, uint32_t blocks, off_t imgoff = 0);
 	~MmapFileHandle();
-
-	void SetRawMode(BOOL raw); // CD-ROM raw mode setting
 
 	// Access
 	bool Save() { return true; };												// Save and release all
-	bool ReadSector(BYTE *buf, int block);										// Sector Read
-	bool WriteSector(const BYTE *buf, int block);								// Sector Write
-	bool GetCache(int index, int &track, DWORD &serial) const { return true; }; // Get cache information
+	bool ReadSector(vector<uint8_t>& buf, int block);										// Sector Read
+	bool WriteSector(const vector<uint8_t>& buf, int block);								// Sector Write
+	bool GetCache(int index, int &track, uint32_t &serial) const { (void)index; (void)track; (void)serial; return true; }; // Get cache information
 
 private:
 	const char *memory_block;

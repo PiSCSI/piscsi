@@ -17,8 +17,10 @@
 
 #pragma once
 
-#include "filepath.h"
+#include <string>
 #include "disk_image/disk_image_handle.h"
+
+using namespace std;
 
 // Number of tracks to cache
 #define CacheMax 16
@@ -30,13 +32,13 @@ private:
 		int track;							// Track Number
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		int sectors;							// Number of sectors(<0x100)
-		DWORD length;							// Data buffer length
-		BYTE *buffer;							// Data buffer
-		BOOL init;							// Is it initilized?
-		BOOL changed;							// Changed flag
-		DWORD maplen;							// Changed map length
-		BOOL *changemap;						// Changed map
-		BOOL raw;							// RAW mode flag
+		uint32_t length;							// Data buffer length
+		uint8_t *buffer;							// Data buffer
+		bool init;							// Is it initilized?
+		bool changed;							// Changed flag
+		uint32_t maplen;							// Changed map length
+		bool *changemap;						// Changed map
+		bool raw;							// RAW mode flag
 		off_t imgoffset;						// Offset to actual data
 	} dt;
 
@@ -47,13 +49,13 @@ public:
 private:
 	friend class DiskCache;
 
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);
-	bool Load(const Filepath& path);
-	bool Save(const Filepath& path);
+	void Init(int track, int size, int sectors, bool raw = false, off_t imgoff = 0) ;
+	bool Load(const string& path) ;
+	bool Save(const string& path) ;
 
 	// Read / Write
-	bool ReadSector(BYTE *buf, int sec) const;				// Sector Read
-	bool WriteSector(const BYTE *buf, int sec);				// Sector Write
+	bool ReadSector(vector<uint8_t>& buf, int sec) const;				// Sector Read
+	bool WriteSector(const vector<uint8_t>& buf, int sec);				// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };
@@ -64,18 +66,18 @@ public:
 	// Internal data definition
 	typedef struct {
 		DiskTrack *disktrk;						// Disk Track
-		DWORD serial;							// Serial
+		uint32_t serial;							// Serial
 	} cache_t;
 
 public:
-	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff = 0);
 	~DiskCache();
 
 	// Access
 	bool Save() override;							// Save and release all
-	bool ReadSector(BYTE *buf, int block) override;				// Sector Read
-	bool WriteSector(const BYTE *buf, int block) override;			// Sector Write
-	bool GetCache(int index, int& track, DWORD& serial) const override;	// Get cache information
+	bool ReadSector(vector<uint8_t>& buf, int block) override;				// Sector Read
+	bool WriteSector(const vector<uint8_t>& buf, int block) override;			// Sector Write
+	bool GetCache(int index, int& track, uint32_t& serial) const override;	// Get cache information
 
 private:
 	// Internal Management

@@ -11,9 +11,10 @@
 //
 //---------------------------------------------------------------------------
 
+#include <cassert>
 #include "disk_image/disk_image_handle.h"
 
-DiskImageHandle::DiskImageHandle(const Filepath &path, int size, uint32_t blocks, off_t imgoff)
+DiskImageHandle::DiskImageHandle(const string &path, int size, uint32_t blocks, off_t imgoff)
 {
 
 	serial = 0;
@@ -43,7 +44,7 @@ off_t DiskImageHandle::GetTrackOffset(int block)
 	off_t offset = ((off_t)track_num << 8);
 	if (cd_raw)
 	{
-		ASSERT(sec_size == 11);
+		assert(sec_size == 11);
 		offset *= 0x930;
 		offset += 0x10;
 	}

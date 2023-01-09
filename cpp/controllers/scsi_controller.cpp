@@ -22,6 +22,7 @@
 #include "scsi_controller.h"
 #include <sstream>
 #include <iomanip>
+#include <cassert>
 #ifdef __linux__
 #include <linux/if_tun.h>
 #endif

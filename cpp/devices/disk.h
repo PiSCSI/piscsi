@@ -17,8 +17,9 @@
 
 #include "shared/scsi.h"
 #include "device_factory.h"
-#include "disk_track.h"
-#include "disk_cache.h"
+// #include "disk_track.h"
+// #include "disk_cache.h"
+#include "disk_image/disk_image_handle.h"
 #include "interfaces/scsi_block_commands.h"
 #include "storage_device.h"
 #include <string>
@@ -32,7 +33,7 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 {
 	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
-	unique_ptr<DiskCache> cache;
+	unique_ptr<DiskImageHandle> cache;
 
 	// The supported configurable sector sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;

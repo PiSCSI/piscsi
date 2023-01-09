@@ -16,10 +16,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "os.h"
-#include "log.h"
-#include "fileio.h"
+#include <fstream>
+#include "shared/log.h"
 #include "disk_track_cache.h"
+
+using namespace std;
 
 //===========================================================================
 //
@@ -33,13 +34,13 @@ DiskTrack::DiskTrack()
 	dt.track = 0;
 	dt.size = 0;
 	dt.sectors = 0;
-	dt.raw = FALSE;
-	dt.init = FALSE;
-	dt.changed = FALSE;
+	dt.raw = false;
+	dt.init = false;
+	dt.changed = false;
 	dt.length = 0;
-	dt.buffer = NULL;
+	dt.buffer = nullptr;
 	dt.maplen = 0;
-	dt.changemap = NULL;
+	dt.changemap = nullptr;
 	dt.imgoffset = 0;
 }
 
@@ -56,11 +57,11 @@ DiskTrack::~DiskTrack()
 	}
 }
 
-void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
+void DiskTrack::Init(int track, int size, int sectors, bool raw, off_t imgoff)
 {
-	ASSERT(track >= 0);
-	ASSERT((sectors > 0) && (sectors <= 0x100));
-	ASSERT(imgoff >= 0);
+	assert(track >= 0);
+	assert((sectors > 0) && (sectors <= 0x100));
+	assert(imgoff >= 0);
 
 	// Set Parameters
 	dt.track = track;
@@ -69,28 +70,28 @@ void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 	dt.raw = raw;
 
 	// Not initialized (needs to be loaded)
-	dt.init = FALSE;
+	dt.init = false;
 
 	// Not Changed
-	dt.changed = FALSE;
+	dt.changed = false;
 
 	// Offset to actual data
 	dt.imgoffset = imgoff;
 }
 
-bool DiskTrack::Load(const Filepath& path)
+bool DiskTrack::Load(const string& path)
 {
 	// Not needed if already loaded
 	if (dt.init) {
-		ASSERT(dt.buffer);
-		ASSERT(dt.changemap);
+		assert(dt.buffer);
+		assert(dt.changemap);
 		return true;
 	}
 
 	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
 	if (dt.raw) {
-		ASSERT(dt.size == 11);
+		assert(dt.size == 11);
 		offset *= 0x930;
 		offset += 0x10;
 	} else {
@@ -104,7 +105,7 @@ bool DiskTrack::Load(const Filepath& path)
 	int length = dt.sectors << dt.size;
 
 	// Allocate buffer memory
-	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
+	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	if (dt.buffer == NULL) {
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
@@ -118,7 +119,7 @@ bool DiskTrack::Load(const Filepath& path)
 	}
 
 	// Reallocate if the buffer length is different
-	if (dt.length != (DWORD)length) {
+	if (dt.length != (uint32_t)length) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                   LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
@@ -128,7 +129,7 @@ bool DiskTrack::Load(const Filepath& path)
 
 	// Reserve change map memory
 	if (dt.changemap == NULL) {
-		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
+		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
 		dt.maplen = dt.sectors;
 	}
 
@@ -137,32 +138,33 @@ bool DiskTrack::Load(const Filepath& path)
 	}
 
 	// Reallocate if the buffer length is different
-	if (dt.maplen != (DWORD)dt.sectors) {
+	if (dt.maplen != (uint32_t)dt.sectors) {
 		free(dt.changemap);
-		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
+		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
 		dt.maplen = dt.sectors;
 	}
 
 	// Clear changemap
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
+	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
 
 	// Read from File
-	Fileio fio;
-	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
+	fstream fio;
+	fio.open(path.c_str(),ios::in);
+	if(!fio.is_open()) {
 		return false;
 	}
 	if (dt.raw) {
 		// Split Reading
 		for (int i = 0; i < dt.sectors; i++) {
 			// Seek
-			if (!fio.Seek(offset)) {
-				fio.Close();
+			if (!fio.seekg(offset)) {
+				fio.close();
 				return false;
 			}
 
 			// Read
-			if (!fio.Read(&dt.buffer[i << dt.size], 1 << dt.size)) {
-				fio.Close();
+			if (!fio.read(&dt.buffer[i << dt.size], 1 << dt.size)) {
+				fio.close();
 				return false;
 			}
 
@@ -171,24 +173,24 @@ bool DiskTrack::Load(const Filepath& path)
 		}
 	} else {
 		// Continuous reading
-		if (!fio.Seek(offset)) {
-			fio.Close();
+		if (!fio.seekg(offset)) {
+			fio.close();
 			return false;
 		}
-		if (!fio.Read(dt.buffer, length)) {
-			fio.Close();
+		if (!fio.read(dt.buffer, length)) {
+			fio.close();
 			return false;
 		}
 	}
-	fio.Close();
+	fio.close();
 
 	// Set a flag and end normally
-	dt.init = TRUE;
-	dt.changed = FALSE;
+	dt.init = true;
+	dt.changed = false;
 	return true;
 }
 
-bool DiskTrack::Save(const Filepath& path)
+bool DiskTrack::Save(const string& path)
 {
 	// Not needed if not initialized
 	if (!dt.init) {
@@ -201,12 +203,12 @@ bool DiskTrack::Save(const Filepath& path)
 	}
 
 	// Need to write
-	ASSERT(dt.buffer);
-	ASSERT(dt.changemap);
-	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
+	assert(dt.buffer);
+	assert(dt.changemap);
+	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	// Writing in RAW mode is not allowed
-	ASSERT(!dt.raw);
+	assert(!dt.raw);
 
 	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
@@ -219,8 +221,9 @@ bool DiskTrack::Save(const Filepath& path)
 	int length = 1 << dt.size;
 
 	// Open file
-	Fileio fio;
-	if (!fio.Open(path, Fileio::ReadWrite)) {
+	fstream fio;
+	fio.open(path, ios::in | ios::out);
+	if (!fio.is_open()) {
 		return false;
 	}
 
@@ -233,8 +236,8 @@ bool DiskTrack::Save(const Filepath& path)
 			total = 0;
 
 			// Seek
-			if (!fio.Seek(offset + ((off_t)i << dt.size))) {
-				fio.Close();
+			if (!fio.seekg(offset + ((off_t)i << dt.size))) {
+				fio.close();
 				return false;
 			}
 
@@ -251,8 +254,8 @@ bool DiskTrack::Save(const Filepath& path)
 			}
 
 			// Write
-			if (!fio.Write(&dt.buffer[i << dt.size], total)) {
-				fio.Close();
+			if (!fio.write(&dt.buffer[i << dt.size], total)) {
+				fio.close();
 				return false;
 			}
 
@@ -265,18 +268,18 @@ bool DiskTrack::Save(const Filepath& path)
 	}
 
 	// Close
-	fio.Close();
+	fio.close();
 
 	// Drop the change flag and exit
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
-	dt.changed = FALSE;
+	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
+	dt.changed = false;
 	return true;
 }
 
-bool DiskTrack::ReadSector(BYTE *buf, int sec) const
+bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
-	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
+	assert(buf);
+	assert((sec >= 0) & (sec < 0x100));
 
 	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
 	// Error if not initialized
@@ -290,19 +293,19 @@ bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 	}
 
 	// Copy
-	ASSERT(dt.buffer);
-	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
-	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
+	assert(dt.buffer);
+	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
+	memcpy(buf.data(), &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 
 	// Success
 	return true;
 }
 
-bool DiskTrack::WriteSector(const BYTE *buf, int sec)
+bool DiskTrack::WriteSector(const vector<uint8_t>& buf, int sec)
 {
-	ASSERT(buf);
-	ASSERT((sec >= 0) & (sec < 0x100));
-	ASSERT(!dt.raw);
+	assert(buf);
+	assert((sec >= 0) & (sec < 0x100));
+	assert(!dt.raw);
 
 	// Error if not initialized
 	if (!dt.init) {
@@ -319,17 +322,17 @@ bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 	int length = 1 << dt.size;
 
 	// Compare
-	ASSERT(dt.buffer);
-	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
-	if (memcmp(buf, &dt.buffer[offset], length) == 0) {
+	assert(dt.buffer);
+	assert((dt.sectors > 0) && (dt.sectors <= 0x100));
+	if (memcmp(buf.data(), &dt.buffer[offset], length) == 0) {
 		// Exit normally since it's attempting to write the same thing
 		return true;
 	}
 
 	// Copy, change
-	memcpy(&dt.buffer[offset], buf, length);
-	dt.changemap[sec] = TRUE;
-	dt.changed = TRUE;
+	memcpy(&dt.buffer[offset], buf.data(), length);
+	dt.changemap[sec] = true;
+	dt.changed = true;
 
 	// Success
 	return true;
@@ -341,10 +344,10 @@ bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 //
 //===========================================================================
 
-DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
+DiskCache::DiskCache(const string& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
-	ASSERT(blocks > 0);
-	ASSERT(imgoff >= 0);
+	assert(blocks > 0);
+	assert(imgoff >= 0);
 
 	// Cache work
 	for (int i = 0; i < CacheMax; i++) {
@@ -381,9 +384,9 @@ bool DiskCache::Save()
 //	Get disk cache information
 //
 //---------------------------------------------------------------------------
-bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
+bool DiskCache::GetCache(int index, int& track, uint32_t& aserial) const
 {
-	ASSERT((index >= 0) && (index < CacheMax));
+	assert((index >= 0) && (index < CacheMax));
 
 	// false if unused
 	if (!cache[index].disktrk) {
@@ -408,9 +411,9 @@ void DiskCache::Clear()
 	}
 }
 
-bool DiskCache::ReadSector(BYTE *buf, int block)
+bool DiskCache::ReadSector(vector<uint8_t>& buf, int block)
 {
-	ASSERT(sec_size != 0);
+	assert(sec_size != 0);
 
 	// Update first
 	UpdateSerialNumber();
@@ -428,9 +431,9 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-bool DiskCache::WriteSector(const BYTE *buf, int block)
+bool DiskCache::WriteSector(const vector<uint8_t>& buf, int block)
 {
-	ASSERT(sec_size != 0);
+	assert(sec_size != 0);
 
 	// Update first
 	UpdateSerialNumber();
@@ -455,8 +458,8 @@ bool DiskCache::WriteSector(const BYTE *buf, int block)
 //---------------------------------------------------------------------------
 DiskTrack* DiskCache::Assign(int track)
 {
-	ASSERT(sec_size != 0);
-	ASSERT(track >= 0);
+	assert(sec_size != 0);
+	assert(track >= 0);
 
 	// First, check if it is already assigned
 	for (int i = 0; i < CacheMax; i++) {
@@ -487,12 +490,12 @@ DiskTrack* DiskCache::Assign(int track)
 	// Finally, find the youngest serial number and delete it
 
 	// Set index 0 as candidate c
-	DWORD s = cache[0].serial;
+	uint32_t s = cache[0].serial;
 	int c = 0;
 
 	// Compare candidate with serial and update to smaller one
 	for (int i = 0; i < CacheMax; i++) {
-		ASSERT(cache[i].disktrk);
+		assert(cache[i].disktrk);
 
 		// Compare and update the existing serial
 		if (cache[i].serial < s) {
@@ -527,13 +530,13 @@ DiskTrack* DiskCache::Assign(int track)
 //---------------------------------------------------------------------------
 bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 {
-	ASSERT((index >= 0) && (index < CacheMax));
-	ASSERT(track >= 0);
-	ASSERT(!cache[index].disktrk);
+	assert((index >= 0) && (index < CacheMax));
+	assert(track >= 0);
+	assert(!cache[index].disktrk);
 
 	// Get the number of sectors on this track
 	int sectors = sec_blocks - (track << 8);
-	ASSERT(sectors > 0);
+	assert(sectors > 0);
 	if (sectors > 0x100) {
 		sectors = 0x100;
 	}

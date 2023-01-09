@@ -15,6 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
+#include "disk_image/disk_image_handle_factory.h"
+#include "disk_image/disk_track_cache.h"
 #include "scsi_command_util.h"
 #include "disk.h"
 #include <sstream>
@@ -81,7 +83,7 @@ void Disk::Dispatch(scsi_command cmd)
 
 void Disk::SetUpCache(off_t image_offset, bool raw)
 {
-	cache = make_unique<DiskCache>(GetFilename(), size_shift_count, static_cast<uint32_t>(GetBlockCount()), image_offset);
+	cache = DiskImageHandleFactory::CreateDiskImageHandle(GetFilename(), size_shift_count, static_cast<uint32_t>(GetBlockCount()), image_offset);
 	cache->SetRawMode(raw);
 }
 
