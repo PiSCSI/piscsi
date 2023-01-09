@@ -97,6 +97,7 @@ SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./controllers -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./devices -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./hal -name '*.cpp')
+SRC_PISCSI_CORE += $(shell find ./disk_image -name '*.cpp')
 
 SRC_PISCSI = piscsi.cpp
 
@@ -122,10 +123,10 @@ SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
 vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
 	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop
+	./scsiloop ./disk_image
 vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
 	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop ./test
+	./scsiloop ./test ./disk_image
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
