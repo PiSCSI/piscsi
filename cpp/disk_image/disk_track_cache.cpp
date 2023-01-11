@@ -278,7 +278,6 @@ bool DiskTrack::Save(const string& path)
 
 bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
-	assert(buf);
 	assert((sec >= 0) & (sec < 0x100));
 
 	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
@@ -303,7 +302,6 @@ bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 
 bool DiskTrack::WriteSector(const vector<uint8_t>& buf, int sec)
 {
-	assert(buf);
 	assert((sec >= 0) & (sec < 0x100));
 	assert(!dt.raw);
 

@@ -85,9 +85,6 @@ bool PosixFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 	}
 
 	assert(block < sec_blocks);
-	assert(memory_block);
-
-	assert((block * sec_size) <= (sb.st_size + sec_size));
 
 	size_t sector_size_bytes = (size_t)1 << sec_size;
 
