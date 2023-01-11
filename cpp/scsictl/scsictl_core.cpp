@@ -239,7 +239,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 
 			case 'X':
 				command.set_operation(SHUT_DOWN);
-				SetParam(command, "mode", "piscsi");
+				SetParam(command, "mode", "rascsi");
 				break;
 
 			case 'z':
