@@ -41,7 +41,7 @@ MmapFileHandle::MmapFileHandle(const string &path, int size, uint32_t blocks, of
 	{
 		LOGWARN("Unable to open file %s. Errno:%d", path.c_str(), errno)
 	}
-	LOGWARN("%s opened %s", __PRETTY_FUNCTION__, path.c_str())
+	LOGINFO("%s opened %s", __PRETTY_FUNCTION__, path.c_str())
 	struct stat sb;
 	if (fstat(fd, &sb) < 0)
 	{
@@ -49,9 +49,7 @@ MmapFileHandle::MmapFileHandle(const string &path, int size, uint32_t blocks, of
 	}
 	printf("Size: %d\n", (unsigned int)sb.st_size);
 
-	LOGWARN("%s mmap-ed file of size: %d", __PRETTY_FUNCTION__, (unsigned int)sb.st_size)
-
-	// int x =    EACCES;
+	LOGINFO("%s mmap-ed file of size: %d", __PRETTY_FUNCTION__, (unsigned int)sb.st_size)
 
 	memory_block = (const char *)mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	int errno_val = errno;
@@ -76,7 +74,6 @@ MmapFileHandle::~MmapFileHandle()
 bool MmapFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 {
 	assert(sec_size != 0);
-	assert(buf);
 	assert(block < sec_blocks);
 	assert(memory_block);
 
@@ -93,8 +90,6 @@ bool MmapFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 
 bool MmapFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 {
-
-	assert(buf);
 	assert(block < sec_blocks);
 	assert(memory_block);
 
