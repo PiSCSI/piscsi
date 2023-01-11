@@ -38,7 +38,7 @@ PosixFileHandle::PosixFileHandle(const string &path, int size, uint32_t blocks, 
 		return;
 	}
 
-	LOGWARN("%s opened file of size: %zu", __PRETTY_FUNCTION__, sb.st_size);
+	LOGWARN("%s opened file of size: %Iu", __PRETTY_FUNCTION__, sb.st_size);
 
 	initialized = true;
 }
@@ -73,7 +73,7 @@ bool PosixFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 	size_t result = read(fd, buf.data(), sector_size_bytes);
 	if (result != sector_size_bytes)
 	{
-		LOGWARN("%s only read %zu bytes but wanted %zu ", __PRETTY_FUNCTION__, result, sector_size_bytes);
+		LOGWARN("%s only read %Iu bytes but wanted %Iu ", __PRETTY_FUNCTION__, result, sector_size_bytes);
 	}
 
 	return true;
@@ -101,7 +101,7 @@ bool PosixFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 	size_t result = write(fd, buf.data(), sector_size_bytes);
 	if (result != sector_size_bytes)
 	{
-		LOGWARN("%s only wrote %zu bytes but wanted %zu ", __PRETTY_FUNCTION__, result, sector_size_bytes)
+		LOGWARN("%s only wrote %Iu bytes but wanted %Iu ", __PRETTY_FUNCTION__, result, sector_size_bytes)
 	}
 
 	return true;

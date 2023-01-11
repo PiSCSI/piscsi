@@ -47,9 +47,9 @@ MmapFileHandle::MmapFileHandle(const string &path, int size, uint32_t blocks, of
 	{
 		LOGWARN("Unable to run fstat. Errno:%d", errno)
 	}
-	printf("Size: %zu\n", sb.st_size);
+	printf("Size: %Iu\n", sb.st_size);
 
-	LOGWARN("%s mmap-ed file of size: %zu", __PRETTY_FUNCTION__, sb.st_size)
+	LOGWARN("%s mmap-ed file of size: %Iu", __PRETTY_FUNCTION__, sb.st_size)
 
 	// int x =    EACCES;
 
