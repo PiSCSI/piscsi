@@ -163,7 +163,7 @@ bool DiskTrack::Load(const string& path)
 			}
 
 			// Read
-			if (!fio.read(&dt.buffer[i << dt.size], 1 << dt.size)) {
+			if (!fio.read((char *)&dt.buffer[i << dt.size], 1 << dt.size)) {
 				fio.close();
 				return false;
 			}
@@ -177,7 +177,7 @@ bool DiskTrack::Load(const string& path)
 			fio.close();
 			return false;
 		}
-		if (!fio.read(dt.buffer, length)) {
+		if (!fio.read((char*)dt.buffer, length)) {
 			fio.close();
 			return false;
 		}
@@ -254,7 +254,7 @@ bool DiskTrack::Save(const string& path)
 			}
 
 			// Write
-			if (!fio.write(&dt.buffer[i << dt.size], total)) {
+			if (!fio.write((char*)&dt.buffer[i << dt.size], total)) {
 				fio.close();
 				return false;
 			}
