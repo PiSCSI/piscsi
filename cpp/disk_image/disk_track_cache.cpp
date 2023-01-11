@@ -4,6 +4,7 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
+//  Copyright (C) 2022-2023 akuker
 //
 //	XM6i
 //	Copyright (C) 2010-2015 isaki@NetBSD.org
@@ -280,7 +281,7 @@ bool DiskTrack::ReadSector(vector<uint8_t>& buf, int sec) const
 {
 	assert((sec >= 0) & (sec < 0x100));
 
-	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
+	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec)
 	// Error if not initialized
 	if (!dt.init) {
 		return false;
@@ -368,7 +369,7 @@ bool DiskCache::Save()
 		// Is it a valid track?
 		if (cache[i].disktrk) {
 			// Save
-			if (!cache[i].disktrk->Save(sec_path)) {
+			if (!cache[i].disktrk->Save(GetPath())) {
 				return false;
 			}
 		}
@@ -411,8 +412,6 @@ void DiskCache::Clear()
 
 bool DiskCache::ReadSector(vector<uint8_t>& buf, int block)
 {
-	assert(sec_size != 0);
-
 	// Update first
 	UpdateSerialNumber();
 
@@ -431,8 +430,6 @@ bool DiskCache::ReadSector(vector<uint8_t>& buf, int block)
 
 bool DiskCache::WriteSector(const vector<uint8_t>& buf, int block)
 {
-	assert(sec_size != 0);
-
 	// Update first
 	UpdateSerialNumber();
 
@@ -456,7 +453,6 @@ bool DiskCache::WriteSector(const vector<uint8_t>& buf, int block)
 //---------------------------------------------------------------------------
 DiskTrack* DiskCache::Assign(int track)
 {
-	assert(sec_size != 0);
 	assert(track >= 0);
 
 	// First, check if it is already assigned
@@ -503,7 +499,7 @@ DiskTrack* DiskCache::Assign(int track)
 	}
 
 	// Save this track
-	if (!cache[c].disktrk->Save(sec_path)) {
+	if (!cache[c].disktrk->Save(GetPath())) {
 		return NULL;
 	}
 
@@ -533,7 +529,7 @@ bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	assert(!cache[index].disktrk);
 
 	// Get the number of sectors on this track
-	int sectors = sec_blocks - (track << 8);
+	int sectors = GetBlocksPerSector() - (track << 8);
 	assert(sectors > 0);
 	if (sectors > 0x100) {
 		sectors = 0x100;
@@ -545,10 +541,10 @@ bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	}
 
 	// Initialize disk track
-	disktrk->Init(track, sec_size, sectors, cd_raw, imgoffset);
+	disktrk->Init(track, GetSectorSize(), GetBlocksPerSector(), GetRawMode(), GetImgOffset());
 
 	// Try loading
-	if (!disktrk->Load(sec_path)) {
+	if (!disktrk->Load(GetPath())) {
 		// Failure
 		delete disktrk;
 		return false;

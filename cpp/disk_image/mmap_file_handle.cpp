@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI (*^..^*)
 //	for Raspberry Pi
 //
-//	Copyright (C) 2022 akuker
+//	Copyright (C) 2022-2023 akuker
 //
 //  This method of file access will use the mmap() capabilities to 'map' the
 //  file into memory.
@@ -73,11 +73,10 @@ MmapFileHandle::~MmapFileHandle()
 
 bool MmapFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 {
-	assert(sec_size != 0);
-	assert(block < sec_blocks);
+	assert(block < GetBlocksPerSector());
 	assert(memory_block);
 
-	int sector_size_bytes = (off_t)1 << sec_size;
+	int sector_size_bytes = (off_t)1 << GetSectorSize();
 
 	// Calculate offset into the image file
 	off_t offset = GetTrackOffset(block);
@@ -90,12 +89,12 @@ bool MmapFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 
 bool MmapFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 {
-	assert(block < sec_blocks);
+	assert(block < GetBlocksPerSector());
 	assert(memory_block);
 
-	assert((block * sec_size) <= (sb.st_size + sec_size));
+	assert((block * GetSectorSize()) <= (sb.st_size + GetSectorSize()));
 
-	memcpy((void *)&memory_block[(block * sec_size)], buf.data(), sec_size);
+	memcpy((void *)&memory_block[(block * GetSectorSize())], buf.data(), GetSectorSize());
 
 	return true;
 }

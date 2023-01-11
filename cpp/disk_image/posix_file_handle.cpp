@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI (*^..^*)
 //	for Raspberry Pi
 //
-//	Copyright (C) 2022 akuker
+//	Copyright (C) 2022-2023 akuker
 //
 //	[ PosixFileHandle ]
 //
@@ -34,11 +34,11 @@ PosixFileHandle::PosixFileHandle(const string &path, int size, uint32_t blocks, 
 	struct stat sb;
 	if (fstat(fd, &sb) < 0)
 	{
-		LOGWARN("Unable to run fstat. Errno:%d", errno);
+		LOGWARN("Unable to run fstat. Errno:%d", errno)
 		return;
 	}
 
-	LOGWARN("%s opened file of size: %d", __PRETTY_FUNCTION__, (unsigned int)sb.st_size);
+	LOGWARN("%s opened file of size: %d", __PRETTY_FUNCTION__, (unsigned int)sb.st_size)
 
 	initialized = true;
 }
@@ -58,20 +58,19 @@ bool PosixFileHandle::ReadSector(vector<uint8_t>& buf, int block)
 		return false;
 	}
 
-	assert(sec_size != 0);
-	assert(block < sec_blocks);
+	assert(block < GetBlocksPerSector());
 
-	size_t sector_size_bytes = (size_t)1 << sec_size;
+	size_t sector_size_bytes = (size_t)1 << GetSectorSize();
 
 	// Calculate offset into the image file
 	off_t offset = GetTrackOffset(block);
 	offset += GetSectorOffset(block);
 
 	lseek(fd, offset, SEEK_SET);
-	size_t result = read(fd, buf.data(), sector_size_bytes);
+	size_t result = read(fd, buf.data(), sector_size_bytes); 
 	if (result != sector_size_bytes)
 	{
-		LOGWARN("%s only read %d bytes but wanted %d", __PRETTY_FUNCTION__, (unsigned int)result, (unsigned int)sector_size_bytes);
+		LOGWARN("%s only read %d bytes but wanted %d", __PRETTY_FUNCTION__, (unsigned int)result, (unsigned int)sector_size_bytes)
 	}
 
 	return true;
@@ -84,9 +83,9 @@ bool PosixFileHandle::WriteSector(const vector<uint8_t>& buf, int block)
 		return false;
 	}
 
-	assert(block < sec_blocks);
+	assert(block < GetBlocksPerSector());
 
-	size_t sector_size_bytes = (size_t)1 << sec_size;
+	size_t sector_size_bytes = (size_t)1 << GetSectorSize();
 
 	off_t offset = GetTrackOffset(block);
 	offset += GetSectorOffset(block);

@@ -16,7 +16,7 @@
 #include "disk_image/disk_image_handle.h"
 #include <memory>
 
-enum DiskImageHandleType
+enum class DiskImageHandleType
 {
 	eRamCache,
 	eMmapFile,

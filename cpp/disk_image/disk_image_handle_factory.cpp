@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI (*^..^*)
 //	for Raspberry Pi
 //
-//	Copyright (C) 2022 akuker
+//	Copyright (C) 2022-2023 akuker
 //
 //  	Factory class for creating DiskImageHandles
 //
@@ -42,7 +42,7 @@ unique_ptr<DiskImageHandle> DiskImageHandleFactory::CreateDiskImageHandle(const 
 
     if (result == nullptr)
     {
-        LOGWARN("%s Unable to create the File Access", __PRETTY_FUNCTION__);
+        LOGWARN("%s Unable to create the File Access", __PRETTY_FUNCTION__)
     }
     return result;
 }
