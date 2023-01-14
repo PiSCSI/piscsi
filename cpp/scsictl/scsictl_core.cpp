@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2022 Contributors to the PiSCSI project
+//	Copyright (C) 2020-2023 Contributors to the PiSCSI project
 //
 //---------------------------------------------------------------------------
 
@@ -239,7 +239,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 
 			case 'X':
 				command.set_operation(SHUT_DOWN);
-				SetParam(command, "mode", "piscsi");
+				SetParam(command, "mode", "rascsi");
 				break;
 
 			case 'z':
