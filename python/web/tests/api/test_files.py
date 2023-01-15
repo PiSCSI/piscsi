@@ -3,7 +3,6 @@ import uuid
 import os
 
 from conftest import (
-    SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
 )
