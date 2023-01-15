@@ -333,8 +333,6 @@ def test_create_iso_from_url(
     httpserver,
     http_client,
     list_files,
-    list_attached_images,
-    detach_devices,
     delete_file,
 ):
     test_file_name = str(uuid.uuid4())
@@ -355,7 +353,6 @@ def test_create_iso_from_url(
     response = http_client.post(
         "/files/create_iso",
         data={
-            "scsi_id": SCSI_ID,
             "type": ISO_TYPE,
             "url": url,
         },
@@ -366,16 +363,13 @@ def test_create_iso_from_url(
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert iso_file_name in list_files()
-    assert iso_file_name in list_attached_images()
 
     assert (
         response_data["messages"][0]["message"]
-        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
-        f"and attached to SCSI ID {SCSI_ID}"
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created."
     )
 
     # Cleanup
-    detach_devices()
     delete_file(iso_file_name)
 
 
@@ -384,8 +378,6 @@ def test_create_iso_from_local_file(
     http_client,
     create_test_image,
     list_files,
-    list_attached_images,
-    detach_devices,
     delete_file,
 ):
     test_file_name = create_test_image()
@@ -396,7 +388,6 @@ def test_create_iso_from_local_file(
     response = http_client.post(
         "/files/create_iso",
         data={
-            "scsi_id": SCSI_ID,
             "type": ISO_TYPE,
             "file": test_file_name,
         },
@@ -407,16 +398,13 @@ def test_create_iso_from_local_file(
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert iso_file_name in list_files()
-    assert iso_file_name in list_attached_images()
 
     assert (
         response_data["messages"][0]["message"]
-        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
-        f"and attached to SCSI ID {SCSI_ID}"
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created."
     )
 
     # Cleanup
-    detach_devices()
     delete_file(iso_file_name)
 
 
