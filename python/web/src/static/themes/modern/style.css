@@ -741,8 +741,7 @@ section#files p {
   }
 
   section#files table#images form.file-attach input[type="submit"],
-  section#attach-devices form.device-attach input[type="submit"],
-  section#create-iso form.iso-attach input[type="submit"] {
+  section#attach-devices form.device-attach input[type="submit"] {
     background: #efefef url("icons/file-device-attach.svg") no-repeat 0.5rem center;
     background-size: 1rem;
     padding-left: 2rem;
