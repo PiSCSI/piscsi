@@ -892,7 +892,6 @@ def download_to_iso():
     """
     Downloads a file and creates a CD-ROM image with the specified file system and the file
     """
-    scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     iso_type = request.form.get("type")
     local_file = request.form.get("file")
@@ -933,31 +932,11 @@ def download_to_iso():
             ),
         )
 
-    process_attach = piscsi_cmd.attach_device(
-        scsi_id,
-        device_type="SCCD",
-        params={"file": process["file_name"]},
-    )
-    process_attach = ReturnCodeMapper.add_msg(process_attach)
-    if process_attach["status"]:
-        return response(
-            message=_(
-                "CD-ROM image %(file_name)s with type %(iso_type)s was created "
-                "and attached to SCSI ID %(id_number)s",
-                file_name=process["file_name"],
-                iso_type=iso_type,
-                id_number=scsi_id,
-            ),
-        )
-
     return response(
-        error=True,
         message=_(
-            "CD-ROM image %(file_name)s with type %(iso_type)s was created "
-            "but could not be attached: %(error)s",
+            "CD-ROM image %(file_name)s with type %(iso_type)s was created.",
             file_name=process["file_name"],
             iso_type=iso_type,
-            error=process_attach["msg"],
         ),
     )
 

@@ -385,7 +385,7 @@
 <section id="create-iso">
 <details>
     <summary class="heading">
-        {{ _("Create CD-ROM Image With File") }}
+        {{ _("Create CD-ROM Image") }}
     </summary>
     <ul>
         <li>{{ _("HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.") }}</li>
@@ -394,8 +394,8 @@
 </details>
 
 <div>
-<form action="/files/create_iso" method="post" class="iso-attach">
-    <label for="iso_url">{{ _("Create ISO from URL:") }}</label>
+<form action="/files/create_iso" method="post">
+    <label for="iso_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="iso_url" required="" type="url">
     <label for="iso_url_type">{{ _("Type:") }}</label>
     <select name="type" id="iso_url_type">
@@ -418,20 +418,12 @@
             Rock Ridge
         </option>
     </select>
-    <label for="iso_url_scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="iso_url_scsi_id">
-        {% for id in scsi_ids["valid_ids"] %}
-        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
-            {{ id }}
-        </option>
-        {% endfor %}
-    </select>
-    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Downloading file and generating CD-ROM image...") }}')">
+    <input type="submit" value="{{ _("Create") }}" onclick="processNotify('{{ _("Downloading file and generating CD-ROM image...") }}')">
 </form>
 </div>
 <div>
-<form action="/files/create_iso" method="post" class="iso-attach">
-    <label for="iso_file">{{ _("Create ISO from local file:") }}</label>
+<form action="/files/create_iso" method="post">
+    <label for="iso_file">{{ _("Use local file:") }}</label>
     <select name="file" id="iso_file">
         {% for f in files|sort(attribute='name') %}
             <option value="{{ f["name"] }}">{{ f["name"].replace(env["image_dir"], '') }}</option>
@@ -458,15 +450,7 @@
             Rock Ridge
         </option>
     </select>
-    <label for="iso_file_scsi_id">{{ _("ID") }}</label>
-    <select name="scsi_id" id="iso_file_scsi_id">
-        {% for id in scsi_ids["valid_ids"] %}
-        <option value="{{ id }}"{% if id == scsi_ids["recommended_id"] %} selected{% endif %}>
-            {{ id }}
-        </option>
-        {% endfor %}
-    </select>
-    <input type="submit" value="{{ _("Create and Attach") }}" onclick="processNotify('{{ _("Generating CD-ROM image...") }}')">
+    <input type="submit" value="{{ _("Create") }}" onclick="processNotify('{{ _("Generating CD-ROM image...") }}')">
 </form>
 </div>
 </section>
@@ -476,7 +460,7 @@
 <section id="create-image">
 <details>
     <summary class="heading">
-        {{ _("Create Empty Disk Image File") }}
+        {{ _("Create Empty Disk Image") }}
     </summary>
     <ul>
         <li>{{ _("Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to learn more about the supported image file types.", url="https://github.com/PiSCSI/piscsi/wiki/Supported-Device-Types#image-types") }}</li>
