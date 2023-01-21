@@ -214,8 +214,6 @@ function installPiscsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
-    sudo usermod -a -G $USER www-data
-
     deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
     deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
 
