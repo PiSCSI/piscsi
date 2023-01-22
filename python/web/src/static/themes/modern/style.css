@@ -296,7 +296,7 @@ div.header div.authentication-disabled a {
 
   div.header div.title a {
     display: block;
-    background: url("/static/logo.png") no-repeat;
+    background: url("/static/logo.svg") no-repeat;
     background-size: auto 2rem;
     background-position: 1rem center;
     padding: 1rem 1rem 1rem 3.5rem;
@@ -367,7 +367,7 @@ div.header div.authentication-disabled a {
 
   div.header div.title a {
     display: inline-block;
-    background: url("/static/logo.png") no-repeat;
+    background: url("/static/logo.svg") no-repeat;
     background-size: auto 40px;
     background-position: left center;
     padding-left: 3rem;
