@@ -10,6 +10,7 @@
   --primary: var(--bs-primary);
   --secondary: var(--bs-secondary);
   --text-color: var(--bs-body-color);
+  --highlight: #c86812;
   --border-radius: 0.2rem;
   --input-padding: 0.25rem 0.5rem;
   --font-size: 0.85rem;
@@ -380,15 +381,7 @@ div.header div.authentication-disabled a {
 
   @supports (-webkit-background-clip: text) {
     div.header div.title a:hover h1 {
-      background: linear-gradient(
-        to right,
-        rgb(101 204 51 / 100%) 0%,
-        rgb(255 204 51 / 100%) 10%,
-        rgb(255 153 51 / 100%) 20%,
-        rgb(205 51 50 / 100%) 55%,
-        rgb(152 50 153 / 100%) 100%
-      );
-
+      background: var(--highlight);
       -webkit-background-clip: text; /* stylelint-disable-line */
       -webkit-text-fill-color: transparent; /* stylelint-disable-line */
     }
@@ -619,7 +612,7 @@ table#attached-devices span.filename {
 }
 
 table#attached-devices tr.reserved td {
-  background-color: #ffe9e9;
+  background-color: var(--highlight);
 }
 
 @media (max-width: 900px) {
