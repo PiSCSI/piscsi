@@ -280,16 +280,52 @@ def test_upload_file(http_client, delete_file):
     delete_file(file_name)
 
 
-# route("/files/download", methods=["POST"])
-def test_download_file(http_client, create_test_image):
+# route("/files/download_image", methods=["POST"])
+def test_download_image(http_client, create_test_image):
     file_name = create_test_image()
 
-    response = http_client.post("/files/download", data={"file": file_name})
+    response = http_client.post("/files/download_image", data={"file": file_name})
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/octet-stream"
     assert response.headers["content-disposition"] == f"attachment; filename={file_name}"
     assert response.headers["content-length"] == str(FILE_SIZE_1_MIB)
+
+
+# route("/files/download_config", methods=["POST"])
+def test_download_properties(http_client, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hds"
+
+    response = http_client.post(
+        "/files/create",
+        data={
+            "file_name": file_prefix,
+            "type": "hds",
+            "size": 1,
+            "drive_name": "Miniscribe M8425",
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 201
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["data"]["image"] == file_name
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
+    assert file_name in list_files()
+
+    response = http_client.post("/files/download_config", data={"file": f"{file_name}.properties"})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert response.headers["content-disposition"] == f"attachment; filename={file_name}.properties"
+
+    # Cleanup
+    delete_file(file_name)
 
 
 # route("/files/download_url", methods=["POST"])
