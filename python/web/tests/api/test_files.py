@@ -253,6 +253,7 @@ def test_upload_file(http_client, delete_file):
                 chunk_byte_offset = chunk_number * chunk_size
 
             form_data = {
+                "destination": "disk_images",
                 "dzuuid": str(uuid.uuid4()),
                 "dzchunkindex": chunk_number,
                 "dzchunksize": chunk_size,
