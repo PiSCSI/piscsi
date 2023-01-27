@@ -1104,11 +1104,11 @@ def create_file():
     )
 
 
-@APP.route("/files/download", methods=["POST"])
+@APP.route("/files/download_image", methods=["POST"])
 @login_required
-def download():
+def download_image():
     """
-    Downloads a file from the system to the local computer
+    Downloads a file from the image dir to the local computer
     """
     file_name = Path(request.form.get("file"))
     safe_path = is_safe_path(file_name)
@@ -1116,6 +1116,19 @@ def download():
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
     return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
+
+
+@APP.route("/files/download_config", methods=["POST"])
+@login_required
+def download_config():
+    """
+    Downloads a file from the config dir to the local computer
+    """
+    file_name = Path(request.form.get("file"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])

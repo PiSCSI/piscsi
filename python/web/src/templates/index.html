@@ -222,8 +222,8 @@
                     {% for key in file["prop"] %}
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
-                    <form action="/files/download" method="post">
-                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file['name'].replace(env['image_dir'], '') }}.{{ PROPERTIES_SUFFIX }}">
+                    <form action="/files/download_config" method="post">
+                        <input name="file" type="hidden" value="{{ file['name'] }}.{{ PROPERTIES_SUFFIX }}">
                         <input type="submit" value="{{ _("Properties File") }} &#8595;">
                     </form>
                     </ul>
@@ -271,7 +271,7 @@
             <td>{{ file["name"] }}</td>
             {% endif %}
             <td align="center">
-                <form action="/files/download" method="post">
+                <form action="/files/download_image" method="post">
                     <input name="file" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ file['size_mb'] }} {{ _("MiB") }} &#8595;">
                 </form>
