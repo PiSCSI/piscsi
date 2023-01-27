@@ -160,82 +160,6 @@ class FileCmds:
 
         return {"status": result.status, "msg": result.msg, "files": files}
 
-    def create_new_image(self, file_name, file_type, size):
-        """
-        Takes (str) file_name, (str) file_type, and (int) size in bytes
-        Sends a CREATE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.CREATE_IMAGE
-        command.params["token"] = self.token
-        command.params["locale"] = self.locale
-
-        command.params["file"] = f"{file_name}.{file_type}"
-        command.params["size"] = str(size)
-        command.params["read_only"] = "false"
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def delete_image(self, file_name):
-        """
-        Takes (str) file_name
-        Sends a DELETE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.DELETE_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["file"] = file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def rename_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a RENAME_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.RENAME_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def copy_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a COPY_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.COPY_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
@@ -301,10 +225,10 @@ class FileCmds:
             "parameters": parameters,
         }
 
-    def create_new_file(self, file_path, size):
+    def create_empty_image(self, file_path, size):
         """
         Takes (Path) file_path and (int) size in bytes
-        Creates a new empty binary file
+        Creates a new empty binary file to use as image
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {"target_path": file_path}

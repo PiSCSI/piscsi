@@ -400,7 +400,7 @@ def drive_create():
 
     # Creating the image file
     server_info = piscsi_cmd.get_server_info()
-    process = file_cmd.create_new_file(
+    process = file_cmd.create_empty_image(
         Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
         properties["size"],
     )
@@ -1010,7 +1010,7 @@ def create_file():
     full_file_name = f"{file_name}.{file_type}"
 
     server_info = piscsi_cmd.get_server_info()
-    process = file_cmd.create_new_file(Path(server_info["image_dir"]) / full_file_name, size)
+    process = file_cmd.create_empty_image(Path(server_info["image_dir"]) / full_file_name, size)
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
