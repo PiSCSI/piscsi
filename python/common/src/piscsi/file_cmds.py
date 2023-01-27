@@ -65,8 +65,7 @@ class FileCmds:
         files_list = []
         for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
-            # TODO: Refactor for readability?
-            files = [f for f in files if f.lower().endswith(file_types)]
+            files = [file for file in files if file.lower().endswith(file_types)]
             files_list.extend(
                 [(file, path.getsize(path.join(file_path, file))) for file in files],
             )
@@ -164,7 +163,7 @@ class FileCmds:
     def delete_file(self, file_path):
         """
         Takes (Path) file_path for the file to delete
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"file_path": file_path}
 
@@ -187,7 +186,7 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to rename
          - (Path) target_path for the name to rename
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if target_path.parent.exists() and not target_path.exists():
@@ -209,7 +208,7 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to copy from
          - (Path) target_path for the name to copy to
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if target_path.parent.exists() and not target_path.exists():
@@ -229,7 +228,7 @@ class FileCmds:
         """
         Takes (Path) file_path and (int) size in bytes
         Creates a new empty binary file to use as image
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": file_path}
         if file_path.parent.exists() and not file_path.exists():
