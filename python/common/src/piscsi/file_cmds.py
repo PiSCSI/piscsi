@@ -162,7 +162,7 @@ class FileCmds:
 
     def create_new_image(self, file_name, file_type, size):
         """
-        Takes (str) file_name, (str) file_type, and (int) size
+        Takes (str) file_name, (str) file_type, and (int) size in bytes
         Sends a CREATE_IMAGE command to the server
         Returns (dict) with (bool) status and (str) msg
         """
@@ -266,7 +266,7 @@ class FileCmds:
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if target_path.parent.exists() and not target_path.exists():
             file_path.rename(target_path)
             return {
                 "status": True,
@@ -288,7 +288,7 @@ class FileCmds:
         Returns (dict) with (bool) status and (str) msg
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if target_path.parent.exists() and not target_path.exists():
             copyfile(str(file_path), str(target_path))
             return {
                 "status": True,
@@ -297,7 +297,30 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_UNABLE_TO_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "parameters": parameters,
+        }
+
+    def create_new_file(self, file_path, size):
+        """
+        Takes (Path) file_path and (int) size in bytes
+        Creates a new empty binary file
+        Returns (dict) with (bool) status and (str) msg
+        """
+        parameters = {"target_path": file_path}
+        if file_path.parent.exists() and not file_path.exists():
+            try:
+                with open(f"{file_path}", "wb") as out:
+                    out.seek(size - 1)
+                    out.write(b'\0')
+            except OSError as error:
+                return {"status": False, "msg": str(error)}
+
+            return {"status": True, "msg": ""}
+
+        return {
+            "status": False,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
             "parameters": parameters,
         }
 

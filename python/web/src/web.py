@@ -399,11 +399,12 @@ def drive_create():
         )
 
     # Creating the image file
-    process = file_cmd.create_new_image(
-        file_name,
-        properties["file_type"],
-        properties["size"],
-    )
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_new_file(
+            Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
+            properties["size"],
+            )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1007,7 +1008,10 @@ def create_file():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     full_file_name = f"{file_name}.{file_type}"
-    process = file_cmd.create_new_image(str(file_name), file_type, size)
+
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_new_file(Path(server_info["image_dir"]) / full_file_name, size)
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1141,7 +1145,9 @@ def delete():
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.delete_image(str(file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.delete_file(Path(server_info["image_dir"]) / file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1182,7 +1188,12 @@ def rename():
     safe_path = is_safe_path(new_file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.rename_image(str(file_name), str(new_file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.rename_file(
+            Path(server_info["image_dir"]) / str(file_name),
+            Path(server_info["image_dir"]) / str(new_file_name),
+            )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1224,7 +1235,12 @@ def copy():
     safe_path = is_safe_path(new_file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.copy_image(str(file_name), str(new_file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.copy_file(
+            Path(server_info["image_dir"]) / str(file_name),
+            Path(server_info["image_dir"]) / str(new_file_name),
+            )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
