@@ -65,8 +65,7 @@ class FileCmds:
         files_list = []
         for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
-            # TODO: Refactor for readability?
-            files = [f for f in files if f.lower().endswith(file_types)]
+            files = [file for file in files if file.lower().endswith(file_types)]
             files_list.extend(
                 [(file, path.getsize(path.join(file_path, file))) for file in files],
             )
@@ -160,87 +159,11 @@ class FileCmds:
 
         return {"status": result.status, "msg": result.msg, "files": files}
 
-    def create_new_image(self, file_name, file_type, size):
-        """
-        Takes (str) file_name, (str) file_type, and (int) size
-        Sends a CREATE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.CREATE_IMAGE
-        command.params["token"] = self.token
-        command.params["locale"] = self.locale
-
-        command.params["file"] = f"{file_name}.{file_type}"
-        command.params["size"] = str(size)
-        command.params["read_only"] = "false"
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def delete_image(self, file_name):
-        """
-        Takes (str) file_name
-        Sends a DELETE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.DELETE_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["file"] = file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def rename_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a RENAME_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.RENAME_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def copy_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a COPY_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.COPY_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
         Takes (Path) file_path for the file to delete
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"file_path": file_path}
 
@@ -263,10 +186,10 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to rename
          - (Path) target_path for the name to rename
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if target_path.parent.exists() and not target_path.exists():
             file_path.rename(target_path)
             return {
                 "status": True,
@@ -285,10 +208,10 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to copy from
          - (Path) target_path for the name to copy to
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if target_path.parent.exists() and not target_path.exists():
             copyfile(str(file_path), str(target_path))
             return {
                 "status": True,
@@ -297,7 +220,30 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_UNABLE_TO_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "parameters": parameters,
+        }
+
+    def create_empty_image(self, file_path, size):
+        """
+        Takes (Path) file_path and (int) size in bytes
+        Creates a new empty binary file to use as image
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
+        """
+        parameters = {"target_path": file_path}
+        if file_path.parent.exists() and not file_path.exists():
+            try:
+                with open(f"{file_path}", "wb") as out:
+                    out.seek(size - 1)
+                    out.write(b"\0")
+            except OSError as error:
+                return {"status": False, "msg": str(error)}
+
+            return {"status": True, "msg": ""}
+
+        return {
+            "status": False,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
             "parameters": parameters,
         }
 
