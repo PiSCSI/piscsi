@@ -189,6 +189,8 @@ class FileCmds:
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
         if target_path.parent.exists() and not target_path.exists():
             file_path.rename(target_path)
             return {
@@ -211,6 +213,8 @@ class FileCmds:
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
         if target_path.parent.exists() and not target_path.exists():
             copyfile(str(file_path), str(target_path))
             return {
@@ -224,16 +228,18 @@ class FileCmds:
             "parameters": parameters,
         }
 
-    def create_empty_image(self, file_path, size):
+    def create_empty_image(self, target_path, size):
         """
-        Takes (Path) file_path and (int) size in bytes
+        Takes (Path) target_path and (int) size in bytes
         Creates a new empty binary file to use as image
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
-        parameters = {"target_path": file_path}
-        if file_path.parent.exists() and not file_path.exists():
+        parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
+        if target_path.parent.exists() and not target_path.exists():
             try:
-                with open(f"{file_path}", "wb") as out:
+                with open(f"{target_path}", "wb") as out:
                     out.seek(size - 1)
                     out.write(b"\0")
             except OSError as error:
