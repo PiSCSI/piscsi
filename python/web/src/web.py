@@ -980,11 +980,14 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    if destination == "file_server":
-        destination_dir = FILE_SERVER_DIR
-    else:
+    if destination == "disk_images":
         server_info = piscsi_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
+    elif destination == "shared_files":
+        destination_dir = FILE_SERVER_DIR
+    else:
+        return make_response(f"Invalid destination '{destination}'", 403)
+
     return upload_with_dropzonejs(destination_dir)
 
 
