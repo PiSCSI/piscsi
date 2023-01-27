@@ -312,7 +312,7 @@ class FileCmds:
             try:
                 with open(f"{file_path}", "wb") as out:
                     out.seek(size - 1)
-                    out.write(b'\0')
+                    out.write(b"\0")
             except OSError as error:
                 return {"status": False, "msg": str(error)}
 

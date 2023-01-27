@@ -401,9 +401,9 @@ def drive_create():
     # Creating the image file
     server_info = piscsi_cmd.get_server_info()
     process = file_cmd.create_new_file(
-            Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
-            properties["size"],
-            )
+        Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
+        properties["size"],
+    )
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -1190,9 +1190,9 @@ def rename():
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
     process = file_cmd.rename_file(
-            Path(server_info["image_dir"]) / str(file_name),
-            Path(server_info["image_dir"]) / str(new_file_name),
-            )
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
@@ -1237,9 +1237,9 @@ def copy():
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
     process = file_cmd.copy_file(
-            Path(server_info["image_dir"]) / str(file_name),
-            Path(server_info["image_dir"]) / str(new_file_name),
-            )
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
