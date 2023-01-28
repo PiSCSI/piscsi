@@ -388,7 +388,7 @@ def drive_create():
     Creates the image and properties file pair
     """
     drive_name = request.form.get("drive_name")
-    file_name = Path(request.form.get("file_name")).name
+    file_name = Path(request.form.get("file_name"))
 
     properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
 
@@ -431,7 +431,7 @@ def drive_cdrom():
     Creates a properties file for a CD-ROM image
     """
     drive_name = request.form.get("drive_name")
-    file_name = Path(request.form.get("file_name")).name
+    file_name = Path(request.form.get("file_name"))
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"

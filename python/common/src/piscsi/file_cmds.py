@@ -60,14 +60,17 @@ class FileCmds:
         """
         Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
         Returns (list) of (list)s files_list:
-        index 0 is (str) file name and index 1 is (int) size in bytes
+        index 0 is (str) file path and index 1 is (int) size in bytes
         """
         files_list = []
         for file_path, _dirs, files in walk(dir_path):
             # Only list selected file types
             files = [file for file in files if file.lower().endswith(file_types)]
             files_list.extend(
-                [(file, path.getsize(path.join(file_path, file))) for file in files],
+                [
+                    (path.join(file_path, file), path.getsize(path.join(file_path, file)))
+                    for file in files
+                ],
             )
         return files_list
 
@@ -101,13 +104,15 @@ class FileCmds:
 
         # Get a list of all *.properties files in CFG_DIR
         prop_data = self.list_files(PROPERTIES_SUFFIX, CFG_DIR)
-        prop_files = [PurePath(x[0]).stem for x in prop_data]
+        # Get the first index of the lists in the list, containing the prop file name
+        # Then strip ".properties" for matching with the image file name
+        prop_files = [Path(x[0]).with_suffix("") for x in prop_data]
 
         server_info = self.piscsi.get_server_info()
         files = []
         for file in result.image_files_info.image_files:
-            # Add properties meta data for the image, if applicable
-            if file.name in prop_files:
+            # Add properties meta data for the image, if matching prop file is found
+            if Path(CFG_DIR) / file.name in prop_files:
                 process = self.read_drive_properties(
                     Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
                 )
@@ -799,6 +804,8 @@ class FileCmds:
         Returns (dict) with (bool) status and (str) msg
         """
         file_path = Path(CFG_DIR) / file_name
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True)
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
