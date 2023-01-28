@@ -74,7 +74,7 @@ def test_show_logs(http_client):
 
 
 # route("/config/save", methods=["POST"])
-# route("/config/load", methods=["POST"])
+# route("/config/action", methods=["POST"])
 def test_save_load_and_delete_configs(env, http_client):
     config_name = str(uuid.uuid4())
     config_json_file = f"{config_name}.json"
@@ -115,7 +115,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Load the saved config
     response = http_client.post(
-        "/config/load",
+        "/config/action",
         data={
             "name": config_json_file,
             "load": True,
@@ -135,7 +135,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Delete the saved config
     response = http_client.post(
-        "/config/load",
+        "/config/action",
         data={
             "name": config_json_file,
             "delete": True,
@@ -150,6 +150,49 @@ def test_save_load_and_delete_configs(env, http_client):
         f"File deleted: {env['cfg_dir']}/{config_json_file}"
     )
 
+    assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
+
+
+# route("/config/save", methods=["POST"])
+# route("/config/action", methods=["POST"])
+def test_download_configs(env, http_client, delete_file):
+    config_name = str(uuid.uuid4())
+    config_json_file = f"{config_name}.json"
+
+    # Save the initial state to a config
+    response = http_client.post(
+        "/config/save",
+        data={
+            "name": config_name,
+        },
+    )
+
+    assert response.status_code == 200
+    assert config_json_file in http_client.get("/").json()["data"]["config_files"]
+
+    # Download the saved config
+    response = http_client.post(
+        "/config/action",
+        data={
+            "name": config_json_file,
+            "send": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.headers["content-disposition"] == f"attachment; filename={config_json_file}"
+
+    # Delete the saved config
+    response = http_client.post(
+        "/config/action",
+        data={
+            "name": config_json_file,
+            "delete": True,
+        },
+    )
+
+    assert response.status_code == 200
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
 
 

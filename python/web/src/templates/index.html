@@ -13,7 +13,7 @@
 </details>
 
 <p>
-<form action="/config/load" method="post" id="config-actions">
+<form action="/config/action" method="post" id="config-actions">
     <label for="config_load_name">{{ _("File Name:") }}</label>
     <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
@@ -30,6 +30,7 @@
     </select>
     <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load configuration?") }}')">
     <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete configuration file?") }}')">
+    <input name="send" type="submit" value="{{ _("Download") }}">
 </form>
 </p>
 
@@ -368,10 +369,10 @@
 <form action="/files/download_url" method="post">
     <label for="download_url">{{ _("Download file from URL:") }}</label>
     <input name="url" id="download_url" required="" type="url">
-    <label for="disk_images">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <label for="disk_images">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
+    <label for="shared_files">{{ _("Shared Files") }}</label>
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 </section>
