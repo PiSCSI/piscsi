@@ -12,12 +12,12 @@
 
 <h3>{{ _("Destination") }}</h3>
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
-    <label for="disk_images">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
-    <label for="shared_files">{{ _("Shared Files") }}</label>
+    <label for="disk_images">{{ _("Disk Images") }}</label>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
-    <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
+    <label for="shared_files">{{ _("Shared Files") }}</label>
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
+    <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
 </form>
 
 <script type="application/javascript">
