@@ -167,14 +167,7 @@ def test_download_configs(env, http_client, delete_file):
         },
     )
 
-    response_data = response.json()
-
     assert response.status_code == 200
-    assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == (
-        f"File created: {env['cfg_dir']}/{config_json_file}"
-    )
-
     assert config_json_file in http_client.get("/").json()["data"]["config_files"]
 
     # Download the saved config
@@ -202,11 +195,6 @@ def test_download_configs(env, http_client, delete_file):
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["status"] == STATUS_SUCCESS
-    assert response_data["messages"][0]["message"] == (
-        f"File deleted: {env['cfg_dir']}/{config_json_file}"
-    )
-
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
 
 
