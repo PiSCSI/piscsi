@@ -4,7 +4,7 @@ Module for methods reading from and writing to the file system
 
 import logging
 import asyncio
-from os import path, walk
+from os import walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
