@@ -115,7 +115,7 @@ void SCSICD::OpenIso()
 
 	if (rawfile) {
 		if (size % 2536) {
-			GetLogger().Warn("Raw ISO CD-ROM file size ist not a multiple of 2536 bytes but is "
+			GetLogger().Warn("Raw ISO CD-ROM file size is not a multiple of 2536 bytes but is "
 					+ to_string(size) + " bytes");
 		}
 
