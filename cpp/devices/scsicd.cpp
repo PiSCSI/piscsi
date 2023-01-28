@@ -10,8 +10,6 @@
 //	Licensed under the BSD 3-Clause License.
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM ]
-//
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
@@ -79,7 +77,6 @@ void SCSICD::Open()
 	SetReadOnly(true);
 	SetProtectable(false);
 
-	// Attention if ready
 	if (IsReady()) {
 		SetAttn(true);
 	}
@@ -113,13 +110,12 @@ void SCSICD::OpenIso()
 			throw io_exception("Illegal raw ISO CD-ROM file header");
 		}
 
-		// Set to RAW file
 		rawfile = true;
 	}
 
 	if (rawfile) {
 		if (size % 2536) {
-			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
+			GetLogger().Warn("Raw ISO CD-ROM file size ist not a multiple of 2536 bytes but is "
 					+ to_string(size) + " bytes");
 		}
 
@@ -134,7 +130,6 @@ void SCSICD::OpenIso()
 // TODO This code is only executed if the filename starts with a `\`, but fails to open files starting with `\`.
 void SCSICD::OpenPhysical()
 {
-	// Get size
 	off_t size = GetFileSize();
 	if (size < 2048) {
 		throw io_exception("CD-ROM file size must be at least 2048 bytes");
@@ -176,12 +171,10 @@ void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool change
 {
 	Disk::SetUpModePages(pages, page, changeable);
 
-	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
 		AddCDROMPage(pages, changeable);
 	}
 
-	// Page code 14
 	if (page == 0x0e || page == 0x3f) {
 		AddCDDAPage(pages, changeable);
 	}
@@ -226,10 +219,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
 {
 	CheckReady();
 
-	// Search for the track
 	const int index = SearchTrack(static_cast<int>(block));
-
-	// If invalid, out of range
 	if (index < 0) {
 		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
@@ -249,7 +239,6 @@ int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
 		dataindex = index;
 	}
 
-	// Base class
 	assert(dataindex >= 0);
 	return Disk::Read(cdb, buf, block);
 }
@@ -321,7 +310,6 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 
 	int offset = 4;
 
-	// Loop....
 	for (int i = 0; i < loop; i++) {
 		// ADR and Control
 		if (tracks[index]->IsAudio()) {
@@ -351,11 +339,6 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 	return length;
 }
 
-//---------------------------------------------------------------------------
-//
-//	LBA→MSF Conversion
-//
-//---------------------------------------------------------------------------
 void SCSICD::LBAtoMSF(uint32_t lba, uint8_t *msf) const
 {
 	// 75 and 75*60 get the remainder
@@ -390,12 +373,6 @@ void SCSICD::ClearTrack()
 	audioindex = -1;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Track Search
-//	* Returns -1 if not found
-//
-//---------------------------------------------------------------------------
 int SCSICD::SearchTrack(uint32_t lba) const
 {
 	// Track loop
