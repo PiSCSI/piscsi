@@ -278,7 +278,7 @@ TEST_F(PiscsiExecutorTest, Attach)
 
 	path filename = CreateTempFile(1);
 	SetParam(definition, "file", filename.c_str());
-	EXPECT_THROW(executor.Attach(context, definition, false), io_exception)	<< "Too small image file not rejected";
+	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
@@ -359,8 +359,7 @@ TEST_F(PiscsiExecutorTest, Insert)
 
 	path filename = CreateTempFile(1);
 	SetParam(definition, "file", filename.c_str());
-	EXPECT_THROW(executor.Insert(context, definition, device, false), io_exception)
-		<< "Too small image file not rejected";
+	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
