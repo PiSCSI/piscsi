@@ -602,7 +602,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	try {
 		storage_device.Open();
 	}
-	catch(const io_exception& e) {
+	catch(const io_exception&) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
 	}
 
