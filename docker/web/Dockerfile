@@ -24,7 +24,7 @@ RUN mkdir -p /home/pi/shared_files \
 USER pi
 WORKDIR /home/pi/piscsi
 
-RUN mkdir /home/pi/piscsi/{python,cpp}
+RUN mkdir /home/pi/piscsi/{python,cpp,os_integration}
 COPY --chown=pi:pi easyinstall.sh .
 COPY --chown=pi:pi os_integration os_integration
 COPY --chown=pi:pi cpp/piscsi_interface.proto cpp/piscsi_interface.proto
