@@ -495,12 +495,12 @@ def config_action():
 
         return response(error=True, message=process["msg"])
 
-    if "download" in request.form:
+    if "send" in request.form:
         return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
 
     return response(
         error=True,
-        message="No known operation in request header. Expected one of: load, delete, download",
+        message="No known operation in request header. Expected one of: load, delete, send",
     )
 
 
