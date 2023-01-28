@@ -55,26 +55,6 @@ class FileCmds:
         return self.sock_cmd.send_pb_command(command.SerializeToString())
 
     # noinspection PyMethodMayBeStatic
-    # pylint: disable=no-self-use
-    def list_files(self, file_types, dir_path):
-        """
-        Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
-        Returns (list) of (list)s files_list:
-        index 0 is (str) file path and index 1 is (int) size in bytes
-        """
-        files_list = []
-        for file_path, _dirs, files in walk(dir_path):
-            # Only list selected file types
-            files = [file for file in files if file.lower().endswith(file_types)]
-            files_list.extend(
-                [
-                    (path.join(file_path, file), path.getsize(path.join(file_path, file)))
-                    for file in files
-                ],
-            )
-        return files_list
-
-    # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
         Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
