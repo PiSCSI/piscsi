@@ -599,7 +599,12 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 		storage_device.SetProtectable(true);
 	}
 
-	storage_device.Open();
+	try {
+		storage_device.Open();
+	}
+	catch(const io_exception& e) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
+	}
 
 	full_path = effective_filename;
 
