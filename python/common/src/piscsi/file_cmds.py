@@ -4,7 +4,7 @@ Module for methods reading from and writing to the file system
 
 import logging
 import asyncio
-from os import path, walk
+from os import walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
@@ -55,23 +55,6 @@ class FileCmds:
         return self.sock_cmd.send_pb_command(command.SerializeToString())
 
     # noinspection PyMethodMayBeStatic
-    # pylint: disable=no-self-use
-    def list_files(self, file_types, dir_path):
-        """
-        Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
-        Returns (list) of (list)s files_list:
-        index 0 is (str) file name and index 1 is (int) size in bytes
-        """
-        files_list = []
-        for file_path, _dirs, files in walk(dir_path):
-            # Only list selected file types
-            files = [file for file in files if file.lower().endswith(file_types)]
-            files_list.extend(
-                [(file, path.getsize(path.join(file_path, file))) for file in files],
-            )
-        return files_list
-
-    # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
         Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
@@ -99,18 +82,13 @@ class FileCmds:
         result = proto.PbResult()
         result.ParseFromString(data)
 
-        # Get a list of all *.properties files in CFG_DIR
-        prop_data = self.list_files(PROPERTIES_SUFFIX, CFG_DIR)
-        prop_files = [PurePath(x[0]).stem for x in prop_data]
-
         server_info = self.piscsi.get_server_info()
         files = []
         for file in result.image_files_info.image_files:
-            # Add properties meta data for the image, if applicable
-            if file.name in prop_files:
-                process = self.read_drive_properties(
-                    Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
-                )
+            prop_file_path = Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
+            # Add properties meta data for the image, if matching prop file is found
+            if prop_file_path.exists():
+                process = self.read_drive_properties(prop_file_path)
                 prop = process["conf"]
             else:
                 prop = False
@@ -189,6 +167,8 @@ class FileCmds:
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
         if target_path.parent.exists() and not target_path.exists():
             file_path.rename(target_path)
             return {
@@ -211,6 +191,8 @@ class FileCmds:
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
         if target_path.parent.exists() and not target_path.exists():
             copyfile(str(file_path), str(target_path))
             return {
@@ -224,16 +206,18 @@ class FileCmds:
             "parameters": parameters,
         }
 
-    def create_empty_image(self, file_path, size):
+    def create_empty_image(self, target_path, size):
         """
-        Takes (Path) file_path and (int) size in bytes
+        Takes (Path) target_path and (int) size in bytes
         Creates a new empty binary file to use as image
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
-        parameters = {"target_path": file_path}
-        if file_path.parent.exists() and not file_path.exists():
+        parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
+        if target_path.parent.exists() and not target_path.exists():
             try:
-                with open(f"{file_path}", "wb") as out:
+                with open(f"{target_path}", "wb") as out:
                     out.seek(size - 1)
                     out.write(b"\0")
             except OSError as error:
@@ -793,6 +777,8 @@ class FileCmds:
         Returns (dict) with (bool) status and (str) msg
         """
         file_path = Path(CFG_DIR) / file_name
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True)
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
