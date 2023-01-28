@@ -102,20 +102,13 @@ class FileCmds:
         result = proto.PbResult()
         result.ParseFromString(data)
 
-        # Get a list of all *.properties files in CFG_DIR
-        prop_data = self.list_files(PROPERTIES_SUFFIX, CFG_DIR)
-        # Get the first index of the lists in the list, containing the prop file name
-        # Then strip ".properties" for matching with the image file name
-        prop_files = [Path(x[0]).with_suffix("") for x in prop_data]
-
         server_info = self.piscsi.get_server_info()
         files = []
         for file in result.image_files_info.image_files:
+            prop_file_path = Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
             # Add properties meta data for the image, if matching prop file is found
-            if Path(CFG_DIR) / file.name in prop_files:
-                process = self.read_drive_properties(
-                    Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
-                )
+            if prop_file_path.exists():
+                process = self.read_drive_properties(prop_file_path)
                 prop = process["conf"]
             else:
                 prop = False
