@@ -13,7 +13,7 @@
 </details>
 
 <p>
-<form action="/config/load" method="post" id="config-actions">
+<form action="/config/action" method="post" id="config-actions">
     <label for="config_load_name">{{ _("File Name:") }}</label>
     <select name="name" id="config_load_name" required="" width="14">
         {% if config_files %}
@@ -30,6 +30,7 @@
     </select>
     <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load configuration?") }}')">
     <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete configuration file?") }}')">
+    <input name="download" type="submit" value="{{ _("Download") }}">
 </form>
 </p>
 

@@ -322,6 +322,7 @@ def upload_page():
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
     )
 
@@ -467,13 +468,16 @@ def config_save():
     return response(error=True, message=process["msg"])
 
 
-@APP.route("/config/load", methods=["POST"])
+@APP.route("/config/action", methods=["POST"])
 @login_required
-def config_load():
+def config_action():
     """
-    Loads a config file from disk
+    Carries out on an operation on the config file
     """
-    file_name = Path(request.form.get("name")).name
+    file_name = Path(request.form.get("name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
 
     if "load" in request.form:
         process = file_cmd.read_config(file_name)
@@ -484,15 +488,20 @@ def config_load():
         return response(error=True, message=process["msg"])
 
     if "delete" in request.form:
-        file_path = Path(CFG_DIR) / file_name
-        process = file_cmd.delete_file(file_path)
+        process = file_cmd.delete_file(Path(CFG_DIR) / file_name)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             return response(message=process["msg"])
 
         return response(error=True, message=process["msg"])
 
-    return response(error=True, message="Action field (load, delete) missing")
+    if "download" in request.form:
+        return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
+
+    return response(
+        error=True,
+        message="No known operation in request header. Expected one of: load, delete, download",
+    )
 
 
 @APP.route("/files/diskinfo", methods=["POST"])
@@ -986,6 +995,8 @@ def upload_file():
         destination_dir = server_info["image_dir"]
     elif destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
+    elif destination == "piscsi_config":
+        destination_dir = CFG_DIR
     else:
         return make_response(f"Invalid destination '{destination}'", 403)
 
