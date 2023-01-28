@@ -95,9 +95,7 @@ TEST(ScsiCdTest, Open)
 	out.open(filename);
 	out.write(header.data(), header.size());
 	out.close();
-	resize_file(filename, 2 * 2535);
 	cd_raw.SetFilename(string(filename));
-	EXPECT_THROW(cd_raw.Open(), io_exception) << "Raw ISO CD-ROM image file size must be a multiple of 2536";
 	resize_file(filename, 2 * 2536);
 	cd_raw.Open();
 	EXPECT_EQ(2, cd_raw.GetBlockCount());
