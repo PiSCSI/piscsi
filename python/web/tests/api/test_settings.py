@@ -192,8 +192,6 @@ def test_download_configs(env, http_client, delete_file):
         },
     )
 
-    response_data = response.json()
-
     assert response.status_code == 200
     assert config_json_file not in http_client.get("/").json()["data"]["config_files"]
 
