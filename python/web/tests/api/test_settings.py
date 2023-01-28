@@ -115,7 +115,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Load the saved config
     response = http_client.post(
-        "/config/load",
+        "/config/action",
         data={
             "name": config_json_file,
             "load": True,
@@ -135,7 +135,7 @@ def test_save_load_and_delete_configs(env, http_client):
 
     # Delete the saved config
     response = http_client.post(
-        "/config/load",
+        "/config/action",
         data={
             "name": config_json_file,
             "delete": True,
