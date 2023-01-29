@@ -15,6 +15,7 @@
 #include "hal/gpiobus.h"
 #include "shared/log.h"
 #include "shared/scsi.h"
+#include "shared/shared_memory.h"
 
 #include <map>
 #include <semaphore.h>
@@ -148,7 +149,7 @@ class GPIOBUS_Virtual final : public GPIOBUS
     void PullConfig(int pin, int mode) override
     {
         (void)mode; // Put these in opposite order so Sonar doesn't complain
-        (void)pin; // That PinConfig and PullConfig are identical
+        (void)pin;  // That PinConfig and PullConfig are identical
     }
     // GPIO pin pull up/down resistor setting
     void PinSetSignal(int pin, bool ast) override;
@@ -157,18 +158,10 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // Set GPIO drive strength
 
     array<int, 19> SignalTable;
-    shared_ptr<uint32_t> signals; // All bus signals
+    unique_ptr<SharedMemory> signals;
 
     unique_ptr<DataSample> GetSample(uint64_t timestamp) override
     {
-        return make_unique<DataSample_Raspberry>(*signals, timestamp);
+        return make_unique<DataSample_Raspberry>(signals->get(), timestamp);
     }
-
-#ifdef SHARED_MEMORY_GPIO
-    inline static const string SHARED_MEM_MUTEX_NAME = "/sem-mutex";
-    inline static const string SHARED_MEM_NAME       = "/posix-shared-mem-example";
-
-    sem_t *mutex_sem, *buffer_count_sem, *spool_signal_sem;
-    int fd_shm, fd_log;
-#endif
 };

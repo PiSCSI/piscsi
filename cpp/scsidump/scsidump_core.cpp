@@ -120,7 +120,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
         } break;
 
         case 'v':
-            set_level(level::debug);
+            set_level(level::trace);
             break;
 
         case 'r':
@@ -266,6 +266,7 @@ void ScsiDump::RequestSense()
 
 void ScsiDump::Inquiry()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     vector<uint8_t> cdb(6);
     cdb[4] = 0xff;
     Command(scsi_command::eCmdInquiry, cdb);
@@ -403,10 +404,10 @@ int ScsiDump::run(const vector<char*>& args)
     try {
         ParseArguments(args);
 
-#ifndef USE_SEL_EVENT_ENABLE
-        cerr << "Error: No PiSCSI hardware support" << endl;
-        return EXIT_FAILURE;
-#endif
+// #ifndef USE_SEL_EVENT_ENABLE
+//         cerr << "Error: No PiSCSI hardware support" << endl;
+//         return EXIT_FAILURE;
+// #endif
 
         return DumpRestore();
     } catch (const parser_exception& e) {

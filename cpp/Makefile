@@ -59,6 +59,7 @@ SCSIDUMP = scsidump
 SCSIMON = scsimon
 PISCSI_TEST = piscsi_test
 SCSILOOP = scsiloop
+SCSISIM = scsisim
 
 SYSTEMD_CONF = /etc/systemd/system/piscsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/piscsi.conf
@@ -79,7 +80,8 @@ BIN_ALL = \
 	$(BINDIR)/$(SCSICTL) \
 	$(BINDIR)/$(SCSIMON) \
 	$(BINDIR)/$(SCSIDUMP) \
-	$(BINDIR)/$(SCSILOOP)
+	$(BINDIR)/$(SCSILOOP) \
+	$(BINDIR)/$(SCSISIM)
 
 SRC_PROTOC = piscsi_interface.proto
 
@@ -91,7 +93,8 @@ SRC_PROTOBUF = \
 
 SRC_SHARED = \
 	shared/piscsi_version.cpp \
-	shared/piscsi_util.cpp
+	shared/piscsi_util.cpp \
+	shared/shared_memory.cpp
 
 SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./controllers -name '*.cpp')
@@ -120,12 +123,15 @@ SRC_SCSILOOP = scsiloop.cpp
 SRC_SCSILOOP += $(shell find ./scsiloop -name '*.cpp')
 SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
+SRC_SCSISIM = scsisim.cpp
+SRC_SCSISIM += $(shell find ./scsisim -name '*.cpp')
+
 vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
 	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop
+	./scsiloop ./scsisim
 vpath %.cpp ./ ./shared ./controllers ./devices ./monitor ./hal \
 	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
-	./scsiloop ./test
+	./scsiloop  ./scsisim ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -138,6 +144,7 @@ OBJ_SCSIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 OBJ_PISCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PISCSI_TEST:%.cpp=%.o)))
 OBJ_SCSILOOP  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSILOOP:%.cpp=%.o)))
+OBJ_SCSISIM :=  $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSISIM:%.cpp=%.o)))
 OBJ_SHARED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SHARED:%.cpp=%.o)))
 OBJ_PROTOBUF := $(addprefix $(OBJDIR)/,$(notdir $(SRC_PROTOBUF:%.cpp=%.o)))
 OBJ_GENERATED := $(addprefix $(OBJDIR)/,$(notdir $(SRC_GENERATED:%.cpp=%.o)))
@@ -151,7 +158,7 @@ TEST_WRAPS = -Wl,--wrap=fopen64
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE) $(OBJ_PISCSI) $(OBJ_SCSICTL) $(OBJ_SCSIDUMP) $(OBJ_SCSIMON) $(OBJ_SHARED) $(OBJ_PROTOBUF) $(OBJ_PISCSI_TEST) $(OBJ_SCSILOOP) $(OBJ_SCSISIM))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -216,14 +223,18 @@ $(BINDIR)/$(PISCSI_TEST): $(SRC_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE
 $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
+$(BINDIR)/$(SCSISIM): $(OBJ_SHARED) $(OBJ_SCSISIM) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSISIM)
+
 # Phony rules for building individual utilities
-.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP)
+.PHONY: $(PISCSI) $(SCSICTL) $(SCSIDUMP) $(SCSIMON) $(PISCSI_TEST) $(SCSILOOP) $(SCSISIM)
 $(PISCSI) : $(BINDIR)/$(PISCSI) 
 $(SCSICTL) : $(BINDIR)/$(SCSICTL) 
 $(SCSIDUMP) : $(BINDIR)/$(SCSIDUMP) 
 $(SCSIMON) : $(BINDIR)/$(SCSIMON)
 $(PISCSI_TEST): $(BINDIR)/$(PISCSI_TEST)
 $(SCSILOOP) : $(BINDIR)/$(SCSILOOP)
+$(SCSISIM) : $(BINDIR)/$(SCSISIM)
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
@@ -255,6 +266,7 @@ install: \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
 	$(USR_LOCAL_BIN)/$(SCSILOOP) \
 	$(USR_LOCAL_BIN)/$(SCSIDUMP) \
+	$(USR_LOCAL_BIN)/$(SCSISIM) \
 	$(SYSTEMD_CONF) \
 	$(RSYSLOG_CONF) \
 	$(RSYSLOG_LOG)

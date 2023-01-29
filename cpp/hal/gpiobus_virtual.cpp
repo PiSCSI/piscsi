@@ -23,6 +23,8 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
+#include "scsisim/scsisim_defs.h"
+
 using namespace std;
 
 bool GPIOBUS_Virtual::Init(mode_e mode)
@@ -30,33 +32,7 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
     GPIO_FUNCTION_TRACE
     GPIOBUS::Init(mode);
 
-#ifdef SHARED_MEMORY_GPIO
-    // Create a shared memory region that can be accessed as a virtual "SCSI bus"
-    //  mutual exclusion semaphore, mutex_sem with an initial value 0.
-    if ((mutex_sem = sem_open(SHARED_MEM_MUTEX_NAME.c_str(), O_CREAT, 0660, 0)) == SEM_FAILED) {
-        LOGERROR("Unable to open shared memory semaphore %s. Are you running as root?", SHARED_MEM_MUTEX_NAME.c_str());
-    }
-    // Get shared memory
-    if ((fd_shm = shm_open(SHARED_MEM_NAME.c_str(), O_RDWR | O_CREAT | O_EXCL, 0660)) == -1) {
-        LOGERROR("Unable to open shared memory %s. Are you running as root?", SHARED_MEM_NAME.c_str());
-        sem_close(mutex_sem);
-    }
-    if (ftruncate(fd_shm, sizeof(uint32_t)) == -1) {
-        LOGERROR("Unable to read shared memory");
-        sem_close(mutex_sem);
-        shm_unlink(SHARED_MEM_NAME.c_str());
-        return false;
-    }
-
-    signals = static_cast<uint32_t *>(mmap(NULL, sizeof(uint32_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0));
-    if (static_cast<void *>(signals) == MAP_FAILED) {
-        LOGERROR("Unabled to map shared memory");
-        sem_close(mutex_sem);
-        shm_unlink(SHARED_MEM_NAME.c_str());
-    }
-#else
-    signals = make_shared<uint32_t>(0);
-#endif
+    signals = make_unique<SharedMemory>(SHARED_MEM_NAME);
 
     return true;
 }
@@ -81,12 +57,6 @@ void GPIOBUS_Virtual::Cleanup()
         PinConfig(pin, GPIO_INPUT);
         PullConfig(pin, GPIO_PULLNONE);
     }
-
-#ifdef SHARED_MEMORY_GPIO
-    munmap(static_cast<void *>(signals), sizeof(uint32_t));
-    shm_unlink(SHARED_MEM_NAME.c_str());
-    sem_close(mutex_sem);
-#endif
 }
 
 void GPIOBUS_Virtual::Reset()
@@ -456,20 +426,7 @@ bool GPIOBUS_Virtual::GetSignal(int hw_pin) const
 {
     GPIO_FUNCTION_TRACE
 
-    uint32_t signal_value = 0;
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
-        return false;
-    }
-#endif
-    signal_value = *signals;
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
-        return false;
-    }
-#endif
+    uint32_t signal_value = signals->get();
     return (signal_value >> hw_pin) & 1;
 }
 
@@ -509,25 +466,7 @@ void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
     if (hw_pin < 0) {
         return;
     }
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
-        return;
-    }
-#endif
-    if (ast) {
-        // Set the "gpio" bit
-        *signals |= 0x1 << hw_pin;
-    } else {
-        // Clear the "gpio" bit
-        *signals ^= ~(0x1 << hw_pin);
-    }
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
-        return;
-    }
-#endif
+    signals->set_bit(hw_pin, (int)ast);
 }
 
 //---------------------------------------------------------------------------
@@ -545,20 +484,6 @@ uint32_t GPIOBUS_Virtual::Acquire()
 {
     GPIO_FUNCTION_TRACE;
 
-    uint32_t signal_value = 0;
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_wait(mutex_sem) == -1) {
-        LOGERROR("Unable to lock the shared memory")
-        return false;
-    }
-#endif
-    signal_value = *signals;
-#ifdef SHARED_MEMORY_GPIO
-    if (sem_post(mutex_sem) == -1) {
-        LOGERROR("Unable to release the shared memory")
-        return false;
-    }
-#endif
+    uint32_t signal_value = signals->get();
     return signal_value;
 }
-

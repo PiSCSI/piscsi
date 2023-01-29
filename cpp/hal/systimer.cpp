@@ -13,6 +13,7 @@
 
 #include "hal/systimer.h"
 #include "hal/systimer_allwinner.h"
+#include "hal/systimer_linux.h"
 #include "hal/systimer_raspberry.h"
 #include <sys/mman.h>
 
@@ -38,6 +39,8 @@ void SysTimer::Init()
         } else if (SBC_Version::IsBananaPi()) {
             systimer_ptr  = make_unique<SysTimer_AllWinner>();
             is_allwinnner = true;
+        } else {
+            systimer_ptr = make_unique<SysTimer_Linux>();
         }
         systimer_ptr->Init();
         initialized = true;
