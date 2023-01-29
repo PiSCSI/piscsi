@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2023-01-28 22:27-0800\n"
+"POT-Creation-Date: 2023-01-28 22:53-0800\n"
 "PO-Revision-Date: 2023-01-28 20:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -684,7 +684,7 @@ msgid ""
 "Save and load device configurations, stored as json files in "
 "<tt>%(config_dir)s</tt>"
 msgstr ""
-"Spara och ladda enhetskonfigurationer. Sparas i json-format vid "
+"Spara och läs enhetskonfigurationer. Sparas som json-format i "
 "<tt>%(config_dir)s</tt>"
 
 #: src/templates/index.html:11
@@ -692,8 +692,8 @@ msgid ""
 "To have a particular device configuration load when PiSCSI starts, save "
 "it as <em>default</em>."
 msgstr ""
-"Om du sparar en enhetskonfiguration som <em>default</em> så laddas den "
-"när PiSCSI startar."
+"Om du sparar en enhetskonfiguration som <em>default</em> så blir den läst"
+" när PiSCSI startar."
 
 #: src/templates/index.html:17 src/templates/index.html:39
 #: src/templates/index.html:473
@@ -706,11 +706,11 @@ msgstr "Inga sparade konfigurationer"
 
 #: src/templates/index.html:31
 msgid "Load"
-msgstr "Ladda"
+msgstr "Läs"
 
 #: src/templates/index.html:31
 msgid "Detach all current device and Load configuration?"
-msgstr "Koppla ifrån alla enheter och ladda konfigurationen?"
+msgstr "Koppla ifrån alla enheter och läs in konfigurationen?"
 
 #: src/templates/index.html:32 src/templates/index.html:338
 msgid "Delete"
