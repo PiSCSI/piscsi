@@ -998,7 +998,7 @@ def upload_file():
     elif destination == "piscsi_config":
         destination_dir = CFG_DIR
     else:
-        return make_response(f"Invalid destination '{destination}'", 403)
+        return make_response(f"Invalid destination", 403)
 
     return upload_with_dropzonejs(destination_dir)
 
