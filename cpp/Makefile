@@ -125,6 +125,7 @@ SRC_SCSILOOP += $(shell find ./hal -name '*.cpp')
 
 SRC_SCSISIM = scsisim.cpp
 SRC_SCSISIM += $(shell find ./scsisim -name '*.cpp')
+SRC_SCSISIM += $(shell find ./hal -name '*.cpp')
 
 vpath %.h ./ ./shared ./controllers ./devices ./monitor ./hal \
 	./hal/boards ./hal/pi_defs ./piscsi ./scsictl ./scsidump \
@@ -223,7 +224,7 @@ $(BINDIR)/$(PISCSI_TEST): $(SRC_GENERATED) $(OBJ_PISCSI_CORE) $(OBJ_SCSICTL_CORE
 $(BINDIR)/$(SCSILOOP): $(OBJ_SHARED) $(OBJ_SCSILOOP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSILOOP)
 
-$(BINDIR)/$(SCSISIM): $(OBJ_SHARED) $(OBJ_SCSISIM) | $(BINDIR)
+$(BINDIR)/$(SCSISIM): $(OBJ_SHARED) $(OBJ_SCSISIM) $(SRC_PISCSI_CORE) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@  $(OBJ_SHARED) $(OBJ_SCSISIM)
 
 # Phony rules for building individual utilities
