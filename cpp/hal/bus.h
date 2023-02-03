@@ -106,6 +106,10 @@ class BUS : public PinControl
     // Set SCSI output signal value
     static const int SEND_NO_DELAY = -1;
     // Passed into SendHandShake when we don't want to delay
+
+    // This is only applicable for the Virtual bus type
+    virtual bool SharedMemValid() const {return true;}
+
   private:
     static const array<phase_t, 8> phase_table;
 

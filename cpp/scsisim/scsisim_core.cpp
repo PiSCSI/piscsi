@@ -8,10 +8,10 @@
 //
 //---------------------------------------------------------------------------
 #include "scsisim_core.h"
+#include "hal/data_sample_raspberry.h"
 #include "shared/log.h"
 #include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "hal/data_sample_raspberry.h"
 
 #include "scsisim_defs.h"
 #include <iostream>
@@ -124,7 +124,7 @@ bool ScsiSim::ParseArgument(const vector<char*>& args)
 
 int ScsiSim::run(const vector<char*>& args)
 {
-    running = true;
+    running  = true;
     scsi_sim = this;
 
     // added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
@@ -146,7 +146,7 @@ int ScsiSim::run(const vector<char*>& args)
 
     // We just want to run the test client. After we're done, we can
     // return.
-    if(test_mode){
+    if (test_mode) {
         TestClient();
         return EXIT_SUCCESS;
     }
@@ -162,24 +162,34 @@ int ScsiSim::run(const vector<char*>& args)
     signals = make_unique<SharedMemory>(SHARED_MEM_NAME, true);
 
     uint32_t prev_value = signals->get();
-    int dot_counter = 0;
+    int dot_counter     = 0;
+    int char_counter    = 0;
     while (running) {
         if (enable_debug) {
             uint32_t new_value = signals->get();
 
-            PrintDifferences(DataSample_Raspberry(new_value), DataSample_Raspberry(prev_value));
-
             // Note, this won't necessarily print ever data change. It will
             // just give an indication of activity
-            if (new_value != prev_value) {
-                LOGTRACE("%s Value changed to %08X", __PRETTY_FUNCTION__, new_value);
-            }
+            PrintDifferences(DataSample_Raspberry(new_value), DataSample_Raspberry(prev_value));
+
             prev_value = new_value;
-            
-            if(++dot_counter > 1000){
-                printf(".");
-                dot_counter = 0;
-            } 
+
+            if (++dot_counter > 100) {
+                if (char_counter == 0) {
+                    std::cout << "\r/" << flush;
+
+                } else if (char_counter == 1) {
+                    std::cout << "\r-" << flush;
+
+                } else if (char_counter == 2) {
+                    std::cout << "\r\\" << flush;
+
+                } else if (char_counter == 3) {
+                    std::cout << "\r|" << flush;
+                }
+                char_counter = (char_counter + 1) % 4;
+                dot_counter  = 0;
+            }
         }
         usleep(1000);
     }

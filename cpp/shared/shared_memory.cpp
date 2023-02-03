@@ -45,6 +45,22 @@ SharedMemory::SharedMemory(std::string region_name, bool is_primary)
         return;
     }
     LOGINFO("%s Shared memory region successfully memory mapped", __PRETTY_FUNCTION__)
+
+    if (m_primary) {
+        oflag = O_CREAT;
+    } else {
+        oflag = 0;
+    }
+
+    m_lock_name = m_name + "_lock";
+    LOGINFO("%s Open file lock name: %s", __PRETTY_FUNCTION__, m_lock_name.c_str())
+    m_file_lock = open(m_lock_name.c_str(), oflag);
+
+    if (m_file_lock == -1) {
+        LOGWARN("%s Unable to open the file lock (%s). Is scsisim running? Are you running as root?",
+                __PRETTY_FUNCTION__, m_lock_name.c_str())
+        m_valid = false;
+    }
 }
 
 // Note: The normal logging functions can not be used here. The logger objects

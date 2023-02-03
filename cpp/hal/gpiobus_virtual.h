@@ -115,6 +115,12 @@ class GPIOBUS_Virtual final : public GPIOBUS
     // Get DAT signal
     void SetDAT(uint8_t dat) override;
     // Set DAT signal
+
+    bool SharedMemValid() const override
+    {
+        return signals->is_valid();
+    }
+
   private:
     // SCSI I/O signal control
     void MakeTable() override;
