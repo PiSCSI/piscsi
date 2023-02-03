@@ -10,12 +10,17 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-SharedMemory::SharedMemory(std::string region_name) : m_valid(true), m_name(region_name)
+SharedMemory::SharedMemory(std::string region_name, bool is_primary)
+    : m_valid(true), m_primary(is_primary), m_name(region_name)
 {
     LOGINFO("%s Opening shared memory %s", __PRETTY_FUNCTION__, region_name.c_str())
     // Get shared memory
-    int mode = S_IRWXU | S_IRWXG;
-    if ((m_fd_shared_mem = shm_open(region_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, mode)) == -1) {
+    int mode  = S_IRWXU | S_IRWXG;
+    int oflag = O_RDWR | O_TRUNC;
+    if (is_primary) {
+        oflag |= O_CREAT;
+    }
+    if ((m_fd_shared_mem = shm_open(region_name.c_str(), oflag, mode)) == -1) {
         LOGERROR("Unable to open shared memory %s.  Is scsisim already running?", region_name.c_str());
         m_valid = false;
         return;
@@ -42,21 +47,20 @@ SharedMemory::SharedMemory(std::string region_name) : m_valid(true), m_name(regi
     LOGINFO("%s Shared memory region successfully memory mapped", __PRETTY_FUNCTION__)
 }
 
+// Note: The normal logging functions can not be used here. The logger objects
+// may have been freed by the time we get to this point
 SharedMemory::~SharedMemory()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__);
+    // printf("%s", __PRETTY_FUNCTION__);
     if (m_shared_mem != nullptr) {
-        if (munmap(m_shared_mem, sizeof(lockable_data_t)) == 0) {
-            LOGTRACE("munmap successful");
-        } else {
-            LOGWARN("munmap NOT successful ERROR!!!");
+        if (munmap(m_shared_mem, sizeof(lockable_data_t)) != 0) {
+            printf("WARNING: munmap NOT successful!\n");
         }
     }
-
-    LOGTRACE("%s Unlinking shared memory", __PRETTY_FUNCTION__);
-    if (shm_unlink(m_name.c_str()) == 0) {
-        LOGTRACE("shm_unlink success");
-    } else {
-        LOGWARN("shm_unlink failed!!!");
+    if (m_primary) {
+        // printf("%s Unlinking shared memory", __PRETTY_FUNCTION__);
+        if (shm_unlink(m_name.c_str()) != 0) {
+            printf("WARNING: shm_unlink failed!!!\n");
+        }
     }
 }

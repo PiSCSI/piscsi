@@ -32,31 +32,23 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
     GPIO_FUNCTION_TRACE
     GPIOBUS::Init(mode);
 
+    LOGTRACE("%s Setting up shared memory", __PRETTY_FUNCTION__)
     signals = make_unique<SharedMemory>(SHARED_MEM_NAME);
+
+    if(!signals->is_valid()){
+        LOGWARN("Unable to setup shared memory. Do you have scsisim running? Are you running as root?")
+    }else
+    {
+        LOGINFO("Successfully mapped shared memory")
+    }
 
     return true;
 }
 
 void GPIOBUS_Virtual::Cleanup()
 {
-    // Set control signals
-    PinSetSignal(PIN_ENB, OFF);
-    PinSetSignal(PIN_ACT, OFF);
-    PinSetSignal(PIN_TAD, OFF);
-    PinSetSignal(PIN_IND, OFF);
-    PinSetSignal(PIN_DTD, OFF);
-    PinConfig(PIN_ACT, GPIO_INPUT);
-    PinConfig(PIN_TAD, GPIO_INPUT);
-    PinConfig(PIN_IND, GPIO_INPUT);
-    PinConfig(PIN_DTD, GPIO_INPUT);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
 
-    // Initialize all signals
-    for (int i = 0; SignalTable[i] >= 0; i++) {
-        int pin = SignalTable[i];
-        PinSetSignal(pin, OFF);
-        PinConfig(pin, GPIO_INPUT);
-        PullConfig(pin, GPIO_PULLNONE);
-    }
 }
 
 void GPIOBUS_Virtual::Reset()

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "shared/shared_memory.h"
+#include "hal/data_sample.h"
 
 using namespace std;
 
@@ -33,9 +34,16 @@ class ScsiSim
     int InitSharedMemory();
     void TeardownSharedMemory();
 
+    void PrintDifferences(const DataSample &current, const DataSample &previous);
+    void TestClient();
+
     bool enable_debug = false;
 
     unique_ptr<SharedMemory> signals;
 
+    uint32_t prev_data;
+
     bool running;
+
+    bool test_mode = false;
 };

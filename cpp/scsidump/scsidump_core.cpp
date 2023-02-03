@@ -38,7 +38,9 @@ using namespace piscsi_util;
 
 void ScsiDump::CleanUp()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     if (bus != nullptr) {
+        LOGTRACE("%s trying bus cleanup", __PRETTY_FUNCTION__)
         bus->Cleanup();
     }
 }
@@ -198,6 +200,7 @@ void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 
 void ScsiDump::DataIn(int length)
 {
+    LOGTRACE("%s length: %d", __PRETTY_FUNCTION__, length)
     WaitPhase(phase_t::datain);
 
     if (!bus->ReceiveHandShake(buffer.data(), length)) {
@@ -207,6 +210,8 @@ void ScsiDump::DataIn(int length)
 
 void ScsiDump::DataOut(int length)
 {
+    LOGTRACE("%s length: %d", __PRETTY_FUNCTION__, length)
+
     WaitPhase(phase_t::dataout);
 
     if (!bus->SendHandShake(buffer.data(), length, BUS::SEND_NO_DELAY)) {
@@ -216,6 +221,8 @@ void ScsiDump::DataOut(int length)
 
 void ScsiDump::Status() const
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+
     WaitPhase(phase_t::status);
 
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
@@ -225,6 +232,8 @@ void ScsiDump::Status() const
 
 void ScsiDump::MessageIn() const
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+
     WaitPhase(phase_t::msgin);
 
     if (array<uint8_t, 256> buf; bus->ReceiveHandShake(buf.data(), 1) != 1) {
@@ -239,6 +248,8 @@ void ScsiDump::BusFree() const
 
 void ScsiDump::TestUnitReady() const
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+
     vector<uint8_t> cdb(6);
     Command(scsi_command::eCmdTestUnitReady, cdb);
 
@@ -251,6 +262,8 @@ void ScsiDump::TestUnitReady() const
 
 void ScsiDump::RequestSense()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+
     vector<uint8_t> cdb(6);
     cdb[4] = 0xff;
     Command(scsi_command::eCmdRequestSense, cdb);
@@ -282,6 +295,8 @@ void ScsiDump::Inquiry()
 
 pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+
     vector<uint8_t> cdb(10);
     Command(scsi_command::eCmdReadCapacity10, cdb);
 
@@ -330,6 +345,8 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
 
 void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
 {
+    LOGTRACE("%s start:%d blen:%d len:%d", __PRETTY_FUNCTION__, bstart, blength, length)
+
     vector<uint8_t> cdb(10);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
@@ -350,6 +367,8 @@ void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)
 
 void ScsiDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
 {
+    LOGTRACE("%s start:%d blen:%d len:%d", __PRETTY_FUNCTION__, bstart, blength, length)
+
     vector<uint8_t> cdb(10);
     cdb[2] = (uint8_t)(bstart >> 24);
     cdb[3] = (uint8_t)(bstart >> 16);
@@ -370,6 +389,7 @@ void ScsiDump::Write10(uint32_t bstart, uint32_t blength, uint32_t length)
 
 void ScsiDump::WaitForBusy() const
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     // Wait for busy for up to 2 s
     int count = 10000;
     do {
@@ -404,18 +424,18 @@ int ScsiDump::run(const vector<char*>& args)
     try {
         ParseArguments(args);
 
-// #ifndef USE_SEL_EVENT_ENABLE
-//         cerr << "Error: No PiSCSI hardware support" << endl;
-//         return EXIT_FAILURE;
-// #endif
+        // #ifndef USE_SEL_EVENT_ENABLE
+        //         cerr << "Error: No PiSCSI hardware support" << endl;
+        //         return EXIT_FAILURE;
+        // #endif
 
         return DumpRestore();
     } catch (const parser_exception& e) {
         cerr << "Error: " << e.what() << endl;
 
-        CleanUp();
+        // CleanUp();
 
-        return EXIT_FAILURE;
+        // return EXIT_FAILURE;
     }
 
     CleanUp();
@@ -425,6 +445,8 @@ int ScsiDump::run(const vector<char*>& args)
 
 int ScsiDump::DumpRestore()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    
     const auto inq_info = GetDeviceInfo();
 
     fstream fs;
@@ -524,6 +546,7 @@ int ScsiDump::DumpRestore()
 
 ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
 {
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     // Assert RST for 1 ms
     bus->SetRST(true);
     const timespec ts = {.tv_sec = 0, .tv_nsec = 1000 * 1000};

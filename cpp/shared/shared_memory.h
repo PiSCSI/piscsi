@@ -21,7 +21,7 @@
 class SharedMemory
 {
   public:
-    SharedMemory(std::string);
+    SharedMemory(std::string, bool is_primary=false);
     ~SharedMemory();
 
     inline uint32_t get() const
@@ -48,6 +48,10 @@ class SharedMemory
         }
     }
 
+    inline bool is_valid(){
+        return m_valid;
+    }
+
   private:
     typedef struct lockable_data {
         mutable std::shared_mutex mutex_;
@@ -57,6 +61,7 @@ class SharedMemory
     lockable_data_t* m_shared_mem;
 
     bool m_valid;
+    bool m_primary;
     int m_fd_shared_mem;
     std::string m_name;
 };

@@ -100,6 +100,9 @@ class DataSample_Raspberry final : public DataSample
     DataSample_Raspberry(const uint32_t in_data, const uint64_t in_timestamp) : DataSample{in_timestamp}, data{in_data}
     {
     }
+    DataSample_Raspberry(const uint32_t in_data) : DataSample{0}, data{in_data}
+    {
+    }
     DataSample_Raspberry() = default;
 
     ~DataSample_Raspberry() override = default;
