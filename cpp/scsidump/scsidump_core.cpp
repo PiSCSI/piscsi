@@ -148,11 +148,13 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
     buffer = vector<uint8_t>(buffer_size);
 }
-
+#define BILLION 1000000000L
 void ScsiDump::WaitPhase(phase_t phase) const
 {
     LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
 
+    timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     // Timeout (3000ms)
     const uint32_t now = SysTimer::GetTimerLow();
     while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
@@ -161,6 +163,11 @@ void ScsiDump::WaitPhase(phase_t phase) const
             return;
         }
     }
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    uint64_t diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec;
+    LOGDEBUG("Waiting for phase time: elapsed time = %llu nanoseconds / %lf seconds", (long long unsigned int)diff,
+             (double)diff / (double)BILLION);
 
     throw parser_exception("Expected " + string(BUS::GetPhaseStrRaw(phase)) + " phase, actual phase is " +
                            string(BUS::GetPhaseStrRaw(bus->GetPhase())));
@@ -446,7 +453,7 @@ int ScsiDump::run(const vector<char*>& args)
 int ScsiDump::DumpRestore()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
-    
+
     const auto inq_info = GetDeviceInfo();
 
     fstream fs;

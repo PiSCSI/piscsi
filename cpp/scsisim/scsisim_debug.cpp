@@ -27,6 +27,7 @@ void ScsiSim::PrintDifferences(const DataSample& current, const DataSample& prev
     if (current.GetRawCapture() != previous.GetRawCapture()) {
         stringstream s;
         s << "Data changed: <";
+        s << string(current.GetPhaseStr()) << "> ";
 
         if (current.GetDAT() != previous.GetDAT()) {
             s << "DAT(" << setw(2) << hex << (int)current.GetDAT() << ") ";
@@ -61,7 +62,7 @@ void ScsiSim::PrintDifferences(const DataSample& current, const DataSample& prev
         if (current.GetACT() != previous.GetACT()) {
             s << "ACT(" << current.GetACT() << ") ";
         }
-        s << ">" << flush;
+        s << flush;
 
         LOGTRACE("%s", s.str().c_str());
     }

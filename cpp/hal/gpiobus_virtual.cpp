@@ -5,6 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//  Copyright (C) 2021-2023 akuker
 //
 //	[ GPIO-SCSI bus ]
 //
@@ -35,12 +36,14 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
     LOGTRACE("%s Setting up shared memory", __PRETTY_FUNCTION__)
     signals = make_unique<SharedMemory>(SHARED_MEM_NAME);
 
-    if(!signals->is_valid()){
+    if (!signals->is_valid()) {
         LOGWARN("Unable to setup shared memory. Do you have scsisim running? Are you running as root?")
-    }else
-    {
+    } else {
         LOGINFO("Successfully mapped shared memory")
     }
+
+    // System timer
+    SysTimer::Init();
 
     return true;
 }
@@ -48,7 +51,6 @@ bool GPIOBUS_Virtual::Init(mode_e mode)
 void GPIOBUS_Virtual::Cleanup()
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
-
 }
 
 void GPIOBUS_Virtual::Reset()
@@ -393,7 +395,9 @@ void GPIOBUS_Virtual::MakeTable(void)
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::SetControl(int pin, bool ast)
 {
+#ifdef ENABLE_GPIO_TRACE
     LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)pin)
+#endif
     PinSetSignal(pin, ast);
 }
 
@@ -452,7 +456,9 @@ void GPIOBUS_Virtual::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS_Virtual::PinSetSignal(int hw_pin, bool ast)
 {
+#ifdef ENABLE_GPIO_TRACE
     LOGTRACE("%s hwpin: %d", __PRETTY_FUNCTION__, (int)hw_pin)
+#endif
 
     // Check for invalid pin
     if (hw_pin < 0) {

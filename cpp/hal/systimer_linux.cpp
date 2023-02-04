@@ -29,16 +29,24 @@ void SysTimer_Linux::Init()
     LOGINFO("CPU resolution is: %lu (result: %d)", timer_resolution.tv_nsec, result);
 }
 
+// returns microseconds
 uint32_t SysTimer_Linux::GetTimerLow()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
-    return 0;
+    timespec the_time;
+
+    int res = clock_gettime(CLOCK_MONOTONIC, &the_time);
+    if(res == -1){
+        char err_string[256];
+        char *res = strerror_r(errno, err_string, sizeof(err_string));
+        (void)res;
+        LOGWARN("%s clock_gettime failed. Errno:%d (%s)", __PRETTY_FUNCTION__, errno, err_string);
+    }
+    return (uint32_t)(((uint64_t)the_time.tv_sec * 1000 * 1000) + the_time.tv_nsec / 1000);
 }
 
 uint32_t SysTimer_Linux::GetTimerHigh()
 {
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
-    return (uint32_t)0;
+    return GetTimerLow()/1000;
 }
 
 //---------------------------------------------------------------------------
@@ -48,25 +56,13 @@ uint32_t SysTimer_Linux::GetTimerHigh()
 //---------------------------------------------------------------------------
 void SysTimer_Linux::SleepNsec(uint32_t nsec)
 {
-    (void)nsec;
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
+    timespec sleep_time = {0, (long)nsec};
 
-    //     // If time is less than one HS timer clock tick, don't do anything
-    //     if (nsec < 20) {
-    //         return;
-    //     }
+    int res = nanosleep(&sleep_time, nullptr);
 
-    //     // The HS timer receives a 200MHz clock input, which equates to
-    //     // one clock tick every 5 ns.
-    //     auto clockticks = (uint32_t)std::ceil(nsec / 5);
-
-    //     uint32_t enter_time = hsitimer_regs->hs_tmr_curnt_lo_reg;
-
-    //     // TODO: NEED TO HANDLE COUNTER OVERFLOW
-    //     LOGTRACE("%s entertime: %08X ns: %d clockticks: %d", __PRETTY_FUNCTION__, enter_time, nsec, clockticks)
-    //     while ((enter_time - hsitimer_regs->hs_tmr_curnt_lo_reg) < clockticks)
-    //         ;
-
+    if (res == -1) {
+        LOGWARN("Nanosleep was interrupted")
+    }
     return;
 }
 
@@ -77,16 +73,5 @@ void SysTimer_Linux::SleepNsec(uint32_t nsec)
 //---------------------------------------------------------------------------
 void SysTimer_Linux::SleepUsec(uint32_t usec)
 {
-    (void)usec;
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
-    LOGWARN("%s NOT IMPLEMENTED", __PRETTY_FUNCTION__);
-
-    // // If time is 0, don't do anything
-    // if (usec == 0) {
-    //     return;
-    // }
-
-    // uint32_t enter_time = GetTimerLow();
-    // while ((GetTimerLow() - enter_time) < usec)
-    //     ;
+    SleepNsec(usec * 1000);
 }
