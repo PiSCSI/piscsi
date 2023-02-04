@@ -179,5 +179,11 @@ static const unordered_map<scsi_command, pair<int, const char*>> command_mapping
     {scsi_command::eCmdSynchronizeCache16, make_pair(16, "SynchronizeCache16")},
     {scsi_command::eCmdReadCapacity16_ReadLong16, make_pair(16, "ReadCapacity16/ReadLong16")},
     {scsi_command::eCmdWriteLong16, make_pair(16, "WriteLong16")},
-    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")}};
+    {scsi_command::eCmdReportLuns, make_pair(12, "ReportLuns")},
+    {scsi_command::eCmdPvReadConfig, make_pair(6, "eCmdPvReadConfig")},
+    {scsi_command::eCmdPvWriteConfig, make_pair(6, "eCmdPvWriteConfig")},
+    {scsi_command::eCmdPvWriteFrameBuffer, make_pair(6, "eCmdPvWriteFrameBuffer")},
+    {scsi_command::eCmdPvWriteColorPalette, make_pair(6, "eCmdPvWriteColorPalette")},
+    {scsi_command::eCmdUnknownPowerViewCC, make_pair(6, "eCmdUnknownPowerViewCC")}};
+
 }; // namespace scsi_defs

@@ -15,6 +15,7 @@
 #include "scsi_printer.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
+#include "scsi_powerview.h"
 #include "host_services.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
@@ -64,6 +65,7 @@ DeviceFactory::DeviceFactory()
 	device_mapping["daynaport"] = SCDP;
 	device_mapping["printer"] = SCLP;
 	device_mapping["services"] = SCHS;
+	device_mapping["powerview"] = SCPV;
 }
 
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
@@ -149,6 +151,15 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
 		device->SetDefaultParams(default_params.find(SCLP)->second);
+		break;
+
+	case SCPV:
+		device = make_shared<SCSIPowerView>(lun);
+		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+		device->SetVendor("RADIUS  ");
+		device->SetProduct("PowerView       ");
+		device->SetRevision("V1.0");
+		device->SetDefaultParams(default_params.find(SCPV)->second);
 		break;
 
 	default:
