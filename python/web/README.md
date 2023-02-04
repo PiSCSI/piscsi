@@ -1,8 +1,10 @@
-# RaSCSI Web
+# PiSCSI Web
 
 ## Setup local dev env
 
 ```bash
+# Change to python/web/src
+$ cd python/web
 # Make a virtual env named venv
 $ python3 -m venv venv
 # Use that virtual env in this shell
@@ -10,34 +12,22 @@ $ source venv/bin/activate
 # Install requirements
 $ pip install -r requirements.txt
 # Use mocks and a temp dir - start the web server
-$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd src && python3 web.py
+$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd python/web && PYTHON_COMMON_PATH=$(dirname $PWD)/common/src PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH} python3 src/web.py
 ```
 
 ### Mocks for local development
 
 You may edit the files under `mock/bin` to simulate Linux command responses.
-TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
+TODO:  piscsi-web uses protobuf commands to send and receive data from piscsi.
 A separate mocking solution will be needed for this interface.
 
-### Static analysis with pylint
+## (Optional) Pushing to the Pi via git
 
-It is recommended to run pylint against new code to protect against bugs
-and keep the code readable and maintainable.
-The local pylint configuration lives in .pylintrc
-In order for pylint to recognize venv libraries, the pylint-venv package is required.
+This is a setup for pushing code changes from your local development environment to the Raspberry Pi without a roundtrip to the remote GitHub repository.
 
+Setup a bare repo on the piscsi
 ```
-sudo apt install pylint3
-sudo pip install pylint-venv
-source venv/bin/activate
-pylint3 python_source_file.py
-```
-
-## Pushing to the Pi via git
-
-Setup a bare repo on the rascsi
-```
-$ ssh pi@rascsi
+$ ssh pi@piscsi
 $ mkdir /home/pi/dev.git && cd /home/pi/dev.git
 $ git --bare init
 Initialized empty Git repository in /home/pi/dev.git
@@ -45,31 +35,55 @@ Initialized empty Git repository in /home/pi/dev.git
 
 Locally
 ```
-$ cd ~/source/RASCSI
-$ git remote add pi ssh://pi@rascsi/home/pi/dev.git
+$ cd ~/source/PISCSI
+$ git remote add pi ssh://pi@piscsi/home/pi/dev.git
 $ git push pi master
 ```
 
 ## Localizing the Web Interface
 
-We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
+We use the Flask-Babel library and Flask/Jinja2 extension for internationalization (i18n).
 
-It uses the 'pybabel' command line tool for extracting and compiling localizations.
+It uses the 'pybabel' command line tool for extracting and compiling localizations. The Web Interface start script will automatically compile localizations upon launch.
+
 Activate the Python venv in src/web/ to use it:
 ```
-$ cd src/web/
+$ cd python/web
 $ source venv/bin/activate
 $ pybabel --help
 ```
 
 To create a new localization, it needs to be added to the LANGAUGES constant in
-web/settings.py. To localize messages coming from the RaSCSI backend, update also code in
-raspberrypi/localizer.cpp in the RaSCSI C++ code.
+web/settings.py. To localize messages coming from the PiSCSI backend, update also code in
+raspberrypi/localizer.cpp in the PiSCSI C++ code.
 
-Once this is done, follow the steps in the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications)
-to generate the messages.po for the new language.
+Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://python-babel.github.io/flask-babel/index.html#translating-applications).
 
-Updating the strings in an existing messages.po is also covered above.
+First, generate the raw messages.pot file containing extracted strings.
+
+```
+$ pybabel extract -F babel.cfg -o messages.pot src
+```
+
+### Initialize a new localization
+
+When adding a localization for a new language, initialize the directory structure. Replace 'xx' with the two character code for the language.
+
+```
+$ pybabel init -i messages.pot -d src/translations -l xx
+```
+
+### Update an existing localization
+
+Tip: Use the script **translation_update.sh** in this dir to automatically extract strings, update existing localizations, and print translation statistics.
+
+After strings have been added or changed in the code, update the existing localizations.
+
+```
+$ pybabel update -i messages.pot -d src/translations
+```
+
+Then edit the updated messages.po file for your language. Make sure to update fuzzy strings and translate new ones.
 
 When you are ready to contribute new or updated localizations, use the same Gitflow Workflow as used for any code contributions to submit PRs against the develop branch.
 
@@ -104,11 +118,15 @@ msgstr ""
 "drivrutiner och inställningar</a>."
 ```
 
+### Contributing to the project
+
+New or updated localizations are treated just like any other code change. See the [project README](https://github.com/PiSCSI/piscsi/tree/master#how-do-i-contribute) for further information.
+
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.
 ```
 $ sudo apt install gettext
-$ cd src/web/
+$ cd python/web/src
 $ msgfmt --statistics translations/sv/LC_MESSAGES/messages.po
 215 translated messages, 1 untranslated message.
 ```

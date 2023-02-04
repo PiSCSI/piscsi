@@ -25,6 +25,11 @@ if ! command -v unzip &> /dev/null ; then
     echo "Run 'sudo apt install unzip' to fix."
     ERROR=1
 fi
+if ! command -v unar &> /dev/null ; then
+    echo "unar could not be found"
+    echo "Run 'sudo apt install unar' to fix."
+    ERROR=1
+fi
 if [ $ERROR = 1 ] ; then
     echo
     echo "Fix errors and re-run ./start.sh"
@@ -57,8 +62,7 @@ if ! test -e venv; then
     pip3 install wheel
     pip3 install -r requirements.txt
 
-    git rev-parse --is-inside-work-tree &> /dev/null
-    if [[ $? -eq 0 ]]; then
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
       git rev-parse HEAD > current
     fi
 fi
@@ -90,20 +94,41 @@ while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
-	-p | --port)
-	    PORT="--port $VALUE"
-	    ;;
-	-P | --password)
-	    PASSWORD="--password $VALUE"
-	    ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
-            ;;
+    -p | --web-port)
+        ARG_PORT="--port $VALUE"
+        ;;
+    -P | --password)
+        ARG_PASSWORD="--password $VALUE"
+        ;;
+    -h | --backend-host)
+        ARG_BACKEND_HOST="--backend-host $VALUE"
+        ;;
+    -o | --backend-port)
+        ARG_BACKEND_PORT="--backend-port $VALUE"
+        ;;
+    -l | --log-level)
+        ARG_LOG_LEVEL="--log-level $VALUE"
+        ;;
+    -d | --dev-mode)
+        ARG_DEV_MODE="--dev-mode"
+        ;;
+    *)
+        echo "ERROR: unknown parameter \"$PARAM\""
+        exit 1
+        ;;
     esac
     shift
 done
 
-echo "Starting web server for RaSCSI Web Interface..."
-cd src
-python3 web.py ${PORT} ${PASSWORD}
+PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
+export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
+cd src || exit 1
+
+if [[ $ARG_DEV_MODE ]]; then
+    echo "Starting PiSCSI Web UI (dev mode) ..."
+    watchmedo auto-restart --directory=../../ --pattern=*.py --recursive -- \
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_BACKEND_HOST} ${ARG_BACKEND_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+else
+    echo "Starting PiSCSI Web UI ..."
+    python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_BACKEND_HOST} ${ARG_BACKEND_PORT} ${ARG_LOG_LEVEL} ${ARG_DEV_MODE}
+fi

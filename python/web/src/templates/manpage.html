@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ _("Manual for %(app)s", app=app) }}</h2>
+
+<div id="manpage-content">
+{{ manpage | safe }}
+</div>
+
+<p class="home"><a href="/">{{ _("Go to Home") }}</a></p>
+{% endblock content %}

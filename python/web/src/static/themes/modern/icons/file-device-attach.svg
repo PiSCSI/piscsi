@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+  <path
+     style="stroke-width:1.33;fill:none"
+     d="m 5.1940312,13.673355 -3.809552,0 V 5.4489946 H 22.586845 v 8.2243604 l -3.838225,0" />
+  <path
+     style="fill:none;stroke-width:1.33046"
+     d="m 18.677234,14.622497 a 6.6522592,6.6522592 0 0 1 -6.65226,6.652259 6.6522592,6.6522592 0 0 1 -6.6522584,-6.652259 6.6522592,6.6522592 0 0 1 6.6522584,-6.65226 6.6522592,6.6522592 0 0 1 6.65226,6.65226 z" />
+  <rect
+     style="fill:#ffffff;stroke-width:0;stroke-dasharray:none"
+     width="18.637993"
+     height="1.1182801"
+     x="3.0394266"
+     y="7.0537629" />
+  <path
+     style="stroke-width:1.33046"
+     d="m 14.020652,14.622497 a 1.9956777,1.9956777 0 0 1 -1.995678,1.995677 1.9956777,1.9956777 0 0 1 -1.995678,-1.995677 1.9956777,1.9956777 0 0 1 1.995678,-1.995678 1.9956777,1.9956777 0 0 1 1.995678,1.995678 z" />
+  <rect
+     style="fill:#000000;stroke-width:0.958912;stroke-dasharray:none"
+     width="17.626009"
+     height="1.7249234"
+     x="3.2979918"
+     y="8.6644583" />
+</svg>

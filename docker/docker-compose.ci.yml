@@ -1,0 +1,42 @@
+services:
+  backend:
+    image: ${DOCKER_BACKEND_IMAGE}
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    init: true
+    volumes:
+      - ./volumes/images:/home/pi/images:delegated
+    healthcheck:
+      interval: 5s
+      start_period: 5s
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web/Dockerfile
+      args:
+        - OS_VERSION=buster
+    volumes:
+      - ./volumes/images:/home/pi/images:delegated
+    init: true
+    command: ["--backend-host=backend", "--log-level=debug"]
+    healthcheck:
+      interval: 5s
+      start_period: 5s
+
+  pytest:
+    depends_on:
+      web:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    profiles:
+      - webui-tests
+    build:
+      context: ..
+      dockerfile: docker/pytest/Dockerfile
+    working_dir: /src
+    volumes:
+      - ./volumes/pytest:/src/tests/output:delegated
+    command: ["-vv"]

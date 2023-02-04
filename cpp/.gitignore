@@ -1,0 +1,17 @@
+*.bak
+*.HDA
+*.save
+*.cbp
+*.layout
+*.log
+*.vcd
+*.json
+*.html
+piscsi.dat
+obj
+bin
+coverage
+generated
+.project
+.cproject
+.settings

@@ -1,10 +1,8 @@
-bjoern==3.1.0
-click==7.1.2
-Flask==2.0.1
-itsdangerous==2.0.1
-Jinja2==3.0.1
-MarkupSafe==2.0.1
-protobuf==3.17.3
-requests==2.26.0
+bjoern==3.2.2
+Flask==2.2.2
+Jinja2==3.1.2
+protobuf==3.20.2
+requests==2.28.1
 simplepam==0.1.5
 flask_babel==2.0.0
+ua-parser==0.16.1

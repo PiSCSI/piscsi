@@ -3,10 +3,16 @@ Module for the Flask app rendering and endpoints
 """
 
 import logging
+import logging.config
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePath
 from functools import wraps
-from hashlib import md5
+from grp import getgrall
+
+import bjoern
+from piscsi.return_codes import ReturnCodes
+from simplepam import authenticate
+from flask_babel import Babel, Locale, refresh, _
 
 from flask import (
     Flask,
@@ -15,127 +21,214 @@ from flask import (
     flash,
     url_for,
     redirect,
-    send_file,
     send_from_directory,
     make_response,
     session,
     abort,
+    jsonify,
 )
-from flask_babel import Babel, Locale, refresh, _
 
-from file_cmds import (
-    list_images,
-    list_config_files,
-    create_new_image,
-    download_file_to_iso,
-    delete_image,
-    rename_image,
-    delete_file,
-    rename_file,
-    unzip_file,
-    download_to_dir,
-    write_config,
-    read_config,
-    write_drive_properties,
-    read_drive_properties,
-)
-from pi_cmds import (
-    running_env,
-    running_proc,
-    is_bridge_setup,
-    disk_space,
-    get_ip_address,
-    introspect_file,
-    auth_active,
-)
-from ractl_cmds import (
-    attach_image,
-    list_devices,
-    detach_by_id,
-    eject_by_id,
-    detach_all,
-    get_server_info,
-    get_reserved_ids,
-    get_network_info,
-    get_device_types,
-    reserve_scsi_ids,
-    set_log_level,
-    shutdown_pi,
-    is_token_auth,
-)
-from device_utils import (
-    sort_and_format_devices,
-    get_valid_scsi_ids,
-)
-from settings import (
+from piscsi.piscsi_cmds import PiscsiCmds
+from piscsi.file_cmds import FileCmds
+from piscsi.sys_cmds import SysCmds
+
+from piscsi.common_settings import (
     CFG_DIR,
-    AFP_DIR,
-    MAX_FILE_SIZE,
-    ARCHIVE_FILE_SUFFIX,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
+    ARCHIVE_FILE_SUFFIXES,
+    RESERVATIONS,
+)
+
+from return_code_mapper import ReturnCodeMapper
+from socket_cmds_flask import SocketCmdsFlask
+
+from web_utils import (
+    sort_and_format_devices,
+    get_valid_scsi_ids,
+    map_device_types_and_names,
+    get_device_name,
+    map_image_file_descriptions,
+    format_drive_properties,
+    get_properties_by_drive_name,
+    auth_active,
+    is_bridge_configured,
+    is_safe_path,
+    upload_with_dropzonejs,
+    browser_supports_modern_themes,
+)
+from settings import (
+    WEB_DIR,
+    FILE_SERVER_DIR,
+    MAX_FILE_SIZE,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
-    REMOVABLE_DEVICE_TYPES,
-    RESERVATIONS,
     AUTH_GROUP,
     LANGUAGES,
+    TEMPLATE_THEMES,
+    TEMPLATE_THEME_DEFAULT,
+    TEMPLATE_THEME_LEGACY,
 )
+
 
 APP = Flask(__name__)
 BABEL = Babel(APP)
+
+
+def get_env_info():
+    """
+    Get information about the app/host environment
+    """
+    server_info = piscsi_cmd.get_server_info()
+    ip_addr, host = sys_cmd.get_ip_and_host()
+
+    if "username" in session:
+        username = session["username"]
+    else:
+        username = None
+
+    return {
+        "running_env": sys_cmd.running_env(),
+        "username": username,
+        "auth_active": auth_active(AUTH_GROUP)["status"],
+        "logged_in": username and auth_active(AUTH_GROUP)["status"],
+        "ip_addr": ip_addr,
+        "host": host,
+        "system_name": sys_cmd.get_pretty_host(),
+        "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "locale": get_locale(),
+        "version": server_info["version"],
+        "image_dir": server_info["image_dir"],
+        "netatalk_configured": sys_cmd.running_proc("afpd"),
+        "macproxy_configured": sys_cmd.running_proc("macproxy"),
+        "cd_suffixes": tuple(server_info["sccd"]),
+        "rm_suffixes": tuple(server_info["scrm"]),
+        "mo_suffixes": tuple(server_info["scmo"]),
+    }
+
+
+def response(
+    template=None,
+    message=None,
+    redirect_url=None,
+    error=False,
+    status_code=200,
+    **kwargs,
+):
+    """
+    Generates a HTML or JSON HTTP response
+    """
+    status = "error" if error else "success"
+
+    if isinstance(message, list):
+        messages = message
+    elif message is None:
+        messages = []
+    else:
+        messages = [(str(message), status)]
+
+    if request.headers.get("accept") == "application/json":
+        return (
+            jsonify(
+                {
+                    "status": status,
+                    "messages": [{"message": m, "category": c} for m, c in messages],
+                    "data": kwargs,
+                }
+            ),
+            status_code,
+        )
+
+    if messages:
+        for message, category in messages:
+            flash(message, category)
+
+    if template:
+        if session.get("theme") and session["theme"] in TEMPLATE_THEMES:
+            theme = session["theme"]
+        elif browser_supports_modern_themes():
+            theme = TEMPLATE_THEME_DEFAULT
+        else:
+            theme = TEMPLATE_THEME_LEGACY
+
+        body_classes = [f"page-{PurePath(template).stem.lower()}"]
+
+        env_info = get_env_info()
+        if env_info["auth_active"]:
+            body_classes.append("auth-enabled")
+            if env_info["logged_in"]:
+                body_classes.append("logged-in")
+        else:
+            body_classes.append("auth-disabled")
+
+        kwargs["env"] = env_info
+        kwargs["body_classes"] = body_classes
+        kwargs["current_theme_stylesheet"] = f"themes/{theme}/style.css"
+        kwargs["current_theme"] = theme
+        kwargs["available_themes"] = TEMPLATE_THEMES
+        return render_template(template, **kwargs)
+
+    if redirect_url:
+        return redirect(url_for(redirect_url))
+    return redirect(url_for("index"))
+
 
 @BABEL.localeselector
 def get_locale():
     """
     Uses the session language, or tries to detect based on accept-languages header
     """
-    try:
-        language = session["language"]
-    except KeyError:
-        language = ""
-        logging.warning("The default locale could not be detected. Falling back to English.")
-    if language:
-        return language
-    # Hardcoded fallback to "en" when the user agent does not send an accept-language header
-    language = request.accept_languages.best_match(LANGUAGES) or "en"
-    return language
+    session_locale = session.get("language")
+    if session_locale:
+        return session_locale
+
+    client_locale = request.accept_languages.best_match(LANGUAGES)
+    if client_locale:
+        return client_locale
+
+    logging.info("The default locale could not be detected. Falling back to English.")
+    return "en"
 
 
 def get_supported_locales():
     """
-    Returns a list of Locale objects that the Web Interfaces supports
+    Returns a list of languages supported by the web UI
     """
-    locales = BABEL.list_translations()
-    locales.append(Locale("en"))
-    sorted_locales = sorted(locales, key=lambda x: x.language)
-    return sorted_locales
+    locales = [
+        {"language": x.language, "display_name": x.display_name}
+        for x in [*BABEL.list_translations(), Locale("en")]
+    ]
+
+    return sorted(locales, key=lambda x: x["language"])
 
 
+# pylint: disable=too-many-locals
 @APP.route("/")
 def index():
     """
     Sets up data structures for and renders the index page
     """
-    if not is_token_auth()["status"] and not APP.config["TOKEN"]:
+    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
         abort(
             403,
             _(
-                u"RaSCSI is password protected. "
-                u"Start the Web Interface with the --password parameter."
-                ),
-            )
+                "PiSCSI is password protected. "
+                "Start the Web Interface with the --password parameter."
+            ),
+        )
 
-    locales = get_supported_locales()
-    server_info = get_server_info()
-    disk = disk_space()
-    devices = list_devices()
-    device_types = get_device_types()
-    image_files = list_images()
-    config_files = list_config_files()
+    server_info = piscsi_cmd.get_server_info()
+    devices = piscsi_cmd.list_devices()
+    device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
+    image_files = file_cmd.list_images()
+    config_files = file_cmd.list_config_files()
+    ip_addr, host = sys_cmd.get_ip_and_host()
 
-    sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
-    sorted_config_files = sorted(config_files, key=lambda x: x.lower())
+    extended_image_files = []
+    for image in image_files["files"]:
+        if image["detected_type"] != "UNDEFINED":
+            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
+        extended_image_files.append(image)
 
     attached_images = []
     units = 0
@@ -145,61 +238,64 @@ def index():
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
-    scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
-    valid_file_suffix = "."+", .".join(
-        server_info["sahd"] +
-        server_info["schd"] +
-        server_info["scrm"] +
-        server_info["scmo"] +
-        server_info["sccd"] +
-        [ARCHIVE_FILE_SUFFIX]
+    image_suffixes_to_create = map_image_file_descriptions(
+        # Here we strip out hdi and nhd, since they are proprietary PC-98 emulator formats
+        # that require a particular header to work. We can't generate them on the fly.
+        # We also reverse the resulting list, in order for hds to be the default in the UI.
+        # This might break if something like 'hdt' etc. gets added in the future.
+        sorted(
+            [suffix for suffix in server_info["schd"] if suffix not in {"hdi", "nhd"}],
+            reverse=True,
         )
+        + server_info["scrm"]
+        + server_info["scmo"]
+    )
 
-    if "username" in session:
-        username = session["username"]
-    else:
-        username = None
+    valid_image_suffixes = (
+        server_info["schd"] + server_info["scrm"] + server_info["scmo"] + server_info["sccd"]
+    )
 
-    return render_template(
-        "index.html",
-        locales=locales,
-        bridge_configured=is_bridge_setup(),
-        netatalk_configured=running_proc("afpd"),
-        macproxy_configured=running_proc("macproxy"),
-        ip_addr=get_ip_address(),
+    return response(
+        template="index.html",
+        page_title=_("PiSCSI Control Page"),
+        locales=get_supported_locales(),
+        netinfo=piscsi_cmd.get_network_info(),
+        bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
-        files=sorted_image_files,
-        config_files=sorted_config_files,
-        base_dir=server_info["image_dir"],
-        scan_depth=server_info["scan_depth"],
-        CFG_DIR=CFG_DIR,
-        AFP_DIR=AFP_DIR,
-        scsi_ids=scsi_ids,
-        recommended_id=recommended_id,
         attached_images=attached_images,
-        units=units,
-        reserved_scsi_ids=reserved_scsi_ids,
-        RESERVATIONS=RESERVATIONS,
-        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        running_env=running_env(),
-        version=server_info["version"],
+        files=extended_image_files,
+        config_files=config_files,
+        device_types=device_types,
+        scan_depth=server_info["scan_depth"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
-        netinfo=get_network_info(),
-        device_types=device_types["device_types"],
-        free_disk=int(disk["free"] / 1024 / 1024),
-        valid_file_suffix=valid_file_suffix,
-        cdrom_file_suffix=tuple(server_info["sccd"]),
-        removable_file_suffix=tuple(server_info["scrm"]),
-        mo_file_suffix=tuple(server_info["scmo"]),
-        username=username,
-        auth_active=auth_active()["status"],
-        ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
+        scsi_ids=scsi_ids,
+        units=units,
+        reserved_scsi_ids=reserved_scsi_ids,
+        image_suffixes_to_create=image_suffixes_to_create,
+        valid_image_suffixes=valid_image_suffixes,
+        drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+        RESERVATIONS=RESERVATIONS,
+        CFG_DIR=CFG_DIR,
+        FILE_SERVER_DIR=FILE_SERVER_DIR,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
-        REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
+        ARCHIVE_FILE_SUFFIXES=ARCHIVE_FILE_SUFFIXES,
+        CONFIG_FILE_SUFFIX=CONFIG_FILE_SUFFIX,
+        REMOVABLE_DEVICE_TYPES=piscsi_cmd.get_removable_device_types(),
+        DISK_DEVICE_TYPES=piscsi_cmd.get_disk_device_types(),
+        PERIPHERAL_DEVICE_TYPES=piscsi_cmd.get_peripheral_device_types(),
     )
+
+
+@APP.route("/env")
+def env():
+    """
+    Shows information about the app/host environment
+    """
+    return response(**get_env_info())
 
 
 @APP.route("/drive/list", methods=["GET"])
@@ -207,70 +303,27 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    server_info = get_server_info()
-    disk = disk_space()
 
-    # Reads the canonical drive properties into a dict
-    # The file resides in the current dir of the web ui process
-    drive_properties = Path(DRIVE_PROPERTIES_FILE)
-    if drive_properties.is_file():
-        process = read_drive_properties(str(drive_properties))
-        if not process["status"]:
-            flash(process["msg"], "error")
-            return redirect(url_for("index"))
-        conf = process["conf"]
-    else:
-        flash(
-                _(
-                    "Could not read drive properties from %(properties_file)s",
-                    properties_file=drive_properties,
-                    ),
-                "error",
-                )
-        return redirect(url_for("index"))
+    return response(
+        template="drives.html",
+        page_title=_("PiSCSI Create Drive"),
+        files=file_cmd.list_images()["files"],
+        drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+    )
 
-    hd_conf = []
-    cd_conf = []
-    rm_conf = []
 
-    from werkzeug.utils import secure_filename
-    for device in conf:
-        if device["device_type"] == "SCHD":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
-            hd_conf.append(device)
-        elif device["device_type"] == "SCCD":
-            device["size_mb"] = "N/A"
-            cd_conf.append(device)
-        elif device["device_type"] == "SCRM":
-            device["secure_name"] = secure_filename(device["name"])
-            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
-            rm_conf.append(device)
+@APP.route("/upload", methods=["GET"])
+def upload_page():
+    """
+    Sets up the data structures and kicks off the rendering of the file uploading page
+    """
 
-    files = list_images()
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
-    hd_conf = sorted(hd_conf, key=lambda x: x["name"].lower())
-    cd_conf = sorted(cd_conf, key=lambda x: x["name"].lower())
-    rm_conf = sorted(rm_conf, key=lambda x: x["name"].lower())
-
-    if "username" in session:
-        username = session["username"]
-    else:
-        username = None
-
-    return render_template(
-        "drives.html",
-        files=sorted_image_files,
-        base_dir=server_info["image_dir"],
-        hd_conf=hd_conf,
-        cd_conf=cd_conf,
-        rm_conf=rm_conf,
-        running_env=running_env(),
-        version=server_info["version"],
-        free_disk=int(disk["free"] / 1024 / 1024),
-        cdrom_file_suffix=tuple(server_info["sccd"]),
-        username=username,
-        auth_active=auth_active()["status"],
+    return response(
+        template="upload.html",
+        page_title=_("PiSCSI File Upload"),
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        CFG_DIR=CFG_DIR,
+        FILE_SERVER_DIR=FILE_SERVER_DIR,
     )
 
 
@@ -281,23 +334,20 @@ def login():
     """
     username = request.form["username"]
     password = request.form["password"]
-
-    from simplepam import authenticate
-    from grp import getgrall
-
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
-    if AUTH_GROUP in groups:
-        if authenticate(str(username), str(password)):
-            session["username"] = request.form["username"]
-            return redirect(url_for("index"))
-    flash(
-            _(
-                u"You must log in with credentials for a user in the '%(group)s' group",
-                group=AUTH_GROUP,
-                ),
-            "error",
-            )
-    return redirect(url_for("index"))
+
+    if AUTH_GROUP in groups and authenticate(str(username), str(password)):
+        session["username"] = request.form["username"]
+        return response(env=get_env_info())
+
+    return response(
+        error=True,
+        status_code=401,
+        message=_(
+            "You must log in with valid credentials for a user in the '%(group)s' group",
+            group=AUTH_GROUP,
+        ),
+    )
 
 
 @APP.route("/logout")
@@ -306,28 +356,29 @@ def logout():
     Removes the logged in user from the session
     """
     session.pop("username", None)
-    return redirect(url_for("index"))
+    return response()
 
 
-@APP.route("/pwa/<path:path>")
-def send_pwa_files(path):
+@APP.route("/pwa/<path:pwa_path>")
+def send_pwa_files(pwa_path):
     """
     Sets up mobile web resources
     """
-    return send_from_directory("pwa", path)
+    return send_from_directory("pwa", pwa_path)
 
 
 def login_required(func):
     """
     Wrapper method for enabling authentication for an endpoint
     """
+
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        auth = auth_active()
+        auth = auth_active(AUTH_GROUP)
         if auth["status"] and "username" not in session:
-            flash(auth["msg"], "error")
-            return redirect(url_for("index"))
+            return response(error=True, message=auth["msg"])
         return func(*args, **kwargs)
+
     return decorated_function
 
 
@@ -337,38 +388,41 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
-    size = request.form.get("size")
-    file_type = request.form.get("file_type")
-    file_name = request.form.get("file_name")
-    full_file_name = file_name + "." + file_type
+    drive_name = request.form.get("drive_name")
+    file_name = Path(request.form.get("file_name"))
+
+    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
+
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
 
     # Creating the image file
-    process = create_new_image(file_name, file_type, size)
-    if process["status"]:
-        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
-    else:
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_empty_image(
+        Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
+        properties["size"],
+    )
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
     # Creating the drive properties file
-    prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
-    properties = {
-                "vendor": vendor,
-                "product": product,
-                "revision": revision,
-                "block_size": block_size,
-                }
-    process = write_drive_properties(prop_file_name, properties)
-    if process["status"]:
-        flash(process["msg"])
-        return redirect(url_for("index"))
+    full_file_name = f"{file_name}.{properties['file_type']}"
+    prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+    process = file_cmd.write_drive_properties(prop_file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
-    flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    return response(
+        message=_(
+            "Image file with properties created: %(file_name)s",
+            file_name=full_file_name,
+        )
+    )
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
@@ -377,27 +431,25 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
-    file_name = request.form.get("file_name")
+    drive_name = request.form.get("drive_name")
+    file_name = Path(request.form.get("file_name"))
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
-    properties = {
-        "vendor": vendor,
-        "product": product,
-        "revision": revision,
-        "block_size": block_size,
-        }
-    process = write_drive_properties(file_name, properties)
-    if process["status"]:
-        flash(process["msg"])
-        return redirect(url_for("index"))
+    properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
 
-    flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    if not properties:
+        return response(
+            error=True,
+            message=_("No properties data for drive %(drive_name)s", drive_name=drive_name),
+        )
+
+    process = file_cmd.write_drive_properties(file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
+    if process["status"]:
+        return response(message=process["msg"])
+
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/config/save", methods=["POST"])
@@ -406,46 +458,123 @@ def config_save():
     """
     Saves a config file to disk
     """
-    file_name = request.form.get("name") or "default"
-    file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
+    file_name = Path(request.form.get("name") + f".{CONFIG_FILE_SUFFIX}").name
 
-    process = write_config(file_name)
+    process = file_cmd.write_config(file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(process["msg"])
-        return redirect(url_for("index"))
+        return response(message=process["msg"])
 
-    flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
-@APP.route("/config/load", methods=["POST"])
+@APP.route("/config/action", methods=["POST"])
 @login_required
-def config_load():
+def config_action():
     """
-    Loads a config file from disk
+    Carries out on an operation on the config file
     """
-    file_name = request.form.get("name")
+    file_name = Path(request.form.get("name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
 
     if "load" in request.form:
-        process = read_config(file_name)
+        process = file_cmd.read_config(file_name)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            flash(process["msg"])
-            return redirect(url_for("index"))
+            return response(message=process["msg"])
 
-        flash(process['msg'], "error")
-        return redirect(url_for("index"))
+        return response(error=True, message=process["msg"])
+
     if "delete" in request.form:
-        process = delete_file(f"{CFG_DIR}/{file_name}")
+        process = file_cmd.delete_file(Path(CFG_DIR) / file_name)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            flash(process["msg"])
-            return redirect(url_for("index"))
+            return response(message=process["msg"])
 
-        flash(process['msg'], "error")
-        return redirect(url_for("index"))
+        return response(error=True, message=process["msg"])
 
-    # The only reason we would reach here would be a Web UI bug. Will not localize.
-    flash("Got an unhandled request (needs to be either load or delete)", "error")
-    return redirect(url_for("index"))
+    if "send" in request.form:
+        return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
+
+    return response(
+        error=True,
+        message="No known operation in request header. Expected one of: load, delete, send",
+    )
+
+
+@APP.route("/files/diskinfo", methods=["POST"])
+def show_diskinfo():
+    """
+    Displays disk image info
+    """
+    file_name = Path(request.form.get("file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    server_info = piscsi_cmd.get_server_info()
+    returncode, diskinfo = sys_cmd.get_diskinfo(Path(server_info["image_dir"]) / file_name)
+    if returncode == 0:
+        return response(
+            template="diskinfo.html",
+            page_title=_("PiSCSI Image Info"),
+            file_name=str(file_name),
+            diskinfo=diskinfo,
+        )
+
+    return response(
+        error=True,
+        message=_("An error occurred when getting disk info: %(error)s", error=diskinfo),
+    )
+
+
+@APP.route("/sys/manpage", methods=["GET"])
+def show_manpage():
+    """
+    Displays manpage
+    """
+    app_allowlist = ["piscsi", "scsictl", "scsidump", "scsimon"]
+
+    app = request.args.get("app", type=str)
+
+    if app not in app_allowlist:
+        return response(error=True, message=_("%(app)s is not a recognized PiSCSI app", app=app))
+
+    file_path = f"{WEB_DIR}/../../../doc/{app}.1"
+    html_to_strip = [
+        "Content-type",
+        "!DOCTYPE",
+        "<HTML>",
+        "<HEAD>",
+        "<BODY>",
+        "<H1>",
+    ]
+
+    returncode, manpage = sys_cmd.get_manpage(file_path)
+    if returncode == 0:
+        formatted_manpage = ""
+        for line in manpage.splitlines(True):
+            # Make URIs compatible with the Flask webapp
+            if "/?1+" in line:
+                line = line.replace("/?1+", "manpage?app=")
+            # Strip out useless hyperlink
+            elif "man2html" in line:
+                line = line.replace('<A HREF="/">man2html</A>', "man2html")
+            if not any(ele in line for ele in html_to_strip):
+                formatted_manpage += line
+
+        return response(
+            template="manpage.html",
+            page_title=_("PiSCSI Manual"),
+            app=app,
+            manpage=formatted_manpage,
+        )
+
+    return response(
+        error=True,
+        message=_("An error occurred when accessing manual page: %(error)s", error=manpage),
+    )
 
 
 @APP.route("/logs/show", methods=["POST"])
@@ -453,101 +582,105 @@ def show_logs():
     """
     Displays system logs
     """
-    lines = request.form.get("lines") or "200"
-    scope = request.form.get("scope") or "default"
+    lines = request.form.get("lines")
+    scope = request.form.get("scope")
 
-    from subprocess import run
-    if scope != "default":
-        process = run(
-                ["journalctl", "-n", lines, "-u", scope],
-                capture_output=True,
-                check=True,
-                )
-    else:
-        process = run(
-                ["journalctl", "-n", lines],
-                capture_output=True,
-                check=True,
-                )
+    returncode, logs = sys_cmd.get_logs(lines, scope)
+    if returncode == 0:
+        return response(
+            template="logs.html",
+            page_title=_("PiSCSI System Logs"),
+            scope=scope,
+            lines=lines,
+            logs=logs,
+        )
 
-    if process.returncode == 0:
-        headers = {"content-type": "text/plain"}
-        return process.stdout.decode("utf-8"), int(lines), headers
-
-    flash(_(u"An error occurred when fetching logs."))
-    flash(process.stderr.decode("utf-8"), "stderr")
-    return redirect(url_for("index"))
+    return response(
+        error=True,
+        message=_("An error occurred when fetching logs: %(error)s", error=logs),
+    )
 
 
 @APP.route("/logs/level", methods=["POST"])
 @login_required
 def log_level():
     """
-    Sets RaSCSI backend log level
+    Sets PiSCSI backend log level
     """
     level = request.form.get("level") or "info"
 
-    process = set_log_level(level)
+    process = piscsi_cmd.set_log_level(level)
     if process["status"]:
-        flash(_(u"Log level set to %(value)s", value=level))
-        return redirect(url_for("index"))
+        return response(message=_("Log level set to %(value)s", value=level))
 
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
-@APP.route("/daynaport/attach", methods=["POST"])
+@APP.route("/scsi/attach_device", methods=["POST"])
 @login_required
-def daynaport_attach():
+def attach_device():
     """
-    Attaches a DaynaPORT ethernet adapter device
+    Attaches a peripheral device that doesn't take an image file as argument
     """
     scsi_id = request.form.get("scsi_id")
-    interface = request.form.get("if")
-    ip_addr = request.form.get("ip")
-    mask = request.form.get("mask")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
+    drive_name = request.form.get("drive_name")
 
-    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
-    error_msg = _(u"Please follow the instructions at %(url)s", url=error_url)
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
 
-    if interface.startswith("wlan"):
-        if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash(_(u"Configure IPv4 forwarding before using a wireless network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-        if not Path("/etc/iptables/rules.v4").is_file():
-            flash(_(u"Configure NAT before using a wireless network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-    else:
-        if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash(_(u"Configure the network bridge before using a wired network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-        if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash(_(u"Configure the network bridge before using a wired network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
+    # Attempt to fetch the drive properties based on drive name
+    drive_props = None
+    if drive_name:
+        for drive in APP.config["PISCSI_DRIVE_PROPERTIES"]:
+            if drive["name"] == drive_name:
+                drive_props = drive
+                break
 
-    kwargs = {"device_type": "SCDP"}
-    if interface != "":
-        arg = interface
-        if "" not in (ip_addr, mask):
-            arg += (":" + ip_addr + "/" + mask)
-        kwargs["interfaces"] = arg
+    # Collect device parameters into a dictionary
+    PARAM_PREFIX = "param_"
+    params = {}
+    for item in request.form:
+        if item.startswith(PARAM_PREFIX):
+            param = request.form.get(item)
+            if param:
+                params.update({item.replace(PARAM_PREFIX, ""): param})
 
-    process = attach_image(scsi_id, **kwargs)
+    if "interface" in params.keys():
+        bridge_status = is_bridge_configured(params["interface"])
+        if not bridge_status["status"]:
+            return response(error=True, message=bridge_status["msg"])
+
+    kwargs = {
+        "unit": int(unit),
+        "device_type": device_type,
+        "params": params,
+    }
+    if drive_props:
+        kwargs["vendor"] = drive_props["vendor"]
+        kwargs["product"] = drive_props["product"]
+        kwargs["revision"] = drive_props["revision"]
+        kwargs["block_size"] = drive_props["block_size"]
+
+    process = piscsi_cmd.attach_device(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
-        return redirect(url_for("index"))
+        return response(
+            message=_(
+                "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+                device_type=get_device_name(device_type),
+                id_number=scsi_id,
+                unit_number=unit,
+            )
+        )
 
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/attach", methods=["POST"])
 @login_required
-def attach():
+def attach_image():
     """
     Attaches a file image as a device
     """
@@ -557,26 +690,26 @@ def attach():
     unit = request.form.get("unit")
     device_type = request.form.get("type")
 
-    kwargs = {"unit": int(unit), "image": file_name}
+    if not scsi_id:
+        return response(error=True, message=_("No SCSI ID specified"))
+    if not file_name:
+        return response(error=True, message=_("No image file to insert"))
 
-    # The most common block size is 512 bytes
-    expected_block_size = 512
+    kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
-    if device_type != "":
+    if device_type:
         kwargs["device_type"] = device_type
-        if device_type == "SCCD":
-            expected_block_size = 2048
-        elif device_type == "SAHD":
-            expected_block_size = 256
+        device_types = piscsi_cmd.get_device_types()
+        expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(drive_properties).is_file():
-        process = read_drive_properties(drive_properties)
+    drive_properties = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if drive_properties.is_file():
+        process = file_cmd.read_drive_properties(drive_properties)
+        process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
-            flash(process["msg"], "error")
-            return redirect(url_for("index"))
+            return response(error=True, message=process["msg"])
         conf = process["conf"]
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
@@ -584,21 +717,29 @@ def attach():
         kwargs["block_size"] = conf["block_size"]
         expected_block_size = conf["block_size"]
 
-    process = attach_image(scsi_id, **kwargs)
+    process = piscsi_cmd.attach_device(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
-            file_name=file_name, id_number=scsi_id, unit_number=unit))
         if int(file_size) % int(expected_block_size):
-            flash(_(u"The image file size %(file_size)s bytes is not a multiple of "
-                  u"%(block_size)s. RaSCSI will ignore the trailing data. "
-                  u"The image may be corrupted, so proceed with caution.",
-                  file_size=file_size, block_size=expected_block_size), "error")
-        return redirect(url_for("index"))
+            logging.warning(
+                "The image file size %s bytes is not a multiple of %s. "
+                "PiSCSI will ignore the trailing data. "
+                "The image may be corrupted, so proceed with caution.",
+                file_size,
+                expected_block_size,
+            )
+        return response(
+            message=_(
+                "Attached %(file_name)s as %(device_type)s to "
+                "SCSI ID %(id_number)s LUN %(unit_number)s",
+                file_name=file_name,
+                device_type=get_device_name(device_type),
+                id_number=scsi_id,
+                unit_number=unit,
+            )
+        )
 
-    flash(_(u"Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
-        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/detach_all", methods=["POST"])
@@ -607,13 +748,11 @@ def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    process = detach_all()
+    process = piscsi_cmd.detach_all()
     if process["status"]:
-        flash(_(u"Detached all SCSI devices"))
-        return redirect(url_for("index"))
+        return response(message=_("Detached all SCSI devices"))
 
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/detach", methods=["POST"])
@@ -624,16 +763,17 @@ def detach():
     """
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
-    process = detach_by_id(scsi_id, unit)
+    process = piscsi_cmd.detach_by_id(scsi_id, unit)
     if process["status"]:
-        flash(_(u"Detached SCSI ID %(id_number)s LUN %(unit_number)s",
-            id_number=scsi_id, unit_number=unit))
-        return redirect(url_for("index"))
+        return response(
+            message=_(
+                "Detached SCSI ID %(id_number)s LUN %(unit_number)s",
+                id_number=scsi_id,
+                unit_number=unit,
+            )
+        )
 
-    flash(_(u"Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
-        id_number=scsi_id, unit_number=unit), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
 @APP.route("/scsi/eject", methods=["POST"])
@@ -645,52 +785,34 @@ def eject():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
-    process = eject_by_id(scsi_id, unit)
+    process = piscsi_cmd.eject_by_id(scsi_id, unit)
     if process["status"]:
-        flash(_(u"Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
-            id_number=scsi_id, unit_number=unit))
-        return redirect(url_for("index"))
+        return response(
+            message=_(
+                "Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
+                id_number=scsi_id,
+                unit_number=unit,
+            )
+        )
 
-    flash(_(u"Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
-        id_number=scsi_id, unit_number=unit), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
+
 
 @APP.route("/scsi/info", methods=["POST"])
 def device_info():
     """
-    Displays detailed info for a specific device
+    Displays detailed info for all attached devices
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    process = piscsi_cmd.list_devices()
+    if process["status"]:
+        return response(
+            template="deviceinfo.html",
+            page_title=_("PiSCSI Device Info"),
+            devices=process["device_list"],
+        )
 
-    devices = list_devices(scsi_id, unit)
+    return response(error=True, message=_("No devices attached"))
 
-    # First check if any device at all was returned
-    if not devices["status"]:
-        flash(devices["msg"], "error")
-        return redirect(url_for("index"))
-    # Looking at the first dict in list to get
-    # the one and only device that should have been returned
-    device = devices["device_list"][0]
-    if str(device["id"]) == scsi_id:
-        flash(_(u"DEVICE INFO"))
-        flash("===========")
-        flash(_(u"SCSI ID: %(id_number)s", id_number=device["id"]))
-        flash(_(u"LUN: %(unit_number)s", unit_number=device["unit"]))
-        flash(_(u"Type: %(device_type)s", device_type=device["device_type"]))
-        flash(_(u"Status: %(device_status)s", device_status=device["status"]))
-        flash(_(u"File: %(image_file)s", image_file=device["image"]))
-        flash(_(u"Parameters: %(value)s", value=device["params"]))
-        flash(_(u"Vendor: %(value)s", value=device["vendor"]))
-        flash(_(u"Product: %(value)s", value=device["product"]))
-        flash(_(u"Revision: %(revision_number)s", revision_number=device["revision"]))
-        flash(_(u"Block Size: %(value)s bytes", value=device["block_size"]))
-        flash(_(u"Image Size: %(value)s bytes", value=device["size"]))
-        return redirect(url_for("index"))
-
-    flash(devices["msg"], "error")
-    return redirect(url_for("index"))
 
 @APP.route("/scsi/reserve", methods=["POST"])
 @login_required
@@ -700,191 +822,185 @@ def reserve_id():
     """
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
-    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids = piscsi_cmd.get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
-    process = reserve_scsi_ids(reserved_ids)
+    process = piscsi_cmd.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
-        flash(_(u"Reserved SCSI ID %(id_number)s", id_number=scsi_id))
-        return redirect(url_for("index"))
+        return response(message=_("Reserved SCSI ID %(id_number)s", id_number=scsi_id))
 
-    flash(_(u"Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id))
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
-@APP.route("/scsi/unreserve", methods=["POST"])
+
+@APP.route("/scsi/release", methods=["POST"])
 @login_required
-def unreserve_id():
+def release_id():
     """
-    Removes the reservation of a SCSI ID as well as the memo for the reservation
+    Releases the reservation of a SCSI ID as well as the memo for the reservation
     """
     scsi_id = request.form.get("scsi_id")
-    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids = piscsi_cmd.get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
-    process = reserve_scsi_ids(reserved_ids)
+    process = piscsi_cmd.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
-        flash(_(u"Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
-        return redirect(url_for("index"))
+        return response(
+            message=_("Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id)
+        )
 
-    flash(_(u"Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(error=True, message=process["msg"])
 
 
-@APP.route("/pi/reboot", methods=["POST"])
+@APP.route("/sys/rename", methods=["POST"])
+@login_required
+def rename_system():
+    """
+    Changes the hostname of the system
+    """
+    name = str(request.form.get("system_name"))
+    max_length = 120
+
+    if len(name) <= max_length:
+        process = sys_cmd.set_pretty_host(name)
+        if process:
+            if name:
+                return response(message=_("System name changed to '%(name)s'.", name=name))
+            return response(message=_("System name reset to default."))
+
+    return response(error=True, message=_("Failed to change system name."))
+
+
+@APP.route("/sys/reboot", methods=["POST"])
 @login_required
 def restart():
     """
-    Restarts the Pi
+    Restarts the system
     """
-    shutdown_pi("reboot")
-    return redirect(url_for("index"))
+    returncode, message = sys_cmd.reboot_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
-@APP.route("/pi/shutdown", methods=["POST"])
+@APP.route("/sys/shutdown", methods=["POST"])
 @login_required
 def shutdown():
     """
-    Shuts down the Pi
+    Shuts down the system
     """
-    shutdown_pi("system")
-    return redirect(url_for("index"))
+    returncode, message = sys_cmd.shutdown_system()
+    if not returncode:
+        return response()
+
+    return response(error=True, message=message)
 
 
-@APP.route("/files/download_to_iso", methods=["POST"])
+@APP.route("/files/create_iso", methods=["POST"])
 @login_required
 def download_to_iso():
     """
-    Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
+    Downloads a file and creates a CD-ROM image with the specified file system and the file
     """
-    scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
-    iso_args = request.form.get("type").split()
+    iso_type = request.form.get("type")
+    local_file = request.form.get("file")
 
-    process = download_file_to_iso(url, *iso_args)
-    if process["status"]:
-        flash(process["msg"])
-        flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
+    if iso_type == "HFS":
+        iso_args = ["-hfs"]
+    elif iso_type == "ISO-9660 Level 1":
+        iso_args = ["-iso-level", "1"]
+    elif iso_type == "ISO-9660 Level 2":
+        iso_args = ["-iso-level", "2"]
+    elif iso_type == "ISO-9660 Level 3":
+        iso_args = ["-iso-level", "3"]
+    elif iso_type == "Joliet":
+        iso_args = ["-J"]
+    elif iso_type == "Rock Ridge":
+        iso_args = ["-r"]
     else:
-        flash(_(u"Failed to create CD-ROM image from %(url)s", url=url), "error")
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
+        return response(
+            error=True,
+            message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type),
+        )
 
-    process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
-    if process_attach["status"]:
-        flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
-        return redirect(url_for("index"))
+    if url:
+        process = file_cmd.download_file_to_iso(url, *iso_args)
+    elif local_file:
+        server_info = piscsi_cmd.get_server_info()
+        file_path = Path(server_info["image_dir"]) / local_file
+        iso_path = Path(str(file_path) + ".iso")
+        process = file_cmd.generate_iso(iso_path, file_path, *iso_args)
 
-    flash(_(u"Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.",
-        id_number=scsi_id), "error")
-    flash(process_attach["msg"], "error")
-    return redirect(url_for("index"))
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(
+            error=True,
+            message=_(
+                "The following error occurred when creating the CD-ROM image: %(error)s",
+                error=process["msg"],
+            ),
+        )
+
+    return response(
+        message=_(
+            "CD-ROM image %(file_name)s with type %(iso_type)s was created.",
+            file_name=process["file_name"],
+            iso_type=iso_type,
+        ),
+    )
 
 
-@APP.route("/files/download_to_images", methods=["POST"])
+@APP.route("/files/download_url", methods=["POST"])
 @login_required
-def download_img():
+def download_file():
     """
-    Downloads a remote file onto the images dir on the Pi
+    Downloads a remote file onto the images dir on the system
     """
+    destination = request.form.get("destination")
     url = request.form.get("url")
-    server_info = get_server_info()
-    process = download_to_dir(url, server_info["image_dir"], Path(url).name)
+    if destination == "shared_files":
+        destination_dir = FILE_SERVER_DIR
+    else:
+        server_info = piscsi_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(process["msg"])
-        return redirect(url_for("index"))
+        return response(message=process["msg"])
 
-    flash(_(u"Failed to download file from %(url)s", url=url), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
-
-
-@APP.route("/files/download_to_afp", methods=["POST"])
-@login_required
-def download_afp():
-    """
-    Downloads a remote file onto the AFP shared dir on the Pi
-    """
-    url = request.form.get("url")
-    file_name = Path(url).name
-    # Shorten file names longer than 31 chars, the HFS upper limit
-    # Append a hash of the removed piece of the file name to make it unique
-    # The format of the hash is a # followed by the first four symbols of the md4 hash
-    if len(file_name) > 31:
-        chars_to_cut = len(file_name) - 31
-        file_name_stem = Path(file_name).stem
-        file_name_suffix = Path(file_name).suffix
-        discarded_portion = file_name_stem[:-abs(chars_to_cut)]
-        stem_remainder = file_name_stem[:(26 - len(file_name_suffix))]
-        appendix_hash = (md5(discarded_portion.encode("utf-8"))).hexdigest().upper()
-        file_name = stem_remainder + "#" + appendix_hash[:4] + file_name_suffix
-    process = download_to_dir(url, AFP_DIR, file_name)
-    if process["status"]:
-        flash(process["msg"])
-        return redirect(url_for("index"))
-
-    flash(_(u"Failed to download file from %(url)s", url=url), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return response(
+        error=True,
+        message=_(
+            "The following error occurred when downloading: %(error)s",
+            error=process["msg"],
+        ),
+    )
 
 
 @APP.route("/files/upload", methods=["POST"])
 def upload_file():
     """
-    Uploads a file from the local computer to the images dir on the Pi
+    Uploads a file from the local computer to the images dir on the system
     Depending on the Dropzone.js JavaScript library
     """
     # Due to the embedded javascript library, we cannot use the @login_required decorator
-    auth = auth_active()
+    auth = auth_active(AUTH_GROUP)
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
 
-    from werkzeug.utils import secure_filename
-    from os import path
+    destination = request.form.get("destination")
+    if destination == "disk_images":
+        server_info = piscsi_cmd.get_server_info()
+        destination_dir = server_info["image_dir"]
+    elif destination == "shared_files":
+        destination_dir = FILE_SERVER_DIR
+    elif destination == "piscsi_config":
+        destination_dir = CFG_DIR
+    else:
+        return make_response("Invalid destination", 403)
 
-    log = logging.getLogger("pydrop")
-    file_object = request.files["file"]
-    file_name = secure_filename(file_object.filename)
-
-    server_info = get_server_info()
-
-    save_path = path.join(server_info["image_dir"], file_name)
-    current_chunk = int(request.form['dzchunkindex'])
-
-    # Makes sure not to overwrite an existing file,
-    # but continues writing to a file transfer in progress
-    if path.exists(save_path) and current_chunk == 0:
-        return make_response(_(u"The file already exists!"), 400)
-
-    try:
-        with open(save_path, "ab") as save:
-            save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file_object.stream.read())
-    except OSError:
-        log.exception("Could not write to file")
-        return make_response(_(u"Unable to write the file to disk!"), 500)
-
-    total_chunks = int(request.form["dztotalchunkcount"])
-
-    if current_chunk + 1 == total_chunks:
-        # Validate the resulting file size after writing the last chunk
-        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error(
-                    "Finished transferring %s, "
-                    "but it has a size mismatch with the original file. "
-                    "Got %s but we expected %s.",
-                    file_object.filename,
-                    path.getsize(save_path),
-                    request.form['dztotalfilesize'],
-                    )
-            return make_response(_(u"Transferred file corrupted!"), 500)
-
-        log.info("File %s has been uploaded successfully", file_object.filename)
-    log.debug("Chunk %s of %s for file %s completed.",
-              current_chunk + 1, total_chunks, file_object.filename)
-
-    return make_response(_(u"File upload successful!"), 200)
+    return upload_with_dropzonejs(destination_dir)
 
 
 @APP.route("/files/create", methods=["POST"])
@@ -893,28 +1009,141 @@ def create_file():
     """
     Creates an empty image file in the images dir
     """
-    file_name = request.form.get("file_name")
-    size = (int(request.form.get("size")) * 1024 * 1024)
+    file_name = Path(request.form.get("file_name"))
+    size = int(request.form.get("size")) * 1024 * 1024
     file_type = request.form.get("type")
-    full_file_name = file_name + "." + file_type
+    drive_name = request.form.get("drive_name")
+    drive_format = request.form.get("drive_format")
 
-    process = create_new_image(file_name, file_type, size)
-    if process["status"]:
-        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
-        return redirect(url_for("index"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    full_file_name = f"{file_name}.{file_type}"
 
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_empty_image(Path(server_info["image_dir"]) / full_file_name, size)
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
+
+    message_postfix = ""
+
+    # Formatting and injecting driver, if one is chosen
+    if drive_format:
+        volume_name = f"HD {size / 1024 / 1024:0.0f}M"
+        known_formats = [
+            "Lido 7.56",
+            "SpeedTools 3.6",
+            "FAT16",
+            "FAT32",
+        ]
+        message_postfix = f" ({drive_format})"
+
+        if drive_format not in known_formats:
+            return response(
+                error=True,
+                message=_(
+                    "%(drive_format)s is not a valid hard disk format.",
+                    drive_format=drive_format,
+                ),
+            )
+        elif drive_format.startswith("FAT"):
+            if drive_format == "FAT16":
+                fat_size = "16"
+            elif drive_format == "FAT32":
+                fat_size = "32"
+            else:
+                return response(
+                    error=True,
+                    message=_(
+                        "%(drive_format)s is not a valid hard disk format.",
+                        drive_format=drive_format,
+                    ),
+                )
+
+            process = file_cmd.partition_disk(full_file_name, volume_name, "FAT")
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            process = file_cmd.format_fat(
+                full_file_name,
+                # FAT volume labels are max 11 chars
+                volume_name[:11],
+                fat_size,
+            )
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+        else:
+            driver_base_path = Path(f"{WEB_DIR}/../../../mac-hard-disk-drivers")
+            process = file_cmd.partition_disk(full_file_name, volume_name, "HFS")
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            process = file_cmd.format_hfs(
+                full_file_name,
+                volume_name,
+                driver_base_path / Path(drive_format.replace(" ", "-") + ".img"),
+            )
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+    # Creating the drive properties file, if one is chosen
+    if drive_name:
+        properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
+        if properties:
+            prop_file_name = f"{full_file_name}.{PROPERTIES_SUFFIX}"
+            process = file_cmd.write_drive_properties(prop_file_name, properties)
+            process = ReturnCodeMapper.add_msg(process)
+            if not process["status"]:
+                return response(error=True, message=process["msg"])
+
+            return response(
+                status_code=201,
+                message=_(
+                    "Image file with properties created: %(file_name)s%(drive_format)s",
+                    file_name=full_file_name,
+                    drive_format=message_postfix,
+                ),
+                image=full_file_name,
+            )
+
+    return response(
+        status_code=201,
+        message=_(
+            "Image file created: %(file_name)s%(drive_format)s",
+            file_name=full_file_name,
+            drive_format=message_postfix,
+        ),
+        image=full_file_name,
+    )
 
 
-@APP.route("/files/download", methods=["POST"])
+@APP.route("/files/download_image", methods=["POST"])
 @login_required
-def download():
+def download_image():
     """
-    Downloads a file from the Pi to the local computer
+    Downloads a file from the image dir to the local computer
     """
-    image = request.form.get("file")
-    return send_file(image, as_attachment=True)
+    file_name = Path(request.form.get("file"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    server_info = piscsi_cmd.get_server_info()
+    return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
+
+
+@APP.route("/files/download_config", methods=["POST"])
+@login_required
+def download_config():
+    """
+    Downloads a file from the config dir to the local computer
+    """
+    file_name = Path(request.form.get("file"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -923,27 +1152,37 @@ def delete():
     """
     Deletes a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-
-    process = delete_image(file_name)
-    if process["status"]:
-        flash(_(u"Image file deleted: %(file_name)s", file_name=file_name))
-    else:
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
+    file_name = Path(request.form.get("file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.delete_file(Path(server_info["image_dir"]) / file_name)
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
-        process = delete_file(prop_file_path)
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.delete_file(prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            flash(process["msg"])
-            return redirect(url_for("index"))
+            return response(
+                message=_(
+                    "Image file with properties deleted: %(file_name)s",
+                    file_name=str(file_name),
+                ),
+            )
+        else:
+            return response(error=True, message=process["msg"])
 
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
-
-    return redirect(url_for("index"))
+    return response(
+        message=_(
+            "Image file deleted: %(file_name)s",
+            file_name=str(file_name),
+        ),
+    )
 
 
 @APP.route("/files/rename", methods=["POST"])
@@ -952,60 +1191,127 @@ def rename():
     """
     Renames a specified file in the images dir
     """
-    file_name = request.form.get("file_name")
-    new_file_name = request.form.get("new_file_name")
-
-    process = rename_image(file_name, new_file_name)
-    if process["status"]:
-        flash(_(u"Image file renamed to: %(file_name)s", file_name=new_file_name))
-    else:
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("new_file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.rename_file(
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
     # Rename the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
-    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
-    if Path(prop_file_path).is_file():
-        process = rename_file(prop_file_path, new_prop_file_path)
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.rename_file(prop_file_path, new_prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
-            flash(process["msg"])
-            return redirect(url_for("index"))
+            return response(
+                message=_(
+                    "Image file with properties renamed to: %(file_name)s",
+                    file_name=str(new_file_name),
+                ),
+            )
+        else:
+            return response(error=True, message=process["msg"])
 
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
+    return response(
+        message=_(
+            "Image file renamed to: %(file_name)s",
+            file_name=str(new_file_name),
+        ),
+    )
 
-    return redirect(url_for("index"))
 
-
-@APP.route("/files/unzip", methods=["POST"])
+@APP.route("/files/copy", methods=["POST"])
 @login_required
-def unzip():
+def copy():
     """
-    Unzips all files in a specified zip archive, or a single file in the zip archive
+    Creates a copy of a specified file in the images dir
     """
-    zip_file = request.form.get("zip_file")
-    zip_member = request.form.get("zip_member") or False
-    zip_members = request.form.get("zip_members") or False
+    file_name = Path(request.form.get("file_name"))
+    new_file_name = Path(request.form.get("copy_file_name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    safe_path = is_safe_path(new_file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.copy_file(
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
+    process = ReturnCodeMapper.add_msg(process)
+    if not process["status"]:
+        return response(error=True, message=process["msg"])
 
-    from ast import literal_eval
-    if zip_members:
-        zip_members = literal_eval(zip_members)
+    # Create a copy of the drive properties file, if it exists
+    prop_file_path = Path(CFG_DIR) / f"{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = Path(CFG_DIR) / f"{new_file_name}.{PROPERTIES_SUFFIX}"
+    if prop_file_path.is_file():
+        process = file_cmd.copy_file(prop_file_path, new_prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
+        if process["status"]:
+            return response(
+                message=_(
+                    "Copy of image file with properties saved as: %(file_name)s",
+                    file_name=str(new_file_name),
+                ),
+            )
+        else:
+            return response(error=True, message=process["msg"])
 
-    process = unzip_file(zip_file, zip_member, zip_members)
-    if process["status"]:
-        if not process["msg"]:
-            flash(_(u"Aborted unzip: File(s) with the same name already exists."), "error")
-            return redirect(url_for("index"))
-        flash(_(u"Unzipped the following files:"))
-        for msg in process["msg"]:
-            flash(msg)
-        if process["prop_flag"]:
-            flash(_(u"Properties file(s) have been moved to %(directory)s", directory=CFG_DIR))
-        return redirect(url_for("index"))
+    return response(
+        message=_(
+            "Copy of image file saved as: %(file_name)s",
+            file_name=str(new_file_name),
+        ),
+    )
 
-    flash(_(u"Failed to unzip %(zip_file)s", zip_file=zip_file), "error")
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
+
+@APP.route("/files/extract_image", methods=["POST"])
+@login_required
+def extract_image():
+    """
+    Extracts all or a subset of files in the specified archive
+    """
+    archive_file = Path(request.form.get("archive_file"))
+    archive_members_raw = request.form.get("archive_members") or None
+    archive_members = archive_members_raw.split("|") if archive_members_raw else None
+    safe_path = is_safe_path(archive_file)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    extract_result = file_cmd.extract_image(str(archive_file), archive_members)
+
+    if extract_result["return_code"] == ReturnCodes.EXTRACTIMAGE_SUCCESS:
+
+        for properties_file in extract_result["properties_files_moved"]:
+            if properties_file["status"]:
+                logging.info(
+                    "Properties file %s moved to %s",
+                    properties_file["name"],
+                    CFG_DIR,
+                )
+            else:
+                logging.warning(
+                    "Failed to move properties file %s to %s",
+                    properties_file["name"],
+                    CFG_DIR,
+                )
+
+        return response(message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
+
+    return response(error=True, message=ReturnCodeMapper.add_msg(extract_result).get("msg"))
 
 
 @APP.route("/language", methods=["POST"])
@@ -1015,47 +1321,160 @@ def change_language():
     """
     locale = request.form.get("locale")
     session["language"] = locale
+    piscsi_cmd.locale = session["language"]
+    file_cmd.locale = session["language"]
     refresh()
 
-    flash(_(u"Changed Web Interface language to %(locale)s", locale=locale))
-    return redirect(url_for("index"))
+    language = Locale.parse(locale)
+    language_name = language.get_language_name(locale)
+    return response(message=_("Changed Web Interface language to %(locale)s", locale=language_name))
+
+
+@APP.route("/theme", methods=["GET", "POST"])
+def change_theme():
+    if request.method == "GET":
+        theme = request.args.get("name")
+    else:
+        theme = request.form.get("name")
+
+    if theme not in TEMPLATE_THEMES:
+        return response(error=True, message=_("The requested theme does not exist."))
+
+    session["theme"] = theme
+    return response(message=_("Theme changed to '%(theme)s'.", theme=theme))
+
+
+@APP.route("/healthcheck", methods=["GET"])
+def healthcheck():
+    return "", 200
 
 
 @APP.before_first_request
-def load_default_config():
+def detect_locale():
     """
-    Webapp initialization steps that require the Flask app to have started:
-    - Get the detected locale to use for localizations
-    - Load the default configuration file, if found
+    Get the detected locale to use for UI string translations.
+    This requires the Flask app to have started first.
     """
     session["language"] = get_locale()
-    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        read_config(DEFAULT_CONFIG)
+    piscsi_cmd.locale = session["language"]
+    file_cmd.locale = session["language"]
+
+
+@APP.before_request
+def log_http_request():
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+        message = f"HTTP request: {request.method} {request.path}"
+
+        if request.method == "POST":
+            if request.path == "/login":
+                message += " (<hidden>)"
+            elif len(request.get_data()) > 100:
+                message += f" (payload: {request.get_data()[:100]} <truncated>)"
+            else:
+                message += f" (payload: {request.get_data()})"
+
+        logging.debug(message)
 
 
 if __name__ == "__main__":
-    APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
+    APP.secret_key = "piscsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    parser = argparse.ArgumentParser(description="RaSCSI Web Interface command line arguments")
+    parser = argparse.ArgumentParser(description="PiSCSI Web Interface command line arguments")
     parser.add_argument(
         "--port",
         type=int,
         default=8080,
         action="store",
         help="Port number the web server will run on",
-        )
+    )
     parser.add_argument(
         "--password",
         type=str,
         default="",
         action="store",
-        help="Token password string for authenticating with RaSCSI",
-        )
-    arguments = parser.parse_args()
-    APP.config["TOKEN"] = arguments.password
+        help="Token password string for authenticating with PiSCSI",
+    )
+    parser.add_argument(
+        "--backend-host",
+        type=str,
+        default="localhost",
+        action="store",
+        help="PiSCSI backend hostname. Default: localhost",
+    )
+    parser.add_argument(
+        "--backend-port",
+        type=int,
+        default=6868,
+        action="store",
+        help="PiSCSI backend port number. Default: 6868",
+    )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="warning",
+        action="store",
+        help="Log level for Web UI. Default: warning",
+        choices=["debug", "info", "warning", "error", "critical"],
+    )
+    parser.add_argument(
+        "--dev-mode",
+        action="store_true",
+        help="Run in development mode",
+    )
 
-    import bjoern
-    print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", arguments.port)
+    arguments = parser.parse_args()
+    APP.config["PISCSI_TOKEN"] = arguments.password
+
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "[%(asctime)s] [%(levelname)s] %(filename)s:%(lineno)s %(message)s",
+                }
+            },
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                }
+            },
+            "root": {
+                "level": arguments.log_level.upper(),
+                "handlers": ["wsgi"],
+            },
+        }
+    )
+
+    sock_cmd = SocketCmdsFlask(host=arguments.backend_host, port=arguments.backend_port)
+    piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
+    file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
+    sys_cmd = SysCmds()
+
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
+        file_cmd.read_config(DEFAULT_CONFIG)
+    if Path(f"{DRIVE_PROPERTIES_FILE}").is_file():
+        process = file_cmd.read_drive_properties(DRIVE_PROPERTIES_FILE)
+        if process["status"]:
+            APP.config["PISCSI_DRIVE_PROPERTIES"] = process["conf"]
+        else:
+            APP.config["PISCSI_DRIVE_PROPERTIES"] = []
+            logging.error(process["msg"])
+    else:
+        APP.config["PISCSI_DRIVE_PROPERTIES"] = []
+        logging.warning("Could not read drive properties from %s", DRIVE_PROPERTIES_FILE)
+
+    logging.info("Starting WSGI server...")
+    if arguments.dev_mode:
+        logging.info("Dev mode enabled")
+        APP.debug = True
+        from werkzeug.debug import DebuggedApplication
+
+        try:
+            bjoern.run(DebuggedApplication(APP, evalex=False), "0.0.0.0", arguments.port)
+        except KeyboardInterrupt:
+            pass
+    else:
+        bjoern.run(APP, "0.0.0.0", arguments.port)

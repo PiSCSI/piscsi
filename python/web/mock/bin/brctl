@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Mock responses to rascsi-web
+# Mock responses to piscsi-web
 case $1 in
   "show")
-    echo "rascsi_bridge		8000.dca632b05dd1	no		eth0"
+    echo "piscsi_bridge		8000.dca632b05dd1	no		eth0"
     ;;
 
   **)

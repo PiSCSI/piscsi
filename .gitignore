@@ -1,15 +1,39 @@
 venv
 *.pyc
+*.swp
+*.log
+*~
 core
 .idea/
+.vscode
 .DS_Store
-*.swp
 __pycache__
-python/web/current
-python/web/src/rascsi_interface_pb2.py
-python/oled/current
-python/oled/src/rascsi_interface_pb2.py
-src/raspberrypi/hfdisk/
-*~
+current
+rascsi_interface_pb2.py
+piscsi_interface_pb2.py
 messages.pot
 messages.mo
+report.xml
+node_modules
+
+# Intermediate files from astyle
+*.orig
+
+docker/docker-compose.override.yml
+/docker/volumes/images/*
+!/docker/volumes/images/.gitkeep
+/docker/volumes/config/*
+!/docker/volumes/config/.gitkeep
+
+# temporary user files
+s.sh
+
+# temporary kicad files
+*-backups
+
+# VSCode temp file
+settings.json
+
+# submodules
+hfdisk*
+mac-hard-disk-drivers

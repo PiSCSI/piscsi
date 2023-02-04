@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+addopts = "--junitxml=tests/output/report.xml --log-file=tests/output/pytest.log"
+log_cli = true
+log_cli_level = "warn"

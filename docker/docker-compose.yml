@@ -1,0 +1,57 @@
+services:
+  backend:
+    container_name: piscsi_backend
+    image: piscsi-backend
+    pull_policy: never
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    volumes:
+      - ./volumes/images:/home/pi/images:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-6868}:6868"
+    environment:
+     - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
+    init: true
+    command: [
+      "-L",
+      "${BACKEND_LOG_LEVEL:-trace}",
+    ]
+
+  web:
+    container_name: piscsi_web
+    image: piscsi-web:${OS_VERSION:-buster}
+    pull_policy: never
+    build:
+      context: ..
+      dockerfile: docker/web/Dockerfile
+      args:
+        - OS_VERSION=${OS_VERSION:-buster}
+    volumes:
+      - ./volumes/images:/home/pi/images:delegated
+      - ./volumes/config:/home/pi/.config/piscsi:delegated
+    ports:
+      - "127.0.0.1:${WEB_HTTP_PORT:-8080}:80"
+      - "127.0.0.1:${WEB_HTTPS_PORT:-8443}:443"
+    environment:
+     - BACKEND_PASSWORD=${BACKEND_PASSWORD:-}
+    init: true
+    command: [
+      "--backend-host=${BACKEND_HOST:-backend}",
+      "--backend-port=${BACKEND_PORT:-6868}",
+      "--log-level=${WEB_LOG_LEVEL:-debug}",
+      "--dev-mode"
+    ]
+
+  pytest:
+    container_name: piscsi_pytest
+    image: piscsi-pytest
+    pull_policy: never
+    profiles:
+      - webui-tests
+    build:
+      context: ..
+      dockerfile: docker/pytest/Dockerfile
+    working_dir: /src
+    command: ["-vv"]
