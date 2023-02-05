@@ -55,88 +55,87 @@ void GPIOBUS_Virtual::Cleanup()
 
 void GPIOBUS_Virtual::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
-    return;
-#else
-    int i;
-    int j;
+   return;
+// #else
+//     int i;
+//     int j;
 
-    // Turn off active signal
-    SetControl(PIN_ACT, ACT_OFF);
+//     // Turn off active signal
+//     SetControl(PIN_ACT, ACT_OFF);
 
-    // Set all signals to off
-    for (i = 0;; i++) {
-        j = SignalTable[i];
-        if (j < 0) {
-            break;
-        }
+//     // Set all signals to off
+//     for (i = 0;; i++) {
+//         j = SignalTable[i];
+//         if (j < 0) {
+//             break;
+//         }
 
-        SetSignal(j, OFF);
-    }
+//         SetSignal(j, OFF);
+//     }
 
-    if (actmode == mode_e::TARGET) {
-        // Target mode
+//     if (actmode == mode_e::TARGET) {
+//         // Target mode
 
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
+//         // Set target signal to input
+//         SetControl(PIN_TAD, TAD_IN);
+//         SetMode(PIN_BSY, IN);
+//         SetMode(PIN_MSG, IN);
+//         SetMode(PIN_CD, IN);
+//         SetMode(PIN_REQ, IN);
+//         SetMode(PIN_IO, IN);
 
-        // Set the initiator signal to input
-        SetControl(PIN_IND, IND_IN);
-        SetMode(PIN_SEL, IN);
-        SetMode(PIN_ATN, IN);
-        SetMode(PIN_ACK, IN);
-        SetMode(PIN_RST, IN);
+//         // Set the initiator signal to input
+//         SetControl(PIN_IND, IND_IN);
+//         SetMode(PIN_SEL, IN);
+//         SetMode(PIN_ATN, IN);
+//         SetMode(PIN_ACK, IN);
+//         SetMode(PIN_RST, IN);
 
-        // Set data bus signals to input
-        SetControl(PIN_DTD, DTD_IN);
-        SetMode(PIN_DT0, IN);
-        SetMode(PIN_DT1, IN);
-        SetMode(PIN_DT2, IN);
-        SetMode(PIN_DT3, IN);
-        SetMode(PIN_DT4, IN);
-        SetMode(PIN_DT5, IN);
-        SetMode(PIN_DT6, IN);
-        SetMode(PIN_DT7, IN);
-        SetMode(PIN_DP, IN);
-    } else {
-        // Initiator mode
+//         // Set data bus signals to input
+//         SetControl(PIN_DTD, DTD_IN);
+//         SetMode(PIN_DT0, IN);
+//         SetMode(PIN_DT1, IN);
+//         SetMode(PIN_DT2, IN);
+//         SetMode(PIN_DT3, IN);
+//         SetMode(PIN_DT4, IN);
+//         SetMode(PIN_DT5, IN);
+//         SetMode(PIN_DT6, IN);
+//         SetMode(PIN_DT7, IN);
+//         SetMode(PIN_DP, IN);
+//     } else {
+//         // Initiator mode
 
-        // Set target signal to input
-        SetControl(PIN_TAD, TAD_IN);
-        SetMode(PIN_BSY, IN);
-        SetMode(PIN_MSG, IN);
-        SetMode(PIN_CD, IN);
-        SetMode(PIN_REQ, IN);
-        SetMode(PIN_IO, IN);
+//         // Set target signal to input
+//         SetControl(PIN_TAD, TAD_IN);
+//         SetMode(PIN_BSY, IN);
+//         SetMode(PIN_MSG, IN);
+//         SetMode(PIN_CD, IN);
+//         SetMode(PIN_REQ, IN);
+//         SetMode(PIN_IO, IN);
 
-        // Set the initiator signal to output
-        SetControl(PIN_IND, IND_OUT);
-        SetMode(PIN_SEL, OUT);
-        SetMode(PIN_ATN, OUT);
-        SetMode(PIN_ACK, OUT);
-        SetMode(PIN_RST, OUT);
+//         // Set the initiator signal to output
+//         SetControl(PIN_IND, IND_OUT);
+//         SetMode(PIN_SEL, OUT);
+//         SetMode(PIN_ATN, OUT);
+//         SetMode(PIN_ACK, OUT);
+//         SetMode(PIN_RST, OUT);
 
-        // Set the data bus signals to output
-        SetControl(PIN_DTD, DTD_OUT);
-        SetMode(PIN_DT0, OUT);
-        SetMode(PIN_DT1, OUT);
-        SetMode(PIN_DT2, OUT);
-        SetMode(PIN_DT3, OUT);
-        SetMode(PIN_DT4, OUT);
-        SetMode(PIN_DT5, OUT);
-        SetMode(PIN_DT6, OUT);
-        SetMode(PIN_DT7, OUT);
-        SetMode(PIN_DP, OUT);
-    }
+//         // Set the data bus signals to output
+//         SetControl(PIN_DTD, DTD_OUT);
+//         SetMode(PIN_DT0, OUT);
+//         SetMode(PIN_DT1, OUT);
+//         SetMode(PIN_DT2, OUT);
+//         SetMode(PIN_DT3, OUT);
+//         SetMode(PIN_DT4, OUT);
+//         SetMode(PIN_DT5, OUT);
+//         SetMode(PIN_DT6, OUT);
+//         SetMode(PIN_DT7, OUT);
+//         SetMode(PIN_DP, OUT);
+//     }
 
-    // Initialize all signals
-    signals = 0;
-#endif // ifdef __x86_64__ || __X86__
+//     // Initialize all signals
+//     signals = 0;
+// #endif // ifdef __x86_64__ || __X86__
 }
 
 void GPIOBUS_Virtual::SetENB(bool ast)
