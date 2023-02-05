@@ -2,10 +2,16 @@
 set -e
 
 cd "$(dirname "$0")"
-# Check for the existence of a python venv in the current dir
+
+# Create the venv if it doesn't exist
 if ! test -e venv; then
-    echo "No python venv detected. Please run start.sh first."
-    exit 1
+    echo "Creating python venv for PiSCSI-Web"
+    python3 -m venv venv
+    echo "Activating venv"
+    source venv/bin/activate
+    echo "Installing requirements.txt"
+    pip3 install wheel
+    pip3 install -r requirements.txt
 fi
 
 source venv/bin/activate
