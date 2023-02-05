@@ -68,7 +68,7 @@ bool ScsiDump::Banner(const vector<char*>& args) const
              << " -v Enable verbose logging. (deprecated - use -L instead)\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
-             << " -q Executes Inquiry of the specified target device, then exits.\n"
+             << " -q Executes INQUIRY of the specified target device, then exits.\n"
              << flush;
 
         return false;
@@ -156,7 +156,11 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
         throw parser_exception("Target ID and PiSCSI board ID must not be identical");
     }
 
-    if (!inquiry_only && filename.empty()) {
+    // inq only & !prop = no file
+    // inq only & prop = need file
+    // !inq only & !prop = need file
+    // !inq only & prop = need file
+    if ((properties_file || !inquiry_only) && filename.empty()) {
         throw parser_exception("Missing filename");
     }
 
