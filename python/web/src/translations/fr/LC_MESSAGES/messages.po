@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PiSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/PISCSI/issues\n"
-"POT-Creation-Date: 2023-02-03 20:46-0600\n"
+"POT-Creation-Date: 2023-02-04 19:52-0600\n"
 "PO-Revision-Date: 2022-05-07 17:28+0200\n"
 "Last-Translator: Kamel Makhloufi <melkalehun@gmail.com>\n"
 "Language: fr\n"
@@ -962,7 +962,7 @@ msgid ""
 msgstr ""
 
 #: src/templates/index.html:370 src/templates/index.html:399
-#, fuzzy, python-format
+#, fuzzy
 msgid "Download file from URL:"
 msgstr "Echec de téléchargement du fichier depuis l’url %(url)s"
 
