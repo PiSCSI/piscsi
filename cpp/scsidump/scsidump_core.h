@@ -45,7 +45,7 @@ class ScsiDump
     bool Banner(const vector<char*>&) const;
     bool Init() const;
     void ParseArguments(const vector<char*>&);
-    int DumpRestore();
+    int DumpRestore(inquiry_info_t&);
     inquiry_info_t GetDeviceInfo();
     void WaitPhase(phase_t) const;
     void Selection() const;
@@ -82,6 +82,8 @@ class ScsiDump
     bool restore = false;
 
     bool properties_file = false;
+
+    bool inquiry_only = false;
 
     static inline const string divider_str = "----------------------------------------";
 };

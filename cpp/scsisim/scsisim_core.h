@@ -29,7 +29,6 @@ class ScsiSim
     void Banner(const vector<char*>&) const;
     static void TerminationHandler(int signum);
     bool ParseArgument(const vector<char*>&);
-    bool SetLogLevel(const string&);
 
     int InitSharedMemory();
     void TeardownSharedMemory();

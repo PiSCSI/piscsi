@@ -101,7 +101,8 @@ SRC_PROTOBUF = \
 SRC_SHARED = \
 	shared/piscsi_version.cpp \
 	shared/piscsi_util.cpp \
-	shared/shared_memory.cpp
+	shared/shared_memory.cpp \
+	shared/log.cpp
 
 SRC_PISCSI_CORE = $(shell find ./piscsi -name '*.cpp')
 SRC_PISCSI_CORE += $(shell find ./controllers -name '*.cpp')

@@ -64,9 +64,11 @@ bool ScsiDump::Banner(const vector<char*>& args) const
              << " FILE is the dump file path.\n"
              << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << to_string(MINIMUM_BUFFER_SIZE)
              << " bytes. Default is 1 MiB.\n"
-             << " -v Enable verbose logging.\n"
+             << " -L Log Level. {trace|debug|info|warn|err|off}, default is 'info'.\n"
+             << " -v Enable verbose logging. (deprecated - use -L instead)\n"
              << " -r Restore instead of dump.\n"
              << " -p Generate .properties file to be used with the PiSCSI web interface. Only valid for dump mode.\n"
+             << " -q Executes Inquiry of the specified target device, then exits.\n"
              << flush;
 
         return false;
@@ -95,7 +97,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
     int buffer_size = DEFAULT_BUFFER_SIZE;
 
     opterr = 0;
-    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:rvp")) != -1) {
+    while ((opt = getopt(static_cast<int>(args.size()), args.data(), "i:f:s:t:L:qrvp")) != -1) {
         switch (opt) {
         case 'i':
             if (!GetAsUnsignedInt(optarg, initiator_id) || initiator_id > 7) {
@@ -122,7 +124,8 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
         } break;
 
         case 'v':
-            set_level(level::trace);
+            LOGWARN("The -v option is deprecated. Please use -L debug instead.")
+            set_level(level::debug);
             break;
 
         case 'r':
@@ -131,6 +134,17 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
         case 'p':
             properties_file = true;
+            break;
+
+        case 'L':
+            if (!piscsi_log_level::set_log_level(optarg)) {
+                throw parser_exception("Invalid log level \"" + string(optarg) +
+                                       "\". Valid options are {trace|debug|info|warn|err|off}");
+            }
+            break;
+
+        case 'q':
+            inquiry_only = true;
             break;
 
         default:
@@ -142,7 +156,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
         throw parser_exception("Target ID and PiSCSI board ID must not be identical");
     }
 
-    if (filename.empty()) {
+    if (!inquiry_only && filename.empty()) {
         throw parser_exception("Missing filename");
     }
 
@@ -431,18 +445,27 @@ int ScsiDump::run(const vector<char*>& args)
     try {
         ParseArguments(args);
 
-        // #ifndef USE_SEL_EVENT_ENABLE
-        //         cerr << "Error: No PiSCSI hardware support" << endl;
-        //         return EXIT_FAILURE;
-        // #endif
+        inquiry_info_t inq_info = GetDeviceInfo();
 
-        return DumpRestore();
+        if (!inquiry_only) {
+            int dump_restore_result = DumpRestore(inq_info);
+            if (dump_restore_result != EXIT_SUCCESS) {
+                LOGWARN("Error occured while dumping/restoring the drive")
+                return dump_restore_result;
+            }
+        }
+
+        if (properties_file && !restore) {
+            GeneratePropertiesFile(filename, inq_info);
+        }
+
+        return EXIT_SUCCESS;
     } catch (const parser_exception& e) {
         cerr << "Error: " << e.what() << endl;
 
-        // CleanUp();
+        CleanUp();
 
-        // return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
     CleanUp();
@@ -450,11 +473,9 @@ int ScsiDump::run(const vector<char*>& args)
     return EXIT_SUCCESS;
 }
 
-int ScsiDump::DumpRestore()
+int ScsiDump::DumpRestore(inquiry_info_t& inq_info)
 {
     LOGTRACE("%s", __PRETTY_FUNCTION__)
-
-    const auto inq_info = GetDeviceInfo();
 
     fstream fs;
     fs.open(filename, (restore ? ios::in : ios::out) | ios::binary);
@@ -543,10 +564,6 @@ int ScsiDump::DumpRestore()
          << " bytes per second (" << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration / 1024)
          << " KiB per second)\n";
     cout << divider_str << "\n";
-
-    if (properties_file && !restore) {
-        GeneratePropertiesFile(filename, inq_info);
-    }
 
     return EXIT_SUCCESS;
 }
