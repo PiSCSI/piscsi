@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  PiSCSI\n"
+"Project-Id-Version: PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
 "POT-Creation-Date: 2023-02-03 20:46-0600\n"
-"PO-Revision-Date: 2021-12-24 16:16-0800\n"
+"PO-Revision-Date: 2023-02-08 20:21-0600\n"
 "Last-Translator: Tony Kuker <akuker@gmail.com>\n"
-"Language: zh\n"
 "Language-Team: N/A\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.11.0\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -85,9 +86,9 @@ msgstr "无法从文件读取属性：%(file_path)s"
 #: src/return_code_mapper.py:40
 #, python-format
 msgid ""
-"Cannot insert an image for %(device_type)s into a %(current_device_type)s"
-" device"
-msgstr "无法将%(device_type)s类型的映像文件载入到 %(current_device_type)s 类型的设备。"
+"Cannot insert an image for %(device_type)s into a %(current_device_type)s device"
+msgstr ""
+"无法将%(device_type)s类型的映像文件载入到 %(current_device_type)s 类型的设备"
 
 #: src/return_code_mapper.py:42
 #, python-format
@@ -110,29 +111,31 @@ msgstr "无法提取档案：%(error)s"
 #: src/socket_cmds_flask.py:42
 #, python-format
 msgid ""
-"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
-" with error: %(error_msg)s. The PiSCSI process is not running or may have"
-" crashed."
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s with "
+"error: %(error_msg)s. The PiSCSI process is not running or may have crashed."
 msgstr ""
-"PiSCSI Web 界面无法连接到 %(host)s:%(port)s 处的 PiSCSI。 错误信息：%(error_msg)s。 "
-"PiSCSI 进程未运行或可能已崩溃。 "
+"PiSCSI Web 界面无法连接到 %(host)s:%(port)s 处的 PiSCSI。 错误信息："
+"%(error_msg)s。 PiSCSI 进程未运行或可能已崩溃。"
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
-"try again. If the issue persists, please report a bug."
-msgstr "PiSCSI Web 界面与 PiSCSI 失去连接，请返回重试。 如果问题仍然存在，请报告错误。"
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and try "
+"again. If the issue persists, please report a bug."
+msgstr ""
+"PiSCSI Web 界面与 PiSCSI 失去连接，请返回重试。 如果问题仍然存在，请报告错误。"
 
 #: src/socket_cmds_flask.py:64
 msgid ""
-"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
-" go back and try again. If the issue persists, please report a bug."
-msgstr "PiSCSI Web 界面未从 PiSCSI 获得有效响应，请返回重试。 如果问题仍然存在，请报告错误。"
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please go "
+"back and try again. If the issue persists, please report a bug."
+msgstr ""
+"PiSCSI Web 界面未从 PiSCSI 获得有效响应，请返回重试。 如果问题仍然存在，请报告错"
+"误。"
 
 #: src/web.py:214
 msgid ""
-"PiSCSI is password protected. Start the Web Interface with the --password"
-" parameter."
+"PiSCSI is password protected. Start the Web Interface with the --password "
+"parameter."
 msgstr "PiSCSI 受密码保护。 请使用 --password 参数启动 Web 界面。"
 
 #: src/web.py:263
@@ -151,12 +154,12 @@ msgstr "将文件拖放到此处以上传"
 #: src/web.py:346
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
-msgstr "您必须使用 '%(group)s' 组中用户的有效身份凭证登录。"
+msgstr "您必须使用 '%(group)s' 组中用户的有效身份凭证登录"
 
 #: src/web.py:399 src/web.py:444
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
-msgstr "驱动器 %(drive_name)s 中没有属性数据。"
+msgstr "驱动器 %(drive_name)s 中没有属性数据"
 
 #: src/web.py:421
 #, python-format
@@ -170,7 +173,7 @@ msgstr ""
 #: src/web.py:528
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
-msgstr "获取磁盘信息时产生错误：%(error)s。"
+msgstr "获取磁盘信息时产生错误：%(error)s"
 
 #: src/web.py:542
 #, python-format
@@ -182,9 +185,9 @@ msgid "PiSCSI Manual"
 msgstr ""
 
 #: src/web.py:576
-#, fuzzy, python-format
+#, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
-msgstr "获取帮助页面时产生错误：%(error)s。"
+msgstr "获取帮助页面时产生错误：%(error)s"
 
 #: src/web.py:592
 msgid "PiSCSI System Logs"
@@ -193,7 +196,7 @@ msgstr ""
 #: src/web.py:600
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
-msgstr "获取日志时产生错误：%(error)s。"
+msgstr "获取日志时产生错误：%(error)s"
 
 #: src/web.py:614
 #, python-format
@@ -218,7 +221,9 @@ msgstr "没有要插入的图像文件"
 msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
-msgstr "已将 %(file_name)s 加载到 SCSI ID %(id_number)s的 LUN %(unit_number)s"
+msgstr ""
+"将%(file_name)s作为%(device_type)s附加到 SCSI ID %(id_number)s LUN "
+"%(unit_number)s"
 
 #: src/web.py:753
 msgid "Detached all SCSI devices"
@@ -255,20 +260,20 @@ msgstr "释放了对 SCSI ID %(id_number)s 的预留"
 #: src/web.py:867
 #, python-format
 msgid "System name changed to '%(name)s'."
-msgstr "系统名称更改为 %(name)s"
+msgstr "系统名称更改为 %(name)s."
 
 #: src/web.py:868
 msgid "System name reset to default."
-msgstr "系统名称重置为默认值"
+msgstr "系统名称重置为默认值."
 
 #: src/web.py:870
 msgid "Failed to change system name."
-msgstr "更改系统名称失败"
+msgstr "更改系统名称失败."
 
 #: src/web.py:924
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
-msgstr "%(iso_type)s 不是有效的 CD-ROM 格式"
+msgstr "%(iso_type)s 不是有效的 CD-ROM 格式."
 
 #: src/web.py:939
 #, python-format
@@ -276,9 +281,9 @@ msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr "创建光盘镜像时出现如下错误：%(error)s"
 
 #: src/web.py:946
-#, fuzzy, python-format
+#, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
-msgstr "类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 已创建，但无法加载：%(error)s"
+msgstr "创建了类型为 %(iso_type)s 的 CD-ROM 映像%(file_name)s。"
 
 #: src/web.py:974
 #, python-format
@@ -337,7 +342,7 @@ msgstr "Web 界面语言已更改为 %(locale)s"
 
 #: src/web.py:1341
 msgid "The requested theme does not exist."
-msgstr "请求的主题不存在"
+msgstr "请求的主题不存在."
 
 #: src/web.py:1344
 #, python-format
@@ -407,7 +412,7 @@ msgstr "您必须登录才能使用此功能"
 #: src/web_utils.py:233
 #, python-format
 msgid "Configure the network bridge for %(interface)s first: "
-msgstr "请首先为界面 %(interface)s 配置网桥。"
+msgstr "请首先为界面 %(interface)s 配置网桥:"
 
 #: src/web_utils.py:262
 #, python-format
@@ -432,15 +437,15 @@ msgstr "文件上传成功！"
 
 #: src/templates/base.html:29
 msgid ""
-" This process may take a while, and will continue in the background if "
-"you navigate away from this page."
+" This process may take a while, and will continue in the background if you "
+"navigate away from this page."
 msgstr "该操作需时稍久，将在后台自动进行。您现在可以转向其他页面。"
 
 #: src/templates/base.html:34
 msgid ""
-" The Web Interface will become unresponsive momentarily. Reload this page"
-" after the Pi has started up again."
-msgstr "Web界面将暂时停止响应。 请在树莓派启动后重新加载此页面。"
+" The Web Interface will become unresponsive momentarily. Reload this page after "
+"the Pi has started up again."
+msgstr " Web界面将暂时停止响应。 请在树莓派启动后重新加载此页面。"
 
 #: src/templates/base.html:47
 #, python-format
@@ -457,11 +462,11 @@ msgstr "请登录后再使用 Web 界面"
 
 #: src/templates/base.html:56
 msgid "Username:"
-msgstr "用户名"
+msgstr "用户名:"
 
 #: src/templates/base.html:60
 msgid "Password:"
-msgstr "密码"
+msgstr "密码:"
 
 #: src/templates/base.html:69
 msgid "Web Interface Authentication Disabled"
@@ -482,7 +487,7 @@ msgstr "控制页面"
 
 #: src/templates/base.html:85 src/templates/index.html:707
 msgid "System Name:"
-msgstr "系统名"
+msgstr "系统名:"
 
 #: src/templates/base.html:112 src/templates/base.html:114
 #, python-format
@@ -587,15 +592,16 @@ msgstr "声明"
 #: src/templates/drives.html:5
 #, python-format
 msgid ""
-"These device profiles are provided as-is with no guarantee to work "
-"equally to the actual physical device they are named after. You may need "
-"to provide appropirate device drivers and/or configuration parameters for"
-" them to function properly. If you would like to see data modified, or "
-"have additional devices to add to the list, please raise an issue ticket "
-"at <a href=\"%(url)s\">GitHub</a>."
+"These device profiles are provided as-is with no guarantee to work equally to "
+"the actual physical device they are named after. You may need to provide "
+"appropirate device drivers and/or configuration parameters for them to function "
+"properly. If you would like to see data modified, or have additional devices to "
+"add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>."
 msgstr ""
-"这些设备的配置文件按原样提供，不保证与它们命名的实际物理设备完全一致地工作。 您可能需要提供适当的设备驱动程序和/或配置参数才能使它们正常运行。 "
-"如果您想看到已修改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提问。 "
+"这些设备的配置文件按原样提供，不保证与它们命名的实际物理设备完全一致地工作。 您"
+"可能需要提供适当的设备驱动程序和/或配置参数才能使它们正常运行。 如果您想看到已修"
+"改的数据，或有其他设备要添加到列表中，请在 <a href=\"%(url)s\">GitHub</a> 上提"
+"问。"
 
 #: src/templates/drives.html:6
 msgid "Hard Disk Drives"
@@ -636,8 +642,8 @@ msgstr "CD/DVD 驱动器"
 
 #: src/templates/drives.html:43
 msgid ""
-"This will create a properties file for the given CD-ROM or DVD image. No "
-"new image file will be created."
+"This will create a properties file for the given CD-ROM or DVD image. No new "
+"image file will be created."
 msgstr "这将为给定的CD-ROM或DVD映像创建一个属性文件，不会创建新的映像文件。"
 
 #: src/templates/drives.html:64
@@ -666,9 +672,9 @@ msgstr "保存和加载设备配置，在 <tt>%(config_dir)s</tt> 目录下存�
 
 #: src/templates/index.html:11
 msgid ""
-"To have a particular device configuration load when PiSCSI starts, save "
-"it as <em>default</em>."
-msgstr "若需在 PiSCSI 启动时加载特定的设备配置，请将其保存为<em>default</em>"
+"To have a particular device configuration load when PiSCSI starts, save it as "
+"<em>default</em>."
+msgstr "若需在 PiSCSI 启动时加载特定的设备配置，请将其保存为<em>default</em>."
 
 #: src/templates/index.html:17 src/templates/index.html:39
 #: src/templates/index.html:473
@@ -776,16 +782,20 @@ msgstr "映像文件管理"
 #: src/templates/index.html:184
 #, python-format
 msgid ""
-"Manage image files in the active PiSCSI image directory: "
-"<tt>%(directory)s</tt> with a scan depth of %(scan_depth)s."
-msgstr "管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 %(scan_depth)s。"
+"Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> "
+"with a scan depth of %(scan_depth)s."
+msgstr ""
+"管理PiSCSI映像目录中的活动映像文件：<tt>%(directory)s</tt>，扫描深度为 "
+"%(scan_depth)s。"
 
 #: src/templates/index.html:185
 #, python-format
 msgid ""
-"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
-"to attach to. Unless you know what you're doing, always use LUN 0."
-msgstr "选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使用 LUN 0。"
+"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to "
+"attach to. Unless you know what you're doing, always use LUN 0."
+msgstr ""
+"选择一个有效的 SCSI ID 和要加载的 <a href=\"%(url)s\">LUN</a>。如果不确定，请使"
+"用 LUN 0。"
 
 #: src/templates/index.html:188
 msgid "Recognized image file types:"
@@ -867,7 +877,7 @@ msgstr "信息"
 #: src/templates/index.html:352
 #, python-format
 msgid "%(disk_space)s MiB disk space remaining on the system"
-msgstr "系统剩余磁盘空间为%(disk_space)s MB "
+msgstr "系统剩余磁盘空间为%(disk_space)s MB"
 
 #: src/templates/index.html:360
 msgid "Transfer Files to the PiSCSI"
@@ -890,9 +900,8 @@ msgid ""
 msgstr "要远程访问共享文件，您必须首先安装一个文件服务器。"
 
 #: src/templates/index.html:370 src/templates/index.html:399
-#, fuzzy
 msgid "Download file from URL:"
-msgstr "从 %(url)s 下载文件"
+msgstr "从网址下载文件："
 
 #: src/templates/index.html:376
 msgid "Downloading File..."
@@ -912,8 +921,8 @@ msgstr "HFS 适用于 Mac OS，Joliet 适用于 Windows，Rock Ridge 适用于 P
 
 #: src/templates/index.html:393
 msgid ""
-"If the downloaded file is a zip archive, we will attempt to unzip it and "
-"store the resulting files."
+"If the downloaded file is a zip archive, we will attempt to unzip it and store "
+"the resulting files."
 msgstr "如果下载的文件是 zip 存档，我们将尝试解压缩它并存储生成的文件。"
 
 #: src/templates/index.html:401 src/templates/index.html:433
@@ -922,9 +931,8 @@ msgid "Type:"
 msgstr "类型:"
 
 #: src/templates/index.html:422
-#, fuzzy
 msgid "Downloading file and generating CD-ROM image..."
-msgstr "正在下载文件并生成 CD-ROM 映像..."
+msgstr "正在下载文件并生成光盘映像..."
 
 #: src/templates/index.html:427
 msgid "Use local file:"
@@ -942,14 +950,15 @@ msgstr "创建空磁盘映像文件"
 #: src/templates/index.html:467
 #, python-format
 msgid ""
-"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
-"documentation</a> to learn more about the supported image file types."
-msgstr "请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类型。"
+"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to "
+"learn more about the supported image file types."
+msgstr ""
+"请查看<a href=\"%(url)s\" target=\"_blank\">wiki文档</a>了解关于支持的映像文件类"
+"型。"
 
 #: src/templates/index.html:468
 msgid ""
-"It is not recommended to use the Lido hard disk driver with the Macintosh"
-" Plus."
+"It is not recommended to use the Lido hard disk driver with the Macintosh Plus."
 msgstr "不建议在Macintosh Plus上使用Lido硬盘驱动。"
 
 #: src/templates/index.html:483
@@ -979,29 +988,33 @@ msgstr "连接外围设备"
 
 #: src/templates/index.html:533
 msgid ""
-"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
-"by an emulated network adapter!"
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an "
+"emulated network adapter!"
 msgstr "<tt>piscsi_bridge</tt> 网桥处于活动状态，可供虚拟网络适配器使用！"
 
 #: src/templates/index.html:535
 msgid ""
-"Please configure the <tt>piscsi_bridge</tt> network bridge before "
-"attaching an emulated network adapter!"
-msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网桥。"
+"Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an "
+"emulated network adapter!"
+msgstr "在连接虚拟网络适配器前，请配置 <tt>piscsi_bridge</tt> 网桥!"
 
 #: src/templates/index.html:537
 #, python-format
 msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
-msgstr "要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" target=\"_blank\">Macproxy</a>。"
+msgstr ""
+"要浏览现代网络，请安装老式网络代理，例如<a href=\"%(url)s\" "
+"target=\"_blank\">Macproxy</a>。"
 
 #: src/templates/index.html:539
 #, python-format
 msgid ""
-"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
-"types</a> on the wiki."
-msgstr "请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信息。"
+"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</"
+"a> on the wiki."
+msgstr ""
+"请查看wiki页面<a href=\"%(url)s\" target=\"_blank\">支持的设备类型</a>了解更多信"
+"息。"
 
 #: src/templates/index.html:546
 msgid "Key"
@@ -1049,14 +1062,14 @@ msgstr "系统操作"
 
 #: src/templates/index.html:683
 msgid ""
-"The System Name is the \"pretty\" hostname if set, with a fallback to the"
-" regular hostname."
+"The System Name is the \"pretty\" hostname if set, with a fallback to the "
+"regular hostname."
 msgstr "如果您没有设置一个“好听”的主机名，则系统会自动返回到其“常规”的主机名。"
 
 #: src/templates/index.html:684
 msgid ""
-"IMPORTANT: Always shut down the system before turning off the power. "
-"Failing to do so may lead to data loss."
+"IMPORTANT: Always shut down the system before turning off the power. Failing to "
+"do so may lead to data loss."
 msgstr "重要提示：务必在切断电源之前先关闭系统，否则可能会导致数据丢失。"
 
 #: src/templates/index.html:690
@@ -1116,15 +1129,17 @@ msgstr "从本地计算机上传文件"
 #: src/templates/upload.html:6
 #, python-format
 msgid ""
-"The largest file size accepted in this form is %(max_file_size)s MiB. Use"
-" other file transfer means for larger files."
-msgstr "此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输方式"
+"The largest file size accepted in this form is %(max_file_size)s MiB. Use other "
+"file transfer means for larger files."
+msgstr ""
+"此表单接受的最大文件大小为 %(max_file_size)s MiB。对更大的文件请使用其他文件传输"
+"方式."
 
 #: src/templates/upload.html:7
 msgid ""
 "You have to manually clean up partially uploaded files, as a result of "
 "cancelling the upload or closing this page."
-msgstr "取消上传或关闭此页面"
+msgstr "取消上传或关闭此页面."
 
 #: src/templates/upload.html:10 src/templates/upload.html:20
 msgid "PiSCSI Config"
@@ -1144,8 +1159,7 @@ msgstr "您的浏览器不支持拖放文件上传。"
 
 #: src/templates/upload.html:38
 msgid ""
-"Please use the fallback form below to upload your files like in the olden"
-" days."
+"Please use the fallback form below to upload your files like in the olden days."
 msgstr "请和老时候一样使用下面的后备表格上传您的文件。"
 
 #: src/templates/upload.html:39
@@ -1197,22 +1211,20 @@ msgid "B"
 msgstr "B"
 
 #~ msgid ""
-#~ "CD-ROM image %(file_name)s with type "
-#~ "%(iso_type)s was created and attached to"
-#~ " SCSI ID %(id_number)s"
+#~ "CD-ROM image %(file_name)s with type %(iso_type)s was created and attached "
+#~ "to SCSI ID %(id_number)s"
 #~ msgstr ""
-#~ "已创建类型为 %(iso_type)s 的 CD-ROM 映像 "
-#~ "%(file_name)s 并且 加载到 SCSI ID "
+#~ "已创建类型为 %(iso_type)s 的 CD-ROM 映像 %(file_name)s 并且 加载到 SCSI ID "
 #~ "%(id_number)s"
 
 #~ msgid "Download File and Create CD-ROM Image"
 #~ msgstr "下载文件并创建 CD-ROM 映像"
 
 #~ msgid ""
-#~ "Create an ISO file system CD-ROM"
-#~ " image with the downloaded file, and"
-#~ " mount it on the given SCSI ID."
-#~ msgstr "使用下载的文件创建 ISO 文件系统 CD-ROM 映像，并将其加载到给定的 SCSI ID 上。"
+#~ "Create an ISO file system CD-ROM image with the downloaded file, and mount "
+#~ "it on the given SCSI ID."
+#~ msgstr ""
+#~ "使用下载的文件创建 ISO 文件系统 CD-ROM 映像，并将其加载到给定的 SCSI ID 上。"
 
 #~ msgid "Download and Mount CD-ROM image"
 #~ msgstr "下载并加载 CD-ROM 映像"
@@ -1222,4 +1234,3 @@ msgstr "B"
 
 #~ msgid "Change the Web Interface language."
 #~ msgstr "更改 Web 界面语言"
-
