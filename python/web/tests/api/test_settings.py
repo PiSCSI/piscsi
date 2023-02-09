@@ -10,7 +10,7 @@ from conftest import STATUS_SUCCESS
     [
         ("de", "Webinterface-Sprache auf Deutsch geändert"),
         ("es", "Se ha cambiado el lenguaje de la Interfaz Web a español"),
-        ("fr", "Langue de l’interface web changée pour français"),
+        ("fr", "Langue de l’interface web changée en français"),
         ("sv", "Bytte webbgränssnittets språk till svenska"),
         ("en", "Changed Web Interface language to English"),
         ("zh", "Web 界面语言已更改为 中文"),
