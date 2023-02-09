@@ -5,18 +5,19 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version:  PiSCSI\n"
+"Project-Id-Version: PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2023-02-03 20:46-0600\n"
-"PO-Revision-Date: 2022-12-22 21:56+0100\n"
+"POT-Creation-Date: 2023-02-03 22:30+0100\n"
+"PO-Revision-Date: 2023-02-03 22:47+0100\n"
 "Last-Translator: Christian Victor <christian.victor@gmail.com>\n"
-"Language: de\n"
 "Language-Team: de N/A\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.11.0\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -85,8 +86,7 @@ msgstr "Konnte Eigenschaften von Datei %(file_path)s nicht lesen"
 #: src/return_code_mapper.py:40
 #, python-format
 msgid ""
-"Cannot insert an image for %(device_type)s into a %(current_device_type)s"
-" device"
+"Cannot insert an image for %(device_type)s into a %(current_device_type)s device"
 msgstr ""
 "Kann kein Image für %(device_type)s in ein %(current_device_type)s Gerät "
 "einlegen"
@@ -112,36 +112,34 @@ msgstr "Kann Archiv %(error)s nicht entpacken"
 #: src/socket_cmds_flask.py:42
 #, python-format
 msgid ""
-"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s"
-" with error: %(error_msg)s. The PiSCSI process is not running or may have"
-" crashed."
+"The PiSCSI Web Interface failed to connect to PiSCSI at %(host)s:%(port)s with "
+"error: %(error_msg)s. The PiSCSI process is not running or may have crashed."
 msgstr ""
-"Das PiSCSI-Webinterface konnte sich mit Fehler %(error_msg)s nicht mit "
-"PiSCSI an %(host)s:%(port)s verbinden. Der PiSCSI-Prozess läuft nicht "
-"oder könnte abgestürzt sein."
+"Das PiSCSI-Webinterface konnte sich mit Fehler %(error_msg)s nicht mit PiSCSI "
+"an %(host)s:%(port)s verbinden. Der PiSCSI-Prozess läuft nicht oder könnte "
+"abgestürzt sein."
 
 #: src/socket_cmds_flask.py:54
 msgid ""
-"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and "
-"try again. If the issue persists, please report a bug."
+"The PiSCSI Web Interface lost connection to PiSCSI. Please go back and try "
+"again. If the issue persists, please report a bug."
 msgstr ""
-"Das PiSCSI-Webinterface hat die Verbindung verloren. Bitte gehe zurück "
-"und versuche es nochmals. Wenn das Problem bestehen bleibt, melde bitte "
-"einen Bug."
+"Das PiSCSI-Webinterface hat die Verbindung verloren. Bitte gehe zurück und "
+"versuche es nochmals. Wenn das Problem bestehen bleibt, melde bitte einen Bug."
 
 #: src/socket_cmds_flask.py:64
 msgid ""
-"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please"
-" go back and try again. If the issue persists, please report a bug."
+"The PiSCSI Web Interface did not get a valid response from PiSCSI. Please go "
+"back and try again. If the issue persists, please report a bug."
 msgstr ""
-"Das PiSCSI-Webinterface hat keine gültige Antwort von PiSCSI bekommen. "
-"Bitte gehe zurück und versuche es nochmals. Wenn das Problem bestehen "
-"bleibt, melde bitte einen Bug."
+"Das PiSCSI-Webinterface hat keine gültige Antwort von PiSCSI bekommen. Bitte "
+"gehe zurück und versuche es nochmals. Wenn das Problem bestehen bleibt, melde "
+"bitte einen Bug."
 
 #: src/web.py:214
 msgid ""
-"PiSCSI is password protected. Start the Web Interface with the --password"
-" parameter."
+"PiSCSI is password protected. Start the Web Interface with the --password "
+"parameter."
 msgstr ""
 "PiSCSI ist passwortgeschützt. Starte das Webinterface mit dem —password "
 "Parameter."
@@ -152,19 +150,18 @@ msgstr "PiSCSI Kontrollseite"
 
 #: src/web.py:309
 msgid "PiSCSI Create Drive"
-msgstr ""
+msgstr "PiSCSI Erzeuge Laufwerk"
 
 #: src/web.py:323
-#, fuzzy
 msgid "PiSCSI File Upload"
-msgstr "Dateien zum Hochladen hier ablegen"
+msgstr "PiSCSI Dateiupload"
 
 #: src/web.py:346
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr ""
-"Du musst dich mit gültigen Zugangsdaten eines Users aus der Gruppe "
-"%(group)s’ einloggen"
+"Du musst dich mit gültigen Zugangsdaten eines Users aus der Gruppe %(group)s’ "
+"einloggen"
 
 #: src/web.py:399 src/web.py:444
 #, python-format
@@ -178,7 +175,7 @@ msgstr "Imagedatei mit Eigenschaften erzeugt %(file_name)s"
 
 #: src/web.py:521
 msgid "PiSCSI Image Info"
-msgstr ""
+msgstr "PiSCSI Image-Info"
 
 #: src/web.py:528
 #, python-format
@@ -192,16 +189,16 @@ msgstr "%(app)s ist keine bekannte PiSCSI-App"
 
 #: src/web.py:569
 msgid "PiSCSI Manual"
-msgstr ""
+msgstr "PiSCSI Handbuch"
 
 #: src/web.py:576
-#, fuzzy, python-format
+#, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
-msgstr "Beim Abrufen der Hauptseite ist ein Fehler aufgetreten: %(error)s"
+msgstr "Beim Abrufen der Handbuchseite ist ein Fehler aufgetreten: %(error)s"
 
 #: src/web.py:592
 msgid "PiSCSI System Logs"
-msgstr ""
+msgstr "PiSCSI System-Logs"
 
 #: src/web.py:600
 #, python-format
@@ -232,8 +229,8 @@ msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
 msgstr ""
-"%(file_name)s als %(device_type)s mit SCSI ID %(id_number)s LUN "
-"%(unit_number)s verbunden"
+"%(file_name)s als %(device_type)s mit SCSI ID %(id_number)s LUN %(unit_number)s "
+"verbunden"
 
 #: src/web.py:753
 msgid "Detached all SCSI devices"
@@ -251,7 +248,7 @@ msgstr "SCSI-ID %(id_number)s LUN %(unit_number)s ausgeworfen"
 
 #: src/web.py:810
 msgid "PiSCSI Device Info"
-msgstr ""
+msgstr "PiSCSI Geräteinfo"
 
 #: src/web.py:814
 msgid "No devices attached"
@@ -291,11 +288,9 @@ msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr "Der folgende Fehler trat beim Erstellen des CD-ROM-Image auf: %(error)s"
 
 #: src/web.py:946
-#, fuzzy, python-format
+#, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
-msgstr ""
-"CD-ROM-Image %(file_name)s des Typs %(iso_type)s wurde erstellt aber "
-"konnte nicht angehängt werden: %(error)s"
+msgstr "CD-ROM-Image %(file_name)s des Typs %(iso_type)s wurde erstellt."
 
 #: src/web.py:974
 #, python-format
@@ -449,19 +444,19 @@ msgstr "Dateiupload erfolgreich!"
 
 #: src/templates/base.html:29
 msgid ""
-" This process may take a while, and will continue in the background if "
-"you navigate away from this page."
+" This process may take a while, and will continue in the background if you "
+"navigate away from this page."
 msgstr ""
 " Dieser Prozess dauert möglicherweise länger und wird im Hintergrund "
 "fortgesetzt wenn Du von dieser Seite wegnavigierst."
 
 #: src/templates/base.html:34
 msgid ""
-" The Web Interface will become unresponsive momentarily. Reload this page"
-" after the Pi has started up again."
+" The Web Interface will become unresponsive momentarily. Reload this page after "
+"the Pi has started up again."
 msgstr ""
-" Das Webinterface wird gleich nicht mehr reagieren. Lade diese Seite "
-"erneut wenn der Pi wieder hochgefahren ist."
+" Das Webinterface wird gleich nicht mehr reagieren. Lade diese Seite erneut "
+"wenn der Pi wieder hochgefahren ist."
 
 #: src/templates/base.html:47
 #, python-format
@@ -492,8 +487,7 @@ msgstr "Webinterface-Authentifizierung deaktiviert"
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr ""
-"Siehe <a href=\"%(url)s\" target=\"_blank\">Wiki</a> für mehr "
-"Informationen"
+"Siehe <a href=\"%(url)s\" target=\"_blank\">Wiki</a> für mehr Informationen"
 
 #: src/templates/base.html:78
 msgid "PiSCSI"
@@ -610,20 +604,19 @@ msgstr "Haftungsausschluss"
 #: src/templates/drives.html:5
 #, python-format
 msgid ""
-"These device profiles are provided as-is with no guarantee to work "
-"equally to the actual physical device they are named after. You may need "
-"to provide appropirate device drivers and/or configuration parameters for"
-" them to function properly. If you would like to see data modified, or "
-"have additional devices to add to the list, please raise an issue ticket "
-"at <a href=\"%(url)s\">GitHub</a>."
+"These device profiles are provided as-is with no guarantee to work equally to "
+"the actual physical device they are named after. You may need to provide "
+"appropirate device drivers and/or configuration parameters for them to function "
+"properly. If you would like to see data modified, or have additional devices to "
+"add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>."
 msgstr ""
-"Diese Geräteprofile werden im Ist-Zuastand und ohne Garantie genauso wie "
-"das tatsächliche physische Gerät nach dem sie benannt sind zu "
-"funktionieren angeboten. Möglicherweise musst Du passende Gerätetreiber "
-"und/oder Konfigurationsparameter liefern damit sie ordentlich "
-"funktionieren. Möchtest Du gerne Daten geändert haben oder hast "
-"zusätzliche Geräte die der Liste hinzugefügt werden sollen dann eröffne "
-"bitte ein Ticket auf  <a href=\"%(url)s\">GitHub</a>."
+"Diese Geräteprofile werden im Ist-Zuastand und ohne Garantie genauso wie das "
+"tatsächliche physische Gerät nach dem sie benannt sind zu funktionieren "
+"angeboten. Möglicherweise musst Du passende Gerätetreiber und/oder "
+"Konfigurationsparameter liefern damit sie ordentlich funktionieren. Möchtest Du "
+"gerne Daten geändert haben oder hast zusätzliche Geräte die der Liste "
+"hinzugefügt werden sollen dann eröffne bitte ein Ticket auf  <a "
+"href=\"%(url)s\">GitHub</a>."
 
 #: src/templates/drives.html:6
 msgid "Hard Disk Drives"
@@ -664,11 +657,11 @@ msgstr "CD/DVD-Laufwerke"
 
 #: src/templates/drives.html:43
 msgid ""
-"This will create a properties file for the given CD-ROM or DVD image. No "
-"new image file will be created."
+"This will create a properties file for the given CD-ROM or DVD image. No new "
+"image file will be created."
 msgstr ""
-"Dies wird eine Eigenschaften-Datei für das ausgewählte CD-ROM- oder DVD-"
-"Image erstellen. Es wird keine neue Image-Datei erzeugt."
+"Dies wird eine Eigenschaften-Datei für das ausgewählte CD-ROM- oder DVD-Image "
+"erstellen. Es wird keine neue Image-Datei erzeugt."
 
 #: src/templates/drives.html:64
 msgid "Create for:"
@@ -698,11 +691,11 @@ msgstr ""
 
 #: src/templates/index.html:11
 msgid ""
-"To have a particular device configuration load when PiSCSI starts, save "
-"it as <em>default</em>."
+"To have a particular device configuration load when PiSCSI starts, save it as "
+"<em>default</em>."
 msgstr ""
-"Um eine bestimmte Gerätekonfiguration zu laden wenn PiSCSI startet, "
-"speichere sie als <em>default</em>."
+"Um eine bestimmte Gerätekonfiguration zu laden wenn PiSCSI startet, speichere "
+"sie als <em>default</em>."
 
 #: src/templates/index.html:17 src/templates/index.html:39
 #: src/templates/index.html:473
@@ -810,21 +803,20 @@ msgstr "Image-Dateiverwaltung"
 #: src/templates/index.html:184
 #, python-format
 msgid ""
-"Manage image files in the active PiSCSI image directory: "
-"<tt>%(directory)s</tt> with a scan depth of %(scan_depth)s."
+"Manage image files in the active PiSCSI image directory: <tt>%(directory)s</tt> "
+"with a scan depth of %(scan_depth)s."
 msgstr ""
-"Verwalte Imagedateien im aktiven PiSCSI Imageverzeichnis "
-"<tt>%(directory)s</tt> mit einer Scantiefe von %(scan_depth)s."
+"Verwalte Imagedateien im aktiven PiSCSI Imageverzeichnis <tt>%(directory)s</tt> "
+"mit einer Scantiefe von %(scan_depth)s."
 
 #: src/templates/index.html:185
 #, python-format
 msgid ""
-"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
-"to attach to. Unless you know what you're doing, always use LUN 0."
+"Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to "
+"attach to. Unless you know what you're doing, always use LUN 0."
 msgstr ""
-"Wähle eine gültige SCSI-ID und <a href=\"%(url)s\" "
-"target=\"_blank\">LUN</a> zum Verbinden. Wenn Du nicht sicher bist dann "
-"benutze immer LUN 0."
+"Wähle eine gültige SCSI-ID und <a href=\"%(url)s\" target=\"_blank\">LUN</a> "
+"zum Verbinden. Wenn Du nicht sicher bist dann benutze immer LUN 0."
 
 #: src/templates/index.html:188
 msgid "Recognized image file types:"
@@ -927,8 +919,8 @@ msgid ""
 "To access shared files remotely, you may have to install one of the file "
 "servers first."
 msgstr ""
-"Um entfernt auf geteilte Dateien zuzugreifen wirst Du möglicherweise "
-"zuerst einen der Dateiserver installieren müssen."
+"Um entfernt auf geteilte Dateien zuzugreifen wirst Du möglicherweise zuerst "
+"einen der Dateiserver installieren müssen."
 
 #: src/templates/index.html:370 src/templates/index.html:399
 msgid "Download file from URL:"
@@ -944,7 +936,7 @@ msgstr "Dateien hochladen (neuer Tab)"
 
 #: src/templates/index.html:389
 msgid "Create CD-ROM Image"
-msgstr ""
+msgstr "Erstelle CD-ROM-Image"
 
 #: src/templates/index.html:392
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
@@ -952,11 +944,11 @@ msgstr "HFS ist für Mac OS, Joliet für Windows, und Rock Ridge für POSIX."
 
 #: src/templates/index.html:393
 msgid ""
-"If the downloaded file is a zip archive, we will attempt to unzip it and "
-"store the resulting files."
+"If the downloaded file is a zip archive, we will attempt to unzip it and store "
+"the resulting files."
 msgstr ""
-"Die heruntergeladene Datei ist ein Zip-Archiv. Wir versuchen es zu "
-"entziehen und die enthaltenen Dateien abzulegen."
+"Die heruntergeladene Datei ist ein Zip-Archiv. Wir versuchen es zu entziehen "
+"und die enthaltenen Dateien abzulegen."
 
 #: src/templates/index.html:401 src/templates/index.html:433
 #: src/templates/index.html:475
@@ -964,39 +956,36 @@ msgid "Type:"
 msgstr "Typ:"
 
 #: src/templates/index.html:422
-#, fuzzy
 msgid "Downloading file and generating CD-ROM image..."
-msgstr "Lader Datei herunter und erzeuge CD-ROM-Image…"
+msgstr "Lade Datei herunter und erzeuge CD-ROM-Image…"
 
 #: src/templates/index.html:427
 msgid "Use local file:"
-msgstr ""
+msgstr "Benutze lokale Datei:"
 
 #: src/templates/index.html:454
 msgid "Generating CD-ROM image..."
-msgstr ""
+msgstr "Erzeuge CD-ROM-Image..."
 
 #: src/templates/index.html:464
-#, fuzzy
 msgid "Create Empty Disk Image"
-msgstr "Erzeuge leere Diskimage-Datei"
+msgstr "Erstelle leeres Diskimage"
 
 #: src/templates/index.html:467
 #, python-format
 msgid ""
-"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki "
-"documentation</a> to learn more about the supported image file types."
+"Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to "
+"learn more about the supported image file types."
 msgstr ""
-"Siehe <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> um "
-"mehr über die unterstützten Imagedatei-Typen zu erfahren."
+"Siehe <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> um mehr über "
+"die unterstützten Imagedatei-Typen zu erfahren."
 
 #: src/templates/index.html:468
 msgid ""
-"It is not recommended to use the Lido hard disk driver with the Macintosh"
-" Plus."
+"It is not recommended to use the Lido hard disk driver with the Macintosh Plus."
 msgstr ""
-"Es wird nicht empfohlen den Lido Festplattentreiber mit dem Macintosh "
-"Plus zu verwenden."
+"Es wird nicht empfohlen den Lido Festplattentreiber mit dem Macintosh Plus zu "
+"verwenden."
 
 #: src/templates/index.html:483
 msgid "Size:"
@@ -1025,19 +1014,19 @@ msgstr "Verbinde Peripherie-Gerät"
 
 #: src/templates/index.html:533
 msgid ""
-"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used "
-"by an emulated network adapter!"
+"The <tt>piscsi_bridge</tt> network bridge is active and ready to be used by an "
+"emulated network adapter!"
 msgstr ""
-"Die <tt>piscsi_bridge</tt>-Netzwerk-Bridge ist aktiv und bereit vom "
-"emulierten Netzwerkadapter verwendet zu werden!"
+"Die <tt>piscsi_bridge</tt>-Netzwerk-Bridge ist aktiv und bereit vom emulierten "
+"Netzwerkadapter verwendet zu werden!"
 
 #: src/templates/index.html:535
 msgid ""
-"Please configure the <tt>piscsi_bridge</tt> network bridge before "
-"attaching an emulated network adapter!"
+"Please configure the <tt>piscsi_bridge</tt> network bridge before attaching an "
+"emulated network adapter!"
 msgstr ""
-"Bitte konfiguriere die <tt>piscsi_bridge</tt>-Netzwerk-Bridge vor dem "
-"Anhängen an einen emulierten Netzwerkadapter!"
+"Bitte konfiguriere die <tt>piscsi_bridge</tt>-Netzwerk-Bridge vor dem Anhängen "
+"an einen emulierten Netzwerkadapter!"
 
 #: src/templates/index.html:537
 #, python-format
@@ -1045,17 +1034,17 @@ msgid ""
 "To browse the modern web, install a vintage web proxy such as <a "
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 msgstr ""
-"Um das moderne Web zu browsen, installiere einen Vintage Web-Proxy wie "
-"z.B. <a href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
+"Um das moderne Web zu browsen, installiere einen Vintage Web-Proxy wie z.B. <a "
+"href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 
 #: src/templates/index.html:539
 #, python-format
 msgid ""
-"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device "
-"types</a> on the wiki."
+"Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</"
+"a> on the wiki."
 msgstr ""
-"Lies mehr über <a href=\"%(url)s\" target=\"_blank\">unterstützte "
-"Gerätetypen</a> auf dem Wiki."
+"Lies mehr über <a href=\"%(url)s\" target=\"_blank\">unterstützte Gerätetypen</"
+"a> auf dem Wiki."
 
 #: src/templates/index.html:546
 msgid "Key"
@@ -1103,16 +1092,16 @@ msgstr "Systemoperationen"
 
 #: src/templates/index.html:683
 msgid ""
-"The System Name is the \"pretty\" hostname if set, with a fallback to the"
-" regular hostname."
+"The System Name is the \"pretty\" hostname if set, with a fallback to the "
+"regular hostname."
 msgstr ""
-"Der Systemname ist der \"schöne\" Hostname wenn gesetzt, mit Fallback auf"
-" den gewöhnlichen Hostnamen."
+"Der Systemname ist der \"schöne\" Hostname wenn gesetzt, mit Fallback auf den "
+"gewöhnlichen Hostnamen."
 
 #: src/templates/index.html:684
 msgid ""
-"IMPORTANT: Always shut down the system before turning off the power. "
-"Failing to do so may lead to data loss."
+"IMPORTANT: Always shut down the system before turning off the power. Failing to "
+"do so may lead to data loss."
 msgstr ""
 "WICHTIG: Fahre das System immer herunter bevor Du die Stromversorgung "
 "ausschaltest. Andernfalls kann es zu Datenverlust kommen."
@@ -1174,12 +1163,11 @@ msgstr "Datei vom lokalen Computer hochladen"
 #: src/templates/upload.html:6
 #, python-format
 msgid ""
-"The largest file size accepted in this form is %(max_file_size)s MiB. Use"
-" other file transfer means for larger files."
+"The largest file size accepted in this form is %(max_file_size)s MiB. Use other "
+"file transfer means for larger files."
 msgstr ""
-"Die größte akzeptierte Dateigröße in diesem Formular ist "
-"%(max_file_size)s MiB. Benutze andere Übertragungsmöglichkeiten für "
-"größere Dateien."
+"Die größte akzeptierte Dateigröße in diesem Formular ist %(max_file_size)s MiB. "
+"Benutze andere Übertragungsmöglichkeiten für größere Dateien."
 
 #: src/templates/upload.html:7
 msgid ""
@@ -1191,7 +1179,7 @@ msgstr ""
 
 #: src/templates/upload.html:10 src/templates/upload.html:20
 msgid "PiSCSI Config"
-msgstr ""
+msgstr "PiSCSI Konfiguration"
 
 #: src/templates/upload.html:13
 msgid "Destination"
@@ -1207,11 +1195,9 @@ msgstr "Dein Browser unterstützt keine Drag’n’Drop Dateiuploads."
 
 #: src/templates/upload.html:38
 msgid ""
-"Please use the fallback form below to upload your files like in the olden"
-" days."
+"Please use the fallback form below to upload your files like in the olden days."
 msgstr ""
-"Bitte benutze das Formular unten als Ausweichlösung wie zur guten alten "
-"Zeit."
+"Bitte benutze das Formular unten als Ausweichlösung wie zur guten alten Zeit."
 
 #: src/templates/upload.html:39
 msgid "File is too big: {{filesize}}MiB. Max filesize: {{maxFilesize}}MiB."
@@ -1260,29 +1246,3 @@ msgstr "KiB"
 #: src/templates/upload.html:52
 msgid "B"
 msgstr "B"
-
-#~ msgid ""
-#~ "CD-ROM image %(file_name)s with type "
-#~ "%(iso_type)s was created and attached to"
-#~ " SCSI ID %(id_number)s"
-#~ msgstr ""
-#~ "CD-ROM-Image %(file_name)s des Typs "
-#~ "%(iso_type)s wurde erstellt und an SCSI"
-#~ " ID %(id_number)s angehängt"
-
-#~ msgid "Download File and Create CD-ROM Image"
-#~ msgstr "Lade Datei herunter und erzeuge CD-ROM-Image"
-
-#~ msgid ""
-#~ "Create an ISO file system CD-ROM"
-#~ " image with the downloaded file, and"
-#~ " mount it on the given SCSI ID."
-#~ msgstr ""
-#~ "Erzeuge ein ISO-Dateisystem CD-ROM-"
-#~ "Image mit der heruntergeladenen Datei "
-#~ "und verbinde es mit der angegebenen "
-#~ "SCSI-ID."
-
-#~ msgid "Download and Mount CD-ROM image"
-#~ msgstr "Lade CD-ROM-Image herunter und verbinde es"
-
