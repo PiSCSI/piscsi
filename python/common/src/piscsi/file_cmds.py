@@ -4,7 +4,7 @@ Module for methods reading from and writing to the file system
 
 import logging
 import asyncio
-from os import path, walk
+from os import walk
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
@@ -55,24 +55,6 @@ class FileCmds:
         return self.sock_cmd.send_pb_command(command.SerializeToString())
 
     # noinspection PyMethodMayBeStatic
-    # pylint: disable=no-self-use
-    def list_files(self, file_types, dir_path):
-        """
-        Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
-        Returns (list) of (list)s files_list:
-        index 0 is (str) file name and index 1 is (int) size in bytes
-        """
-        files_list = []
-        for file_path, _dirs, files in walk(dir_path):
-            # Only list selected file types
-            # TODO: Refactor for readability?
-            files = [f for f in files if f.lower().endswith(file_types)]
-            files_list.extend(
-                [(file, path.getsize(path.join(file_path, file))) for file in files],
-            )
-        return files_list
-
-    # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
         Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
@@ -100,18 +82,13 @@ class FileCmds:
         result = proto.PbResult()
         result.ParseFromString(data)
 
-        # Get a list of all *.properties files in CFG_DIR
-        prop_data = self.list_files(PROPERTIES_SUFFIX, CFG_DIR)
-        prop_files = [PurePath(x[0]).stem for x in prop_data]
-
         server_info = self.piscsi.get_server_info()
         files = []
         for file in result.image_files_info.image_files:
-            # Add properties meta data for the image, if applicable
-            if file.name in prop_files:
-                process = self.read_drive_properties(
-                    Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
-                )
+            prop_file_path = Path(CFG_DIR) / f"{file.name}.{PROPERTIES_SUFFIX}"
+            # Add properties meta data for the image, if matching prop file is found
+            if prop_file_path.exists():
+                process = self.read_drive_properties(prop_file_path)
                 prop = process["conf"]
             else:
                 prop = False
@@ -160,87 +137,11 @@ class FileCmds:
 
         return {"status": result.status, "msg": result.msg, "files": files}
 
-    def create_new_image(self, file_name, file_type, size):
-        """
-        Takes (str) file_name, (str) file_type, and (int) size
-        Sends a CREATE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.CREATE_IMAGE
-        command.params["token"] = self.token
-        command.params["locale"] = self.locale
-
-        command.params["file"] = f"{file_name}.{file_type}"
-        command.params["size"] = str(size)
-        command.params["read_only"] = "false"
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def delete_image(self, file_name):
-        """
-        Takes (str) file_name
-        Sends a DELETE_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.DELETE_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["file"] = file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def rename_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a RENAME_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.RENAME_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
-    def copy_image(self, file_name, new_file_name):
-        """
-        Takes (str) file_name, (str) new_file_name
-        Sends a COPY_IMAGE command to the server
-        Returns (dict) with (bool) status and (str) msg
-        """
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.COPY_IMAGE
-        command.params["token"] = self.piscsi.token
-        command.params["locale"] = self.piscsi.locale
-
-        command.params["from"] = file_name
-        command.params["to"] = new_file_name
-
-        data = self.send_pb_command(command)
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
-
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
         Takes (Path) file_path for the file to delete
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"file_path": file_path}
 
@@ -263,10 +164,12 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to rename
          - (Path) target_path for the name to rename
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
+        if target_path.parent.exists() and not target_path.exists():
             file_path.rename(target_path)
             return {
                 "status": True,
@@ -285,10 +188,12 @@ class FileCmds:
         Takes:
          - (Path) file_path for the file to copy from
          - (Path) target_path for the name to copy to
-        Returns (dict) with (bool) status and (str) msg
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
-        if target_path.parent.exists:
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
+        if target_path.parent.exists() and not target_path.exists():
             copyfile(str(file_path), str(target_path))
             return {
                 "status": True,
@@ -297,7 +202,32 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_UNABLE_TO_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "parameters": parameters,
+        }
+
+    def create_empty_image(self, target_path, size):
+        """
+        Takes (Path) target_path and (int) size in bytes
+        Creates a new empty binary file to use as image
+        Returns (dict) with (bool) status, (str) msg, (dict) parameters
+        """
+        parameters = {"target_path": target_path}
+        if not target_path.parent.exists():
+            target_path.parent.mkdir(parents=True)
+        if target_path.parent.exists() and not target_path.exists():
+            try:
+                with open(f"{target_path}", "wb") as out:
+                    out.seek(size - 1)
+                    out.write(b"\0")
+            except OSError as error:
+                return {"status": False, "msg": str(error)}
+
+            return {"status": True, "msg": ""}
+
+        return {
+            "status": False,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
             "parameters": parameters,
         }
 
@@ -635,29 +565,47 @@ class FileCmds:
                         )
                         tmp_full_path.unlink(True)
 
-            try:
-                run(
-                    [
-                        "genisoimage",
-                        *iso_args,
-                        "-o",
-                        str(iso_filename),
-                        tmp_dir,
-                    ],
-                    capture_output=True,
-                    check=True,
-                )
-            except CalledProcessError as error:
-                logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
-                return {"status": False, "msg": error.stderr.decode("utf-8")}
+            process = self.generate_iso(iso_filename, Path(tmp_dir), *iso_args)
 
-            parameters = {"value": " ".join(iso_args)}
+            if not process["status"]:
+                return {"status": False, "msg": process["msg"]}
+
             return {
                 "status": True,
-                "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
-                "parameters": parameters,
-                "file_name": iso_filename.name,
+                "return_code": process["return_code"],
+                "parameters": process["parameters"],
+                "file_name": process["file_name"],
             }
+
+    def generate_iso(self, iso_file, target_path, *iso_args):
+        """
+        Takes
+        - (Path) iso_file - the path to the file to create
+        - (Path) target_path - the path to the file or dir to generate the iso from
+        - (*str) iso_args - the tuple of arguments to pass to genisoimage
+        """
+        try:
+            run(
+                [
+                    "genisoimage",
+                    *iso_args,
+                    "-o",
+                    str(iso_file),
+                    str(target_path),
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as error:
+            logging.warning(SHELL_ERROR, " ".join(error.cmd), error.stderr.decode("utf-8"))
+            return {"status": False, "msg": error.stderr.decode("utf-8")}
+
+        return {
+            "status": True,
+            "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
+            "parameters": {"value": " ".join(iso_args)},
+            "file_name": iso_file.name,
+        }
 
     # noinspection PyMethodMayBeStatic
     def download_to_dir(self, url, save_dir, file_name):
@@ -829,6 +777,8 @@ class FileCmds:
         Returns (dict) with (bool) status and (str) msg
         """
         file_path = Path(CFG_DIR) / file_name
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True)
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)

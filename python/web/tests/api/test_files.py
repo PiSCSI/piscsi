@@ -3,7 +3,6 @@ import uuid
 import os
 
 from conftest import (
-    SCSI_ID,
     FILE_SIZE_1_MIB,
     STATUS_SUCCESS,
 )
@@ -254,6 +253,7 @@ def test_upload_file(http_client, delete_file):
                 chunk_byte_offset = chunk_number * chunk_size
 
             form_data = {
+                "destination": "disk_images",
                 "dzuuid": str(uuid.uuid4()),
                 "dzchunkindex": chunk_number,
                 "dzchunksize": chunk_size,
@@ -281,16 +281,52 @@ def test_upload_file(http_client, delete_file):
     delete_file(file_name)
 
 
-# route("/files/download", methods=["POST"])
-def test_download_file(http_client, create_test_image):
+# route("/files/download_image", methods=["POST"])
+def test_download_image(http_client, create_test_image):
     file_name = create_test_image()
 
-    response = http_client.post("/files/download", data={"file": file_name})
+    response = http_client.post("/files/download_image", data={"file": file_name})
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/octet-stream"
     assert response.headers["content-disposition"] == f"attachment; filename={file_name}"
     assert response.headers["content-length"] == str(FILE_SIZE_1_MIB)
+
+
+# route("/files/download_config", methods=["POST"])
+def test_download_properties(http_client, list_files, delete_file):
+    file_prefix = str(uuid.uuid4())
+    file_name = f"{file_prefix}.hds"
+
+    response = http_client.post(
+        "/files/create",
+        data={
+            "file_name": file_prefix,
+            "type": "hds",
+            "size": 1,
+            "drive_name": "Miniscribe M8425",
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 201
+    assert response_data["status"] == STATUS_SUCCESS
+    assert response_data["data"]["image"] == file_name
+    assert (
+        response_data["messages"][0]["message"]
+        == f"Image file with properties created: {file_name}"
+    )
+    assert file_name in list_files()
+
+    response = http_client.post("/files/download_config", data={"file": f"{file_name}.properties"})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert response.headers["content-disposition"] == f"attachment; filename={file_name}.properties"
+
+    # Cleanup
+    delete_file(file_name)
 
 
 # route("/files/download_url", methods=["POST"])
@@ -328,14 +364,11 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
     delete_file(file_name)
 
 
-# route("/files/download_to_iso", methods=["POST"])
-def test_download_url_to_iso(
-    env,
+# route("/files/create_iso", methods=["POST"])
+def test_create_iso_from_url(
     httpserver,
     http_client,
     list_files,
-    list_attached_images,
-    detach_devices,
     delete_file,
 ):
     test_file_name = str(uuid.uuid4())
@@ -354,9 +387,8 @@ def test_download_url_to_iso(
     )
 
     response = http_client.post(
-        "/files/download_to_iso",
+        "/files/create_iso",
         data={
-            "scsi_id": SCSI_ID,
             "type": ISO_TYPE,
             "url": url,
         },
@@ -367,16 +399,48 @@ def test_download_url_to_iso(
     assert response.status_code == 200
     assert response_data["status"] == STATUS_SUCCESS
     assert iso_file_name in list_files()
-    assert iso_file_name in list_attached_images()
 
     assert (
         response_data["messages"][0]["message"]
-        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created "
-        f"and attached to SCSI ID {SCSI_ID}"
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created."
     )
 
     # Cleanup
-    detach_devices()
+    delete_file(iso_file_name)
+
+
+# route("/files/create_iso", methods=["POST"])
+def test_create_iso_from_local_file(
+    http_client,
+    create_test_image,
+    list_files,
+    delete_file,
+):
+    test_file_name = create_test_image()
+    iso_file_name = f"{test_file_name}.iso"
+
+    ISO_TYPE = "HFS"
+
+    response = http_client.post(
+        "/files/create_iso",
+        data={
+            "type": ISO_TYPE,
+            "file": test_file_name,
+        },
+    )
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data["status"] == STATUS_SUCCESS
+    assert iso_file_name in list_files()
+
+    assert (
+        response_data["messages"][0]["message"]
+        == f"CD-ROM image {iso_file_name} with type {ISO_TYPE} was created."
+    )
+
+    # Cleanup
     delete_file(iso_file_name)
 
 

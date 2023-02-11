@@ -36,10 +36,12 @@ DeviceFactory::DeviceFactory()
 
 	string network_interfaces;
 	for (const auto& network_interface : GetNetworkInterfaces()) {
-		if (!network_interfaces.empty()) {
-			network_interfaces += ",";
+		if (network_interface.rfind("dummy", 0) == string::npos) {
+			if (!network_interfaces.empty()) {
+				network_interfaces += ",";
+			}
+			network_interfaces += network_interface;
 		}
-		network_interfaces += network_interface;
 	}
 
 	default_params[SCBR]["interface"] = network_interfaces;

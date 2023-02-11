@@ -69,7 +69,7 @@ MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../doc
 COVERAGE_DIR = coverage
 COVERAGE_FILE = piscsi.dat
-OS_FILES = os_integration
+OS_FILES = ../os_integration
 
 OBJDIR := obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BINDIR := bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')

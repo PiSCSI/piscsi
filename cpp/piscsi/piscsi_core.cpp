@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2022 Contributors to the PiSCSI project
+//	Copyright (C) 2020-2023 Contributors to the PiSCSI project
 //
 //---------------------------------------------------------------------------
 
@@ -146,11 +146,11 @@ PbDeviceType Piscsi::ParseDeviceType(const string& value) const
 	return type;
 }
 
-void Piscsi::TerminationHandler(int signum)
+void Piscsi::TerminationHandler(int)
 {
 	Cleanup();
 
-	exit(signum);
+	// Process will terminate automatically
 }
 
 Piscsi::optargs_type Piscsi::ParseArguments(const vector<char *>& args, int& port) const

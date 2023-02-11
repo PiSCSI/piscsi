@@ -260,6 +260,7 @@ def index():
 
     return response(
         template="index.html",
+        page_title=_("PiSCSI Control Page"),
         locales=get_supported_locales(),
         netinfo=piscsi_cmd.get_network_info(),
         bridge_configured=sys_cmd.is_bridge_setup(),
@@ -305,6 +306,7 @@ def drive_list():
 
     return response(
         template="drives.html",
+        page_title=_("PiSCSI Create Drive"),
         files=file_cmd.list_images()["files"],
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
     )
@@ -318,7 +320,9 @@ def upload_page():
 
     return response(
         template="upload.html",
+        page_title=_("PiSCSI File Upload"),
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
     )
 
@@ -385,7 +389,7 @@ def drive_create():
     Creates the image and properties file pair
     """
     drive_name = request.form.get("drive_name")
-    file_name = Path(request.form.get("file_name")).name
+    file_name = Path(request.form.get("file_name"))
 
     properties = get_properties_by_drive_name(APP.config["PISCSI_DRIVE_PROPERTIES"], drive_name)
 
@@ -396,11 +400,12 @@ def drive_create():
         )
 
     # Creating the image file
-    process = file_cmd.create_new_image(
-        file_name,
-        properties["file_type"],
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_empty_image(
+        Path(server_info["image_dir"]) / f"{file_name}.{properties['file_type']}",
         properties["size"],
     )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -427,7 +432,7 @@ def drive_cdrom():
     Creates a properties file for a CD-ROM image
     """
     drive_name = request.form.get("drive_name")
-    file_name = Path(request.form.get("file_name")).name
+    file_name = Path(request.form.get("file_name"))
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -463,13 +468,16 @@ def config_save():
     return response(error=True, message=process["msg"])
 
 
-@APP.route("/config/load", methods=["POST"])
+@APP.route("/config/action", methods=["POST"])
 @login_required
-def config_load():
+def config_action():
     """
-    Loads a config file from disk
+    Carries out on an operation on the config file
     """
-    file_name = Path(request.form.get("name")).name
+    file_name = Path(request.form.get("name"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
 
     if "load" in request.form:
         process = file_cmd.read_config(file_name)
@@ -480,15 +488,20 @@ def config_load():
         return response(error=True, message=process["msg"])
 
     if "delete" in request.form:
-        file_path = Path(CFG_DIR) / file_name
-        process = file_cmd.delete_file(file_path)
+        process = file_cmd.delete_file(Path(CFG_DIR) / file_name)
         process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             return response(message=process["msg"])
 
         return response(error=True, message=process["msg"])
 
-    return response(error=True, message="Action field (load, delete) missing")
+    if "send" in request.form:
+        return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
+
+    return response(
+        error=True,
+        message="No known operation in request header. Expected one of: load, delete, send",
+    )
 
 
 @APP.route("/files/diskinfo", methods=["POST"])
@@ -505,6 +518,7 @@ def show_diskinfo():
     if returncode == 0:
         return response(
             template="diskinfo.html",
+            page_title=_("PiSCSI Image Info"),
             file_name=str(file_name),
             diskinfo=diskinfo,
         )
@@ -552,13 +566,14 @@ def show_manpage():
 
         return response(
             template="manpage.html",
+            page_title=_("PiSCSI Manual"),
             app=app,
             manpage=formatted_manpage,
         )
 
     return response(
         error=True,
-        message=_("An error occurred when accessing man page: %(error)s", error=manpage),
+        message=_("An error occurred when accessing manual page: %(error)s", error=manpage),
     )
 
 
@@ -574,6 +589,7 @@ def show_logs():
     if returncode == 0:
         return response(
             template="logs.html",
+            page_title=_("PiSCSI System Logs"),
             scope=scope,
             lines=lines,
             logs=logs,
@@ -791,6 +807,7 @@ def device_info():
     if process["status"]:
         return response(
             template="deviceinfo.html",
+            page_title=_("PiSCSI Device Info"),
             devices=process["device_list"],
         )
 
@@ -879,15 +896,15 @@ def shutdown():
     return response(error=True, message=message)
 
 
-@APP.route("/files/download_to_iso", methods=["POST"])
+@APP.route("/files/create_iso", methods=["POST"])
 @login_required
 def download_to_iso():
     """
     Downloads a file and creates a CD-ROM image with the specified file system and the file
     """
-    scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     iso_type = request.form.get("type")
+    local_file = request.form.get("file")
 
     if iso_type == "HFS":
         iso_args = ["-hfs"]
@@ -907,7 +924,14 @@ def download_to_iso():
             message=_("%(iso_type)s is not a valid CD-ROM format.", iso_type=iso_type),
         )
 
-    process = file_cmd.download_file_to_iso(url, *iso_args)
+    if url:
+        process = file_cmd.download_file_to_iso(url, *iso_args)
+    elif local_file:
+        server_info = piscsi_cmd.get_server_info()
+        file_path = Path(server_info["image_dir"]) / local_file
+        iso_path = Path(str(file_path) + ".iso")
+        process = file_cmd.generate_iso(iso_path, file_path, *iso_args)
+
     process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(
@@ -918,31 +942,11 @@ def download_to_iso():
             ),
         )
 
-    process_attach = piscsi_cmd.attach_device(
-        scsi_id,
-        device_type="SCCD",
-        params={"file": process["file_name"]},
-    )
-    process_attach = ReturnCodeMapper.add_msg(process_attach)
-    if process_attach["status"]:
-        return response(
-            message=_(
-                "CD-ROM image %(file_name)s with type %(iso_type)s was created "
-                "and attached to SCSI ID %(id_number)s",
-                file_name=process["file_name"],
-                iso_type=iso_type,
-                id_number=scsi_id,
-            ),
-        )
-
     return response(
-        error=True,
         message=_(
-            "CD-ROM image %(file_name)s with type %(iso_type)s was created "
-            "but could not be attached: %(error)s",
+            "CD-ROM image %(file_name)s with type %(iso_type)s was created.",
             file_name=process["file_name"],
             iso_type=iso_type,
-            error=process_attach["msg"],
         ),
     )
 
@@ -986,11 +990,16 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    if destination == "file_server":
-        destination_dir = FILE_SERVER_DIR
-    else:
+    if destination == "disk_images":
         server_info = piscsi_cmd.get_server_info()
         destination_dir = server_info["image_dir"]
+    elif destination == "shared_files":
+        destination_dir = FILE_SERVER_DIR
+    elif destination == "piscsi_config":
+        destination_dir = CFG_DIR
+    else:
+        return make_response("Invalid destination", 403)
+
     return upload_with_dropzonejs(destination_dir)
 
 
@@ -1010,7 +1019,10 @@ def create_file():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     full_file_name = f"{file_name}.{file_type}"
-    process = file_cmd.create_new_image(str(file_name), file_type, size)
+
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.create_empty_image(Path(server_info["image_dir"]) / full_file_name, size)
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1107,11 +1119,11 @@ def create_file():
     )
 
 
-@APP.route("/files/download", methods=["POST"])
+@APP.route("/files/download_image", methods=["POST"])
 @login_required
-def download():
+def download_image():
     """
-    Downloads a file from the system to the local computer
+    Downloads a file from the image dir to the local computer
     """
     file_name = Path(request.form.get("file"))
     safe_path = is_safe_path(file_name)
@@ -1119,6 +1131,19 @@ def download():
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
     return send_from_directory(server_info["image_dir"], str(file_name), as_attachment=True)
+
+
+@APP.route("/files/download_config", methods=["POST"])
+@login_required
+def download_config():
+    """
+    Downloads a file from the config dir to the local computer
+    """
+    file_name = Path(request.form.get("file"))
+    safe_path = is_safe_path(file_name)
+    if not safe_path["status"]:
+        return response(error=True, message=safe_path["msg"])
+    return send_from_directory(CFG_DIR, str(file_name), as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -1131,7 +1156,9 @@ def delete():
     safe_path = is_safe_path(file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.delete_image(str(file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.delete_file(Path(server_info["image_dir"]) / file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1172,7 +1199,12 @@ def rename():
     safe_path = is_safe_path(new_file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.rename_image(str(file_name), str(new_file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.rename_file(
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 
@@ -1214,7 +1246,12 @@ def copy():
     safe_path = is_safe_path(new_file_name)
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
-    process = file_cmd.copy_image(str(file_name), str(new_file_name))
+    server_info = piscsi_cmd.get_server_info()
+    process = file_cmd.copy_file(
+        Path(server_info["image_dir"]) / str(file_name),
+        Path(server_info["image_dir"]) / str(new_file_name),
+    )
+    process = ReturnCodeMapper.add_msg(process)
     if not process["status"]:
         return response(error=True, message=process["msg"])
 

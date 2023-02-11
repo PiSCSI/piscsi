@@ -10,6 +10,8 @@
   --primary: var(--bs-primary);
   --secondary: var(--bs-secondary);
   --text-color: var(--bs-body-color);
+  --highlight: #d76f14;
+  --disabled: #ededed;
   --border-radius: 0.2rem;
   --input-padding: 0.25rem 0.5rem;
   --font-size: 0.85rem;
@@ -45,6 +47,10 @@ hr {
 
 a:hover {
   text-decoration: none;
+}
+
+input[type="radio"] {
+  margin: 0 0.1rem 0 0.75rem;
 }
 
 /*
@@ -141,10 +147,6 @@ select {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-}
-
-.dropzone label {
-  padding: 0 0.5rem;
 }
 
 .dropzone p,
@@ -296,7 +298,7 @@ div.header div.authentication-disabled a {
 
   div.header div.title a {
     display: block;
-    background: url("/static/logo.png") no-repeat;
+    background: url("/static/logo.svg") no-repeat;
     background-size: auto 2rem;
     background-position: 1rem center;
     padding: 1rem 1rem 1rem 3.5rem;
@@ -367,7 +369,7 @@ div.header div.authentication-disabled a {
 
   div.header div.title a {
     display: inline-block;
-    background: url("/static/logo.png") no-repeat;
+    background: url("/static/logo.svg") no-repeat;
     background-size: auto 40px;
     background-position: left center;
     padding-left: 3rem;
@@ -380,15 +382,7 @@ div.header div.authentication-disabled a {
 
   @supports (-webkit-background-clip: text) {
     div.header div.title a:hover h1 {
-      background: linear-gradient(
-        to right,
-        rgb(101 204 51 / 100%) 0%,
-        rgb(255 204 51 / 100%) 10%,
-        rgb(255 153 51 / 100%) 20%,
-        rgb(205 51 50 / 100%) 55%,
-        rgb(152 50 153 / 100%) 100%
-      );
-
+      background: var(--highlight);
       -webkit-background-clip: text; /* stylelint-disable-line */
       -webkit-text-fill-color: transparent; /* stylelint-disable-line */
     }
@@ -619,7 +613,7 @@ table#attached-devices span.filename {
 }
 
 table#attached-devices tr.reserved td {
-  background-color: #ffe9e9;
+  background-color: var(--disabled);
 }
 
 @media (max-width: 900px) {

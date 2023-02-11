@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ TEST(HostServicesTest, ModeSense6)
 	// Minor version 0
 	EXPECT_EQ(0x00, buffer[7]);
 	// Year
-	EXPECT_NE(0x00, buffer[9]);
+	EXPECT_NE(0x00, buffer[8]);
 	// Day
 	EXPECT_NE(0x00, buffer[10]);
 
@@ -151,7 +151,7 @@ TEST(HostServicesTest, ModeSense10)
 	// Minor version 0
 	EXPECT_EQ(0x00, buffer[11]);
 	// Year
-	EXPECT_NE(0x00, buffer[13]);
+	EXPECT_NE(0x00, buffer[12]);
 	// Day
 	EXPECT_NE(0x00, buffer[14]);
 

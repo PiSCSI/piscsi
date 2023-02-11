@@ -214,8 +214,6 @@ function installPiscsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
-    sudo usermod -a -G $USER www-data
-
     deleteFile "$SSL_CERTS_PATH" "rascsi-web.crt"
     deleteFile "$SSL_KEYS_PATH" "rascsi-web.key"
 
@@ -415,12 +413,12 @@ function migrateLegacyData() {
     fi
     if [[ -f "/etc/rsyslog.d/rascsi.conf" ]]; then
         sudo rm "/etc/rsyslog.d/rascsi.conf"
-        sudo cp "$CPP_PATH/os_integration/piscsi.conf" "/etc/rsyslog.d"
+        sudo cp "$BASE/os_integration/piscsi.conf" "/etc/rsyslog.d"
         echo "Replaced rascsi.conf with piscsi.conf"
     fi
     if [[ -f "/etc/network/interfaces.d/rascsi_bridge" ]]; then
         sudo rm "/etc/network/interfaces.d/rascsi_bridge"
-        sudo cp "$CPP_PATH/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
+        sudo cp "$BASE/os_integration/piscsi_bridge" "/etc/network/interfaces.d"
         echo "Replaced rascsi_bridge with piscsi_bridge"
     fi
     if [[ $(getent group rascsi) && $(getent group "$AUTH_GROUP") ]]; then
@@ -601,7 +599,7 @@ function setupWiredNetworking() {
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$CPP_PATH"'/os_integration/piscsi_bridge > /etc/network/interfaces.d/piscsi_bridge'
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/os_integration/piscsi_bridge > /etc/network/interfaces.d/piscsi_bridge'
     echo "Modified /etc/network/interfaces.d/piscsi_bridge"
 
     echo "Configuration completed!"
@@ -709,7 +707,7 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-221101"
+    NETATALK_VERSION="2-230201"
     NETATALK_CONFIG_PATH="/etc/netatalk"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
