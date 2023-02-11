@@ -14,8 +14,8 @@
 
 // The following should be updated for each release
 const int piscsi_major_version = 23; // Last two digits of year
-const int piscsi_minor_version =  2; // Month
-const int piscsi_patch_version =  1;  // Patch number - increment for each update
+const int piscsi_minor_version =  3; // Month
+const int piscsi_patch_version = -1;  // Patch number - increment for each update
 
 using namespace std;
 
