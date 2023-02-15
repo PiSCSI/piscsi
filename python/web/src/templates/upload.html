@@ -20,6 +20,8 @@
     <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
 </form>
 
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
 <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
@@ -54,6 +56,10 @@
     }
 </script>
 
-<noscript><p>{{ _("The file uploading functionality requires JavaScript.") }}</p></noscript>
+<noscript>
+    <div class="noscriptmsg">
+        {{ _("The file uploading functionality requires JavaScript.") }}
+    </div>
+</noscript>
 
 {% endblock content %}

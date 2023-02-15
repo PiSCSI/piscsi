@@ -53,6 +53,15 @@ input[type="radio"] {
   margin: 0 0.1rem 0 0.75rem;
 }
 
+div.noscriptmsg {
+  background: var(--danger);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  display: inline-block;
+  color: #fff;
+}
+
 /*
  ------------------------------------------------------------------------------
  Tables
