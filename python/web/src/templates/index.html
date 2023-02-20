@@ -209,6 +209,20 @@
     </ul>
 </details>
 
+{% if not files|length: %}
+    <div class="notice">
+	{{ _("The images directory is currently empty.") }}
+    </div>
+{% else %}
+
+{% for subdir, group in formatted_image_files.items() %}
+{% if subdir != "/" %}
+<div>
+<details>
+<summary class="table_heading">
+    {{ subdir }}
+</summary>
+{% endif %}
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
@@ -216,14 +230,7 @@
             <th scope="col">{{ _("Size") }}</th>
             <th scope="col">{{ _("Actions") }}</th>
         </tr>
-        {% if not files|length: %}
-            <tr class="directory-empty">
-                <td colspan="3">
-                    {{ _("The images directory is currently empty.") }}
-                </td>
-            </tr>
-        {% endif %}
-        {% for file in files|sort(attribute='name') %}
+        {% for file in group|sort(attribute='name') %}
         <tr>
             {% if file["prop"] %}
             <td>
@@ -361,6 +368,12 @@
         {% endfor %}
     </tbody>
 </table>
+{% if subdir != "/" %}
+</details>
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
 
@@ -396,7 +409,7 @@
     <style type="text/css">
         section#upload { display: none; }
     </style>
-    <div class="noscriptmsg">
+    <div class="notice">
         {{ _("The file uploading functionality requires JavaScript.") }}
     </div>
 </noscript>

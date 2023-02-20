@@ -7,6 +7,7 @@ from grp import getgrall
 from os import path
 from pathlib import Path
 from ua_parser import user_agent_parser
+from re import findall
 
 from flask import request, make_response
 from flask_babel import _
@@ -144,6 +145,32 @@ def get_image_description(file_suffix):
     if file_suffix == "mos":
         return _("Magneto-Optical Disk Image")
     return file_suffix
+
+
+def format_image_list(image_files, device_types):
+    """
+    Takes a (list) of (dict) image_files and (list) device_types
+    Returns a formatted (dict) with groups of image_files per subdir
+    """
+
+    root_image_files = []
+    subdir_image_files = {}
+    for image in image_files:
+        if image["detected_type"] != "UNDEFINED":
+            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
+        subdir_path = findall("^.*/", image["name"])
+        if subdir_path:
+            subdir = subdir_path[0]
+            if subdir in subdir_image_files.keys():
+                subdir_image_files[subdir].append(image)
+            else:
+                subdir_image_files[subdir] = [image]
+        else:
+            root_image_files.append(image)
+
+    formatted_image_files = dict(sorted(subdir_image_files.items()))
+    formatted_image_files["/"] = root_image_files
+    return formatted_image_files
 
 
 def format_drive_properties(drive_properties):
