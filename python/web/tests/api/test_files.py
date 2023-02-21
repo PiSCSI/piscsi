@@ -254,6 +254,7 @@ def test_upload_file(http_client, delete_file):
 
             form_data = {
                 "destination": "disk_images",
+                "subdir": "",
                 "dzuuid": str(uuid.uuid4()),
                 "dzchunkindex": chunk_number,
                 "dzchunksize": chunk_size,
