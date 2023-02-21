@@ -210,9 +210,9 @@
 </details>
 
 {% if not files|length: %}
-    <div class="notice">
-	{{ _("The images directory is currently empty.") }}
-    </div>
+<div class="notice">
+    {{ _("The images directory is currently empty.") }}
+</div>
 {% else %}
 
 {% for subdir, group in formatted_image_files.items() %}

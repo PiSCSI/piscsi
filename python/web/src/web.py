@@ -314,10 +314,13 @@ def upload_page():
     """
     Sets up the data structures and kicks off the rendering of the file uploading page
     """
+    image_files = file_cmd.list_images()
+    formatted_image_files = format_image_list(image_files["files"])
 
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
+        formatted_image_files=formatted_image_files,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -987,9 +990,10 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
+    subdir = request.form.get("subdir")
     if destination == "disk_images":
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"]
+        destination_dir = server_info["image_dir"] + "/" + subdir
     elif destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
     elif destination == "piscsi_config":
