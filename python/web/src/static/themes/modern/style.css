@@ -717,6 +717,15 @@ section#files p {
   margin-top: 1rem;
 }
 
+section#files details#subdir summary.heading {
+  background: var(--secondary);
+  color: #fff;
+}
+
+section#files details#contents summary.filename {
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   section#files table#images tr th:nth-child(2),
   section#files table#images tr td:nth-child(2) {

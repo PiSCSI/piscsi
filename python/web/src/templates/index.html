@@ -215,13 +215,13 @@
 </div>
 {% else %}
 
+<div>
 {% for subdir, group in formatted_image_files.items() %}
 {% if subdir != "/" %}
-<div>
-<details>
-<summary class="table_heading">
-    {{ subdir }}
-</summary>
+<details id="subdir">
+    <summary class="heading">
+        {{ subdir }}
+    </summary>
 {% endif %}
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
@@ -234,8 +234,8 @@
         <tr>
             {% if file["prop"] %}
             <td>
-                <details>
-                    <summary>
+                <details id="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -251,8 +251,8 @@
             </td>
             {% elif file["archive_contents"] %}
             <td>
-                <details>
-                    <summary>
+                <details id="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -260,8 +260,8 @@
                             {% if not member["is_properties_file"] %}
                                 <li>
                                     {% if member["related_properties_file"] %}
-                                        <details>
-                                            <summary>
+                                        <details id="contents">
+                                            <summary class="filename">
                                                 <label>{{ member["path"] }}</label>
                                                 <form action="/files/extract_image" method="post" class="file-extract">
                                                     <input name="archive_file" type="hidden" value="{{ file['name'] }}">
@@ -370,9 +370,9 @@
 </table>
 {% if subdir != "/" %}
 </details>
-</div>
 {% endif %}
 {% endfor %}
+</div>
 {% endif %}
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
