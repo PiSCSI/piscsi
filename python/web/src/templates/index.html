@@ -219,8 +219,8 @@
 {% for subdir, group in formatted_image_files.items() %}
 {% if subdir != "/" %}
 <details id="subdir">
-    <summary class="heading">
-        <tt><small>images/{{ subdir }}</small></tt>
+    <summary class="dirname">
+        images/{{ subdir }}
     </summary>
 {% endif %}
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">

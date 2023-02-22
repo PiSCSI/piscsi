@@ -717,9 +717,9 @@ section#files p {
   margin-top: 1rem;
 }
 
-section#files details#subdir summary.heading {
-  background: var(--secondary);
-  color: #fff;
+section#files details#subdir summary.dirname {
+  text-decoration: underline;
+  font-family: monospace;
 }
 
 section#files details#contents summary.filename {
