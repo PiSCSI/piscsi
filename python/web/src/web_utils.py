@@ -283,10 +283,10 @@ def is_safe_path(file_name):
     Returns True if the path is safe
     Returns False if the path is either absolute, or tries to traverse the file system
     """
-    if file_name.is_absolute() or ".." in str(file_name):
+    if file_name.is_absolute() or ".." in str(file_name) or str(file_name)[0] == "~":
         return {
             "status": False,
-            "msg": _("%(file_name)s is not a valid path", file_name=file_name),
+            "msg": _("No permission to use path '%(file_name)s'", file_name=file_name),
         }
 
     return {"status": True, "msg": ""}

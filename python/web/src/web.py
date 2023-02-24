@@ -992,14 +992,17 @@ def upload_file():
     destination = request.form.get("destination")
     subdir = request.form.get("subdir")
     if destination == "disk_images":
+        safe_path = is_safe_path(Path(subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"] + "/" + subdir
+        destination_dir = Path(server_info["image_dir"]) / subdir
     elif destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
     elif destination == "piscsi_config":
         destination_dir = CFG_DIR
     else:
-        return make_response("Invalid destination", 403)
+        return make_response("Unknown destination", 403)
 
     return upload_with_dropzonejs(destination_dir)
 
