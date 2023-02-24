@@ -317,56 +317,39 @@ class FileCmds:
         server_info = self.piscsi.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
 
-        # Inject hfdisk commands to create Drive with correct partitions
-        # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-        # i                         initialize partition map
-        # continue with default first block
-        # C                         Create 1st partition with type specified next)
-        # continue with default
-        # 32                        32 blocks (required for HFS+)
-        # Driver_Partition          Partition Name
-        # Apple_Driver              Partition Type  (available types: Apple_Driver,
-        #                           Apple_Driver43, Apple_Free, Apple_HFS...)
-        # C                         Create 2nd partition with type specified next
-        # continue with default first block
-        # continue with default block size (rest of the disk)
-        # ${volumeName}             Partition name provided by user
-        # Apple_HFS                 Partition Type
-        # w                         Write partition map to disk
-        # y                         Confirm partition table
-        # p                         Print partition map
+        # Inject hfdisk commands to create Mac partition table with HFS partitions
         if disk_format == "HFS":
             partitioning_tool = "hfdisk"
             commands = [
-                "i",
-                "",
-                "C",
-                "",
-                "32",
-                "Driver_Partition",
-                "Apple_Driver",
-                "C",
-                "",
-                "",
-                volume_name,
-                "Apple_HFS",
-                "w",
-                "y",
-                "p",
+                "i",  # Initialize partition map
+                "",  # Continue with default first block
+                "C",  # Create 1st partition with type specified next)
+                "",  # Continue with default
+                "32",  # 32 block (required for HFS+)
+                "Driver_Partition",  # Partition Name
+                "Apple_Driver",  # Partition Type
+                "C",  # Create 2nd partition with type specified next
+                "",  # Continue with default first block
+                "",  # Continue with default block size (rest of the disk)
+                volume_name,  # Partition name
+                "Apple_HFS",  # Partition Type
+                "w",  # Write partition map to disk
+                "y",  # Confirm partition table
+                "p",  # Print partition map (for the log)
             ]
-        # Create a DOS label, primary partition, W95 FAT type
+        # Inject fdisk commands to create primary FAT partition with MS-DOS label
         elif disk_format == "FAT":
             partitioning_tool = "fdisk"
             commands = [
-                "o",
-                "n",
-                "p",
-                "",
-                "",
-                "",
-                "t",
-                "b",
-                "w",
+                "o",  # create a new empty DOS partition table
+                "n",  # add a new partition
+                "p",  # primary partition
+                "",  # default partition number
+                "",  # default first sector
+                "",  # default last sector
+                "t",  # change partition type
+                "b",  # choose W95 FAT32 type
+                "w",  # write table to disk and exit
             ]
         try:
             process = Popen(
