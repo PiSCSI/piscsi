@@ -717,12 +717,13 @@ section#files p {
   margin-top: 1rem;
 }
 
-section#files details#subdir summary.dirname {
+section#files details.subdir summary.dirname {
   text-decoration: underline;
   font-family: monospace;
+  margin: 0.5rem 0;
 }
 
-section#files details#contents summary.filename {
+section#files details.contents summary.filename {
   text-decoration: underline;
 }
 

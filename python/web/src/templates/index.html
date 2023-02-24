@@ -217,12 +217,11 @@
 
 <div>
 {% for subdir, group in formatted_image_files.items() %}
-{% if subdir != "/" %}
-<details id="subdir">
+
+<details class="subdir"{% if subdir == "images/" %} open{% endif %}>
     <summary class="dirname">
-        images/{{ subdir }}
+        {{ subdir }}
     </summary>
-{% endif %}
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
@@ -234,7 +233,7 @@
         <tr>
             {% if file["prop"] %}
             <td>
-                <details id="contents">
+                <details class="contents">
                     <summary class="filename">
                         {{ file["name"] }}
                     </summary>
@@ -251,7 +250,7 @@
             </td>
             {% elif file["archive_contents"] %}
             <td>
-                <details id="contents">
+                <details class="contents">
                     <summary class="filename">
                         {{ file["name"] }}
                     </summary>
