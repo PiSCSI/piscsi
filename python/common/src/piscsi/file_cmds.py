@@ -321,35 +321,35 @@ class FileCmds:
         if disk_format == "HFS":
             partitioning_tool = "hfdisk"
             commands = [
-                "i",                 # Initialize partition map
-                "",                  # Continue with default first block
-                "C",                 # Create 1st partition with type specified next)
-                "",                  # Continue with default
-                "32",                # 32 block (required for HFS+)
+                "i",  # Initialize partition map
+                "",  # Continue with default first block
+                "C",  # Create 1st partition with type specified next)
+                "",  # Continue with default
+                "32",  # 32 block (required for HFS+)
                 "Driver_Partition",  # Partition Name
-                "Apple_Driver",      # Partition Type
-                "C",                 # Create 2nd partition with type specified next
-                "",                  # Continue with default first block
-                "",                  # Continue with default block size (rest of the disk)
-                volume_name,         # Partition name
-                "Apple_HFS",         # Partition Type
-                "w",                 # Write partition map to disk
-                "y",                 # Confirm partition table
-                "p",                 # Print partition map (for the log)
+                "Apple_Driver",  # Partition Type
+                "C",  # Create 2nd partition with type specified next
+                "",  # Continue with default first block
+                "",  # Continue with default block size (rest of the disk)
+                volume_name,  # Partition name
+                "Apple_HFS",  # Partition Type
+                "w",  # Write partition map to disk
+                "y",  # Confirm partition table
+                "p",  # Print partition map (for the log)
             ]
         # Inject fdisk commands to create primary FAT partition with MS-DOS label
         elif disk_format == "FAT":
             partitioning_tool = "fdisk"
             commands = [
-                "o",                 # create a new empty DOS partition table
-                "n",                 # add a new partition
-                "p",                 # primary partition
-                "",                  # default partition number
-                "",                  # default first sector
-                "",                  # default last sector
-                "t",                 # change partition type
-                "b",                 # choose W95 FAT32 type
-                "w",                 # write table to disk and exit
+                "o",  # create a new empty DOS partition table
+                "n",  # add a new partition
+                "p",  # primary partition
+                "",  # default partition number
+                "",  # default first sector
+                "",  # default last sector
+                "t",  # change partition type
+                "b",  # choose W95 FAT32 type
+                "w",  # write table to disk and exit
             ]
         try:
             process = Popen(
