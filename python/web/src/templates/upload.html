@@ -14,6 +14,14 @@
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
     <label for="disk_images">{{ _("Disk Images") }}</label>
+    <select name="subdir" id="subdir">
+        <option value="">images/</option>
+    {% for subdir, group in formatted_image_files.items() %}
+    {% if subdir != "/" %}
+        <option value="{{subdir}}">images/{{subdir}}</option>
+    {% endif %}
+    {% endfor %}
+    </select>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">

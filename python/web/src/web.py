@@ -49,6 +49,7 @@ from web_utils import (
     map_device_types_and_names,
     get_device_name,
     map_image_file_descriptions,
+    format_image_list,
     format_drive_properties,
     get_properties_by_drive_name,
     auth_active,
@@ -223,12 +224,7 @@ def index():
     image_files = file_cmd.list_images()
     config_files = file_cmd.list_config_files()
     ip_addr, host = sys_cmd.get_ip_and_host()
-
-    extended_image_files = []
-    for image in image_files["files"]:
-        if image["detected_type"] != "UNDEFINED":
-            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
-        extended_image_files.append(image)
+    formatted_image_files = format_image_list(image_files["files"], device_types)
 
     attached_images = []
     units = 0
@@ -266,7 +262,8 @@ def index():
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
         attached_images=attached_images,
-        files=extended_image_files,
+        formatted_image_files=formatted_image_files,
+        files=image_files["files"],
         config_files=config_files,
         device_types=device_types,
         scan_depth=server_info["scan_depth"],
@@ -317,10 +314,13 @@ def upload_page():
     """
     Sets up the data structures and kicks off the rendering of the file uploading page
     """
+    image_files = file_cmd.list_images()
+    formatted_image_files = format_image_list(image_files["files"])
 
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
+        formatted_image_files=formatted_image_files,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -990,15 +990,19 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
+    subdir = request.form.get("subdir")
     if destination == "disk_images":
+        safe_path = is_safe_path(Path(subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"]
+        destination_dir = Path(server_info["image_dir"]) / subdir
     elif destination == "shared_files":
         destination_dir = FILE_SERVER_DIR
     elif destination == "piscsi_config":
         destination_dir = CFG_DIR
     else:
-        return make_response("Invalid destination", 403)
+        return make_response("Unknown destination", 403)
 
     return upload_with_dropzonejs(destination_dir)
 

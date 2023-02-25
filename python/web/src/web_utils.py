@@ -7,6 +7,7 @@ from grp import getgrall
 from os import path
 from pathlib import Path
 from ua_parser import user_agent_parser
+from re import findall
 
 from flask import request, make_response
 from flask_babel import _
@@ -146,6 +147,33 @@ def get_image_description(file_suffix):
     return file_suffix
 
 
+def format_image_list(image_files, device_types=None):
+    """
+    Takes a (list) of (dict) image_files and optional (list) device_types
+    Returns a formatted (dict) with groups of image_files per subdir key
+    """
+
+    root_image_files = []
+    subdir_image_files = {}
+    for image in image_files:
+        if (image["detected_type"] != "UNDEFINED") and device_types:
+            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
+        subdir_path = findall("^.*/", image["name"])
+        if subdir_path:
+            subdir = subdir_path[0]
+            if subdir in subdir_image_files.keys():
+                subdir_image_files[f"images/{subdir}"].append(image)
+            else:
+                subdir_image_files[f"images/{subdir}"] = [image]
+        else:
+            root_image_files.append(image)
+
+    formatted_image_files = dict(sorted(subdir_image_files.items()))
+    if root_image_files:
+        formatted_image_files["images/"] = root_image_files
+    return formatted_image_files
+
+
 def format_drive_properties(drive_properties):
     """
     Takes a (dict) with structured drive properties data
@@ -256,10 +284,10 @@ def is_safe_path(file_name):
     Returns True if the path is safe
     Returns False if the path is either absolute, or tries to traverse the file system
     """
-    if file_name.is_absolute() or ".." in str(file_name):
+    if file_name.is_absolute() or ".." in str(file_name) or str(file_name)[0] == "~":
         return {
             "status": False,
-            "msg": _("%(file_name)s is not a valid path", file_name=file_name),
+            "msg": _("No permission to use path '%(file_name)s'", file_name=file_name),
         }
 
     return {"status": True, "msg": ""}

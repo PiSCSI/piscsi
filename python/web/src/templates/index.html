@@ -209,6 +209,19 @@
     </ul>
 </details>
 
+{% if not files|length: %}
+<div class="notice">
+    {{ _("The images directory is currently empty.") }}
+</div>
+{% else %}
+
+<div>
+{% for subdir, group in formatted_image_files.items() %}
+
+<details class="subdir"{% if subdir == "images/" %} open{% endif %}>
+    <summary class="dirname">
+        {{ subdir }}
+    </summary>
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
@@ -216,19 +229,12 @@
             <th scope="col">{{ _("Size") }}</th>
             <th scope="col">{{ _("Actions") }}</th>
         </tr>
-        {% if not files|length: %}
-            <tr class="directory-empty">
-                <td colspan="3">
-                    {{ _("The images directory is currently empty.") }}
-                </td>
-            </tr>
-        {% endif %}
-        {% for file in files|sort(attribute='name') %}
+        {% for file in group|sort(attribute='name') %}
         <tr>
             {% if file["prop"] %}
             <td>
-                <details>
-                    <summary>
+                <details class="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -244,8 +250,8 @@
             </td>
             {% elif file["archive_contents"] %}
             <td>
-                <details>
-                    <summary>
+                <details class="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -253,8 +259,8 @@
                             {% if not member["is_properties_file"] %}
                                 <li>
                                     {% if member["related_properties_file"] %}
-                                        <details>
-                                            <summary>
+                                        <details id="contents">
+                                            <summary class="filename">
                                                 <label>{{ member["path"] }}</label>
                                                 <form action="/files/extract_image" method="post" class="file-extract">
                                                     <input name="archive_file" type="hidden" value="{{ file['name'] }}">
@@ -361,6 +367,12 @@
         {% endfor %}
     </tbody>
 </table>
+{% if subdir != "/" %}
+</details>
+{% endif %}
+{% endfor %}
+</div>
+{% endif %}
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
 
@@ -396,7 +408,7 @@
     <style type="text/css">
         section#upload { display: none; }
     </style>
-    <div class="noscriptmsg">
+    <div class="notice">
         {{ _("The file uploading functionality requires JavaScript.") }}
     </div>
 </noscript>
