@@ -161,7 +161,7 @@ def format_image_list(image_files, device_types=None):
         subdir_path = findall("^.*/", image["name"])
         if subdir_path:
             subdir = subdir_path[0]
-            if subdir in subdir_image_files.keys():
+            if f"images/{subdir}" in subdir_image_files.keys():
                 subdir_image_files[f"images/{subdir}"].append(image)
             else:
                 subdir_image_files[f"images/{subdir}"] = [image]
