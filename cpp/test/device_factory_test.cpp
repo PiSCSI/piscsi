@@ -29,6 +29,7 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 	EXPECT_EQ(device_factory.GetTypeForFile("test.hdr"), SCRM);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.mos"), SCMO);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.iso"), SCCD);
+	EXPECT_EQ(device_factory.GetTypeForFile("test.is1"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("test.suffix.iso"), SCCD);
 	EXPECT_EQ(device_factory.GetTypeForFile("bridge"), SCBR);
 	EXPECT_EQ(device_factory.GetTypeForFile("daynaport"), SCDP);
@@ -89,6 +90,7 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	EXPECT_EQ(SCRM, mapping["hdr"]);
 	EXPECT_EQ(SCMO, mapping["mos"]);
 	EXPECT_EQ(SCCD, mapping["iso"]);
+	EXPECT_EQ(SCCD, mapping["is1"]);
 }
 
 TEST(DeviceFactoryTest, GetDefaultParams)
