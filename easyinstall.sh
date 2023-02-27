@@ -87,6 +87,12 @@ function initialChecks() {
     fi
 }
 
+# Only to be used for pi-gen automated install
+function cacheSudo() {
+    echo "Caching sudo password"
+    echo raspberry | sudo -v -S
+}
+
 # checks that the current user has sudoers privileges
 function sudoCheck() {
     if [[ $HEADLESS ]]; then
@@ -1359,6 +1365,25 @@ function runChoice() {
               installPackagesStandalone
               compilePiscsi
           ;;
+          99)
+              echo "Hidden setup mode for running the pi-gen utility"
+              echo "This shouldn't be used by normal users"
+              sudoCache
+              createImagesDir
+              createCfgDir
+              updatePiscsiGit
+              installPackages
+              installHfdisk
+              fetchHardDiskDrivers
+              compilePiscsi
+              installPiscsi
+              enablePiscsiService
+              preparePythonCommon
+              cachePipPackages
+              installPiscsiWebInterface
+              installWebInterfaceService
+              echo "Automated install of the PiSCSI Service $(CONNECT_TYPE) complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1372,7 +1397,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "16" ]; do
+   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "16" ]) ; do
        echo -n "Enter your choice (0-16) or CTRL-C to exit: "
        read -r choice
    done
