@@ -80,7 +80,7 @@ TEST(DeviceFactoryTest, GetExtensionMapping)
 	DeviceFactory device_factory;
 
 	unordered_map<string, PbDeviceType> mapping = device_factory.GetExtensionMapping();
-	EXPECT_EQ(9, mapping.size());
+	EXPECT_EQ(10, mapping.size());
 	EXPECT_EQ(SCHD, mapping["hd1"]);
 	EXPECT_EQ(SCHD, mapping["hds"]);
 	EXPECT_EQ(SCHD, mapping["hda"]);
