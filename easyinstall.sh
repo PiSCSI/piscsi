@@ -713,8 +713,9 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-230201"
+    NETATALK_VERSION="230202"
     NETATALK_CONFIG_PATH="/etc/netatalk"
+    NETATALK_OPTIONS="--cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
@@ -742,14 +743,26 @@ function installNetatalk() {
         fi
     fi
 
-    echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
+    echo
+    echo "Downloading tarball to $HOME..."
     cd $HOME || exit 1
-    wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf "netatalk-$NETATALK_VERSION.tar.gz"
-    rm "netatalk-$NETATALK_VERSION.tar.gz"
+    wget -O "netatalk-2.$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/netatalk-2.x/releases/download/netatalk-2-$NETATALK_VERSION/netatalk-2.$NETATALK_VERSION.tar.gz" </dev/null
 
-    cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="$CORES" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
+    echo "Unpacking tarball..."
+    tar -xzf "netatalk-2.$NETATALK_VERSION.tar.gz"
+    rm "netatalk-2.$NETATALK_VERSION.tar.gz"
+
+    if [ -f "/etc/network/interfaces.d/piscsi_bridge" ]; then
+        echo "PiSCSI network bridge detected. Using 'piscsi_bridge' interface for AppleTalk."
+        NETATALK_OPTIONS="$NETATALK_OPTIONS --appletalk-interface=piscsi_bridge"
+    fi
+
+    [[ $HEADLESS ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --headless"
+    [[ $SKIP_PACKAGES ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-packages"
+    [[ $SKIP_MAKE_CLEAN ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-make-clean"
+
+    cd "$HOME/netatalk-2.$NETATALK_VERSION/contrib/shell_utils" || exit 1
+    bash -c "./debian_install.sh $NETATALK_OPTIONS" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
