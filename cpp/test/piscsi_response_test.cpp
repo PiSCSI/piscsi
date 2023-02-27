@@ -221,5 +221,5 @@ TEST(PiscsiResponseTest, GetMappingInfo)
 
 	const auto& info = response.GetMappingInfo(result);
 	EXPECT_TRUE(result.status());
-	EXPECT_EQ(9, info->mapping().size());
+	EXPECT_EQ(10, info->mapping().size());
 }

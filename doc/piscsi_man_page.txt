@@ -29,6 +29,7 @@ DESCRIPTION
            hda: SCSI Hard Disk image (Apple compatible - typically used with Macintosh computers)
            mos: SCSI Magneto-Optical image (generic - typically used with NeXT, X68000, etc.)
            iso: SCSI CD-ROM or DVD-ROM image (ISO 9660 image)
+           is1: SCSI CD-ROM or DVD-ROM image (ISO 9660 image, SCSI-1)
 
        For example, if you want to specify an Apple-compatible HD image on ID 0, you can use the following command:
            sudo piscsi -ID0 /path/to/drive/hdimage.hda

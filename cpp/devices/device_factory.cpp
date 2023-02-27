@@ -59,6 +59,7 @@ DeviceFactory::DeviceFactory()
 	extension_mapping["hdr"] = SCRM;
 	extension_mapping["mos"] = SCMO;
 	extension_mapping["iso"] = SCCD;
+	extension_mapping["is1"] = SCCD;
 
 	device_mapping["bridge"] = SCBR;
 	device_mapping["daynaport"] = SCDP;
@@ -118,7 +119,8 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(lun, sector_sizes.find(SCCD)->second);
+		device = make_shared<SCSICD>(lun, sector_sizes.find(SCCD)->second,
+            GetExtensionLowerCase(filename) == "is1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 		device->SetProduct("SCSI CD-ROM");
 		break;
 

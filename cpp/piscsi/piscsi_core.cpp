@@ -62,7 +62,8 @@ void Piscsi::Banner(const vector<char *>& args) const
 		cout << "  hdi : SCSI HD image (Anex86 HD image)\n";
 		cout << "  nhd : SCSI HD image (T98Next HD image)\n";
 		cout << "  mos : SCSI MO image (MO image)\n";
-		cout << "  iso : SCSI CD image (ISO 9660 image)\n" << flush;
+		cout << "  iso : SCSI CD image (ISO 9660 image)\n";
+		cout << "  is1 : SCSI CD image (ISO 9660 image, SCSI-1)\n" << flush;
 
 		exit(EXIT_SUCCESS);
 	}
