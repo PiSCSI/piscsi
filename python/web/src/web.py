@@ -990,7 +990,7 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    subdir = request.form.get("subdir")
+    subdir = request.form.get("subdir").replace("images/", "", 1)
     if destination == "disk_images":
         safe_path = is_safe_path(Path(subdir))
         if not safe_path["status"]:
