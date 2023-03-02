@@ -49,8 +49,7 @@ echo -e $logo
 CONNECT_TYPE="FULLSPEC"
 # clang v11 is the latest distributed by Buster
 COMPILER="clang++-11"
-# Takes half of the CPU cores available, to avoid running out of memory on low spec devices
-CORES=$(awk 'BEGIN { x = '$(nproc)'; y = 2; print (x / y) }' | numfmt --round=up --format=%.0f)
+CORES=1
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
