@@ -208,6 +208,7 @@ def test_extract_file(
         "/files/download_url",
         data={
             "destination": "images",
+            "images_subdir": "/",
             "url": url,
         },
     )
@@ -254,7 +255,7 @@ def test_upload_file(http_client, delete_file):
 
             form_data = {
                 "destination": "disk_images",
-                "subdir": "",
+                "images_subdir": "/",
                 "dzuuid": str(uuid.uuid4()),
                 "dzchunkindex": chunk_number,
                 "dzchunksize": chunk_size,
@@ -348,6 +349,7 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
         "/files/download_url",
         data={
             "destination": "images",
+            "images_subdir", "/",
             "url": url,
         },
     )
