@@ -207,7 +207,7 @@ def test_extract_file(
     http_client.post(
         "/files/download_url",
         data={
-            "destination": "images",
+            "destination": "disk_images",
             "images_subdir": "/",
             "url": url,
         },
@@ -348,7 +348,7 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
     response = http_client.post(
         "/files/download_url",
         data={
-            "destination": "images",
+            "destination": "disk_images",
             "images_subdir": "/",
             "url": url,
         },
