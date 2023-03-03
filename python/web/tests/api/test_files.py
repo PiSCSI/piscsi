@@ -349,7 +349,7 @@ def test_download_url_to_dir(env, httpserver, http_client, list_files, delete_fi
         "/files/download_url",
         data={
             "destination": "images",
-            "images_subdir", "/",
+            "images_subdir": "/",
             "url": url,
         },
     )
