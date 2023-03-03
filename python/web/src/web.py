@@ -275,6 +275,8 @@ def index():
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+        images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
+        shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -314,13 +316,13 @@ def upload_page():
     """
     Sets up the data structures and kicks off the rendering of the file uploading page
     """
-    image_files = file_cmd.list_images()
-    formatted_image_files = format_image_list(image_files["files"])
+    server_info = piscsi_cmd.get_server_info()
 
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
-        formatted_image_files=formatted_image_files,
+        images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
+        shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -959,11 +961,22 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "shared_files":
-        destination_dir = FILE_SERVER_DIR
-    else:
+    images_subdir = request.form.get("images_subdir")
+    shared_subdir = request.form.get("shared_subdir")
+    if destination == "disk_images":
+        safe_path = is_safe_path(Path("." + images_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"]
+        destination_dir = server_info["image_dir"] + images_subdir
+    elif destination == "shared_files":
+        safe_path = is_safe_path(Path("." + shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        destination_dir = FILE_SERVER_DIR + shared_subdir
+    else:
+        return response(error=True, message=_("Unknown destination"))
+
     process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -990,19 +1003,23 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
-    subdir = request.form.get("subdir").replace("images/", "", 1)
+    images_subdir = request.form.get("images_subdir")
+    shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
-        safe_path = is_safe_path(Path(subdir))
+        safe_path = is_safe_path(Path("." + images_subdir))
         if not safe_path["status"]:
             return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = Path(server_info["image_dir"]) / subdir
+        destination_dir = server_info["image_dir"] + images_subdir
     elif destination == "shared_files":
-        destination_dir = FILE_SERVER_DIR
+        safe_path = is_safe_path(Path("." + shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        destination_dir = FILE_SERVER_DIR + shared_subdir
     elif destination == "piscsi_config":
         destination_dir = CFG_DIR
     else:
-        return make_response("Unknown destination", 403)
+        return make_response(_("Unknown destination"), 403)
 
     return upload_with_dropzonejs(destination_dir)
 
