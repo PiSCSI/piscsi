@@ -14,13 +14,20 @@
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
     <label for="disk_images">{{ _("Disk Images") }}</label>
-    <select name="subdir" id="subdir">
-    {% for subdir, group in formatted_image_files.items() %}
-    <option value="{{subdir}}"{% if subdir == "images/" %} selected{% endif %}>{{subdir}}</option>
+    <select name="images_subdir" id="images_subdir">
+    {% for dir in images_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
     {% endfor %}
+    <option value="/" selected>/</option>
     </select>
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
+    <select name="shared_subdir" id="shared_subdir">
+    {% for dir in shared_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
+    {% endfor %}
+    <option value="/" selected>/</option>
+    </select>
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
     <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
 </form>

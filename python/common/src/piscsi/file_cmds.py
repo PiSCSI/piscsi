@@ -4,7 +4,7 @@ Module for methods reading from and writing to the file system
 
 import logging
 import asyncio
-from os import walk
+from os import walk, path
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
@@ -57,7 +57,7 @@ class FileCmds:
     # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
-        Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
+        Finds files with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
         Returns a (list) of (str) files_list
         """
         files_list = []
@@ -66,6 +66,26 @@ class FileCmds:
                 if file.endswith("." + CONFIG_FILE_SUFFIX):
                     files_list.append(file)
         return files_list
+
+    # noinspection PyMethodMayBeStatic
+    def list_subdirs(self, directory):
+        """
+        Finds subdirs within the (str) directory dir.
+        Returns a (list) of (str) subdir_list.
+        """
+        subdir_list = []
+        # Filter out file sharing meta data dirs
+        excluded_dirs = ("Network Trash Folder", "Temporary Items", "TheVolumeSettingsFolder")
+        for root, dirs, _files in walk(directory, topdown=True):
+            # Strip out dirs that begin with .
+            dirs[:] = [d for d in dirs if not d[0] == "."]
+            for dir in dirs:
+                if dir not in excluded_dirs:
+                    dirpath = path.join(root, dir)
+                    subdir_list.append(dirpath.replace(directory, "", 1))
+
+        subdir_list.sort()
+        return subdir_list
 
     def list_images(self):
         """
