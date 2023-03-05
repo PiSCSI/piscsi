@@ -14,6 +14,8 @@ class ReturnCodeMapper:
             _("File deleted: %(file_path)s"),
         ReturnCodes.DELETEFILE_FILE_NOT_FOUND:
             _("File to delete not found: %(file_path)s"),
+        ReturnCodes.DELETEFILE_UNABLE_TO_DELETE:
+            _("Could not delete file: %(file_path)s"),
         ReturnCodes.RENAMEFILE_SUCCESS:
             _("File moved to: %(target_path)s"),
         ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE:
