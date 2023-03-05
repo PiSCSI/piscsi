@@ -26,6 +26,8 @@ class ReturnCodeMapper:
             _("File created: %(target_path)s"),
         ReturnCodes.WRITEFILE_COULD_NOT_WRITE:
             _("Could not create file: %(target_path)s"),
+        ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE:
+            _("A file with name %(target_path)s already exists"),
         ReturnCodes.READCONFIG_SUCCESS:
             _("Loaded configurations from: %(file_name)s"),
         ReturnCodes.READCONFIG_COULD_NOT_READ:

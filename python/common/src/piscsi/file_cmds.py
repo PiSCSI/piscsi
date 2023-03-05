@@ -179,18 +179,27 @@ class FileCmds:
         }
 
     # noinspection PyMethodMayBeStatic
-    def rename_file(self, file_path, target_path):
+    def rename_file(self, file_path, target_path, overwrite_target=False):
         """
         Takes:
          - (Path) file_path for the file to rename
          - (Path) target_path for the name to rename
+         - optional (bool) overwrite_target
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
-        if target_path.parent.exists() and not target_path.exists():
-            file_path.rename(target_path)
+        if overwrite_target or (not target_path.exists() and not overwrite_target):
+            try:
+                file_path.rename(target_path)
+            except OSError as error:
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+                    "parameters": parameters,
+                }
             return {
                 "status": True,
                 "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
@@ -198,12 +207,12 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
     # noinspection PyMethodMayBeStatic
-    def copy_file(self, file_path, target_path):
+    def copy_file(self, file_path, target_path, overwrite_target=False):
         """
         Takes:
          - (Path) file_path for the file to copy from
@@ -213,8 +222,16 @@ class FileCmds:
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
-        if target_path.parent.exists() and not target_path.exists():
-            copyfile(str(file_path), str(target_path))
+        if overwrite_target or (not target_path.exists() and not overwrite_target):
+            try:
+                copyfile(str(file_path), str(target_path))
+            except OSError as error:
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+                    "parameters": parameters,
+                }
             return {
                 "status": True,
                 "return_code": ReturnCodes.WRITEFILE_SUCCESS,
@@ -222,7 +239,7 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
@@ -282,6 +299,7 @@ class FileCmds:
                         if self.rename_file(
                             Path(file["absolute_path"]),
                             prop_path,
+                            overwrite_target=True,
                         ):
                             properties_files_moved.append(
                                 {
