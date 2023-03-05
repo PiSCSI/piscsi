@@ -198,6 +198,7 @@ class FileCmds:
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
+
         if overwrite_target or not target_path.exists():
             try:
                 file_path.rename(target_path)
@@ -231,6 +232,7 @@ class FileCmds:
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
+
         if overwrite_target or not target_path.exists():
             try:
                 copyfile(str(file_path), str(target_path))
@@ -264,19 +266,25 @@ class FileCmds:
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
+
         if overwrite_target or not target_path.exists():
             try:
                 with open(f"{target_path}", "wb") as out:
                     out.seek(size - 1)
                     out.write(b"\0")
             except OSError as error:
-                return {"status": False, "msg": str(error)}
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+                    "parameters": parameters,
+                }
 
             return {"status": True, "msg": ""}
 
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
