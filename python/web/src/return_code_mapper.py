@@ -14,6 +14,8 @@ class ReturnCodeMapper:
             _("File deleted: %(file_path)s"),
         ReturnCodes.DELETEFILE_FILE_NOT_FOUND:
             _("File to delete not found: %(file_path)s"),
+        ReturnCodes.DELETEFILE_UNABLE_TO_DELETE:
+            _("Could not delete file: %(file_path)s"),
         ReturnCodes.RENAMEFILE_SUCCESS:
             _("File moved to: %(target_path)s"),
         ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE:
@@ -26,6 +28,8 @@ class ReturnCodeMapper:
             _("File created: %(target_path)s"),
         ReturnCodes.WRITEFILE_COULD_NOT_WRITE:
             _("Could not create file: %(target_path)s"),
+        ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE:
+            _("A file with name %(target_path)s already exists"),
         ReturnCodes.READCONFIG_SUCCESS:
             _("Loaded configurations from: %(file_name)s"),
         ReturnCodes.READCONFIG_COULD_NOT_READ:
