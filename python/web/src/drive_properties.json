@@ -442,5 +442,53 @@
     "file_type": null,
     "description": "For use with host systems that expect the non-standard 512 byte block size for CD-ROM drives, such as Akai samplers.",
     "url": ""
+},
+{
+    "device_type": "SCMO",
+    "vendor": "FUJITSU",
+    "product": "M2513A",
+    "revision": "1700",
+    "block_size": 512,
+    "size": null,
+    "name": "Fujitsu M2513A 640MB",
+    "file_type": null,
+    "description": "MO drive with support for 640MB discs.",
+    "url": ""
+},
+{
+    "device_type": "SCMO",
+    "vendor": "OLYMPUS",
+    "product": "MOS300",
+    "revision": "__TODO__",
+    "block_size": 512,
+    "size": null,
+    "name": "Olympus MOS300S 128MB",
+    "file_type": null,
+    "description": "MO drive with support for 128MB discs.",
+    "url": ""
+},
+{
+    "device_type": "SCMO",
+    "vendor": "OLYMPUS",
+    "product": "MOS332",
+    "revision": "5.00",
+    "block_size": 512,
+    "size": null,
+    "name": "Olympus TURBO II 230MB",
+    "file_type": null,
+    "description": "MO drive with support for 230MB discs.",
+    "url": ""
+},
+{
+    "device_type": "SCMO",
+    "vendor": "OLYMPUS",
+    "product": "MOS363",
+    "revision": "3.01",
+    "block_size": 512,
+    "size": null,
+    "name": "Olympus TURBO II 640MB",
+    "file_type": null,
+    "description": "MO drive with support for 640MB discs.",
+    "url": ""
 }
 ]
