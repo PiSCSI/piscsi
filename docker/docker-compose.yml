@@ -30,6 +30,7 @@ services:
         - OS_VERSION=${OS_VERSION:-buster}
     volumes:
       - ./volumes/images:/home/pi/images:delegated
+      - ./volumes/shared_files:/home/pi/shared_files:delegated
       - ./volumes/config:/home/pi/.config/piscsi:delegated
     ports:
       - "127.0.0.1:${WEB_HTTP_PORT:-8080}:80"
