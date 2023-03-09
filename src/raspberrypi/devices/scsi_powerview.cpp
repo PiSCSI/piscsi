@@ -401,7 +401,7 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 	fblinelen = fbfixinfo.line_length;
 
 	fb = (char *)mmap(0, fbfixinfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-	if (atoi(fb) == -1){
+	if (fb == (char*)-1){
 		LOGERROR("Unable to mmap the framebuffer memory. Are you running as root?");
 		return false;
 	}
