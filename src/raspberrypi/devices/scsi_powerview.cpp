@@ -401,7 +401,7 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 	fblinelen = fbfixinfo.line_length;
 
 	fb = (char *)mmap(0, fbfixinfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-	if ((int)fb == -1){
+	if (fb == (char*)-1){
 		LOGERROR("Unable to mmap the framebuffer memory. Are you running as root?");
 		return false;
 	}
@@ -488,7 +488,7 @@ bool SCSIPowerView::WriteUnknownCC(const DWORD *cdb, const BYTE *buf, const DWOR
 {
 
 	if(length > sizeof(unknown_cc_data)){
-		LOGERROR("%s Received Unknown CC data that is larger (%d bytes) than allocated size (%d bytes)", __PRETTY_FUNCTION__, length, sizeof(unknown_cc_data));
+		LOGERROR("%s Received Unknown CC data that is larger (%d bytes) than allocated size (%d bytes)", __PRETTY_FUNCTION__, length, (int)sizeof(unknown_cc_data));
 		return false;
 	}
 
@@ -508,7 +508,7 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 		return true;
 	}
 	if(length > sizeof(color_palette)){
-		LOGERROR("%s Received Color Palette that is larger (%d bytes) than allocated size (%d bytes)", __PRETTY_FUNCTION__, length, sizeof(color_palette));
+		LOGERROR("%s Received Color Palette that is larger (%d bytes) than allocated size (%d bytes)", __PRETTY_FUNCTION__, length, (int)sizeof(color_palette));
 		return false;
 	}
 
