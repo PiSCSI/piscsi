@@ -399,7 +399,7 @@ void Disk::AddErrorPage(map<int, vector<byte>>& pages, bool) const
 	vector<byte> buf(12);
 
 	// TB, PER, DTE
-	buf[2] = (byte)0x20;
+	buf[2] = (byte)0x26;
 
 	pages[1] = buf;
 }
