@@ -398,7 +398,7 @@ void Disk::AddErrorPage(map<int, vector<byte>>& pages, bool) const
 	// Retry count is 0, limit time uses internal default value
 	vector<byte> buf(12);
 
-	// TB, PER, DTE
+	// TB, PER, DTE (required for OpenVMS/VAX compatibility, see issue #1117)
 	buf[2] = (byte)0x26;
 
 	pages[1] = buf;
