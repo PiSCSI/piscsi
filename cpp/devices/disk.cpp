@@ -396,7 +396,12 @@ void Disk::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeab
 void Disk::AddErrorPage(map<int, vector<byte>>& pages, bool) const
 {
 	// Retry count is 0, limit time uses internal default value
-	pages[1] = vector<byte>(12);
+	vector<byte> buf(12);
+
+	// TB, PER, DTE (required for OpenVMS/VAX compatibility, see issue #1117)
+	buf[2] = (byte)0x26;
+
+	pages[1] = buf;
 }
 
 void Disk::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const
