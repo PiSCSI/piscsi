@@ -19,13 +19,13 @@ from piscsi.sys_cmds import SysCmds
 def working_dirs_exist(working_dirs):
     """
     Method for validating that working dirs exist.
-    Takes (tuple) of (str) working dirs with paths to required dirs.
+    Takes (tuple) of (str) working_dirs with paths to required dirs.
     """
-    for path in working_dirs:
-        if not Path(path).exists():
+    for dir_path in working_dirs:
+        if not Path(dir_path).exists():
             abort(
                 503,
-                _(f"Please create directory: {path}"),
+                _(f"Please create directory: {dir_path}"),
             )
 
 
