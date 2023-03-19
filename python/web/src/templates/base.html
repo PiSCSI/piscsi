@@ -117,7 +117,7 @@
             {% endif %}
         </div>
         <div>
-            {{ _("PiSCSI version:") }} <b>{{ env["version"] }} <a href="https://github.com/PiSCSI/piscsi/commit/{{ env["running_env"]["git"] }}" target="_blank">{{ env["running_env"]["git"][:7] }}</a></b>
+	    {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>
         <div>
             {{ _("Hardware and OS:") }} {{ env["running_env"]["env"] }}

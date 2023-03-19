@@ -21,23 +21,8 @@ class SysCmds:
     @staticmethod
     def running_env():
         """
-        Returns (str) git and (str) env
-        git contains the git hash of the checked out code
-        env is the various system information where this app is running
+        Returns (str) env, with details on the system hardware and software
         """
-        try:
-            ra_git_version = (
-                subprocess.run(
-                    ["git", "rev-parse", "HEAD"],
-                    capture_output=True,
-                    check=True,
-                )
-                .stdout.decode("utf-8")
-                .strip()
-            )
-        except subprocess.CalledProcessError as error:
-            logging.warning(SHELL_ERROR, error.cmd, error.stderr.decode("utf-8"))
-            ra_git_version = ""
 
         PROC_MODEL_PATH = "/proc/device-tree/model"
         SYS_VENDOR_PATH = "/sys/devices/virtual/dmi/id/sys_vendor"
@@ -67,7 +52,6 @@ class SysCmds:
 
         env = uname()
         return {
-            "git": ra_git_version,
             "env": f"{hardware}, {env.system} {env.release} {env.machine}",
         }
 
