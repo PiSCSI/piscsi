@@ -6,7 +6,9 @@
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
     <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
     <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+    {% if file_server_dir_exists %}
     <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
+    {% endif %}
     <li>{{ _("PiSCSI Config") }} = {{ CFG_DIR }}</li>
 </ul>
 
@@ -20,6 +22,7 @@
     {% endfor %}
     <option value="/" selected>/</option>
     </select>
+    {% if file_server_dir_exists %}
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
     <select name="shared_subdir" id="shared_subdir">
@@ -28,6 +31,7 @@
     {% endfor %}
     <option value="/" selected>/</option>
     </select>
+    {% endif %}
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
     <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
 </form>

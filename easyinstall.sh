@@ -710,6 +710,29 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
+# Detects or creates the file sharing directory
+function createFileSharingDir() {
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    elif [ -d "$FILE_SHARE_PATH" ]; then
+        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
+    else
+        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$FILE_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        chmod -Rv 775 "$FILE_SHARE_PATH"
+    fi
+}
+
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="230301"
@@ -725,19 +748,6 @@ function installNetatalk() {
         echo "Do you want to proceed with the installation? [y/N]"
         read -r REPLY
         if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            exit 0
-        fi
-    fi
-
-    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
-        echo
-        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
-        echo
-        echo "Do you want to proceed with the installation? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
-        else
             exit 0
         fi
     fi
@@ -872,26 +882,6 @@ function installSamba() {
         if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
             exit 0
         fi
-    fi
-
-    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
-        echo
-        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
-        echo
-        echo "Do you want to proceed with the installation? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
-        else
-            exit 0
-        fi
-    elif [ -d "$FILE_SHARE_PATH" ]; then
-        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
-    else
-        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
-        sudo mkdir -p "$FILE_SHARE_PATH"
-        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
-        chmod -Rv 775 "$FILE_SHARE_PATH"
     fi
 
     echo ""
@@ -1279,6 +1269,7 @@ function runChoice() {
           ;;
           7)
               echo "Installing AppleShare File Server"
+              createFileSharingDir
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
@@ -1290,6 +1281,7 @@ function runChoice() {
               echo "WARNING: The FTP server may transfer unencrypted data over the network."
               echo "Proceed with this installation only if you are on a private, secure network."
               sudoCheck
+              createFileSharingDir
               installFtp
               echo "Installing FTP File Server - Complete!"
           ;;
@@ -1301,6 +1293,7 @@ function runChoice() {
               echo " - Create a directory in the current user's home directory where shared files will be stored"
               echo " - Create a Samba user for the current user"
               sudoCheck
+              createFileSharingDir
               installSamba
               echo "Installing SMB File Server - Complete!"
           ;;
