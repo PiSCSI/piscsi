@@ -341,14 +341,14 @@
                     <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
                 {% endif %}
                 </form>
-                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ loop.index }}').value = new_file_name;">
+                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ subdir }}_{{ loop.index }}').value = new_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input name="new_file_name" id="new_file_name_{{ loop.index }}" type="hidden" value="">
+                    <input name="new_file_name" id="new_file_name_{{ subdir }}_{{ loop.index }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Rename") }}" title="{{ _("Rename") }}">
                 </form>
-                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ loop.index }}').value = copy_file_name;">
+                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ subdir }}_{{ loop.index }}').value = copy_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input name="copy_file_name" id="copy_file_name_{{ loop.index }}" type="hidden" value="">
+                    <input name="copy_file_name" id="copy_file_name_{{ subdir }}_{{ loop.index }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Copy") }}" title="{{ _("Copy") }}">
                 </form>
                 <form action="/files/delete" method="post" class="file-delete" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
