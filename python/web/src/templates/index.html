@@ -383,8 +383,11 @@
     </summary>
     <ul>
         <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+	{% if file_server_dir_exists %}
         <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
+	{% else %}
+        <li>{{ _("Install a file server and create the shared files directory in order to share files between the Pi and your vintage computers.") }}</li>
+	{% endif %}
     </ul>
 </details>
 
@@ -399,6 +402,7 @@
     {% endfor %}
     <option value="/" selected>/</option>
     </select>
+    {% if file_server_dir_exists %}
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
     <select name="shared_subdir" id="shared_subdir">
@@ -407,6 +411,7 @@
     {% endfor %}
     <option value="/" selected>/</option>
     </select>
+    {% endif %}
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 </section>
