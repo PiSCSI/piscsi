@@ -87,7 +87,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Map peripheral region memory
     void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
     if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory")
+        LOGERROR("Error: Unable to map memory: %s", strerror(errno))
         close(fd);
         return false;
     }
