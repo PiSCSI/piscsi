@@ -14,6 +14,5 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	const vector<char *> args(argv, argv + argc);
-
 	return Piscsi().run(args);
 }
