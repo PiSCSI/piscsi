@@ -735,7 +735,7 @@ function createFileSharingDir() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="230301"
+    NETATALK_VERSION="230302"
     NETATALK_CONFIG_PATH="/etc/netatalk"
     NETATALK_OPTIONS="--cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
