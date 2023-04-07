@@ -93,16 +93,28 @@ jobs:
         working-directory: cpp
         run: gcov --preserve-paths $(find -name '*.gcno')
 
+      - uses: actions/cache@v3
+        name: Cache SonarCloud scan cache
+        id: sonar-scan-cache
+        with:
+          path: ~/.sonar_cache/
+          key: sonar-scan-cache-${{ env.SONAR_SCANNER_VERSION }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          restore-keys: |
+            sonar-scan-cache-${{ env.SONAR_SCANNER_VERSION }}-${{ github.ref_name }}
+
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
+          (mkdir -p $HOME/.sonar_cache || true) &&
           $HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin/sonar-scanner
           --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"
           --define sonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
           --define sonar.organization=${{ env.SONAR_ORGANIZATION }}
           --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
           --define sonar.cfamily.gcov.reportsPath=.
+          --define sonar.cfamily.cache.enabled=true
+          --define sonar.cfamily.cache.path="$HOME/.sonar_cache/"
           --define sonar.coverage.exclusions="cpp/**/test/**"
           --define sonar.cpd.exclusions="cpp/**/test/**"
           --define sonar.inclusions="cpp/**,python/**"
