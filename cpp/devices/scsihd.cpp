@@ -36,9 +36,9 @@ string SCSIHD::GetProductData() const
 	uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 	string unit;
 
-	// 10 GiB and more
-	if (capacity >= 1'099'511'627'776) {
-		capacity /= 1'099'511'627'776;
+	// 10,000 MiB and more
+	if (capacity >= 10'485'760'000) {
+		capacity /= 1'073'741'824;
 		unit = "GiB";
 	}
 	// 1 MiB and more
