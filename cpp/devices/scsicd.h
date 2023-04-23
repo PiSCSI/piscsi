@@ -22,7 +22,7 @@ class SCSICD : public Disk, private ScsiMmcCommands
 {
 public:
 
-	SCSICD(int, const unordered_set<uint32_t>&);
+	SCSICD(int, const unordered_set<uint32_t>&, scsi_defs::scsi_level = scsi_level::SCSI_2);
 	~SCSICD() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
@@ -43,6 +43,7 @@ private:
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;
+	scsi_defs::scsi_level scsi_level;
 
 	void OpenIso();
 	void OpenPhysical();

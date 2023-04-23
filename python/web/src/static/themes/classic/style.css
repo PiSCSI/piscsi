@@ -104,6 +104,15 @@ ul.inline_list {
   list-style: none;
 }
 
+summary.dirname {
+  text-decoration: underline;
+  font-family: monospace;
+}
+
+summary.filename {
+  text-decoration: underline;
+}
+
 .dropzone, .dropzone * {
   box-sizing: border-box;
 }

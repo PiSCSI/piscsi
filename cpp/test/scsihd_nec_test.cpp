@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -45,6 +45,20 @@ TEST(ScsiHdNecTest, SetUpModePages)
 	pages.clear();
 	hd.SetUpModePages(pages, 0x3f, true);
 	ScsiHdNecTest_SetUpModePages(pages);
+}
+
+TEST(ScsiHdNecTest, TestAddErrorPage)
+{
+	map<int, vector<byte>> pages;
+	MockSCSIHD_NEC hd(0);
+
+	hd.SetBlockCount(0x1234);
+	hd.SetReady(true);
+	// Non changeable
+	hd.SetUpModePages(pages, 0x01, false);
+	EXPECT_EQ(1, pages.size()) << "Unexpected number of mode pages";
+	const vector<byte>& page_1 = pages[1];
+	EXPECT_EQ(0x26, to_integer<int>(page_1[2]));
 }
 
 TEST(ScsiHdNecTest, TestAddFormatPage)

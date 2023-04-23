@@ -6,7 +6,9 @@
     <li>{{ _("The largest file size accepted in this form is %(max_file_size)s MiB. Use other file transfer means for larger files.", max_file_size=max_file_size) }}</li>
     <li>{{ _("You have to manually clean up partially uploaded files, as a result of cancelling the upload or closing this page.") }}</li>
     <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+    {% if file_server_dir_exists %}
     <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
+    {% endif %}
     <li>{{ _("PiSCSI Config") }} = {{ CFG_DIR }}</li>
 </ul>
 
@@ -14,11 +16,27 @@
 <form name="dropper" action="/files/upload" method="post" class="dropzone dz-clickable" enctype="multipart/form-data" id="dropper">
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
     <label for="disk_images">{{ _("Disk Images") }}</label>
+    <select name="images_subdir" id="images_subdir">
+    {% for dir in images_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
+    {% endfor %}
+    <option value="/" selected>/</option>
+    </select>
+    {% if file_server_dir_exists %}
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
+    <select name="shared_subdir" id="shared_subdir">
+    {% for dir in shared_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
+    {% endfor %}
+    <option value="/" selected>/</option>
+    </select>
+    {% endif %}
     <input type="radio" name="destination" id="piscsi_config" value="piscsi_config">
     <label for="piscsi_config">{{ _("PiSCSI Config") }}</label>
 </form>
+
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 
 <script type="application/javascript">
     Dropzone.options.dropper = {
@@ -53,5 +71,11 @@
         }
     }
 </script>
+
+<noscript>
+    <div class="noscriptmsg">
+        {{ _("The file uploading functionality requires JavaScript.") }}
+    </div>
+</noscript>
 
 {% endblock content %}

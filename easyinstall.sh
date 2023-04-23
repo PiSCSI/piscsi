@@ -49,8 +49,7 @@ echo -e $logo
 CONNECT_TYPE="FULLSPEC"
 # clang v11 is the latest distributed by Buster
 COMPILER="clang++-11"
-# Takes half of the CPU cores available, to avoid running out of memory on low spec devices
-CORES=$(awk 'BEGIN { x = '$(nproc)'; y = 2; print (x / y) }' | numfmt --round=up --format=%.0f)
+CORES=1
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 CPP_PATH="$BASE/cpp"
@@ -85,6 +84,12 @@ function initialChecks() {
         echo "Do not run this script as $USER or with 'sudo'."
         exit 1
     fi
+}
+
+# Only to be used for pi-gen automated install
+function cacheSudo() {
+    echo "Caching sudo password"
+    echo raspberry | sudo -v -S
 }
 
 # checks that the current user has sudoers privileges
@@ -705,10 +710,34 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
+# Detects or creates the file sharing directory
+function createFileSharingDir() {
+    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
+        echo
+        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
+        else
+            exit 0
+        fi
+    elif [ -d "$FILE_SHARE_PATH" ]; then
+        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
+    else
+        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
+        sudo mkdir -p "$FILE_SHARE_PATH"
+        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
+        chmod -Rv 775 "$FILE_SHARE_PATH"
+    fi
+}
+
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-230201"
+    NETATALK_VERSION="230302"
     NETATALK_CONFIG_PATH="/etc/netatalk"
+    NETATALK_OPTIONS="--cores=$CORES --share-name='$FILE_SHARE_NAME' --share-path='$FILE_SHARE_PATH'"
 
     if [ -d "$NETATALK_CONFIG_PATH" ]; then
         echo
@@ -723,27 +752,26 @@ function installNetatalk() {
         fi
     fi
 
-    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
-        echo
-        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
-        echo
-        echo "Do you want to proceed with the installation? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
-        else
-            exit 0
-        fi
+    echo
+    echo "Downloading tarball to $HOME..."
+    cd $HOME || exit 1
+    wget -O "netatalk-2.$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/netatalk-2.x/releases/download/netatalk-2-$NETATALK_VERSION/netatalk-2.$NETATALK_VERSION.tar.gz" </dev/null
+
+    echo "Unpacking tarball..."
+    tar -xzf "netatalk-2.$NETATALK_VERSION.tar.gz"
+    rm "netatalk-2.$NETATALK_VERSION.tar.gz"
+
+    if [ -f "/etc/network/interfaces.d/piscsi_bridge" ]; then
+        echo "PiSCSI network bridge detected. Using 'piscsi_bridge' interface for AppleTalk."
+        NETATALK_OPTIONS="$NETATALK_OPTIONS --appletalk-interface=piscsi_bridge"
     fi
 
-    echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
-    cd $HOME || exit 1
-    wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf "netatalk-$NETATALK_VERSION.tar.gz"
-    rm "netatalk-$NETATALK_VERSION.tar.gz"
+    [[ $HEADLESS ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --headless"
+    [[ $SKIP_PACKAGES ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-packages"
+    [[ $SKIP_MAKE_CLEAN ]] && NETATALK_OPTIONS="$NETATALK_OPTIONS --no-make-clean"
 
-    cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
-    ./debian_install.sh -j="$CORES" -n="$FILE_SHARE_NAME" -p="$FILE_SHARE_PATH" || exit 1
+    cd "$HOME/netatalk-2.$NETATALK_VERSION/contrib/shell_utils" || exit 1
+    bash -c "./debian_install.sh $NETATALK_OPTIONS" || exit 1
 }
 
 # Appends the images dir as a shared Netatalk volume
@@ -854,26 +882,6 @@ function installSamba() {
         if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
             exit 0
         fi
-    fi
-
-    if [ ! -d "$FILE_SHARE_PATH" ] && [ -d "$HOME/afpshare" ]; then
-        echo
-        echo "File server dir $HOME/afpshare detected. This script will rename it to $FILE_SHARE_PATH."
-        echo
-        echo "Do you want to proceed with the installation? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            sudo mv "$HOME/afpshare" "$FILE_SHARE_PATH" || exit 1
-        else
-            exit 0
-        fi
-    elif [ -d "$FILE_SHARE_PATH" ]; then
-        echo "Found a $FILE_SHARE_PATH directory; will use it for file sharing."
-    else
-        echo "Creating the $FILE_SHARE_PATH directory and granting read/write permissions to all users..."
-        sudo mkdir -p "$FILE_SHARE_PATH"
-        sudo chown -R "$USER:$USER" "$FILE_SHARE_PATH"
-        chmod -Rv 775 "$FILE_SHARE_PATH"
     fi
 
     echo ""
@@ -1261,6 +1269,7 @@ function runChoice() {
           ;;
           7)
               echo "Installing AppleShare File Server"
+              createFileSharingDir
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
@@ -1272,6 +1281,7 @@ function runChoice() {
               echo "WARNING: The FTP server may transfer unencrypted data over the network."
               echo "Proceed with this installation only if you are on a private, secure network."
               sudoCheck
+              createFileSharingDir
               installFtp
               echo "Installing FTP File Server - Complete!"
           ;;
@@ -1283,6 +1293,7 @@ function runChoice() {
               echo " - Create a directory in the current user's home directory where shared files will be stored"
               echo " - Create a Samba user for the current user"
               sudoCheck
+              createFileSharingDir
               installSamba
               echo "Installing SMB File Server - Complete!"
           ;;
@@ -1359,6 +1370,25 @@ function runChoice() {
               installPackagesStandalone
               compilePiscsi
           ;;
+          99)
+              echo "Hidden setup mode for running the pi-gen utility"
+              echo "This shouldn't be used by normal users"
+              sudoCache
+              createImagesDir
+              createCfgDir
+              updatePiscsiGit
+              installPackages
+              installHfdisk
+              fetchHardDiskDrivers
+              compilePiscsi
+              installPiscsi
+              enablePiscsiService
+              preparePythonCommon
+              cachePipPackages
+              installPiscsiWebInterface
+              installWebInterfaceService
+              echo "Automated install of the PiSCSI Service $(CONNECT_TYPE) complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1372,7 +1402,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "16" ]; do
+   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "16" ]) ; do
        echo -n "Enter your choice (0-16) or CTRL-C to exit: "
        read -r choice
    done

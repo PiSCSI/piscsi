@@ -24,7 +24,6 @@ from flask import (
     send_from_directory,
     make_response,
     session,
-    abort,
     jsonify,
 )
 
@@ -44,11 +43,13 @@ from return_code_mapper import ReturnCodeMapper
 from socket_cmds_flask import SocketCmdsFlask
 
 from web_utils import (
+    working_dirs_exist,
     sort_and_format_devices,
     get_valid_scsi_ids,
     map_device_types_and_names,
     get_device_name,
     map_image_file_descriptions,
+    format_image_list,
     format_drive_properties,
     get_properties_by_drive_name,
     auth_active,
@@ -208,27 +209,15 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
-    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
-        abort(
-            403,
-            _(
-                "PiSCSI is password protected. "
-                "Start the Web Interface with the --password parameter."
-            ),
-        )
-
     server_info = piscsi_cmd.get_server_info()
+    working_dirs_exist((server_info["image_dir"], CFG_DIR))
+
     devices = piscsi_cmd.list_devices()
     device_types = map_device_types_and_names(piscsi_cmd.get_device_types()["device_types"])
     image_files = file_cmd.list_images()
     config_files = file_cmd.list_config_files()
     ip_addr, host = sys_cmd.get_ip_and_host()
-
-    extended_image_files = []
-    for image in image_files["files"]:
-        if image["detected_type"] != "UNDEFINED":
-            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
-        extended_image_files.append(image)
+    formatted_image_files = format_image_list(image_files["files"], device_types)
 
     attached_images = []
     units = 0
@@ -266,7 +255,8 @@ def index():
         bridge_configured=sys_cmd.is_bridge_setup(),
         devices=formatted_devices,
         attached_images=attached_images,
-        files=extended_image_files,
+        formatted_image_files=formatted_image_files,
+        files=image_files["files"],
         config_files=config_files,
         device_types=device_types,
         scan_depth=server_info["scan_depth"],
@@ -278,6 +268,9 @@ def index():
         image_suffixes_to_create=image_suffixes_to_create,
         valid_image_suffixes=valid_image_suffixes,
         drive_properties=format_drive_properties(APP.config["PISCSI_DRIVE_PROPERTIES"]),
+        images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
+        shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
+        file_server_dir_exists=Path(FILE_SERVER_DIR).exists(),
         RESERVATIONS=RESERVATIONS,
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -303,6 +296,8 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
+    server_info = piscsi_cmd.get_server_info()
+    working_dirs_exist((server_info["image_dir"], CFG_DIR))
 
     return response(
         template="drives.html",
@@ -317,10 +312,15 @@ def upload_page():
     """
     Sets up the data structures and kicks off the rendering of the file uploading page
     """
+    server_info = piscsi_cmd.get_server_info()
+    working_dirs_exist((server_info["image_dir"], CFG_DIR))
 
     return response(
         template="upload.html",
         page_title=_("PiSCSI File Upload"),
+        images_subdirs=file_cmd.list_subdirs(server_info["image_dir"]),
+        shared_subdirs=file_cmd.list_subdirs(FILE_SERVER_DIR),
+        file_server_dir_exists=Path(FILE_SERVER_DIR).exists(),
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         CFG_DIR=CFG_DIR,
         FILE_SERVER_DIR=FILE_SERVER_DIR,
@@ -514,6 +514,7 @@ def show_diskinfo():
     if not safe_path["status"]:
         return response(error=True, message=safe_path["msg"])
     server_info = piscsi_cmd.get_server_info()
+    working_dirs_exist((server_info["image_dir"], CFG_DIR))
     returncode, diskinfo = sys_cmd.get_diskinfo(Path(server_info["image_dir"]) / file_name)
     if returncode == 0:
         return response(
@@ -959,11 +960,22 @@ def download_file():
     """
     destination = request.form.get("destination")
     url = request.form.get("url")
-    if destination == "shared_files":
-        destination_dir = FILE_SERVER_DIR
-    else:
+    images_subdir = request.form.get("images_subdir")
+    shared_subdir = request.form.get("shared_subdir")
+    if destination == "disk_images":
+        safe_path = is_safe_path(Path("." + images_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"]
+        destination_dir = server_info["image_dir"] + images_subdir
+    elif destination == "shared_files":
+        safe_path = is_safe_path(Path("." + shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        destination_dir = FILE_SERVER_DIR + shared_subdir
+    else:
+        return response(error=True, message=_("Unknown destination"))
+
     process = file_cmd.download_to_dir(url, destination_dir, Path(url).name)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
@@ -990,15 +1002,23 @@ def upload_file():
         return make_response(auth["msg"], 403)
 
     destination = request.form.get("destination")
+    images_subdir = request.form.get("images_subdir")
+    shared_subdir = request.form.get("shared_subdir")
     if destination == "disk_images":
+        safe_path = is_safe_path(Path("." + images_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
         server_info = piscsi_cmd.get_server_info()
-        destination_dir = server_info["image_dir"]
+        destination_dir = server_info["image_dir"] + images_subdir
     elif destination == "shared_files":
-        destination_dir = FILE_SERVER_DIR
+        safe_path = is_safe_path(Path("." + shared_subdir))
+        if not safe_path["status"]:
+            return make_response(safe_path["msg"], 403)
+        destination_dir = FILE_SERVER_DIR + shared_subdir
     elif destination == "piscsi_config":
         destination_dir = CFG_DIR
     else:
-        return make_response("Invalid destination", 403)
+        return make_response(_("Unknown destination"), 403)
 
     return upload_with_dropzonejs(destination_dir)
 
@@ -1452,6 +1472,12 @@ if __name__ == "__main__":
     piscsi_cmd = PiscsiCmds(sock_cmd=sock_cmd, token=APP.config["PISCSI_TOKEN"])
     file_cmd = FileCmds(sock_cmd=sock_cmd, piscsi=piscsi_cmd, token=APP.config["PISCSI_TOKEN"])
     sys_cmd = SysCmds()
+
+    if not piscsi_cmd.is_token_auth()["status"] and not APP.config["PISCSI_TOKEN"]:
+        raise Exception(
+            "PiSCSI is password protected. "
+            "Start the Web Interface with the --password parameter."
+        )
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)

@@ -39,6 +39,8 @@ TEST(PiscsiImageTest, CreateImage)
 	PbCommand command;
 	PiscsiImage image;
 
+	StorageDevice::UnreserveAll();
+
 	EXPECT_FALSE(image.CreateImage(context, command)) << "Filename must be reported as missing";
 
 	SetParam(command, "file", "/a/b/c/filename");
@@ -63,6 +65,8 @@ TEST(PiscsiImageTest, DeleteImage)
 	PbCommand command;
 	PiscsiImage image;
 
+	StorageDevice::UnreserveAll();
+
 	EXPECT_FALSE(image.DeleteImage(context, command)) << "Filename must be reported as missing";
 
 	SetParam(command, "file", "/a/b/c/filename");
@@ -82,6 +86,8 @@ TEST(PiscsiImageTest, RenameImage)
 	PbCommand command;
 	PiscsiImage image;
 
+	StorageDevice::UnreserveAll();
+
 	EXPECT_FALSE(image.RenameImage(context, command)) << "Source filename must be reported as missing";
 
 	SetParam(command, "from", "/a/b/c/filename_from");
@@ -99,6 +105,8 @@ TEST(PiscsiImageTest, CopyImage)
 	PbCommand command;
 	PiscsiImage image;
 
+	StorageDevice::UnreserveAll();
+
 	EXPECT_FALSE(image.CopyImage(context, command)) << "Source filename must be reported as missing";
 
 	SetParam(command, "from", "/a/b/c/filename_from");
@@ -115,6 +123,8 @@ TEST(PiscsiImageTest, SetImagePermissions)
 	MockCommandContext context;
 	PbCommand command;
 	PiscsiImage image;
+
+	StorageDevice::UnreserveAll();
 
 	EXPECT_FALSE(image.SetImagePermissions(context, command)) << "Filename must be reported as missing";
 

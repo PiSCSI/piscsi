@@ -4,7 +4,7 @@ Module for methods reading from and writing to the file system
 
 import logging
 import asyncio
-from os import walk
+from os import walk, path
 from functools import lru_cache
 from pathlib import PurePath, Path
 from zipfile import ZipFile, is_zipfile
@@ -57,7 +57,7 @@ class FileCmds:
     # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
-        Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
+        Finds files with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
         Returns a (list) of (str) files_list
         """
         files_list = []
@@ -66,6 +66,26 @@ class FileCmds:
                 if file.endswith("." + CONFIG_FILE_SUFFIX):
                     files_list.append(file)
         return files_list
+
+    # noinspection PyMethodMayBeStatic
+    def list_subdirs(self, directory):
+        """
+        Finds subdirs within the (str) directory dir.
+        Returns a (list) of (str) subdir_list.
+        """
+        subdir_list = []
+        # Filter out file sharing meta data dirs
+        excluded_dirs = ("Network Trash Folder", "Temporary Items", "TheVolumeSettingsFolder")
+        for root, dirs, _files in walk(directory, topdown=True):
+            # Strip out dirs that begin with .
+            dirs[:] = [d for d in dirs if not d[0] == "."]
+            for dir in dirs:
+                if dir not in excluded_dirs:
+                    dirpath = path.join(root, dir)
+                    subdir_list.append(dirpath.replace(directory, "", 1))
+
+        subdir_list.sort()
+        return subdir_list
 
     def list_images(self):
         """
@@ -146,7 +166,15 @@ class FileCmds:
         parameters = {"file_path": file_path}
 
         if file_path.exists():
-            file_path.unlink()
+            try:
+                file_path.unlink()
+            except OSError as error:
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.DELETEFILE_UNABLE_TO_DELETE,
+                    "parameters": parameters,
+                }
             return {
                 "status": True,
                 "return_code": ReturnCodes.DELETEFILE_SUCCESS,
@@ -159,18 +187,28 @@ class FileCmds:
         }
 
     # noinspection PyMethodMayBeStatic
-    def rename_file(self, file_path, target_path):
+    def rename_file(self, file_path, target_path, overwrite_target=False):
         """
         Takes:
          - (Path) file_path for the file to rename
          - (Path) target_path for the name to rename
+         - optional (bool) overwrite_target
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
-        if target_path.parent.exists() and not target_path.exists():
-            file_path.rename(target_path)
+
+        if overwrite_target or not target_path.exists():
+            try:
+                file_path.rename(target_path)
+            except OSError as error:
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+                    "parameters": parameters,
+                }
             return {
                 "status": True,
                 "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
@@ -178,23 +216,33 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
     # noinspection PyMethodMayBeStatic
-    def copy_file(self, file_path, target_path):
+    def copy_file(self, file_path, target_path, overwrite_target=False):
         """
         Takes:
          - (Path) file_path for the file to copy from
          - (Path) target_path for the name to copy to
+         - optional (bool) overwrite_target
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
-        if target_path.parent.exists() and not target_path.exists():
-            copyfile(str(file_path), str(target_path))
+
+        if overwrite_target or not target_path.exists():
+            try:
+                copyfile(str(file_path), str(target_path))
+            except OSError as error:
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+                    "parameters": parameters,
+                }
             return {
                 "status": True,
                 "return_code": ReturnCodes.WRITEFILE_SUCCESS,
@@ -202,32 +250,41 @@ class FileCmds:
             }
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
-    def create_empty_image(self, target_path, size):
+    def create_empty_image(self, target_path, size, overwrite_target=False):
         """
-        Takes (Path) target_path and (int) size in bytes
-        Creates a new empty binary file to use as image
+        Creates a new empty binary file to use as image.
+        Takes:
+         - (Path) target_path
+         - (int) size in bytes
+         - optional (bool) overwrite_target
         Returns (dict) with (bool) status, (str) msg, (dict) parameters
         """
         parameters = {"target_path": target_path}
         if not target_path.parent.exists():
             target_path.parent.mkdir(parents=True)
-        if target_path.parent.exists() and not target_path.exists():
+
+        if overwrite_target or not target_path.exists():
             try:
                 with open(f"{target_path}", "wb") as out:
                     out.seek(size - 1)
                     out.write(b"\0")
             except OSError as error:
-                return {"status": False, "msg": str(error)}
+                logging.error(error)
+                return {
+                    "status": False,
+                    "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+                    "parameters": parameters,
+                }
 
             return {"status": True, "msg": ""}
 
         return {
             "status": False,
-            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
+            "return_code": ReturnCodes.WRITEFILE_COULD_NOT_OVERWRITE,
             "parameters": parameters,
         }
 
@@ -262,6 +319,7 @@ class FileCmds:
                         if self.rename_file(
                             Path(file["absolute_path"]),
                             prop_path,
+                            overwrite_target=True,
                         ):
                             properties_files_moved.append(
                                 {
@@ -317,56 +375,39 @@ class FileCmds:
         server_info = self.piscsi.get_server_info()
         full_file_path = Path(server_info["image_dir"]) / file_name
 
-        # Inject hfdisk commands to create Drive with correct partitions
-        # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
-        # i                         initialize partition map
-        # continue with default first block
-        # C                         Create 1st partition with type specified next)
-        # continue with default
-        # 32                        32 blocks (required for HFS+)
-        # Driver_Partition          Partition Name
-        # Apple_Driver              Partition Type  (available types: Apple_Driver,
-        #                           Apple_Driver43, Apple_Free, Apple_HFS...)
-        # C                         Create 2nd partition with type specified next
-        # continue with default first block
-        # continue with default block size (rest of the disk)
-        # ${volumeName}             Partition name provided by user
-        # Apple_HFS                 Partition Type
-        # w                         Write partition map to disk
-        # y                         Confirm partition table
-        # p                         Print partition map
+        # Inject hfdisk commands to create Mac partition table with HFS partitions
         if disk_format == "HFS":
             partitioning_tool = "hfdisk"
             commands = [
-                "i",
-                "",
-                "C",
-                "",
-                "32",
-                "Driver_Partition",
-                "Apple_Driver",
-                "C",
-                "",
-                "",
-                volume_name,
-                "Apple_HFS",
-                "w",
-                "y",
-                "p",
+                "i",  # Initialize partition map
+                "",  # Continue with default first block
+                "C",  # Create 1st partition with type specified next)
+                "",  # Continue with default
+                "32",  # 32 block (required for HFS+)
+                "Driver_Partition",  # Partition Name
+                "Apple_Driver",  # Partition Type
+                "C",  # Create 2nd partition with type specified next
+                "",  # Continue with default first block
+                "",  # Continue with default block size (rest of the disk)
+                volume_name,  # Partition name
+                "Apple_HFS",  # Partition Type
+                "w",  # Write partition map to disk
+                "y",  # Confirm partition table
+                "p",  # Print partition map (for the log)
             ]
-        # Create a DOS label, primary partition, W95 FAT type
+        # Inject fdisk commands to create primary FAT partition with MS-DOS label
         elif disk_format == "FAT":
             partitioning_tool = "fdisk"
             commands = [
-                "o",
-                "n",
-                "p",
-                "",
-                "",
-                "",
-                "t",
-                "b",
-                "w",
+                "o",  # create a new empty DOS partition table
+                "n",  # add a new partition
+                "p",  # primary partition
+                "",  # default partition number
+                "",  # default first sector
+                "",  # default last sector
+                "t",  # change partition type
+                "b",  # choose W95 FAT32 type
+                "w",  # write table to disk and exit
             ]
         try:
             process = Popen(

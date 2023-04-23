@@ -69,10 +69,10 @@ TEST(ScsiHdTest, GetProductData)
 
 	hd_gb.SetFilename(string(filename));
 	hd_gb.SetSectorSizeInBytes(1024);
-	hd_gb.SetBlockCount(1'099'511'627'776 / 1024);
+	hd_gb.SetBlockCount(10'737'418'240 / 1024);
 	hd_gb.FinalizeSetup(0);
 	s = hd_gb.GetProduct();
-	EXPECT_NE(string::npos, s.find("1 GiB"));
+	EXPECT_NE(string::npos, s.find("10 GiB"));
 	remove(filename);
 }
 

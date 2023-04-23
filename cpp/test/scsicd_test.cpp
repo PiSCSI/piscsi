@@ -30,6 +30,8 @@ void ScsiCdTest_SetUpModePages(map<int, vector<byte>>& pages)
 TEST(ScsiCdTest, Inquiry)
 {
 	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
+
+	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_1_CCS, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, ".is1");
 }
 
 TEST(ScsiCdTest, SetUpModePages)

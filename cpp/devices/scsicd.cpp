@@ -21,7 +21,8 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes) : Disk(SCCD, lun)
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes, scsi_defs::scsi_level level) 
+	: Disk(SCCD, lun), scsi_level(level)
 {
 	SetSectorSizes(sector_sizes);
 
@@ -164,7 +165,7 @@ void SCSICD::ReadToc()
 
 vector<uint8_t> SCSICD::InquiryInternal() const
 {
-	return HandleInquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::CD_ROM, scsi_level, true);
 }
 
 void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const

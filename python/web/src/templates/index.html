@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 
+<script type="application/javascript">
+    var processNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class=\"info\"><div>" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div></div>";
+        window.scrollTo(0,0);
+    }
+
+    var shutdownNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class=\"warning\"><div>" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div></div>";
+        window.scrollTo(0,0);
+    }
+</script>
+
 <section id="current-config">
 <details>
     <summary class="heading">
@@ -197,6 +209,19 @@
     </ul>
 </details>
 
+{% if not files|length: %}
+<div class="notice">
+    {{ _("The images directory is currently empty.") }}
+</div>
+{% else %}
+
+<div>
+{% for subdir, group in formatted_image_files.items() %}
+
+<details class="subdir"{% if subdir == "images/" %} open{% endif %}>
+    <summary class="dirname">
+        {{ subdir }}
+    </summary>
 <table id="images" border="black" cellpadding="3" summary="List of files in the image directory">
     <tbody>
         <tr>
@@ -204,19 +229,12 @@
             <th scope="col">{{ _("Size") }}</th>
             <th scope="col">{{ _("Actions") }}</th>
         </tr>
-        {% if not files|length: %}
-            <tr class="directory-empty">
-                <td colspan="3">
-                    {{ _("The images directory is currently empty.") }}
-                </td>
-            </tr>
-        {% endif %}
-        {% for file in files|sort(attribute='name') %}
+        {% for file in group|sort(attribute='name') %}
         <tr>
             {% if file["prop"] %}
             <td>
-                <details>
-                    <summary>
+                <details class="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -232,8 +250,8 @@
             </td>
             {% elif file["archive_contents"] %}
             <td>
-                <details>
-                    <summary>
+                <details class="contents">
+                    <summary class="filename">
                         {{ file["name"] }}
                     </summary>
                     <ul class="inline_list">
@@ -241,8 +259,8 @@
                             {% if not member["is_properties_file"] %}
                                 <li>
                                     {% if member["related_properties_file"] %}
-                                        <details>
-                                            <summary>
+                                        <details id="contents">
+                                            <summary class="filename">
                                                 <label>{{ member["path"] }}</label>
                                                 <form action="/files/extract_image" method="post" class="file-extract">
                                                     <input name="archive_file" type="hidden" value="{{ file['name'] }}">
@@ -323,14 +341,14 @@
                     <input type="submit" value="{{ _("Attach") }}" title="{{ _("Attach") }}">
                 {% endif %}
                 </form>
-                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ loop.index }}').value = new_file_name;">
+                <form action="/files/rename" method="post" class="file-rename" onsubmit="var new_file_name = prompt('{{ _("Enter new file name for: %(file_name)s", file_name=file["name"]) }}', '{{ file['name'] }}'); if (new_file_name === null) event.preventDefault(); document.getElementById('new_file_name_{{ subdir }}_{{ loop.index }}').value = new_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input name="new_file_name" id="new_file_name_{{ loop.index }}" type="hidden" value="">
+                    <input name="new_file_name" id="new_file_name_{{ subdir }}_{{ loop.index }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Rename") }}" title="{{ _("Rename") }}">
                 </form>
-                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ loop.index }}').value = copy_file_name;">
+                <form action="/files/copy" method="post" class="file-copy" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ subdir }}_{{ loop.index }}').value = copy_file_name;">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
-                    <input name="copy_file_name" id="copy_file_name_{{ loop.index }}" type="hidden" value="">
+                    <input name="copy_file_name" id="copy_file_name_{{ subdir }}_{{ loop.index }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Copy") }}" title="{{ _("Copy") }}">
                 </form>
                 <form action="/files/delete" method="post" class="file-delete" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
@@ -349,6 +367,10 @@
         {% endfor %}
     </tbody>
 </table>
+</details>
+{% endfor %}
+</div>
+{% endif %}
 <p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
 
@@ -361,8 +383,11 @@
     </summary>
     <ul>
         <li>{{ _("Disk Images") }} = {{ env["image_dir"] }}</li>
+	{% if file_server_dir_exists %}
         <li>{{ _("Shared Files") }} = {{ FILE_SERVER_DIR }}</li>
-        <li>{{ _("To access shared files remotely, you may have to install one of the file servers first.") }}</li>
+	{% else %}
+        <li>{{ _("Install a file server and create the shared files directory in order to share files between the Pi and your vintage computers.") }}</li>
+	{% endif %}
     </ul>
 </details>
 
@@ -371,8 +396,22 @@
     <input name="url" id="download_url" required="" type="url">
     <input type="radio" name="destination" id="disk_images" value="disk_images" checked="checked">
     <label for="disk_images">{{ _("Disk Images") }}</label>
+    <select name="images_subdir" id="images_subdir">
+    {% for dir in images_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
+    {% endfor %}
+    <option value="/" selected>/</option>
+    </select>
+    {% if file_server_dir_exists %}
     <input type="radio" name="destination" id="shared_files" value="shared_files">
     <label for="shared_files">{{ _("Shared Files") }}</label>
+    <select name="shared_subdir" id="shared_subdir">
+    {% for dir in shared_subdirs %}
+    <option value="{{dir}}">{{dir}}</option>
+    {% endfor %}
+    <option value="/" selected>/</option>
+    </select>
+    {% endif %}
     <input type="submit" value="{{ _("Download") }}" onclick="processNotify('{{ _("Downloading File...") }}')">
 </form>
 </section>
@@ -380,6 +419,14 @@
 <section id="upload">
     <a href="/upload" target="_blank"><p>{{ _("Upload Files (new tab)") }}</p></a>
 </section>
+<noscript>
+    <style type="text/css">
+        section#upload { display: none; }
+    </style>
+    <div class="notice">
+        {{ _("The file uploading functionality requires JavaScript.") }}
+    </div>
+</noscript>
 
 <hr/>
 
