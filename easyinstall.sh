@@ -149,7 +149,9 @@ function installPackagesWeb() {
 # cache the pip packages
 function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
-    sudo pip3 install -r ./requirements.txt
+    sudo pip3 download -r ./requirements.txt
+    sudo pip3 cache info > info_out.txt
+    sudo pip3 cache list > list_out.txt
     popd
 }
 
