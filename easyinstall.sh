@@ -148,9 +148,17 @@ function installPackagesWeb() {
 
 # cache the pip packages
 function cachePipPackages(){
-    pushd $WEB_INSTALL_PATH
-    sudo pip3 install -r ./requirements.txt
-    popd
+    mkdir -p $HOME/.pip_cache
+    # Note: these need to be installed in source form ONLY. If the binary packages are installed, the architecture
+    # is selected based upon the building host architecture, not the target architecture. (so, if you're building
+    # a PiSCSI image on x86, pip will download x86 binaries, which aren't usefull on a Raspberry Pi
+    python3 -m pip download --no-binary :all: --destination-directory $HOME/.pip_cache setuptools
+    python3 -m pip download --no-binary :all: --destination-directory $HOME/.pip_cache wheel
+    python3 -m pip download --no-binary :all: --destination-directory $HOME/.pip_cache flit_core
+    python3 -m pip download --no-binary :all: --destination-directory $HOME/.pip_cache -r $WEB_INSTALL_PATH/requirements.txt
+    python3 -m pip download --no-binary :all: --destination-directory $HOME/.pip_cache -r $CTRLBOARD_INSTALL_PATH/requirements.txt
+    # TODO: The OLED requirements.txt includes a circuit python package that doesn't work with non-binary
+    # pip3 download
 }
 
 # compile the PiSCSI binaries
