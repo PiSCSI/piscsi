@@ -59,8 +59,9 @@ if ! test -e venv; then
     echo "Activating venv"
     source venv/bin/activate
     echo "Installing requirements.txt"
-    pip3 install wheel
-    pip3 install -r requirements.txt
+    pip3 install wheel --no-index --find-links=$HOME/.pip_cache
+    # Reference: https://pip.pypa.io/en/latest/user_guide/#installing-from-local-packages
+    pip3 install -r requirements.txt --no-index --find-links=$HOME/.pip_cache
 
     if git rev-parse --is-inside-work-tree &> /dev/null; then
       git rev-parse HEAD > current
@@ -79,7 +80,7 @@ if [[ $? -eq 0 ]]; then
         git rev-parse > current
     elif [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
         echo "New version detected, updating libraries from requirements.txt"
-        pip3 install -r requirements.txt
+        pip3 install -r requirements.txt --no-index --find-links=$HOME/.pip_cache
         git rev-parse HEAD > current
     fi
 else
