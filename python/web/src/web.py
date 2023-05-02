@@ -1377,8 +1377,9 @@ def detect_locale():
     """
     if "language" not in session.keys():
         session["language"] = get_locale()
-        piscsi_cmd.locale = session["language"]
-        file_cmd.locale = session["language"]
+
+    piscsi_cmd.locale = session["language"]
+    file_cmd.locale = session["language"]
 
 
 @APP.before_request
