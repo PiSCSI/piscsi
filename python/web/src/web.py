@@ -1373,7 +1373,7 @@ def healthcheck():
 def detect_locale():
     """
     Get the detected locale to use for UI string translations.
-    This requires the Flask app to have started first.
+    Assign the language string to objects to be used for requests.
     """
     if "language" not in session.keys():
         session["language"] = get_locale()
