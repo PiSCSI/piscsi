@@ -1369,15 +1369,16 @@ def healthcheck():
     return "", 200
 
 
-@APP.before_first_request
+@APP.before_request
 def detect_locale():
     """
     Get the detected locale to use for UI string translations.
     This requires the Flask app to have started first.
     """
-    session["language"] = get_locale()
-    piscsi_cmd.locale = session["language"]
-    file_cmd.locale = session["language"]
+    if "language" not in session.keys():
+        session["language"] = get_locale()
+        piscsi_cmd.locale = session["language"]
+        file_cmd.locale = session["language"]
 
 
 @APP.before_request
