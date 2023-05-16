@@ -16,7 +16,7 @@ services:
       context: ..
       dockerfile: docker/web/Dockerfile
       args:
-        - OS_VERSION=buster
+        - OS_VERSION=bullseye
     volumes:
       - ./volumes/images:/home/pi/images:delegated
     init: true
