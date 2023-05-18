@@ -71,8 +71,8 @@ string PiscsiImage::SetDefaultFolder(const string& f)
 		folder = GetHomeDir() + "/" + folder;
 	}
 	else {
-		if (folder.find("/home/") != 0) {
-			return "Default image folder must be located in '/home/'";
+		if (folder == "/") {
+			return "Default image folder cannot be '/'";
 		}
 	}
 
