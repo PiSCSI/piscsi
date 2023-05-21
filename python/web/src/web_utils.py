@@ -160,9 +160,12 @@ def get_image_description(file_suffix):
     return file_suffix
 
 
-def format_image_list(image_files, device_types=None):
+def format_image_list(image_files, rootdir, device_types=None):
     """
-    Takes a (list) of (dict) image_files and optional (list) device_types
+    Takes:
+    - (list) of (dict) image_files
+    - (str) rootdir, the name of the images root dir
+    - optional (list) device_types
     Returns a formatted (dict) with groups of image_files per subdir key
     """
 
@@ -174,16 +177,16 @@ def format_image_list(image_files, device_types=None):
         subdir_path = findall("^.*/", image["name"])
         if subdir_path:
             subdir = subdir_path[0]
-            if f"images/{subdir}" in subdir_image_files.keys():
-                subdir_image_files[f"images/{subdir}"].append(image)
+            if f"{rootdir}/{subdir}" in subdir_image_files.keys():
+                subdir_image_files[f"{rootdir}/{subdir}"].append(image)
             else:
-                subdir_image_files[f"images/{subdir}"] = [image]
+                subdir_image_files[f"{rootdir}/{subdir}"] = [image]
         else:
             root_image_files.append(image)
 
     formatted_image_files = dict(sorted(subdir_image_files.items()))
     if root_image_files:
-        formatted_image_files["images/"] = root_image_files
+        formatted_image_files[f"{rootdir}/"] = root_image_files
     return formatted_image_files
 
 

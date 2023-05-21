@@ -96,10 +96,11 @@ def get_env_info():
         "ip_addr": ip_addr,
         "host": host,
         "system_name": sys_cmd.get_pretty_host(),
-        "free_disk_space": int(sys_cmd.disk_space()["free"] / 1024 / 1024),
+        "free_disk_space": int(sys_cmd.disk_space(server_info["image_dir"])["free"] / 1024 / 1024),
         "locale": get_locale(),
         "version": server_info["version"],
         "image_dir": server_info["image_dir"],
+        "image_root_dir": Path(server_info["image_dir"]).name,
         "netatalk_configured": sys_cmd.running_proc("afpd"),
         "macproxy_configured": sys_cmd.running_proc("macproxy"),
         "cd_suffixes": tuple(server_info["sccd"]),
@@ -217,7 +218,9 @@ def index():
     image_files = file_cmd.list_images()
     config_files = file_cmd.list_config_files()
     ip_addr, host = sys_cmd.get_ip_and_host()
-    formatted_image_files = format_image_list(image_files["files"], device_types)
+    formatted_image_files = format_image_list(
+        image_files["files"], Path(server_info["image_dir"]).name, device_types
+    )
 
     attached_images = []
     units = 0
