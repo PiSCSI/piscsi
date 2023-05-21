@@ -102,12 +102,12 @@ class SysCmds:
         return False
 
     @staticmethod
-    def disk_space():
+    def disk_space(path):
         """
-        Returns a (dict) with (int) total (int) used (int) free
-        This is the disk space information of the volume where this app is running
+        Takes (str) path with the path to the dir / mount point to inspect
+        Returns a (dict) with (int) total (int) used (int) free disk space
         """
-        total, used, free = disk_usage(__file__)
+        total, used, free = disk_usage(path)
         return {"total": total, "used": used, "free": free}
 
     @staticmethod

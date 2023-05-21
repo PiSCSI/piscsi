@@ -218,7 +218,7 @@
 <div>
 {% for subdir, group in formatted_image_files.items() %}
 
-<details class="subdir"{% if subdir == "images/" %} open{% endif %}>
+<details class="subdir"{% if subdir == env["image_root_dir"] + "/" %} open{% endif %}>
     <summary class="dirname">
         {{ subdir }}
     </summary>
@@ -371,7 +371,7 @@
 {% endfor %}
 </div>
 {% endif %}
-<p><small>{{ _("%(disk_space)s MiB disk space remaining on the system", disk_space=env["free_disk_space"]) }}</small></p>
+<p><small>{{ _("%(disk_space)s MiB disk space remaining for images", disk_space=env["free_disk_space"]) }}</small></p>
 </section>
 
 <hr/>
