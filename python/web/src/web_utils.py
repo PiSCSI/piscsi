@@ -300,11 +300,17 @@ def is_safe_path(file_name):
     Returns True if the path is safe
     Returns False if the path is either absolute, or tries to traverse the file system
     """
-    if file_name.is_absolute() or ".." in str(file_name) or str(file_name)[0] == "~":
-        return {
-            "status": False,
-            "msg": _("No permission to use path '%(file_name)s'", file_name=file_name),
-        }
+    error_message = ""
+    if file_name.is_absolute():
+        error_message = _("Path must not be absolute")
+    elif "../" in str(file_name):
+        error_message = _("Path must not traverse the file system")
+    elif str(file_name)[0] == "~":
+        error_message = _("Path must not start in the home directory")
+
+    if error_message:
+        logging.error("Not an allowed path: %s", str(file_name))
+        return {"status": False, "msg": error_message}
 
     return {"status": True, "msg": ""}
 
