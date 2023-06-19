@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Host Services with realtime clock and shutdown support
 //
@@ -25,7 +25,9 @@
 #include "scsi_command_util.h"
 #include "host_services.h"
 #include <algorithm>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
@@ -123,7 +125,8 @@ void HostServices::AddRealtimeClockPage(map<int, vector<byte>>& pages, bool chan
 	pages[32] = vector<byte>(10);
 
 	if (!changeable) {
-		time_t t = time(nullptr);
+		const auto now = system_clock::now();
+		const time_t t = system_clock::to_time_t(now);
 		tm localtime;
 		localtime_r(&t, &localtime);
 
