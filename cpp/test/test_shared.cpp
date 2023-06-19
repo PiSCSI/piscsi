@@ -21,6 +21,8 @@
 
 using namespace std;
 using namespace filesystem;
+using enum scsi_level;
+using enum scsi_command;
 
 // Inlude the process id in the temp file path so that multiple instances of the test procedures
 // could run on the same host.
@@ -110,14 +112,14 @@ void CreateTempFileWithData(const string& filename, vector<uint8_t>& data)
 
     FILE* fp = fopen(new_filename.c_str(), "wb");
     if (fp == nullptr) {
-        printf("ERROR: Unable to open file %s\n", new_filename.c_str());
+        cerr << "ERROR: Unable to open file '" << new_filename << "'";
         return;
     }
 
     if (const size_t size_written = fwrite(&data[0], sizeof(uint8_t), data.size(), fp);
         size_written != sizeof(vector<uint8_t>::value_type) * data.size()) {
-        printf("Expected to write %zu bytes, but only wrote %zu to %s", size_written,
-               sizeof(vector<uint8_t>::value_type) * data.size(), filename.c_str());
+    	cerr << "ERROR: Expected to write " << sizeof(vector<uint8_t>::value_type) * data.size() << " bytes"
+    			<< ", but only wrote " << data.size() << " to '" << filename << "'";
     }
     fclose(fp);
 }
