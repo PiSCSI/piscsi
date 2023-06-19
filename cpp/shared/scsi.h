@@ -104,7 +104,11 @@ enum class scsi_command : int {
     eCmdReportLuns                 = 0xA0
 };
 
-enum class status : int { GOOD = 0x00, CHECK_CONDITION = 0x02, RESERVATION_CONFLICT = 0x18 };
+enum class status : int {
+	GOOD 					= 0x00,
+	CHECK_CONDITION 		= 0x02,
+	RESERVATION_CONFLICT 	= 0x18
+};
 
 enum class sense_key : int {
     NO_SENSE        = 0x00,
