@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ bool AbstractController::RemoveDevice(shared_ptr<PrimaryDevice> device)
 
 bool AbstractController::HasDeviceForLun(int lun) const
 {
-	return luns.find(lun) != luns.end();
+	return luns.contains(lun);
 }
 
 int AbstractController::ExtractInitiatorId(int id_data) const
