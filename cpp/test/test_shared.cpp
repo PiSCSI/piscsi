@@ -21,8 +21,6 @@
 
 using namespace std;
 using namespace filesystem;
-using enum scsi_level;
-using enum scsi_command;
 
 // Inlude the process id in the temp file path so that multiple instances of the test procedures
 // could run on the same host.
