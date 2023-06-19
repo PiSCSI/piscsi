@@ -28,17 +28,10 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-# Depending on the GCC version the compilation flags differ
-GCCVERSION10 := $(shell expr `$(CXX) -dumpversion` \>= 10)
-
-CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -MD -MP
+CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -DFMT_HEADER_ONLY -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)
-
-ifeq "$(GCCVERSION10)" "1"
-	CXXFLAGS += -DFMT_HEADER_ONLY
-endif
 
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of PiSCSI board type
