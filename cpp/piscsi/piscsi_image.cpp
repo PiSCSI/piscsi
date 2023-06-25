@@ -83,7 +83,7 @@ string PiscsiImage::SetDefaultFolder(const string& f)
 	}
 
 	if (error_code error; !is_directory(p, error)) {
-		return "'" + string(p) + "' is not a valid folder";
+		return string("'") + string(p) + string("' is not a valid folder");
 	}
 
 	default_folder = string(p);
