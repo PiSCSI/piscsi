@@ -143,7 +143,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		return;
 	}
 
-	// C++ filesystem cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
+	// TODO: Use C++ filesystem calls where possible
 	const dirent *dir;
 	while ((dir = readdir(d))) {
 		string filename = GetNextImageFile(dir, folder);
