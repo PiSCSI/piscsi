@@ -20,7 +20,7 @@ ifeq ($(DEBUG), 1)
 	BUILD_TYPE = Debug
 else
 	# Release compiler flags
-	CXXFLAGS += -O3 -flto -Wall -Werror -Wextra -DNDEBUG
+	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 	BUILD_TYPE = Release
 endif
 ifeq ("$(shell uname -s)","Linux")

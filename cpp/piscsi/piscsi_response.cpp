@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -116,9 +116,8 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 
 		image_file.set_read_only(access(f.c_str(), W_OK));
 
-		// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
 		if (struct stat st; !stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
-			image_file.set_size(st.st_size);
+			image_file.set_size(file_size(path(f)));
 			return true;
 		}
 	}
@@ -530,14 +529,11 @@ string PiscsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
 		return "";
 	}
 
-	const string filename = folder + "/" + dir->d_name;
+	const path filename = folder + "/" + dir->d_name;
 
-	const bool file_exists = exists(path(filename));
+	const bool file_exists = exists(filename);
 
-	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle files of more than 2 GiB
-	struct stat st;
-	stat(filename.c_str(), &st);
-	if (dir->d_type == DT_REG && file_exists && !st.st_size) {
+	if (dir->d_type == DT_REG && file_exists && file_size(filename) == 0) {
 		LOGWARN("File '%s' in image folder '%s' is empty", dir->d_name, folder.c_str())
 		return "";
 	}

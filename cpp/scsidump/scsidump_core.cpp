@@ -5,8 +5,8 @@
 //
 // Powered by XM6 TypeG Technology.
 // Copyright (C) 2016-2020 GIMONS
-// Copyright (C) 2022 Uwe Seimet
 // Copyright (C) 2022 akuker
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
+#include <filesystem>
 #include <chrono>
 #include <csignal>
 #include <cstddef>
@@ -28,10 +29,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <sys/stat.h>
 #include <unistd.h>
 
 using namespace std;
+using namespace filesystem;
 using namespace spdlog;
 using namespace scsi_defs;
 using namespace piscsi_util;
@@ -436,12 +437,12 @@ int ScsiDump::DumpRestore()
     if (restore) {
         cout << "Starting restore\n" << flush;
 
-        // filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
         off_t size;
-        if (struct stat st; !stat(filename.c_str(), &st)) {
-            size = st.st_size;
-        } else {
-            throw parser_exception("Can't determine file size");
+        try {
+        	size = file_size(path(filename));
+        }
+        catch (const filesystem_error& e) {
+        	throw parser_exception(string("Can't determine file size: ") + e.what());
         }
 
         cout << "Restore file size: " << size << " bytes\n";

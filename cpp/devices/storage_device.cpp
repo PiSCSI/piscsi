@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -91,10 +91,10 @@ bool StorageDevice::IsReadOnlyFile() const
 
 off_t StorageDevice::GetFileSize() const
 {
-	// filesystem::file_size cannot be used here because gcc < 10.3.0 cannot handle more than 2 GiB
-	if (struct stat st; !stat(filename.c_str(), &st)) {
-		return st.st_size;
+	try {
+		return file_size(path(filename));
 	}
-
-	throw io_exception("Can't get size of '" + filename + "'");
+	catch (const filesystem_error& e) {
+		throw io_exception("Can't get size of '" + filename + "': " + e.what());
+	}
 }
