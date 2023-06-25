@@ -878,7 +878,7 @@ void SCSIBR::FS_GetDPB(vector<uint8_t>& buf)
 	auto dp = (uint32_t*)buf.data();
 	const uint32_t nUnit = ntohl(*dp);
 
-	Human68k::dpb_t dpb;
+	Human68k::dpb_t dpb = {};
 	fsresult = fs.GetDPB(nUnit, &dpb);
 
 	dpb.sector_size = htons(dpb.sector_size);
