@@ -837,7 +837,7 @@ void SCSIBR::FS_GetCapacity(vector<uint8_t>& buf)
 	auto dp = (uint32_t*)buf.data();
 	const uint32_t nUnit = ntohl(*dp);
 
-	Human68k::capacity_t cap;
+	Human68k::capacity_t cap = {};
 	fsresult = fs.GetCapacity(nUnit, &cap);
 
 	cap.freearea = htons(cap.freearea);
