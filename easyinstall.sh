@@ -47,8 +47,8 @@ echo -e $logo
 }
 
 CONNECT_TYPE="FULLSPEC"
-# clang v11 is the latest distributed by Buster
-COMPILER="clang++-11"
+# clang v13 is the latest distributed by Bullseye
+COMPILER="clang++-13"
 CORES=1
 USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
