@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 
 	for (const auto& [key, value] : set_params) {
 		// It is assumed that there are default parameters for all supported parameters
-		if (params.find(key) != params.end()) {
+		if (params.contains(key)) {
 			params[key] = value;
 		}
 		else {

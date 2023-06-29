@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -290,7 +290,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
-	if (reserved_ids.find(id) != reserved_ids.end()) {
+	if (reserved_ids.contains(id)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_RESERVED_ID, to_string(id));
 	}
 

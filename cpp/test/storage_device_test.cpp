@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -114,11 +114,11 @@ TEST(StorageDeviceTest, GetSetReservedFiles)
 
 	const unordered_map<string, id_set> reserved_files = StorageDevice::GetReservedFiles();
 	EXPECT_EQ(1, reserved_files.size());
-	EXPECT_NE(reserved_files.end(), reserved_files.find("filename"));
+	EXPECT_TRUE(reserved_files.contains("filename"));
 
 	StorageDevice::SetReservedFiles(reserved_files);
 	EXPECT_EQ(1, reserved_files.size());
-	EXPECT_NE(reserved_files.end(), reserved_files.find("filename"));
+	EXPECT_TRUE(reserved_files.contains("filename"));
 }
 
 TEST(StorageDeviceTest, FileExists)

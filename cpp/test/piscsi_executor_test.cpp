@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -167,8 +167,8 @@ TEST_F(PiscsiExecutorTest, ProcessCmd)
 	EXPECT_TRUE(executor->ProcessCmd(context, command1));
 	const unordered_set<int> ids = executor->GetReservedIds();
 	EXPECT_EQ(2, ids.size());
-	EXPECT_NE(ids.end(), ids.find(2));
-	EXPECT_NE(ids.end(), ids.find(3));
+	EXPECT_TRUE(ids.contains(2));
+	EXPECT_TRUE(ids.contains(3));
 	command2.set_operation(RESERVE_IDS);
 	EXPECT_TRUE(executor->ProcessCmd(context, command2));
 	EXPECT_TRUE(executor->GetReservedIds().empty());
@@ -460,11 +460,11 @@ TEST_F(PiscsiExecutorTest, SetReservedIds)
 	EXPECT_TRUE(error.empty());
 	unordered_set<int> reserved_ids = executor.GetReservedIds();
 	EXPECT_EQ(5, reserved_ids.size());
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(1));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(2));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(3));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(5));
-	EXPECT_NE(reserved_ids.end(), reserved_ids.find(7));
+	EXPECT_TRUE(reserved_ids.contains(1));
+	EXPECT_TRUE(reserved_ids.contains(2));
+	EXPECT_TRUE(reserved_ids.contains(3));
+	EXPECT_TRUE(reserved_ids.contains(5));
+	EXPECT_TRUE(reserved_ids.contains(7));
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(5, device));
