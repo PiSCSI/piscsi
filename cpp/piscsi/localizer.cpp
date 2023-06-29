@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -51,26 +51,26 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_MISSING_FILENAME, "fr", "Nom de fichier manquant");
 	Add(LocalizationKey::ERROR_MISSING_FILENAME, "es", "Falta el nombre del archivo");
 	Add(LocalizationKey::ERROR_MISSING_FILENAME, "zh", "缺少文件名");
-	
+
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "en", "Device type %1 requires a filename");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "de", "Gerätetyp %1 erfordert einen Dateinamen");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "sv", "Enhetstypen %1 kräver ett filnamn");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "es", "El tipo de dispositivo %1 requiere un nombre de archivo");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "zh", "设备类型 %1 需要一个文件名");
-	
+
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "en", "Image file '%1' is already being used by ID %2, unit %3");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von ID %2, Einheit %3 benutzt");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "sv", "Skivbildsfilen '%1' används redan av id %2, enhetsnummer %3");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "fr", "Le fichier d'image '%1' est déjà utilisé par l'ID %2, unité %3");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "es", "El archivo de imagen '%1' ya está siendo utilizado por el ID %2, unidad %3");
 	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "zh", "图像文件%1已被 ID %2、单元 %3 使用");
-	
+
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "en", "Can't create image file info for '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "de", "Image-Datei-Information für '%1' kann nicht erzeugt werden");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "sv", "Kunde ej skapa skivbildsfilsinfo för '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "es", "No se puede crear información de archivo de imagen para '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "zh", "无法为'%1'创建图像文件信息");
-	
+
 	Add(LocalizationKey::ERROR_RESERVED_ID, "en", "Device ID %1 is reserved");
 	Add(LocalizationKey::ERROR_RESERVED_ID, "de", "Geräte-ID %1 ist reserviert");
 	Add(LocalizationKey::ERROR_RESERVED_ID, "sv", "Enhets-id %1 är reserverat");
@@ -84,21 +84,21 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "fr", "Commande pour ID %1 non-existant");
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "es", "Comando para ID %1 no existente");
 	Add(LocalizationKey::ERROR_NON_EXISTING_DEVICE, "zh", "不存在的 ID %1 的指令");
-	
+
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "en", "Command for non-existing ID %1, unit %2");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "de", "Kommando für nicht existente ID %1, Einheit %2");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "sv", "Kommando för id %1, enhetsnummer %2 som ej existerar");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "fr", "Command pour ID %1, unité %2 non-existant");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "es", "Comando para ID %1 inexistente, unidad %2");
 	Add(LocalizationKey::ERROR_NON_EXISTING_UNIT, "zh", "不存在的 ID %1, 单元 %2 的指令");
-	
+
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "sv", "Obekant enhetstyp: %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "fr", "Type de périphérique inconnu %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "es", "Tipo de dispositivo desconocido %1");
 	Add(LocalizationKey::ERROR_UNKNOWN_DEVICE_TYPE, "zh", "未知设备类型 %1");
-	
+
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "de", "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_TYPE, "sv", "Man måste ange enhetstyp för obekant filändelse '%1'");
@@ -235,9 +235,8 @@ void Localizer::Add(LocalizationKey key, const string& locale, string_view value
 	// Safeguards against empty messages, duplicate entries and unsupported locales
 	assert(locale.size());
 	assert(value.size());
-	assert(supported_languages.find(locale) != supported_languages.end());
+	assert(supported_languages.contains(locale));
 	assert(localized_messages[locale][key].empty());
-
 	localized_messages[locale][key] = value;
 }
 

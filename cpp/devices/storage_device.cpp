@@ -53,7 +53,7 @@ void StorageDevice::ValidateFile()
 void StorageDevice::ReserveFile(const string& file, int id, int lun) const
 {
 	assert(!file.empty());
-	assert(reserved_files.find(file) == reserved_files.end());
+	assert(!reserved_files.contains(file));
 
 	reserved_files[file] = { id, lun };
 }
