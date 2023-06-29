@@ -325,7 +325,7 @@ pair<uint64_t, uint32_t> ScsiDump::ReadCapacity()
                                  (static_cast<uint32_t>(buffer[sector_size_offset + 2]) << 8) |
                                  static_cast<uint32_t>(buffer[sector_size_offset + 3]);
 
-    return make_pair(capacity, sector_size);
+    return { capacity, sector_size };
 }
 
 void ScsiDump::Read10(uint32_t bstart, uint32_t blength, uint32_t length)

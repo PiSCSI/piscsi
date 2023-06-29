@@ -107,7 +107,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 		throw io_exception("Invalid NEC sector size of " + to_string(sector_size) + " byte(s)");
 	}
 
-	return make_pair(image_size, sector_size);
+	return { image_size, sector_size };
 }
 
 vector<uint8_t> SCSIHD_NEC::InquiryInternal() const

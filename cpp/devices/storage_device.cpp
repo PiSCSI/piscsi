@@ -55,7 +55,7 @@ void StorageDevice::ReserveFile(const string& file, int id, int lun) const
 	assert(!file.empty());
 	assert(reserved_files.find(file) == reserved_files.end());
 
-	reserved_files[file] = make_pair(id, lun);
+	reserved_files[file] = { id, lun };
 }
 
 void StorageDevice::UnreserveFile()
@@ -68,10 +68,10 @@ void StorageDevice::UnreserveFile()
 id_set StorageDevice::GetIdsForReservedFile(const string& file)
 {
 	if (const auto& it = reserved_files.find(file); it != reserved_files.end()) {
-		return make_pair(it->second.first, it->second.second);
+		return { it->second.first, it->second.second };
 	}
 
-	return make_pair(-1, -1);
+	return { -1, -1 };
 }
 
 void StorageDevice::UnreserveAll()

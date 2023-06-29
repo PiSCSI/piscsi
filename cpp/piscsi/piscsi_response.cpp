@@ -231,7 +231,7 @@ void PiscsiResponse::GetDevicesInfo(const unordered_set<shared_ptr<PrimaryDevice
 	// If no device list was provided in the command get information on all devices
 	if (!command.devices_size()) {
 		for (const auto& device : devices) {
-			id_sets.insert(make_pair(device->GetId(), device->GetLun()));
+			id_sets.insert({ device->GetId(), device->GetLun() });
 		}
 	}
 	// Otherwise get information on the devices provided in the command
@@ -502,7 +502,7 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 		bool has_device = false;
 		for (const auto& d : devices) {
 			if (d->GetId() == device.id() && d->GetLun() == device.unit()) {
-				id_sets.insert(make_pair(device.id(), device.unit()));
+				id_sets.insert({ device.id(), device.unit() });
 				has_device = true;
 				break;
 			}

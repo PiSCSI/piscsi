@@ -437,5 +437,5 @@ pair<int, int> PiscsiImage::GetUidAndGid()
 		gid = pwd.pw_gid;
 	}
 
-	return make_pair(uid, gid);
+	return { uid, gid };
 }
