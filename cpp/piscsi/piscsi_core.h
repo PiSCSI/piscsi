@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@
 #include "generated/piscsi_interface.pb.h"
 #include <vector>
 #include <string>
+#include <atomic>
 
 using namespace std;
 
@@ -71,7 +72,7 @@ private:
 	static inline shared_ptr<PiscsiExecutor> executor;
 
 	// Processing flag
-	static inline volatile bool active;
+	static inline atomic<bool> active;
 
 	// Some versions of spdlog do not support get_log_level(), so we have to remember the level
 	static inline string current_log_level = "info";

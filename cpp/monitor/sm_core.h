@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@
 #include "hal/data_sample.h"
 #include <memory>
 #include <vector>
+#include <atomic>
 
 using namespace std;
 
@@ -37,7 +38,7 @@ class ScsiMon
 
     static void KillHandler(int);
 
-    static inline volatile bool running;
+    static inline atomic<bool> running;
 
     shared_ptr<BUS> bus;
 

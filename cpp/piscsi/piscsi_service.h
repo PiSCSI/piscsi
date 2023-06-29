@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -12,6 +12,7 @@
 #include "generated/piscsi_interface.pb.h"
 #include <functional>
 #include <thread>
+#include <atomic>
 
 class CommandContext;
 
@@ -28,7 +29,7 @@ class PiscsiService
 
 	thread monthread;
 
-	static inline volatile bool running = false;
+	static inline atomic<bool> running = false;
 
 public:
 
