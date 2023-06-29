@@ -81,7 +81,7 @@ void StorageDevice::UnreserveAll()
 
 bool StorageDevice::FileExists(const string& file)
 {
-	return exists(file);
+	return exists(path(file));
 }
 
 bool StorageDevice::IsReadOnlyFile() const
