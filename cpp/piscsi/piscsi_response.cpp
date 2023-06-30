@@ -134,7 +134,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 
 	string folder_pattern_lower = folder_pattern;
-	transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);
+	ranges::transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);
 
 	string file_pattern_lower = file_pattern;
 	transform(file_pattern_lower.begin(), file_pattern_lower.end(), file_pattern_lower.begin(), ::tolower);
