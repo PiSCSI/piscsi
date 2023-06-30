@@ -134,10 +134,10 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 
 	string folder_pattern_lower = folder_pattern;
-	ranges::transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);
+	ranges::transform(folder_pattern_lower, folder_pattern_lower.begin(), ::tolower);
 
 	string file_pattern_lower = file_pattern;
-	transform(file_pattern_lower.begin(), file_pattern_lower.end(), file_pattern_lower.begin(), ::tolower);
+	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
 	DIR *d = opendir(folder.c_str());
 	if (d == nullptr) {
@@ -154,7 +154,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		string name_lower = dir->d_name;
 		if (!file_pattern.empty()) {
-			transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+			ranges::transform(name_lower, name_lower.begin(), ::tolower);
 		}
 
 		if (dir->d_type == DT_DIR) {

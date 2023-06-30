@@ -27,7 +27,7 @@ PbDeviceType Device::ParseDeviceType(const string& value)
 {
 	string t = value;
 	PbDeviceType type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	ranges::transform(t, t.begin(), ::toupper);
 	if (!PbDeviceType_Parse(t, &type)) {
 		throw parser_exception("Illegal device type '" + value + "'");
 	}

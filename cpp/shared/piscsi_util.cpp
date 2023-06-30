@@ -85,7 +85,7 @@ string piscsi_util::GetExtensionLowerCase(const string& filename)
 	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
 		ext = filename.substr(separator + 1);
 	}
-	transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+	ranges::transform(ext, ext.begin(), [](unsigned char c){ return std::tolower(c); });
 
 	return ext;
 }

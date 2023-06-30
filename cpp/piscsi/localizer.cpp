@@ -244,7 +244,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 		const string &arg3) const
 {
 	string locale_lower = locale;
-	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
+	ranges::transform(locale_lower, locale_lower.begin(), ::tolower);
 
 	auto it = localized_messages.find(locale_lower);
 	if (it == localized_messages.end()) {

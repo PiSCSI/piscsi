@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ PbOperation ScsictlParser::ParseOperation(const string& operation) const
 PbDeviceType ScsictlParser::ParseType(const string& type) const
 {
 	string t = type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	ranges::transform(t, t.begin(), ::toupper);
 
 	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
 		return parsed_type;
