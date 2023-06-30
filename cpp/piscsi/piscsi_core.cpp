@@ -93,36 +93,34 @@ void Piscsi::Cleanup()
 	bus->Cleanup();
 }
 
-void Piscsi::ReadAccessToken(const string& filename) const
+void Piscsi::ReadAccessToken(const path& filename) const
 {
-	const path p(filename);
-
-	if (error_code error; !is_regular_file(p, error)) {
-		throw parser_exception("Access token file '" + filename + "' must be a regular file");
+	if (error_code error; !is_regular_file(filename, error)) {
+		throw parser_exception("Access token file '" + filename.string() + "' must be a regular file");
 	}
 
-	if (struct stat st; stat(p.c_str(), &st) || st.st_uid || st.st_gid) {
-		throw parser_exception("Access token file '" + filename + "' must be owned by root");
+	if (struct stat st; stat(filename.c_str(), &st) || st.st_uid || st.st_gid) {
+		throw parser_exception("Access token file '" + filename.string() + "' must be owned by root");
 	}
 
-	if (const auto perms = filesystem::status(p).permissions();
+	if (const auto perms = filesystem::status(filename).permissions();
 		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
 			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
-		throw parser_exception("Access token file '" + filename + "' must be readable by root only");
+		throw parser_exception("Access token file '" + filename.string() + "' must be readable by root only");
 	}
 
-	ifstream token_file(p);
+	ifstream token_file(filename);
 	if (token_file.fail()) {
-		throw parser_exception("Can't open access token file '" + filename + "'");
+		throw parser_exception("Can't open access token file '" + filename.string() + "'");
 	}
 
 	getline(token_file, access_token);
 	if (token_file.fail()) {
-		throw parser_exception("Can't read access token file '" + filename + "'");
+		throw parser_exception("Can't read access token file '" + filename.string() + "'");
 	}
 
 	if (access_token.empty()) {
-		throw parser_exception("Access token file '" + filename + "' must not be empty");
+		throw parser_exception("Access token file '" + filename.string() + "' must not be empty");
 	}
 }
 

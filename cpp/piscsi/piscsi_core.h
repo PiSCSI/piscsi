@@ -17,9 +17,11 @@
 #include "generated/piscsi_interface.pb.h"
 #include <vector>
 #include <string>
+#include <filesystem>
 #include <atomic>
 
 using namespace std;
+using namespace filesystem;
 
 class BUS;
 class ControllerManager;
@@ -43,7 +45,7 @@ private:
 	void Banner(const vector<char *>&) const;
 	bool InitBus() const;
 	static void Cleanup();
-	void ReadAccessToken(const string&) const;
+	void ReadAccessToken(const path&) const;
 	void LogDevices(string_view) const;
 	PbDeviceType ParseDeviceType(const string&) const;
 	static void TerminationHandler(int);
