@@ -112,11 +112,12 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 		image_file.set_name(filename);
 		image_file.set_type(device_factory.GetTypeForFile(filename));
 
-		const path p = filename[0] == '/' ? filename : default_folder + "/" + filename;
+		const path p(filename[0] == '/' ? filename : default_folder + "/" + filename);
 
 		image_file.set_read_only(access(p.c_str(), W_OK));
 
-		if (is_regular_file(p) || is_symlink(p)) {
+		error_code error;
+		if (is_regular_file(p, error) || is_symlink(p, error)) {
 			image_file.set_size(file_size(p));
 			return true;
 		}

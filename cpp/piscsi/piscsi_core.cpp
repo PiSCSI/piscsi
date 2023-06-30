@@ -95,9 +95,9 @@ void Piscsi::Cleanup()
 
 void Piscsi::ReadAccessToken(const string& filename) const
 {
-	const path p = path(filename);
+	const path p(filename);
 
-	if (!is_regular_file(p)) {
+	if (error_code error; !is_regular_file(p, error)) {
 		throw parser_exception("Access token file '" + filename + "' must be a regular file");
 	}
 

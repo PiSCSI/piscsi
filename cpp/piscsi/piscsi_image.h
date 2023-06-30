@@ -42,8 +42,8 @@ private:
 	bool CreateImageFolder(const CommandContext&, const string&) const;
 	bool ValidateParams(const CommandContext&, const PbCommand&, const string&, string&, string&) const;
 
-	static bool IsValidSrcFilename(const string&);
-	static bool IsValidDstFilename(const string&);
+	static bool IsValidSrcFilename(string_view);
+	static bool IsValidDstFilename(string_view);
 	static bool ChangeOwner(const CommandContext&, const path&, bool);
 	static string GetHomeDir();
 	static pair<int, int> GetUidAndGid();

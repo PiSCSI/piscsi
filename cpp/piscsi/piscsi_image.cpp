@@ -38,7 +38,7 @@ bool PiscsiImage::CheckDepth(string_view filename) const
 bool PiscsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
 	if (const size_t filename_start = filename.rfind('/'); filename_start != string::npos) {
-		const auto folder = path(filename.substr(0, filename_start));
+		const path folder = path(filename.substr(0, filename_start));
 
 		// Checking for existence first prevents an error if the top-level folder is a softlink
 		if (error_code error; exists(folder, error)) {
@@ -51,7 +51,7 @@ bool PiscsiImage::CreateImageFolder(const CommandContext& context, const string&
 			return ChangeOwner(context, folder, false);
 		}
 		catch(const filesystem_error& e) {
-			return context.ReturnStatus(false, "Can't create image folder '" + string(folder) + "': " + e.what());
+			return context.ReturnStatus(false, "Can't create image folder '" + folder.string() + "': " + e.what());
 		}
 	}
 
@@ -77,16 +77,16 @@ string PiscsiImage::SetDefaultFolder(const string& f)
 	}
 
 	// Resolve a potential symlink
-	auto p = path(folder);
+	path p(folder);
 	if (error_code error; is_symlink(p, error)) {
 		p = read_symlink(p);
 	}
 
 	if (error_code error; !is_directory(p, error)) {
-		return string("'") + string(p) + string("' is not a valid folder");
+		return string("'") + p.string() + string("' is not a valid folder");
 	}
 
-	default_folder = string(p);
+	default_folder = p.string();
 
 	LOGINFO("Default image folder set to '%s'", default_folder.c_str())
 
@@ -366,21 +366,23 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 	return true;
 }
 
-bool PiscsiImage::IsValidSrcFilename(const string& filename)
+bool PiscsiImage::IsValidSrcFilename(string_view filename)
 {
 	// Source file must exist and must be a regular file or a symlink
 	path file(filename);
-	return is_regular_file(file) || is_symlink(file);
+
+	error_code error;
+	return is_regular_file(file, error) || is_symlink(file, error);
 }
 
-bool PiscsiImage::IsValidDstFilename(const string& filename)
+bool PiscsiImage::IsValidDstFilename(string_view filename)
 {
 	// Destination file must not yet exist
 	try {
 		return !exists(path(filename));
 	}
 	catch(const filesystem_error&) {
-		return true;
+		return false;
 	}
 }
 
