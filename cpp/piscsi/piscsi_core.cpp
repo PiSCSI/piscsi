@@ -95,21 +95,23 @@ void Piscsi::Cleanup()
 
 void Piscsi::ReadAccessToken(const string& filename) const
 {
-	if (!is_regular_file(path(filename))) {
+	const path p = path(filename);
+
+	if (!is_regular_file(p)) {
 		throw parser_exception("Access token file '" + filename + "' must be a regular file");
 	}
 
-	if (struct stat st; stat(filename.c_str(), &st) || st.st_uid || st.st_gid) {
+	if (struct stat st; stat(p.c_str(), &st) || st.st_uid || st.st_gid) {
 		throw parser_exception("Access token file '" + filename + "' must be owned by root");
 	}
 
-	if (const auto perms = filesystem::status(filename).permissions();
+	if (const auto perms = filesystem::status(p).permissions();
 		(perms & perms::group_read) != perms::none || (perms & perms::others_read) != perms::none ||
 			(perms & perms::group_write) != perms::none || (perms & perms::others_write) != perms::none) {
 		throw parser_exception("Access token file '" + filename + "' must be readable by root only");
 	}
 
-	ifstream token_file(filename);
+	ifstream token_file(p);
 	if (token_file.fail()) {
 		throw parser_exception("Can't open access token file '" + filename + "'");
 	}
