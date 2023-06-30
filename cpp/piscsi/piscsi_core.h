@@ -47,7 +47,6 @@ private:
 	static void Cleanup();
 	void ReadAccessToken(const path&) const;
 	void LogDevices(string_view) const;
-	PbDeviceType ParseDeviceType(const string&) const;
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(const vector<char *>&, int&) const;
 	void CreateInitialDevices(const optargs_type&) const;

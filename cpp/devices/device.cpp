@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_version.h"
+#include "shared/piscsi_exceptions.h"
 #include "device.h"
 #include <cassert>
 #include <sstream>
@@ -20,6 +21,18 @@ Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 	ostringstream os;
 	os << setw(2) << setfill('0') << piscsi_major_version << setw(2) << setfill('0') << piscsi_minor_version;
 	revision = os.str();
+}
+
+PbDeviceType Device::ParseDeviceType(const string& value)
+{
+	string t = value;
+	PbDeviceType type;
+	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	if (!PbDeviceType_Parse(t, &type)) {
+		throw parser_exception("Illegal device type '" + value + "'");
+	}
+
+	return type;
 }
 
 void Device::Reset()

@@ -96,6 +96,7 @@ public:
 
 	virtual ~Device() = default;
 
+	static PbDeviceType ParseDeviceType(const string&);
 	PbDeviceType GetType() const { return type; }
 	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
 

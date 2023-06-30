@@ -134,18 +134,6 @@ void Piscsi::LogDevices(string_view devices) const
 	}
 }
 
-PbDeviceType Piscsi::ParseDeviceType(const string& value) const
-{
-	string t = value;
-	PbDeviceType type;
-	transform(t.begin(), t.end(), t.begin(), ::toupper);
-	if (!PbDeviceType_Parse(t, &type)) {
-		throw parser_exception("Illegal device type '" + value + "'");
-	}
-
-	return type;
-}
-
 void Piscsi::TerminationHandler(int)
 {
 	Cleanup();
@@ -281,7 +269,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 				continue;
 
 			case 't':
-				type = ParseDeviceType(value);
+				type = Device::ParseDeviceType(value);
 				continue;
 
 			case 1:
