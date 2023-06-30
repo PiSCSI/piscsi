@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // The base class for all mass storage devices with image file support
 //
@@ -14,6 +14,7 @@
 #include "mode_page_device.h"
 #include <unordered_map>
 #include <string>
+#include <filesystem>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ public:
 
 	virtual void Open() = 0;
 
-	string GetFilename() const { return filename; }
+	string GetFilename() const { return filename.string(); }
 	void SetFilename(string_view f) { filename = f; }
 
 	uint64_t GetBlockCount() const { return blocks; }
@@ -58,10 +59,9 @@ protected:
 
 private:
 
-	// Total number of blocks
 	uint64_t blocks = 0;
 
-	string filename;
+	filesystem::path filename;
 
 	bool medium_changed = false;
 

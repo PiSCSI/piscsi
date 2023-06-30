@@ -28,8 +28,8 @@ void StorageDevice::ValidateFile()
 		throw io_exception(string(GetTypeString()) + " device has 0 blocks");
 	}
 
-	if (!exists(path(filename))) {
-		throw file_not_found_exception("Image file '" + filename + "' for " + GetTypeString() + " device does not exist");
+	if (!exists(filename)) {
+		throw file_not_found_exception("Image file '" + filename.string() + "' for " + GetTypeString() + " device does not exist");
 	}
 
 	if (GetFileSize() > 2LL * 1024 * 1024 * 1024 * 1024) {
@@ -92,9 +92,9 @@ bool StorageDevice::IsReadOnlyFile() const
 off_t StorageDevice::GetFileSize() const
 {
 	try {
-		return file_size(path(filename));
+		return file_size(filename);
 	}
 	catch (const filesystem_error& e) {
-		throw io_exception("Can't get size of '" + filename + "': " + e.what());
+		throw io_exception("Can't get size of '" + filename.string() + "': " + e.what());
 	}
 }
