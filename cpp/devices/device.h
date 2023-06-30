@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
