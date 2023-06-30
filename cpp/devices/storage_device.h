@@ -38,7 +38,7 @@ public:
 	void UnreserveFile();
 	static void UnreserveAll();
 
-	static bool FileExists(const string&);
+	static bool FileExists(string_view);
 	bool IsReadOnlyFile() const;
 
 	void SetMediumChanged(bool b) { medium_changed = b; }

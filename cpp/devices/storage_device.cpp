@@ -79,7 +79,7 @@ void StorageDevice::UnreserveAll()
 	reserved_files.clear();
 }
 
-bool StorageDevice::FileExists(const string& file)
+bool StorageDevice::FileExists(string_view file)
 {
 	return exists(path(file));
 }
