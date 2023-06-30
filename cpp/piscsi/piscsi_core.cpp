@@ -99,8 +99,7 @@ void Piscsi::ReadAccessToken(const string& filename) const
 		throw parser_exception("Access token file '" + filename + "' must be a regular file");
 	}
 
-	struct stat st;
-	if (stat(filename.c_str(), &st) || st.st_uid || st.st_gid) {
+	if (struct stat st; stat(filename.c_str(), &st) || st.st_uid || st.st_gid) {
 		throw parser_exception("Access token file '" + filename + "' must be owned by root");
 	}
 
