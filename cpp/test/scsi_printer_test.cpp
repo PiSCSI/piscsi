@@ -139,5 +139,5 @@ TEST(ScsiPrinterTest, WriteByteSequence)
 	auto printer = CreateDevice(SCLP, *controller);
 
 	vector<uint8_t> buf(1);
-	EXPECT_TRUE(printer->WriteByteSequence(buf, buf.size()));
+	EXPECT_TRUE(printer->WriteByteSequence(buf));
 }

@@ -34,7 +34,7 @@ public:
 
 	vector<uint8_t> InquiryInternal() const override;
 
-	bool WriteByteSequence(span<uint8_t>, uint32_t) override;
+	bool WriteByteSequence(span<uint8_t>) override;
 
 private:
 

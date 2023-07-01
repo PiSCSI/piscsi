@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -406,7 +406,7 @@ TEST(PrimaryDeviceTest, WriteByteSequence)
 	vector<uint8_t> data;
 	MockPrimaryDevice device(0);
 
-	EXPECT_FALSE(device.WriteByteSequence(data, 0)) << "Primary device does not support writing byte sequences";
+	EXPECT_FALSE(device.WriteByteSequence(data)) << "Primary device does not support writing byte sequences";
 }
 
 TEST(PrimaryDeviceTest, GetSetSendDelay)

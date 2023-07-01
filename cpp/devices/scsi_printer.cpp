@@ -136,7 +136,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	EnterStatusPhase();
 }
 
-bool SCSIPrinter::WriteByteSequence(span<uint8_t> buf, uint32_t length)
+bool SCSIPrinter::WriteByteSequence(span<uint8_t> buf)
 {
 	if (!out.is_open()) {
 		vector<char> f(file_template.begin(), file_template.end());
@@ -160,9 +160,9 @@ bool SCSIPrinter::WriteByteSequence(span<uint8_t> buf, uint32_t length)
 		GetLogger().Trace("Created printer output file '" + filename + "'");
 	}
 
-	GetLogger().Trace("Appending " + to_string(length) + " byte(s) to printer output file ''" + filename + "'");
+	GetLogger().Trace("Appending " + to_string(buf.size()) + " byte(s) to printer output file ''" + filename + "'");
 
-	out.write((const char*)buf.data(), length);
+	out.write((const char*)buf.data(), buf.size());
 
 	return !out.fail();
 }

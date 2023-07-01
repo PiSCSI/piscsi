@@ -752,7 +752,7 @@ bool ScsiController::XferOut(bool cont)
 	SetByteTransfer(false);
 
 	auto device = GetDeviceForLun(GetEffectiveLun());
-	return device != nullptr ? device->WriteByteSequence(GetBuffer(), count) : false;
+	return device != nullptr ? device->WriteByteSequence(span(GetBuffer().data(), count)) : false;
 }
 
 void ScsiController::DataOutNonBlockOriented()
