@@ -249,7 +249,7 @@ int SCSIDaynaPort::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf, uint32_t)
+bool SCSIDaynaPort::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf)
 {
 	const int data_format = cdb[5];
 	int data_length = GetInt16(cdb, 3);

@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ TEST(ScsiDaynaportTest, WriteBytes)
 
 	// Unknown data format
 	cmd[5] = 0xff;
-	EXPECT_TRUE(daynaport->WriteBytes(cmd, buf, 0));
+	EXPECT_TRUE(daynaport->WriteBytes(cmd, buf));
 }
 
 TEST(ScsiDaynaportTest, Read6)

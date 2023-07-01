@@ -884,7 +884,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		{
 			// Special case for SCBR and SCDP
 			if (auto byte_writer = dynamic_pointer_cast<ByteWriter>(device); byte_writer) {
-				if (!byte_writer->WriteBytes(GetCmd(), GetBuffer(), GetLength())) {
+				if (!byte_writer->WriteBytes(GetCmd(), GetBuffer())) {
 					return false;
 				}
 

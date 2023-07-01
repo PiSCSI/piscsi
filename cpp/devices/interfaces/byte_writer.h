@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Abstraction for the DaynaPort and the host bridge, which both have methods for writing byte sequences
 //
@@ -23,5 +23,5 @@ public:
 	ByteWriter() = default;
 	virtual ~ByteWriter() = default;
 
-	virtual bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) = 0;
+	virtual bool WriteBytes(const vector<int>&, vector<uint8_t>&) = 0;
 };

@@ -40,7 +40,7 @@ public:
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int GetMessage10(const vector<int>&, vector<uint8_t>&);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&, uint32_t) override;
+	bool WriteBytes(const vector<int>&, vector<uint8_t>&) override;
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;
