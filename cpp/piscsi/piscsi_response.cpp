@@ -129,7 +129,8 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	if (!is_directory(path(default_folder))) {
+	const path default_path(default_folder);
+	if (!is_directory(default_path)) {
 		return;
 	}
 
@@ -139,7 +140,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	string file_pattern_lower = file_pattern;
 	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
-	for (auto iter = recursive_directory_iterator(default_folder, directory_options::follow_directory_symlink);
+	for (auto iter = recursive_directory_iterator(default_path, directory_options::follow_directory_symlink);
 		iter != recursive_directory_iterator(); iter++) {
 		if (iter.depth() > scan_depth) {
 			iter.disable_recursion_pending();
