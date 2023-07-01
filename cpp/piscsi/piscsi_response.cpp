@@ -155,26 +155,11 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
-		if (!folder_pattern.empty()) {
-			string name_lower = folder;
-			ranges::transform(name_lower, name_lower.begin(), ::tolower);
-
-			if (name_lower.find(folder_pattern_lower) == string::npos) {
-				continue;
-			}
+		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(p.filename().string(), file_pattern_lower)) {
+			continue;
 		}
 
 		const string filename = folder.empty() ? p.filename().string() : folder + "/" + p.filename().string();
-
-		if (!file_pattern.empty()) {
-			string name_lower = p.filename().string();
-			ranges::transform(name_lower, name_lower.begin(), ::tolower);
-
-			if (name_lower.find(file_pattern_lower) == string::npos) {
-				continue;
-			}
-		}
-
 		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
@@ -553,4 +538,18 @@ path PiscsiResponse::GetNextImageFile(const path& path)
 	}
 
 	return path;
+}
+
+bool PiscsiResponse::FilterMatches(const string& input, const string& pattern_lower)
+{
+	if (!pattern_lower.empty()) {
+		string name_lower = input;
+		ranges::transform(name_lower, name_lower.begin(), ::tolower);
+
+		if (name_lower.find(pattern_lower) == string::npos) {
+			return false;
+		}
+	}
+
+	return true;
 }
