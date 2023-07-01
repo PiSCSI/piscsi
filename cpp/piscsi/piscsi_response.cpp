@@ -523,7 +523,7 @@ path PiscsiResponse::GetNextImageFile(const path& path)
 	if (is_symlink(p)) {
 		p = read_symlink(p);
 		if (!exists(p)) {
-			LOGWARN("Symlink '%s' in image folder '%s' is broken", p.filename().c_str(), p.parent_path().c_str())
+			LOGWARN("Image file symlink '%s is broken", p.string().c_str())
 			return "";
 		}
 	}
@@ -534,7 +534,7 @@ path PiscsiResponse::GetNextImageFile(const path& path)
 	}
 
 	if (filesystem::is_empty(p)) {
-		LOGWARN("File '%s' in image folder '%s' is empty", p.filename().c_str(), p.parent_path().c_str())
+		LOGWARN("Image file '%s' is empty", p.string().c_str())
 		return "";
 	}
 
