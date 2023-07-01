@@ -6,7 +6,7 @@
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
 //  Copyright (C) akuker
-//  Copyright (C) 2022 Uwe Seimet
+//  Copyright (C) 2022-2023 Uwe Seimet
 //
 //  	Licensed under the BSD 3-Clause License.
 //  	See LICENSE file in the project root folder.
@@ -821,7 +821,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 		case scsi_command::eCmdRead16:
 			// Read from disk
 			try {
-				SetLength(dynamic_pointer_cast<Disk>(GetDeviceForLun(lun))->Read(GetCmd(), buf, GetNext()));
+				SetLength(dynamic_pointer_cast<Disk>(GetDeviceForLun(lun))->Read(buf, GetNext()));
 			}
 			catch(const scsi_exception&) {
 				// If there is an error, go to the status phase
@@ -898,7 +898,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			}
 
 			try {
-				disk->Write(GetCmd(), GetBuffer(), GetNext() - 1);
+				disk->Write(GetBuffer(), GetNext() - 1);
 			}
 			catch(const scsi_exception& e) {
 				Error(e.get_sense_key(), e.get_asc());

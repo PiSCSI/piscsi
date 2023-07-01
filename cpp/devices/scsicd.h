@@ -30,7 +30,7 @@ public:
 	void Open() override;
 
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<uint8_t>&, uint64_t) override;
+	int Read(vector<uint8_t>&, uint64_t) override;
 
 protected:
 

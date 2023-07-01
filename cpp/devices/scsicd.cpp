@@ -21,7 +21,7 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes, scsi_defs::scsi_level level) 
+SCSICD::SCSICD(int lun, const unordered_set<uint32_t>& sector_sizes, scsi_defs::scsi_level level)
 	: Disk(SCCD, lun), scsi_level(level)
 {
 	SetSectorSizes(sector_sizes);
@@ -216,7 +216,7 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 	}
 }
 
-int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
+int SCSICD::Read(vector<uint8_t>& buf, uint64_t block)
 {
 	CheckReady();
 
@@ -241,7 +241,7 @@ int SCSICD::Read(const vector<int>& cdb, vector<uint8_t>& buf, uint64_t block)
 	}
 
 	assert(dataindex >= 0);
-	return Disk::Read(cdb, buf, block);
+	return Disk::Read(buf, block);
 }
 
 int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)

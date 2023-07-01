@@ -115,7 +115,7 @@ void Disk::Read(access_mode mode)
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
 		GetController()->SetBlocks(blocks);
-		GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), start));
+		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
 
 		GetLogger().Trace("Length is " + to_string(GetController()->GetLength()));
 
@@ -186,7 +186,7 @@ void Disk::Verify(access_mode mode)
 
 		// Test reading
 		GetController()->SetBlocks(blocks);
-		GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), start));
+		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
 
 		// Set next block
 		GetController()->SetNext(start + 1);
@@ -497,7 +497,7 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 	pages[8] = buf;
 }
 
-int Disk::Read(const vector<int>&, vector<uint8_t>& buf, uint64_t block)
+int Disk::Read(vector<uint8_t>& buf, uint64_t block)
 {
 	assert(block < GetBlockCount());
 
@@ -510,7 +510,7 @@ int Disk::Read(const vector<int>&, vector<uint8_t>& buf, uint64_t block)
 	return GetSectorSizeInBytes();
 }
 
-void Disk::Write(const vector<int>&, const vector<uint8_t>& buf, uint64_t block)
+void Disk::Write(const vector<uint8_t>& buf, uint64_t block)
 {
 	assert(block < GetBlockCount());
 
