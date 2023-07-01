@@ -12,11 +12,11 @@
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "generated/piscsi_interface.pb.h"
-#include <dirent.h>
 #include <array>
 #include <string>
 
 using namespace std;
+using namespace filesystem;
 using namespace piscsi_interface;
 
 class PiscsiResponse
@@ -59,5 +59,5 @@ private:
 			const string& = "", bool = false) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
-	static string GetNextImageFile(const string&, const string&);
+	static path GetNextImageFile(const path&);
 };

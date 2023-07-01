@@ -129,52 +129,51 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	if (scan_depth-- < 0) {
-		return;
-	}
-
 	string folder_pattern_lower = folder_pattern;
 	ranges::transform(folder_pattern_lower, folder_pattern_lower.begin(), ::tolower);
 
 	string file_pattern_lower = file_pattern;
 	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
-	DIR *d = opendir(folder.c_str());
-	if (d == nullptr) {
-		return;
-	}
-
-	// TODO: Use C++ filesystem calls where possible
-	const dirent *dir;
-	while ((dir = readdir(d))) {
-		const string filename = GetNextImageFile(folder, dir->d_name);
-		if (filename.empty()) {
+	for (auto iter = recursive_directory_iterator(folder); iter != recursive_directory_iterator(); iter++) {
+		if (iter.depth() > scan_depth || iter->path().filename().string().starts_with(".")) {
+			iter.disable_recursion_pending();
 			continue;
 		}
 
-		string name_lower = dir->d_name;
-		if (!file_pattern.empty()) {
+		const path p = GetNextImageFile(iter->path());
+		if (p.string().empty()) {
+			continue;
+		}
+
+		const string parent = p.parent_path().string();
+
+		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
+
+		if (!folder_pattern.empty()) {
+			string name_lower = folder;
 			ranges::transform(name_lower, name_lower.begin(), ::tolower);
+
+			if (name_lower.find(folder_pattern_lower) == string::npos) {
+				continue;
+			}
 		}
 
-		if (dir->d_type == DT_DIR) {
-			if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
-				GetAvailableImages(image_files_info, default_folder, filename, folder_pattern,
-						file_pattern, scan_depth);
-			}
+		const string filename = folder.empty() ? p.filename().string() : folder + "/" + p.filename().string();
 
-			continue;
+		if (!file_pattern.empty()) {
+			string name_lower = p.filename().string()
+			ranges::transform(name_lower, name_lower.begin(), ::tolower);
+
+			if (name_lower.find(file_pattern_lower) == string::npos) {
+				continue;
+			}
 		}
 
-		if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
-			if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
-				GetImageFile(*image_files_info.add_image_files(), default_folder,
-						filename.substr(default_folder.length() + 1));
-			}
+		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
+			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
 	}
-
-	closedir(d);
 }
 
 unique_ptr<PbImageFilesInfo> PiscsiResponse::GetAvailableImages(PbResult& result, const string& default_folder,
@@ -522,20 +521,15 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 	return id_sets;
 }
 
-string PiscsiResponse::GetNextImageFile(const string& folder, const string& file)
+path PiscsiResponse::GetNextImageFile(const path& path)
 {
-	// Ignore names starting with "."
-	if (file.starts_with(".")) {
-		return "";
-	}
-
-	path p(folder + "/" + file);
+	filesystem::path p(path);
 
 	// Follow symlink
 	if (is_symlink(p)) {
 		p = read_symlink(p);
 		if (!exists(p)) {
-			LOGWARN("Symlink '%s' in image folder '%s' is broken", file.c_str(), folder.c_str())
+			LOGWARN("Symlink '%s' in image folder '%s' is broken", p.filename().c_str(), p.parent_path().c_str())
 			return "";
 		}
 	}
@@ -546,9 +540,9 @@ string PiscsiResponse::GetNextImageFile(const string& folder, const string& file
 	}
 
 	if (filesystem::is_empty(p)) {
-		LOGWARN("File '%s' in image folder '%s' is empty", file.c_str(), folder.c_str())
+		LOGWARN("File '%s' in image folder '%s' is empty", p.filename().c_str(), p.parent_path().c_str())
 		return "";
 	}
 
-	return folder + "/" + file;
+	return path;
 }
