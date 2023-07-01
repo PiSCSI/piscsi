@@ -147,15 +147,15 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 			continue;
 		}
 
-		if (!ValidateImageFile(iter->path())) {
-			continue;
-		}
-
 		const string parent = iter->path().parent_path().string();
 
 		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
 		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(iter->path().filename().string(), file_pattern_lower)) {
+			continue;
+		}
+
+		if (!ValidateImageFile(iter->path())) {
 			continue;
 		}
 
