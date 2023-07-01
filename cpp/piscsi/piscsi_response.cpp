@@ -147,7 +147,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	// TODO: Use C++ filesystem calls where possible
 	const dirent *dir;
 	while ((dir = readdir(d))) {
-		string filename = GetNextImageFile(dir, folder);
+		const string filename = GetNextImageFile(folder, dir->d_name);
 		if (filename.empty()) {
 			continue;
 		}
@@ -522,27 +522,33 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 	return id_sets;
 }
 
-string PiscsiResponse::GetNextImageFile(const dirent *dir, const string& folder)
+string PiscsiResponse::GetNextImageFile(const string& folder, const string& file)
 {
-	// Ignore unknown folder types and folder names starting with '.'
-	if ((dir->d_type != DT_REG && dir->d_type != DT_DIR && dir->d_type != DT_LNK && dir->d_type != DT_BLK)
-			|| dir->d_name[0] == '.') {
+	// Ignore names starting with "."
+	if (file.starts_with(".")) {
 		return "";
 	}
 
-	const path filename = folder + "/" + dir->d_name;
+	path p(folder + "/" + file);
 
-	const bool file_exists = exists(filename);
+	// Follow symlink
+	if (is_symlink(p)) {
+		p = read_symlink(p);
+		if (!exists(p)) {
+			LOGWARN("Symlink '%s' in image folder '%s' is broken", file.c_str(), folder.c_str())
+			return "";
+		}
+	}
 
-	if (dir->d_type == DT_REG && file_exists && file_size(filename) == 0) {
-		LOGWARN("File '%s' in image folder '%s' is empty", dir->d_name, folder.c_str())
+	// Ignore unsupported file types
+	if (is_other(p) && !is_block_file(p)) {
 		return "";
 	}
 
-	if (dir->d_type == DT_LNK && !file_exists) {
-		LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str())
+	if (filesystem::is_empty(p)) {
+		LOGWARN("File '%s' in image folder '%s' is empty", file.c_str(), folder.c_str())
 		return "";
 	}
 
-	return filename;
+	return folder + "/" + file;
 }
