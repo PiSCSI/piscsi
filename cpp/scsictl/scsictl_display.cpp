@@ -177,7 +177,7 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 		s << "Reserved device IDs: ";
 
 		for (int i = 0; i < reserved_ids_info.ids_size(); i++) {
-			if(i) {
+			if (i) {
 				s << ", ";
 			}
 
