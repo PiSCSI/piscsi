@@ -89,7 +89,7 @@ void SCSIPrinter::Print()
 {
 	const uint32_t length = GetInt24(GetController()->GetCmd(), 2);
 
-	GetLogger().Trace("Receiving " + to_string(length) + " byte(s) to be printed");
+	GetLogger().Trace("Expecting to receive " + to_string(length) + " byte(s) to be printed");
 
 	if (length > GetController()->GetBuffer().size()) {
 		GetLogger().Error("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
