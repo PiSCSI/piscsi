@@ -145,7 +145,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
 	for (auto iter = recursive_directory_iterator(effective_default_folder); iter != recursive_directory_iterator(); iter++) {
-		if (iter.depth() > scan_depth || iter->path().filename().string().starts_with(".")) {
+		if (iter.depth() > scan_depth) {
 			iter.disable_recursion_pending();
 			continue;
 		}
@@ -531,6 +531,10 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 
 path PiscsiResponse::GetNextImageFile(const path& path)
 {
+	if (path.filename().string().starts_with(".")) {
+		return "";
+	}
+
 	filesystem::path p(path);
 
 	// Follow symlink
