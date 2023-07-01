@@ -118,10 +118,9 @@ void SCSIPrinter::SynchronizeBuffer()
 	cmd.replace(file_position, 2, filename);
 
 	error_code error;
-
 	GetLogger().Trace("Printing file '" + filename + "' with " + to_string(file_size(path(filename), error)) + " byte(s)");
 
-	GetLogger().Debug("Executing '" + cmd + "'");
+	GetLogger().Debug("Executing print command '" + cmd + "'");
 
 	if (system(cmd.c_str())) {
 		GetLogger().Error("Printing file '" + filename + "' failed, the printing system might not be configured");
