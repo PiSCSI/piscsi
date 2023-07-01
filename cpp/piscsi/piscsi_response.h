@@ -59,7 +59,7 @@ private:
 			const string& = "", bool = false) const;
 	set<id_set> MatchDevices(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const PbCommand&) const;
 
-	static path GetNextImageFile(const path&);
+	static bool ValidateImageFile(const path&);
 
 	static bool FilterMatches(const string&, const string&);
 };

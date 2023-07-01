@@ -147,20 +147,20 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 			continue;
 		}
 
-		const path p = GetNextImageFile(iter->path());
-		if (p.string().empty()) {
+		if (!ValidateImageFile(iter->path())) {
 			continue;
 		}
 
-		const string parent = p.parent_path().string();
+		const string parent = iter->path().parent_path().string();
 
 		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
-		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(p.filename().string(), file_pattern_lower)) {
+		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(iter->path().filename().string(), file_pattern_lower)) {
 			continue;
 		}
 
-		const string filename = folder.empty() ? p.filename().string() : folder + "/" + p.filename().string();
+		const string filename = folder.empty() ?
+				iter->path().filename().string() : folder + "/" + iter->path().filename().string();
 		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
@@ -511,10 +511,10 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 	return id_sets;
 }
 
-path PiscsiResponse::GetNextImageFile(const path& path)
+bool PiscsiResponse::ValidateImageFile(const path& path)
 {
 	if (path.filename().string().starts_with(".")) {
-		return "";
+		return false;
 	}
 
 	filesystem::path p(path);
@@ -524,21 +524,21 @@ path PiscsiResponse::GetNextImageFile(const path& path)
 		p = read_symlink(p);
 		if (!exists(p)) {
 			LOGWARN("Image file symlink '%s is broken", p.string().c_str())
-			return "";
+			return false;
 		}
 	}
 
 	// Ignore unsupported file types
 	if (is_other(p) && !is_block_file(p)) {
-		return "";
+		return false;
 	}
 
 	if (filesystem::is_empty(p)) {
 		LOGWARN("Image file '%s' is empty", p.string().c_str())
-		return "";
+		return false;
 	}
 
-	return path;
+	return true;
 }
 
 bool PiscsiResponse::FilterMatches(const string& input, const string& pattern_lower)
