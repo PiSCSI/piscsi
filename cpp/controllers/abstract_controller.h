@@ -64,7 +64,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
-	// TODO Consider returning  std::span
+	// TODO Consider using std::span instead of std::vector&
 	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
@@ -78,6 +78,7 @@ public:
 	void IncrementNext() { ++ctrl.next; }
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
+	// TODO Consider using std::span instead of std::vector&
 	vector<int>& GetCmd() { return ctrl.cmd; }
 	int GetCmd(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
