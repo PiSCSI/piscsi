@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -262,7 +262,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	return buf;
 }
 
-bool PrimaryDevice::WriteByteSequence(vector<uint8_t>&, uint32_t)
+bool PrimaryDevice::WriteByteSequence(span<uint8_t>, uint32_t)
 {
 	GetLogger().Error("Writing bytes is not supported by this device");
 

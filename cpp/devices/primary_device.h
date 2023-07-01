@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // A device implementing mandatory SCSI primary commands, to be used for subclassing
 //
@@ -18,6 +18,7 @@
 #include "device_logger.h"
 #include <string>
 #include <unordered_map>
+#include <span>
 #include <functional>
 
 using namespace std;
@@ -40,7 +41,7 @@ public:
 
 	void SetController(shared_ptr<AbstractController>);
 
-	virtual bool WriteByteSequence(vector<uint8_t>&, uint32_t);
+	virtual bool WriteByteSequence(span<uint8_t>, uint32_t);
 
 	int GetSendDelay() const { return send_delay; }
 
