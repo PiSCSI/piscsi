@@ -129,6 +129,10 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
+	if (!is_directory(path(folder))) {
+		return;
+	}
+
 	string folder_pattern_lower = folder_pattern;
 	ranges::transform(folder_pattern_lower, folder_pattern_lower.begin(), ::tolower);
 
@@ -162,7 +166,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		const string filename = folder.empty() ? p.filename().string() : folder + "/" + p.filename().string();
 
 		if (!file_pattern.empty()) {
-			string name_lower = p.filename().string()
+			string name_lower = p.filename().string();
 			ranges::transform(name_lower, name_lower.begin(), ::tolower);
 
 			if (name_lower.find(file_pattern_lower) == string::npos) {
