@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // Base class for device controllers
 //
@@ -64,6 +64,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
+	// TODO Consider returning  std::span
 	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
