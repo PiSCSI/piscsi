@@ -129,12 +129,7 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_folder,
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
-	string effective_default_folder = default_folder;
-	if (is_symlink(path(effective_default_folder))) {
-		effective_default_folder = read_symlink(path(effective_default_folder)).string();
-	}
-
-	if (!is_directory(path(effective_default_folder))) {
+	if (!is_directory(path(default_folder))) {
 		return;
 	}
 
@@ -144,7 +139,8 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	string file_pattern_lower = file_pattern;
 	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
-	for (auto iter = recursive_directory_iterator(effective_default_folder); iter != recursive_directory_iterator(); iter++) {
+	for (auto iter = recursive_directory_iterator(default_folder, directory_options::follow_directory_symlink);
+		iter != recursive_directory_iterator(); iter++) {
 		if (iter.depth() > scan_depth) {
 			iter.disable_recursion_pending();
 			continue;
@@ -157,7 +153,7 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 
 		const string parent = p.parent_path().string();
 
-		const string folder = parent.size() > effective_default_folder.size() ? parent.substr(effective_default_folder.size() + 1) : "";
+		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
 		if (!folder_pattern.empty()) {
 			string name_lower = folder;
@@ -179,8 +175,8 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 			}
 		}
 
-		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), effective_default_folder, filename)) {
-			GetImageFile(*image_files_info.add_image_files(), effective_default_folder, filename);
+		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
+			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
 	}
 }
