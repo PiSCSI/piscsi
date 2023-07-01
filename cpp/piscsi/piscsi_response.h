@@ -61,5 +61,5 @@ private:
 
 	static bool ValidateImageFile(const path&);
 
-	static bool FilterMatches(const string&, const string&);
+	static bool FilterMatches(const string&, string_view);
 };

@@ -541,7 +541,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 	return true;
 }
 
-bool PiscsiResponse::FilterMatches(const string& input, const string& pattern_lower)
+bool PiscsiResponse::FilterMatches(const string& input, string_view pattern_lower)
 {
 	if (!pattern_lower.empty()) {
 		string name_lower = input;
