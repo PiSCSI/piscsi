@@ -130,8 +130,8 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	string effective_default_folder = default_folder;
-	if (is_symlink(effective_default_folder)) {
-		effective_default_folder = read_symlink(effective_default_folder);
+	if (is_symlink(path(effective_default_folder))) {
+		effective_default_folder = read_symlink(path(effective_default_folder)).string();
 	}
 
 	if (!is_directory(path(effective_default_folder))) {
