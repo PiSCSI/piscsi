@@ -66,11 +66,11 @@ string PiscsiImage::SetDefaultFolder(const string& f)
 	string folder = f;
 
 	// If a relative path is specified, the path is assumed to be relative to the user's home directory
-	if (folder[0] != '/') {
+	if (path(folder).is_relative()) {
 		folder = GetHomeDir() + "/" + folder;
 	}
 	else {
-		if (folder.find("/home/") != 0) {
+		if (!folder.starts_with("/home/")) {
 			return "Default image folder must be located in '/home/'";
 		}
 	}
