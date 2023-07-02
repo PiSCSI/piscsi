@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ class CommandContext
 
 public:
 
-	CommandContext(const std::string& s = "", int f = -1) : locale(s), fd(f) {}
+	CommandContext(const string& s = "", int f = -1) : locale(s), fd(f) {}
 	~CommandContext() = default;
 
 	void Cleanup();
