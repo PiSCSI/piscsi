@@ -37,7 +37,7 @@ void StorageDevice::ValidateFile()
 	}
 
 	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
-	if (access(filename.c_str(), W_OK)) {
+	if (IsReadOnlyFile()) {
 		// Permanently write-protected
 		SetReadOnly(true);
 		SetProtectable(false);
