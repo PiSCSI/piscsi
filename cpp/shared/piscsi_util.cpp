@@ -86,6 +86,7 @@ string piscsi_util::GetExtensionLowerCase(const string& filename)
 	string ext = path(filename).extension();
 	ranges::transform(ext, ext.begin(), ::tolower);
 
+	// Remove the leading dot
 	return ext.empty() ? "" : ext.substr(1);
 }
 
