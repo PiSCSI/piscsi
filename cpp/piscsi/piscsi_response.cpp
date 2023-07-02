@@ -533,8 +533,8 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 		return false;
 	}
 
-	if (filesystem::is_empty(p)) {
-		LOGWARN("Image file '%s' is empty", p.string().c_str())
+	if (file_size(p) < 256) {
+		LOGWARN("Image file '%s' is invalid", p.string().c_str())
 		return false;
 	}
 
