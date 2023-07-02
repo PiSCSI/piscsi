@@ -117,7 +117,7 @@ bool PiscsiResponse::GetImageFile(PbImageFile& image_file, const string& default
 		image_file.set_read_only(access(p.c_str(), W_OK));
 
 		error_code error;
-		if (is_regular_file(p, error) || is_symlink(p, error)) {
+		if (is_regular_file(p, error) || (is_symlink(p, error) && !is_block_file(p, error))) {
 			image_file.set_size(file_size(p));
 			return true;
 		}
@@ -528,12 +528,11 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 		}
 	}
 
-	// Ignore unsupported file types
-	if (is_other(p) && !is_block_file(p)) {
+	if (is_directory(p) || (is_other(p) && !is_block_file(p))) {
 		return false;
 	}
 
-	if (!is_directory(p) && file_size(p) < 256) {
+	if (!is_block_file(p) && file_size(p) < 256) {
 		LOGWARN("Image file '%s' is invalid", p.string().c_str())
 		return false;
 	}
