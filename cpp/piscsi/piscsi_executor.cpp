@@ -593,6 +593,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 		// Permanently write-protected
 		storage_device.SetReadOnly(true);
 		storage_device.SetProtectable(false);
+		storage_device.SetProtected(false);
 	}
 	else {
 		storage_device.SetReadOnly(false);
