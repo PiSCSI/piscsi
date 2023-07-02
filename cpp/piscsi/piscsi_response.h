@@ -46,7 +46,7 @@ private:
 
 	DeviceFactory device_factory;
 
-	const inline static array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
+	static constexpr inline array<string, 6> log_levels = { "trace", "debug", "info", "warn", "err", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;

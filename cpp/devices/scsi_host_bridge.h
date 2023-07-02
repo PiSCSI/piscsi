@@ -28,7 +28,7 @@ using namespace std;
 
 class SCSIBR : public PrimaryDevice, public ByteWriter
 {
-	static constexpr const array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static inline constexpr array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 public:
 
@@ -55,9 +55,9 @@ private:
 
 	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag
-	array<uint8_t, 6> mac_addr = {};				// MAC Address
+	array<uint8_t, 6> mac_addr = {};			// MAC Address
 	int packet_len = 0;							// Receive packet size
-	array<uint8_t, 0x1000> packet_buf;				// Receive packet buffer
+	array<uint8_t, 0x1000> packet_buf;			// Receive packet buffer
 	bool packet_enable = false;					// Received packet valid
 
 	int ReadFsResult(vector<uint8_t>&) const;		// Read filesystem (result code)
