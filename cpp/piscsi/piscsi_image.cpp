@@ -35,7 +35,7 @@ bool PiscsiImage::CheckDepth(string_view filename) const
 	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
-bool PiscsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
+bool PiscsiImage::CreateImageFolder(const CommandContext& context, string_view filename) const
 {
 	if (const auto folder = path(filename).parent_path(); !folder.string().empty()) {
 		// Checking for existence first prevents an error if the top-level folder is a softlink

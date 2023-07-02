@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ private:
 
 	bool CheckDepth(string_view) const;
 	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
-	bool CreateImageFolder(const CommandContext&, const string&) const;
+	bool CreateImageFolder(const CommandContext&, string_view) const;
 	bool ValidateParams(const CommandContext&, const PbCommand&, const string&, string&, string&) const;
 
 	static bool IsValidSrcFilename(string_view);
