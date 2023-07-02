@@ -72,7 +72,7 @@ void SysTimer_AllWinner::enable_hs_timer()
     hsitimer_regs->hs_tmr_intv_lo_reg = UINT32_MAX;
 
     // Select prescale value of 1, continuous mode
-    hsitimer_regs->hs_tmr_ctrl_reg = hsitimer_regs->hs_tmr_ctrl_reg | HS_TMR_CLK_PRE_SCALE_1;
+    hsitimer_regs->hs_tmr_ctrl_reg = HS_TMR_CLK_PRE_SCALE_1;
 
     // Set reload bit
     hsitimer_regs->hs_tmr_ctrl_reg = hsitimer_regs->hs_tmr_ctrl_reg | HS_TMR_RELOAD;
