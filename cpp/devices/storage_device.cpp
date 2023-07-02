@@ -62,7 +62,7 @@ void StorageDevice::UnreserveFile()
 {
 	reserved_files.erase(filename);
 
-	filename = "";
+	filename.clear();
 }
 
 id_set StorageDevice::GetIdsForReservedFile(const string& file)
