@@ -523,7 +523,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 	if (is_symlink(p)) {
 		p = read_symlink(p);
 		if (!exists(p)) {
-			LOGWARN("Image file symlink '%s is broken", path.string().c_str())
+			LOGWARN("Image file symlink '%s' is broken", path.string().c_str())
 			return false;
 		}
 	}
