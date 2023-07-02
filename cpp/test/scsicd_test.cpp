@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ TEST(ScsiCdTest, Inquiry)
 {
 	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_1_CCS, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, ".is1");
+	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_1_CCS, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
 }
 
 TEST(ScsiCdTest, SetUpModePages)

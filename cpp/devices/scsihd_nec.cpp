@@ -1,14 +1,15 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2020 GIMONS
-//	Copyright (C) akuker
+// Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+// Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2021-2023 Uwe Seimet
+// Copyright (C) akuker
 //
-//	Licensed under the BSD 3-Clause License.
-//	See LICENSE file in the project root folder.
+// Licensed under the BSD 3-Clause License.
+// See LICENSE file in the project root folder.
 //
 //---------------------------------------------------------------------------
 

@@ -11,9 +11,11 @@
 #include "piscsi_util.h"
 #include <cassert>
 #include <sstream>
+#include <filesystem>
 #include <algorithm>
 
 using namespace std;
+using namespace filesystem;
 
 bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 {
@@ -81,13 +83,10 @@ string piscsi_util::Banner(const string& app)
 
 string piscsi_util::GetExtensionLowerCase(const string& filename)
 {
-	string ext;
-	if (const size_t separator = filename.rfind('.'); separator != string::npos) {
-		ext = filename.substr(separator + 1);
-	}
-	ranges::transform(ext, ext.begin(), [](unsigned char c){ return std::tolower(c); });
+	string ext = path(filename).extension();
+	ranges::transform(ext, ext.begin(), ::tolower);
 
-	return ext;
+	return ext.empty() ? "" : ext.substr(1);
 }
 
 // Pin the thread to a specific CPU

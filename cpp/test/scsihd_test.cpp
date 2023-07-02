@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ TEST(ScsiHdTest, Inquiry)
 {
 	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_2, "PiSCSI                  ", 0x1f, false);
 
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, ".hd1");
+	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, "file.hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)

@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -78,10 +78,10 @@ TEST(PiscsiUtilTest, GetExtensionLowerCase)
 {
 	EXPECT_EQ("", GetExtensionLowerCase(""));
 	EXPECT_EQ("", GetExtensionLowerCase("."));
+	EXPECT_EQ("", GetExtensionLowerCase(".ext"));
+	EXPECT_EQ("", GetExtensionLowerCase(".ext_long"));
 	EXPECT_EQ("ext", GetExtensionLowerCase("file.ext"));
 	EXPECT_EQ("ext", GetExtensionLowerCase("FILE.EXT"));
-	EXPECT_EQ("ext", GetExtensionLowerCase(".ext"));
-	EXPECT_EQ("ext_long", GetExtensionLowerCase(".ext_long"));
 	EXPECT_EQ("ext", GetExtensionLowerCase(".XYZ.EXT"));
 }
 
