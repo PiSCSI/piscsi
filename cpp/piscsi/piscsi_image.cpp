@@ -172,17 +172,17 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	const auto full_filename = path(GetFullName(filename));
 
 	if (!exists(full_filename)) {
-		return context.ReturnStatus(false, "Image file '" + string(full_filename) + "' does not exist");
+		return context.ReturnStatus(false, "Image file '" + full_filename.string() + "' does not exist");
 	}
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
 	if (id != -1 || lun != -1) {
-		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) +
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename.string() +
 				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
 	}
 
 	if (error_code error; !remove(full_filename, error)) {
-		return context.ReturnStatus(false, "Can't delete image file '" + string(full_filename) + "'");
+		return context.ReturnStatus(false, "Can't delete image file '" + full_filename.string() + "'");
 	}
 
 	// Delete empty subfolders
@@ -196,7 +196,7 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		}
 
 		if (error_code error; !remove(full_folder)) {
-			return context.ReturnStatus(false, "Can't delete empty image folder '" + string(full_folder) +  "'");
+			return context.ReturnStatus(false, "Can't delete empty image folder '" + full_folder.string() +  "'");
 		}
 
 		last_slash = folder.rfind('/');
@@ -396,7 +396,7 @@ bool PiscsiImage::ChangeOwner(const CommandContext& context, const path& filenam
 		error_code error;
 		remove(filename, error);
 
-		return context.ReturnStatus(false, "Can't change ownership of '" + string(filename) + "': " + strerror(e));
+		return context.ReturnStatus(false, "Can't change ownership of '" + filename.string() + "': " + strerror(e));
 	}
 
 	permissions(filename, read_only ?
