@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ namespace piscsi_util
 
 	bool GetAsUnsignedInt(const string&, int&);
 	string ProcessId(const string&, int, int&, int&);
-	string Banner(const string&);
+	string Banner(string_view);
 
 	string GetExtensionLowerCase(const string&);
 

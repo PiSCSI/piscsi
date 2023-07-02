@@ -68,7 +68,7 @@ string piscsi_util::ProcessId(const string& id_spec, int max_luns, int& id, int&
 	return "";
 }
 
-string piscsi_util::Banner(const string& app)
+string piscsi_util::Banner(string_view app)
 {
 	ostringstream s;
 
