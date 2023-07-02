@@ -56,7 +56,7 @@ bool PiscsiImage::CreateImageFolder(const CommandContext& context, string_view f
 	return true;
 }
 
-string PiscsiImage::SetDefaultFolder(const string& f)
+string PiscsiImage::SetDefaultFolder(string_view f)
 {
 	if (f.empty()) {
 		return "Can't set default image folder: Missing folder name";

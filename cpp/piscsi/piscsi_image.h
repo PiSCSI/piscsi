@@ -28,7 +28,7 @@ public:
 	void SetDepth(int d) { depth = d; }
 	int GetDepth() const { return depth; }
 	string GetDefaultFolder() const { return default_folder; }
-	string SetDefaultFolder(const string&);
+	string SetDefaultFolder(string_view);
 	bool CreateImage(const CommandContext&, const PbCommand&) const;
 	bool DeleteImage(const CommandContext&, const PbCommand&) const;
 	bool RenameImage(const CommandContext&, const PbCommand&) const;
