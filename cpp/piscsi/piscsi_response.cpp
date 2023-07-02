@@ -533,7 +533,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 		return false;
 	}
 
-	if (file_size(p) < 256) {
+	if (!is_directory(p) && file_size(p) < 256) {
 		LOGWARN("Image file '%s' is invalid", p.string().c_str())
 		return false;
 	}
