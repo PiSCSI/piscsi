@@ -37,8 +37,7 @@ bool PiscsiImage::CheckDepth(string_view filename) const
 
 bool PiscsiImage::CreateImageFolder(const CommandContext& context, const string& filename) const
 {
-	const auto folder = path(filename).parent_path();
-	if (!folder.string().empty()) {
+	if (const auto folder = path(filename).parent_path(); !folder.string().empty()) {
 		// Checking for existence first prevents an error if the top-level folder is a softlink
 		if (error_code error; exists(folder, error)) {
 			return true;
@@ -63,29 +62,28 @@ string PiscsiImage::SetDefaultFolder(const string& f)
 		return "Can't set default image folder: Missing folder name";
 	}
 
-	string folder = f;
+	path folder(f);
 
 	// If a relative path is specified, the path is assumed to be relative to the user's home directory
-	if (path(folder).is_relative()) {
-		folder = GetHomeDir() + "/" + folder;
+	if (folder.is_relative()) {
+		folder = path(GetHomeDir() + "/" + folder.string());
 	}
 	else {
-		if (!folder.starts_with("/home/")) {
+		if (!folder.string().starts_with("/home/")) {
 			return "Default image folder must be located in '/home/'";
 		}
 	}
 
 	// Resolve a potential symlink
-	path p(folder);
-	if (error_code error; is_symlink(p, error)) {
-		p = read_symlink(p);
+	if (error_code error; is_symlink(folder, error)) {
+		folder = read_symlink(folder);
 	}
 
-	if (error_code error; !is_directory(p, error)) {
-		return string("'") + p.string() + string("' is not a valid folder");
+	if (error_code error; !is_directory(folder)) {
+		return "'" + folder.string() + "' is not a valid folder";
 	}
 
-	default_folder = p.string();
+	default_folder = folder.string();
 
 	LOGINFO("Default image folder set to '%s'", default_folder.c_str())
 
