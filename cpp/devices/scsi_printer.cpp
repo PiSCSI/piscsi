@@ -32,7 +32,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
 #include "scsi_printer.h"
-#include <sys/stat.h>
 #include <filesystem>
 
 using namespace std;
