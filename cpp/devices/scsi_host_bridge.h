@@ -28,7 +28,7 @@ using namespace std;
 
 class SCSIBR : public PrimaryDevice, public ByteWriter
 {
-	static inline constexpr array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static inline const array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 public:
 
