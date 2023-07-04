@@ -62,16 +62,15 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 		return "Can't set default image folder: Missing folder name";
 	}
 
-	path folder(f);
-
 	// If a relative path is specified, the path is assumed to be relative to the user's home directory
+	path folder(f);
 	if (folder.is_relative()) {
 		folder = path(GetHomeDir() + "/" + folder.string());
 	}
-	else {
-		if (!folder.string().starts_with("/home/")) {
-			return "Default image folder must be located in '/home/'";
-		}
+
+	path home_root = path(GetHomeDir()).parent_path();
+	if (!folder.string().starts_with(home_root.string())) {
+		return "Default image folder must be located in '" + home_root.string() + "'";
 	}
 
 	// Resolve a potential symlink
@@ -80,7 +79,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 	}
 
 	if (error_code error; !is_directory(folder)) {
-		return "'" + folder.string() + "' is not a valid folder";
+		return string("'") + folder.string() + "' is not a valid image folder";
 	}
 
 	default_folder = folder.string();
