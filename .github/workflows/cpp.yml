@@ -12,7 +12,7 @@ env:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-23.04
     defaults:
       run:
         working-directory: cpp
@@ -35,12 +35,12 @@ jobs:
           path: cpp/piscsi_test_log.txt
 
   sonarcloud:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-23.04
     if: github.repository == 'PiSCSI/piscsi'
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
-      SONAR_SCANNER_VERSION: 4.7.0.2747
+      SONAR_SCANNER_VERSION: 4.8.0.2856
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_PROJECT_KEY: "akuker_PISCSI"
