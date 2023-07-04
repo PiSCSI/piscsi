@@ -68,8 +68,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 		folder = path(GetHomeDir() + "/" + folder.string());
 	}
 
-	path home_root = path(GetHomeDir()).parent_path();
-	if (!folder.string().starts_with(home_root.string())) {
+	if (path home_root = path(GetHomeDir()).parent_path(); !folder.string().starts_with(home_root.string())) {
 		return "Default image folder must be located in '" + home_root.string() + "'";
 	}
 
