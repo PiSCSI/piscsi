@@ -12,7 +12,7 @@ env:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-23.04
     defaults:
       run:
         working-directory: cpp
