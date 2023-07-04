@@ -35,7 +35,7 @@ jobs:
           path: cpp/piscsi_test_log.txt
 
   sonarcloud:
-    runs-on: ubuntu-23.04
+    runs-on: ubuntu-22.04
     if: github.repository == 'PiSCSI/piscsi'
     env:
       SOURCES: cpp
