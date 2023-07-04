@@ -17,7 +17,7 @@ jobs:
         working-directory: cpp
     env:
       APT_ARM_TOOLCHAIN: "gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev"
-      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf libevdev2:armhf libev-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
+      APT_LIBRARIES: "libspdlog-dev:armhf libpcap-dev:armhf protobuf-compiler libprotobuf-dev:armhf"
     steps:
       - uses: actions/checkout@v3
 
