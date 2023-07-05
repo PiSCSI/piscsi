@@ -37,7 +37,7 @@ void DeviceLogger::Error(const string& message) const
 	Log(level::err, message);
 }
 
-void DeviceLogger::Log(spdlog::level::level_enum level, const string& message) const
+void DeviceLogger::Log(level::level_enum level, const string& message) const
 {
 	if (!message.empty() && (log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun))))
 	{
