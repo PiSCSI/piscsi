@@ -7,59 +7,47 @@
 //
 //---------------------------------------------------------------------------
 
-#include "spdlog/spdlog.h"
 #include "device_logger.h"
 
 using namespace std;
+using namespace spdlog;
 
 void DeviceLogger::Trace(const string& message) const
 {
-	if (const string m = GetLogMessage(message); !m.empty()) {
-		spdlog::trace(m);
-	}
+	Log(level::trace, message);
 }
 
 void DeviceLogger::Debug(const string& message) const
 {
-	if (const string m = GetLogMessage(message); !m.empty()) {
-		spdlog::debug(m);
-	}
+	Log(level::debug, message);
 }
 
 void DeviceLogger::Info(const string& message) const
 {
-	if (const string m = GetLogMessage(message); !m.empty()) {
-		spdlog::info(m);
-	}
+	Log(level::info, message);
 }
 
 void DeviceLogger::Warn(const string& message) const
 {
-	if (const string m = GetLogMessage(message); !m.empty()) {
-		spdlog::warn(m);
-	}
+	Log(level::warn, message);
 }
 
 void DeviceLogger::Error(const string& message) const
 {
-	if (const string m = GetLogMessage(message); !m.empty()) {
-		spdlog::error(m);
-	}
+	Log(level::err, message);
 }
 
-string DeviceLogger::GetLogMessage(const string& message) const
+void DeviceLogger::Log(spdlog::level::level_enum level, const string& message) const
 {
-	if (log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun)))
+	if (!message.empty() && (log_device_id == -1 || (log_device_id == id && (log_device_lun == -1 || log_device_lun == lun))))
 	{
 		if (lun == -1) {
-			return "(ID " + to_string(id) + ") - " + message;
+			log(level, "(ID " + to_string(id) + ") - " + message);
 		}
 		else {
-			return "(ID:LUN " + to_string(id) + ":" + to_string(lun) + ") - " + message;
+			log(level, "(ID:LUN " + to_string(id) + ":" + to_string(lun) + ") - " + message);
 		}
 	}
-
-	return "";
 }
 
 void DeviceLogger::SetIdAndLun(int i, int l)
