@@ -26,13 +26,12 @@ Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 PbDeviceType Device::ParseDeviceType(const string& value)
 {
 	string t = value;
-	PbDeviceType type;
 	ranges::transform(t, t.begin(), ::toupper);
-	if (!PbDeviceType_Parse(t, &type)) {
-		throw parser_exception("Illegal device type '" + value + "'");
+	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
+		return type;
 	}
 
-	return type;
+	throw parser_exception("Illegal device type '" + value + "'");
 }
 
 void Device::Reset()
