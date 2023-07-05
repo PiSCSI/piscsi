@@ -104,7 +104,7 @@ void PrimaryDevice::Inquiry()
 
 	// Report if the device does not support the requested LUN
 	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
-		GetLogger().Trace("LUN is not available");
+		GetLogger().Trace("LUN " + to_string(lun) + " is not available");
 
 		// Signal that the requested LUN does not exist
 		GetController()->GetBuffer().data()[0] = 0x7f;
