@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2023-04-09 10:06+0200\n"
-"PO-Revision-Date: 2023-04-09 13:16+0200\n"
+"POT-Creation-Date: 2023-07-05 06:25+0200\n"
+"PO-Revision-Date: 2023-07-05 06:36+0200\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
 "Language-Team: es N/A\n"
 "Language: es\n"
@@ -48,7 +48,7 @@ msgstr "No se puede mover el archivo a: %(target_path)s"
 #: src/return_code_mapper.py:24
 #, python-format
 msgid "Created CD-ROM ISO image with arguments \"%(value)s\""
-msgstr "Creada la imagen ISO del CD-ROM con argumentos “%(value)s”"
+msgstr "Creada la imagen ISO del CD-ROM con argumentos \"%(value)s\""
 
 #: src/return_code_mapper.py:26
 #, python-format
@@ -146,85 +146,85 @@ msgstr ""
 "La interfaz web de PiSCSI no ha obtenido una respuesta válida de PiSCSI. Por "
 "favor, vuelva a intentarlo. Si el problema persiste, informe de un error."
 
-#: src/web.py:252
+#: src/web.py:255
 msgid "PiSCSI Control Page"
 msgstr "Página de control PiSCSI"
 
-#: src/web.py:304
+#: src/web.py:307
 msgid "PiSCSI Create Drive"
 msgstr "PiSCSI Crear unidad"
 
-#: src/web.py:320
+#: src/web.py:323
 msgid "PiSCSI File Upload"
 msgstr "Carga de archivos PiSCSI"
 
-#: src/web.py:346
+#: src/web.py:349
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr ""
 "Debe conectarse con credenciales válidas para un usuario del grupo ‘%(group)s’"
 
-#: src/web.py:399 src/web.py:444
+#: src/web.py:402 src/web.py:447
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "No hay datos de propiedades para la unidad %(drive_name)s"
 
-#: src/web.py:421
+#: src/web.py:424
 #, python-format
 msgid "Image file with properties created: %(file_name)s"
 msgstr "Archivo de imagen con propiedades creado: %(file_name)s"
 
-#: src/web.py:522
+#: src/web.py:525
 msgid "PiSCSI Image Info"
 msgstr "Información de imagen PiSCSI"
 
-#: src/web.py:529
+#: src/web.py:532
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr "Se ha producido un error al obtener la información del disco: %(error)s"
 
-#: src/web.py:543
+#: src/web.py:546
 #, python-format
 msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s no es una aplicación PiSCSI reconocida"
 
-#: src/web.py:570
+#: src/web.py:573
 msgid "PiSCSI Manual"
 msgstr "PiSCSI Manual"
 
-#: src/web.py:577
+#: src/web.py:580
 #, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
 msgstr "Se ha producido un error al acceder a la página del manual: %(error)s"
 
-#: src/web.py:593
+#: src/web.py:596
 msgid "PiSCSI System Logs"
 msgstr "Registros del sistema PiSCSI"
 
-#: src/web.py:601
+#: src/web.py:604
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
 msgstr "Se ha producido un error al obtener los registros: %(error)s"
 
-#: src/web.py:615
+#: src/web.py:618
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Nivel de registro fijado en %(value)s"
 
-#: src/web.py:632 src/web.py:695
+#: src/web.py:635 src/web.py:698
 msgid "No SCSI ID specified"
 msgstr "No se ha especificado el SCSI ID"
 
-#: src/web.py:673
+#: src/web.py:676
 #, python-format
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Conectado %(device_type)s a SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:697
+#: src/web.py:700
 msgid "No image file to insert"
 msgstr "No hay archivo de imagen para insertar"
 
-#: src/web.py:737
+#: src/web.py:740
 #, python-format
 msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
@@ -233,132 +233,132 @@ msgstr ""
 "Conectado %(file_name)s como %(device_type)s a SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
 
-#: src/web.py:754
+#: src/web.py:757
 msgid "Detached all SCSI devices"
 msgstr "Se han desconectado todos los dispositivos SCSI"
 
-#: src/web.py:770
+#: src/web.py:773
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI ID desconectado %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:792
+#: src/web.py:795
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Expulsado SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:811
+#: src/web.py:814
 msgid "PiSCSI Device Info"
 msgstr "Información del dispositivo PiSCSI"
 
-#: src/web.py:815
+#: src/web.py:818
 msgid "No devices attached"
 msgstr "No hay dispositivos conectados"
 
-#: src/web.py:831
+#: src/web.py:834
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "SCSI ID reservado %(id_number)s"
 
-#: src/web.py:849
+#: src/web.py:852
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Liberada la reserva para SCSI ID %(id_number)s"
 
-#: src/web.py:868
+#: src/web.py:871
 #, python-format
 msgid "System name changed to '%(name)s'."
 msgstr "El nombre del sistema ha cambiado a ‘%(name)s’."
 
-#: src/web.py:869
+#: src/web.py:872
 msgid "System name reset to default."
 msgstr "Nombre del sistema restablecido por defecto."
 
-#: src/web.py:871
+#: src/web.py:874
 msgid "Failed to change system name."
 msgstr "Error al cambiar el nombre del sistema."
 
-#: src/web.py:925
+#: src/web.py:928
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
 msgstr "%(iso_type)s no es un formato de CD-ROM válido."
 
-#: src/web.py:940
+#: src/web.py:943
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr ""
 "Se ha producido el siguiente error al crear la imagen del CD-ROM: %(error)s"
 
-#: src/web.py:947
+#: src/web.py:950
 #, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
 msgstr "Se creó %(file_name)s de imagen de CD-ROM con el tipo %(iso_type)s."
 
-#: src/web.py:977 src/web.py:1021
+#: src/web.py:980 src/web.py:1024
 msgid "Unknown destination"
 msgstr "Destino desconocido"
 
-#: src/web.py:986
+#: src/web.py:989
 #, python-format
 msgid "The following error occurred when downloading: %(error)s"
 msgstr "Se ha producido el siguiente error al descargar: %(error)s"
 
-#: src/web.py:1065 src/web.py:1078
+#: src/web.py:1068 src/web.py:1081
 #, python-format
 msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s no es un formato de disco duro válido."
 
-#: src/web.py:1123
+#: src/web.py:1126
 #, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
 msgstr "Archivo de imagen con propiedades creadas: %(file_name)s%(drive_format)s"
 
-#: src/web.py:1133
+#: src/web.py:1136
 #, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
 msgstr "Archivo de imagen creado: %(file_name)s%(drive_format)s"
 
-#: src/web.py:1194
+#: src/web.py:1197
 #, python-format
 msgid "Image file with properties deleted: %(file_name)s"
 msgstr "Archivo de imagen con propiedades borrado: %(file_name)s"
 
-#: src/web.py:1203
+#: src/web.py:1206
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Archivo de imagen borrado:  %(file_name)s"
 
-#: src/web.py:1241
+#: src/web.py:1244
 #, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
 msgstr "Archivo de imagen con propiedades renombrado a: %(file_name)s"
 
-#: src/web.py:1250
+#: src/web.py:1253
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Archivo de imagen renombrado a: %(file_name)s"
 
-#: src/web.py:1288
+#: src/web.py:1291
 #, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr ""
 "Copia del archivo de imagen con las propiedades guardado como: %(file_name)s"
 
-#: src/web.py:1297
+#: src/web.py:1300
 #, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "Copia del archivo de imagen guardado como:  %(file_name)s"
 
-#: src/web.py:1350
+#: src/web.py:1353
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Se ha cambiado el lenguaje de la Interfaz Web a %(locale)s"
 
-#: src/web.py:1361
+#: src/web.py:1364
 msgid "The requested theme does not exist."
 msgstr "El tema solicitado no existe."
 
-#: src/web.py:1364
+#: src/web.py:1367
 #, python-format
 msgid "Theme changed to '%(theme)s'."
 msgstr "Tema cambiado a ‘%(theme)s’."
@@ -419,33 +419,40 @@ msgstr "Imagen de disco extraíble"
 msgid "Magneto-Optical Disk Image"
 msgstr "Imagen de disco magneto-óptico"
 
-#: src/web_utils.py:260
+#: src/web_utils.py:263
 msgid "You must log in to use this function"
 msgstr "Debe conectarse para utilizar esta función"
 
-#: src/web_utils.py:274
+#: src/web_utils.py:277
 #, python-format
 msgid "Configure the network bridge for %(interface)s first: "
 msgstr "Configure primero el puente de red para %(interface)s: "
 
-#: src/web_utils.py:303
-#, python-format
-msgid "No permission to use path '%(file_name)s'"
-msgstr "No hay permiso para usar la ruta ‘%(file_name)s’"
+#: src/web_utils.py:305
+msgid "Path must not be absolute"
+msgstr "La ruta no puede ser absoluta"
 
-#: src/web_utils.py:324
+#: src/web_utils.py:307
+msgid "Path must not traverse the file system"
+msgstr "La ruta no debe atravesar el sistema de archivos"
+
+#: src/web_utils.py:309
+msgid "Path must not start in the home directory"
+msgstr "La ruta no debe comenzar en el directorio personal"
+
+#: src/web_utils.py:333
 msgid "The file already exists!"
 msgstr "¡El archivo ya existe!"
 
-#: src/web_utils.py:332
+#: src/web_utils.py:341
 msgid "Unable to write the file to disk!"
 msgstr "¡No se puede escribir el archivo en el disco!"
 
-#: src/web_utils.py:340
+#: src/web_utils.py:349
 msgid "Transferred file corrupted!"
 msgstr "¡Archivo transferido corrompido!"
 
-#: src/web_utils.py:342
+#: src/web_utils.py:351
 msgid "File upload successful!"
 msgstr "¡La carga de archivos se ha realizado con éxito!"
 
@@ -478,7 +485,7 @@ msgstr "Autenticación de la interfaz web deshabilitada"
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr ""
-"Consulte <a href=“%(url)s” target=“_blank”>Wiki</a> para obtener más información"
+"Consulte <a href=\"%(url)s\" target=\"_blank\">Wiki</a> para obtener más información"
 
 #: src/templates/base.html:64
 msgid "PiSCSI"
@@ -606,7 +613,7 @@ msgstr ""
 "que tenga que proporcionar los controladores de dispositivo y/o los parámetros "
 "de configuración adecuados para que funcionen correctamente. Si desea que se "
 "modifiquen los datos, o si tiene otros dispositivos que añadir a la lista, cree "
-"un ticket de incidencia en <a href=“%(url)s”>GitHub</a>."
+"un ticket de incidencia en <a href=\"%(url)s\">GitHub</a>."
 
 #: src/templates/drives.html:6
 msgid "Hard Disk Drives"
@@ -822,7 +829,7 @@ msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\" target=\"_blank\">LUN</a> to "
 "attach to. Unless you know what you're doing, always use LUN 0."
 msgstr ""
-"Seleccione un SCSI ID válido y <a href=“%(url)s” target=“_blank”>LUN</a> al que "
+"Seleccione un SCSI ID válido y <a href=\"%(url)s\" target=\"_blank\">LUN</a> al que "
 "conectar. A menos que sepa lo que está haciendo, utilice siempre el LUN 0."
 
 #: src/templates/index.html:200
@@ -873,8 +880,8 @@ msgstr "Desconocido"
 
 #: src/templates/index.html:344
 #, python-format
-msgid "Enter new file name for: %(file_name)s"
-msgstr "Introduzca un nuevo nombre de archivo para: %(file_name)s"
+msgid "Enter a new file name:"
+msgstr "Introduzca un nuevo nombre de archivo:"
 
 #: src/templates/index.html:347 src/templates/index.html:756
 msgid "Rename"
@@ -882,8 +889,8 @@ msgstr "Renombrar"
 
 #: src/templates/index.html:349
 #, python-format
-msgid "Save copy of %(file_name)s as:"
-msgstr "Guardar copia de %(file_name)s como:"
+msgid "Enter a file name for the copy:"
+msgstr "Introduzca un nombre de archivo para la copia:"
 
 #: src/templates/index.html:352
 msgid "Copy"
@@ -904,8 +911,8 @@ msgstr "Info"
 
 #: src/templates/index.html:374
 #, python-format
-msgid "%(disk_space)s MiB disk space remaining on the system"
-msgstr "%(disk_space)s MiB de espacio en disco restante en el sistema"
+msgid "%(disk_space)s MiB disk space remaining for images"
+msgstr "%(disk_space)s MiB de espacio en disco restante para imágenes"
 
 #: src/templates/index.html:382
 msgid "Transfer Files to the PiSCSI"
@@ -988,7 +995,7 @@ msgid ""
 "Please refer to <a href=\"%(url)s\" target=\"_blank\">wiki documentation</a> to "
 "learn more about the supported image file types."
 msgstr ""
-"Consulte <a href=“%(url)s” target=“_blank”>documentación de la wiki</a> para "
+"Consulte <a href=\"%(url)s\" target=\"_blank\">documentación de la wiki</a> para "
 "obtener más información sobre los tipos de archivos de imagen admitidos."
 
 #: src/templates/index.html:515
@@ -1046,7 +1053,7 @@ msgid ""
 "href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 msgstr ""
 "Para navegar por la web moderna, instale un proxy web vintage como <a "
-"href=“%(url)s” target=“_blank”>Macproxy</a>."
+"href=\"%(url)s\" target=\"_blank\">Macproxy</a>."
 
 #: src/templates/index.html:586
 #, python-format
@@ -1054,7 +1061,7 @@ msgid ""
 "Read more about <a href=\"%(url)s\" target=\"_blank\">supported device types</"
 "a> on the wiki."
 msgstr ""
-"Más información sobre <a href=“%(url)s” target=“_blank”>tipos de dispositivos "
+"Más información sobre <a href=\"%(url)s\" target=\"_blank\">tipos de dispositivos "
 "compatibles</a> en la wiki."
 
 #: src/templates/index.html:593
@@ -1106,7 +1113,7 @@ msgid ""
 "The System Name is the \"pretty\" hostname if set, with a fallback to the "
 "regular hostname."
 msgstr ""
-"El Nombre del Sistema es el nombre de host “bonito” si está configurado, con un "
+"El Nombre del Sistema es el nombre de host \"bonito\" si está configurado, con un "
 "fallback al nombre de host normal."
 
 #: src/templates/index.html:731
