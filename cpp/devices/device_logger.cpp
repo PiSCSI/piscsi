@@ -3,11 +3,11 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
+#include "spdlog/spdlog.h"
 #include "device_logger.h"
 
 using namespace std;
@@ -15,35 +15,35 @@ using namespace std;
 void DeviceLogger::Trace(const string& message) const
 {
 	if (const string m = GetLogMessage(message); !m.empty()) {
-		LOGTRACE("%s", m.c_str())
+		spdlog::trace(m);
 	}
 }
 
 void DeviceLogger::Debug(const string& message) const
 {
 	if (const string m = GetLogMessage(message); !m.empty()) {
-		LOGDEBUG("%s", m.c_str())
+		spdlog::debug(m);
 	}
 }
 
 void DeviceLogger::Info(const string& message) const
 {
 	if (const string m = GetLogMessage(message); !m.empty()) {
-		LOGINFO("%s", m.c_str())
+		spdlog::info(m);
 	}
 }
 
 void DeviceLogger::Warn(const string& message) const
 {
 	if (const string m = GetLogMessage(message); !m.empty()) {
-		LOGWARN("%s", m.c_str())
+		spdlog::warn(m);
 	}
 }
 
 void DeviceLogger::Error(const string& message) const
 {
 	if (const string m = GetLogMessage(message); !m.empty()) {
-		LOGERROR("%s", m.c_str())
+		spdlog::error(m);
 	}
 }
 
