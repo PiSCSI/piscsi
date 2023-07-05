@@ -124,7 +124,7 @@ class GPIOBUS_BananaM2p : public GPIOBUS
     // Set SCSI I/O mode
     int GetMode(int pin) override;
 
-    inline bool GetSignal(int pin) const override;
+    bool GetSignal(int pin) const override;
 
     // Set SCSI output signal value
     void SetSignal(int pin, bool ast) override;

@@ -249,7 +249,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 	CheckReady();
 
 	// If ready, there is at least one track
-	assert(tracks.size() > 0);
+	assert(!tracks.empty());
 	assert(tracks[0]);
 
 	// Get allocation length, clear buffer

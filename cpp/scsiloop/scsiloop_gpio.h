@@ -31,7 +31,7 @@ class ScsiLoop_GPIO
         int connected_pin;
         int dir_ctrl_pin;
     };
-    typedef loopback_connections_struct loopback_connection;
+    using loopback_connection = loopback_connections_struct;
 
     std::map<int, string> pin_name_lookup;
     std::vector<loopback_connection> loopback_conn_table;

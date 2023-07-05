@@ -674,7 +674,7 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     pio->CFG[0 + index] = regval;
 }
 
-bool GPIOBUS_BananaM2p::GetSignal(int pin) const
+inline bool GPIOBUS_BananaM2p::GetSignal(int pin) const
 {
     GPIO_FUNCTION_TRACE
     int gpio_num = pin;
