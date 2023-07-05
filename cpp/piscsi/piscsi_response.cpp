@@ -140,27 +140,27 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	string file_pattern_lower = file_pattern;
 	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
 
-	for (auto iter = recursive_directory_iterator(default_path, directory_options::follow_directory_symlink);
-		iter != recursive_directory_iterator(); iter++) {
-		if (iter.depth() > scan_depth) {
-			iter.disable_recursion_pending();
+	for (auto it = recursive_directory_iterator(default_path, directory_options::follow_directory_symlink);
+		it != recursive_directory_iterator(); it++) {
+		if (it.depth() > scan_depth) {
+			it.disable_recursion_pending();
 			continue;
 		}
 
-		const string parent = iter->path().parent_path().string();
+		const string parent = it->path().parent_path().string();
 
 		const string folder = parent.size() > default_folder.size() ? parent.substr(default_folder.size() + 1) : "";
 
-		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(iter->path().filename().string(), file_pattern_lower)) {
+		if (!FilterMatches(folder, folder_pattern_lower) || !FilterMatches(it->path().filename().string(), file_pattern_lower)) {
 			continue;
 		}
 
-		if (!ValidateImageFile(iter->path())) {
+		if (!ValidateImageFile(it->path())) {
 			continue;
 		}
 
 		const string filename = folder.empty() ?
-				iter->path().filename().string() : folder + "/" + iter->path().filename().string();
+				it->path().filename().string() : folder + "/" + it->path().filename().string();
 		if (auto image_file = make_unique<PbImageFile>(); GetImageFile(*image_file.get(), default_folder, filename)) {
 			GetImageFile(*image_files_info.add_image_files(), default_folder, filename);
 		}
