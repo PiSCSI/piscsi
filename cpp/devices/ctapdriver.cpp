@@ -487,7 +487,7 @@ int CTapDriver::Receive(uint8_t *buf)
 		};
 		gettimeofday(&h.ts, nullptr);
 		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
-		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)dwReceived, buf[0], buf[dwReceived-1])
+		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, dwReceived, buf[0], buf[dwReceived-1])
 	}
 
 	// Return the number of bytes
@@ -506,7 +506,7 @@ int CTapDriver::Send(const uint8_t *buf, int len)
 		};
 		gettimeofday(&h.ts, nullptr);
 		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
-		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)h.len, buf[0], buf[h.len-1])
+		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, h.len, buf[0], buf[h.len-1])
 	}
 
 	// Start sending

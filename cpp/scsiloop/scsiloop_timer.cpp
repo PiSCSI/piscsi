@@ -56,7 +56,7 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
     }
     after            = SysTimer::GetTimerLow();
     elapsed_nanosecs = after - before;
-    LOGDEBUG("SysTimer::SleepUsec() Average %d", (uint32_t)(elapsed_nanosecs / 100));
+    LOGDEBUG("SysTimer::SleepUsec() Average %d", elapsed_nanosecs / 100);
 
     if ((elapsed_nanosecs > expected_usec_result * (1.0 + timer_tolerance_percent)) ||
         (elapsed_nanosecs < expected_usec_result * (1.0 - timer_tolerance_percent))) {
