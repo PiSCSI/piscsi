@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -36,8 +36,7 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	string p;
 	while (getline(ss, p, COMPONENT_SEPARATOR)) {
 		if (!p.empty()) {
-			const size_t separator_pos = p.find(KEY_VALUE_SEPARATOR);
-			if (separator_pos != string::npos) {
+			if (const size_t separator_pos = p.find(KEY_VALUE_SEPARATOR); separator_pos != string::npos) {
 				SetParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
 			}
 		}
