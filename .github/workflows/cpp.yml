@@ -8,7 +8,7 @@ on:
       - '.github/workflows/cpp.yml'
 
 env:
-  APT_PACKAGES: libspdlog-dev libpcap-dev libevdev2 libev-dev protobuf-compiler libgtest-dev libgmock-dev
+  APT_PACKAGES: libspdlog-dev libpcap-dev protobuf-compiler libgtest-dev libgmock-dev
 
 jobs:
   unit_tests:
