@@ -28,13 +28,12 @@ public:
 	void Warn(const string&) const;
 	void Error(const string&) const;
 
-	void Log(spdlog::level::level_enum, const string&) const;
-
 	void SetIdAndLun(int, int);
-
 	static void SetLogIdAndLun(int, int);
 
 private:
+
+	void Log(spdlog::level::level_enum, const string&) const;
 
 	int id = -1;
 	int lun = -1;
