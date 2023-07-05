@@ -70,7 +70,7 @@ void SCSIHD::Open()
 {
 	assert(!IsReady());
 
-	off_t size = GetFileSize();
+	const off_t size = GetFileSize();
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
