@@ -96,7 +96,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		if (const string ext = GetExtensionLowerCase(filename); ext == "hdn" || ext == "hdi" || ext == "nhd") {
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
-			device = make_shared<SCSIHD>(lun, sector_sizes.find(SCHD)->second, false,
+			device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, false,
 					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 
 			// Some Apple tools require a particular drive identification
@@ -109,17 +109,17 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	}
 
 	case SCRM:
-		device = make_shared<SCSIHD>(lun, sector_sizes.find(SCRM)->second, true);
+		device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, true);
 		device->SetProduct("SCSI HD (REM.)");
 		break;
 
 	case SCMO:
-		device = make_shared<SCSIMO>(lun, sector_sizes.find(SCMO)->second);
+		device = make_shared<SCSIMO>(lun, sector_sizes.find(type)->second);
 		device->SetProduct("SCSI MO");
 		break;
 
 	case SCCD:
-		device = make_shared<SCSICD>(lun, sector_sizes.find(SCCD)->second,
+		device = make_shared<SCSICD>(lun, sector_sizes.find(type)->second,
             GetExtensionLowerCase(filename) == "is1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
 		device->SetProduct("SCSI CD-ROM");
 		break;
@@ -128,7 +128,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device = make_shared<SCSIBR>(lun);
 		// Since this is an emulation for a specific driver the product name has to be set accordingly
 		device->SetProduct("RASCSI BRIDGE");
-		device->SetDefaultParams(default_params.find(SCBR)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCDP:
@@ -137,7 +137,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 		device->SetVendor("Dayna");
 		device->SetProduct("SCSI/Link");
 		device->SetRevision("1.4a");
-		device->SetDefaultParams(default_params.find(SCDP)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	case SCHS:
@@ -150,7 +150,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 	case SCLP:
 		device = make_shared<SCSIPrinter>(lun);
 		device->SetProduct("SCSI PRINTER");
-		device->SetDefaultParams(default_params.find(SCLP)->second);
+		device->SetDefaultParams(default_params.find(type)->second);
 		break;
 
 	default:
