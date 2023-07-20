@@ -290,7 +290,7 @@ div.header div.authentication-disabled a {
   color: #fff;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   div.header {
     flex-wrap: wrap;
     min-height: 3.5rem; /* Safari 14 iOS and iPad OS */
@@ -368,7 +368,7 @@ div.header div.authentication-disabled a {
   }
 }
 
-@media (min-width: 901px) {
+@media (width > 900px) {
   div.header {
     background: var(--dark);
     align-items: center;
@@ -551,7 +551,7 @@ section > details ul {
   border-radius: 0.5rem;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   section > details summary {
     font-size: 0.9rem;
   }
@@ -625,14 +625,14 @@ table#attached-devices tr.reserved td {
   background-color: var(--disabled);
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   table#attached-devices th.product,
   table#attached-devices td.product {
     display: none;
   }
 }
 
-@media (max-width: 625px) {
+@media (width <= 625px) {
   table#attached-devices td.parameters form {
     display: block;
     max-width: none;
@@ -644,7 +644,7 @@ table#attached-devices tr.reserved td {
   }
 }
 
-@media (min-width: 901px) {
+@media (width > 900px) {
   section#current-config form#config-actions {
     float: left;
     height: 2.75rem;
@@ -727,7 +727,7 @@ section#files details.contents summary.filename {
   text-decoration: underline;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   section#files table#images tr th:nth-child(2),
   section#files table#images tr td:nth-child(2) {
     display: none;
@@ -741,7 +741,7 @@ section#files details.contents summary.filename {
   }
 }
 
-@media (min-width: 901px) {
+@media (width > 900px) {
   section#files table#images form.file-copy input[type="submit"],
   section#files table#images form.file-rename input[type="submit"],
   section#files table#images form.file-delete input[type="submit"],
@@ -818,7 +818,7 @@ section#attach-devices form {
   display: block;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   section#attach-devices table tr th:nth-child(2),
   section#attach-devices table tr td:nth-child(2) {
     display: none;
@@ -882,7 +882,7 @@ section#system div.power-control {
   margin-top: 1rem;
 }
 
-@media (min-width: 901px) {
+@media (width > 900px) {
   section#system div.power-control input[type="submit"] {
     background: var(--danger);
     border-color: var(--danger);
