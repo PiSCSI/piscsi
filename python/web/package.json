@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "prettier": "2.7.1",
+    "prettier": "3.0.0",
     "stylelint": "^15.10.2",
     "stylelint-config-standard": "^34.0.0"
   }
