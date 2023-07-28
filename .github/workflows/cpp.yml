@@ -40,7 +40,7 @@ jobs:
     env:
       SOURCES: cpp
       BUILD_WRAPPER_OUT_DIR: "$HOME/.build_wrapper_out" # Directory where build-wrapper output will be placed
-      SONAR_SCANNER_VERSION: 4.8.0.2856
+      SONAR_SCANNER_VERSION: 5.0.0.2966
       SONAR_SERVER_URL: "https://sonarcloud.io"
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_PROJECT_KEY: "akuker_PISCSI"
