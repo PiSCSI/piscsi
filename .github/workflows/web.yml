@@ -123,8 +123,12 @@ jobs:
       id: npm
 
     - name: Stylelint
-      run: npx stylelint src/static/themes/modern/style.css
+      run: |
+        npx stylelint src/static/themes/modern/style.css
+        npx stylelint src/static/themes/classic/style.css
 
     - name: Prettier
-      run: npx prettier --check src/static/themes/modern/style.css
+      run: |
+        npx prettier --check src/static/themes/modern/style.css
+        npx prettier --check src/static/themes/classic/style.css
       if: success() || failure() && steps.npm.outcome == 'success'
