@@ -651,10 +651,12 @@ def attach_device():
             if param:
                 params.update({item.replace(PARAM_PREFIX, ""): param})
 
+    return_message = "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
             return response(error=True, message=bridge_status["msg"])
+        return_message = return_message + " - " + bridge_status["msg"]
 
     kwargs = {
         "unit": int(unit),
@@ -672,7 +674,7 @@ def attach_device():
     if process["status"]:
         return response(
             message=_(
-                "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+                return_message,
                 device_type=get_device_name(device_type),
                 id_number=scsi_id,
                 unit_number=unit,

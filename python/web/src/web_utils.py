@@ -274,24 +274,34 @@ def is_bridge_configured(interface):
     PATH_IPTV4 = "/etc/iptables/rules.v4"
     PATH_DHCPCD = "/etc/dhcpcd.conf"
     PATH_BRIDGE = "/etc/network/interfaces.d/piscsi_bridge"
-    return_msg = _("Configure the network bridge for %(interface)s first: ", interface=interface)
     to_configure = []
     sys_cmd = SysCmds()
-    if interface.startswith("wlan"):
+    if interface.startswith("wlan") or interface.startswith("wlx"):
+        return_msg = _("Wireless network bridge enabled for %(interface)s", interface=interface)
         if not sys_cmd.introspect_file(PATH_SYSCTL, r"^net\.ipv4\.ip_forward=1$"):
             to_configure.append("IPv4 forwarding")
         if not Path(PATH_IPTV4).is_file():
             to_configure.append("NAT")
-    else:
+    elif interface.startswith("eth") or interface.startswith("enx"):
+        return_msg = _("Wired network bridge enabled for %(interface)s", interface=interface)
         if not sys_cmd.introspect_file(PATH_DHCPCD, r"^denyinterfaces " + interface + r"$"):
             to_configure.append(PATH_DHCPCD)
         if not Path(PATH_BRIDGE).is_file():
             to_configure.append(PATH_BRIDGE)
+    else:
+        return_msg = _(
+            "Unable to detect if %(interface)s is Ethernet or WiFi. "
+            "Make sure that the correct network bridge is configured.",
+            interface=interface,
+        )
 
     if to_configure:
+        return_msg = _(
+            "Configure the network bridge for %(interface)s first: ", interface=interface
+        )
         return {"status": False, "msg": return_msg + ", ".join(to_configure)}
 
-    return {"status": True, "msg": ""}
+    return {"status": True, "msg": return_msg}
 
 
 def is_safe_path(file_name):
