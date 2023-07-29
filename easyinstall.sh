@@ -189,8 +189,10 @@ function installPiscsi() {
 
     # install
     sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+}
 
-    # update launch parameters
+# Update the systemd configuration for piscsi
+function configurePiscsiService() {
     if [[ -f $SECRET_FILE ]]; then
         sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
         echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
@@ -1182,6 +1184,7 @@ function runChoice() {
               compilePiscsi
               backupPiscsiService
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
@@ -1224,6 +1227,7 @@ function runChoice() {
               backupPiscsiService
               preparePythonCommon
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
@@ -1401,6 +1405,7 @@ function runChoice() {
               fetchHardDiskDrivers
               compilePiscsi
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               cachePipPackages
