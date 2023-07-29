@@ -568,7 +568,11 @@ function fetchHardDiskDrivers() {
 function setupWiredNetworking() {
     echo "Setting up wired network..."
 
-    LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
+    if [[ -z $HEADLESS ]]; then
+	LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
+    else
+	LAN_INTERFACE="eth0"
+    fi
 
     if [[ -z "$LAN_INTERFACE" ]]; then
 	echo "No usable wired network interfaces detected. Have you already enabled the bridge? Aborting..."
@@ -640,7 +644,12 @@ function setupWirelessNetworking() {
     CIDR="24"
     ROUTER_IP=$NETWORK.1
     ROUTING_ADDRESS=$NETWORK.0/$CIDR
-    WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
+
+    if [[ -z $HEADLESS ]]; then
+	WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
+    else
+	LAN_INTERFACE="wlan0"
+    fi
 
     if [[ -z "$WLAN_INTERFACE" ]]; then
 	echo "No usable wireless network interfaces detected. Have you already enabled the bridge? Aborting..."
