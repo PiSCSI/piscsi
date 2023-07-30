@@ -650,7 +650,7 @@ function setupWirelessNetworking() {
     if [[ -z $HEADLESS ]]; then
 	WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
     else
-	LAN_INTERFACE="wlan0"
+	WLAN_INTERFACE="wlan0"
     fi
 
     if [[ -z "$WLAN_INTERFACE" ]]; then
