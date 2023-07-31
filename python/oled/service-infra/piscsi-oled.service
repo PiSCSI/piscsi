@@ -1,6 +1,6 @@
 [Unit]
 Description=PiSCSI-OLED Monitor service
-After=network.target piscsi.service
+After=network-online.target piscsi.service
 
 [Service]
 Type=simple

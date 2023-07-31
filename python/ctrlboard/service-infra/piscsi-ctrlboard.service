@@ -1,6 +1,6 @@
 [Unit]
 Description=PiSCSI Control Board service
-After=network.target piscsi.service
+After=network-online.target piscsi.service
 
 [Service]
 Type=simple
