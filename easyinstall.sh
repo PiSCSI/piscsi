@@ -189,8 +189,10 @@ function installPiscsi() {
 
     # install
     sudo make install CONNECT_TYPE="$CONNECT_TYPE" </dev/null
+}
 
-    # update launch parameters
+# Update the systemd configuration for piscsi
+function configurePiscsiService() {
     if [[ -f $SECRET_FILE ]]; then
         sudo sed -i "\@^ExecStart.*@ s@@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/piscsi.service"
         echo "Secret token file $SECRET_FILE detected. Using it to enable back-end authentication."
@@ -568,9 +570,18 @@ function fetchHardDiskDrivers() {
 function setupWiredNetworking() {
     echo "Setting up wired network..."
 
-    LAN_INTERFACE=eth0
+    if [[ -z $HEADLESS ]]; then
+	LAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx' | head -n 1`
+    else
+	LAN_INTERFACE="eth0"
+    fi
 
-    echo "$LAN_INTERFACE will be configured for network forwarding with DHCP."
+    if [[ -z "$LAN_INTERFACE" ]]; then
+	echo "No usable wired network interfaces detected. Have you already enabled the bridge? Aborting..."
+	return 1
+    fi
+
+    echo "Network interface '$LAN_INTERFACE' will be configured for network forwarding with DHCP."
     echo ""
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
@@ -582,7 +593,7 @@ function setupWiredNetworking() {
 
         if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
             echo "Available wired interfaces on this system:"
-            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+            echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'eth\|enx'`
             echo "Please type the wired interface you want to use and press Enter:"
             read SELECTED
             LAN_INTERFACE=$SELECTED
@@ -635,9 +646,19 @@ function setupWirelessNetworking() {
     CIDR="24"
     ROUTER_IP=$NETWORK.1
     ROUTING_ADDRESS=$NETWORK.0/$CIDR
-    WLAN_INTERFACE="wlan0"
 
-    echo "$WLAN_INTERFACE will be configured for network forwarding with static IP assignment."
+    if [[ -z $HEADLESS ]]; then
+	WLAN_INTERFACE=`ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx' | head -n 1`
+    else
+	WLAN_INTERFACE="wlan0"
+    fi
+
+    if [[ -z "$WLAN_INTERFACE" ]]; then
+	echo "No usable wireless network interfaces detected. Have you already enabled the bridge? Aborting..."
+	return 1
+    fi
+
+    echo "Network interface '$WLAN_INTERFACE' will be configured for network forwarding with static IP assignment."
     echo "Configure your Macintosh or other device with the following:"
     echo "IP Address (static): $IP"
     echo "Router Address: $ROUTER_IP"
@@ -649,7 +670,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep 'wlan\|wlx'`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -1163,6 +1184,7 @@ function runChoice() {
               compilePiscsi
               backupPiscsiService
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
@@ -1205,6 +1227,7 @@ function runChoice() {
               backupPiscsiService
               preparePythonCommon
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               if [[ $(isPiscsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected piscsi oled service; will run the installation steps for the OLED monitor."
@@ -1382,6 +1405,7 @@ function runChoice() {
               fetchHardDiskDrivers
               compilePiscsi
               installPiscsi
+	      configurePiscsiService
               enablePiscsiService
               preparePythonCommon
               cachePipPackages
