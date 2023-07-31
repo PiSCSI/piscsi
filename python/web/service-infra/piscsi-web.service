@@ -1,6 +1,6 @@
 [Unit]
 Description=PiSCSI-Web service
-After=network.target
+After=network-online.target piscsi.service
 
 [Service]
 Type=simple
