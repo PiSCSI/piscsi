@@ -31,3 +31,19 @@ TEMPLATE_THEME_DEFAULT = "modern"
 
 # Fallback theme for older browsers
 TEMPLATE_THEME_LEGACY = "classic"
+
+# Enable throttle notifications
+# 
+# Available modes:
+#  "0": "Under-voltage detected"
+#  "1": "Arm frequency capped"
+#  "2": "Currently throttled"
+#  "3": "Soft temperature limit active"
+#  "16": "Under-voltage has occurred"
+#  "17": "Arm frequency capping has occurred"
+#  "18": "Throttling has occurred"
+#  "19": "Soft temperature limit has occurred"
+THROTTLE_NOTIFY_MODES = ["0", "16"]
+# Include a list of modes to be shown ALL THE TIME to be used for styling
+# and formatting.
+THROTTLE_TEST_MODES = []

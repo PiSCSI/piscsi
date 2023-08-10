@@ -69,6 +69,8 @@ from settings import (
     TEMPLATE_THEMES,
     TEMPLATE_THEME_DEFAULT,
     TEMPLATE_THEME_LEGACY,
+    THROTTLE_NOTIFY_MODES,
+    THROTTLE_TEST_MODES
 )
 
 
@@ -106,6 +108,7 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
+        "throttle_status": sys_cmd.get_throttled(THROTTLE_NOTIFY_MODES, THROTTLE_TEST_MODES),
     }
 
 
