@@ -9,6 +9,7 @@ from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 from pathlib import Path
 from platform import uname
+from vcgencmd import Vcgencmd
 
 from piscsi.common_settings import SHELL_ERROR
 
@@ -263,3 +264,37 @@ class SysCmds:
             return process.returncode, process.stdout.decode("utf-8")
 
         return process.returncode, process.stderr.decode("utf-8")
+
+    @staticmethod
+    def get_throttled(enabled_modes, test_modes):
+        """
+        Takes (list) enabled_modes & (list) test_modes parameters & returns a
+        tuple of (str) category & (str) message.
+
+        enabled_modes is a list of modes that will be enabled for display if
+        they're triggered.  test_modes works similarly to enabled_mode but will
+        ALWAYS display the modes listed for troubleshooting styling.
+        """
+        vcgcmd = Vcgencmd()
+        t_states = vcgcmd.get_throttled()['breakdown']
+        matched_states = []
+
+        state_msgs = {
+            "0": ("error", "Under-voltage detected"),
+            "1": ("warning", "Arm frequency capped"),
+            "2": ("error", "Currently throttled"),
+            "3": ("warning", "Soft temperature limit active"),
+            "16": ("warning", "Under-voltage has occurred"),
+            "17": ("warning", "Arm frequency capping has occurred"),
+            "18": ("warning", "Throttling has occurred"),
+            "19": ("warning", "Soft temperature limit has occurred"),
+        }
+
+        for k in t_states:
+            if t_states[k] and k in enabled_modes:
+                matched_states.append(state_msgs[k])
+
+        for t in test_modes:
+            matched_states.append(state_msgs[t])
+
+        return matched_states
