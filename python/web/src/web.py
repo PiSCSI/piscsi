@@ -112,7 +112,7 @@ def get_env_info():
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
         "throttle_status": 
-            [(s[0], ReturnCodeMapper.add_msg(s[1])) for s in throttled_statuses]
+            [(s[0], ReturnCodeMapper.add_msg({"return_code":s[1]})) for s in throttled_statuses]
     }
 
 
