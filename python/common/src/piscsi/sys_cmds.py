@@ -11,6 +11,7 @@ from pathlib import Path
 from platform import uname
 from vcgencmd import Vcgencmd
 
+from piscsi.return_codes import ReturnCodes
 from piscsi.common_settings import SHELL_ERROR
 
 
@@ -280,14 +281,14 @@ class SysCmds:
         matched_states = []
 
         state_msgs = {
-            "0": ("error", "Under-voltage detected"),
-            "1": ("warning", "Arm frequency capped"),
-            "2": ("error", "Currently throttled"),
-            "3": ("warning", "Soft temperature limit active"),
-            "16": ("warning", "Under-voltage has occurred"),
-            "17": ("warning", "Arm frequency capping has occurred"),
-            "18": ("warning", "Throttling has occurred"),
-            "19": ("warning", "Soft temperature limit has occurred"),
+            "0": ("error", ReturnCodes.UNDER_VOLTAGE_DETECTED),
+            "1": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPED),
+            "2": ("error", ReturnCodes.CURRENTLY_THROTTLED),
+            "3": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE),
+            "16": ("warning", ReturnCodes.UNDER_VOLTAGE_HAS_OCCURED),
+            "17": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED),
+            "18": ("warning", ReturnCodes.THROTTLING_HAS_OCCURRED),
+            "19": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED),
         }
 
         for k in t_states:
