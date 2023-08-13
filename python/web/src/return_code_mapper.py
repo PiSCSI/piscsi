@@ -50,6 +50,22 @@ class ReturnCodeMapper:
             _("No files were extracted (existing files are skipped)"),
         ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR:
             _("Unable to extract archive: %(error)s"),
+        ReturnCodes.UNDER_VOLTAGE_DETECTED:
+            _("Under voltage detected"),
+        ReturnCodes.ARM_FREQUENCY_CAPPED:
+            _("Arm frequency capped"),
+        ReturnCodes.CURRENTLY_THROTTLED:
+            _("Currently throttled"),
+        ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE:
+            _("Soft-temperature limit active"),
+        ReturnCodes.UNDER_VOLTAGE_HAS_OCCURED:
+            _("Under voltage has occured"),
+        ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED:
+            _("Arm frequency capping has occurred"),
+        ReturnCodes.THROTTLING_HAS_OCCURRED:
+            _("Throttling has occurred"),
+        ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED:
+            _("Soft temperature limit has occurred")
         }
     # fmt: on
 

@@ -90,6 +90,9 @@ def get_env_info():
     else:
         username = None
 
+    throttled_statuses = sys_cmd.get_throttled(
+        THROTTLE_NOTIFY_MODES, THROTTLE_TEST_MODES)
+
     return {
         "running_env": sys_cmd.running_env(),
         "username": username,
@@ -108,7 +111,8 @@ def get_env_info():
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
-        "throttle_status": sys_cmd.get_throttled(THROTTLE_NOTIFY_MODES, THROTTLE_TEST_MODES),
+        "throttle_status": 
+            [(s[0], ReturnCodeMapper.add_msg(s[1])) for s in throttled_statuses]
     }
 
 

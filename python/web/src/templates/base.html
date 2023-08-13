@@ -77,7 +77,7 @@
         {% if (env["throttle_status"]|length > 0) %}
         {% for category, message in env["throttle_status"] %}
         <div class="{{ category }}">
-		<span class="message" title="{{ _(message) }}"><a href="https://www.raspberrypi.com/documentation/computers/configuration.html#undervoltage-warning">{{ _(message) }}</a></span>
+		<span class="message" title="{{ message }}"><a href="https://www.raspberrypi.com/documentation/computers/configuration.html#undervoltage-warning">{{ message }}</a></span>
         </div>
         {% endfor %}
         {% endif %}
