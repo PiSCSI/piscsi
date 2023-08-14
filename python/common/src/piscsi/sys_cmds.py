@@ -285,7 +285,7 @@ class SysCmds:
             "1": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPED),
             "2": ("error", ReturnCodes.CURRENTLY_THROTTLED),
             "3": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE),
-            "16": ("warning", ReturnCodes.UNDER_VOLTAGE_HAS_OCCURED),
+            "16": ("warning", ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED),
             "17": ("warning", ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED),
             "18": ("warning", ReturnCodes.THROTTLING_HAS_OCCURRED),
             "19": ("warning", ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED),
