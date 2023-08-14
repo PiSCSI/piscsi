@@ -58,14 +58,14 @@ class ReturnCodeMapper:
             _("Currently throttled"),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE:
             _("Soft-temperature limit active"),
-        ReturnCodes.UNDER_VOLTAGE_HAS_OCCURED:
+        ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED:
             _("Under voltage has occured"),
         ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED:
             _("Arm frequency capping has occurred"),
         ReturnCodes.THROTTLING_HAS_OCCURRED:
             _("Throttling has occurred"),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED:
-            _("Soft temperature limit has occurred")
+            _("Soft temperature limit has occurred"),
         }
     # fmt: on
 
