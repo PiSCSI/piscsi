@@ -1,0 +1,23 @@
+#!/usr/bin/env bash 
+
+# Info: https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd
+#
+# Bit	Hex value	Meaning
+# ----- ----------- ------------------------
+# 0     0x1         Under-voltage detected
+# 1     0x2         Arm frequency capped
+# 2     0x4         Currently throttled
+# 3     0x8         Soft temperature limit active
+# 16    0x10000     Under-voltage has occurred
+# 17    0x20000     Arm frequency capping has occurred
+# 18    0x40000     Throttling has occurred
+# 19    0x80000     Soft temperature limit has occurred
+
+if [[ "$1" == "get_throttled" ]]
+then
+    # Return 'Under-voltage detected' & 'Under-voltage has occurred'
+    echo "throttled=0x10001"
+fi
+
+echo "Mock does not recognize: $0 $@"
+exit 1
