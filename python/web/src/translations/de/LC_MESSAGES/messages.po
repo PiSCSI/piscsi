@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  PiSCSI\n"
 "Report-Msgid-Bugs-To: https://github.com/PiSCSI/piscsi/issues\n"
-"POT-Creation-Date: 2023-08-14 00:08+0100\n"
+"POT-Creation-Date: 2023-03-24 11:05+0100\n"
 "PO-Revision-Date: 2023-03-24 11:00+0100\n"
 "Last-Translator: Christian Victor <christian.victor@gmail.com>\n"
 "Language: de\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.11.0\n"
 
 #: src/return_code_mapper.py:14
 #, python-format
@@ -119,38 +119,6 @@ msgstr "Es wurden keine Dateien entpackt (vorhandene Dateien werden übersprunge
 msgid "Unable to extract archive: %(error)s"
 msgstr "Kann Archiv %(error)s nicht entpacken"
 
-#: src/return_code_mapper.py:54
-msgid "Under voltage detected"
-msgstr ""
-
-#: src/return_code_mapper.py:56
-msgid "Arm frequency capped"
-msgstr ""
-
-#: src/return_code_mapper.py:58
-msgid "Currently throttled"
-msgstr ""
-
-#: src/return_code_mapper.py:60
-msgid "Soft-temperature limit active"
-msgstr ""
-
-#: src/return_code_mapper.py:62
-msgid "Under voltage has occured"
-msgstr ""
-
-#: src/return_code_mapper.py:64
-msgid "Arm frequency capping has occurred"
-msgstr ""
-
-#: src/return_code_mapper.py:66
-msgid "Throttling has occurred"
-msgstr ""
-
-#: src/return_code_mapper.py:68
-msgid "Soft temperature limit has occurred"
-msgstr ""
-
 #: src/socket_cmds_flask.py:42
 #, python-format
 msgid ""
@@ -180,81 +148,86 @@ msgstr ""
 "Bitte gehe zurück und versuche es nochmals. Wenn das Problem bestehen "
 "bleibt, melde bitte einen Bug."
 
-#: src/web.py:262
+#: src/web.py:252
 msgid "PiSCSI Control Page"
 msgstr "PiSCSI Kontrollseite"
 
-#: src/web.py:314
+#: src/web.py:304
 msgid "PiSCSI Create Drive"
 msgstr "PiSCSI Erzeuge Laufwerk"
 
-#: src/web.py:330
+#: src/web.py:320
 msgid "PiSCSI File Upload"
 msgstr "PiSCSI Dateiupload"
 
-#: src/web.py:356
+#: src/web.py:346
 #, python-format
 msgid "You must log in with valid credentials for a user in the '%(group)s' group"
 msgstr ""
 "Du musst dich mit gültigen Zugangsdaten eines Users aus der Gruppe "
 "%(group)s’ einloggen"
 
-#: src/web.py:409 src/web.py:454
+#: src/web.py:399 src/web.py:444
 #, python-format
 msgid "No properties data for drive %(drive_name)s"
 msgstr "Keine Eigenschaften für Laufwerk %(drive_name)s"
 
-#: src/web.py:431
+#: src/web.py:421
 #, python-format
 msgid "Image file with properties created: %(file_name)s"
 msgstr "Imagedatei mit Eigenschaften erzeugt %(file_name)s"
 
-#: src/web.py:532
+#: src/web.py:522
 msgid "PiSCSI Image Info"
 msgstr "PiSCSI Image-Info"
 
-#: src/web.py:539
+#: src/web.py:529
 #, python-format
 msgid "An error occurred when getting disk info: %(error)s"
 msgstr "Fehler beim Abrufen der Diskinformationen: %(error)s"
 
-#: src/web.py:553
+#: src/web.py:543
 #, python-format
 msgid "%(app)s is not a recognized PiSCSI app"
 msgstr "%(app)s ist keine bekannte PiSCSI-App"
 
-#: src/web.py:580
+#: src/web.py:570
 msgid "PiSCSI Manual"
 msgstr "PiSCSI Handbuch"
 
-#: src/web.py:587
+#: src/web.py:577
 #, python-format
 msgid "An error occurred when accessing manual page: %(error)s"
 msgstr "Beim Abrufen der Handbuchseite ist ein Fehler aufgetreten: %(error)s"
 
-#: src/web.py:603
+#: src/web.py:593
 msgid "PiSCSI System Logs"
 msgstr "PiSCSI System-Logs"
 
-#: src/web.py:611
+#: src/web.py:601
 #, python-format
 msgid "An error occurred when fetching logs: %(error)s"
 msgstr "Beim Abrufen der Logs is ein Fehler aufgetreten: %(error)s"
 
-#: src/web.py:625
+#: src/web.py:615
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Log-Level auf %(value)s gesetzt"
 
-#: src/web.py:642 src/web.py:707
+#: src/web.py:632 src/web.py:695
 msgid "No SCSI ID specified"
 msgstr "Keine SCSI ID angegeben"
 
-#: src/web.py:709
+#: src/web.py:673
+#, python-format
+msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "%(device_type)s mit SCSI-ID %(id_number)s LUN %(unit_number)s verbunden"
+
+#: src/web.py:697
 msgid "No image file to insert"
 msgstr "Keine Imagedatei zum Einfügen"
 
-#: src/web.py:749
+#: src/web.py:737
 #, python-format
 msgid ""
 "Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
@@ -263,130 +236,130 @@ msgstr ""
 "%(file_name)s als %(device_type)s mit SCSI ID %(id_number)s LUN "
 "%(unit_number)s verbunden"
 
-#: src/web.py:766
+#: src/web.py:754
 msgid "Detached all SCSI devices"
 msgstr "Alle SCSI-Geräte getrennt"
 
-#: src/web.py:782
+#: src/web.py:770
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI-ID %(id_number)s LUN %(unit_number)s getrennt"
 
-#: src/web.py:804
+#: src/web.py:792
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI-ID %(id_number)s LUN %(unit_number)s ausgeworfen"
 
-#: src/web.py:823
+#: src/web.py:811
 msgid "PiSCSI Device Info"
 msgstr "PiSCSI Geräteinfo"
 
-#: src/web.py:827
+#: src/web.py:815
 msgid "No devices attached"
 msgstr "Kein Gerät angehängt"
 
-#: src/web.py:843
+#: src/web.py:831
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "Reservierte SCSI-ID %(id_number)s"
 
-#: src/web.py:861
+#: src/web.py:849
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Reservierung für SCSI-ID %(id_number)s entfernt"
 
-#: src/web.py:880
+#: src/web.py:868
 #, python-format
 msgid "System name changed to '%(name)s'."
 msgstr "Systemname in '%(name)s' geändert."
 
-#: src/web.py:881
+#: src/web.py:869
 msgid "System name reset to default."
 msgstr "Systemname auf default zurückgesetzt."
 
-#: src/web.py:883
+#: src/web.py:871
 msgid "Failed to change system name."
 msgstr "Systemname konnte nicht geändert werden."
 
-#: src/web.py:937
+#: src/web.py:925
 #, python-format
 msgid "%(iso_type)s is not a valid CD-ROM format."
 msgstr "%(iso_type)s ist kein gültiges CD-ROM-Format."
 
-#: src/web.py:952
+#: src/web.py:940
 #, python-format
 msgid "The following error occurred when creating the CD-ROM image: %(error)s"
 msgstr "Der folgende Fehler trat beim Erstellen des CD-ROM-Image auf: %(error)s"
 
-#: src/web.py:959
+#: src/web.py:947
 #, python-format
 msgid "CD-ROM image %(file_name)s with type %(iso_type)s was created."
 msgstr "CD-ROM-Image %(file_name)s des Typs %(iso_type)s wurde erstellt."
 
-#: src/web.py:989 src/web.py:1033
+#: src/web.py:977 src/web.py:1021
 msgid "Unknown destination"
 msgstr "Unbekanntes Ziel"
 
-#: src/web.py:998
+#: src/web.py:986
 #, python-format
 msgid "The following error occurred when downloading: %(error)s"
 msgstr "Der folgende Fehler trat beim Download auf: %(error)s"
 
-#: src/web.py:1077 src/web.py:1090
+#: src/web.py:1065 src/web.py:1078
 #, python-format
 msgid "%(drive_format)s is not a valid hard disk format."
 msgstr "%(drive_format)s ist kein gültiges Festplatten-Format."
 
-#: src/web.py:1135
+#: src/web.py:1123
 #, python-format
 msgid "Image file with properties created: %(file_name)s%(drive_format)s"
 msgstr "Imagedatei mit Eigenschaften erstellt: %(file_name)s%(drive_format)s"
 
-#: src/web.py:1145
+#: src/web.py:1133
 #, python-format
 msgid "Image file created: %(file_name)s%(drive_format)s"
 msgstr "Imagedatei erstellt: %(file_name)s%(drive_format)s"
 
-#: src/web.py:1206
+#: src/web.py:1194
 #, python-format
 msgid "Image file with properties deleted: %(file_name)s"
 msgstr "Imagedatei mit Eigenschaften gelöscht: %(file_name)s"
 
-#: src/web.py:1215
+#: src/web.py:1203
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Imagedatei %(file_name)s gelöscht"
 
-#: src/web.py:1253
+#: src/web.py:1241
 #, python-format
 msgid "Image file with properties renamed to: %(file_name)s"
 msgstr "Imagedatei mit Eigenschaften umbenannt in: %(file_name)s"
 
-#: src/web.py:1262
+#: src/web.py:1250
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Imagedatei umbenannt in: %(file_name)s"
 
-#: src/web.py:1300
+#: src/web.py:1288
 #, python-format
 msgid "Copy of image file with properties saved as: %(file_name)s"
 msgstr "Kopie der Imagedatei mit Eigenschaften gespeichert als: %(file_name)s"
 
-#: src/web.py:1309
+#: src/web.py:1297
 #, python-format
 msgid "Copy of image file saved as: %(file_name)s"
 msgstr "Kopie der Imagedatei gespeichert als: %(file_name)s"
 
-#: src/web.py:1362
+#: src/web.py:1350
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Webinterface-Sprache auf %(locale)s geändert"
 
-#: src/web.py:1373
+#: src/web.py:1361
 msgid "The requested theme does not exist."
 msgstr "Das angeforderte Theme existiert nicht."
 
-#: src/web.py:1376
+#: src/web.py:1364
 #, python-format
 msgid "Theme changed to '%(theme)s'."
 msgstr "Theme geändert zu '%(theme)s'."
@@ -447,57 +420,33 @@ msgstr "Wechsellaufwerks-Image"
 msgid "Magneto-Optical Disk Image"
 msgstr "Magneto-Optisches Laufwerks-Image"
 
-#: src/web_utils.py:263
+#: src/web_utils.py:260
 msgid "You must log in to use this function"
 msgstr "Du musst dich einloggen um diese Funktion zu nutzen"
 
-#: src/web_utils.py:280
-#, fuzzy, python-format
-msgid "Wireless network bridge enabled for %(interface)s"
-msgstr "Konfiguriere zuerst die Netzwerk-Bridge für %(interface)s: "
-
-#: src/web_utils.py:286
-#, fuzzy, python-format
-msgid "Wired network bridge enabled for %(interface)s"
-msgstr "Konfiguriere zuerst die Netzwerk-Bridge für %(interface)s: "
-
-#: src/web_utils.py:292
-#, python-format
-msgid ""
-"Unable to detect if %(interface)s is Ethernet or WiFi. Make sure that the"
-" correct network bridge is configured."
-msgstr ""
-
-#: src/web_utils.py:299
+#: src/web_utils.py:274
 #, python-format
 msgid "Configure the network bridge for %(interface)s first: "
 msgstr "Konfiguriere zuerst die Netzwerk-Bridge für %(interface)s: "
 
-#: src/web_utils.py:315
-msgid "Path must not be absolute"
-msgstr ""
+#: src/web_utils.py:303
+#, python-format
+msgid "No permission to use path '%(file_name)s'"
+msgstr "Keine Berechtigung den Pfad '%(file_name)s' zu benutzen"
 
-#: src/web_utils.py:317
-msgid "Path must not traverse the file system"
-msgstr ""
-
-#: src/web_utils.py:319
-msgid "Path must not start in the home directory"
-msgstr ""
-
-#: src/web_utils.py:343
+#: src/web_utils.py:324
 msgid "The file already exists!"
 msgstr "Die Datei existiert bereits!"
 
-#: src/web_utils.py:351
+#: src/web_utils.py:332
 msgid "Unable to write the file to disk!"
 msgstr "Kann die Datei nicht auf die Disk schreiben!"
 
-#: src/web_utils.py:359
+#: src/web_utils.py:340
 msgid "Transferred file corrupted!"
 msgstr "Übertragene Datei beschädigt!"
 
-#: src/web_utils.py:361
+#: src/web_utils.py:342
 msgid "File upload successful!"
 msgstr "Dateiupload erfolgreich!"
 
@@ -545,39 +494,39 @@ msgstr "Kontrollseite"
 msgid "System Name:"
 msgstr "Systemname:"
 
-#: src/templates/base.html:108 src/templates/base.html:110
+#: src/templates/base.html:98 src/templates/base.html:100
 #, python-format
 msgid "Switch to the <a href=\"/theme?name=%(theme)s\">%(theme)s theme</a>"
 msgstr "Wechsle zum <a href=\"/theme?name=%(theme)s\">%(theme)s Theme</a>"
 
-#: src/templates/base.html:116
+#: src/templates/base.html:106
 msgid "The AppleShare server is running. No active connections."
 msgstr "Der AppleShare-Server läuft. Keine aktiven Verbindungen."
 
-#: src/templates/base.html:119
+#: src/templates/base.html:109
 #, python-format
 msgid "%(value)d active AFP connection"
 msgstr "%(value)d aktive AFP-Verbindung"
 
-#: src/templates/base.html:121
+#: src/templates/base.html:111
 #, python-format
 msgid "%(value)d active AFP connections"
 msgstr "%(value)d aktive AFP-Verbindungen"
 
-#: src/templates/base.html:126
+#: src/templates/base.html:116
 #, python-format
 msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy läuft auf %(ip_addr)s (Default-Port 5000)"
 
-#: src/templates/base.html:130
+#: src/templates/base.html:120
 msgid "PiSCSI software version:"
 msgstr "PiSCSI Software-Version:"
 
-#: src/templates/base.html:133
+#: src/templates/base.html:123
 msgid "Hardware and OS:"
 msgstr "Hardware und OS:"
 
-#: src/templates/base.html:136
+#: src/templates/base.html:126
 msgid "Network Address:"
 msgstr "Netzwerkadresse:"
 
@@ -927,8 +876,8 @@ msgid "Unknown"
 msgstr "Unbekannt"
 
 #: src/templates/index.html:344
-#, fuzzy, python-format
-msgid "Enter a new file name:"
+#, python-format
+msgid "Enter new file name for: %(file_name)s"
 msgstr "Gib einen neuen Dateinamen für %(file_name)s ein"
 
 #: src/templates/index.html:347 src/templates/index.html:756
@@ -936,9 +885,9 @@ msgid "Rename"
 msgstr "Umbenennen"
 
 #: src/templates/index.html:349
-#, fuzzy, python-format
-msgid "Enter a file name for the copy:"
-msgstr "Gib einen neuen Dateinamen für %(file_name)s ein"
+#, python-format
+msgid "Save copy of %(file_name)s as:"
+msgstr "Speichere Kopie von %(file_name)s als:"
 
 #: src/templates/index.html:352
 msgid "Copy"
@@ -958,8 +907,8 @@ msgid "Info"
 msgstr "Info"
 
 #: src/templates/index.html:374
-#, fuzzy, python-format
-msgid "%(disk_space)s MiB disk space remaining for images"
+#, python-format
+msgid "%(disk_space)s MiB disk space remaining on the system"
 msgstr "%(disk_space)s MiB Festplattenplatz auf dem Pi übrig"
 
 #: src/templates/index.html:382
@@ -1317,16 +1266,4 @@ msgstr "KiB"
 #: src/templates/upload.html:70
 msgid "B"
 msgstr "B"
-
-#~ msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-#~ msgstr "%(device_type)s mit SCSI-ID %(id_number)s LUN %(unit_number)s verbunden"
-
-#~ msgid "No permission to use path '%(file_name)s'"
-#~ msgstr "Keine Berechtigung den Pfad '%(file_name)s' zu benutzen"
-
-#~ msgid "Save copy of %(file_name)s as:"
-#~ msgstr "Speichere Kopie von %(file_name)s als:"
-
-#~ msgid "%(disk_space)s MiB disk space remaining on the system"
-#~ msgstr "%(disk_space)s MiB Festplattenplatz auf dem Pi übrig"
 
