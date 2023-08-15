@@ -1,9 +1,10 @@
 //---------------------------------------------------------------------------
 //
-//	X68000 EMULATOR "XM6"
+// X68000 EMULATOR "XM6"
 //
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+// Copyright (C) 2014-2020 GIMONS
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ using namespace std;
 
 namespace scsi_defs
 {
-enum class scsi_level : int {
+enum class scsi_level {
     SCSI_1_CCS = 1,
     SCSI_2     = 2,
     SPC        = 3,
@@ -26,8 +27,8 @@ enum class scsi_level : int {
     SPC_6      = 8
 };
 
-//	Phase definitions
-enum class phase_t : int {
+// Phase definitions
+enum class phase_t {
     busfree,
     arbitration,
     selection,
@@ -41,7 +42,7 @@ enum class phase_t : int {
     reserved
 };
 
-enum class device_type : int {
+enum class device_type {
     DIRECT_ACCESS  = 0,
     PRINTER        = 2,
     PROCESSOR      = 3,
@@ -50,7 +51,7 @@ enum class device_type : int {
     COMMUNICATIONS = 9
 };
 
-enum class scsi_command : int {
+enum class scsi_command {
     eCmdTestUnitReady  = 0x00,
     eCmdRezero         = 0x01,
     eCmdRequestSense   = 0x03,
@@ -104,13 +105,13 @@ enum class scsi_command : int {
     eCmdReportLuns                 = 0xA0
 };
 
-enum class status : int {
-	GOOD 					= 0x00,
-	CHECK_CONDITION 		= 0x02,
-	RESERVATION_CONFLICT 	= 0x18
+enum class status {
+	GOOD 				 = 0x00,
+	CHECK_CONDITION 	 = 0x02,
+	RESERVATION_CONFLICT = 0x18
 };
 
-enum class sense_key : int {
+enum class sense_key {
     NO_SENSE        = 0x00,
     NOT_READY       = 0x02,
     MEDIUM_ERROR    = 0x03,
@@ -120,7 +121,7 @@ enum class sense_key : int {
     ABORTED_COMMAND = 0x0b
 };
 
-enum class asc : int {
+enum class asc {
     NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
     WRITE_FAULT                     = 0x03,
     READ_FAULT                      = 0x11,
