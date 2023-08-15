@@ -33,7 +33,7 @@ void ScsiLoop_Cout::FinishTest(const string &test_name, int failures)
 void ScsiLoop_Cout::PrintErrors(const vector<string> &test_errors)
 {
     if (!test_errors.empty()) {
-        for (auto err_string : test_errors) {
+        for (auto& err_string : test_errors) {
             cout << RED << err_string << endl;
         }
     }
