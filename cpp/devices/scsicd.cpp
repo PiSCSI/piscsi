@@ -165,7 +165,7 @@ void SCSICD::ReadToc()
 
 vector<uint8_t> SCSICD::InquiryInternal() const
 {
-	return HandleInquiry(device_type::CD_ROM, scsi_level, true);
+	return HandleInquiry(device_type::cd_rom, scsi_level, true);
 }
 
 void SCSICD::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const
@@ -222,7 +222,7 @@ int SCSICD::Read(vector<uint8_t>& buf, uint64_t block)
 
 	const int index = SearchTrack(static_cast<int>(block));
 	if (index < 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 
 	assert(tracks[index]);
@@ -263,7 +263,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 	const int last = tracks[tracks.size() - 1]->GetTrackNo();
 	// Except for AA
 	if (cdb[6] > last && cdb[6] != 0xaa) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Check start index
@@ -280,7 +280,7 @@ int SCSICD::ReadTocInternal(const vector<int>& cdb, vector<uint8_t>& buf)
 		// AA if not found or internal error
 		if (!tracks[index]) {
 			if (cdb[6] != 0xaa) {
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 			}
 
 			// Returns the final LBA+1 because it is AA

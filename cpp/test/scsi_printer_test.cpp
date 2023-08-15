@@ -40,12 +40,12 @@ TEST(ScsiPrinterTest, TestUnitReady)
 
     EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdTestUnitReady);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, Inquiry)
 {
-	TestInquiry(SCLP, device_type::PRINTER, scsi_level::SCSI_2,	"PiSCSI  SCSI PRINTER    ", 0x1f, false);
+	TestInquiry(SCLP, device_type::printer, scsi_level::scsi_2,	"PiSCSI  SCSI PRINTER    ", 0x1f, false);
 }
 
 TEST(ScsiPrinterTest, ReserveUnit)
@@ -57,7 +57,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdReserve6);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, ReleaseUnit)
@@ -69,7 +69,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdRelease6);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, SendDiagnostic)
@@ -81,7 +81,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdSendDiagnostic);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, Print)
@@ -99,8 +99,8 @@ TEST(ScsiPrinterTest, Print)
     cmd[3] = 0xff;
     cmd[4] = 0xff;
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
-    		Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+    		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Buffer overflow was not reported";
 }
 
@@ -113,7 +113,7 @@ TEST(ScsiPrinterTest, StopPrint)
 
     EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdStopPrint);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
@@ -124,8 +124,8 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
-    		Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
-			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))))
+    		Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
+			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))))
 		<< "Nothing to print";
 
 	// Further testing would use the printing system

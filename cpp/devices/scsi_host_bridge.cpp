@@ -72,7 +72,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 
 vector<uint8_t> SCSIBR::InquiryInternal() const
 {
-	vector<uint8_t> buf = HandleInquiry(device_type::COMMUNICATIONS, scsi_level::SCSI_2, false);
+	vector<uint8_t> buf = HandleInquiry(device_type::communications, scsi_level::scsi_2, false);
 
 	// The bridge returns more additional bytes than the other devices
 	buf.resize(0x1F + 8 + 5);
@@ -252,7 +252,7 @@ void SCSIBR::GetMessage10()
 
 	GetController()->SetLength(GetMessage10(GetController()->GetCmd(), GetController()->GetBuffer()));
 	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Set next block
@@ -273,7 +273,7 @@ void SCSIBR::SendMessage10() const
 {
 	GetController()->SetLength(GetInt24(GetController()->GetCmd(), 6));
 	if (GetController()->GetLength() <= 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Ensure a sufficient buffer size (because it is not a transfer for each block)

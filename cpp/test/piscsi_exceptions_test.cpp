@@ -36,18 +36,18 @@ TEST(PiscsiExceptionsTest, FileNotFoundException)
 TEST(PiscsiExceptionsTest, ScsiErrorException)
 {
 	try {
-		throw scsi_exception(sense_key::UNIT_ATTENTION);
+		throw scsi_exception(sense_key::unit_attention);
 	}
 	catch(const scsi_exception& e) {
-		EXPECT_EQ(sense_key::UNIT_ATTENTION, e.get_sense_key());
-		EXPECT_EQ(asc::NO_ADDITIONAL_SENSE_INFORMATION, e.get_asc());
+		EXPECT_EQ(sense_key::unit_attention, e.get_sense_key());
+		EXPECT_EQ(asc::no_additional_sense_information, e.get_asc());
 	}
 
 	try {
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::unit_attention, asc::lba_out_of_range);
 	}
 	catch(const scsi_exception& e) {
-		EXPECT_EQ(sense_key::UNIT_ATTENTION, e.get_sense_key());
-		EXPECT_EQ(asc::LBA_OUT_OF_RANGE, e.get_asc());
+		EXPECT_EQ(sense_key::unit_attention, e.get_sense_key());
+		EXPECT_EQ(asc::lba_out_of_range, e.get_asc());
 	}
 }

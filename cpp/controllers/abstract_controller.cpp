@@ -56,7 +56,7 @@ void AbstractController::Reset()
 {
 	SetPhase(phase_t::busfree);
 
-	ctrl.status = status::GOOD;
+	ctrl.status = status::good;
 	ctrl.message = 0x00;
 	ctrl.blocks = 0;
 	ctrl.next = 0;
@@ -105,7 +105,7 @@ void AbstractController::ProcessPhase()
 			break;
 
 		default:
-			throw scsi_exception(sense_key::ABORTED_COMMAND);
+			throw scsi_exception(sense_key::aborted_command);
 			break;
 	}
 }

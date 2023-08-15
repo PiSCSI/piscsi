@@ -17,14 +17,14 @@ using namespace std;
 namespace scsi_defs
 {
 enum class scsi_level {
-    SCSI_1_CCS = 1,
-    SCSI_2     = 2,
-    SPC        = 3,
-    SPC_2      = 4,
-    SPC_3      = 5,
-    SPC_4      = 6,
-    SPC_5      = 7,
-    SPC_6      = 8
+    scsi_1_ccs = 1,
+    scsi_2     = 2,
+    spc        = 3,
+    spc_2      = 4,
+    spc_3      = 5,
+    spc_4      = 6,
+    spc_5      = 7,
+    spc_6      = 8
 };
 
 // Phase definitions
@@ -43,12 +43,12 @@ enum class phase_t {
 };
 
 enum class device_type {
-    DIRECT_ACCESS  = 0,
-    PRINTER        = 2,
-    PROCESSOR      = 3,
-    CD_ROM         = 5,
-    OPTICAL_MEMORY = 7,
-    COMMUNICATIONS = 9
+    direct_access  = 0,
+    printer        = 2,
+    processor      = 3,
+    cd_rom         = 5,
+    optical_memory = 7,
+    communications = 9
 };
 
 enum class scsi_command {
@@ -106,35 +106,35 @@ enum class scsi_command {
 };
 
 enum class status {
-	GOOD 				 = 0x00,
-	CHECK_CONDITION 	 = 0x02,
-	RESERVATION_CONFLICT = 0x18
+	good 				 = 0x00,
+	check_condition 	 = 0x02,
+	reservation_conflict = 0x18
 };
 
 enum class sense_key {
-    NO_SENSE        = 0x00,
-    NOT_READY       = 0x02,
-    MEDIUM_ERROR    = 0x03,
-    ILLEGAL_REQUEST = 0x05,
-    UNIT_ATTENTION  = 0x06,
-    DATA_PROTECT    = 0x07,
-    ABORTED_COMMAND = 0x0b
+    no_sense        = 0x00,
+    not_ready       = 0x02,
+    medium_error    = 0x03,
+    illegal_request = 0x05,
+    unit_attention  = 0x06,
+    data_protect    = 0x07,
+    aborted_command = 0x0b
 };
 
 enum class asc {
-    NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
-    WRITE_FAULT                     = 0x03,
-    READ_FAULT                      = 0x11,
-    INVALID_COMMAND_OPERATION_CODE  = 0x20,
-    LBA_OUT_OF_RANGE                = 0x21,
-    INVALID_FIELD_IN_CDB            = 0x24,
-    INVALID_LUN                     = 0x25,
-    INVALID_FIELD_IN_PARAMETER_LIST = 0x26,
-    WRITE_PROTECTED                 = 0x27,
-    NOT_READY_TO_READY_CHANGE       = 0x28,
-    POWER_ON_OR_RESET               = 0x29,
-    MEDIUM_NOT_PRESENT              = 0x3a,
-    LOAD_OR_EJECT_FAILED            = 0x53
+    no_additional_sense_information = 0x00,
+    write_fault                     = 0x03,
+    read_fault                      = 0x11,
+    invalid_command_operation_code  = 0x20,
+    lba_out_of_range                = 0x21,
+    invalid_field_in_cdb            = 0x24,
+    invalid_lun                     = 0x25,
+    invalid_field_in_parameter_list = 0x26,
+    write_protected                 = 0x27,
+    not_ready_to_ready_change       = 0x28,
+    power_on_or_reset               = 0x29,
+    medium_not_present              = 0x3a,
+    load_or_eject_failed            = 0x53
 };
 
 static const unordered_map<scsi_command, pair<int, const char *>> command_mapping = {

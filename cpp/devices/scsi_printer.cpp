@@ -81,7 +81,7 @@ void SCSIPrinter::TestUnitReady()
 
 vector<uint8_t> SCSIPrinter::InquiryInternal() const
 {
-	return HandleInquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
+	return HandleInquiry(device_type::printer, scsi_level::scsi_2, false);
 }
 
 void SCSIPrinter::Print()
@@ -94,7 +94,7 @@ void SCSIPrinter::Print()
 		GetLogger().Error("Transfer buffer overflow: Buffer size is " + to_string(GetController()->GetBuffer().size()) +
 				" bytes, " + to_string(length) + " bytes expected");
 
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	GetController()->SetLength(length);
@@ -108,7 +108,7 @@ void SCSIPrinter::SynchronizeBuffer()
 	if (!out.is_open()) {
 		GetLogger().Warn("Nothing to print");
 
-		throw scsi_exception(sense_key::ABORTED_COMMAND);
+		throw scsi_exception(sense_key::aborted_command);
 	}
 
 	string cmd = GetParam("cmd");
@@ -126,7 +126,7 @@ void SCSIPrinter::SynchronizeBuffer()
 
 		Cleanup();
 
-		throw scsi_exception(sense_key::ABORTED_COMMAND);
+		throw scsi_exception(sense_key::aborted_command);
 	}
 
 	Cleanup();
@@ -152,7 +152,7 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 		out.open(filename, ios::binary);
 		if (out.fail()) {
-			throw scsi_exception(sense_key::ABORTED_COMMAND);
+			throw scsi_exception(sense_key::aborted_command);
 		}
 
 		GetLogger().Trace("Created printer output file '" + filename + "'");

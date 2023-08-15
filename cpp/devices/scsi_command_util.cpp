@@ -47,7 +47,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 		// Format device page
 		if (int page = buf[offset]; page == 0x03) {
 			if (length < 14) {
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
 			// With this page the sector size for a subsequent FORMAT can be selected, but only very few
@@ -57,7 +57,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 				// With piscsi it is not possible to permanently (by formatting) change the sector size,
 				// because the size is an externally configurable setting only
 				logger.Warn("In order to change the sector size use the -b option when launching piscsi");
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
 			has_valid_page_code = true;
@@ -76,7 +76,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 	}
 
 	if (!has_valid_page_code) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_PARAMETER_LIST);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 	}
 }
 

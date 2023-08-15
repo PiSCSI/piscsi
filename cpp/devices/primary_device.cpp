@@ -54,7 +54,7 @@ void PrimaryDevice::Dispatch(scsi_command cmd)
 	else {
 		GetLogger().Trace("Received unsupported command: " + s.str());
 
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 	}
 }
 
@@ -92,7 +92,7 @@ void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
 	if ((GetController()->GetCmd(1) & 0x01) || GetController()->GetCmd(2)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	vector<uint8_t> buf = InquiryInternal();
@@ -117,7 +117,7 @@ void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
 	if (GetController()->GetCmd(2)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const uint32_t allocation_length = GetInt32(GetController()->GetCmd(), 6);
@@ -155,9 +155,9 @@ void PrimaryDevice::RequestSense()
 		lun = 0;
 
 		// Do not raise an exception here because the rest of the code must be executed
-		GetController()->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+		GetController()->Error(sense_key::illegal_request, asc::invalid_lun);
 
-		GetController()->SetStatus(status::GOOD);
+		GetController()->SetStatus(status::good);
 	}
 
     vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
@@ -174,12 +174,12 @@ void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
 	if (GetController()->GetCmd(1) & 0x10) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Do not support parameter list
 	if ((GetController()->GetCmd(3) != 0) || (GetController()->GetCmd(4) != 0)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -191,20 +191,20 @@ void PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetReset(false);
 		GetLogger().Trace("Device in reset");
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::POWER_ON_OR_RESET);
+		throw scsi_exception(sense_key::unit_attention, asc::power_on_or_reset);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
 		GetLogger().Trace("Device in needs attention");
-		throw scsi_exception(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		throw scsi_exception(sense_key::unit_attention, asc::not_ready_to_ready_change);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		GetLogger().Trace("Device not ready");
-		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 	}
 
 	GetLogger().Trace("Device is ready");
@@ -223,8 +223,8 @@ vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level,
 	buf[0] = static_cast<uint8_t>(type);
 	buf[1] = is_removable ? 0x80 : 0x00;
 	buf[2] = static_cast<uint8_t>(level);
-	buf[3] = level >= scsi_level::SCSI_2 ?
-			static_cast<uint8_t>(scsi_level::SCSI_2) : static_cast<uint8_t>(scsi_level::SCSI_1_CCS);
+	buf[3] = level >= scsi_level::scsi_2 ?
+			static_cast<uint8_t>(scsi_level::scsi_2) : static_cast<uint8_t>(scsi_level::scsi_1_ccs);
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
@@ -237,7 +237,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 {
 	// Return not ready only if there are no errors
 	if (!GetStatusCode() && !IsReady()) {
-		throw scsi_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 	}
 
 	// Set 18 bytes including extended sense data

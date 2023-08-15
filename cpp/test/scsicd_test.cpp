@@ -29,9 +29,9 @@ void ScsiCdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiCdTest, Inquiry)
 {
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
+	TestInquiry(SCCD, device_type::cd_rom, scsi_level::scsi_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 
-	TestInquiry(SCCD, device_type::CD_ROM, scsi_level::SCSI_1_CCS, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
+	TestInquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
 }
 
 TEST(ScsiCdTest, SetUpModePages)
@@ -123,8 +123,8 @@ TEST(ScsiCdTest, ReadToc)
 	controller->AddDevice(cd);
 
 	EXPECT_THAT([&] { cd->Dispatch(scsi_command::eCmdReadToc); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::NOT_READY),
-			Property(&scsi_exception::get_asc, asc::MEDIUM_NOT_PRESENT))));
+			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
+			Property(&scsi_exception::get_asc, asc::medium_not_present))));
 
 	// Further testing requires filesystem access
 }

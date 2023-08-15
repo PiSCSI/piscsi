@@ -72,7 +72,7 @@ void Disk::Dispatch(scsi_command cmd)
 
 		SetMediumChanged(false);
 
-		GetController()->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
+		GetController()->Error(sense_key::unit_attention, asc::not_ready_to_ready_change);
 	}
 	else {
 		PrimaryDevice::Dispatch(cmd);
@@ -104,7 +104,7 @@ void Disk::FormatUnit()
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((GetController()->GetCmd(1) & 0x10) != 0 && GetController()->GetCmd(4) != 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -135,7 +135,7 @@ void Disk::ReadWriteLong10() const
 
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (GetInt16(GetController()->GetCmd(), 7) != 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -147,7 +147,7 @@ void Disk::ReadWriteLong16() const
 
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (GetInt16(GetController()->GetCmd(), 12) != 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -156,7 +156,7 @@ void Disk::ReadWriteLong16() const
 void Disk::Write(access_mode mode) const
 {
 	if (IsProtected()) {
-		throw scsi_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
+		throw scsi_exception(sense_key::data_protect, asc::write_protected);
 	}
 
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
@@ -217,12 +217,12 @@ void Disk::StartStopUnit()
 		if (load) {
 			if (IsLocked()) {
 				// Cannot be ejected because it is locked
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
+				throw scsi_exception(sense_key::illegal_request, asc::load_or_eject_failed);
 			}
 
 			// Eject
 			if (!Eject(false)) {
-				throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
+				throw scsi_exception(sense_key::illegal_request, asc::load_or_eject_failed);
 			}
 		}
 		else {
@@ -504,7 +504,7 @@ int Disk::Read(vector<uint8_t>& buf, uint64_t block)
 	CheckReady();
 
 	if (!cache->ReadSector(buf, static_cast<uint32_t>(block))) {
-		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
+		throw scsi_exception(sense_key::medium_error, asc::read_fault);
 	}
 
 	return GetSectorSizeInBytes();
@@ -517,7 +517,7 @@ void Disk::Write(const vector<uint8_t>& buf, uint64_t block)
 	CheckReady();
 
 	if (!cache->WriteSector(buf, static_cast<uint32_t>(block))) {
-		throw scsi_exception(sense_key::MEDIUM_ERROR, asc::WRITE_FAULT);
+		throw scsi_exception(sense_key::medium_error, asc::write_fault);
 	}
 }
 
@@ -553,7 +553,7 @@ void Disk::ReadCapacity10()
 	CheckReady();
 
 	if (GetBlockCount() == 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::illegal_request, asc::medium_not_present);
 	}
 
 	vector<uint8_t>& buf = GetController()->GetBuffer();
@@ -580,7 +580,7 @@ void Disk::ReadCapacity16()
 	CheckReady();
 
 	if (GetBlockCount() == 0) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
+		throw scsi_exception(sense_key::illegal_request, asc::medium_not_present);
 	}
 
 	vector<uint8_t>& buf = GetController()->GetBuffer();
@@ -614,7 +614,7 @@ void Disk::ReadCapacity16_ReadLong16()
 		break;
 
 	default:
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 		break;
 	}
 }
@@ -626,7 +626,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	if (block > GetBlockCount()) {
 		GetLogger().Trace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
 				+ to_string(block));
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 }
 
@@ -665,7 +665,7 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
 		GetLogger().Trace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count));
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
+		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 
 	// Do not process 0 blocks

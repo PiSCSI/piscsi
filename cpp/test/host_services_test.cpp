@@ -29,12 +29,12 @@ TEST(HostServicesTest, TestUnitReady)
 
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdTestUnitReady);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 }
 
 TEST(HostServicesTest, Inquiry)
 {
-	TestInquiry(SCHS, device_type::PROCESSOR, scsi_level::SPC_3, "PiSCSI  Host Services   ", 0x1f, false);
+	TestInquiry(SCHS, device_type::processor, scsi_level::spc_3, "PiSCSI  Host Services   ", 0x1f, false);
 }
 
 TEST(HostServicesTest, StartStopUnit)
@@ -50,27 +50,27 @@ TEST(HostServicesTest, StartStopUnit)
     EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // LOAD
     cmd[4] = 0x02;
     EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // UNLOAD
     cmd[4] = 0x03;
     EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
-    EXPECT_EQ(status::GOOD, controller->GetStatus());
+    EXPECT_EQ(status::good, controller->GetStatus());
 
     // START
     cmd[4] = 0x01;
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))));
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
 
 TEST(HostServicesTest, ModeSense6)
@@ -85,14 +85,14 @@ TEST(HostServicesTest, ModeSense6)
     auto& cmd = controller->GetCmd();
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;
@@ -130,14 +130,14 @@ TEST(HostServicesTest, ModeSense10)
     auto& cmd = controller->GetCmd();
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
     cmd[2] = 0x20;
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ILLEGAL_REQUEST),
-			Property(&scsi_exception::get_asc, asc::INVALID_FIELD_IN_CDB))))
+			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
+			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";
 
     cmd[1] = 0x08;

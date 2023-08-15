@@ -556,7 +556,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     inq_info.revision = string(str.data());
 
     if (auto type = static_cast<device_type>(buffer[0]);
-        type != device_type::DIRECT_ACCESS && type != device_type::CD_ROM && type != device_type::OPTICAL_MEMORY) {
+        type != device_type::direct_access && type != device_type::cd_rom && type != device_type::optical_memory) {
         throw parser_exception("Invalid device type, supported types are DIRECT ACCESS, CD-ROM and OPTICAL MEMORY");
     }
 

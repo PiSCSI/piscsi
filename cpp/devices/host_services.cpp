@@ -51,7 +51,7 @@ void HostServices::TestUnitReady()
 
 vector<uint8_t> HostServices::InquiryInternal() const
 {
-	return HandleInquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
+	return HandleInquiry(device_type::processor, scsi_level::spc_3, false);
 }
 
 void HostServices::StartStopUnit() const
@@ -71,7 +71,7 @@ void HostServices::StartStopUnit() const
 		GetController()->ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI);
 	}
 	else {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	EnterStatusPhase();
@@ -81,7 +81,7 @@ int HostServices::ModeSense6(const vector<int>& cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
@@ -99,7 +99,7 @@ int HostServices::ModeSense10(const vector<int>& cdb, vector<uint8_t>& buf) cons
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));

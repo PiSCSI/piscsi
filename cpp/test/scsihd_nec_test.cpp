@@ -29,7 +29,7 @@ void ScsiHdNecTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiHdNecTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, "PiSCSI                  ", 0x1f, false, "file.hdn");
+	TestInquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hdn");
 }
 
 TEST(ScsiHdNecTest, SetUpModePages)

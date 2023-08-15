@@ -81,7 +81,7 @@ void SCSIHD::Open()
 
 vector<uint8_t> SCSIHD::InquiryInternal() const
 {
-	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level, IsRemovable());
+	return HandleInquiry(device_type::direct_access, scsi_level, IsRemovable());
 }
 
 void SCSIHD::ModeSelect(scsi_command cmd, const vector<int>& cdb, const vector<uint8_t>& buf, int length) const

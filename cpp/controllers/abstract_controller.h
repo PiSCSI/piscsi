@@ -41,8 +41,8 @@ public:
 		: controller_manager(controller_manager), target_id(target_id), max_luns(max_luns) {}
 	~AbstractController() override = default;
 
-	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			scsi_defs::status = scsi_defs::status::CHECK_CONDITION) = 0;
+	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::no_additional_sense_information,
+			scsi_defs::status = scsi_defs::status::check_condition) = 0;
 	virtual void Reset();
 	virtual int GetInitiatorId() const = 0;
 

@@ -113,7 +113,7 @@ pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
 
 vector<uint8_t> SCSIHD_NEC::InquiryInternal() const
 {
-	return HandleInquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
+	return HandleInquiry(device_type::direct_access, scsi_level::scsi_1_ccs, false);
 }
 
 void SCSIHD_NEC::AddFormatPage(map<int, vector<byte>>& pages, bool changeable) const

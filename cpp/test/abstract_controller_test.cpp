@@ -49,7 +49,7 @@ TEST(AbstractControllerTest, Reset)
 	EXPECT_EQ(phase_t::status, controller->GetPhase());
 	controller->Reset();
 	EXPECT_TRUE(controller->IsBusFree());
-	EXPECT_EQ(status::GOOD, controller->GetStatus());
+	EXPECT_EQ(status::good, controller->GetStatus());
 	EXPECT_EQ(0, controller->GetLength());
 }
 
@@ -114,8 +114,8 @@ TEST(AbstractControllerTest, Status)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, 0);
 
-	controller.SetStatus(status::RESERVATION_CONFLICT);
-	EXPECT_EQ(status::RESERVATION_CONFLICT, controller.GetStatus());
+	controller.SetStatus(status::reservation_conflict);
+	EXPECT_EQ(status::reservation_conflict, controller.GetStatus());
 }
 
 TEST(AbstractControllerTest, ProcessPhase)
@@ -158,13 +158,13 @@ TEST(AbstractControllerTest, ProcessPhase)
 
 	controller.SetPhase(phase_t::reselection);
 	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
-			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
+			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
+			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 
 	controller.SetPhase(phase_t::reserved);
 	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::ABORTED_COMMAND),
-			Property(&scsi_exception::get_asc, asc::NO_ADDITIONAL_SENSE_INFORMATION))));
+			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
+			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 }
 
 TEST(AbstractControllerTest, DeviceLunLifeCycle)

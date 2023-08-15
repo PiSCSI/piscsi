@@ -62,7 +62,7 @@ void SCSIMO::Open()
 
 vector<uint8_t> SCSIMO::InquiryInternal() const
 {
-	return HandleInquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
+	return HandleInquiry(device_type::optical_memory, scsi_level::scsi_2, true);
 }
 
 void SCSIMO::SetUpModePages(map<int, vector<byte>>& pages, int page, bool changeable) const

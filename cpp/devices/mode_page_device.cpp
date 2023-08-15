@@ -55,7 +55,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	if (pages.empty()) {
 		s << "Unsupported mode page $" << page;
 		GetLogger().Trace(s.str());
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Holds all mode page data
@@ -90,7 +90,7 @@ int ModePageDevice::AddModePages(const vector<int>& cdb, vector<uint8_t>& buf, i
 	}
 
 	if (static_cast<int>(result.size()) > max_size) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	const auto size = static_cast<int>(min(static_cast<size_t>(max_length), result.size()));
@@ -117,7 +117,7 @@ void ModePageDevice::ModeSense10() const
 void ModePageDevice::ModeSelect(scsi_command, const vector<int>&, const vector<uint8_t>&, int) const
 {
 	// There is no default implementation of MDOE SELECT
-	throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+	throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 }
 
 void ModePageDevice::ModeSelect6() const
@@ -135,7 +135,7 @@ void ModePageDevice::ModeSelect10() const
 void ModePageDevice::SaveParametersCheck(int length) const
 {
 	if (!SupportsSaveParameters() && (GetController()->GetCmd(1) & 0x01)) {
-		throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	GetController()->SetLength(length);

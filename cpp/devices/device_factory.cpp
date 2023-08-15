@@ -97,7 +97,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 			device = make_shared<SCSIHD_NEC>(lun);
 		} else {
 			device = make_shared<SCSIHD>(lun, sector_sizes.find(type)->second, false,
-					ext == "hd1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+					ext == "hd1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 
 			// Some Apple tools require a particular drive identification
 			if (ext == "hda") {
@@ -120,7 +120,7 @@ shared_ptr<PrimaryDevice> DeviceFactory::CreateDevice(PbDeviceType type, int lun
 
 	case SCCD:
 		device = make_shared<SCSICD>(lun, sector_sizes.find(type)->second,
-            GetExtensionLowerCase(filename) == "is1" ? scsi_level::SCSI_1_CCS : scsi_level::SCSI_2);
+            GetExtensionLowerCase(filename) == "is1" ? scsi_level::scsi_1_ccs : scsi_level::scsi_2);
 		device->SetProduct("SCSI CD-ROM");
 		break;
 

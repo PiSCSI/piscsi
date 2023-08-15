@@ -66,11 +66,11 @@ TEST(ScsiControllerTest, BusFree)
 	controller.BusFree();
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
 
-	controller.SetStatus(status::CHECK_CONDITION);
+	controller.SetStatus(status::check_condition);
 	controller.SetPhase(phase_t::reserved);
 	controller.BusFree();
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	EXPECT_EQ(status::good, controller.GetStatus());
 
 	controller.ScheduleShutdown(AbstractController::piscsi_shutdown_mode::NONE);
 	controller.SetPhase(phase_t::reserved);
@@ -260,8 +260,8 @@ TEST(ScsiControllerTest, Error)
 	EXPECT_CALL(*bus, GetRST());
 	EXPECT_CALL(*bus, Reset);
 	EXPECT_CALL(controller, Reset);
-	controller.Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
-	EXPECT_EQ(status::GOOD, controller.GetStatus());
+	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
+	EXPECT_EQ(status::good, controller.GetStatus());
 	EXPECT_EQ(phase_t::reserved, controller.GetPhase());
 
 	ON_CALL(*bus, GetRST).WillByDefault(Return(false));
@@ -270,7 +270,7 @@ TEST(ScsiControllerTest, Error)
 	EXPECT_CALL(*bus, GetRST());
 	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
-	controller.Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
+	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
 
 	controller.SetPhase(phase_t::msgin);
@@ -278,7 +278,7 @@ TEST(ScsiControllerTest, Error)
 	EXPECT_CALL(*bus, GetRST());
 	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
-	controller.Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
+	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
 
 	controller.SetPhase(phase_t::reserved);
@@ -287,8 +287,8 @@ TEST(ScsiControllerTest, Error)
 	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
 	EXPECT_CALL(controller, Status);
-	controller.Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
-	EXPECT_EQ(status::RESERVATION_CONFLICT, controller.GetStatus());
+	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
+	EXPECT_EQ(status::reservation_conflict, controller.GetStatus());
 	EXPECT_EQ(phase_t::reserved, controller.GetPhase());
 }
 
@@ -312,5 +312,5 @@ TEST(ScsiControllerTest, RequestSense)
 	device->SetReady(true);
 	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdRequestSense);
-	EXPECT_EQ(status::GOOD, controller->GetStatus()) << "Wrong CHECK CONDITION for non-existing LUN";
+	EXPECT_EQ(status::good, controller->GetStatus()) << "Wrong CHECK CONDITION for non-existing LUN";
 }

@@ -98,7 +98,7 @@ void ScsiController::BusFree()
 		GetBus().SetBSY(false);
 
 		// Initialize status and message
-		SetStatus(status::GOOD);
+		SetStatus(status::good);
 		SetMessage(0x00);
 
 		// Initialize ATN message reception status
@@ -200,7 +200,7 @@ void ScsiController::Command()
 			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
 			logger.Trace(s.str());
 
-			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			Error(sense_key::illegal_request, asc::invalid_command_operation_code);
 			return;
 		}
 
@@ -212,7 +212,7 @@ void ScsiController::Command()
 			s << "Command byte count mismatch for command $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
 			logger.Error(s.str() + ": expected " + to_string(command_byte_count) + " bytes, received"
 					+ to_string(actual_count) + " byte(s)");
-			Error(sense_key::ABORTED_COMMAND);
+			Error(sense_key::aborted_command);
 			return;
 		}
 
@@ -245,7 +245,7 @@ void ScsiController::Execute()
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if (GetOpcode() != scsi_command::eCmdRequestSense) {
-		SetStatus(status::GOOD);
+		SetStatus(status::good);
 	}
 
 	int lun = GetEffectiveLun();
@@ -253,7 +253,7 @@ void ScsiController::Execute()
 		if (GetOpcode() != scsi_command::eCmdInquiry && GetOpcode() != scsi_command::eCmdRequestSense) {
 			logger.Trace("Invalid LUN " + to_string(lun));
 
-			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+			Error(sense_key::illegal_request, asc::invalid_lun);
 
 			return;
 		}
@@ -288,7 +288,7 @@ void ScsiController::Execute()
 		}
 	}
 	else {
-		Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION, status::RESERVATION_CONFLICT);
+		Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	}
 }
 
@@ -453,7 +453,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	}
 
 	int lun = GetEffectiveLun();
-	if (!HasDeviceForLun(lun) || asc == asc::INVALID_LUN) {
+	if (!HasDeviceForLun(lun) || asc == asc::invalid_lun) {
 		if (!HasDeviceForLun(0)) {
 			logger.Error("No LUN 0");
 
@@ -468,7 +468,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		lun = 0;
 	}
 
-	if (sense_key != sense_key::NO_SENSE || asc != asc::NO_ADDITIONAL_SENSE_INFORMATION) {
+	if (sense_key != sense_key::no_sense || asc != asc::no_additional_sense_information) {
 		stringstream s;
 		s << setfill('0') << setw(2) << hex << "Error status: Sense Key $" << static_cast<int>(sense_key)
 				<< ", ASC $" << static_cast<int>(asc);
@@ -500,7 +500,7 @@ void ScsiController::Send()
 				HasDeviceForLun(0) ? GetDeviceForLun(0)->GetSendDelay() : 0);
 			len != static_cast<int>(GetLength())) {
 			// If you cannot send all, move to status phase
-			Error(sense_key::ABORTED_COMMAND);
+			Error(sense_key::aborted_command);
 			return;
 		}
 
@@ -521,7 +521,7 @@ void ScsiController::Send()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error(sense_key::ABORTED_COMMAND);
+		Error(sense_key::aborted_command);
 		return;
 	}
 
@@ -584,7 +584,7 @@ void ScsiController::Receive()
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
 			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
 					+ to_string(len));
-			Error(sense_key::ABORTED_COMMAND);
+			Error(sense_key::aborted_command);
 			return;
 		}
 	}
@@ -633,7 +633,7 @@ void ScsiController::Receive()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error(sense_key::ABORTED_COMMAND);
+		Error(sense_key::aborted_command);
 		return;
 	}
 
@@ -716,7 +716,7 @@ void ScsiController::ReceiveBytes()
 
 	// If result FALSE, move to status phase
 	if (!result) {
-		Error(sense_key::ABORTED_COMMAND);
+		Error(sense_key::aborted_command);
 		return;
 	}
 
@@ -777,7 +777,7 @@ void ScsiController::DataOutNonBlockOriented()
 					device->ModeSelect(GetOpcode(), GetCmd(), GetBuffer(), GetOffset());
 				}
 				else {
-					throw scsi_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+					throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 				}
 			}
 			break;
