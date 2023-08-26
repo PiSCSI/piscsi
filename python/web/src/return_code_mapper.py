@@ -53,15 +53,15 @@ class ReturnCodeMapper:
         ReturnCodes.UNDER_VOLTAGE_DETECTED:
             _("Under voltage detected"),
         ReturnCodes.ARM_FREQUENCY_CAPPED:
-            _("Arm frequency capped"),
+            _("ARM frequency capped"),
         ReturnCodes.CURRENTLY_THROTTLED:
             _("Currently throttled"),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE:
             _("Soft-temperature limit active"),
         ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED:
-            _("Under voltage has occured"),
+            _("Under voltage has occurred"),
         ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED:
-            _("Arm frequency capping has occurred"),
+            _("ARM frequency capping has occurred"),
         ReturnCodes.THROTTLING_HAS_OCCURRED:
             _("Throttling has occurred"),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED:
