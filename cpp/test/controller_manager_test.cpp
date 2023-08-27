@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -26,22 +26,27 @@ TEST(ControllerManagerTest, LifeCycle)
 
 	device = device_factory.CreateDevice(SCHS, LUN1, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_TRUE(controller_manager->HasController(ID));
 	auto controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
 	EXPECT_NE(nullptr, controller_manager->IdentifyController(1 << ID));
 	EXPECT_EQ(nullptr, controller_manager->IdentifyController(0));
+	EXPECT_FALSE(controller_manager->HasController(0));
 	EXPECT_EQ(nullptr, controller_manager->FindController(0));
 	EXPECT_NE(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
 	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_TRUE(controller_manager->HasController(ID));
 	controller = controller_manager->FindController(ID);
+	EXPECT_NE(nullptr, controller_manager->FindController(ID));
 	EXPECT_TRUE(controller_manager->DeleteController(controller));
 	EXPECT_EQ(nullptr, controller_manager->FindController(ID));
 
 	controller_manager->DeleteAllControllers();
+	EXPECT_FALSE(controller_manager->HasController(ID));
 	EXPECT_EQ(nullptr, controller_manager->FindController(ID));
 	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
 }

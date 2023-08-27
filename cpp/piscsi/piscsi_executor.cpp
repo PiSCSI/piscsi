@@ -530,7 +530,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
  			return "Invalid ID " + id_to_reserve;
  		}
 
- 		if (controller_manager.FindController(res_id) != nullptr) {
+ 		if (controller_manager.HasController(res_id)) {
  			return "ID " + id_to_reserve + " is currently in use";
  		}
 
@@ -680,7 +680,7 @@ string PiscsiExecutor::ValidateLunSetup(const PbCommand& command) const
 
 bool PiscsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int id, int lun) const
 {
-	if (controller_manager.FindController(id) == nullptr) {
+	if (!controller_manager.HasController(id)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 

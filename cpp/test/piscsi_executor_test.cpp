@@ -409,7 +409,7 @@ TEST_F(PiscsiExecutorTest, DetachAll)
 
 	auto device = device_factory.CreateDevice(SCHS, 0, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
-	EXPECT_NE(nullptr, controller_manager->FindController(ID));
+	EXPECT_TRUE(controller_manager->HasController(ID));
 	EXPECT_FALSE(controller_manager->GetAllDevices().empty());
 
 	executor.DetachAll();
