@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -17,11 +17,6 @@
 #include "scsi_daynaport.h"
 #include "host_services.h"
 #include "device_factory.h"
-#include <ifaddrs.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <unistd.h>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -170,37 +165,4 @@ const unordered_map<string, string>& DeviceFactory::GetDefaultParams(PbDeviceTyp
 {
 	const auto& it = default_params.find(type);
 	return it != default_params.end() ? it->second : empty_map;
-}
-
-vector<string> DeviceFactory::GetNetworkInterfaces() const
-{
-	vector<string> network_interfaces;
-
-#ifdef __linux__
-	ifaddrs *addrs;
-	getifaddrs(&addrs);
-	ifaddrs *tmp = addrs;
-
-	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
-	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "piscsi_bridge")) {
-	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-	        ifreq ifr = {};
-	        strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
-	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
-	        	network_interfaces.emplace_back(tmp->ifa_name);
-	        }
-
-	        close(fd);
-	    }
-
-	    tmp = tmp->ifa_next;
-	}
-
-	freeifaddrs(addrs);
-#endif
-
-	return network_interfaces;
 }

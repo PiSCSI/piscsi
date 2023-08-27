@@ -9,6 +9,7 @@
 
 #include "shared/log.h"
 #include "shared/protobuf_util.h"
+#include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
 #include "devices/disk.h"
 #include "piscsi_response.h"
@@ -17,6 +18,7 @@
 using namespace std;
 using namespace filesystem;
 using namespace piscsi_interface;
+using namespace piscsi_util;
 using namespace protobuf_util;
 
 unique_ptr<PbDeviceProperties> PiscsiResponse::GetDeviceProperties(const Device& device) const
@@ -309,7 +311,7 @@ unique_ptr<PbNetworkInterfacesInfo> PiscsiResponse::GetNetworkInterfacesInfo(PbR
 {
 	auto network_interfaces_info = make_unique<PbNetworkInterfacesInfo>();
 
-	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
+	for (const auto& network_interface : GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
 	}
 
