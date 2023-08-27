@@ -15,6 +15,7 @@
 
 #include "shared/piscsi_exceptions.h"
 #include "scsi_command_util.h"
+#include "scsihd.h"
 
 using namespace scsi_command_util;
 
