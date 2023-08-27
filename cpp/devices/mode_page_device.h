@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -14,7 +14,6 @@
 #include <vector>
 #include <map>
 
-// TODO Maybe this should better be a mixin class because not all storage devicess have mode pages
 class ModePageDevice : public PrimaryDevice
 {
 public:
