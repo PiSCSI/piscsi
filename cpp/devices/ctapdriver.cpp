@@ -433,11 +433,11 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t CTapDriver::Crc32(const uint8_t *buf, int length) {
+uint32_t CTapDriver::Crc32(span<const uint8_t> data) {
    uint32_t crc = 0xffffffff;
-   for (int i = 0; i < length; i++) {
-      crc ^= buf[i];
-      for (int j = 0; j < 8; j++) {
+   for (const auto d: data) {
+      crc ^= d;
+      for (int i = 0; i < 8; i++) {
          const uint32_t mask = -(static_cast<int>(crc) & 1);
          crc = (crc >> 1) ^ (0xEDB88320 & mask);
       }
@@ -466,7 +466,7 @@ int CTapDriver::Receive(uint8_t *buf)
 		// We need to add the Frame Check Status (FCS) CRC back onto the end of the packet.
 		// The Linux network subsystem removes it, since most software apps shouldn't ever
 		// need it.
-		const int crc = Crc32(buf, dwReceived);
+		const int crc = Crc32(span(buf, dwReceived));
 
 		buf[dwReceived + 0] = (uint8_t)((crc >> 0) & 0xFF);
 		buf[dwReceived + 1] = (uint8_t)((crc >> 8) & 0xFF);

@@ -17,6 +17,7 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <span>
 
 using namespace std;
 
@@ -41,7 +42,7 @@ public:
 	bool Disable() const;		// Disable the piscsi0 interface
 	void Flush();				// Purge all of the packets that are waiting to be processed
 
-	static uint32_t Crc32(const uint8_t *, int);
+	static uint32_t Crc32(span<const uint8_t>);
 
 private:
 	array<byte, 6> m_MacAddr;	// MAC Address
