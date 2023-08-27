@@ -31,17 +31,20 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	string network_interfaces;
-	for (const auto& network_interface : GetNetworkInterfaces()) {
-		if (!network_interfaces.empty()) {
-			network_interfaces += ",";
+	vector<string> network_interfaces = GetNetworkInterfaces();
+	sort(network_interfaces.begin(), network_interfaces.end());
+
+	string interfaces;
+	for (const auto& network_interface : network_interfaces) {
+		if (!interfaces.empty()) {
+			interfaces += ",";
 		}
-		network_interfaces += network_interface;
+		interfaces += network_interface;
 	}
 
-	default_params[SCBR]["interface"] = network_interfaces;
+	default_params[SCBR]["interface"] = interfaces;
 	default_params[SCBR]["inet"] = DEFAULT_IP;
-	default_params[SCDP]["interface"] = network_interfaces;
+	default_params[SCDP]["interface"] = interfaces;
 	default_params[SCDP]["inet"] = DEFAULT_IP;
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 
