@@ -81,7 +81,7 @@ string piscsi_util::Banner(string_view app)
 	return s.str();
 }
 
-string piscsi_util::GetExtensionLowerCase(const string& filename)
+string piscsi_util::GetExtensionLowerCase(string_view filename)
 {
 	string ext = path(filename).extension();
 	ranges::transform(ext, ext.begin(), ::tolower);

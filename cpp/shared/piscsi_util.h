@@ -22,7 +22,7 @@ namespace piscsi_util
 	string ProcessId(const string&, int, int&, int&);
 	string Banner(string_view);
 
-	string GetExtensionLowerCase(const string&);
+	string GetExtensionLowerCase(string_view);
 
 	void FixCpu(int);
 }
