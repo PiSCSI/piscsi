@@ -16,12 +16,10 @@ RANLIB = $(CROSS_COMPILE)ranlib
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug compiler flags
-	CXXFLAGS += -O0 -g -Wall -Wextra -DDEBUG
-	BUILD_TYPE = Debug
+	CXXFLAGS += -Og -g -Wall -Wextra -DDEBUG
 else
 	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
-	BUILD_TYPE = Release
 endif
 
 CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -DFMT_HEADER_ONLY
