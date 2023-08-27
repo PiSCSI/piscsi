@@ -27,18 +27,19 @@ vector<string> network_util::GetNetworkInterfaces()
 	ifaddrs *tmp = addrs;
 
 	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
-	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "piscsi_bridge")) {
-	        const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    	if (string name = tmp->ifa_name; tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
+    			name != "lo" && name != "piscsi_bridge" && name.rfind("dummy", 0) == string::npos) {
+    		ifreq ifr = {};
+    		strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
 
-	        ifreq ifr = {};
-	        strcpy(ifr.ifr_name, tmp->ifa_name); //NOSONAR Using strcpy is safe here
-	        // Only list interfaces that are up
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
-	        	network_interfaces.emplace_back(tmp->ifa_name);
-	        }
+    		const int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-	        close(fd);
+    		// Only list interfaces that are up
+    		if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
+    			network_interfaces.emplace_back(name);
+	    	}
+
+    		close(fd);
 	    }
 
 	    tmp = tmp->ifa_next;
