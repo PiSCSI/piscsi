@@ -124,9 +124,13 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 
 bool AbstractController::RemoveDevice(shared_ptr<PrimaryDevice> device)
 {
-	device->SetController(nullptr);
+	if (luns.erase(device->GetLun()) == 1) {
+		device->SetController(nullptr);
 
-	return luns.erase(device->GetLun()) == 1;
+		return true;
+	}
+
+	return false;
 }
 
 bool AbstractController::HasDeviceForLun(int lun) const
