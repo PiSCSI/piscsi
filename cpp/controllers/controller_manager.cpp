@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -21,12 +21,12 @@ bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice>
 		return controller->AddDevice(device);
 	}
 
-	// If there is no LUN yet the first LUN must be LUN 0
+	// If this the first LUN, i.e. LUN 0, create a new controller
 	if (device->GetLun() == 0) {
-		controller = make_shared<ScsiController>(shared_from_this(), id);
+		auto new_controller = make_shared<ScsiController>(shared_from_this(), id);
 
-		if (controller->AddDevice(device)) {
-			controllers[id] = controller;
+		if (new_controller->AddDevice(device)) {
+			controllers[id] = new_controller;
 
 			return true;
 		}
