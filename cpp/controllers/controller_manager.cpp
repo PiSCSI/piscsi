@@ -16,17 +16,14 @@ using namespace std;
 
 bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice> device)
 {
-	auto controller = FindController(id);
-	if (controller != nullptr) {
+	if (auto controller = FindController(id); controller != nullptr) {
 		return controller->AddDevice(device);
 	}
 
-	// If this the first LUN, i.e. LUN 0, create a new controller
+	// If this is LUN 0 create a new controller
 	if (device->GetLun() == 0) {
-		auto new_controller = make_shared<ScsiController>(shared_from_this(), id);
-
-		if (new_controller->AddDevice(device)) {
-			controllers[id] = new_controller;
+		if (auto controller = make_shared<ScsiController>(shared_from_this(), id); controller->AddDevice(device)) {
+			controllers[id] = controller;
 
 			return true;
 		}
