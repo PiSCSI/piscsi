@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 	// Parse the pages
 	while (length > 0) {
 		// Format device page
-		if (int page = buf[offset]; page == 0x03) {
+		if (const int page = buf[offset]; page == 0x03) {
 			if (length < 14) {
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}

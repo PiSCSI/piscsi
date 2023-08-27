@@ -154,7 +154,7 @@ void ScsiController::Selection()
 {
 	if (!IsSelection()) {
 		// A different device controller was selected
-		if (int id = 1 << GetTargetId(); (static_cast<int>(GetBus().GetDAT()) & id) == 0) {
+		if (const int id = 1 << GetTargetId(); (static_cast<int>(GetBus().GetDAT()) & id) == 0) {
 			return;
 		}
 

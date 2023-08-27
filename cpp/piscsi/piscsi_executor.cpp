@@ -542,7 +542,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
     if (!reserved_ids.empty()) {
     	string s;
     	bool isFirst = true;
-    	for (const auto& reserved_id : reserved) {
+    	for (const auto reserved_id : reserved) {
     		if (!isFirst) {
     			s += ", ";
     		}
