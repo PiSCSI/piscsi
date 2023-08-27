@@ -40,7 +40,7 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
 {
 	for (const auto& [id, controller] : controllers) {
-		if (data & (1 << controller->GetTargetId())) {
+		if (data & (1 << id)) {
 			return controller;
 		}
 	}
