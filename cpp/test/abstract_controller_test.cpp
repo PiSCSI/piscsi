@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -198,13 +198,15 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 TEST(AbstractControllerTest, ExtractInitiatorId)
 {
 	const int ID = 1;
-	const int INITIATOR_ID = 7;
+	const int INITIATOR_ID_1 = 6;
+	const int INITIATOR_ID_2 = 7;
 
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, ID);
 
-	EXPECT_EQ(INITIATOR_ID, controller.ExtractInitiatorId((1 << INITIATOR_ID) | ( 1 << ID)));
+	EXPECT_EQ(INITIATOR_ID_1, controller.ExtractInitiatorId((1 << INITIATOR_ID_1) | ( 1 << ID)));
+	EXPECT_EQ(INITIATOR_ID_2, controller.ExtractInitiatorId((1 << INITIATOR_ID_2) | ( 1 << ID)));
 	EXPECT_EQ(AbstractController::UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
 }
 

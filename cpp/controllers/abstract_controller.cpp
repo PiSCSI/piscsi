@@ -136,20 +136,9 @@ bool AbstractController::HasDeviceForLun(int lun) const
 
 int AbstractController::ExtractInitiatorId(int id_data) const
 {
-	int initiator_id = UNKNOWN_INITIATOR_ID;
-
-	if (int tmp = id_data - (1 << target_id); tmp) {
-		initiator_id = 0;
-		for (int j = 0; j < 8; j++) {
-			tmp >>= 1;
-			if (tmp) {
-				initiator_id++;
-			}
-			else {
-				break;
-			}
-		}
+	if (const int id_data_without_target = id_data - (1 << target_id); id_data_without_target) {
+		return log2(id_data_without_target & -id_data_without_target);
 	}
 
-	return initiator_id;
+	return UNKNOWN_INITIATOR_ID;
 }
