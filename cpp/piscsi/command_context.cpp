@@ -3,12 +3,11 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include "shared/log.h"
-#include "generated/piscsi_interface.pb.h"
 #include "command_context.h"
 #include <iostream>
 

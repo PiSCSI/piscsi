@@ -11,8 +11,6 @@
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_version.h"
 #include "devices/disk.h"
-#include "devices/device_factory.h"
-#include "generated/piscsi_interface.pb.h"
 #include "piscsi_response.h"
 #include <filesystem>
 

@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "monitor/sm_core.h"
-#include "hal/data_sample.h"
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "monitor/sm_reports.h"

@@ -9,7 +9,6 @@
 
 #include "localizer.h"
 #include <cassert>
-#include <string>
 #include <algorithm>
 #include <regex>
 

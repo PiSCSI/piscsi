@@ -10,14 +10,11 @@
 #include "shared/log.h"
 #include "shared/protobuf_util.h"
 #include "devices/disk.h"
-#include "command_context.h"
 #include "piscsi_image.h"
 #include <unistd.h>
 #include <pwd.h>
 #include <fstream>
-#include <string>
 #include <array>
-#include <filesystem>
 
 using namespace std;
 using namespace filesystem;

@@ -14,7 +14,6 @@
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
-#include "generated/piscsi_interface.pb.h"
 #include "scsictl/scsictl_parser.h"
 #include "scsictl/scsictl_commands.h"
 #include "scsictl/scsictl_core.h"

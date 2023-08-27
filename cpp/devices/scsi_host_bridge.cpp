@@ -20,7 +20,6 @@
 #include "scsi_command_util.h"
 #include "scsi_host_bridge.h"
 #include <arpa/inet.h>
-#include <array>
 
 using namespace std;
 using namespace scsi_defs;
