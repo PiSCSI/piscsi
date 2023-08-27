@@ -9,6 +9,7 @@
 
 #include "shared/log.h"
 #include "shared/protobuf_util.h"
+#include "shared/network_util.h"
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
 #include "devices/disk.h"
@@ -19,6 +20,7 @@ using namespace std;
 using namespace filesystem;
 using namespace piscsi_interface;
 using namespace piscsi_util;
+using namespace network_util;
 using namespace protobuf_util;
 
 unique_ptr<PbDeviceProperties> PiscsiResponse::GetDeviceProperties(const Device& device) const

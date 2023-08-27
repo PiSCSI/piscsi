@@ -10,7 +10,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 using namespace std;
 
@@ -24,7 +23,6 @@ namespace piscsi_util
 	string Banner(string_view);
 
 	string GetExtensionLowerCase(string_view);
-	vector<string> GetNetworkInterfaces();
 
 	void FixCpu(int);
 }

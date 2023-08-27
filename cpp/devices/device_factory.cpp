@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_util.h"
+#include "shared/network_util.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
 #include "scsimo.h"
@@ -21,6 +22,7 @@
 using namespace std;
 using namespace piscsi_interface;
 using namespace piscsi_util;
+using namespace network_util;
 
 DeviceFactory::DeviceFactory()
 {
