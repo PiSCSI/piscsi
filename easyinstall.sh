@@ -47,7 +47,6 @@ echo -e $logo
 }
 
 CONNECT_TYPE="FULLSPEC"
-# clang v13 is the latest distributed by Bullseye
 COMPILER="clang++"
 CORES=1
 USER=$(whoami)
