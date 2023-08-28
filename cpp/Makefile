@@ -19,6 +19,10 @@ else
 	# Release compiler flags
 	CXXFLAGS += -O3 -Wall -Werror -Wextra -DNDEBUG
 endif
+ifeq ("$(shell uname -s)","Linux")
+	# -Wno-psabi might not work on non-Linux platforms
+	CXXFLAGS += -Wno-psabi
+endif
 
 CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -MD -MP
 
