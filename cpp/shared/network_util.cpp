@@ -8,12 +8,14 @@
 //---------------------------------------------------------------------------
 
 #include "network_util.h"
+#ifdef __linux__
 #include <cstring>
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <net/if.h>
 #include <unistd.h>
+#endif
 
 using namespace std;
 

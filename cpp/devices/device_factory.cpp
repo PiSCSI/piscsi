@@ -32,7 +32,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCCD] = { 512, 2048};
 
 	vector<string> network_interfaces = GetNetworkInterfaces();
-	sort(network_interfaces.begin(), network_interfaces.end());
+	ranges::sort(network_interfaces);
 
 	string interfaces;
 	for (const auto& network_interface : network_interfaces) {
