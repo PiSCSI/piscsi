@@ -760,7 +760,6 @@ void ScsiController::DataOutNonBlockOriented()
 	assert(IsDataOut());
 
 	switch (GetOpcode()) {
-		// TODO Check why these cases are needed
 		case scsi_command::eCmdWrite6:
 		case scsi_command::eCmdWrite10:
 		case scsi_command::eCmdWrite16:
