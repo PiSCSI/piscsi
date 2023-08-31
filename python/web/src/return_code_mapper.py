@@ -51,21 +51,21 @@ class ReturnCodeMapper:
         ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR:
             _("Unable to extract archive: %(error)s"),
         ReturnCodes.UNDER_VOLTAGE_DETECTED:
-            _("Under voltage detected"),
+            _("Under voltage detected - Make sure to use a proper power source (2.5+ amps)."),
         ReturnCodes.ARM_FREQUENCY_CAPPED:
-            _("ARM frequency capped"),
+            _("ARM frequency capped - Ensure proper airflow/cooling."),
         ReturnCodes.CURRENTLY_THROTTLED:
-            _("Currently throttled"),
+            _("Currently throttled - Make sure to use a proper power source (2.5+ amps)."),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_ACTIVE:
-            _("Soft-temperature limit active"),
+            _("Soft-temperature limit active - Ensure proper airflow/cooling."),
         ReturnCodes.UNDER_VOLTAGE_HAS_OCCURRED:
-            _("Under voltage has occurred"),
+            _("Under voltage has occurred since last reboot.  Make sure to use a proper power source (2.5+ amps)."),
         ReturnCodes.ARM_FREQUENCY_CAPPING_HAS_OCCURRED:
-            _("ARM frequency capping has occurred"),
+            _("ARM frequency capping has occurred since last reboot.  Ensure proper airflow/cooling."),
         ReturnCodes.THROTTLING_HAS_OCCURRED:
-            _("Throttling has occurred"),
+            _("Throttling has occurred since the last reboot.  Make sure to use a proper power source (2.5+ amps)."),
         ReturnCodes.SOFT_TEMPERATURE_LIMIT_HAS_OCCURRED:
-            _("Soft temperature limit has occurred"),
+            _("Soft temperature limit has occurred since last reboot.  Ensure proper airflow/cooling."),
         }
     # fmt: on
 
