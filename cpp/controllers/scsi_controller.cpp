@@ -877,7 +877,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdWrite6:
 		case scsi_command::eCmdWrite10:
 		case scsi_command::eCmdWrite16:
-		// TODO Verify has to verify, not to write
+		// TODO Verify has to verify, not to write, see https://github.com/PiSCSI/piscsi/issues/807
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
