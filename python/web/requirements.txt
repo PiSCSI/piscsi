@@ -6,3 +6,4 @@ requests==2.31.0
 simplepam==0.1.5
 flask_babel==2.0.0
 ua-parser==0.16.1
+vcgencmd==0.1.1

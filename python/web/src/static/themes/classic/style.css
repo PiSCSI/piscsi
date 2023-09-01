@@ -172,3 +172,36 @@ summary.filename {
   left: 50%;
   margin-left: -27px;
 }
+
+div.throttle_notice > div {
+  display: grid;
+  align-items: center;
+  background-color: #efefef;
+  background-repeat: no-repeat;
+  background-position: 1rem center;
+  background-size: 1rem;
+  font-size: x-small;
+  font-weight: bold;
+  justify-content: center;
+}
+
+div.throttle_notice > div.error {
+  background-color: #dc3545;
+  align-items: center;
+}
+
+div.throttle_notice > div.warning {
+  background-color: #ffc107;
+  align-items: center;
+}
+
+div.throttle_notice > div a {
+  color: black;
+  text-decoration: none;
+}
+
+div.throttle_notice > div a:hover {
+  text-decoration: underline;
+}
+
+
