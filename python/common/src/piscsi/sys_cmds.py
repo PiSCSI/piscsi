@@ -277,7 +277,7 @@ class SysCmds:
         ALWAYS display the modes listed for troubleshooting styling.
         """
         vcgcmd = Vcgencmd()
-        t_states = vcgcmd.get_throttled()['breakdown']
+        t_states = vcgcmd.get_throttled()["breakdown"]
         matched_states = []
 
         state_msgs = {
