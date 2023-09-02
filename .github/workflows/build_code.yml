@@ -7,7 +7,7 @@ on:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
       - '.github/workflows/arm_cross_compile.yml'
-  pull_request_target:
+  pull_request:
     paths:
       - 'cpp/**'
       - '.github/workflows/build_code.yml'
