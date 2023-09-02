@@ -608,7 +608,7 @@ def show_logs():
 
     return response(
         error=True,
-        message=_("An error occurred when fetching logs: %(error)s", error=logs),
+        message=_("?An error occurred when fetching logs: %(error)s", error=logs),
     )
 
 
