@@ -8,6 +8,15 @@ on:
       - 'python/common/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
+  pull_request_target:
+    types:
+      - assigned
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - 'develop'
+      - 'main'
 
 jobs:
   backend_checks:
