@@ -9,6 +9,11 @@ on:
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
   pull_request_target:
+    paths:
+      - 'python/web/**'
+      - 'python/common/**'
+      - '.github/workflows/web.yml'
+      - 'easyinstall.sh'
     types:
       - assigned
       - opened
