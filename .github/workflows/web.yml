@@ -8,7 +8,7 @@ on:
       - 'python/common/**'
       - '.github/workflows/web.yml'
       - 'easyinstall.sh'
-  pull_request_target:
+  pull_request:
     paths:
       - 'python/web/**'
       - 'python/common/**'
