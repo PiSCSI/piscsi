@@ -73,7 +73,7 @@
         </div>
     </div>
 
-    <div class="throttle_notice">
+    <div class="throttle-notice">
         {% if (env["throttle_status"]|length > 0) %}
         {% for category, response in env["throttle_status"] %}
         <div class="{{ category }}">

@@ -476,7 +476,7 @@ div.footer div.theme-change-hint a {
  ------------------------------------------------------------------------------
  */
 
-div.throttle_notice > div {
+div.throttle-notice>div {
   display: grid;
   align-items: center;
   background-color: #efefef;
@@ -487,29 +487,29 @@ div.throttle_notice > div {
   font-weight: bold;
 }
 
-div.throttle_notice > div.error {
+div.throttle-notice>div.error {
   background-color: var(--danger);
   background-image: url("icons/error.svg");
   color: #fff;
   align-items: center;
 }
 
-div.throttle_notice > div.warning {
+div.throttle-notice>div.warning {
   background-color: var(--warning);
   background-image: url("icons/warning.svg");
   align-items: center;
 }
 
-div.throttle_notice > div > span.message {
+div.throttle-notice>div>span.message {
   padding-left: 3rem;  
 }
 
-div.throttle_notice > div a {
+div.throttle-notice>div a {
   color: black;
   text-decoration: none;
 }
 
-div.throttle_notice > div a:hover {
+div.throttle-notice>div a:hover {
   text-decoration: underline;
 }
 
