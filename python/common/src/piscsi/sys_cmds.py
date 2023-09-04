@@ -3,7 +3,7 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
-import os
+import sys
 from subprocess import run, CalledProcessError
 from shutil import disk_usage
 from re import findall, match
@@ -281,7 +281,7 @@ class SysCmds:
         they're triggered.  test_modes works similarly to enabled_mode but will
         ALWAYS display the modes listed for troubleshooting styling.
         """
-        if os.path.exists("/usr/bin/vcgencmd"):
+        if "vcgencmd" in sys.modules:
             vcgcmd = Vcgencmd()
             t_states = vcgcmd.get_throttled()["breakdown"]
             matched_states = []
