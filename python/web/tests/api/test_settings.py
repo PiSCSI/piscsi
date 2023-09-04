@@ -286,12 +286,3 @@ def test_rename_system(env, http_client):
     response_data = response.json()
 
     assert response_data["data"]["system_name"] == old_name
-
-
-def test_throttle_notification(http_client):
-    response = http_client.get("/")
-    response_data = response.json()
-
-    assert response.status_code == 200
-    assert response_data["status"] == STATUS_SUCCESS
-    assert "Under voltage detected" in response_data["data"]

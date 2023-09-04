@@ -73,13 +73,12 @@
         </div>
     </div>
 
-    <div class="throttle_notice">
+    <div class="throttle-notice">
         {% if (env["throttle_status"]|length > 0) %}
         {% for category, response in env["throttle_status"] %}
         <div class="{{ category }}">
         <span class="message" title="{{ response['msg'] }}"><a
-                href="https://www.raspberrypi.com/documentation/computers/configuration.html#undervoltage-warning">Potential
-                instability due to: {{ response['msg'] }}</a></span>
+                href="https://www.raspberrypi.com/documentation/computers/configuration.html#undervoltage-warning">{{ response['msg'] }}</a></span>
         </div>
         {% endfor %}
         {% endif %}

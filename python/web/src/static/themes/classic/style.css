@@ -173,7 +173,7 @@ summary.filename {
   margin-left: -27px;
 }
 
-div.throttle_notice > div {
+div.throttle-notice > div {
   display: grid;
   align-items: center;
   background-color: #efefef;
@@ -185,23 +185,21 @@ div.throttle_notice > div {
   justify-content: center;
 }
 
-div.throttle_notice > div.error {
+div.throttle-notice > div.error {
   background-color: #dc3545;
   align-items: center;
 }
 
-div.throttle_notice > div.warning {
+div.throttle-notice > div.warning {
   background-color: #ffc107;
   align-items: center;
 }
 
-div.throttle_notice > div a {
+div.throttle-notice > div a {
   color: black;
   text-decoration: none;
 }
 
-div.throttle_notice > div a:hover {
+div.throttle-notice > div a:hover {
   text-decoration: underline;
 }
-
-

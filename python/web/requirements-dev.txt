@@ -4,3 +4,4 @@ black==22.8.0
 flake8==5.0.4
 watchdog==2.1.9
 requests==2.31.0
+vcgencmd==0.1.1

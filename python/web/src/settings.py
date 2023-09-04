@@ -33,7 +33,7 @@ TEMPLATE_THEME_DEFAULT = "modern"
 TEMPLATE_THEME_LEGACY = "classic"
 
 # Enable throttle notifications
-# 
+#
 # Available modes:
 #  "0": "Under-voltage detected"
 #  "1": "Arm frequency capped"
