@@ -9,7 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
-// The code in this file is deprecated and can cause a buffer overflow. Use the spdlog namespace in new code instead.
+// The legacy code in this file is deprecated and can cause a buffer overflow. Use spdlog directly instead.
 
 #pragma once
 
