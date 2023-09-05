@@ -170,7 +170,7 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
 ##              Note that you have to run 'make clean' before switching
 ##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
-.PHONY: all ALL docs test coverage lcov
+.PHONY: all docs test coverage lcov
 all: $(SRC_GENERATED)
 	make $(BIN_ALL) docs
 
