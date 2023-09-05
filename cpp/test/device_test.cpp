@@ -133,28 +133,28 @@ TEST(DeviceTest, ParseDeviceType)
 TEST(DeviceTest, GetTypeString)
 {
 	MockDevice schd(SCHD);
-	EXPECT_STREQ("SCHD", schd.GetTypeString());
+	EXPECT_EQ("SCHD", schd.GetTypeString());
 
 	MockDevice scrm(SCRM);
-	EXPECT_STREQ("SCRM", scrm.GetTypeString());
+	EXPECT_EQ("SCRM", scrm.GetTypeString());
 
 	MockDevice scmo(SCMO);
-	EXPECT_STREQ("SCMO", scmo.GetTypeString());
+	EXPECT_EQ("SCMO", scmo.GetTypeString());
 
 	MockDevice sccd(SCCD);
-	EXPECT_STREQ("SCCD", sccd.GetTypeString());
+	EXPECT_EQ("SCCD", sccd.GetTypeString());
 
 	MockDevice schs(SCHS);
-	EXPECT_STREQ("SCHS", schs.GetTypeString());
+	EXPECT_EQ("SCHS", schs.GetTypeString());
 
 	MockDevice scbr(SCBR);
-	EXPECT_STREQ("SCBR", scbr.GetTypeString());
+	EXPECT_EQ("SCBR", scbr.GetTypeString());
 
 	MockDevice scdp(SCDP);
-	EXPECT_STREQ("SCDP", scdp.GetTypeString());
+	EXPECT_EQ("SCDP", scdp.GetTypeString());
 
 	MockDevice sclp(SCLP);
-	EXPECT_STREQ("SCLP", sclp.GetTypeString());
+	EXPECT_EQ("SCLP", sclp.GetTypeString());
 }
 
 TEST(DeviceTest, Vendor)

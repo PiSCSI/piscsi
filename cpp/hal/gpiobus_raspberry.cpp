@@ -87,7 +87,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Map peripheral region memory
     void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
     if (map == MAP_FAILED) {
-        strerrno("Error: Unable to map memory");
+        spdlog::error("Error: Unable to map memory: "+ string(strerror(errno)));
         close(fd);
         return false;
     }
@@ -183,7 +183,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // GPIO chip open
     fd = open("/dev/gpiochip0", 0);
     if (fd == -1) {
-        spdlog::error("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
+        spdlog::error("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?");
         return false;
     }
 
