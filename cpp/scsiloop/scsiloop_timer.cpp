@@ -34,7 +34,7 @@ int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
 
     uint32_t elapsed_nanosecs = after - before;
 
-    LOGDEBUG("Elapsed time: %d %08X", elapsed_nanosecs, elapsed_nanosecs);
+    spdlog::debug("Elapsed time: " + to_string(elapsed_nanosecs));
 
     if ((elapsed_nanosecs > (one_second_in_ns * (1.0 + timer_tolerance_percent))) ||
         (elapsed_nanosecs < (one_second_in_ns * (1.0 - timer_tolerance_percent)))) {

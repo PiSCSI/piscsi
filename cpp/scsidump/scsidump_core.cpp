@@ -150,7 +150,7 @@ void ScsiDump::ParseArguments(const vector<char*>& args)
 
 void ScsiDump::WaitPhase(phase_t phase) const
 {
-    LOGDEBUG("Waiting for %s phase", BUS::GetPhaseStrRaw(phase))
+    spdlog::debug(string("Waiting for ") + BUS::GetPhaseStrRaw(phase) + " phase");
 
     // Timeout (3000ms)
     const uint32_t now = SysTimer::GetTimerLow();
@@ -181,7 +181,7 @@ void ScsiDump::Selection() const
 
 void ScsiDump::Command(scsi_command cmd, vector<uint8_t>& cdb) const
 {
-    LOGDEBUG("Executing %s", command_mapping.find(cmd)->second.second)
+    spdlog::debug("Executing " + string(command_mapping.find(cmd)->second.second));
 
     Selection();
 
@@ -595,7 +595,7 @@ void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info
     if (fp) {
         fputs(prop_stream.str().c_str(), fp);
     } else {
-        LOGWARN("Unable to open output file %s", prop_filename.c_str())
+        spdlog::warn("Unable to open output file '%s" + prop_filename + "'");
         return;
     }
 

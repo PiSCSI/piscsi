@@ -173,7 +173,7 @@ static void print_html_data(ofstream& html_fp, const vector<shared_ptr<DataSampl
 
 void scsimon_generate_html(const string &filename, const vector<shared_ptr<DataSample>> &data_capture_array)
 {
-    LOGINFO("Creating HTML report file (%s)", filename.c_str())
+	spdlog::info("Creating HTML report file (" + filename + ")");
 
     ofstream html_ofstream;
 

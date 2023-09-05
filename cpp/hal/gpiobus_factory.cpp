@@ -29,13 +29,13 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         // Also make Init() private.
         SBC_Version::Init();
         if (SBC_Version::IsBananaPi()) {
-            LOGTRACE("Creating GPIOBUS_BananaM2p")
+            spdlog::trace("Creating GPIOBUS_BananaM2p");
             return_ptr = make_unique<GPIOBUS_BananaM2p>();
         } else if (SBC_Version::IsRaspberryPi()) {
-            LOGTRACE("Creating GPIOBUS_Raspberry")
+            spdlog::trace("Creating GPIOBUS_Raspberry");
             return_ptr = make_unique<GPIOBUS_Raspberry>();
         } else {
-            LOGINFO("Creating Virtual GPIOBUS")
+        	spdlog::trace("Creating Virtual GPIOBUS");
             return_ptr = make_unique<GPIOBUS_Virtual>();
         }
         if (!return_ptr->Init(mode)) {
@@ -43,7 +43,7 @@ unique_ptr<BUS> GPIOBUS_Factory::Create(BUS::mode_e mode)
         }
         return_ptr->Reset();
     } catch (const invalid_argument&) {
-        LOGERROR("Exception while trying to initialize GPIO bus. Are you running as root?")
+        spdlog::error("Exception while trying to initialize GPIO bus. Are you running as root?");
         return_ptr = nullptr;
     }
 

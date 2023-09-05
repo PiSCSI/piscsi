@@ -49,7 +49,7 @@ class SBC_Version
     static bool IsRaspberryPi();
     static bool IsBananaPi();
 
-    static const std::string *GetString();
+    static std::string GetString();
 
     static uint32_t GetPeripheralAddress();
 

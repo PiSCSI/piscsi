@@ -75,7 +75,7 @@ bool ScsiLoop::SetLogLevel(const string &log_level)
 
     current_log_level = log_level;
 
-    LOGINFO("Set log level to '%s'", current_log_level.c_str())
+    spdlog::info("Set log level to '" + current_log_level + "'");
 
     return true;
 }

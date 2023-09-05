@@ -62,28 +62,28 @@ const std::string SBC_Version::m_device_tree_model_path = "/proc/device-tree/mod
 //	Convert the SBC Version to a printable string
 //
 //---------------------------------------------------------------------------
-const std::string *SBC_Version::GetString()
+std::string SBC_Version::GetString()
 {
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
-        return &m_str_raspberry_pi_1;
+        return m_str_raspberry_pi_1;
     case sbc_version_type::sbc_raspberry_pi_2_3:
-        return &m_str_raspberry_pi_2_3;
+        return m_str_raspberry_pi_2_3;
     case sbc_version_type::sbc_raspberry_pi_4:
-        return &m_str_raspberry_pi_4;
+        return m_str_raspberry_pi_4;
     case sbc_version_type::sbc_bananapi_m2_berry:
-        return &m_str_bananapi_m2_berry;
+        return m_str_bananapi_m2_berry;
     case sbc_version_type::sbc_bananapi_m2_zero:
-        return &m_str_bananapi_m2_zero;
+        return m_str_bananapi_m2_zero;
     case sbc_version_type::sbc_bananapi_m2_plus:
-        return &m_str_bananapi_m2_plus;
+        return m_str_bananapi_m2_plus;
     case sbc_version_type::sbc_bananapi_m3:
-        return &m_str_bananapi_m3;
+        return m_str_bananapi_m3;
     case sbc_version_type::sbc_bananapi_m4:
-        return &m_str_bananapi_m4;
+        return m_str_bananapi_m4;
     default:
-        LOGERROR("Unknown type of sbc detected: %d", static_cast<int>(m_sbc_version))
-        return &m_str_unknown_sbc;
+        spdlog::error("Unknown type of sbc detected: " + std::to_string(static_cast<int>(m_sbc_version)));
+        return m_str_unknown_sbc;
     }
 }
 
@@ -108,7 +108,7 @@ void SBC_Version::Init()
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
-        LOGINFO("Detected device %s", GetString()->c_str())
+        spdlog::info("Detected device " + GetString());
         m_sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
@@ -124,7 +124,7 @@ void SBC_Version::Init()
     for (const auto &[key, value] : m_proc_device_tree_mapping) {
         if (device_tree_model.rfind(key, 0) == 0) {
             m_sbc_version = value;
-            LOGINFO("Detected device %s", GetString()->c_str())
+            spdlog::info("Detected device " + GetString());
             return;
         }
     }

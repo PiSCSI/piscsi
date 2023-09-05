@@ -80,14 +80,14 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // Open /dev/mem
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd == -1) {
-        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
+        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
         return false;
     }
 
     // Map peripheral region memory
     void *map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
     if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory: %s", strerror(errno))
+        strerrno("Error: Unable to map memory");
         close(fd);
         return false;
     }
@@ -183,7 +183,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
     // GPIO chip open
     fd = open("/dev/gpiochip0", 0);
     if (fd == -1) {
-        LOGERROR("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
+        spdlog::error("Unable to open /dev/gpiochip0. Is PiSCSI or RaSCSI already running?")
         return false;
     }
 
@@ -199,7 +199,7 @@ bool GPIOBUS_Raspberry::Init(mode_e mode)
 
     // Get event request
     if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
-        LOGERROR("Unable to register event request. Is PiSCSI or RaSCSI already running?")
+        spdlog::error("Unable to register event request. Is PiSCSI or RaSCSI already running?");
         close(fd);
         return false;
     }

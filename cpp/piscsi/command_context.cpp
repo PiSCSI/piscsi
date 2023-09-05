@@ -32,7 +32,7 @@ bool CommandContext::ReturnLocalizedError(LocalizationKey key, PbErrorCode error
 		const string& arg2, const string& arg3) const
 {
 	// For the logfile always use English
-	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str())
+	spdlog::error(localizer.Localize(key, "en", arg1, arg2, arg3));
 
 	return ReturnStatus(false, localizer.Localize(key, locale, arg1, arg2, arg3), error_code, false);
 }
@@ -41,7 +41,7 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 {
 	// Do not log twice if logging has already been done in the localized error handling above
 	if (log && !status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str())
+		spdlog::error(msg);
 	}
 
 	if (fd == -1) {

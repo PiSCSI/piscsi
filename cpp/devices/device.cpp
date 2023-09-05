@@ -112,7 +112,7 @@ void Device::SetParams(const unordered_map<string, string>& set_params)
 			params[key] = value;
 		}
 		else {
-			LOGWARN("%s", string("Ignored unknown parameter '" + key + "'").c_str())
+			spdlog::warn("Ignored unknown parameter '" + key + "'");
 		}
 	}
 }

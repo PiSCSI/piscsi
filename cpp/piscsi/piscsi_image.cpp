@@ -80,7 +80,7 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 
 	default_folder = folder.string();
 
-	LOGINFO("Default image folder set to '%s'", default_folder.c_str())
+	spdlog::info("Default image folder set to '" + default_folder + "'");
 
 	return "";
 }
@@ -144,8 +144,8 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, "Can't create image file '" + full_filename + "': " + e.what());
 	}
 
-	LOGINFO("%s", string("Created " + string(read_only ? "read-only " : "") + "image file '" + full_filename +
-			"' with a size of " + to_string(len) + " bytes").c_str())
+	spdlog::info("Created " + string(read_only ? "read-only " : "") + "image file '" + full_filename +
+			"' with a size of " + to_string(len) + " bytes");
 
 	return context.ReturnStatus();
 }
@@ -194,7 +194,7 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 		last_slash = folder.rfind('/');
 	}
 
-	LOGINFO("Deleted image file '%s'", full_filename.c_str())
+	spdlog::info("Deleted image file '" + full_filename.string() + "'");
 
 	return context.ReturnStatus();
 }
@@ -224,7 +224,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnStatus(false, "Can't rename/move image file '" + from + "' to '" + to + "': " + e.what());
 	}
 
-	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str())
+	spdlog::info("Renamed/Moved image file '" + from + "' to '" + to + "'");
 
 	return context.ReturnStatus();
 }
@@ -263,7 +263,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	    	return context.ReturnStatus(false, "Can't copy image file symlink '" + from + "': " + e.what());
 		}
 
-		LOGINFO("Copied image file symlink '%s' to '%s'", from.c_str(), to.c_str())
+		spdlog::info("Copied image file symlink '" + from + "' to '"  + to + "'");
 
 		return context.ReturnStatus();
 	}
@@ -280,7 +280,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
         return context.ReturnStatus(false, "Can't copy image file '" + from + "' to '" + to + "': " + e.what());
 	}
 
-	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str())
+	spdlog::info("Copied image file '" + from + "' to '" + to + "'");
 
 	return context.ReturnStatus();
 }
@@ -315,10 +315,10 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	}
 
 	if (protect) {
-		LOGINFO("Protected image file '%s'", filename.c_str())
+		spdlog::info("Protected image file '" + filename + "'");
 	}
 	else {
-		LOGINFO("Unprotected image file '%s'", filename.c_str())
+		spdlog::info("Unprotected image file '" + filename + "'");
 	}
 
 	return context.ReturnStatus();

@@ -75,7 +75,7 @@ bool DiskTrack::Load(const string& path)
 
 	if (dt.buffer == nullptr) {
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("posix_memalign failed")
+			spdlog::warn("posix_memalign failed");
 		}
 		dt.length = length;
 	}
@@ -88,7 +88,7 @@ bool DiskTrack::Load(const string& path)
 	if (dt.length != static_cast<uint32_t>(length)) {
 		free(dt.buffer);
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
-			LOGWARN("posix_memalign failed")
+			spdlog::warn("posix_memalign failed");
         }
 		dt.length = length;
 	}

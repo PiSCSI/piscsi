@@ -1,16 +1,15 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//  Copyright (C) 2020 akuker
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
+#include <string>
 #include "spdlog/spdlog.h"
 
 static const int LOGBUF_SIZE = 512;
@@ -27,3 +26,7 @@ static const int LOGBUF_SIZE = 512;
 #define LOGINFO(...) SPDLOGWRAPPER(spdlog::level::info, __VA_ARGS__)
 #define LOGWARN(...) SPDLOGWRAPPER(spdlog::level::warn, __VA_ARGS__)
 #define LOGERROR(...) SPDLOGWRAPPER(spdlog::level::err, __VA_ARGS__)
+
+inline std::string strerrno(const std::string& msg) {
+	return msg + ": " + std::string(strerror(errno));
+}

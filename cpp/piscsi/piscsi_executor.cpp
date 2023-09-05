@@ -82,7 +82,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 		case CHECK_AUTHENTICATION:
 		case NO_OPERATION:
 			// Do nothing, just log
-			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str())
+			spdlog::trace("Received " + PbOperation_Name(operation) + " command");
 			break;
 
 		default:
@@ -180,12 +180,12 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 		if (separator_pos != string::npos) {
 			const string error = ProcessId(l, ScsiController::LUN_MAX, id, lun);
 			if (!error.empty()) {
-				LOGWARN("Invalid device ID/LUN specifier '%s'", l.c_str())
+				spdlog::warn("Invalid device ID/LUN specifier '" + l + "'");
 				return false;
 			}
 		}
 		else if (!GetAsUnsignedInt(l, id)) {
-			LOGWARN("Invalid device ID specifier '%s'", l.c_str())
+			spdlog::warn("Invalid device ID specifier '" + l + "'");
 			return false;
 		}
 	}
@@ -194,7 +194,7 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 		set_level(it->second);
 	}
 	else {
-		LOGWARN("Invalid log level '%s'", log_level.c_str())
+		spdlog::warn("Invalid log level '" + log_level +"'");
 		return false;
 	}
 
@@ -202,14 +202,14 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 
 	if (id != -1) {
 		if (lun == -1) {
-			LOGINFO("Set log level for device ID %d to '%s'", id, level.c_str())
+			spdlog::info("Set log level for device ID " + to_string(id) + " to '" + level + "'");
 		}
 		else {
-			LOGINFO("Set log level for device ID %d, LUN %d to '%s'", id, lun, level.c_str())
+			spdlog::info("Set log level for device ID " + to_string(id) + ", LUN " + to_string(lun) + " to '" + level + "'");
 		}
 	}
 	else {
-		LOGINFO("Set log level to '%s'", level.c_str())
+		spdlog::info("Set log level to '" + level + "'");
 	}
 
 	return true;
@@ -218,10 +218,12 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Start requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
+		spdlog::info("Start requested for " + device.GetTypeString() +" ID " +
+				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
 
 		if (!device.Start()) {
-			LOGWARN("Starting %s ID %d, unit %d failed", device.GetTypeString(), device.GetId(), device.GetLun())
+			spdlog::warn("Starting " +device.GetTypeString() + " ID " +
+					to_string(device.GetId()) +" unit " + to_string(device.GetLun()) + " failed");
 		}
 	}
 
@@ -231,7 +233,8 @@ bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Stop(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Stop requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
+		spdlog::info("Stop requested for " + device.GetTypeString() + " ID " +
+				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
 
 		device.Stop();
 	}
@@ -242,10 +245,12 @@ bool PiscsiExecutor::Stop(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Eject(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Eject requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(), device.GetLun())
+		spdlog::info("Eject requested for " + device.GetTypeString() + " ID " +
+				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
 
 		if (!device.Eject(true)) {
-			LOGWARN("Ejecting %s ID %d, unit %d failed", device.GetTypeString(), device.GetId(), device.GetLun())
+			spdlog::warn("Ejecting " + device.GetTypeString() + " ID " +
+					to_string(device.GetId()) +" unit " + to_string(device.GetLun()) + " failed");
 		}
 	}
 
@@ -255,8 +260,8 @@ bool PiscsiExecutor::Eject(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Protect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Write protection requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(),
-				device.GetLun())
+		spdlog::info("Write protection requested for " + device.GetTypeString() + " ID " +
+				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
 
 		device.SetProtected(true);
 	}
@@ -267,8 +272,8 @@ bool PiscsiExecutor::Protect(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Unprotect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		LOGINFO("Write unprotection requested for %s ID %d, unit %d", device.GetTypeString(), device.GetId(),
-				device.GetLun())
+		spdlog::info("Write unprotection requested for " + device.GetTypeString() +" ID " +
+				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
 
 		device.SetProtected(false);
 	}
@@ -363,7 +368,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		msg += "protected ";
 	}
 	msg += string(device->GetTypeString()) + " device, ID " + to_string(id) + ", unit " + to_string(lun);
-	LOGINFO("%s", msg.c_str())
+	spdlog::info(msg);
 
 	return true;
 }
@@ -394,8 +399,9 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return true;
 	}
 
-	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
-			filename.c_str(), storage_device->GetTypeString(), pb_device.id(), pb_device.unit())
+	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
+			"' requested into " + storage_device->GetTypeString() + " ID " +
+			to_string(pb_device.id()) + ", unit " + to_string(pb_device.unit()));
 
 	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
 		return false;
@@ -442,8 +448,8 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 			storage_device->UnreserveFile();
 		}
 
-		LOGINFO("%s", ("Detached " + string(device->GetTypeString()) + " device with ID " + to_string(id)
-				+ ", unit " + to_string(device->GetLun())).c_str())
+		spdlog::info("Detached " + string(device->GetTypeString()) + " device with ID " + to_string(id)
+				+ ", unit " + to_string(device->GetLun()));
 	}
 
 	return true;
@@ -454,7 +460,7 @@ void PiscsiExecutor::DetachAll()
 	controller_manager.DeleteAllControllers();
 	StorageDevice::UnreserveAll();
 
-	LOGINFO("Detached all devices")
+	spdlog::info("Detached all devices");
 }
 
 bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode) {
@@ -467,7 +473,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 
 	// The PiSCSI shutdown mode is "rascsi" instead of "piscsi" for backwards compatibility
 	if (mode == "rascsi") {
-		LOGINFO("PiSCSI shutdown requested")
+		spdlog::info("PiSCSI shutdown requested");
 
 		serializer.SerializeMessage(context.GetFd(), result);
 
@@ -484,25 +490,25 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	}
 
 	if (mode == "system") {
-		LOGINFO("System shutdown requested")
+		spdlog::info("System shutdown requested");
 
 		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			LOGERROR("System shutdown failed: %s", strerror(errno))
+			strerrno("System shutdown failed");
 		}
 	}
 	else if (mode == "reboot") {
-		LOGINFO("System reboot requested")
+		spdlog::info("System reboot requested");
 
 		serializer.SerializeMessage(context.GetFd(), result);
 
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			LOGERROR("System reboot failed: %s", strerror(errno))
+			strerrno("System reboot failed");
 		}
 	}
 	else {
@@ -550,10 +556,10 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
     		s += to_string(reserved_id);
     	}
 
-    	LOGINFO("Reserved ID(s) set to %s", s.c_str())
+    	spdlog::info("Reserved ID(s) set to " + s);
     }
     else {
-    	LOGINFO("Cleared reserved ID(s)")
+    	spdlog::info("Cleared reserved ID(s)");
     }
 
 	return "";
@@ -650,7 +656,7 @@ void PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefini
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
-	LOGINFO("%s", s.str().c_str())
+	spdlog::info(s.str());
 }
 
 string PiscsiExecutor::ValidateLunSetup(const PbCommand& command) const

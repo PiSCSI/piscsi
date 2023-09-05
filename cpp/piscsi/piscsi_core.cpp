@@ -128,7 +128,7 @@ void Piscsi::LogDevices(string_view devices) const
 	string line;
 
 	while (getline(ss, line, '\n')) {
-		LOGINFO("%s", line.c_str())
+		spdlog::info(line);
 	}
 }
 
@@ -322,12 +322,12 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	}
 
 	if (!PbOperation_IsValid(command.operation())) {
-		LOGERROR("Received unknown command with operation opcode %d", command.operation())
+		spdlog::error("Received unknown command with operation opcode " + to_string(command.operation()));
 
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION, UNKNOWN_OPERATION);
 	}
 
-	LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str())
+	spdlog::trace("Received " + PbOperation_Name(command.operation()) + " command");
 
 	PbResult result;
 	ProtobufSerializer serializer;

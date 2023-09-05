@@ -76,28 +76,28 @@ void ScsiMon::ParseArguments(const vector<char *> &args)
 
 void ScsiMon::PrintHelpText(const vector<char *> &args) const
 {
-    LOGINFO("%s -i [input file json] -b [buffer size] [output file]", args[0])
-    LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data")
-    LOGINFO("                              If -i option is not specified, scsimon will read the gpio pins")
-    LOGINFO("       -b [buffer size]     - Override the default buffer size of %d.", buff_size)
-    LOGINFO("       [output file]        - Base name of the output files. The file extension (ex: .json)")
-    LOGINFO("                              will be appended to this file name")
+    spdlog::info(string(args[0]) + " -i [input file json] -b [buffer size] [output file]");
+    spdlog::info("       -i [input file json] - scsimon will parse the json file instead of capturing new data");
+    spdlog::info("                              If -i option is not specified, scsimon will read the gpio pins");
+	spdlog::info("       -b [buffer size]     - Override the default buffer size of " + to_string(buff_size));
+	spdlog::info("       [output file]        - Base name of the output files. The file extension (ex: .json)");
+	spdlog::info("                              will be appended to this file name");
 }
 
 void ScsiMon::Banner() const
 {
     if (import_data) {
-        LOGINFO("Reading input file: %s", input_file_name.c_str())
+    	spdlog::info("Reading input file: " + input_file_name);
     } else {
-        LOGINFO("Reading live data from the GPIO pins")
-        LOGINFO("    Connection type : %s", CONNECT_DESC.c_str())
+    	spdlog::info("Reading live data from the GPIO pins");
+		spdlog::info("    Connection type: " + CONNECT_DESC);
     }
-    LOGINFO("    Data buffer size: %u", buff_size)
-    LOGINFO(" ")
-    LOGINFO("Generating output files:")
-    LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name.c_str())
-    LOGINFO("   %s - JSON file with raw data", json_file_name.c_str())
-    LOGINFO("   %s - HTML file with summary of commands", html_file_name.c_str())
+    spdlog::info("    Data buffer size: " + to_string(buff_size));
+    spdlog::info(" ");
+	spdlog::info("Generating output files:");
+	spdlog::info("   " + vcd_file_name + " - Value Change Dump file that can be opened with GTKWave");
+	spdlog::info("   " + json_file_name + " - JSON file with raw data");
+	spdlog::info("   " + html_file_name + " - HTML file with summary of commands");
 }
 
 bool ScsiMon::Init()
@@ -115,7 +115,7 @@ bool ScsiMon::Init()
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
     if (bus == nullptr) {
-        LOGERROR("Unable to intiailize the GPIO bus. Exiting....")
+        spdlog::error("Unable to intiailize the GPIO bus. Exiting....");
         return false;
     }
 
@@ -127,14 +127,14 @@ bool ScsiMon::Init()
 void ScsiMon::Cleanup() const
 {
     if (!import_data) {
-        LOGINFO("Stopping data collection....")
+    	spdlog::info("Stopping data collection ...");
     }
-    LOGINFO(" ")
-    LOGINFO("Generating %s...", vcd_file_name.c_str())
+    spdlog::info(" ");
+    spdlog::info("Generating " + vcd_file_name + "...");
     scsimon_generate_value_change_dump(vcd_file_name, data_buffer);
-    LOGINFO("Generating %s...", json_file_name.c_str())
+    spdlog::info("Generating " + json_file_name + "...");
     scsimon_generate_json(json_file_name, data_buffer);
-    LOGINFO("Generating %s...", html_file_name.c_str())
+    spdlog::info("Generating " + html_file_name + "...");
     scsimon_generate_html(html_file_name, data_buffer);
 
     bus->Cleanup();
@@ -178,15 +178,15 @@ int ScsiMon::run(const vector<char *> &args)
     if (import_data) {
         data_idx = scsimon_read_json(input_file_name, data_buffer);
         if (data_idx > 0) {
-            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name.c_str())
+            spdlog::debug("Read " + to_string(data_idx) + " samples from '" + input_file_name + "'");
             Cleanup();
         }
         exit(0);
     }
 
-    LOGINFO(" ")
-    LOGINFO("Now collecting data.... Press CTRL-C to stop.")
-    LOGINFO(" ")
+    spdlog::info(" ");
+    spdlog::info("Now collecting data.... Press CTRL-C to stop.");
+	spdlog::info(" ");
 
     // Initialize
     int ret = 0;
@@ -218,12 +218,12 @@ int ScsiMon::run(const vector<char *> &args)
     while (running) {
         loop_count++;
         if (loop_count > LLONG_MAX - 1) {
-            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.")
+        	spdlog::info("Maximum amount of time has elapsed. SCSIMON is terminating.");
             running = false;
         }
 
         if (data_idx >= (buff_size - 2)) {
-            LOGINFO("Internal data buffer is full. SCSIMON is terminating.")
+        	spdlog::info("Internal data buffer is full. SCSIMON is terminating.");
             running = false;
         }
 
@@ -248,15 +248,13 @@ int ScsiMon::run(const vector<char *> &args)
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec * 1000000) + time_diff.tv_usec);
-    LOGINFO("%s", ("Elapsed time: " + to_string(elapsed_us) + " microseconds (" + to_string(elapsed_us / 1000000) +
-                   " seconds")
-                      .c_str())
-    LOGINFO("%s", ("Collected " + to_string(data_idx) + " changes").c_str())
+    spdlog::info("Elapsed time: " + to_string(elapsed_us) + " microseconds (" + to_string(elapsed_us / 1000000) +
+                   " seconds");
+	spdlog::info("Collected " + to_string(data_idx) + " changes");
 
     ns_per_loop = (double)(elapsed_us * 1000) / (double)loop_count;
-    LOGINFO("%s", ("Read the SCSI bus " + to_string(loop_count) + " times with an average of " +
-                   to_string(ns_per_loop) + " ns for each read")
-                      .c_str())
+    spdlog::info("Read the SCSI bus " + to_string(loop_count) + " times with an average of " +
+                   to_string(ns_per_loop) + " ns for each read");
 
     Cleanup();
 

@@ -40,14 +40,14 @@ void SysTimer_Raspberry::Init()
     // Open /dev/mem
     int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (mem_fd == -1) {
-        LOGERROR("Error: Unable to open /dev/mem. Are you running as root?")
+        spdlog::error("Error: Unable to open /dev/mem. Are you running as root?");
         return;
     }
 
     // Map peripheral region memory
     void *map = mmap(nullptr, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, baseaddr);
     if (map == MAP_FAILED) {
-        LOGERROR("Error: Unable to map memory")
+        spdlog::error("Error: Unable to map memory");
         close(mem_fd);
         return;
     }

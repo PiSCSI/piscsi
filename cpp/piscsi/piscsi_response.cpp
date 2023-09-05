@@ -525,7 +525,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 	if (is_symlink(p)) {
 		p = read_symlink(p);
 		if (!exists(p)) {
-			LOGWARN("Image file symlink '%s' is broken", path.string().c_str())
+			spdlog::warn("Image file symlink '" + path.string() + "' is broken");
 			return false;
 		}
 	}
@@ -535,7 +535,7 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 	}
 
 	if (!is_block_file(p) && file_size(p) < 256) {
-		LOGWARN("Image file '%s' is invalid", p.string().c_str())
+		spdlog::warn("Image file '" + p.string() + "' is invalid");
 		return false;
 	}
 

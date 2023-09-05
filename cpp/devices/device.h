@@ -98,7 +98,7 @@ public:
 
 	static PbDeviceType ParseDeviceType(const string&);
 	PbDeviceType GetType() const { return type; }
-	const char *GetTypeString() const { return PbDeviceType_Name(type).c_str(); }
+	string GetTypeString() const { return PbDeviceType_Name(type); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();

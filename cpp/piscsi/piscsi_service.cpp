@@ -39,7 +39,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	sockaddr_in server = {};
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		LOGERROR("Unable to create socket")
+		spdlog::error("Unable to create socket");
 		return false;
 	}
 
@@ -100,7 +100,7 @@ void PiscsiService::Execute() const
 			}
 		}
 		catch(const io_exception& e) {
-			LOGWARN("%s", e.what())
+			spdlog::warn(e.what());
 
             // Fall through
 		}
