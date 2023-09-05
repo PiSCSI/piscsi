@@ -174,7 +174,7 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
 all: $(SRC_GENERATED)
 	make $(BIN_ALL) docs
 
-test:
+test: $(SRC_GENERATED)
 	make $(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
