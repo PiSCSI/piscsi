@@ -157,7 +157,7 @@ $(SRC_GENERATED) : $(SRC_PROTOC)
 	protoc --cpp_out=$(GENERATED_DIR) $(SRC_PROTOC)
 	mv $(GENERATED_DIR)/piscsi_interface.pb.cc $@
 
-$(OBJ_GENERATED) : $(SRC_GENERATED)
+$(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 ## Build Targets:
@@ -174,7 +174,7 @@ $(OBJ_GENERATED) : $(SRC_GENERATED)
 all: $(SRC_GENERATED)
 	make $(BIN_ALL) docs
 
-test: $(SRC_GENERATED)
+test:
 	make $(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
