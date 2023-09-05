@@ -172,10 +172,10 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
 .DEFAULT_GOAL := all
 .PHONY: all docs test coverage lcov
 all: $(SRC_GENERATED)
-	make $(BIN_ALL) docs
+	$(MAKE) $(BIN_ALL) docs
 
 test: $(SRC_GENERATED)
-	make $(BINDIR)/$(PISCSI_TEST)
+	$(MAKE) $(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
