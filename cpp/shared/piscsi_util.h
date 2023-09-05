@@ -24,5 +24,7 @@ namespace piscsi_util
 
 	string GetExtensionLowerCase(string_view);
 
+	string Strerrno(const string&);
+
 	void FixCpu(int);
 }

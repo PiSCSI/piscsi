@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "shared/log.h"
 #include "generated/piscsi_interface.pb.h"
 #include <unordered_map>
 #include <string>

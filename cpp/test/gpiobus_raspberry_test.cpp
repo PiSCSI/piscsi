@@ -9,7 +9,7 @@
 
 #include "hal/gpiobus_raspberry.h"
 #include "mocks.h"
-#include "stdlib.h"
+#include <cstdlib>
 #include "test/test_shared.h"
 
 class SetableGpiobusRaspberry : public GPIOBUS_Raspberry

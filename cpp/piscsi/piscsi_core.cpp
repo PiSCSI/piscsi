@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "shared/config.h"
-#include "shared/log.h"
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_serializer.h"
 #include "shared/protobuf_util.h"
@@ -26,6 +25,7 @@
 #include "piscsi/piscsi_executor.h"
 #include "piscsi/piscsi_core.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/spdlog.h>
 #include <netinet/in.h>
 #include <csignal>
 #include <sstream>

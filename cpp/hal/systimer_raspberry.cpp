@@ -12,14 +12,13 @@
 //---------------------------------------------------------------------------
 
 #include "hal/systimer_raspberry.h"
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
 #include "hal/gpiobus.h"
 #include "hal/sbc_version.h"
-
-#include "shared/log.h"
 
 // System timer address
 volatile uint32_t *SysTimer_Raspberry::systaddr = nullptr;

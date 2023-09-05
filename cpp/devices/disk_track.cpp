@@ -14,8 +14,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "disk_track.h"
+#include <spdlog/spdlog.h>
+#include <cassert>
+#include <cstdlib>
 #include <fstream>
 
 DiskTrack::~DiskTrack()

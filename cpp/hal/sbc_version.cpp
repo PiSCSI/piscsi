@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
-#include "shared/log.h"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -100,7 +100,7 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    spdlog::trace(__PRETTY_FUNCTION__);
     std::string device_tree_model;
 
     const std::ifstream input_stream(SBC_Version::m_device_tree_model_path);
@@ -112,7 +112,7 @@ void SBC_Version::Init()
         m_sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
-        LOGERROR("Failed to open %s. Are you running as root?", SBC_Version::m_device_tree_model_path.c_str())
+        spdlog::error("Failed to open " + SBC_Version::m_device_tree_model_path + ". Are you running as root?");
         throw std::invalid_argument("Failed to open /proc/device-tree/model");
 #endif
     }
@@ -128,13 +128,13 @@ void SBC_Version::Init()
             return;
         }
     }
-    LOGERROR("%s Unable to determine single board computer type. Defaulting to Raspberry Pi 4", __PRETTY_FUNCTION__)
+    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
     m_sbc_version = sbc_version_type::sbc_raspberry_pi_4;
 }
 
 bool SBC_Version::IsRaspberryPi()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+    spdlog::trace(__PRETTY_FUNCTION__);
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
     case sbc_version_type::sbc_raspberry_pi_2_3:
@@ -153,7 +153,7 @@ bool SBC_Version::IsRaspberryPi()
 
 bool SBC_Version::IsBananaPi()
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+	   spdlog::trace(__PRETTY_FUNCTION__);
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
     case sbc_version_type::sbc_raspberry_pi_2_3:
@@ -174,7 +174,7 @@ bool SBC_Version::IsBananaPi()
 //	(imported from bcm_host.c)
 uint32_t SBC_Version::GetDeviceTreeRanges(const char *filename, uint32_t offset)
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+	   spdlog::trace(__PRETTY_FUNCTION__);
     uint32_t address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
@@ -189,14 +189,14 @@ uint32_t SBC_Version::GetDeviceTreeRanges(const char *filename, uint32_t offset)
 #if defined __linux__
 uint32_t SBC_Version::GetPeripheralAddress(void)
 {
-    LOGTRACE("%s", __PRETTY_FUNCTION__)
+	   spdlog::trace(__PRETTY_FUNCTION__);
     uint32_t address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 4);
     if (address == 0) {
         address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 8);
     }
     address = (address == (uint32_t)~0) ? 0x20000000 : address;
 
-    LOGDEBUG("Peripheral address : 0x%8x\n", address)
+    spdlog::debug("Peripheral address: " + std::to_string(address));
 
     return address;
 }
@@ -215,7 +215,7 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
         // Use BCM2835 address
         address = 0x20000000;
     }
-    LOGDEBUG("Peripheral address : 0x%lx\n", address);
+    spdlog::debug("Peripheral address: " + std::to_string(address));
     return address;
 }
 #else

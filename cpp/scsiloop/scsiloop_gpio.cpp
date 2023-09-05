@@ -27,7 +27,7 @@
 
 ScsiLoop_GPIO::ScsiLoop_GPIO()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
     if (bus == nullptr) {
@@ -200,7 +200,7 @@ ScsiLoop_GPIO::ScsiLoop_GPIO()
         local_pin_dp  = BPI_PIN_DP;
 
     } else {
-        spdlog::error(string("Unsupported board version: ") + SBC_Version::GetString());
+        LOGERROR("Unsupported board version: %s", SBC_Version::GetString().c_str());
     }
 }
 
@@ -212,38 +212,38 @@ void ScsiLoop_GPIO::Cleanup()
 // Set transceivers IC1 and IC2 to OUTPUT
 void ScsiLoop_GPIO::set_dtd_out()
 {
-    spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_dtd, DTD_OUT);
 }
 
 // Set transceivers IC1 and IC2 to INPUT
 void ScsiLoop_GPIO::set_dtd_in()
 {
-    spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_dtd, DTD_IN);
 }
 // Set transceiver IC4 to OUTPUT
 void ScsiLoop_GPIO::set_ind_out()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_ind, IND_OUT);
 }
 // Set transceiver IC4 to INPUT
 void ScsiLoop_GPIO::set_ind_in()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_ind, IND_IN);
 }
 // Set transceiver IC3 to OUTPUT
 void ScsiLoop_GPIO::set_tad_out()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_tad, TAD_OUT);
 }
 // Set transceiver IC3 to INPUT
 void ScsiLoop_GPIO::set_tad_in()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     bus->SetControl(local_pin_tad, TAD_IN);
 }
 
@@ -252,9 +252,8 @@ void ScsiLoop_GPIO::set_tad_in()
 // will set all of the transceivers to inputs.
 void ScsiLoop_GPIO::set_output_channel(int out_gpio)
 {
-    spdlog::trace(CONNECT_DESC + " tad: " + std::to_string(local_pin_tad) + " dtd: " + std::to_string(local_pin_dtd) +
-    		" ind: " + std::to_string(local_pin_ind));
-
+    LOGTRACE("%s tad: %d dtd: %d ind: %d", CONNECT_DESC.c_str(), (int)local_pin_tad, (int)local_pin_dtd,
+             (int)local_pin_ind);
     if (out_gpio == local_pin_tad)
         set_tad_out();
     else
@@ -273,7 +272,7 @@ void ScsiLoop_GPIO::set_output_channel(int out_gpio)
 // all of the direction control gpios to outputs
 void ScsiLoop_GPIO::loopback_setup()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     for (loopback_connection cur_gpio : loopback_conn_table) {
         if (cur_gpio.this_pin == -1) {
@@ -299,12 +298,12 @@ void ScsiLoop_GPIO::loopback_setup()
 // properly.
 int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &error_list, bool &loopback_adapter_missing)
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     int err_count  = 0;
     int sleep_time = 1000;
 
-    spdlog::trace("dir ctrl pin: " + to_string(gpio_rec.dir_ctrl_pin));
+    LOGTRACE("dir ctrl pin: %d", (int)gpio_rec.dir_ctrl_pin);
     set_output_channel(gpio_rec.dir_ctrl_pin);
     usleep(sleep_time);
 
@@ -329,10 +328,9 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
     for (auto cur_gpio : loopback_conn_table) {
         printf(".");
         // all of the gpios should be high except for the test gpio and the connected gpio
-        spdlog::trace("calling bus->GetSignal(" + to_string(cur_gpio.this_pin) + ")");
+        LOGTRACE("calling bus->GetSignal(%d)", (int)cur_gpio.this_pin);
         auto cur_val = bus->GetSignal(cur_gpio.this_pin);
-        spdlog::debug(to_string((int)cur_gpio.this_pin) + "[" +
-        		pin_name_lookup.at(cur_gpio.this_pin) + "] is " + to_string((int)cur_val));
+        LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != ON) {
@@ -374,10 +372,9 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
     for (auto cur_gpio : loopback_conn_table) {
         printf(".");
         // all of the gpios should be high except for the test gpio
-        spdlog::trace("calling bus->GetSignal(" + to_string((int)cur_gpio.this_pin) + ")");
+        LOGTRACE("calling bus->GetSignal(%d)", (int)cur_gpio.this_pin);
         auto cur_val = bus->GetSignal(cur_gpio.this_pin);
-        spdlog::debug(to_string((int)cur_gpio.this_pin) + " [" + pin_name_lookup.at(cur_gpio.this_pin) + "] is " +
-        		to_string((int)cur_val));
+        LOGDEBUG("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != ON) {
@@ -413,8 +410,7 @@ int ScsiLoop_GPIO::test_gpio_pin(loopback_connection &gpio_rec, vector<string> &
         printf(".");
 
         auto cur_val = bus->GetSignal(cur_gpio.this_pin);
-        spdlog::trace(to_string((int)cur_gpio.this_pin) + " [" + pin_name_lookup.at(cur_gpio.this_pin) + "] is " +
-        		to_string((int)cur_val));
+        LOGTRACE("%d [%s] is %d", (int)cur_gpio.this_pin, pin_name_lookup.at(cur_gpio.this_pin).c_str(), (int)cur_val);
 
         if (cur_gpio.this_pin == gpio_rec.this_pin) {
             if (cur_val != OFF) {
@@ -442,7 +438,7 @@ int ScsiLoop_GPIO::RunLoopbackTest(vector<string> &error_list)
 {
     int errors = 0;
     bool loopback_adapter_missing = true;
-    spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
     loopback_setup();
 
     for (auto cur_gpio : loopback_conn_table) {
@@ -460,7 +456,7 @@ int ScsiLoop_GPIO::RunLoopbackTest(vector<string> &error_list)
 
 void ScsiLoop_GPIO::dat_input_test_setup()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     for (loopback_connection cur_gpio : loopback_conn_table) {
         if (cur_gpio.this_pin == -1) {
@@ -486,7 +482,7 @@ void ScsiLoop_GPIO::dat_input_test_setup()
 
 void ScsiLoop_GPIO::dat_output_test_setup()
 {
-	spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__);
 
     for (loopback_connection cur_gpio : loopback_conn_table) {
         if (cur_gpio.this_pin == -1) {

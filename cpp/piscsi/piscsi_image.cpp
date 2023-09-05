@@ -7,10 +7,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/protobuf_util.h"
 #include "devices/disk.h"
 #include "piscsi_image.h"
+#include <spdlog/spdlog.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <fstream>

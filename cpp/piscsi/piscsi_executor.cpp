@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
@@ -22,6 +21,7 @@
 #include "localizer.h"
 #include "command_context.h"
 #include "piscsi_executor.h"
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 using namespace spdlog;
@@ -497,7 +497,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			strerrno("System shutdown failed");
+			Strerrno("System shutdown failed");
 		}
 	}
 	else if (mode == "reboot") {
@@ -508,7 +508,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			strerrno("System reboot failed");
+			Strerrno("System reboot failed");
 		}
 	}
 	else {

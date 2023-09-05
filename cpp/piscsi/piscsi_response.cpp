@@ -7,13 +7,13 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "shared/protobuf_util.h"
 #include "shared/network_util.h"
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
 #include "devices/disk.h"
 #include "piscsi_response.h"
+#include <spdlog/spdlog.h>
 #include <filesystem>
 
 using namespace std;

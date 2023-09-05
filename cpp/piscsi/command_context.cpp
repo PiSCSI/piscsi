@@ -7,8 +7,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
 #include "command_context.h"
+#include <spdlog/spdlog.h>
 #include <iostream>
 
 using namespace std;

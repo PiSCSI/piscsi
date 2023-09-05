@@ -15,7 +15,7 @@
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus_virtual.h"
 #include "hal/sbc_version.h"
-#include "shared/log.h"
+#include <spdlog/spdlog.h>
 
 using namespace std;
 

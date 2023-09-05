@@ -91,6 +91,11 @@ string piscsi_util::GetExtensionLowerCase(string_view filename)
 	return ext.empty() ? "" : ext.substr(1);
 }
 
+string piscsi_util::Strerrno(const string& msg)
+{
+	return msg + ": " + string(strerror(errno));
+}
+
 // Pin the thread to a specific CPU
 // TODO Check whether just using a single CPU really makes sense
 void piscsi_util::FixCpu(int cpu)

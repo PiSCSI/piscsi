@@ -17,10 +17,10 @@
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
+#include <spdlog/spdlog.h>
 #include <filesystem>
 #include <chrono>
 #include <csignal>
