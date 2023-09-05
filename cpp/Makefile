@@ -171,9 +171,11 @@ $(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
 ##              between coverage and non-coverage builds.
 .DEFAULT_GOAL := all
 .PHONY: all docs test coverage lcov
-all: $(SRC_GENERATED) .WAIT $(BIN_ALL) docs
+all: $(SRC_GENERATED)
+	make $(BIN_ALL) docs
 
-test: $(SRC_GENERATED) .WAIT $(BINDIR)/$(PISCSI_TEST)
+test: $(SRC_GENERATED)
+	make $(BINDIR)/$(PISCSI_TEST)
 
 coverage: CXXFLAGS += --coverage
 coverage: test
