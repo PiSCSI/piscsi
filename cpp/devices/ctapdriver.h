@@ -23,7 +23,7 @@ using namespace std;
 
 class CTapDriver
 {
-	static constexpr const string BRIDGE_NAME = "piscsi_bridge";
+	static const string BRIDGE_NAME;
 
 public:
 

@@ -30,6 +30,8 @@
 using namespace std;
 using namespace piscsi_util;
 
+const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
+
 //---------------------------------------------------------------------------
 //
 //	Initialization
