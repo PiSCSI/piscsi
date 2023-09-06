@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "generated/piscsi_interface.pb.h"
 #include "localizer.h"
 #include "shared/protobuf_serializer.h"
+#include "generated/piscsi_interface.pb.h"
 #include <string>
 
 using namespace std;
