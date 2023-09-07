@@ -52,7 +52,7 @@ static string br_setif(int br_socket_fd, const char* bridgename, const char* ifn
 CTapDriver::~CTapDriver()
 {
 	if (m_hTAP != -1) {
-		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
 		} else {
 			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
