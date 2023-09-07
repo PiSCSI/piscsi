@@ -174,6 +174,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return false;
 	}
 
+	auto cleanUp = [&] {
+			close(m_hTAP);
+			close(ip_fd);
+			close(br_socket_fd);
+			return false;
+	};
+
 	// Check if the bridge has already been created
 	string sys_file = "/sys/class/net/";
 	sys_file += BRIDGE_NAME;
@@ -208,19 +215,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 				Strerrno("Can't ioctl SIOCBRADDBR");
 
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 
 			spdlog::trace("brctl addif " + BRIDGE_NAME + " " + bridge_interface);
 
 			if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), bridge_interface.c_str(), true)) {
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 		}
 		else {
@@ -233,17 +234,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				if (!GetAsUnsignedInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
 					spdlog::error("Invalid CIDR netmask notation '" + inet.substr(separatorPos + 1) + "'");
 
-					close(m_hTAP);
-					close(ip_fd);
-					close(br_socket_fd);
-					return false;
+					return cleanUp();
 				}
 
 				// long long is required for compatibility with 32 bit platforms
 				const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
 				netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
 						to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
-
 			}
 
 			spdlog::trace("brctl addbr " + BRIDGE_NAME);
@@ -251,10 +248,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 				Strerrno("Can't ioctl SIOCBRADDBR");
 
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 
 			ifreq ifr_a;
@@ -264,10 +258,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 				Strerrno("Can't convert '" + address + "' into a network address");
 
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 
 			ifreq ifr_n;
@@ -277,10 +268,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 				Strerrno("Can't convert '" + netmask + "' into a netmask");
 
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 
 			spdlog::trace("ip address add " + inet + " dev " + BRIDGE_NAME);
@@ -288,20 +276,14 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 				Strerrno("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK");
 
-				close(m_hTAP);
-				close(ip_fd);
-				close(br_socket_fd);
-				return false;
+				return cleanUp();
 			}
 		}
 
 		spdlog::trace("ip link set dev " + BRIDGE_NAME + " up");
 
 		if (!ip_link(ip_fd, BRIDGE_NAME.c_str(), true)) {
-			close(m_hTAP);
-			close(ip_fd);
-			close(br_socket_fd);
-			return false;
+			return cleanUp();
 		}
 	}
 	else
@@ -312,19 +294,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	spdlog::trace("ip link set piscsi0 up");
 
 	if (!ip_link(ip_fd, "piscsi0", true)) {
-		close(m_hTAP);
-		close(ip_fd);
-		close(br_socket_fd);
-		return false;
+		return cleanUp();
 	}
 
 	spdlog::trace("brctl addif " + BRIDGE_NAME + " piscsi0");
 
 	if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", true)) {
-		close(m_hTAP);
-		close(ip_fd);
-		close(br_socket_fd);
-		return false;
+		return cleanUp();
 	}
 
 	// Get MAC address
@@ -334,10 +310,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
 		Strerrno("Can't ioctl SIOCGIFHWADDR");
 
-		close(m_hTAP);
-		close(ip_fd);
-		close(br_socket_fd);
-		return false;
+		return cleanUp();
 	}
 	spdlog::trace("Got the MAC");
 
