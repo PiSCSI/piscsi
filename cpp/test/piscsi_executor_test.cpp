@@ -227,6 +227,8 @@ TEST_F(PiscsiExecutorTest, SetLogLevel)
 	EXPECT_TRUE(executor.SetLogLevel("warning"));
 	EXPECT_TRUE(executor.SetLogLevel("error"));
 	EXPECT_TRUE(executor.SetLogLevel("off"));
+	EXPECT_TRUE(executor.SetLogLevel("warn"));
+	EXPECT_TRUE(executor.SetLogLevel("err"));
 	EXPECT_FALSE(executor.SetLogLevel("xyz"));
 }
 
