@@ -83,11 +83,11 @@ void PiscsiResponse::GetDevice(const Device& device, PbDevice& pb_device, const 
     pb_device.set_allocated_properties(GetDeviceProperties(device).release());
 
     auto status = make_unique<PbDeviceStatus>();
-	pb_device.set_allocated_status(status.release());
 	status->set_protected_(device.IsProtected());
 	status->set_stopped(device.IsStopped());
 	status->set_removed(device.IsRemoved());
 	status->set_locked(device.IsLocked());
+	pb_device.set_allocated_status(status.release());
 
 	if (device.SupportsParams()) { //NOSONAR The allocated memory is managed by protobuf
 		for (const auto& [key, value] : device.GetParams()) {
