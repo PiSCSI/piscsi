@@ -16,5 +16,6 @@ using namespace std;
 
 namespace network_util
 {
+	bool IsInterfaceUp(const string&);
 	vector<string> GetNetworkInterfaces();
 }

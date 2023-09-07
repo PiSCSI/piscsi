@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_util.h"
+#include "shared/network_util.h"
 #include "shared/piscsi_exceptions.h"
 #include <unistd.h>
 #include <poll.h>
@@ -29,6 +30,7 @@
 
 using namespace std;
 using namespace piscsi_util;
+using namespace network_util;
 
 const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
@@ -86,20 +88,6 @@ string ip_link(int fd, const char* ifname, bool up) {
 	}
 	return "";
 #endif
-}
-
-static bool is_interface_up(const string& interface) {
-	ifreq ifr = {};
-    strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
-	const int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
-
-	if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
-	    close(fd);
-    	return true;
-    }
-
-    close(fd);
-    return false;
 }
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
@@ -176,7 +164,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 		string bridge_interface;
 		for (const string& iface : interfaces) {
-			if (is_interface_up(iface)) {
+			if (IsInterfaceUp(iface)) {
 				spdlog::trace("Interface " + iface + " is up");
 
 				bridge_interface = iface;
