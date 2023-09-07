@@ -62,7 +62,7 @@ CTapDriver::~CTapDriver()
 		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
 			Strerrno("Can't open bridge socket");
 		} else {
-			spdlog::debug("brctl delif " + BRIDGE_NAME + " piscsi0");
+			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
 			if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", false)) { //NOSONAR No exception is raised here
 				spdlog::warn("Warning: Removing piscsi0 from the bridge failed");
 				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
@@ -380,7 +380,7 @@ void CTapDriver::OpenDump(const string& path) {
 bool CTapDriver::Enable() const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	spdlog::debug("ip link set piscsi0 up");
+	spdlog::trace("ip link set piscsi0 up");
 	const bool result = ip_link(fd, "piscsi0", true);
 	close(fd);
 	return result;
@@ -389,7 +389,7 @@ bool CTapDriver::Enable() const
 bool CTapDriver::Disable() const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	spdlog::debug("ip link set piscsi0 down");
+	spdlog::trace("ip link set piscsi0 down");
 	const bool result = ip_link(fd, "piscsi0", false);
 	close(fd);
 	return result;
@@ -474,7 +474,7 @@ int CTapDriver::Receive(uint8_t *buf)
 		buf[dwReceived + 2] = (uint8_t)((crc >> 16) & 0xFF);
 		buf[dwReceived + 3] = (uint8_t)((crc >> 24) & 0xFF);
 
-		spdlog::debug("CRC is " + to_string(crc) + " - " + to_string(buf[dwReceived+0]) + " " + to_string(buf[dwReceived+1]) +
+		spdlog::trace("CRC is " + to_string(crc) + " - " + to_string(buf[dwReceived+0]) + " " + to_string(buf[dwReceived+1]) +
 				" " + to_string(buf[dwReceived+2]) + " " + to_string(buf[dwReceived+3]));
 
 		// Add FCS size to the received message size
