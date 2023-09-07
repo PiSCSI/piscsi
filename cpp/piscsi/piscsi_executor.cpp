@@ -201,7 +201,7 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 	const level::level_enum l = level::from_str(level);
 	// Compensate for spdlog using 'off' for unknown levels
 	if (to_string_view(l) != level) {
-		spdlog::warn("Invalid log level '" + level +"'");
+		spdlog::warn("Invalid log level '" + level + "'");
 		return false;
 	}
 

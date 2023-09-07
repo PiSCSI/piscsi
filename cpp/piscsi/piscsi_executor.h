@@ -12,7 +12,6 @@
 #include "shared/protobuf_serializer.h"
 #include "piscsi/piscsi_response.h"
 #include <unordered_set>
-#include <unordered_map>
 
 class PiscsiImage;
 class DeviceFactory;
