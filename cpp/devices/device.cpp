@@ -20,7 +20,7 @@ using namespace std;
 Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 {
 	ostringstream os;
-	os << setw(2) << setfill('0') << piscsi_major_version << setw(2) << setfill('0') << piscsi_minor_version;
+	os << setfill('0') << setw(2) << piscsi_major_version << setw(2) << piscsi_minor_version;
 	revision = os.str();
 }
 
