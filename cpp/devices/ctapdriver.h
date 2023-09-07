@@ -37,7 +37,7 @@ public:
 	bool PendingPackets() const;		// Check if there are IP packets available
 	bool Enable() const;		// Enable the piscsi0 interface
 	bool Disable() const;		// Disable the piscsi0 interface
-	void Flush();				// Purge all of the packets that are waiting to be processed
+	void Flush() const;			// Purge all of the packets that are waiting to be processed
 
 	static uint32_t Crc32(span<const uint8_t>);
 

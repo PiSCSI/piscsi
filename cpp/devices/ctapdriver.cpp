@@ -371,7 +371,7 @@ bool CTapDriver::Disable() const
 	return result;
 }
 
-void CTapDriver::Flush()
+void CTapDriver::Flush() const
 {
 	while (PendingPackets()) {
 		array<uint8_t, ETH_FRAME_LEN> m_garbage_buffer;
@@ -386,11 +386,6 @@ void CTapDriver::GetMacAddr(uint8_t *mac) const
 	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
 
-//---------------------------------------------------------------------------
-//
-//	Receive
-//
-//---------------------------------------------------------------------------
 bool CTapDriver::PendingPackets() const
 {
 	assert(m_hTAP != -1);
@@ -402,11 +397,7 @@ bool CTapDriver::PendingPackets() const
 	fds.revents = 0;
 	poll(&fds, 1, 0);
 	spdlog::trace(to_string(fds.revents) + " revents");
-	if (!(fds.revents & POLLIN)) {
-		return false;
-	} else {
-		return true;
-	}
+	return !(fds.revents & POLLIN);
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
