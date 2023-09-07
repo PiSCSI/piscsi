@@ -48,7 +48,7 @@ void SCSIHD_NEC::Open()
 	FinalizeSetup(image_offset);
 }
 
-pair<int, int> SCSIHD_NEC::SetParameters(const array<char, 512>& data, int size)
+pair<int, int> SCSIHD_NEC::SetParameters(span<const char> data, int size)
 {
 	array<uint8_t, 512> root_sector = {};
 	memcpy(root_sector.data(), data.data(), root_sector.size());
