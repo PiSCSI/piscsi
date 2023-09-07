@@ -88,22 +88,15 @@ string ip_link(int fd, const char* ifname, bool up) {
 #endif
 }
 
-static bool is_interface_up(string_view interface) {
-	string file = "/sys/class/net/";
-	file += interface;
-	file += "/carrier";
-
-	bool status = true;
-	FILE *fp = fopen(file.c_str(), "r");
-	if (!fp || fgetc(fp) != '1') {
-		status = false;
-	}
-
-	if (fp) {
-		fclose(fp);
-	}
-
-	return status;
+static bool is_interface_up(const string& interface) {
+	ifreq ifr = {};
+    strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
+	const int sock = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+    if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+    	return false;
+    }
+    close(sock);
+    return !(ifr.ifr_flags & IFF_UP);
 }
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
@@ -125,8 +118,6 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		LogErrno("Can't open tun");
 		return false;
 	}
-
-	spdlog::trace("Opened tap device " + to_string(m_hTAP));
 
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
