@@ -63,7 +63,7 @@ CTapDriver::~CTapDriver()
 			Strerrno("Can't open bridge socket");
 		} else {
 			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
-			if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", false)) { //NOSONAR No exception is raised here
+			if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", false)) {
 				spdlog::warn("Warning: Removing piscsi0 from the bridge failed");
 				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
 			}
