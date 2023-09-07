@@ -54,7 +54,7 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(span <const int>, vector<uint8_t>&, uint64_t);
+	int Read(span <const int>, vector<uint8_t>&, uint64_t) const;
 	bool WriteBytes(span<const int>, vector<uint8_t>&) override;
 
 	int RetrieveStats(span<const int>, vector<uint8_t>&) const;
@@ -65,7 +65,7 @@ public:
 	void RetrieveStatistics() const;
 	void SetInterfaceMode() const;
 	void SetMcastAddr() const;
-	void EnableInterface();
+	void EnableInterface() const;
 
 	static const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
