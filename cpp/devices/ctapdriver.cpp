@@ -70,7 +70,7 @@ CTapDriver::~CTapDriver()
 			close(br_socket_fd);
 		}
 
-		// Release TAP defice
+		// Release TAP device
 		close(m_hTAP);
 	}
 }
