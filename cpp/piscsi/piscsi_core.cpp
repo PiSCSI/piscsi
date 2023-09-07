@@ -334,7 +334,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	switch(command.operation()) {
 		case LOG_LEVEL: {
 			const string log_level = GetParam(command, "level");
-			if (const bool status = executor->SetLogLevel(log_level); !status) {
+			if (const bool status = PiscsiExecutor::SetLogLevel(log_level); !status) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
@@ -481,11 +481,11 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	// current_log_level may have been updated by ParseArguments()
-	executor->SetLogLevel(current_log_level);
-
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("piscsi stdout logger");
+
+	// current_log_level may have been updated by ParseArguments()
+	PiscsiExecutor::SetLogLevel(current_log_level);
 
 	if (!InitBus()) {
 		cerr << "Error: Can't initialize bus" << endl;

@@ -166,7 +166,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	return context.ReturnStatus();
 }
 
-bool PiscsiExecutor::SetLogLevel(const string& log_level) const
+bool PiscsiExecutor::SetLogLevel(const string& log_level)
 {
 	int id = -1;
 	int lun = -1;
