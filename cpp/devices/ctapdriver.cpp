@@ -91,12 +91,15 @@ string ip_link(int fd, const char* ifname, bool up) {
 static bool is_interface_up(const string& interface) {
 	ifreq ifr = {};
     strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
-	const int sock = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
-    if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    	return false;
+	const int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+
+	if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
+	    close(fd);
+    	return true;
     }
-    close(sock);
-    return !(ifr.ifr_flags & IFF_UP);
+
+    close(fd);
+    return false;
 }
 
 bool CTapDriver::Init(const unordered_map<string, string>& const_params)
