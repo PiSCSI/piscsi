@@ -142,9 +142,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 
 	auto cleanUp = [&] (const string& error) {
-		if (!empty(error)) {
-			LogErrno(error);
-		}
+		LogErrno(error);
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
