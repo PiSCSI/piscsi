@@ -64,7 +64,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
-	// TODO Consider using std::span instead of std::vector&
+	// TODO Consider using std::span& instead of std::vector&
 	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
