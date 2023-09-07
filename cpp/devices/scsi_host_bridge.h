@@ -52,7 +52,7 @@ private:
 	void SetMacAddr(span<const uint8_t>);		// Set MAC address
 	void ReceivePacket();						// Receive a packet
 	void GetPacketBuf(vector<uint8_t>&, int);	// Get a packet
-	void SendPacket(span<const uint8_t>, int);	// Send a packet
+	void SendPacket(span<const uint8_t>, int) const;	// Send a packet
 
 	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag

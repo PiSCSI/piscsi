@@ -338,7 +338,7 @@ void SCSIBR::GetPacketBuf(vector<uint8_t>& buf, int index)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(span<const uint8_t> buf, int len)
+void SCSIBR::SendPacket(span<const uint8_t> buf, int len) const
 {
 	tap.Send(buf.data(), len);
 }
