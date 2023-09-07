@@ -157,8 +157,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		const auto& it = find_if(interfaces.begin(), interfaces.end(), [] (const string& interface)
 				{ return IsInterfaceUp(interface); } );
 		if (it == interfaces.end()) {
-			spdlog::error("No interface is up, not creating bridge " + BRIDGE_NAME);
-			return false;
+			return cleanUp("No interface is up, not creating bridge " + BRIDGE_NAME);
 		}
 
 		const string bridge_interface = *it;
