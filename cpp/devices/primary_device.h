@@ -41,7 +41,7 @@ public:
 
 	void SetController(shared_ptr<AbstractController>);
 
-	virtual bool WriteByteSequence(const span<uint8_t>);
+	virtual bool WriteByteSequence(const span<uint8_t>&);
 
 	int GetSendDelay() const { return send_delay; }
 

@@ -434,7 +434,7 @@ bool CTapDriver::PendingPackets() const
 }
 
 // See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
-uint32_t CTapDriver::Crc32(const span<uint8_t> data) {
+uint32_t CTapDriver::Crc32(const span<uint8_t>& data) {
    uint32_t crc = 0xffffffff;
    for (const auto d: data) {
       crc ^= d;
