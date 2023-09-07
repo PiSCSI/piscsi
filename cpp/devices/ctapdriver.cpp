@@ -74,16 +74,14 @@ string ip_link(int fd, const char* ifname, bool up) {
 #else
 	ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
-	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
-	if (err) {
+	if (ioctl(fd, SIOCGIFFLAGS, &ifr)) {
 		return "Can't ioctl SIOCGIFFLAGS";
 	}
 	ifr.ifr_flags &= ~IFF_UP;
 	if (up) {
 		ifr.ifr_flags |= IFF_UP;
 	}
-	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
-	if (err) {
+	if (ioctl(fd, SIOCSIFFLAGS, &ifr)) {
 		return "Can't ioctl SIOCSIFFLAGS";
 	}
 	return "";
