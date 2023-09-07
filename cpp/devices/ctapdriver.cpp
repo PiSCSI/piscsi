@@ -34,7 +34,7 @@ const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
 static string br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
 #ifndef __linux__
-	return false;
+	return "Linux is required";
 #else
 	ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
