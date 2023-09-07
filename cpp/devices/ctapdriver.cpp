@@ -32,16 +32,16 @@ using namespace piscsi_util;
 
 const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
-static string br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
+static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
 #ifndef __linux__
 	return "Linux is required";
 #else
 	ifreq ifr;
-	ifr.ifr_ifindex = if_nametoindex(ifname);
+	ifr.ifr_ifindex = if_nametoindex(ifname.c_str());
 	if (ifr.ifr_ifindex == 0) {
-		return "Can't if_nametoindex " + string(ifname);
+		return "Can't if_nametoindex " + ifname;
 	}
-	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		return "Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF");
 	}
@@ -56,7 +56,7 @@ CTapDriver::~CTapDriver()
 			LogErrno("Can't open bridge socket");
 		} else {
 			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
-			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", false); !error.empty()) {
+			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
 				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
 				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
 			}
@@ -211,7 +211,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 			spdlog::trace("brctl addif " + BRIDGE_NAME + " " + bridge_interface);
 
-			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME.c_str(), bridge_interface.c_str(), true); !error.empty()) {
+			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
 				return cleanUp(error);
 			}
 		}
@@ -280,7 +280,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	spdlog::trace("brctl addif " + BRIDGE_NAME + " piscsi0");
 
-	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", true); !error.empty()) {
+	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", true); !error.empty()) {
 		return cleanUp(error);
 	}
 
