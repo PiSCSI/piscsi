@@ -51,6 +51,7 @@ private:
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(span<char *>, int&) const;
 	void CreateInitialDevices(const optargs_type&) const;
+	void Process();
 	void WaitForNotBusy() const;
 
 	// TODO Should not be static and should be moved to PiscsiService

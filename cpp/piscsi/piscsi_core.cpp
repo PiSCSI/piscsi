@@ -578,6 +578,13 @@ int Piscsi::run(span<char *> args)
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
+	Process();
+
+	return EXIT_SUCCESS;
+}
+
+void Piscsi::Process()
+{
 	sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
@@ -682,8 +689,6 @@ int Piscsi::run(span<char *> args)
 		// End the target travel
 		active = false;
 	}
-
-	return EXIT_SUCCESS;
 }
 
 void Piscsi::WaitForNotBusy() const
