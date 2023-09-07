@@ -43,7 +43,7 @@ static string br_setif(int br_socket_fd, const string& bridgename, const string&
 	if (ifr.ifr_ifindex == 0) {
 		return "Can't if_nametoindex " + ifname;
 	}
-	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, bridgename.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		return "Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF");
 	}
@@ -75,7 +75,7 @@ string ip_link(int fd, const char* ifname, bool up) {
 	return "Can't ip_link: Linux is required";
 #else
 	ifreq ifr;
-	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 	if (ioctl(fd, SIOCGIFFLAGS, &ifr)) {
 		return "Can't ioctl SIOCGIFFLAGS";
 	}
@@ -113,7 +113,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 
 	spdlog::trace("Going to open " + string(ifr.ifr_name));
 
@@ -220,7 +220,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 			ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
-			strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ);
+			strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 			if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
 				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
 				return cleanUp("Can't convert '" + address + "' into a network address");
@@ -228,7 +228,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 			ifreq ifr_n;
 			ifr_n.ifr_addr.sa_family = AF_INET;
-			strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ);
+			strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 			if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
 				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
 				return cleanUp("Can't convert '" + netmask + "' into a netmask");

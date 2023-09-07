@@ -22,7 +22,7 @@ using namespace std;
 bool network_util::IsInterfaceUp(const string& interface)
 {
 	ifreq ifr = {};
-    strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1);
+    strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
 	const int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
 
 	if (!ioctl(fd, SIOCGIFFLAGS, &ifr) && (ifr.ifr_flags & IFF_UP)) {
