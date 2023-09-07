@@ -252,15 +252,15 @@ int SCSIDaynaPort::Read(span<const int> cdb, vector<uint8_t>& buf, uint64_t)
 bool SCSIDaynaPort::WriteBytes(span<const int> cdb, vector<uint8_t>& buf)
 {
 	const int data_format = cdb[5];
-	int data_length = GetInt16(cdb, 3);
 
 	if (data_format == 0x00) {
+		const int data_length = GetInt16(cdb, 3);
 		m_tap.Send(buf.data(), data_length);
 		GetLogger().Trace("Transmitted " + to_string(data_length) + " byte(s) (00 format)");
 	}
 	else if (data_format == 0x80) {
 		// The data length is specified in the first 2 bytes of the payload
-		data_length = buf[1] + ((static_cast<int>(buf[0]) & 0xff) << 8);
+		const int data_length = buf[1] + ((static_cast<int>(buf[0]) & 0xff) << 8);
 		m_tap.Send(&(buf.data()[4]), data_length);
 		GetLogger().Trace("Transmitted " + to_string(data_length) + "byte(s) (80 format)");
 	}
