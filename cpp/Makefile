@@ -157,7 +157,7 @@ $(SRC_GENERATED) : $(SRC_PROTOC)
 	protoc --cpp_out=$(GENERATED_DIR) $(SRC_PROTOC)
 	mv $(GENERATED_DIR)/piscsi_interface.pb.cc $@
 
-$(OBJ_GENERATED) : $(SRC_GENERATED) $(OBJDIR)
+$(OBJ_GENERATED) : $(SRC_GENERATED)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 ## Build Targets:
