@@ -55,10 +55,10 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetSendDelay(DAYNAPORT_READ_HEADER_SZ);
 
 	m_bTapEnable = m_tap.Init(GetParams());
-	if(!m_bTapEnable){
+	if (!m_bTapEnable){
 // Not terminating on regular Linux PCs is helpful for testing
 #if !defined(__x86_64__) && !defined(__X86__)
-	return false;
+		return false;
 #endif
 	} else {
 		GetLogger().Trace("Tap interface created");

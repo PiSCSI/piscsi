@@ -42,7 +42,6 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
 
 #ifdef __linux__
-	// TAP Driver Generation
 	m_bTapEnable = tap.Init(GetParams());
 	if (!m_bTapEnable){
 		return false;
