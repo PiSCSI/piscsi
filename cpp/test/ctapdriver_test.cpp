@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "mocks.h"
+#include <net/ethernet.h>
 #include "devices/ctapdriver.h"
 
 TEST(CTapDriverTest, Crc32)

@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <pcap/pcap.h>
-#include <net/ethernet.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -33,7 +31,6 @@ public:
 	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
-	void OpenDump(const string& path);	// Capture packets
 	void GetMacAddr(uint8_t *mac) const;
 	int Receive(uint8_t *buf);
 	int Send(const uint8_t *buf, int len);
@@ -48,9 +45,6 @@ private:
 	array<byte, 6> m_MacAddr;	// MAC Address
 
 	int m_hTAP = -1;			// File handle
-
-	pcap_t *m_pcap = nullptr;
-	pcap_dumper_t *m_pcap_dumper = nullptr;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
 	vector<string> interfaces;

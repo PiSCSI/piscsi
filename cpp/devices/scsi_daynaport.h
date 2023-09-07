@@ -32,6 +32,7 @@
 #include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
+#include <net/ethernet.h>
 #include <string>
 #include <span>
 #include <unordered_map>

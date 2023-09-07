@@ -73,14 +73,6 @@ CTapDriver::~CTapDriver()
 		// Release TAP defice
 		close(m_hTAP);
 	}
-
-	if (m_pcap_dumper != nullptr) {
-		pcap_dump_close(m_pcap_dumper);
-	}
-
-	if (m_pcap != nullptr) {
-		pcap_close(m_pcap);
-	}
 }
 
 static bool ip_link(int fd, const char* ifname, bool up) {
@@ -361,22 +353,6 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-void CTapDriver::OpenDump(const string& path) {
-	if (m_pcap == nullptr) {
-		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
-	}
-	if (m_pcap_dumper != nullptr) {
-		pcap_dump_close(m_pcap_dumper);
-	}
-	m_pcap_dumper = pcap_dump_open(m_pcap, path.c_str());
-	if (m_pcap_dumper == nullptr) {
-		spdlog::error("Can't open pcap file: " + string(pcap_geterr(m_pcap)));
-		throw io_exception("Can't open pcap file");
-	}
-
-	spdlog::trace("Opened " + path + " for dumping");
-}
-
 bool CTapDriver::Enable() const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -481,18 +457,6 @@ int CTapDriver::Receive(uint8_t *buf)
 		dwReceived += 4;
 	}
 
-	if (m_pcap_dumper != nullptr) {
-		pcap_pkthdr h = {
-			.ts = {},
-			.caplen = dwReceived,
-			.len = dwReceived
-		};
-		gettimeofday(&h.ts, nullptr);
-		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
-		spdlog::trace("Dumped " + to_string(dwReceived) + " byte packet (first byte: " +
-				to_string(buf[0]) + ", last byte: " + to_string(buf[dwReceived-1]) + ")");
-	}
-
 	// Return the number of bytes
 	return dwReceived;
 }
@@ -500,18 +464,6 @@ int CTapDriver::Receive(uint8_t *buf)
 int CTapDriver::Send(const uint8_t *buf, int len)
 {
 	assert(m_hTAP != -1);
-
-	if (m_pcap_dumper != nullptr) {
-		pcap_pkthdr h = {
-			.ts = {},
-			.caplen = (bpf_u_int32)len,
-			.len = (bpf_u_int32)len,
-		};
-		gettimeofday(&h.ts, nullptr);
-		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
-		spdlog::trace("Dumped " + to_string(h.len) + " byte packet (first byte: " + to_string(buf[0]) +
-				", last byte: " + to_string(buf[h.len-1]) + ")");
-	}
 
 	// Start sending
 	return static_cast<int>(write(m_hTAP, buf, len));
