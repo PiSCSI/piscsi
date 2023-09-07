@@ -152,9 +152,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	// Check if the bridge has already been created
 	// TODO Find an alternative to accessing a file, there is most likely a system call/ioctl
 	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
-		spdlog::info(BRIDGE_NAME + " is not yet available");
-
-		spdlog::trace("Checking which interface is available for creating the bridge");
+		spdlog::trace("Checking which interface is available for creating the bridge " + BRIDGE_NAME);
 
 		string bridge_interface;
 		for (const string& iface : interfaces) {
