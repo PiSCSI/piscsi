@@ -133,12 +133,11 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	// IFF_NO_PI for no extra packet information
 	ifreq ifr = {};
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-	string dev = "piscsi0";
-	strncpy(ifr.ifr_name, dev.c_str(), IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, "piscsi0", IFNAMSIZ - 1);
 
 	spdlog::trace("Going to open " + string(ifr.ifr_name));
 
-	int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
+	const int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
 	if (ret < 0) {
 		LogErrno("Can't ioctl TUNSETIFF");
 
