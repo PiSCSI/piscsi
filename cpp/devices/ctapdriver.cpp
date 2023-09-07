@@ -229,8 +229,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			return cleanUp(error);
 		}
 	}
-	else
-	{
+	else {
 		spdlog::info(BRIDGE_NAME + " is already available");
 	}
 
