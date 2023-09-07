@@ -56,8 +56,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 
 	m_bTapEnable = m_tap.Init(GetParams());
 	if(!m_bTapEnable){
-		GetLogger().Error("Unable to open the TAP interface");
-
 // Not terminating on regular Linux PCs is helpful for testing
 #if !defined(__x86_64__) && !defined(__X86__)
 	return false;
