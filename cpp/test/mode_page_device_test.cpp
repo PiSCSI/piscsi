@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -135,12 +135,10 @@ TEST(ModePageDeviceTest, ModeSelect6)
 
     controller->AddDevice(device);
 
-    auto& cmd = controller->GetCmd();
-
     EXPECT_CALL(*controller, DataOut());
     device->Dispatch(scsi_command::eCmdModeSelect6);
 
-    cmd[1] = 0x01;
+	controller->SetCmdByte(1, 0x01);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -158,12 +156,10 @@ TEST(ModePageDeviceTest, ModeSelect10)
 
     controller->AddDevice(device);
 
-    auto& cmd = controller->GetCmd();
-
     EXPECT_CALL(*controller, DataOut());
     device->Dispatch(scsi_command::eCmdModeSelect10);
 
-    cmd[1] = 0x01;
+	controller->SetCmdByte(1, 0x01);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdModeSelect10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))

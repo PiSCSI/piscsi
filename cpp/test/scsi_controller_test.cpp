@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -303,11 +303,10 @@ TEST(ScsiControllerTest, RequestSense)
 
 	controller->AddDevice(device);
 
-	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 	// Non-existing LUN
-	cmd[1] = 0x20;
+	controller->SetCmdByte(1, 0x20);
 
 	device->SetReady(true);
 	EXPECT_CALL(*controller, Status);

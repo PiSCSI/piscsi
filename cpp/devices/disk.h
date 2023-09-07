@@ -22,6 +22,7 @@
 #include "interfaces/scsi_block_commands.h"
 #include "storage_device.h"
 #include <string>
+#include <span>
 #include <unordered_set>
 #include <unordered_map>
 #include <tuple>
@@ -92,8 +93,8 @@ private:
 	void ValidateBlockAddress(access_mode) const;
 	tuple<bool, uint64_t, uint32_t> CheckAndGetStartAndCount(access_mode) const;
 
-	int ModeSense6(const vector<int>&, vector<uint8_t>&) const override;
-	int ModeSense10(const vector<int>&, vector<uint8_t>&) const override;
+	int ModeSense6(span<const int>, vector<uint8_t>&) const override;
+	int ModeSense10(span<const int>, vector<uint8_t>&) const override;
 
 	static inline const unordered_map<uint32_t, uint32_t> shift_counts =
 		{ { 512, 9 }, { 1024, 10 }, { 2048, 11 }, { 4096, 12 } };

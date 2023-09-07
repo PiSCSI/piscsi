@@ -17,6 +17,7 @@
 #include "controller_manager.h"
 #include <unordered_set>
 #include <unordered_map>
+#include <span>
 #include <vector>
 #include <memory>
 
@@ -77,8 +78,9 @@ public:
 	void IncrementNext() { ++ctrl.next; }
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
-	// TODO Consider using std::span instead of std::vector&
-	vector<int>& GetCmd() { return ctrl.cmd; }
+	span <const int> GetCmd() { return ctrl.cmd; }
+	// TODO Try to make this method protected. It is currently public for usage by the unit tests.
+	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
 	int GetCmd(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);

@@ -218,10 +218,8 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	controller->AddDevice(device);
 
-	auto& cmd = controller->GetCmd();
-
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 
 	ON_CALL(*device, InquiryInternal()).WillByDefault([&device]() {
 		return device->HandleInquiry(device_type::processor, scsi_level::spc_3, false);
@@ -255,24 +253,24 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_EQ(scsi_level::scsi_1_ccs, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
 	EXPECT_EQ(0x1f, controller->GetBuffer()[4]) << "Wrong additional data size";
 
-	cmd[1] = 0x01;
+	controller->SetCmdByte(1, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "EVPD bit is not supported";
 
-	cmd[2] = 0x01;
+	controller->SetCmdByte(2, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "PAGE CODE field is not supported";
 
-	cmd[1] = 0x00;
-	cmd[2] = 0x00;
+	controller->SetCmdByte(1, 0);
+	controller->SetCmdByte(2, 0);
 	// ALLOCATION LENGTH
-	cmd[4] = 1;
+	controller->SetCmdByte(4, 1);
 	EXPECT_CALL(*device, InquiryInternal);
 	EXPECT_CALL(*controller, DataIn);
 	device->Dispatch(scsi_command::eCmdInquiry);
@@ -291,9 +289,8 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 	controller->AddDevice(device);
 
-	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 
 	device->SetReady(false);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdRequestSense); }, Throws<scsi_exception>(AllOf(
@@ -317,26 +314,24 @@ TEST(PrimaryDeviceTest, SendDiagnostic)
 
 	controller->AddDevice(device);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdSendDiagnostic);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[1] = 0x10;
+	controller->SetCmdByte(1, 0x10);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "SEND DIAGNOSTIC must fail because PF bit is not supported";
-	cmd[1] = 0;
+	controller->SetCmdByte(1, 0);
 
-	cmd[3] = 1;
+	controller->SetCmdByte(3, 1);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "SEND DIAGNOSTIC must fail because parameter list is not supported";
-	cmd[3] = 0;
-	cmd[4] = 1;
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 1);
 	EXPECT_THAT([&] { device->Dispatch(scsi_command::eCmdSendDiagnostic); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -362,9 +357,8 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	controller->AddDevice(device2);
 	EXPECT_TRUE(controller->HasDeviceForLun(LUN2));
 
-	auto& cmd = controller->GetCmd();
 	// ALLOCATION LENGTH
-	cmd[9] = 255;
+	controller->SetCmdByte(9, 255);
 
 	EXPECT_CALL(*controller, DataIn);
 	device1->Dispatch(scsi_command::eCmdReportLuns);
@@ -380,7 +374,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	EXPECT_EQ(0, GetInt16(buffer, 20)) << "Wrong LUN2 number";
 	EXPECT_EQ(LUN2, GetInt16(buffer, 22)) << "Wrong LUN2 number";
 
-	cmd[2] = 0x01;
+	controller->SetCmdByte(2, 0x01);
 	EXPECT_THAT([&] { device1->Dispatch(scsi_command::eCmdReportLuns); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))

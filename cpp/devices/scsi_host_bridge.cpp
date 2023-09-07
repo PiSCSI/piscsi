@@ -98,7 +98,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(const vector<int>& cdb, vector<uint8_t>& buf)
+int SCSIBR::GetMessage10(span<const int> cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];
@@ -186,7 +186,7 @@ int SCSIBR::GetMessage10(const vector<int>& cdb, vector<uint8_t>& buf)
 	return 0;
 }
 
-bool SCSIBR::WriteBytes(const vector<int>& cdb, vector<uint8_t>& buf)
+bool SCSIBR::WriteBytes(span<const int> cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];
@@ -291,7 +291,7 @@ int SCSIBR::GetMacAddr(vector<uint8_t>& mac) const
 	return static_cast<int>(mac_addr.size());
 }
 
-void SCSIBR::SetMacAddr(const vector<uint8_t>& mac)
+void SCSIBR::SetMacAddr(span<const uint8_t> mac)
 {
 	memcpy(mac_addr.data(), mac.data(), mac_addr.size());
 }
@@ -338,7 +338,7 @@ void SCSIBR::GetPacketBuf(vector<uint8_t>& buf, int index)
 	packet_enable = false;
 }
 
-void SCSIBR::SendPacket(const vector<uint8_t>& buf, int len)
+void SCSIBR::SendPacket(span<const uint8_t> buf, int len)
 {
 	tap.Send(buf.data(), len);
 }

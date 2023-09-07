@@ -219,7 +219,7 @@ void ScsiController::Command()
 		// Command data transfer
 		AllocateCmd(command_byte_count);
 		for (int i = 0; i < command_byte_count; i++) {
-			GetCmd()[i] = GetBuffer()[i];
+			SetCmdByte(i, GetBuffer()[i]);
 		}
 
 		SetLength(0);
@@ -938,7 +938,7 @@ void ScsiController::ProcessCommand()
 	stringstream s;
 	s << "CDB=$" << setfill('0') << setw(2) << hex;
 	for (uint32_t i = 0; i < len; i++) {
-		GetCmd()[i] = GetBuffer()[i];
+		SetCmdByte(i, GetBuffer()[i]);
 		s << GetCmd(i);
 	}
 	logger.Trace(s.str());

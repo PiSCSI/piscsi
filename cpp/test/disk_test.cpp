@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -74,8 +74,6 @@ TEST(DiskTest, FormatUnit)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
@@ -87,8 +85,8 @@ TEST(DiskTest, FormatUnit)
 	disk->Dispatch(scsi_command::eCmdFormatUnit);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[1] = 0x10;
-	cmd[4] = 1;
+	controller->SetCmdByte(1, 0x10);
+	controller->SetCmdByte(4, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
@@ -128,8 +126,6 @@ TEST(DiskTest, Seek6)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
@@ -137,7 +133,7 @@ TEST(DiskTest, Seek6)
 
 	disk->SetBlockCount(1);
 	// Block count
-	cmd[4] = 1;
+	controller->SetCmdByte(4, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
@@ -161,8 +157,6 @@ TEST(DiskTest, Seek10)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
@@ -170,7 +164,8 @@ TEST(DiskTest, Seek10)
 
 	disk->SetBlockCount(1);
 	// Block count
-	cmd[5] = 1;
+	controller->SetCmdByte(5, 1);
+
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
@@ -231,16 +226,15 @@ TEST(DiskTest, ReadCapacity16)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
+	controller->SetCmdByte(1, 0x00);
 
-	cmd[1] = 0x00;
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Neither READ CAPACITY(16) nor READ LONG(16)";
 
 	// READ CAPACITY(16), not READ LONG(16)
-	cmd[1] = 0x10;
+	controller->SetCmdByte(1, 0x10);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
@@ -466,20 +460,18 @@ TEST(DiskTest, ReadLong10)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdReadLong10);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[2] = 1;
+	controller->SetCmdByte(2, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ LONG(10) must fail because the capacity is exceeded";
-	cmd[2] = 0;
+	controller->SetCmdByte(2, 0);
 
-	cmd[7] = 1;
+	controller->SetCmdByte(7, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -497,22 +489,20 @@ TEST(DiskTest, ReadLong16)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	// READ LONG(16), not READ CAPACITY(16)
-	cmd[1] = 0x11;
-	cmd[2] = 1;
+	controller->SetCmdByte(1, 0x11);
+	controller->SetCmdByte(2, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ LONG(16) must fail because the capacity is exceeded";
-	cmd[2] = 0;
+	controller->SetCmdByte(2, 0);
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[13] = 1;
+	controller->SetCmdByte(13, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -530,20 +520,18 @@ TEST(DiskTest, WriteLong10)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdWriteLong10);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[2] = 1;
+	controller->SetCmdByte(2, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE LONG(10) must fail because the capacity is exceeded";
-	cmd[2] = 0;
+	controller->SetCmdByte(2, 0);
 
-	cmd[7] = 1;
+	controller->SetCmdByte(7, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -561,20 +549,18 @@ TEST(DiskTest, WriteLong16)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
-	cmd[2] = 1;
+	controller->SetCmdByte(2, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE LONG(16) must fail because the capacity is exceeded";
-	cmd[2] = 0;
+	controller->SetCmdByte(2, 0);
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdWriteLong16);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[13] = 1;
+	controller->SetCmdByte(13, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -594,8 +580,6 @@ TEST(DiskTest, StartStopUnit)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	// Stop/Unload
 	disk->SetReady(true);
 	EXPECT_CALL(*controller, Status);
@@ -605,7 +589,7 @@ TEST(DiskTest, StartStopUnit)
 	EXPECT_TRUE(disk->IsStopped());
 
 	// Stop/Load
-	cmd[4] = 0x02;
+	controller->SetCmdByte(4, 0x02);
 	disk->SetReady(true);
 	disk->SetLocked(false);
 	EXPECT_CALL(*controller, Status);
@@ -627,14 +611,14 @@ TEST(DiskTest, StartStopUnit)
 			Property(&scsi_exception::get_asc, asc::load_or_eject_failed))));
 
 	// Start/Unload
-	cmd[4] = 0x01;
+	controller->SetCmdByte(4, 0x01);
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdStartStop);
 	EXPECT_EQ(status::good, controller->GetStatus());
 	EXPECT_FALSE(disk->IsStopped());
 
 	// Start/Load
-	cmd[4] = 0x03;
+	controller->SetCmdByte(4, 0x03);
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdStartStop);
 	EXPECT_EQ(status::good, controller->GetStatus());
@@ -651,8 +635,6 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
@@ -665,7 +647,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 	EXPECT_EQ(status::good, controller->GetStatus());
 	EXPECT_FALSE(disk->IsLocked());
 
-	cmd[4] = 1;
+	controller->SetCmdByte(4, 1);
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval);
 	EXPECT_EQ(status::good, controller->GetStatus());
@@ -742,19 +724,17 @@ TEST(DiskTest, ModeSense6)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	// Drive must be ready on order to return all data
 	disk->SetReady(true);
 
-	cmd[2] = 0x3f;
+	controller->SetCmdByte(2, 0x3f);
 	// ALLOCATION LENGTH
-	cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
 	EXPECT_EQ(0x08, controller->GetBuffer()[3]) << "Wrong block descriptor length";
 
 	// No block descriptor
-	cmd[1] = 0x08;
+	controller->SetCmdByte(1, 0x08);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
 	EXPECT_EQ(0x00, controller->GetBuffer()[2]) << "Wrong device-specific parameter";
 
@@ -766,22 +746,22 @@ TEST(DiskTest, ModeSense6)
 	EXPECT_EQ(0x80, buf[2]) << "Wrong device-specific parameter";
 
 	// Return block descriptor
-	cmd[1] = 0x00;
+	controller->SetCmdByte(1, 0x00);
 
 	// Format page
-	cmd[2] = 3;
+	controller->SetCmdByte(2, 3);
 	disk->SetSectorSizeInBytes(1024);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
 	DiskTest_ValidateFormatPage(controller, 12);
 
 	// Rigid disk drive page
-	cmd[2] = 4;
+	controller->SetCmdByte(2, 4);
 	disk->SetBlockCount(0x12345678);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
 	DiskTest_ValidateDrivePage(controller, 12);
 
 	// Cache page
-	cmd[2] = 8;
+	controller->SetCmdByte(2, 8);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
 	DiskTest_ValidateCachePage(controller, 12);
 }
@@ -797,19 +777,17 @@ TEST(DiskTest, ModeSense10)
 
 	controller->AddDevice(disk);
 
-	auto& cmd = controller->GetCmd();
-
 	// Drive must be ready on order to return all data
 	disk->SetReady(true);
 
-	cmd[2] = 0x3f;
+	controller->SetCmdByte(2, 0x3f);
 	// ALLOCATION LENGTH
-	cmd[8] = 255;
+	controller->SetCmdByte(8, 255);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	EXPECT_EQ(0x08, controller->GetBuffer()[7]) << "Wrong block descriptor length";
 
 	// No block descriptor
-	cmd[1] = 0x08;
+	controller->SetCmdByte(1, 0x08);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	auto& buf = controller->GetBuffer();
 	EXPECT_EQ(0x00, controller->GetBuffer()[3]) << "Wrong device-specific parameter";
@@ -822,7 +800,7 @@ TEST(DiskTest, ModeSense10)
 	EXPECT_EQ(0x80, buf[3]) << "Wrong device-specific parameter";
 
 	// Return short block descriptor
-	cmd[1] = 0x00;
+	controller->SetCmdByte(1, 0x00);
 	disk->SetBlockCount(0x1234);
 	disk->SetSectorSizeInBytes(1024);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
@@ -835,7 +813,7 @@ TEST(DiskTest, ModeSense10)
 	EXPECT_EQ(1024, GetInt16(buf, 14));
 
 	// Return long block descriptor
-	cmd[1] = 0x10;
+	controller->SetCmdByte(1, 0x10);
 	disk->SetBlockCount((uint64_t)0xffffffff + 1);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	buf = controller->GetBuffer();
@@ -847,22 +825,23 @@ TEST(DiskTest, ModeSense10)
 	EXPECT_EQ(0x00, GetInt16(buf, 14));
 	EXPECT_EQ(0x00, GetInt16(buf, 20));
 	EXPECT_EQ(1024, GetInt16(buf, 22));
-	cmd[1] = 0x00;
+
+	controller->SetCmdByte(1, 0x00);
 
 	// Format page
-	cmd[2] = 3;
+	controller->SetCmdByte(2, 3);
 	disk->SetSectorSizeInBytes(1024);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	DiskTest_ValidateFormatPage(controller, 16);
 
 	// Rigid disk drive page
-	cmd[2] = 4;
+	controller->SetCmdByte(2, 4);
 	disk->SetBlockCount(0x12345678);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	DiskTest_ValidateDrivePage(controller, 16);
 
 	// Cache page
-	cmd[2] = 8;
+	controller->SetCmdByte(2, 8);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
 	DiskTest_ValidateCachePage(controller, 16);
 }

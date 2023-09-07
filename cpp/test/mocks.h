@@ -247,8 +247,8 @@ class MockModePageDevice : public ModePageDevice
 public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));
 
 	MockModePageDevice() : ModePageDevice(UNDEFINED, 0) {}
 	~MockModePageDevice() override = default;
@@ -290,8 +290,8 @@ public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
 	MOCK_METHOD(void, Open, (), (override));
-	MOCK_METHOD(int, ModeSense6, (const vector<int>&, vector<uint8_t>&), (const override));
-	MOCK_METHOD(int, ModeSense10, (const vector<int>&, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense6, (span<const int>, vector<uint8_t>&), (const override));
+	MOCK_METHOD(int, ModeSense10, (span<const int>, vector<uint8_t>&), (const override));
 	MOCK_METHOD(void, SetUpModePages, ((map<int, vector<byte>>&), int, bool), (const override));
 
 	MockStorageDevice() : StorageDevice(UNDEFINED, 0) {}

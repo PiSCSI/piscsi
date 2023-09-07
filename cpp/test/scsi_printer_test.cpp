@@ -91,13 +91,11 @@ TEST(ScsiPrinterTest, Print)
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
     EXPECT_CALL(*controller, DataOut());
     printer->Dispatch(scsi_command::eCmdPrint);
 
-    cmd[3] = 0xff;
-    cmd[4] = 0xff;
+    controller->SetCmdByte(3, 0xff);
+    controller->SetCmdByte(4, 0xff);
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))

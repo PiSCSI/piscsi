@@ -33,6 +33,7 @@
 #include "primary_device.h"
 #include "ctapdriver.h"
 #include <string>
+#include <span>
 #include <unordered_map>
 #include <array>
 
@@ -52,10 +53,10 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(const vector<int>&, vector<uint8_t>&, uint64_t);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&) override;
+	int Read(span <const int>, vector<uint8_t>&, uint64_t);
+	bool WriteBytes(span<const int>, vector<uint8_t>&) override;
 
-	int RetrieveStats(const vector<int>&, vector<uint8_t>&) const;
+	int RetrieveStats(span<const int>, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
 	void Read6();

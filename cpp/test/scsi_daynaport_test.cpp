@@ -36,11 +36,9 @@ TEST(ScsiDaynaportTest, Read)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
 
-	auto& cmd = controller->GetCmd();
-
 	// ALLOCATION LENGTH
-	cmd[4] = 1;
-	EXPECT_EQ(0, daynaport->Read(cmd, buf, 0)) << "Trying to read the root sector must fail";
+	controller->SetCmdByte(4, 1);
+	EXPECT_EQ(0, daynaport->Read(controller->GetCmd(), buf, 0)) << "Trying to read the root sector must fail";
 }
 
 TEST(ScsiDaynaportTest, WriteBytes)
@@ -51,11 +49,9 @@ TEST(ScsiDaynaportTest, WriteBytes)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
 
-	auto& cmd = controller->GetCmd();
-
 	// Unknown data format
-	cmd[5] = 0xff;
-	EXPECT_TRUE(daynaport->WriteBytes(cmd, buf));
+	controller->SetCmdByte(5, 0xff);
+	EXPECT_TRUE(daynaport->WriteBytes(controller->GetCmd(), buf));
 }
 
 TEST(ScsiDaynaportTest, Read6)
@@ -65,9 +61,7 @@ TEST(ScsiDaynaportTest, Read6)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
-	cmd[5] = 0xff;
+	controller->SetCmdByte(5, 0xff);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -81,25 +75,23 @@ TEST(ScsiDaynaportTest, Write6)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
-	cmd[5] = 0x00;
+	controller->SetCmdByte(5, 0x00);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid transfer length";
 
-	cmd[3] = -1;
-	cmd[4] = -8;
-	cmd[5] = 0x80;
+	controller->SetCmdByte(3, -1);
+	controller->SetCmdByte(4, -8);
+	controller->SetCmdByte(5, 0x08);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid transfer length";
 
-	cmd[3] = 0;
-	cmd[4] = 0;
-	cmd[5] = 0xff;
+	controller->SetCmdByte(3, 0);
+	controller->SetCmdByte(4, 0);
+	controller->SetCmdByte(5, 0xff);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
@@ -113,10 +105,8 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
     // ALLOCATION LENGTH
-    cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
     EXPECT_CALL(*controller, DataIn());
 	daynaport->Dispatch(scsi_command::eCmdRetrieveStats);
 }
@@ -128,37 +118,35 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
 	// Unknown interface command
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
 	// Not implemented, do nothing
-	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMODE;
+	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_SETMODE);
 	EXPECT_CALL(*controller, Status());
 	daynaport->Dispatch(scsi_command::eCmdSetIfaceMode);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
-	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SETMAC;
+	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_SETMAC);
 	EXPECT_CALL(*controller, DataOut());
 	daynaport->Dispatch(scsi_command::eCmdSetIfaceMode);
 
 	// Not implemented
-	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_STATS;
+	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_STATS);
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
 	// Not implemented
-	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_ENABLE;
+	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_ENABLE);
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
 	// Not implemented
-	cmd[5] = SCSIDaynaPort::CMD_SCSILINK_SET;
+	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_SET);
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
@@ -171,14 +159,12 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Length of 0 is not supported";
 
-	cmd[4] = 1;
+	controller->SetCmdByte(4, 1);
     EXPECT_CALL(*controller, DataOut());
 	daynaport->Dispatch(scsi_command::eCmdSetMcastAddr);
 }
@@ -190,15 +176,13 @@ TEST(ScsiDaynaportTest, EnableInterface)
 	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
-	auto& cmd = controller->GetCmd();
-
 	// Enable
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 
 	// Disable
-	cmd[5] = 0x80;
+	controller->SetCmdByte(5, 0x00);
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));

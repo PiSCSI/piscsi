@@ -216,9 +216,7 @@ TEST(AbstractControllerTest, GetOpcode)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, 0);
 
-	auto& cmd = controller.GetCmd();
-
-	cmd[0] = static_cast<int>(scsi_command::eCmdInquiry);
+	controller.SetCmdByte(0, static_cast<int>(scsi_command::eCmdInquiry));
 	EXPECT_EQ(scsi_command::eCmdInquiry, controller.GetOpcode());
 }
 
@@ -230,9 +228,7 @@ TEST(AbstractControllerTest, GetLun)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	MockAbstractController controller(controller_manager, 0);
 
-	auto& cmd = controller.GetCmd();
-
-	cmd[1] = LUN << 5;
+	controller.SetCmdByte(1, LUN << 5);
 	EXPECT_EQ(LUN, controller.GetLun());
 }
 

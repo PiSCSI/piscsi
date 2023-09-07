@@ -22,6 +22,7 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include <string>
+#include <span>
 #include <array>
 
 using namespace std;
@@ -39,8 +40,8 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int GetMessage10(const vector<int>&, vector<uint8_t>&);
-	bool WriteBytes(const vector<int>&, vector<uint8_t>&) override;
+	int GetMessage10(span<const int>, vector<uint8_t>&);
+	bool WriteBytes(span<const int>, vector<uint8_t>&) override;
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;
@@ -48,10 +49,10 @@ public:
 private:
 
 	int GetMacAddr(vector<uint8_t>&) const;		// Get MAC address
-	void SetMacAddr(const vector<uint8_t>&);		// Set MAC address
+	void SetMacAddr(span<const uint8_t>);		// Set MAC address
 	void ReceivePacket();						// Receive a packet
-	void GetPacketBuf(vector<uint8_t>&, int);		// Get a packet
-	void SendPacket(const vector<uint8_t>&, int);	// Send a packet
+	void GetPacketBuf(vector<uint8_t>&, int);	// Get a packet
+	void SendPacket(span<const uint8_t>, int);	// Send a packet
 
 	CTapDriver tap;								// TAP driver
 	bool m_bTapEnable = false;					// TAP valid flag

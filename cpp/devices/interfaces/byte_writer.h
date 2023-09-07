@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <span>
 #include <vector>
 
 using namespace std;
@@ -23,5 +24,5 @@ public:
 	ByteWriter() = default;
 	virtual ~ByteWriter() = default;
 
-	virtual bool WriteBytes(const vector<int>&, vector<uint8_t>&) = 0;
+	virtual bool WriteBytes(span<const int>, vector<uint8_t>&) = 0;
 };

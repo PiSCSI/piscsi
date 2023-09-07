@@ -17,6 +17,9 @@
 #include "cd_track.h"
 #include "disk.h"
 #include "interfaces/scsi_mmc_commands.h"
+#include <span>
+#include <vector>
+#include <map>
 
 class SCSICD : public Disk, private ScsiMmcCommands
 {
@@ -39,7 +42,7 @@ protected:
 
 private:
 
-	int ReadTocInternal(const vector<int>&, vector<uint8_t>&);
+	int ReadTocInternal(span<const int>, vector<uint8_t>&);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;

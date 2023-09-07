@@ -49,10 +49,8 @@ void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& i
     auto controller         = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
     auto device             = CreateDevice(type, *controller, extension);
 
-    auto& cmd = controller->GetCmd();
-
     // ALLOCATION LENGTH
-    cmd[4] = 255;
+	controller->SetCmdByte(4, 255);
     EXPECT_CALL(*controller, DataIn());
     device->Dispatch(scsi_command::eCmdInquiry);
     const vector<uint8_t>& buffer = controller->GetBuffer();
