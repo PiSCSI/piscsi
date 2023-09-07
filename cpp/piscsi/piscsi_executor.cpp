@@ -190,14 +190,14 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 		}
 	}
 
-	if (const auto& it = log_level_mapping.find(level); it != log_level_mapping.end()) {
-		set_level(it->second);
-	}
-	else {
-		spdlog::warn("Invalid log level '" + log_level +"'");
+	const level::level_enum l = level::from_str(level);
+	// Compensate for spdlog using 'off' for unknown levels
+	if (to_string_view(l) != level) {
+		spdlog::warn("Invalid log level '" + level +"'");
 		return false;
 	}
 
+	set_level(l);
 	DeviceLogger::SetLogIdAndLun(id, lun);
 
 	if (id != -1) {

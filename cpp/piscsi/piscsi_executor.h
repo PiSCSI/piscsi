@@ -70,13 +70,4 @@ private:
 	const ProtobufSerializer serializer;
 
 	unordered_set<int> reserved_ids;
-
-	static inline const unordered_map<string, level::level_enum> log_level_mapping = {
-			{ "trace", level::trace },
-			{ "debug", level::debug },
-			{ "info", level::info },
-			{ "warn", level::warn },
-			{ "err", level::err },
-			{ "off", level::off }
-	};
 };
