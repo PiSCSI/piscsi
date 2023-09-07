@@ -262,7 +262,7 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 	return buf;
 }
 
-bool PrimaryDevice::WriteByteSequence(const span<uint8_t>&)
+bool PrimaryDevice::WriteByteSequence(span<const uint8_t>)
 {
 	GetLogger().Error("Writing bytes is not supported by this device");
 
