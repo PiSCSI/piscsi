@@ -245,14 +245,12 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		return cleanUp(error);
 	}
 
-	// Get MAC address
 	spdlog::trace("Getting the MAC address");
 
 	ifr.ifr_addr.sa_family = AF_INET;
 	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
 		return cleanUp("Can't ioctl SIOCGIFHWADDR");
 	}
-	spdlog::trace("Got the MAC");
 
 	// Save MAC address
 	memcpy(m_MacAddr.data(), ifr.ifr_hwaddr.sa_data, m_MacAddr.size());
