@@ -60,7 +60,7 @@ public:
 	int RetrieveStats(span<const int>, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
-	void Read6();
+	void Read6() const;
 	void Write6() const;
 	void RetrieveStatistics() const;
 	void SetInterfaceMode() const;

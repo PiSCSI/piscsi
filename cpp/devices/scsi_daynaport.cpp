@@ -302,7 +302,7 @@ void SCSIDaynaPort::TestUnitReady()
 	EnterStatusPhase();
 }
 
-void SCSIDaynaPort::Read6()
+void SCSIDaynaPort::Read6() const
 {
 	// Get record number and block number
     const uint32_t record = GetInt24(GetController()->GetCmd(), 1) & 0x1fffff;
