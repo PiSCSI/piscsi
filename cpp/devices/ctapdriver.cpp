@@ -154,23 +154,14 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	if (access(string("/sys/class/net/" + BRIDGE_NAME).c_str(), F_OK)) {
 		spdlog::trace("Checking which interface is available for creating the bridge " + BRIDGE_NAME);
 
-		string bridge_interface;
-		for (const string& iface : interfaces) {
-			if (IsInterfaceUp(iface)) {
-				spdlog::trace("Interface " + iface + " is up");
-
-				bridge_interface = iface;
-				break;
-			}
-			else {
-				spdlog::trace("Interface " + iface + " is not available or is not up");
-			}
-		}
-
-		if (bridge_interface.empty()) {
+		const auto& it = find_if(interfaces.begin(), interfaces.end(), [] (const string& interface)
+				{ return IsInterfaceUp(interface); } );
+		if (it == interfaces.end()) {
 			spdlog::error("No interface is up, not creating bridge " + BRIDGE_NAME);
 			return false;
 		}
+
+		const string bridge_interface = *it;
 
 		spdlog::info("Creating " + BRIDGE_NAME + " for interface " + bridge_interface);
 
