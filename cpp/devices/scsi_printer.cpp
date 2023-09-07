@@ -160,7 +160,7 @@ bool SCSIPrinter::WriteByteSequence(const span<uint8_t> buf)
 
 	GetLogger().Trace("Appending " + to_string(buf.size()) + " byte(s) to printer output file ''" + filename + "'");
 
-	out.write((const char*)buf.data(), buf.size());
+	out.write(reinterpret_cast<const char *>(buf.data()), buf.size());
 
 	return !out.fail();
 }
