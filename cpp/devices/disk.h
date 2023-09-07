@@ -53,9 +53,9 @@ public:
 
 	bool Eject(bool) override;
 
-	virtual void Write(const vector<uint8_t>&, uint64_t);
+	virtual void Write(span<const uint8_t>, uint64_t);
 
-	virtual int Read(vector<uint8_t>& , uint64_t);
+	virtual int Read(span<uint8_t> , uint64_t);
 
 	uint32_t GetSectorSizeInBytes() const;
 	bool IsSectorSizeConfigurable() const { return !sector_sizes.empty(); }

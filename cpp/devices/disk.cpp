@@ -497,7 +497,7 @@ void Disk::AddCachePage(map<int, vector<byte>>& pages, bool changeable) const
 	pages[8] = buf;
 }
 
-int Disk::Read(vector<uint8_t>& buf, uint64_t block)
+int Disk::Read(span<uint8_t> buf, uint64_t block)
 {
 	assert(block < GetBlockCount());
 
@@ -510,7 +510,7 @@ int Disk::Read(vector<uint8_t>& buf, uint64_t block)
 	return GetSectorSizeInBytes();
 }
 
-void Disk::Write(const vector<uint8_t>& buf, uint64_t block)
+void Disk::Write(span<const uint8_t> buf, uint64_t block)
 {
 	assert(block < GetBlockCount());
 

@@ -216,7 +216,7 @@ void SCSICD::AddVendorPage(map<int, vector<byte>>& pages, int page, bool changea
 	}
 }
 
-int SCSICD::Read(vector<uint8_t>& buf, uint64_t block)
+int SCSICD::Read(span<uint8_t> buf, uint64_t block)
 {
 	CheckReady();
 
