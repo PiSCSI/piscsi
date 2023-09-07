@@ -303,20 +303,11 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-string CTapDriver::Enable() const
+string CTapDriver::IpLink(bool enable) const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	spdlog::trace("ip link set piscsi0 up");
-	const string result = ip_link(fd, "piscsi0", true);
-	close(fd);
-	return result;
-}
-
-string CTapDriver::Disable() const
-{
-	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	spdlog::trace("ip link set piscsi0 down");
-	const string result = ip_link(fd, "piscsi0", false);
+	spdlog::trace(string("ip link set piscsi0 ") + (enable ? "up" : "down"));
+	const string result = ip_link(fd, "piscsi0", enable);
 	close(fd);
 	return result;
 }

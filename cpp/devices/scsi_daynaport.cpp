@@ -452,7 +452,7 @@ void SCSIDaynaPort::SetMcastAddr() const
 void SCSIDaynaPort::EnableInterface() const
 {
 	if (GetController()->GetCmd(5) & 0x80) {
-		if (const string error = m_tap.Enable(); !error.empty()) {
+		if (const string error = m_tap.IpLink(true); !error.empty()) {
 			GetLogger().Warn("Unable to enable the DaynaPort Interface: " + error);
 
 			throw scsi_exception(sense_key::aborted_command);
@@ -463,7 +463,7 @@ void SCSIDaynaPort::EnableInterface() const
 		GetLogger().Info("The DaynaPort interface has been ENABLED");
 	}
 	else {
-		if (const string error = m_tap.Disable(); !error.empty()) {
+		if (const string error = m_tap.IpLink(false); !error.empty()) {
 			GetLogger().Warn("Unable to disable the DaynaPort Interface: " + error);
 
 			throw scsi_exception(sense_key::aborted_command);
