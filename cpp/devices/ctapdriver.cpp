@@ -34,7 +34,7 @@ const string CTapDriver::BRIDGE_NAME = "piscsi_bridge";
 
 static string br_setif(int br_socket_fd, const string& bridgename, const string& ifname, bool add) {
 #ifndef __linux__
-	return "Linux is required";
+	return "if_nametoindex: Linux is required";
 #else
 	ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname.c_str());
@@ -70,7 +70,7 @@ CTapDriver::~CTapDriver()
 
 string ip_link(int fd, const char* ifname, bool up) {
 #ifndef __linux__
-	return "Linux is required";
+	return "Can't ip_link: Linux is required";
 #else
 	ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
