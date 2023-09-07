@@ -41,7 +41,7 @@ using namespace piscsi_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
-void Piscsi::Banner(const vector<char *>& args) const
+void Piscsi::Banner(span<char *> args) const
 {
 	cout << piscsi_util::Banner("(Backend Service)");
 	cout << "Connection type: " << CONNECT_DESC << '\n' << flush;
@@ -139,7 +139,7 @@ void Piscsi::TerminationHandler(int)
 	// Process will terminate automatically
 }
 
-Piscsi::optargs_type Piscsi::ParseArguments(const vector<char *>& args, int& port) const
+Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port) const
 {
 	optargs_type optargs;
 	int block_size = 0;
@@ -465,7 +465,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	return true;
 }
 
-int Piscsi::run(const vector<char *>& args)
+int Piscsi::run(span<char *> args)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 

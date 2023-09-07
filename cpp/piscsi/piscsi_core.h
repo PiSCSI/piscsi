@@ -15,6 +15,7 @@
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
 #include "generated/piscsi_interface.pb.h"
+#include <span>
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -38,17 +39,17 @@ public:
 	Piscsi() = default;
 	~Piscsi() = default;
 
-	int run(const vector<char *>&);
+	int run(span<char *>);
 
 private:
 
-	void Banner(const vector<char *>&) const;
+	void Banner(span<char *>) const;
 	bool InitBus() const;
 	static void Cleanup();
 	void ReadAccessToken(const path&) const;
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	optargs_type ParseArguments(const vector<char *>&, int&) const;
+	optargs_type ParseArguments(span<char *>, int&) const;
 	void CreateInitialDevices(const optargs_type&) const;
 	void WaitForNotBusy() const;
 
