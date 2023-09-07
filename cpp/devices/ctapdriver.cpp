@@ -22,7 +22,6 @@
 #include <sstream>
 
 #ifdef __linux__
-#include <sys/epoll.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <linux/sockios.h>
