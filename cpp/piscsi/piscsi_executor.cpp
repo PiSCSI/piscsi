@@ -348,7 +348,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (!device->Init(params)) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, PbDeviceType_Name(device->GetType()),
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, device->GetTypeString(),
 				to_string(id), to_string(lun));
 	}
 
