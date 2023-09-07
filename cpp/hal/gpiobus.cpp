@@ -281,7 +281,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
                 spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
-                		to_string((int)delay_after_bytes) + " bytes");
+                		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
@@ -326,7 +326,7 @@ int GPIOBUS::SendHandShake(uint8_t *buf, int count, int delay_after_bytes)
         for (i = 0; i < count; i++) {
             if (i == delay_after_bytes) {
                 spdlog::trace("DELAYING for " + to_string(SCSI_DELAY_SEND_DATA_DAYNAPORT_US) + " after " +
-                		to_string((int)delay_after_bytes) + " bytes");
+                		to_string(delay_after_bytes) + " bytes");
                 SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
             }
 
