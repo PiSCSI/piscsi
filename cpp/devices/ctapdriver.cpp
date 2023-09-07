@@ -175,10 +175,10 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	}
 
 	auto cleanUp = [&] {
-			close(m_hTAP);
-			close(ip_fd);
-			close(br_socket_fd);
-			return false;
+		close(m_hTAP);
+		close(ip_fd);
+		close(br_socket_fd);
+		return false;
 	};
 
 	// Check if the bridge has already been created
