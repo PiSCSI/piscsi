@@ -448,7 +448,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			Strerrno("System shutdown failed");
+			LogErrno("System shutdown failed");
 		}
 	}
 	else if (mode == "reboot") {
@@ -459,7 +459,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			Strerrno("System reboot failed");
+			LogErrno("System reboot failed");
 		}
 	}
 	else {

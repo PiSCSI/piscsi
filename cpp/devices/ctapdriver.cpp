@@ -44,12 +44,12 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
-		Strerrno("Can't if_nametoindex " + string(ifname));
+		LogErrno("Can't if_nametoindex " + string(ifname));
 		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ - 1);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
-		Strerrno("Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF"));
+		LogErrno("Can't ioctl " + string(add ? "SIOCBRADDIF" : "SIOCBRDELIF"));
 		return false;
 	}
 	return true;
@@ -60,7 +60,7 @@ CTapDriver::~CTapDriver()
 {
 	if (m_hTAP != -1) {
 		if (int br_socket_fd; (br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
-			Strerrno("Can't open bridge socket");
+			LogErrno("Can't open bridge socket");
 		} else {
 			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
 			if (!br_setif(br_socket_fd, BRIDGE_NAME.c_str(), "piscsi0", false)) {
@@ -83,7 +83,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
-		Strerrno("Can't ioctl SIOCGIFFLAGS");
+		LogErrno("Can't ioctl SIOCGIFFLAGS");
 		return false;
 	}
 	ifr.ifr_flags &= ~IFF_UP;
@@ -92,7 +92,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	}
 	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
 	if (err) {
-		Strerrno("Can't ioctl SIOCSIFFLAGS");
+		LogErrno("Can't ioctl SIOCSIFFLAGS");
 		return false;
 	}
 	return true;
@@ -133,7 +133,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 	spdlog::trace("Opening tap device");
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
-		Strerrno("Can't open tun");
+		LogErrno("Can't open tun");
 		return false;
 	}
 
@@ -149,7 +149,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
 	if (ret < 0) {
-		Strerrno("Can't ioctl TUNSETIFF");
+		LogErrno("Can't ioctl TUNSETIFF");
 
 		close(m_hTAP);
 		return false;
@@ -159,7 +159,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	const int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (ip_fd < 0) {
-		Strerrno("Can't open ip socket");
+		LogErrno("Can't open ip socket");
 
 		close(m_hTAP);
 		return false;
@@ -167,7 +167,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	if (br_socket_fd < 0) {
-		Strerrno("Can't open bridge socket");
+		LogErrno("Can't open bridge socket");
 
 		close(m_hTAP);
 		close(ip_fd);
@@ -213,7 +213,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			spdlog::trace("brctl addbr " + BRIDGE_NAME);
 
 			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-				Strerrno("Can't ioctl SIOCBRADDBR");
+				LogErrno("Can't ioctl SIOCBRADDBR");
 
 				return cleanUp();
 			}
@@ -246,7 +246,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			spdlog::trace("brctl addbr " + BRIDGE_NAME);
 
 			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-				Strerrno("Can't ioctl SIOCBRADDBR");
+				LogErrno("Can't ioctl SIOCBRADDBR");
 
 				return cleanUp();
 			}
@@ -256,7 +256,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ);
 			if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
 				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
-				Strerrno("Can't convert '" + address + "' into a network address");
+				LogErrno("Can't convert '" + address + "' into a network address");
 
 				return cleanUp();
 			}
@@ -266,7 +266,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ);
 			if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
 				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
-				Strerrno("Can't convert '" + netmask + "' into a netmask");
+				LogErrno("Can't convert '" + netmask + "' into a netmask");
 
 				return cleanUp();
 			}
@@ -274,7 +274,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			spdlog::trace("ip address add " + inet + " dev " + BRIDGE_NAME);
 
 			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
-				Strerrno("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK");
+				LogErrno("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK");
 
 				return cleanUp();
 			}
@@ -308,7 +308,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	ifr.ifr_addr.sa_family = AF_INET;
 	if (ioctl(m_hTAP, SIOCGIFHWADDR, &ifr) < 0) {
-		Strerrno("Can't ioctl SIOCGIFHWADDR");
+		LogErrno("Can't ioctl SIOCGIFHWADDR");
 
 		return cleanUp();
 	}

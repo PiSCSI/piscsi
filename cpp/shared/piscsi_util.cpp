@@ -9,6 +9,7 @@
 
 #include "piscsi_version.h"
 #include "piscsi_util.h"
+#include <spdlog/spdlog.h>
 #include <cassert>
 #include <cstring>
 #include <sstream>
@@ -91,9 +92,9 @@ string piscsi_util::GetExtensionLowerCase(string_view filename)
 	return ext.empty() ? "" : ext.substr(1);
 }
 
-string piscsi_util::Strerrno(const string& msg)
+void piscsi_util::LogErrno(const string& msg)
 {
-	return msg + ": " + string(strerror(errno));
+	spdlog::error(msg + ": " + string(strerror(errno)));
 }
 
 // Pin the thread to a specific CPU
