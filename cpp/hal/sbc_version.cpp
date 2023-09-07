@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "sbc_version.h"
-#include <spdlog/spdlog.h>
+#include "shared/log.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -62,28 +62,28 @@ const std::string SBC_Version::m_device_tree_model_path = "/proc/device-tree/mod
 //	Convert the SBC Version to a printable string
 //
 //---------------------------------------------------------------------------
-std::string SBC_Version::GetString()
+const std::string *SBC_Version::GetString()
 {
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
-        return m_str_raspberry_pi_1;
+        return &m_str_raspberry_pi_1;
     case sbc_version_type::sbc_raspberry_pi_2_3:
-        return m_str_raspberry_pi_2_3;
+        return &m_str_raspberry_pi_2_3;
     case sbc_version_type::sbc_raspberry_pi_4:
-        return m_str_raspberry_pi_4;
+        return &m_str_raspberry_pi_4;
     case sbc_version_type::sbc_bananapi_m2_berry:
-        return m_str_bananapi_m2_berry;
+        return &m_str_bananapi_m2_berry;
     case sbc_version_type::sbc_bananapi_m2_zero:
-        return m_str_bananapi_m2_zero;
+        return &m_str_bananapi_m2_zero;
     case sbc_version_type::sbc_bananapi_m2_plus:
-        return m_str_bananapi_m2_plus;
+        return &m_str_bananapi_m2_plus;
     case sbc_version_type::sbc_bananapi_m3:
-        return m_str_bananapi_m3;
+        return &m_str_bananapi_m3;
     case sbc_version_type::sbc_bananapi_m4:
-        return m_str_bananapi_m4;
+        return &m_str_bananapi_m4;
     default:
-        spdlog::error("Unknown type of sbc detected: " + std::to_string(static_cast<int>(m_sbc_version)));
-        return m_str_unknown_sbc;
+        LOGERROR("Unknown type of sbc detected: %d", static_cast<int>(m_sbc_version))
+        return &m_str_unknown_sbc;
     }
 }
 
@@ -100,7 +100,7 @@ SBC_Version::sbc_version_type SBC_Version::GetSbcVersion()
 //---------------------------------------------------------------------------
 void SBC_Version::Init()
 {
-    spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     std::string device_tree_model;
 
     const std::ifstream input_stream(SBC_Version::m_device_tree_model_path);
@@ -108,11 +108,11 @@ void SBC_Version::Init()
     if (input_stream.fail()) {
 #if defined(__x86_64__) || defined(__X86__)
         // We expect this to fail on x86
-        spdlog::info("Detected device " + GetString());
+        LOGINFO("Detected device %s", GetString()->c_str())
         m_sbc_version = sbc_version_type::sbc_unknown;
         return;
 #else
-        spdlog::error("Failed to open " + SBC_Version::m_device_tree_model_path + ". Are you running as root?");
+        LOGERROR("Failed to open %s. Are you running as root?", SBC_Version::m_device_tree_model_path.c_str())
         throw std::invalid_argument("Failed to open /proc/device-tree/model");
 #endif
     }
@@ -124,17 +124,17 @@ void SBC_Version::Init()
     for (const auto &[key, value] : m_proc_device_tree_mapping) {
         if (device_tree_model.rfind(key, 0) == 0) {
             m_sbc_version = value;
-            spdlog::info("Detected device " + GetString());
+            LOGINFO("Detected device %s", GetString()->c_str())
             return;
         }
     }
-    spdlog::error("Unable to determine single board computer type. Defaulting to Raspberry Pi 4");
+    LOGERROR("%s Unable to determine single board computer type. Defaulting to Raspberry Pi 4", __PRETTY_FUNCTION__)
     m_sbc_version = sbc_version_type::sbc_raspberry_pi_4;
 }
 
 bool SBC_Version::IsRaspberryPi()
 {
-    spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
     case sbc_version_type::sbc_raspberry_pi_2_3:
@@ -153,7 +153,7 @@ bool SBC_Version::IsRaspberryPi()
 
 bool SBC_Version::IsBananaPi()
 {
-	   spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     switch (m_sbc_version) {
     case sbc_version_type::sbc_raspberry_pi_1:
     case sbc_version_type::sbc_raspberry_pi_2_3:
@@ -174,7 +174,7 @@ bool SBC_Version::IsBananaPi()
 //	(imported from bcm_host.c)
 uint32_t SBC_Version::GetDeviceTreeRanges(const char *filename, uint32_t offset)
 {
-	   spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     uint32_t address = ~0;
     if (FILE *fp = fopen(filename, "rb"); fp) {
         fseek(fp, offset, SEEK_SET);
@@ -189,14 +189,14 @@ uint32_t SBC_Version::GetDeviceTreeRanges(const char *filename, uint32_t offset)
 #if defined __linux__
 uint32_t SBC_Version::GetPeripheralAddress(void)
 {
-	   spdlog::trace(__PRETTY_FUNCTION__);
+    LOGTRACE("%s", __PRETTY_FUNCTION__)
     uint32_t address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 4);
     if (address == 0) {
         address = GetDeviceTreeRanges("/proc/device-tree/soc/ranges", 8);
     }
     address = (address == (uint32_t)~0) ? 0x20000000 : address;
 
-    spdlog::debug("Peripheral address: " + std::to_string(address));
+    LOGDEBUG("Peripheral address : 0x%8x\n", address)
 
     return address;
 }
@@ -215,7 +215,7 @@ uint32_t SBC_Version::GetPeripheralAddress(void)
         // Use BCM2835 address
         address = 0x20000000;
     }
-    spdlog::debug("Peripheral address: " + std::to_string(address));
+    LOGDEBUG("Peripheral address : 0x%lx\n", address);
     return address;
 }
 #else

@@ -200,7 +200,7 @@ ScsiLoop_GPIO::ScsiLoop_GPIO()
         local_pin_dp  = BPI_PIN_DP;
 
     } else {
-        LOGERROR("Unsupported board version: %s", SBC_Version::GetString().c_str());
+        LOGERROR("Unsupported board version: %s", SBC_Version::GetString()->c_str());
     }
 }
 
