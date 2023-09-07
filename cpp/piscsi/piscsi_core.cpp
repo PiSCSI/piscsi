@@ -143,7 +143,6 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port) const
 {
 	optargs_type optargs;
 	int block_size = 0;
-	string name;
 
 	opterr = 1;
 	int opt;
