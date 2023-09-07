@@ -97,33 +97,33 @@ void scsi_command_util::AddAppleVendorModePage(map<int, vector<byte>>& pages, bo
 
 	// No changeable area
 	if (!changeable) {
-		const char APPLE_DATA[] = "APPLE COMPUTER, INC   ";
+		constexpr const char APPLE_DATA[] = "APPLE COMPUTER, INC   ";
 		memcpy(&pages[48].data()[2], APPLE_DATA, sizeof(APPLE_DATA));
 	}
 }
 
-int scsi_command_util::GetInt16(const vector<uint8_t>& buf, int offset)
+int scsi_command_util::GetInt16(span <const uint8_t> buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
 	return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
 }
 
-int scsi_command_util::GetInt16(const vector<int>& buf, int offset)
+int scsi_command_util::GetInt16(span <const int> buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 1);
 
 	return (buf[offset] << 8) | buf[offset + 1];
 }
 
-int scsi_command_util::GetInt24(const vector<int>& buf, int offset)
+int scsi_command_util::GetInt24(span <const int> buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 2);
 
 	return (buf[offset] << 16) | (buf[offset + 1] << 8) | buf[offset + 2];
 }
 
-uint32_t scsi_command_util::GetInt32(const vector<int>& buf, int offset)
+uint32_t scsi_command_util::GetInt32(span <const int> buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 3);
 
@@ -131,7 +131,7 @@ uint32_t scsi_command_util::GetInt32(const vector<int>& buf, int offset)
 			(static_cast<uint32_t>(buf[offset + 2]) << 8) | static_cast<uint32_t>(buf[offset + 3]);
 }
 
-uint64_t scsi_command_util::GetInt64(const vector<int>& buf, int offset)
+uint64_t scsi_command_util::GetInt64(span<const int> buf, int offset)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 7);
 
