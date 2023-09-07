@@ -168,7 +168,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		}
 
 		if (bridge_interface.empty()) {
-			spdlog::error("No interface is up, not creating bridge");
+			spdlog::error("No interface is up, not creating bridge " + BRIDGE_NAME);
 			return false;
 		}
 
