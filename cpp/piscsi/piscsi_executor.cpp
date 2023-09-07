@@ -190,6 +190,14 @@ bool PiscsiExecutor::SetLogLevel(const string& log_level) const
 		}
 	}
 
+	// For backwards compatibility with PiSCSI <= 23.04, where non-standard spdlog log levels were used
+	if (level == "warn") {
+		level = "warning";
+	}
+	else if (level == "err") {
+		level = "error";
+	}
+
 	const level::level_enum l = level::from_str(level);
 	// Compensate for spdlog using 'off' for unknown levels
 	if (to_string_view(l) != level) {
