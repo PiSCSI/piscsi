@@ -94,7 +94,7 @@ string piscsi_util::GetExtensionLowerCase(string_view filename)
 
 void piscsi_util::LogErrno(const string& msg)
 {
-	spdlog::error(msg + ": " + string(strerror(errno)));
+	spdlog::error(errno ? msg + ": " + string(strerror(errno)) : msg);
 }
 
 // Pin the thread to a specific CPU
