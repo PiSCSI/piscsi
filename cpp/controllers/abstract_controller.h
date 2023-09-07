@@ -78,7 +78,7 @@ public:
 	void IncrementNext() { ++ctrl.next; }
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
-	span <const int> GetCmd() { return ctrl.cmd; }
+	span <const int> GetCmd() const { return ctrl.cmd; }
 	// TODO Try to make this method protected. It is currently public for usage by the unit tests.
 	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
 	int GetCmd(int index) const { return ctrl.cmd[index]; }
