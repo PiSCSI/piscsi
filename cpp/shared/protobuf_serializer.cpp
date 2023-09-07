@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Messag
 void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& message) const
 {
 	// Read the header with the size of the protobuf data
-	vector<byte> header_buf(4);
+	array<byte, 4> header_buf;
 	if (ReadBytes(fd, header_buf) < header_buf.size()) {
 		throw io_exception("Invalid protobuf message header");
 	}
@@ -64,7 +64,7 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 	message.ParseFromString(data);
 }
 
-size_t ProtobufSerializer::ReadBytes(int fd, vector<byte>& buf) const
+size_t ProtobufSerializer::ReadBytes(int fd, span<byte> buf) const
 {
 	size_t offset = 0;
 	while (offset < buf.size()) {

@@ -122,7 +122,7 @@ PbCommand PiscsiService::ReadCommand(CommandContext& context) const
 	PbCommand command;
 
 	// Read magic string
-	vector<byte> magic(6);
+	array<byte, 6> magic;
 	const size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
 	if (!bytes_read) {
 		return command;
