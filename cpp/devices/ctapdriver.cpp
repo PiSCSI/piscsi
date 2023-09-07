@@ -11,7 +11,6 @@
 
 #include "shared/piscsi_util.h"
 #include "shared/network_util.h"
-#include "shared/piscsi_exceptions.h"
 #include <unistd.h>
 #include <poll.h>
 #include <arpa/inet.h>
