@@ -422,7 +422,7 @@ uint32_t CTapDriver::Crc32(span<const uint8_t> data) {
    return ~crc;
 }
 
-int CTapDriver::Receive(uint8_t *buf)
+int CTapDriver::Receive(uint8_t *buf) const
 {
 	assert(m_hTAP != -1);
 
@@ -461,7 +461,7 @@ int CTapDriver::Receive(uint8_t *buf)
 	return dwReceived;
 }
 
-int CTapDriver::Send(const uint8_t *buf, int len)
+int CTapDriver::Send(const uint8_t *buf, int len) const
 {
 	assert(m_hTAP != -1);
 

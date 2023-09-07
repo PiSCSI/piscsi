@@ -31,9 +31,9 @@ public:
 	CTapDriver& operator=(const CTapDriver&) = default;
 
 	bool Init(const unordered_map<string, string>&);
-	void GetMacAddr(uint8_t *mac) const;
-	int Receive(uint8_t *buf);
-	int Send(const uint8_t *buf, int len);
+	void GetMacAddr(uint8_t *) const;
+	int Receive(uint8_t *) const;
+	int Send(const uint8_t *, int) const;
 	bool PendingPackets() const;		// Check if there are IP packets available
 	bool Enable() const;		// Enable the piscsi0 interface
 	bool Disable() const;		// Disable the piscsi0 interface
