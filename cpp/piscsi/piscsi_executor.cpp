@@ -166,63 +166,6 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	return context.ReturnStatus();
 }
 
-bool PiscsiExecutor::SetLogLevel(const string& log_level)
-{
-	int id = -1;
-	int lun = -1;
-	string level = log_level;
-
-	if (size_t separator_pos = log_level.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		level = log_level.substr(0, separator_pos);
-
-		const string l = log_level.substr(separator_pos + 1);
-		separator_pos = l.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
-			const string error = ProcessId(l, ScsiController::LUN_MAX, id, lun);
-			if (!error.empty()) {
-				spdlog::warn("Invalid device ID/LUN specifier '" + l + "'");
-				return false;
-			}
-		}
-		else if (!GetAsUnsignedInt(l, id)) {
-			spdlog::warn("Invalid device ID specifier '" + l + "'");
-			return false;
-		}
-	}
-
-	// For backwards compatibility with PiSCSI <= 23.04, where non-standard spdlog log levels were used
-	if (level == "warn") {
-		level = "warning";
-	}
-	else if (level == "err") {
-		level = "error";
-	}
-
-	const level::level_enum l = level::from_str(level);
-	// Compensate for spdlog using 'off' for unknown levels
-	if (to_string_view(l) != level) {
-		spdlog::warn("Invalid log level '" + level + "'");
-		return false;
-	}
-
-	set_level(l);
-	DeviceLogger::SetLogIdAndLun(id, lun);
-
-	if (id != -1) {
-		if (lun == -1) {
-			spdlog::info("Set log level for device ID " + to_string(id) + " to '" + level + "'");
-		}
-		else {
-			spdlog::info("Set log level for device ID " + to_string(id) + ", LUN " + to_string(lun) + " to '" + level + "'");
-		}
-	}
-	else {
-		spdlog::info("Set log level to '" + level + "'");
-	}
-
-	return true;
-}
-
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {

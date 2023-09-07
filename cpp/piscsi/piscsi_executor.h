@@ -33,7 +33,6 @@ public:
 
 	bool ProcessDeviceCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
 	bool ProcessCmd(const CommandContext&, const PbCommand&);
-	static bool SetLogLevel(const string&);
 	bool Start(PrimaryDevice&, bool) const;
 	bool Stop(PrimaryDevice&, bool) const;
 	bool Eject(PrimaryDevice&, bool) const;

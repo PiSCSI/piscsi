@@ -213,25 +213,6 @@ TEST_F(PiscsiExecutorTest, ProcessCmd)
 	EXPECT_FALSE(executor->ProcessCmd(context, command1));
 }
 
-TEST_F(PiscsiExecutorTest, SetLogLevel)
-{
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, 0);
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-
-	EXPECT_TRUE(executor.SetLogLevel("trace"));
-	EXPECT_TRUE(executor.SetLogLevel("debug"));
-	EXPECT_TRUE(executor.SetLogLevel("info"));
-	EXPECT_TRUE(executor.SetLogLevel("warning"));
-	EXPECT_TRUE(executor.SetLogLevel("error"));
-	EXPECT_TRUE(executor.SetLogLevel("off"));
-	EXPECT_TRUE(executor.SetLogLevel("warn"));
-	EXPECT_TRUE(executor.SetLogLevel("err"));
-	EXPECT_FALSE(executor.SetLogLevel("xyz"));
-}
-
 TEST_F(PiscsiExecutorTest, Attach)
 {
 	const int ID = 3;

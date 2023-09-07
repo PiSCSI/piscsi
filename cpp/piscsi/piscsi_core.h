@@ -56,6 +56,8 @@ private:
 	// TODO Should not be static and should be moved to PiscsiService
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
 
+	static bool SetLogLevel(const string&);
+
 	DeviceLogger device_logger;
 
 	// A static instance is needed because of the signal handler
