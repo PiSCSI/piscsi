@@ -13,6 +13,11 @@
 
 using namespace network_util;
 
+TEST(NetworkUtilTest, IsInterfaceUp)
+{
+	EXPECT_FALSE(IsInterfaceUp("foo_bar"));
+}
+
 TEST(NetworkUtilTest, GetNetworkInterfaces)
 {
 	EXPECT_FALSE(GetNetworkInterfaces().empty());
