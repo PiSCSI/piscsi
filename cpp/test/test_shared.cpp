@@ -41,8 +41,8 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
     return device;
 }
 
-void TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
-                 bool removable, const string& extension)
+void Test_Inquiry::TestInquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
+		bool removable, const string& extension)
 {
     auto bus                = make_shared<MockBus>();
     auto controller_manager = make_shared<ControllerManager>(*bus);

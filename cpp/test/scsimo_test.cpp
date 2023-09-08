@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ void ScsiMo_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiMoTest, Inquiry)
 {
-	TestInquiry(SCMO, device_type::optical_memory, scsi_level::scsi_2, "PiSCSI  SCSI MO         ", 0x1f, true);
+	Test_Inquiry::TestInquiry(SCMO, device_type::optical_memory, scsi_level::scsi_2, "PiSCSI  SCSI MO         ", 0x1f, true);
 }
 
 TEST(ScsiMoTest, SupportsSaveParameters)

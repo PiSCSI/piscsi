@@ -23,9 +23,9 @@ void ScsiHdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiHdTest, Inquiry)
 {
-	TestInquiry(SCHD, device_type::direct_access, scsi_level::scsi_2, "PiSCSI                  ", 0x1f, false);
+	Test_Inquiry::TestInquiry(SCHD, device_type::direct_access, scsi_level::scsi_2, "PiSCSI                  ", 0x1f, false);
 
-	TestInquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hd1");
+	Test_Inquiry::TestInquiry(SCHD, device_type::direct_access, scsi_level::scsi_1_ccs, "PiSCSI                  ", 0x1f, false, "file.hd1");
 }
 
 TEST(ScsiHdTest, SupportsSaveParameters)

@@ -99,9 +99,9 @@ public:
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
+	friend class Test_Inquiry;
+
 	friend shared_ptr<PrimaryDevice> CreateDevice(piscsi_interface::PbDeviceType, AbstractController&, int);
-	friend void TestInquiry(piscsi_interface::PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level,
-			scsi_defs::scsi_level, const std::string&, int, bool);
 
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
 	FRIEND_TEST(AbstractControllerTest, Reset);
@@ -148,6 +148,22 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 	FRIEND_TEST(DiskTest, PreventAllowMediumRemoval);
 	FRIEND_TEST(DiskTest, SynchronizeCache);
 	FRIEND_TEST(DiskTest, ReadDefectData);
+	FRIEND_TEST(DiskTest, StartStopUnit);
+	FRIEND_TEST(DiskTest, ModeSense6);
+	FRIEND_TEST(DiskTest, ModeSense10);
+	FRIEND_TEST(ScsiDaynaportTest, Read);
+	FRIEND_TEST(ScsiDaynaportTest, WriteBytes);
+	FRIEND_TEST(ScsiDaynaportTest, Read6);
+	FRIEND_TEST(ScsiDaynaportTest, Write6);
+	FRIEND_TEST(ScsiDaynaportTest, TestRetrieveStats);
+	FRIEND_TEST(ScsiDaynaportTest, SetInterfaceMode);
+	FRIEND_TEST(ScsiDaynaportTest, SetMcastAddr);
+	FRIEND_TEST(ScsiDaynaportTest, EnableInterface);
+	FRIEND_TEST(HostServicesTest, StartStopUnit);
+	FRIEND_TEST(HostServicesTest, ModeSense6);
+	FRIEND_TEST(HostServicesTest, ModeSense10);
+	FRIEND_TEST(HostServicesTest, SetUpModePages);
+	FRIEND_TEST(ScsiPrinterTest, Print);
 
 public:
 

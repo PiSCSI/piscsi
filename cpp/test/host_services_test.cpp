@@ -34,7 +34,7 @@ TEST(HostServicesTest, TestUnitReady)
 
 TEST(HostServicesTest, Inquiry)
 {
-	TestInquiry(SCHS, device_type::processor, scsi_level::spc_3, "PiSCSI  Host Services   ", 0x1f, false);
+	Test_Inquiry::TestInquiry(SCHS, device_type::processor, scsi_level::spc_3, "PiSCSI  Host Services   ", 0x1f, false);
 }
 
 TEST(HostServicesTest, StartStopUnit)

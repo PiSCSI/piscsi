@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -11,5 +11,5 @@
 
 TEST(ScsiHostBridgeTest, Inquiry)
 {
-	TestInquiry(SCBR, device_type::communications, scsi_level::scsi_2, "PiSCSI  RASCSI BRIDGE   ", 0x27, false);
+	Test_Inquiry::TestInquiry(SCBR, device_type::communications, scsi_level::scsi_2, "PiSCSI  RASCSI BRIDGE   ", 0x27, false);
 }

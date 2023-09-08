@@ -79,8 +79,6 @@ public:
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
 	span <const int> GetCmd() const { return ctrl.cmd; }
-	// TODO Try to make this method protected. It is currently public for usage by the unit tests.
-	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
 	int GetCmdByte(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
@@ -98,6 +96,8 @@ protected:
 	void ProcessPhase();
 
 	void AllocateCmd(size_t);
+
+	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	bool HasValidLength() const { return ctrl.length != 0; }
