@@ -40,7 +40,7 @@ unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 {
 	unordered_set<shared_ptr<PrimaryDevice>> devices;
 
-	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto& entry) { return entry.second; } );
+	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto& l) { return l.second; } );
 
 	return devices;
 }
