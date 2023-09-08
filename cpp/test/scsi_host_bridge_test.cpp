@@ -11,5 +11,5 @@
 
 TEST(ScsiHostBridgeTest, Inquiry)
 {
-	Test_Inquiry::TestInquiry(SCBR, device_type::communications, scsi_level::scsi_2, "PiSCSI  RASCSI BRIDGE   ", 0x27, false);
+	TestInquiry::Inquiry(SCBR, device_type::communications, scsi_level::scsi_2, "PiSCSI  RASCSI BRIDGE   ", 0x27, false);
 }

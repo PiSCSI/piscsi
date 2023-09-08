@@ -22,7 +22,7 @@ void ScsiMo_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiMoTest, Inquiry)
 {
-	Test_Inquiry::TestInquiry(SCMO, device_type::optical_memory, scsi_level::scsi_2, "PiSCSI  SCSI MO         ", 0x1f, true);
+	TestInquiry::Inquiry(SCMO, device_type::optical_memory, scsi_level::scsi_2, "PiSCSI  SCSI MO         ", 0x1f, true);
 }
 
 TEST(ScsiMoTest, SupportsSaveParameters)

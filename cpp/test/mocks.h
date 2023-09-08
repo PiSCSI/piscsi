@@ -99,7 +99,7 @@ public:
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
-	friend class Test_Inquiry;
+	friend class TestInquiry;
 
 	friend shared_ptr<PrimaryDevice> CreateDevice(piscsi_interface::PbDeviceType, AbstractController&, int);
 

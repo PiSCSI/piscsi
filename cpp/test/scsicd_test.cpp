@@ -29,9 +29,9 @@ void ScsiCdTest_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(ScsiCdTest, Inquiry)
 {
-	Test_Inquiry::TestInquiry(SCCD, device_type::cd_rom, scsi_level::scsi_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
+	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_2, "PiSCSI  SCSI CD-ROM     ", 0x1f, true);
 
-	Test_Inquiry::TestInquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
+	TestInquiry::Inquiry(SCCD, device_type::cd_rom, scsi_level::scsi_1_ccs, "PiSCSI  SCSI CD-ROM     ", 0x1f, true, "file.is1");
 }
 
 TEST(ScsiCdTest, SetUpModePages)

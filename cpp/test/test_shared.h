@@ -42,8 +42,8 @@ int GetInt16(const vector<byte>&, int);
 uint32_t GetInt32(const vector<byte>&, int);
 
 // This class is needed in order to be declared as friend, required to have access to AbstractController::SetCmdByte
-class Test_Inquiry {
+class TestInquiry {
 public:
-	static void TestInquiry(PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, const string&, int, bool,
+	static void Inquiry(PbDeviceType, scsi_defs::device_type, scsi_defs::scsi_level, const string&, int, bool,
                  const string& = "");
 };
