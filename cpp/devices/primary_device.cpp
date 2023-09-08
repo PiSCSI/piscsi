@@ -103,7 +103,7 @@ void PrimaryDevice::Inquiry()
 	GetController()->SetLength(static_cast<uint32_t>(allocation_length));
 
 	// Report if the device does not support the requested LUN
-	if (int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
+	if (const int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
 		GetLogger().Trace("LUN is not available");
 
 		// Signal that the requested LUN does not exist
