@@ -24,5 +24,6 @@ public:
 	ByteWriter() = default;
 	virtual ~ByteWriter() = default;
 
+	// TODO The vector should be a span, but the broken host bridge legacy code prevents that :-(
 	virtual bool WriteBytes(span<const int>, vector<uint8_t>&) = 0;
 };
