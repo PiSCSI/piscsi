@@ -26,8 +26,8 @@ Device::Device(PbDeviceType type, int lun) : type(type), lun(lun)
 
 PbDeviceType Device::ParseDeviceType(const string& value)
 {
-	string t = value;
-	ranges::transform(t, t.begin(), ::toupper);
+	string t;
+	ranges::transform(value, back_inserter(t), ::toupper);
 	if (PbDeviceType type; PbDeviceType_Parse(t, &type)) {
 		return type;
 	}

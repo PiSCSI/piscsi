@@ -17,8 +17,8 @@ PbOperation ScsictlParser::ParseOperation(const string& operation) const
 
 PbDeviceType ScsictlParser::ParseType(const string& type) const
 {
-	string t = type;
-	ranges::transform(t, t.begin(), ::toupper);
+	string t;
+	ranges::transform(type, back_inserter(t), ::toupper);
 
 	if (PbDeviceType parsed_type; PbDeviceType_Parse(t, &parsed_type)) {
 		return parsed_type;

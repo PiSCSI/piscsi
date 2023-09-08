@@ -136,11 +136,11 @@ void PiscsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		return;
 	}
 
-	string folder_pattern_lower = folder_pattern;
-	ranges::transform(folder_pattern_lower, folder_pattern_lower.begin(), ::tolower);
+	string folder_pattern_lower;
+	ranges::transform(folder_pattern, back_inserter(folder_pattern_lower), ::tolower);
 
-	string file_pattern_lower = file_pattern;
-	ranges::transform(file_pattern_lower, file_pattern_lower.begin(), ::tolower);
+	string file_pattern_lower;
+	ranges::transform(file_pattern, back_inserter(file_pattern_lower), ::tolower);
 
 	for (auto it = recursive_directory_iterator(default_path, directory_options::follow_directory_symlink);
 		it != recursive_directory_iterator(); it++) {
@@ -545,8 +545,8 @@ bool PiscsiResponse::ValidateImageFile(const path& path)
 bool PiscsiResponse::FilterMatches(const string& input, string_view pattern_lower)
 {
 	if (!pattern_lower.empty()) {
-		string name_lower = input;
-		ranges::transform(name_lower, name_lower.begin(), ::tolower);
+		string name_lower;
+		ranges::transform(input, back_inserter(name_lower), ::tolower);
 
 		if (name_lower.find(pattern_lower) == string::npos) {
 			return false;
