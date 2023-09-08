@@ -146,10 +146,9 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		return context.ReturnStatus(false, result);
 	}
 
-	for (const auto& device : command.devices()) {
-		if (!ProcessDeviceCmd(context, device, command, false)) {
-			return false;
-		}
+	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
+			{ return ProcessDeviceCmd(context, device, command, false); } ) != command.devices().end()) {
+		return false;
 	}
 
 	// ATTACH and DETACH return the device list
