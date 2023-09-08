@@ -116,7 +116,7 @@ void ModePageDevice::ModeSense10() const
 
 void ModePageDevice::ModeSelect(scsi_command, span<const int>, span<const uint8_t>, int) const
 {
-	// There is no default implementation of MDOE SELECT
+	// There is no default implementation of MODE SELECT
 	throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 }
 
