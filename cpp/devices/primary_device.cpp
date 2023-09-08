@@ -67,9 +67,7 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	if (GetController() == nullptr) {
-		GetLogger().Error("Device is missing its controller");
-	}
+	assert(GetController() != nullptr);
 
 	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
