@@ -91,7 +91,7 @@ void PrimaryDevice::TestUnitReady()
 void PrimaryDevice::Inquiry()
 {
 	// EVPD and page code check
-	if ((GetController()->GetCmd(1) & 0x01) || GetController()->GetCmd(2)) {
+	if ((GetController()->GetCmdByte(1) & 0x01) || GetController()->GetCmdByte(2)) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
@@ -116,7 +116,7 @@ void PrimaryDevice::Inquiry()
 void PrimaryDevice::ReportLuns()
 {
 	// Only SELECT REPORT mode 0 is supported
-	if (GetController()->GetCmd(2)) {
+	if (GetController()->GetCmdByte(2)) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
@@ -162,7 +162,7 @@ void PrimaryDevice::RequestSense()
 
     vector<byte> buf = GetController()->GetDeviceForLun(lun)->HandleRequestSense();
 
-	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmd(4)));
+	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetController()->GetCmdByte(4)));
 
     memcpy(GetController()->GetBuffer().data(), buf.data(), allocation_length);
     GetController()->SetLength(static_cast<uint32_t>(allocation_length));
@@ -173,12 +173,12 @@ void PrimaryDevice::RequestSense()
 void PrimaryDevice::SendDiagnostic()
 {
 	// Do not support PF bit
-	if (GetController()->GetCmd(1) & 0x10) {
+	if (GetController()->GetCmdByte(1) & 0x10) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
 	// Do not support parameter list
-	if ((GetController()->GetCmd(3) != 0) || (GetController()->GetCmd(4) != 0)) {
+	if ((GetController()->GetCmdByte(3) != 0) || (GetController()->GetCmdByte(4) != 0)) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 

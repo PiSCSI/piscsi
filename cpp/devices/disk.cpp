@@ -103,7 +103,7 @@ void Disk::FormatUnit()
 	CheckReady();
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
-	if ((GetController()->GetCmd(1) & 0x10) != 0 && GetController()->GetCmd(4) != 0) {
+	if ((GetController()->GetCmdByte(1) & 0x10) != 0 && GetController()->GetCmdByte(4) != 0) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
@@ -179,7 +179,7 @@ void Disk::Verify(access_mode mode)
 	const auto& [valid, start, blocks] = CheckAndGetStartAndCount(mode);
 	if (valid) {
 		// if BytChk=0
-		if ((GetController()->GetCmd(1) & 0x02) == 0) {
+		if ((GetController()->GetCmdByte(1) & 0x02) == 0) {
 			Seek();
 			return;
 		}
@@ -200,8 +200,8 @@ void Disk::Verify(access_mode mode)
 
 void Disk::StartStopUnit()
 {
-	const bool start = GetController()->GetCmd(4) & 0x01;
-	const bool load = GetController()->GetCmd(4) & 0x02;
+	const bool start = GetController()->GetCmdByte(4) & 0x01;
+	const bool load = GetController()->GetCmdByte(4) & 0x02;
 
 	if (load) {
 		GetLogger().Trace(start ? "Loading medium" : "Ejecting medium");
@@ -237,7 +237,7 @@ void Disk::PreventAllowMediumRemoval()
 {
 	CheckReady();
 
-	const bool lock = GetController()->GetCmd(4) & 0x01;
+	const bool lock = GetController()->GetCmdByte(4) & 0x01;
 
 	GetLogger().Trace(lock ? "Locking medium" : "Unlocking medium");
 
@@ -604,7 +604,7 @@ void Disk::ReadCapacity16()
 void Disk::ReadCapacity16_ReadLong16()
 {
 	// The service action determines the actual command
-	switch (GetController()->GetCmd(1) & 0x1f) {
+	switch (GetController()->GetCmdByte(1) & 0x1f) {
 	case 0x10:
 		ReadCapacity16();
 		break;
@@ -638,7 +638,7 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 	if (mode == RW6 || mode == SEEK6) {
 		start = GetInt24(GetController()->GetCmd(), 1);
 
-		count = GetController()->GetCmd(4);
+		count = GetController()->GetCmdByte(4);
 		if (!count) {
 			count= 0x100;
 		}

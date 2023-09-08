@@ -56,8 +56,8 @@ vector<uint8_t> HostServices::InquiryInternal() const
 
 void HostServices::StartStopUnit() const
 {
-	const bool start = GetController()->GetCmd(4) & 0x01;
-	const bool load = GetController()->GetCmd(4) & 0x02;
+	const bool start = GetController()->GetCmdByte(4) & 0x01;
+	const bool load = GetController()->GetCmdByte(4) & 0x02;
 
 	if (!start) {
 		if (load) {

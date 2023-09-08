@@ -234,7 +234,7 @@ void ScsiController::Execute()
 	s << "Controller is executing " << command_mapping.find(GetOpcode())->second.second << ", CDB $"
 			<< setfill('0') << hex;
 	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
-		s << setw(2) << GetCmd(i);
+		s << setw(2) << GetCmdByte(i);
 	}
 	logger.Debug(s.str());
 
@@ -279,7 +279,7 @@ void ScsiController::Execute()
 		device->SetStatusCode(0);
 	}
 
-	if (device->CheckReservation(initiator_id, GetOpcode(), GetCmd(4) & 0x01)) {
+	if (device->CheckReservation(initiator_id, GetOpcode(), GetCmdByte(4) & 0x01)) {
 		try {
 			device->Dispatch(GetOpcode());
 		}
@@ -939,7 +939,7 @@ void ScsiController::ProcessCommand()
 	s << "CDB=$" << setfill('0') << setw(2) << hex;
 	for (uint32_t i = 0; i < len; i++) {
 		SetCmdByte(i, GetBuffer()[i]);
-		s << GetCmd(i);
+		s << GetCmdByte(i);
 	}
 	logger.Trace(s.str());
 

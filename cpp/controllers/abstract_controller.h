@@ -81,7 +81,7 @@ public:
 	span <const int> GetCmd() const { return ctrl.cmd; }
 	// TODO Try to make this method protected. It is currently public for usage by the unit tests.
 	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
-	int GetCmd(int index) const { return ctrl.cmd[index]; }
+	int GetCmdByte(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
 	uint32_t GetBytesToTransfer() const { return bytes_to_transfer; }

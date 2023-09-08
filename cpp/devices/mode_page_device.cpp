@@ -122,7 +122,7 @@ void ModePageDevice::ModeSelect(scsi_command, span<const int>, span<const uint8_
 
 void ModePageDevice::ModeSelect6() const
 {
-	SaveParametersCheck(GetController()->GetCmd(4));
+	SaveParametersCheck(GetController()->GetCmdByte(4));
 }
 
 void ModePageDevice::ModeSelect10() const
@@ -134,7 +134,7 @@ void ModePageDevice::ModeSelect10() const
 
 void ModePageDevice::SaveParametersCheck(int length) const
 {
-	if (!SupportsSaveParameters() && (GetController()->GetCmd(1) & 0x01)) {
+	if (!SupportsSaveParameters() && (GetController()->GetCmdByte(1) & 0x01)) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
