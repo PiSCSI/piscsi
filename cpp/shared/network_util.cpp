@@ -45,7 +45,7 @@ vector<string> network_util::GetNetworkInterfaces()
 
 	while (tmp) {
     	if (const string name = tmp->ifa_name; tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
-    		name != "lo" && name != "piscsi_bridge" && name.rfind("dummy", 0) == string::npos && IsInterfaceUp(name)) {
+    		name != "lo" && name != "piscsi_bridge" && !name.starts_with("dummy") && IsInterfaceUp(name)) {
     		// Only list interfaces that are up
     		network_interfaces.emplace_back(name);
 	    }
