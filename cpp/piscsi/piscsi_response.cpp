@@ -410,7 +410,7 @@ unique_ptr<PbOperationInfo> PiscsiResponse::GetOperationInfo(PbResult& result, i
 
 	operation = CreateOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
 	auto parameter = AddOperationParameter(*operation, "mode", "Shutdown mode", "", true).release();
-	parameter->add_permitted_values("piscsi");
+	parameter->add_permitted_values("rascsi");
 	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
 		parameter->add_permitted_values("system");
