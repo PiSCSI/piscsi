@@ -129,14 +129,13 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 			break;
 	}
 
-	// Remember the list of reserved files, than run the dry run
+	// Remember the list of reserved files, then run the dry run
 	const auto& reserved_files = StorageDevice::GetReservedFiles();
-	for (const auto& device : command.devices()) {
-		if (!ProcessDeviceCmd(context, device, command, true)) {
-			// Dry run failed, restore the file list
-			StorageDevice::SetReservedFiles(reserved_files);
-			return false;
-		}
+	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
+			{ return ProcessDeviceCmd(context, device, command, true); }) != command.devices().end()) {
+		// Dry run failed, restore the file list
+		StorageDevice::SetReservedFiles(reserved_files);
+		return false;
 	}
 
 	// Restore the list of reserved files before proceeding
