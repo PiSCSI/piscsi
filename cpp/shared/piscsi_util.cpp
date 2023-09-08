@@ -85,8 +85,8 @@ string piscsi_util::Banner(string_view app)
 
 string piscsi_util::GetExtensionLowerCase(string_view filename)
 {
-	string ext = path(filename).extension();
-	ranges::transform(ext, ext.begin(), ::tolower);
+	string ext;
+	ranges::transform(path(filename).extension().string(), back_inserter(ext), ::tolower);
 
 	// Remove the leading dot
 	return ext.empty() ? "" : ext.substr(1);
