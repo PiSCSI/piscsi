@@ -10,6 +10,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "devices/primary_device.h"
 #include "abstract_controller.h"
+#include <ranges>
 
 using namespace scsi_defs;
 
@@ -38,11 +39,8 @@ void AbstractController::SetByteTransfer(bool b)
 
 unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 {
-	unordered_set<shared_ptr<PrimaryDevice>> devices;
-
-	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto& l) { return l.second; } );
-
-	return devices;
+	const auto devices = luns | views::transform([] (const auto& l) { return l.second; } );
+	return unordered_set<shared_ptr<PrimaryDevice>>(devices.begin(), devices.end());
 }
 
 shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
