@@ -54,7 +54,7 @@ private:
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
-	ProtobufSerializer serializer;
+	const ProtobufSerializer serializer;
 	PbCommand& command;
 	string hostname;
 	int port;
