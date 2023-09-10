@@ -229,7 +229,8 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+	list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+	sorted_interfaces.sort();
 	s << "Available (up) network interfaces: " << JoinWithComma(sorted_interfaces) << '\n';
 
 	return s.str();
