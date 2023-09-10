@@ -17,6 +17,7 @@
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
 #include "devices/interfaces/byte_writer.h"
+#include "devices/scsi_daynaport.h"
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
 #include "scsi_controller.h"
@@ -881,9 +882,20 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			// Special case for SCBR and SCDP
+			// Special case for SCDP
 			if (auto byte_writer = dynamic_pointer_cast<ByteWriter>(device); byte_writer) {
 				if (!byte_writer->WriteBytes(GetCmd(), GetBuffer())) {
+					return false;
+				}
+
+				ResetOffset();
+				break;
+			}
+
+			// Special case for SCBR
+			// TODO Get rid of this special case
+			if (auto dynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); dynaport) {
+				if (!dynaport->WriteBytes(GetCmd(), GetBuffer())) {
 					return false;
 				}
 

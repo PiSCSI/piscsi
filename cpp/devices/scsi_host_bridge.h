@@ -27,7 +27,7 @@
 
 using namespace std;
 
-class SCSIBR : public PrimaryDevice, public ByteWriter
+class SCSIBR : public PrimaryDevice
 {
 	static constexpr const array<uint8_t, 6> bcast_addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
@@ -41,7 +41,7 @@ public:
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int GetMessage10(span<const int>, vector<uint8_t>&);
-	bool WriteBytes(span<const int>, vector<uint8_t>&) override;
+	bool WriteBytes(span<const int>, vector<uint8_t>&);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;

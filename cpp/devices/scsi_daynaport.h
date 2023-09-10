@@ -55,7 +55,7 @@ public:
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int Read(span <const int>, vector<uint8_t>&, uint64_t) const;
-	bool WriteBytes(span<const int>, vector<uint8_t>&) override;
+	bool WriteBytes(span<const int>, span<const uint8_t>) override;
 
 	int RetrieveStats(span<const int>, vector<uint8_t>&) const;
 
