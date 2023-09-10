@@ -153,11 +153,7 @@ bool ScsictlCommands::CommandReserveIds(const string& reserved_ids)
 
 bool ScsictlCommands::CommandCreateImage(const string& image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "file", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "size", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "file", "size")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
 
 		return false;
@@ -177,11 +173,7 @@ bool ScsictlCommands::CommandDeleteImage(const string& filename)
 
 bool ScsictlCommands::CommandRenameImage(const string& image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 
 		return false;
@@ -192,11 +184,7 @@ bool ScsictlCommands::CommandRenameImage(const string& image_params)
 
 bool ScsictlCommands::CommandCopyImage(const string& image_params)
 {
-	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, "from", string_view(image_params).substr(0, separator_pos));
-		SetParam(command, "to", string_view(image_params).substr(separator_pos + 1));
-	}
-	else {
+	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 
 		return false;
@@ -337,6 +325,18 @@ bool ScsictlCommands::CommandOperationInfo()
 	cout << scsictl_display.DisplayOperationInfo(result.operation_info()) << flush;
 
 	return true;
+}
+
+bool ScsictlCommands::EvaluateParams(const string& image_params, const string& key1, const string& key2)
+{
+	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
+		SetParam(command, key1, string_view(image_params).substr(0, separator_pos));
+		SetParam(command, key2, string_view(image_params).substr(separator_pos + 1));
+
+		return true;
+	}
+
+	return false;
 }
 
 bool ScsictlCommands::ResolveHostName(const string& host, sockaddr_in *addr)

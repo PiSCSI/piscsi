@@ -51,6 +51,7 @@ private:
 	bool CommandMappingInfo();
 	bool CommandOperationInfo();
 	bool SendCommand();
+	bool EvaluateParams(const string&, const string&, const string&);
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
