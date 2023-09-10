@@ -184,7 +184,7 @@ int SCSIBR::GetMessage10(span<const int> cdb, vector<uint8_t>& buf)
 	return 0;
 }
 
-bool SCSIBR::ReadWriteBytes(span<const int> cdb, vector<uint8_t>& buf)
+bool SCSIBR::ReadWrite(span<const int> cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];

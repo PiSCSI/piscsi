@@ -41,7 +41,7 @@ TEST(ScsiDaynaportTest, Read)
 	EXPECT_EQ(0, daynaport->Read(controller->GetCmd(), buf, 0)) << "Trying to read the root sector must fail";
 }
 
-TEST(ScsiDaynaportTest, WriteBytes)
+TEST(ScsiDaynaportTest, Write)
 {
 	vector<uint8_t> buf(0);
 	auto bus = make_shared<MockBus>();
@@ -51,7 +51,7 @@ TEST(ScsiDaynaportTest, WriteBytes)
 
 	// Unknown data format
 	controller->SetCmdByte(5, 0xff);
-	EXPECT_TRUE(daynaport->WriteBytes(controller->GetCmd(), buf));
+	EXPECT_TRUE(daynaport->Write(controller->GetCmd(), buf));
 }
 
 TEST(ScsiDaynaportTest, Read6)

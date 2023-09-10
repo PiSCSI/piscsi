@@ -882,10 +882,9 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			// Special case for SCBR
-			// TODO Get rid of this special case
+			// TODO Get rid of this special case for SCBR
 			if (auto bridge = dynamic_pointer_cast<SCSIBR>(device); bridge) {
-				if (!bridge->ReadWriteBytes(GetCmd(), GetBuffer())) {
+				if (!bridge->ReadWrite(GetCmd(), GetBuffer())) {
 					return false;
 				}
 
@@ -893,10 +892,9 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			// Special case for SCDP
-			// TODO Get rid of this special case
+			// TODO Get rid of this special case for SCDP
 			if (auto dynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); dynaport) {
-				if (!dynaport->WriteBytes(GetCmd(), GetBuffer())) {
+				if (!dynaport->Write(GetCmd(), GetBuffer())) {
 					return false;
 				}
 
