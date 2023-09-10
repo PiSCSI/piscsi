@@ -10,11 +10,29 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 using namespace std;
 
 namespace piscsi_util
 {
+	string JoinWithComma(const auto& collection) {
+		ostringstream s;
+
+		bool isFirst = true;
+		for (const auto& element : collection) {
+			if (!isFirst) {
+				s << ", ";
+			}
+
+			isFirst = false;
+
+			s << element;
+		}
+
+		return s.str();
+	}
+
 	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';
 

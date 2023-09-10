@@ -18,23 +18,6 @@ using namespace piscsi_interface;
 
 class ScsictlDisplay
 {
-	string JoinWithComma(const auto& collection) const {
-		ostringstream s;
-
-		bool isFirst = true;
-		for (const auto& element : collection) {
-			if (!isFirst) {
-				s << ", ";
-			}
-
-			isFirst = false;
-
-			s << element;
-		}
-
-		return s.str();
-	}
-
 public:
 
 	ScsictlDisplay() = default;

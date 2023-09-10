@@ -488,17 +488,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
     reserved_ids = { ids_to_reserve.begin(), ids_to_reserve.end() };
 
     if (!reserved_ids.empty()) {
-    	string s;
-    	bool isFirst = true;
-    	for (const auto reserved_id : ids_to_reserve) {
-    		if (!isFirst) {
-    			s += ", ";
-    		}
-    		isFirst = false;
-    		s += to_string(reserved_id);
-    	}
-
-    	spdlog::info("Reserved ID(s) set to " + s);
+    	spdlog::info("Reserved ID(s) set to " + JoinWithComma(reserved_ids));
     }
     else {
     	spdlog::info("Cleared reserved ID(s)");

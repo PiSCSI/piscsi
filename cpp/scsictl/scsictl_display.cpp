@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "scsictl_display.h"
 #include <list>
@@ -14,6 +15,7 @@
 
 using namespace std;
 using namespace piscsi_interface;
+using namespace piscsi_util;
 using namespace protobuf_util;
 
 string ScsictlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) const
