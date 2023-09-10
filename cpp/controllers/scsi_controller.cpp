@@ -16,7 +16,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "devices/interfaces/byte_writer.h"
+#include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "devices/mode_page_device.h"
 #include "devices/disk.h"
@@ -882,9 +882,10 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		case scsi_command::eCmdVerify10:
 		case scsi_command::eCmdVerify16:
 		{
-			// Special case for SCDP
-			if (auto byte_writer = dynamic_pointer_cast<ByteWriter>(device); byte_writer) {
-				if (!byte_writer->WriteBytes(GetCmd(), GetBuffer())) {
+			// Special case for SCBR
+			// TODO Get rid of this special case
+			if (auto bridge = dynamic_pointer_cast<SCSIBR>(device); bridge) {
+				if (!bridge->ReadWriteBytes(GetCmd(), GetBuffer())) {
 					return false;
 				}
 
@@ -892,7 +893,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 				break;
 			}
 
-			// Special case for SCBR
+			// Special case for SCDP
 			// TODO Get rid of this special case
 			if (auto dynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); dynaport) {
 				if (!dynaport->WriteBytes(GetCmd(), GetBuffer())) {

@@ -17,7 +17,6 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "interfaces/byte_writer.h"
 #include "primary_device.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
@@ -41,7 +40,7 @@ public:
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
 	int GetMessage10(span<const int>, vector<uint8_t>&);
-	bool WriteBytes(span<const int>, vector<uint8_t>&);
+	bool ReadWriteBytes(span<const int>, vector<uint8_t>&);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;
