@@ -31,7 +31,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <list>
+#include <vector>
 
 using namespace std;
 using namespace filesystem;
@@ -308,7 +308,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 	// Display and log the device list
 	PbServerInfo server_info;
 	piscsi_response.GetDevices(controller_manager->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
-	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << flush;

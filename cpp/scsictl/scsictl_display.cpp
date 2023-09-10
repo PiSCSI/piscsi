@@ -10,7 +10,7 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "scsictl_display.h"
-#include <list>
+#include <vector>
 #include <iomanip>
 
 using namespace std;
@@ -22,7 +22,7 @@ string ScsictlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) con
 {
 	ostringstream s;
 
-	const list<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
+	const vector<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
 
 	s << ListDevices(devices);
 
@@ -214,8 +214,8 @@ string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files
 		s << "  No image files available\n";
 	}
 	else {
-		list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
-		image_files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+		vector<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
+		ranges::sort(image_files, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		s << "Available image files:\n";
 		for (const auto& image_file : image_files) {
@@ -369,8 +369,8 @@ void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDevicePropertie
 
 void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaData& meta_data) const
 {
-	list<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
-	sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+	vector<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
+	ranges::sort(sorted_parameters, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 	for (const auto& parameter : sorted_parameters) {
 		s << "    " << parameter.name() << ": "

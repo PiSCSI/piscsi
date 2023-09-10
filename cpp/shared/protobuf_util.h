@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 // Helper methods for setting up/evaluating protobuf messages
 //
@@ -14,7 +14,7 @@
 #include "google/protobuf/message.h"
 #include "generated/piscsi_interface.pb.h"
 #include <string>
-#include <list>
+#include <vector>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -32,5 +32,5 @@ namespace protobuf_util
 	void SetPatternParams(PbCommand&, string_view);
 	void SetProductData(PbDeviceDefinition&, const string&);
 	string SetIdAndLun(PbDeviceDefinition&, const string&, int);
-	string ListDevices(const list<PbDevice>&);
+	string ListDevices(const vector<PbDevice>&);
 }
