@@ -18,16 +18,20 @@ using namespace piscsi_interface;
 
 class ScsictlDisplay
 {
-	void DisplayCommaSeparated(ostringstream& out, const auto& collection) const {
+	string JoinWithComma(const auto& collection) const {
+		ostringstream s;
+
 		bool isFirst = true;
 		for (const auto& element : collection) {
 			if (!isFirst) {
-				out << ", ";
+				s << ", ";
 			}
 
 			isFirst = false;
-			out << element;
+			s << element;
 		}
+
+		return s.str();
 	}
 
 public:
