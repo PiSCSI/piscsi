@@ -103,8 +103,8 @@ string ScsictlDisplay::DisplayVersionInfo(const PbVersionInfo& version_info) con
 {
 	ostringstream s;
 
-	s << "piscsi server version: " << setw(2) << setfill('0') << version_info.major_version() << "."
-			<< setw(2) << setfill('0') << version_info.minor_version();
+	s << "piscsi server version: " << setfill('0') << setw(2) << version_info.major_version() << "."
+			<< setw(2) << version_info.minor_version();
 
 	if (version_info.patch_version() > 0) {
 		s << "." << version_info.patch_version();
