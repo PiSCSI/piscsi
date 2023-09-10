@@ -61,5 +61,5 @@ private:
 
 	PbResult result;
 
-	ScsictlDisplay scsictl_display;
+	const ScsictlDisplay scsictl_display;
 };
