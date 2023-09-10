@@ -174,9 +174,7 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	if (reserved_ids_info.ids_size()) {
 		s << "Reserved device IDs: ";
 
-		s << JoinWithComma(reserved_ids_info.ids());
-
-		s << '\n';
+		s << JoinWithComma(reserved_ids_info.ids()) << '\n';
 	}
 	else {
 		s << "No reserved device IDs\n";
@@ -237,9 +235,7 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 
 	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
-	s << JoinWithComma(sorted_interfaces);
-
-	s << '\n';
+	s << JoinWithComma(sorted_interfaces) << '\n';
 
 	return s.str();
 }
@@ -404,8 +400,6 @@ void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationP
 	if (parameter.permitted_values_size()) {
 		s << "      Permitted values: ";
 
-		s << JoinWithComma(parameter.permitted_values());
-
-		s << '\n';
+		s << JoinWithComma(parameter.permitted_values()) << '\n';
 	}
 }

@@ -28,6 +28,7 @@ class ScsictlDisplay
 			}
 
 			isFirst = false;
+
 			s << element;
 		}
 
