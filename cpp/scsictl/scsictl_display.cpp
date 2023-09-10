@@ -232,7 +232,7 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	const set<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+	const set<string, less<>> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 	s << "Available (up) network interfaces: " << JoinByComma(sorted_interfaces) << '\n';
 
 	return s.str();
@@ -392,7 +392,7 @@ void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaDa
 void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
 {
 	if (parameter.permitted_values_size()) {
-		const set<string> sorted_values = { parameter.permitted_values().begin(), parameter.permitted_values().end() };
+		const set<string, less<>> sorted_values = { parameter.permitted_values().begin(), parameter.permitted_values().end() };
 		s << "      Permitted values: " << JoinByComma(parameter.permitted_values()) << '\n';
 	}
 }
