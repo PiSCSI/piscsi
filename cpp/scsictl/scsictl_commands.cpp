@@ -137,21 +137,21 @@ bool ScsictlCommands::CommandDevicesInfo()
 	return true;
 }
 
-bool ScsictlCommands::CommandLogLevel(const string& log_level)
+bool ScsictlCommands::CommandLogLevel(string_view log_level)
 {
 	SetParam(command, "level", log_level);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandReserveIds(const string& reserved_ids)
+bool ScsictlCommands::CommandReserveIds(string_view reserved_ids)
 {
 	SetParam(command, "ids", reserved_ids);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandCreateImage(const string& image_params)
+bool ScsictlCommands::CommandCreateImage(string_view image_params)
 {
 	if (!EvaluateParams(image_params, "file", "size")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
@@ -164,14 +164,14 @@ bool ScsictlCommands::CommandCreateImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandDeleteImage(const string& filename)
+bool ScsictlCommands::CommandDeleteImage(string_view filename)
 {
 	SetParam(command, "file", filename);
 
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandRenameImage(const string& image_params)
+bool ScsictlCommands::CommandRenameImage(string_view image_params)
 {
 	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
@@ -182,7 +182,7 @@ bool ScsictlCommands::CommandRenameImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandCopyImage(const string& image_params)
+bool ScsictlCommands::CommandCopyImage(string_view image_params)
 {
 	if (!EvaluateParams(image_params, "from", "to")) {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
@@ -193,7 +193,7 @@ bool ScsictlCommands::CommandCopyImage(const string& image_params)
 	return SendCommand();
 }
 
-bool ScsictlCommands::CommandDefaultImageFolder(const string& folder)
+bool ScsictlCommands::CommandDefaultImageFolder(string_view folder)
 {
 	SetParam(command, "folder", folder);
 
@@ -271,7 +271,7 @@ bool ScsictlCommands::CommandDefaultImageFilesInfo()
 	return true;
 }
 
-bool ScsictlCommands::CommandImageFileInfo(const string& filename)
+bool ScsictlCommands::CommandImageFileInfo(string_view filename)
 {
 	SetParam(command, "file", filename);
 
@@ -327,7 +327,7 @@ bool ScsictlCommands::CommandOperationInfo()
 	return true;
 }
 
-bool ScsictlCommands::EvaluateParams(const string& image_params, const string& key1, const string& key2)
+bool ScsictlCommands::EvaluateParams(string_view image_params, const string& key1, const string& key2)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
 		SetParam(command, key1, image_params.substr(0, separator_pos));

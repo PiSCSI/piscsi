@@ -32,26 +32,26 @@ public:
 
 private:
 
-	bool CommandLogLevel(const string&);
-	bool CommandReserveIds(const string&);
-	bool CommandCreateImage(const string&);
-	bool CommandDeleteImage(const string&);
-	bool CommandRenameImage(const string&);
-	bool CommandCopyImage(const string&);
-	bool CommandDefaultImageFolder(const string&);
+	bool CommandLogLevel(string_view);
+	bool CommandReserveIds(string_view);
+	bool CommandCreateImage(string_view);
+	bool CommandDeleteImage(string_view);
+	bool CommandRenameImage(string_view);
+	bool CommandCopyImage(string_view);
+	bool CommandDefaultImageFolder(string_view);
 	bool CommandDeviceInfo();
 	bool CommandDeviceTypesInfo();
 	bool CommandVersionInfo();
 	bool CommandServerInfo();
 	bool CommandDefaultImageFilesInfo();
-	bool CommandImageFileInfo(const string&);
+	bool CommandImageFileInfo(string_view);
 	bool CommandNetworkInterfacesInfo();
 	bool CommandLogLevelInfo();
 	bool CommandReservedIdsInfo();
 	bool CommandMappingInfo();
 	bool CommandOperationInfo();
 	bool SendCommand();
-	bool EvaluateParams(const string&, const string&, const string&);
+	bool EvaluateParams(string_view, const string&, const string&);
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
