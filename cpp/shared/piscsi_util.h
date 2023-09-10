@@ -19,13 +19,10 @@ namespace piscsi_util
 	string JoinByComma(const auto& collection) {
 		ostringstream s;
 
-		bool isFirst = true;
 		for (const auto& element : collection) {
-			if (!isFirst) {
+			if (s.tellp()) {
 				s << ", ";
 			}
-
-			isFirst = false;
 
 			s << element;
 		}
