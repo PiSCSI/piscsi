@@ -487,7 +487,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
 
     reserved_ids = { ids_to_reserve.begin(), ids_to_reserve.end() };
 
-    if (!reserved_ids.empty()) {
+    if (!ids_to_reserve.empty()) {
     	spdlog::info("Reserved ID(s) set to " + JoinByComma(ids_to_reserve));
     }
     else {
