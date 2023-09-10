@@ -172,9 +172,7 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	ostringstream s;
 
 	if (reserved_ids_info.ids_size()) {
-		s << "Reserved device IDs: ";
-
-		s << JoinWithComma(reserved_ids_info.ids()) << '\n';
+		s << "Reserved device IDs: " << JoinWithComma(reserved_ids_info.ids()) << '\n';
 	}
 	else {
 		s << "No reserved device IDs\n";
@@ -231,11 +229,8 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	s << "Available (up) network interfaces: ";
-
 	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
-
-	s << JoinWithComma(sorted_interfaces) << '\n';
+	s << "Available (up) network interfaces: " << JoinWithComma(sorted_interfaces) << '\n';
 
 	return s.str();
 }
@@ -365,11 +360,8 @@ void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePr
 void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
 {
 	if (properties.block_sizes_size()) {
-		s << "Configurable block sizes in bytes: ";
-
 		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-
-		s << JoinWithComma(sorted_sizes);
+		s << "Configurable block sizes in bytes: " << JoinWithComma(sorted_sizes);
 	}
 }
 
@@ -398,8 +390,6 @@ void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaDa
 void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
 {
 	if (parameter.permitted_values_size()) {
-		s << "      Permitted values: ";
-
-		s << JoinWithComma(parameter.permitted_values()) << '\n';
+		s << "      Permitted values: " << JoinWithComma(parameter.permitted_values()) << '\n';
 	}
 }
