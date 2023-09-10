@@ -21,8 +21,8 @@ using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
 
-bool ScsictlCommands::Execute(const string& log_level, const string& default_folder, const string& reserved_ids,
-		const string& image_params, const string& filename)
+bool ScsictlCommands::Execute(string_view log_level, string_view default_folder, string_view reserved_ids,
+		string_view image_params, string_view filename)
 {
 	switch(command.operation()) {
 		case LOG_LEVEL:

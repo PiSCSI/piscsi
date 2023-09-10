@@ -26,7 +26,7 @@ public:
 		: command(command), hostname(hostname), port(port) {}
 	~ScsictlCommands() = default;
 
-	bool Execute(const string&, const string&, const string&, const string&, const string&);
+	bool Execute(string_view, string_view, string_view, string_view, string_view);
 
 	bool CommandDevicesInfo();
 
