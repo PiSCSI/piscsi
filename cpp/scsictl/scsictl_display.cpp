@@ -174,13 +174,7 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	if (reserved_ids_info.ids_size()) {
 		s << "Reserved device IDs: ";
 
-		for (int i = 0; i < reserved_ids_info.ids_size(); i++) {
-			if (i) {
-				s << ", ";
-			}
-
-			s << reserved_ids_info.ids(i);
-		}
+		DisplayCommaSeparated(s, reserved_ids_info.ids());
 
 		s << '\n';
 	}
@@ -243,15 +237,7 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 
 	const list<string> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
-	bool isFirst = true;
-	for (const auto& interface : sorted_interfaces) {
-		if (!isFirst) {
-			s << ", ";
-		}
-
-		isFirst = false;
-		s << interface;
-	}
+	DisplayCommaSeparated(s, sorted_interfaces);
 
 	s << '\n';
 
@@ -387,15 +373,7 @@ void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDevicePropertie
 
 		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 
-		bool isFirst = true;
-		for (const auto& size : sorted_sizes) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			s << size;
-
-			isFirst = false;
-		}
+		DisplayCommaSeparated(s, sorted_sizes);
 	}
 }
 
@@ -426,16 +404,7 @@ void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationP
 	if (parameter.permitted_values_size()) {
 		s << "      Permitted values: ";
 
-		bool isFirst = true;
-
-		for (const auto& permitted_value : parameter.permitted_values()) {
-			if (!isFirst) {
-				s << ", ";
-			}
-
-			isFirst = false;
-			s << permitted_value;
-		}
+		DisplayCommaSeparated(s, parameter.permitted_values());
 
 		s << '\n';
 	}

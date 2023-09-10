@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,6 +18,18 @@ using namespace piscsi_interface;
 
 class ScsictlDisplay
 {
+	void DisplayCommaSeparated(ostringstream& out, const auto& collection) const {
+		bool isFirst = true;
+		for (const auto& element : collection) {
+			if (!isFirst) {
+				out << ", ";
+			}
+
+			isFirst = false;
+			out << element;
+		}
+	}
+
 public:
 
 	ScsictlDisplay() = default;
