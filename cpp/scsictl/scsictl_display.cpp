@@ -354,7 +354,6 @@ void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePr
 			isFirst = false;
 		}
 	}
-
 }
 
 void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
