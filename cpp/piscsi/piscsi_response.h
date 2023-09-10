@@ -44,9 +44,9 @@ public:
 
 private:
 
-	DeviceFactory device_factory;
+	const DeviceFactory device_factory;
 
-	static const inline array<string, 6> log_levels = { "trace", "debug", "info", "warning", "error", "off" };
+	static const inline array log_levels = { "trace", "debug", "info", "warning", "error", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;
