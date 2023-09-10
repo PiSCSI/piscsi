@@ -16,7 +16,7 @@ using namespace std;
 
 namespace piscsi_util
 {
-	string JoinWithComma(const auto& collection) {
+	string JoinByComma(const auto& collection) {
 		ostringstream s;
 
 		bool isFirst = true;
