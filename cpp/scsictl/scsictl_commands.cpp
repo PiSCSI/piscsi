@@ -330,8 +330,8 @@ bool ScsictlCommands::CommandOperationInfo()
 bool ScsictlCommands::EvaluateParams(const string& image_params, const string& key1, const string& key2)
 {
 	if (const size_t separator_pos = image_params.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		SetParam(command, key1, string_view(image_params).substr(0, separator_pos));
-		SetParam(command, key2, string_view(image_params).substr(separator_pos + 1));
+		SetParam(command, key1, image_params.substr(0, separator_pos));
+		SetParam(command, key2, image_params.substr(separator_pos + 1));
 
 		return true;
 	}
