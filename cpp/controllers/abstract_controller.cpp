@@ -39,7 +39,7 @@ void AbstractController::SetByteTransfer(bool b)
 
 unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 {
-	const auto devices = luns | views::transform([] (const auto& l) { return l.second; } );
+	const auto devices = luns | views::values;
 	return unordered_set<shared_ptr<PrimaryDevice>>(devices.begin(), devices.end());
 }
 
