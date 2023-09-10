@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2021-2022 Uwe Seimet
+// Copyright (C) 2021-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
-#include <list>
+#include <vector>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -247,8 +247,8 @@ bool ScsictlCommands::CommandServerInfo()
 	cout << scsictl_display.DisplayOperationInfo(server_info.operation_info());
 
 	if (server_info.devices_info().devices_size()) {
-		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
+		vector<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+		ranges::sort(sorted_devices, [](const auto& a, const auto& b) { return a.id() < b.id() || a.unit() < b.unit(); });
 
 		cout << "Attached devices:\n";
 
