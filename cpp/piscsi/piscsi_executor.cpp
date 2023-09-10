@@ -469,35 +469,28 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 
 string PiscsiExecutor::SetReservedIds(string_view ids)
 {
-	list<string> ids_to_reserve;
+	set<int> ids_to_reserve;
 	stringstream ss(ids.data());
     string id;
     while (getline(ss, id, ',')) {
-    	if (!id.empty()) {
-    		ids_to_reserve.push_back(id);
-    	}
-    }
-
-    set<int> reserved;
-    for (const string& id_to_reserve : ids_to_reserve) {
     	int res_id;
- 		if (!GetAsUnsignedInt(id_to_reserve, res_id) || res_id > 7) {
- 			return "Invalid ID " + id_to_reserve;
- 		}
+    	if (!GetAsUnsignedInt(id, res_id) || res_id > 7) {
+    		return "Invalid ID " + id;
+    	}
 
- 		if (controller_manager.HasController(res_id)) {
- 			return "ID " + id_to_reserve + " is currently in use";
- 		}
+    	if (controller_manager.HasController(res_id)) {
+    		return "ID " + id + " is currently in use";
+    	}
 
- 		reserved.insert(res_id);
+    	ids_to_reserve.insert(res_id);
     }
 
-    reserved_ids = { reserved.begin(), reserved.end() };
+    reserved_ids = { ids_to_reserve.begin(), ids_to_reserve.end() };
 
     if (!reserved_ids.empty()) {
     	string s;
     	bool isFirst = true;
-    	for (const auto reserved_id : reserved) {
+    	for (const auto reserved_id : ids_to_reserve) {
     		if (!isFirst) {
     			s += ", ";
     		}
