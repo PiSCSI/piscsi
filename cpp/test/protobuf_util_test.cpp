@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ TEST(ProtobufUtil, SetPatternParams)
 
 TEST(ProtobufUtil, ListDevices)
 {
-	list<PbDevice> devices;
+	vector<PbDevice> devices;
 
 	EXPECT_FALSE(ListDevices(devices).empty());
 
