@@ -295,17 +295,19 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 
 void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
+	ostringstream tmp;
+
 	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
 
-	bool isFirst = true;
 	for (const auto& [key, value] : sorted_params) {
-		if (!isFirst) {
-			s << ":";
+		if (tmp.tellp()) {
+			tmp << ":";
 		}
 
-		isFirst = false;
-		s << key << "=" << value;
+		tmp << key << "=" << value;
 	}
+
+	s << tmp.str();
 }
 
 void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
@@ -335,20 +337,19 @@ void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDevicePropertie
 
 void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
 {
-	if (properties.supports_params() && properties.default_params_size()) {
-		s << "Default parameters: ";
+	ostringstream tmp;
 
-		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
+	const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
 
-		bool isFirst = true;
-		for (const auto& [key, value] : sorted_params) {
-			if (!isFirst) {
-				s << "\n                            ";
-			}
-			s << key << "=" << value;
-
-			isFirst = false;
+	for (const auto& [key, value] : sorted_params) {
+		if (tmp.tellp()) {
+			tmp << "\n                            ";
 		}
+		tmp << key << "=" << value;
+	}
+
+	if (tmp.tellp()) {
+		s << "Default parameters: " << tmp.str();
 	}
 }
 
