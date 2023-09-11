@@ -174,8 +174,8 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	ostringstream s;
 
 	if (reserved_ids_info.ids_size()) {
-		const set<int32_t> sorted_sizes = { reserved_ids_info.ids().begin(), reserved_ids_info.ids().end() };
-		s << "Reserved device IDs: " << Join(reserved_ids_info.ids()) << '\n';
+		const set<int32_t> sorted_ids = { reserved_ids_info.ids().begin(), reserved_ids_info.ids().end() };
+		s << "Reserved device IDs: " << Join(sorted_ids) << '\n';
 	}
 
 	return s.str();

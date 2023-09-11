@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // These tests only test key aspects of the expected output, because the output may change over time.
 //
@@ -154,7 +154,7 @@ TEST(ScsictlDisplayTest, DisplayReservedIdsInfo)
 	PbReservedIdsInfo info;
 
 	string s = display.DisplayReservedIdsInfo(info);
-	EXPECT_FALSE(s.empty());
+	EXPECT_TRUE(s.empty());
 
 	info.mutable_ids()->Add(5);
 	s = display.DisplayReservedIdsInfo(info);
