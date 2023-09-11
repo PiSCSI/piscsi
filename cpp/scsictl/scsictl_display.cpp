@@ -207,10 +207,7 @@ string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files
 	s << "Default image file folder: " << image_files_info.default_image_folder() << '\n';
 	s << "Supported folder depth: " << image_files_info.depth() << '\n';
 
-	if (image_files_info.image_files().empty()) {
-		s << "  No image files available\n";
-	}
-	else {
+	if (!image_files_info.image_files().empty()) {
 		vector<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
 		ranges::sort(image_files, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
