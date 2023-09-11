@@ -10,12 +10,12 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <set>
 
 using namespace std;
 
 namespace network_util
 {
 	bool IsInterfaceUp(const string&);
-	vector<string> GetNetworkInterfaces();
+	set<string> GetNetworkInterfaces();
 }

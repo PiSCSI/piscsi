@@ -34,9 +34,9 @@ bool network_util::IsInterfaceUp(const string& interface)
     return false;
 }
 
-vector<string> network_util::GetNetworkInterfaces()
+set<string> network_util::GetNetworkInterfaces()
 {
-	vector<string> network_interfaces;
+	set<string> network_interfaces;
 
 #ifdef __linux__
 	ifaddrs *addrs;
@@ -47,7 +47,7 @@ vector<string> network_util::GetNetworkInterfaces()
     	if (const string name = tmp->ifa_name; tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
     		name != "lo" && name != "piscsi_bridge" && !name.starts_with("dummy") && IsInterfaceUp(name)) {
     		// Only list interfaces that are up
-    		network_interfaces.emplace_back(name);
+    		network_interfaces.insert(name);
 	    }
 
 	    tmp = tmp->ifa_next;
