@@ -39,8 +39,12 @@ void AbstractController::SetByteTransfer(bool b)
 
 unordered_set<shared_ptr<PrimaryDevice>> AbstractController::GetDevices() const
 {
-	const auto& devices = luns | views::values;
-	return unordered_set<shared_ptr<PrimaryDevice>>(devices.begin(), devices.end());
+	unordered_set<shared_ptr<PrimaryDevice>> devices;
+
+	// "luns | views:values" is not supported by the bullseye compiler
+	ranges::transform(luns, inserter(devices, devices.begin()), [] (const auto& l) { return l.second; } );
+
+	return devices;
 }
 
 shared_ptr<PrimaryDevice> AbstractController::GetDeviceForLun(int lun) const {
