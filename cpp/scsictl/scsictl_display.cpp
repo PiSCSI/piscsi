@@ -273,19 +273,14 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 
 void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
-	ostringstream tmp;
-
 	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
 
+	vector<string> params;
 	for (const auto& [key, value] : sorted_params) {
-		if (tmp.tellp()) {
-			tmp << ":";
-		}
-
-		tmp << key << "=" << value;
+		params.emplace_back(key + "=" + value);
 	}
 
-	s << tmp.str();
+	s << Join(params, ":");
 }
 
 void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& props) const
@@ -315,19 +310,15 @@ void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDevicePropertie
 
 void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
 {
-	ostringstream tmp;
+	if (!properties.default_params().empty()) {
+		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
 
-	const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
-
-	for (const auto& [key, value] : sorted_params) {
-		if (tmp.tellp()) {
-			tmp << "\n                            ";
+		vector<string> params;
+		for (const auto& [key, value] : sorted_params) {
+			params.emplace_back(key + "=" + value);
 		}
-		tmp << key << "=" << value;
-	}
 
-	if (tmp.tellp()) {
-		s << "Default parameters: " << tmp.str();
+		s << "Default parameters: " << Join(params, "\n                            ");
 	}
 }
 
