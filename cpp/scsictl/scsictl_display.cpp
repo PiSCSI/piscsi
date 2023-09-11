@@ -11,6 +11,8 @@
 #include "shared/protobuf_util.h"
 #include "scsictl_display.h"
 #include <vector>
+#include <set>
+#include <unordered_map>
 #include <iomanip>
 
 using namespace std;
@@ -273,11 +275,9 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 
 void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
-	const map<string, string, less<>> sorted_params = { pb_device.params().begin(), pb_device.params().end() };
-
-	vector<string> params;
-	for (const auto& [key, value] : sorted_params) {
-		params.emplace_back(key + "=" + value);
+	set<string, less<>> params;
+	for (const auto& [key, value] : unordered_map<string, string>{ pb_device.params().begin(), pb_device.params().end() }) {
+		params.insert(key + "=" + value);
 	}
 
 	s << Join(params, ":");
@@ -311,11 +311,9 @@ void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDevicePropertie
 void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
 {
 	if (!properties.default_params().empty()) {
-		const map<string, string, less<>> sorted_params = { properties.default_params().begin(), properties.default_params().end() };
-
-		vector<string> params;
-		for (const auto& [key, value] : sorted_params) {
-			params.emplace_back(key + "=" + value);
+		set<string, less<>> params;
+		for (const auto& [key, value] : unordered_map<string, string>{ properties.default_params().begin(), properties.default_params().end() }) {
+			params.insert(key + "=" + value);
 		}
 
 		s << "Default parameters: " << Join(params, "\n                            ");
