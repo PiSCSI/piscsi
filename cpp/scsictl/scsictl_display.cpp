@@ -310,7 +310,8 @@ void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) 
 
 void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
 {
-	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.lockable()) {
+	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.removable()
+			|| properties.lockable()) {
 		s << "Properties: ";
 
 		bool has_property = false;
@@ -319,7 +320,6 @@ void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDevicePropertie
 			s << "read-only";
 			has_property = true;
 		}
-
 		if (properties.protectable()) {
 			s << (has_property ? ", " : "") << "protectable";
 			has_property = true;
