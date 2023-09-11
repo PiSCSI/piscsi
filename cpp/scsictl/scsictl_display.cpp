@@ -12,7 +12,7 @@
 #include "scsictl_display.h"
 #include <vector>
 #include <set>
-#include <unordered_map>
+#include <map>
 #include <iomanip>
 
 using namespace std;
@@ -276,8 +276,8 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
 	set<string, less<>> params;
-	for (const auto& [key, value] : unordered_map<string, string>{ pb_device.params().begin(), pb_device.params().end() }) {
-		params.insert(key + "=" + value);
+	for (auto it = pb_device.params().begin(); it != pb_device.params().end(); ++it) {
+		params.insert(it->first + "=" + it->second);
 	}
 
 	s << Join(params, ":");
@@ -312,8 +312,8 @@ void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePr
 {
 	if (!properties.default_params().empty()) {
 		set<string, less<>> params;
-		for (const auto& [key, value] : unordered_map<string, string>{ properties.default_params().begin(), properties.default_params().end() }) {
-			params.insert(key + "=" + value);
+		for (auto it = properties.default_params().begin(); it != properties.default_params().end(); ++it) {
+			params.insert(it->first + "=" + it->second);
 		}
 
 		s << "Default parameters: " << Join(params, "\n                            ");
