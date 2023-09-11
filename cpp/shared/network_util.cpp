@@ -34,9 +34,9 @@ bool network_util::IsInterfaceUp(const string& interface)
     return false;
 }
 
-set<string> network_util::GetNetworkInterfaces()
+set<string, less<>> network_util::GetNetworkInterfaces()
 {
-	set<string> network_interfaces;
+	set<string, less<>> network_interfaces;
 
 #ifdef __linux__
 	ifaddrs *addrs;

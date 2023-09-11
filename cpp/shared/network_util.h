@@ -17,5 +17,5 @@ using namespace std;
 namespace network_util
 {
 	bool IsInterfaceUp(const string&);
-	set<string> GetNetworkInterfaces();
+	set<string, less<>> GetNetworkInterfaces();
 }
