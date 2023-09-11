@@ -50,46 +50,30 @@ string ScsictlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 
 	s << "  ";
 
-	bool hasProperty = false;
+	vector<string> properties;
 
 	if (pb_device.properties().read_only()) {
-		s << "read-only";
-		hasProperty = true;
+		properties.emplace_back("read-only");
 	}
 
 	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "protected";
-		hasProperty = true;
+		properties.emplace_back("protected");
 	}
 
 	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "stopped";
-		hasProperty = true;
+		properties.emplace_back("stopped");
 	}
 
 	if (pb_device.properties().removable() && pb_device.status().removed()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "removed";
-		hasProperty = true;
+		properties.emplace_back("removed");
 	}
 
 	if (pb_device.properties().lockable() && pb_device.status().locked()) {
-		if (hasProperty) {
-			s << ", ";
-		}
-		s << "locked";
+		properties.emplace_back("locked");
 	}
 
-	if (hasProperty) {
-		s << "  ";
+	if (!properties.empty()) {
+		s << Join(properties) << "  ";
 	}
 
 	DisplayParams(s, pb_device);
