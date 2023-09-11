@@ -276,8 +276,8 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
 {
 	set<string, less<>> params;
-	for (auto it = pb_device.params().begin(); it != pb_device.params().end(); ++it) {
-		params.insert(it->first + "=" + it->second);
+	for (const auto& [key, value] : pb_device.params()) {
+		params.insert(key + "=" + value);
 	}
 
 	s << Join(params, ":");
@@ -312,8 +312,8 @@ void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePr
 {
 	if (!properties.default_params().empty()) {
 		set<string, less<>> params;
-		for (auto it = properties.default_params().begin(); it != properties.default_params().end(); ++it) {
-			params.insert(it->first + "=" + it->second);
+		for (const auto& [key, value] : properties.default_params()) {
+			params.insert(key + "=" + value);
 		}
 
 		s << "Default parameters: " << Join(params, "\n                            ");
