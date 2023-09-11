@@ -55,12 +55,12 @@ private:
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
-	const ProtobufSerializer serializer;
+	[[no_unique_address]] const ProtobufSerializer serializer;
 	PbCommand& command;
 	string hostname;
 	int port;
 
 	PbResult result;
 
-	const ScsictlDisplay scsictl_display;
+	[[no_unique_address]] const ScsictlDisplay scsictl_display;
 };
