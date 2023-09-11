@@ -288,28 +288,28 @@ void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) 
 	s << tmp.str();
 }
 
-void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
+void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& props) const
 {
-	ostringstream tmp;
+	vector<string> properties;
 
-	if (properties.read_only()) {
-		tmp << "read-only";
+	if (props.read_only()) {
+		properties.emplace_back("read-only");
 	}
-	if (properties.protectable()) {
-		tmp << (tmp.tellp() ? ", " : "") << "protectable";
+	if (props.protectable()) {
+		properties.emplace_back("protectable");
 	}
-	if (properties.stoppable()) {
-		tmp << (tmp.tellp() ? ", " : "") << "stoppable";
+	if (props.stoppable()) {
+		properties.emplace_back("stoppable");
 	}
-	if (properties.removable()) {
-		tmp << (tmp.tellp() ? ", " : "") << "removable";
+	if (props.removable()) {
+		properties.emplace_back("removable");
 	}
-	if (properties.lockable()) {
-		tmp << (tmp.tellp() ? ", " : "") << "lockable";
+	if (props.lockable()) {
+		properties.emplace_back("lockable");
 	}
 
-	if (tmp.tellp()) {
-		s << "Properties: " << tmp.str() << "\n        ";
+	if (!properties.empty()) {
+		s << "Properties: " << Join(properties) << "\n        ";
 	}
 }
 
