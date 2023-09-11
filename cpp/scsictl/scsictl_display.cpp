@@ -310,33 +310,26 @@ void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) 
 
 void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& properties) const
 {
-	if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.removable()
-			|| properties.lockable()) {
-		s << "Properties: ";
+	ostringstream tmp;
 
-		bool has_property = false;
+	if (properties.read_only()) {
+		tmp << "read-only";
+	}
+	if (properties.protectable()) {
+		tmp << (tmp.tellp() ? ", " : "") << "protectable";
+	}
+	if (properties.stoppable()) {
+		tmp << (tmp.tellp() ? ", " : "") << "stoppable";
+	}
+	if (properties.removable()) {
+		tmp << (tmp.tellp() ? ", " : "") << "removable";
+	}
+	if (properties.lockable()) {
+		tmp << (tmp.tellp() ? ", " : "") << "lockable";
+	}
 
-		if (properties.read_only()) {
-			s << "read-only";
-			has_property = true;
-		}
-		if (properties.protectable()) {
-			s << (has_property ? ", " : "") << "protectable";
-			has_property = true;
-		}
-		if (properties.stoppable()) {
-			s << (has_property ? ", " : "") << "stoppable";
-			has_property = true;
-		}
-		if (properties.removable()) {
-			s << (has_property ? ", " : "") << "removable";
-			has_property = true;
-		}
-		if (properties.lockable()) {
-			s << (has_property ? ", " : "") << "lockable";
-		}
-
-		s << "\n        ";
+	if (tmp.tellp()) {
+		s << "Properties: " << tmp.str() << "\n        ";
 	}
 }
 
