@@ -31,7 +31,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	const string interfaces = JoinByComma(GetNetworkInterfaces());
+	const string interfaces = Join(GetNetworkInterfaces(), ",");
 
 	default_params[SCBR]["interface"] = interfaces;
 	default_params[SCBR]["inet"] = DEFAULT_IP;

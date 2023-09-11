@@ -16,12 +16,12 @@ using namespace std;
 
 namespace piscsi_util
 {
-	string JoinByComma(const auto& collection) {
+	string Join(const auto& collection, const string_view separator = ", ") {
 		ostringstream s;
 
 		for (const auto& element : collection) {
 			if (s.tellp()) {
-				s << ", ";
+				s << separator;
 			}
 
 			s << element;
