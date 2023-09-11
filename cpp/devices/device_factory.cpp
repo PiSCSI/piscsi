@@ -31,16 +31,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCCD] = { 512, 2048};
 
-	vector<string> network_interfaces = GetNetworkInterfaces();
-	ranges::sort(network_interfaces);
-
-	string interfaces;
-	for (const auto& network_interface : network_interfaces) {
-		if (!interfaces.empty()) {
-			interfaces += ",";
-		}
-		interfaces += network_interface;
-	}
+	const string interfaces = JoinByComma(GetNetworkInterfaces());
 
 	default_params[SCBR]["interface"] = interfaces;
 	default_params[SCBR]["inet"] = DEFAULT_IP;
