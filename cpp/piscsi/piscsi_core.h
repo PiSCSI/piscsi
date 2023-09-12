@@ -15,6 +15,7 @@
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
 #include "generated/piscsi_interface.pb.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include <span>
 #include <vector>
 #include <string>
@@ -56,6 +57,8 @@ private:
 	static bool ExecuteCommand(const CommandContext&, const PbCommand&);
 
 	static bool SetLogLevel(const string&);
+
+	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
 	DeviceLogger device_logger;
 

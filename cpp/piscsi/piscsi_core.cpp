@@ -24,7 +24,6 @@
 #include "hal/systimer.h"
 #include "piscsi/piscsi_executor.h"
 #include "piscsi/piscsi_core.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/spdlog.h>
 #include <netinet/in.h>
 #include <csignal>
@@ -207,6 +206,9 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port) const
 			throw parser_exception("Parser error");
 		}
 	}
+
+	// current_log_level may have been updated above
+	SetLogLevel(current_log_level);
 
 	return optargs;
 }
@@ -537,12 +539,6 @@ int Piscsi::run(span<char *> args)
 
 		return EXIT_FAILURE;
 	}
-
-	// Create a thread-safe stdout logger to process the log messages
-	const auto logger = stdout_color_mt("piscsi stdout logger");
-
-	// current_log_level may have been updated by ParseArguments()
-	SetLogLevel(current_log_level);
 
 	if (!InitBus()) {
 		cerr << "Error: Can't initialize bus" << endl;
