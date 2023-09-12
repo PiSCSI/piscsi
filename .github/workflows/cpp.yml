@@ -104,6 +104,5 @@ jobs:
           --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
           --define sonar.cfamily.gcov.reportsPath=.
           --define sonar.coverage.exclusions="cpp/**/test/**"
-          --define sonar.cpd.exclusions="cpp/**/test/**"
           --define sonar.inclusions="cpp/**,python/**"
           --define sonar.python.version=3.7,3.9
