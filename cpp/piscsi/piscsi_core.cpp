@@ -316,7 +316,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
 	cout << device_list << flush;
 }
 
-bool Piscsi::SetLogLevel(const string& log_level)
+bool Piscsi::SetLogLevel(const string& log_level) const
 {
 	int id = -1;
 	int lun = -1;

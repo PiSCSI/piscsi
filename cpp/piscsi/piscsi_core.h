@@ -55,7 +55,7 @@ private:
 
 	bool ExecuteCommand(const CommandContext&, const PbCommand&);
 
-	bool SetLogLevel(const string&);
+	bool SetLogLevel(const string&) const;
 
 	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
 
