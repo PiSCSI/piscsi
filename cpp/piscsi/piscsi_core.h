@@ -68,7 +68,7 @@ private:
 
 	string access_token;
 
-	const PiscsiResponse piscsi_response;
+	PiscsiResponse piscsi_response;
 
 	// A static instance is needed because of the signal handler
 	static inline shared_ptr<BUS> bus;
