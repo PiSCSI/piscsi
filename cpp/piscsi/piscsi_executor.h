@@ -17,6 +17,7 @@ class PiscsiImage;
 class DeviceFactory;
 class ControllerManager;
 class PrimaryDevice;
+class StorageDevice;
 class CommandContext;
 
 using namespace spdlog;

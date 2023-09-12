@@ -14,6 +14,7 @@
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_response.h"
+#include "piscsi/piscsi_executor.h"
 #include "generated/piscsi_interface.pb.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <span>
@@ -25,7 +26,6 @@ using namespace std;
 
 class BUS;
 class ControllerManager;
-class PiscsiExecutor;
 
 class Piscsi
 {
@@ -74,7 +74,7 @@ private:
 
 	PiscsiService service;
 
-	shared_ptr<PiscsiExecutor> executor;
+	unique_ptr<PiscsiExecutor> executor;
 
 	shared_ptr<ControllerManager> controller_manager;
 
