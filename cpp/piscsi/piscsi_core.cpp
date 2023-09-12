@@ -214,7 +214,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 	return optargs;
 }
 
-void Piscsi::CreateInitialDevices(const optargs_type& optargs) const
+void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 {
 	PbCommand command;
 	PbDeviceType type = UNDEFINED;

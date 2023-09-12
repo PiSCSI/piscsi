@@ -49,7 +49,7 @@ private:
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(span<char *>, int&);
-	void CreateInitialDevices(const optargs_type&) const;
+	void CreateInitialDevices(const optargs_type&);
 	void Process();
 	void WaitForNotBusy() const;
 
@@ -68,6 +68,8 @@ private:
 
 	string access_token;
 
+	PiscsiImage piscsi_image;
+
 	PiscsiResponse piscsi_response;
 
 	PiscsiService service;
@@ -77,10 +79,6 @@ private:
 	shared_ptr<ControllerManager> controller_manager;
 
 	shared_ptr<BUS> bus;
-
-	// TODO These field should not be static
-
-	static inline PiscsiImage piscsi_image;
 
 	// Required for the termination handler
 	static Piscsi *instance;
