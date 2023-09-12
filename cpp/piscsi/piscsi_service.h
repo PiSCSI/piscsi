@@ -21,7 +21,7 @@ using namespace piscsi_interface;
 
 class PiscsiService
 {
-	using callback = function<bool(const CommandContext&, piscsi_interface::PbCommand&)>;
+	using callback = function<bool(const CommandContext&, const piscsi_interface::PbCommand&)>;
 
 	callback execute;
 

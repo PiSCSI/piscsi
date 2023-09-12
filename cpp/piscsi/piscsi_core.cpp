@@ -30,7 +30,6 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <functional>
 
 using namespace std;
 using namespace filesystem;
@@ -559,7 +558,8 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init(bind(&Piscsi::ExecuteCommand, this, placeholders::_1, placeholders::_2), port)) {
+	if (!service.Init([this] (const CommandContext& context, const PbCommand& command)
+			{ return ExecuteCommand(context, command); }, port)) {
 		return EXIT_FAILURE;
 	}
 
