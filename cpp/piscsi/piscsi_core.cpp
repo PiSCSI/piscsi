@@ -39,6 +39,8 @@ using namespace piscsi_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
+Piscsi *Piscsi::instance;
+
 void Piscsi::Banner(span<char *> args) const
 {
 	cout << piscsi_util::Banner("(Backend Service)");
@@ -65,7 +67,7 @@ void Piscsi::Banner(span<char *> args) const
 	}
 }
 
-bool Piscsi::InitBus() const
+bool Piscsi::InitBus()
 {
 	bus = GPIOBUS_Factory::Create(BUS::mode_e::TARGET);
 	if (bus == nullptr) {
@@ -132,7 +134,7 @@ void Piscsi::LogDevices(string_view devices) const
 
 void Piscsi::TerminationHandler(int)
 {
-	Cleanup();
+	instance->Cleanup();
 
 	// Process will terminate automatically
 }
@@ -563,6 +565,7 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
+	instance = this;
 	// Signal handler to detach all devices on a KILL or TERM signal
 	struct sigaction termination_handler;
 	termination_handler.sa_handler = TerminationHandler;

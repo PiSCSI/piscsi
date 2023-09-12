@@ -43,8 +43,8 @@ public:
 private:
 
 	void Banner(span<char *>) const;
-	bool InitBus() const;
-	static void Cleanup();
+	bool InitBus();
+	void Cleanup();
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
@@ -70,16 +70,18 @@ private:
 
 	PiscsiResponse piscsi_response;
 
-	// A static instance is needed because of the signal handler
-	static inline shared_ptr<BUS> bus;
+	PiscsiService service;
 
-	// TODO These fields should not be static
+	shared_ptr<PiscsiExecutor> executor;
 
-	static inline PiscsiService service;
+	shared_ptr<ControllerManager> controller_manager;
+
+	shared_ptr<BUS> bus;
+
+	// TODO These field should not be static
 
 	static inline PiscsiImage piscsi_image;
 
-	static inline shared_ptr<ControllerManager> controller_manager;
-
-	static inline shared_ptr<PiscsiExecutor> executor;
+	// Required for the termination handler
+	static Piscsi *instance;
 };
