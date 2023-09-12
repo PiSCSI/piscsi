@@ -30,7 +30,6 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <functional>
 
 using namespace std;
@@ -91,7 +90,7 @@ void Piscsi::Cleanup()
 	bus->Cleanup();
 }
 
-void Piscsi::ReadAccessToken(const path& filename) const
+void Piscsi::ReadAccessToken(const path& filename)
 {
 	if (error_code error; !is_regular_file(filename, error)) {
 		throw parser_exception("Access token file '" + filename.string() + "' must be a regular file");

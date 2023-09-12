@@ -45,7 +45,7 @@ private:
 	void Banner(span<char *>) const;
 	bool InitBus() const;
 	static void Cleanup();
-	void ReadAccessToken(const path&) const;
+	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
 	optargs_type ParseArguments(span<char *>, int&);
@@ -77,9 +77,9 @@ private:
 	static inline shared_ptr<PiscsiExecutor> executor;
 
 	// Processing flag
-	static inline atomic<bool> active;
+	atomic<bool> active;
 
-	static inline string current_log_level = "info";
+	string current_log_level = "info";
 
-	static inline string access_token;
+	string access_token;
 };
