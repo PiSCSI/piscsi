@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <functional>
 
 using namespace std;
 using namespace filesystem;
@@ -138,7 +139,7 @@ void Piscsi::TerminationHandler(int)
 	// Process will terminate automatically
 }
 
-Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port) const
+Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 {
 	optargs_type optargs;
 	int block_size = 0;
@@ -559,7 +560,7 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init(&ExecuteCommand, port)) {
+	if (!service.Init(bind(&Piscsi::ExecuteCommand, this, placeholders::_1, placeholders::_2), port)) {
 		return EXIT_FAILURE;
 	}
 
