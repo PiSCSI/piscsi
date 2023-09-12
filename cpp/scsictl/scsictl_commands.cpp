@@ -79,6 +79,9 @@ bool ScsictlCommands::Execute(string_view log_level, string_view default_folder,
 		case OPERATION_INFO:
 			return CommandOperationInfo();
 
+		case NO_OPERATION:
+			return false;
+
 		default:
 			return SendCommand();
 	}
