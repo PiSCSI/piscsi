@@ -538,6 +538,10 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
+	if (optargs.empty()) {
+		return EXIT_SUCCESS;
+	}
+
 	// Create a thread-safe stdout logger to process the log messages
 	const auto logger = stdout_color_mt("piscsi stdout logger");
 
