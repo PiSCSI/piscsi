@@ -61,6 +61,15 @@ private:
 
 	DeviceLogger device_logger;
 
+	// Processing flag
+	atomic<bool> active;
+
+	string current_log_level = "info";
+
+	string access_token;
+
+	const PiscsiResponse piscsi_response;
+
 	// A static instance is needed because of the signal handler
 	static inline shared_ptr<BUS> bus;
 
@@ -70,16 +79,7 @@ private:
 
 	static inline PiscsiImage piscsi_image;
 
-	const static inline PiscsiResponse piscsi_response;
-
 	static inline shared_ptr<ControllerManager> controller_manager;
 
 	static inline shared_ptr<PiscsiExecutor> executor;
-
-	// Processing flag
-	atomic<bool> active;
-
-	string current_log_level = "info";
-
-	string access_token;
 };
