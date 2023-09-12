@@ -204,7 +204,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port) const
 		}
 
 		if (optopt) {
-			throw parser_exception("Praser error");
+			throw parser_exception("Parser error");
 		}
 	}
 
