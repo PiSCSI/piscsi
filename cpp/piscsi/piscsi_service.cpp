@@ -95,7 +95,7 @@ void PiscsiService::Execute() const
 
 		try {
 			PbCommand command = ReadCommand(context);
-			if (context.IsValid()) {
+			if (command.operation() != PbOperation::NO_OPERATION) {
 				execute(context, command);
 			}
 		}
