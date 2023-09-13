@@ -10,13 +10,11 @@
 #include <gtest/gtest.h>
 
 #include "shared/piscsi_util.h"
-#include "generated/piscsi_interface.pb.h"
 #ifdef __linux__
 #include <sched.h>
 #endif
 
 using namespace std;
-using namespace piscsi_interface;
 using namespace piscsi_util;
 
 TEST(PiscsiUtilTest, ProcessId)
