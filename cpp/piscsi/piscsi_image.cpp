@@ -89,7 +89,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 {
 	const string filename = GetParam(command, "file");
 	if (filename.empty()) {
-		return context.ReturnStatus(false, "Can't create image file: Missing image filename");
+		return context.ReturnStatus(false, "Missing image filename");
 	}
 
 	if (!CheckDepth(filename)) {
