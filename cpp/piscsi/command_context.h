@@ -46,5 +46,5 @@ public:
 
 private:
 
-	bool ReturnStatus(bool = true, const string& = "", PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true) const;
+	bool ReturnStatus(bool, const string&, PbErrorCode, bool) const;
 };
