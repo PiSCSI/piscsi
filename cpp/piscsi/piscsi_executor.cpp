@@ -157,7 +157,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		PbResult result;
 		piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, cmd,
 				piscsi_image.GetDefaultFolder());
-		serializer.SerializeMessage(context.GetFd(), result);
+		context.WriteResult(result);
 		return true;
 	}
 
@@ -424,7 +424,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "rascsi") {
 		spdlog::info("PiSCSI shutdown requested");
 
-		serializer.SerializeMessage(context.GetFd(), result);
+		context.WriteResult(result);
 
 		return true;
 	}
@@ -441,7 +441,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "system") {
 		spdlog::info("System shutdown requested");
 
-		serializer.SerializeMessage(context.GetFd(), result);
+		context.WriteResult(result);
 
 		DetachAll();
 
@@ -452,7 +452,7 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	else if (mode == "reboot") {
 		spdlog::info("System reboot requested");
 
-		serializer.SerializeMessage(context.GetFd(), result);
+		context.WriteResult(result);
 
 		DetachAll();
 

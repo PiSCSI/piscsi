@@ -66,7 +66,5 @@ private:
 
 	const DeviceFactory device_factory;
 
-	const ProtobufSerializer serializer;
-
 	unordered_set<int> reserved_ids;
 };
