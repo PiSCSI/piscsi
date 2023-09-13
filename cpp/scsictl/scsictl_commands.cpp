@@ -9,6 +9,7 @@
 
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
+#include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
 #include <unistd.h>
@@ -115,6 +116,7 @@ bool ScsictlCommands::SendCommand()
 		throw io_exception("Can't write magic");
 	}
 
+	const ProtobufSerializer serializer;
 	serializer.SerializeMessage(fd, command);
     serializer.DeserializeMessage(fd, result);
 

@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "shared/protobuf_serializer.h"
 #include "piscsi/piscsi_response.h"
 #include <unordered_set>
 

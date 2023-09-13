@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "shared/protobuf_serializer.h"
 #include "generated/piscsi_interface.pb.h"
 #include "scsictl_display.h"
 #include <string>
@@ -55,7 +54,6 @@ private:
 
 	static bool ResolveHostName(const string&, sockaddr_in *);
 
-	[[no_unique_address]] const ProtobufSerializer serializer;
 	PbCommand& command;
 	string hostname;
 	int port;

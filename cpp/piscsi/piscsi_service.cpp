@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_util.h"
-#include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "command_context.h"
 #include "localizer.h"
