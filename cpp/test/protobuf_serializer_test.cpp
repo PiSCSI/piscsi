@@ -67,13 +67,13 @@ TEST(ProtobufSerializerTest, SerializeDeserializeMessage)
 	ProtobufSerializer serializer;
 
 	auto [fd, filename] = OpenTempFile();
-	EXPECT_NE(-1, fd);
+	ASSERT_NE(-1, fd);
 	serializer.SerializeMessage(fd, result);
 	close(fd);
 
 	result.set_status(false);
 	fd = open(filename.c_str(), O_RDONLY);
-	EXPECT_NE(-1, fd);
+	ASSERT_NE(-1, fd);
 	serializer.DeserializeMessage(fd, result);
 	close(fd);
 	remove(filename);
@@ -84,15 +84,17 @@ TEST(ProtobufSerializerTest, SerializeDeserializeMessage)
 TEST(ProtobufSerializerTest, ReadBytes)
 {
 	ProtobufSerializer serializer;
-	vector<byte> buf(1);
+	vector<byte> buf1(1);
+	vector<byte> buf2;
 
 	int fd = open("/dev/null", O_RDONLY);
-	EXPECT_NE(-1, fd);
-	EXPECT_EQ(0, serializer.ReadBytes(fd, buf));
+	ASSERT_NE(-1, fd);
+	EXPECT_EQ(0, serializer.ReadBytes(fd, buf1));
+	EXPECT_EQ(0, serializer.ReadBytes(fd, buf2));
 	close(fd);
 
 	fd = open("/dev/zero", O_RDONLY);
-	EXPECT_NE(-1, fd);
-	EXPECT_EQ(1, serializer.ReadBytes(fd, buf));
+	ASSERT_NE(-1, fd);
+	EXPECT_EQ(1, serializer.ReadBytes(fd, buf1));
 	close(fd);
 }
