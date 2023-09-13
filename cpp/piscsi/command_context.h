@@ -25,18 +25,18 @@ class CommandContext
 
 	string locale;
 
-	int fd;
+	int fd = -1;
 
 public:
 
-	CommandContext(const string& s = "", int f = -1) : locale(s), fd(f) {}
+	explicit CommandContext(const string& s = "") : locale(s) {}
 	~CommandContext() = default;
 
 	void Cleanup();
 
-	const ProtobufSerializer& GetSerializer() const { return serializer; }
+	PbCommand ReadCommand(int);
+
 	int GetFd() const { return fd; }
-	void SetFd(int f) { fd = f; }
 	bool IsValid() const { return fd != -1; }
 
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;

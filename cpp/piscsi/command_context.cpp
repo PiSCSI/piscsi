@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/piscsi_exceptions.h"
 #include "command_context.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
@@ -20,6 +21,29 @@ void CommandContext::Cleanup()
 		close(fd);
 		fd = -1;
 	}
+}
+
+PbCommand CommandContext::ReadCommand(int f)
+{
+	PbCommand command;
+
+	// Read magic string
+	array<byte, 6> magic;
+	const size_t bytes_read = serializer.ReadBytes(f, magic);
+	if (!bytes_read) {
+		return command;
+	}
+
+	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
+		throw io_exception("Invalid magic");
+	}
+
+	// Fetch the command
+	serializer.DeserializeMessage(f, command);
+
+	fd = f;
+
+	return command;
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,

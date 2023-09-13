@@ -119,24 +119,6 @@ PbCommand PiscsiService::ReadCommand(CommandContext& context) const
 		throw io_exception("accept() failed");
 	}
 
-	PbCommand command;
-
-	// Read magic string
-	array<byte, 6> magic;
-	const size_t bytes_read = context.GetSerializer().ReadBytes(fd, magic);
-	if (!bytes_read) {
-		return command;
-	}
-
-	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
-		throw io_exception("Invalid magic");
-	}
-
-	// Fetch the command
-	context.GetSerializer().DeserializeMessage(fd, command);
-
-	context.SetFd(fd);
-
-	return command;
+	return context.ReadCommand(fd);
 }
 

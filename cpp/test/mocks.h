@@ -411,9 +411,7 @@ class MockCommandContext : public CommandContext
 {
 public:
 
-	MockCommandContext() {
-		SetFd(open("/dev/null", O_WRONLY));
-	}
+	MockCommandContext() = default;
 	~MockCommandContext() = default;
 };
 

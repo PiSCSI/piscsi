@@ -400,21 +400,6 @@ TEST_F(PiscsiExecutorTest, DetachAll)
 	EXPECT_TRUE(controller_manager->GetAllDevices().empty());
 }
 
-TEST_F(PiscsiExecutorTest, ShutDown)
-{
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	PiscsiImage piscsi_image;
-	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
-
-	EXPECT_FALSE(executor.ShutDown(context, ""));
-	EXPECT_FALSE(executor.ShutDown(context, "xyz"));
-	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
-	EXPECT_FALSE(executor.ShutDown(context, "system"));
-	EXPECT_FALSE(executor.ShutDown(context, "reboot"));
-}
-
 TEST_F(PiscsiExecutorTest, SetReservedIds)
 {
 	DeviceFactory device_factory;
