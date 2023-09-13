@@ -139,6 +139,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 {
 	optargs_type optargs;
 	int block_size = 0;
+	string log_level = "info";
 
 	opterr = 1;
 	int opt;
@@ -170,7 +171,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 			}
 
 			case 'L':
-				current_log_level = optarg;
+				log_level = optarg;
 				continue;
 
 			case 'p':
@@ -204,8 +205,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 		}
 	}
 
-	// current_log_level may have been updated above
-	SetLogLevel(current_log_level);
+	SetLogLevel(log_level);
 
 	return optargs;
 }
@@ -394,8 +394,6 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
-				current_log_level = log_level;
-
 				context.ReturnStatus();
 			}
 			break;
@@ -426,7 +424,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 
 		case SERVER_INFO: {
 			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager->GetAllDevices(),
-					result, executor->GetReservedIds(), current_log_level, piscsi_image.GetDefaultFolder(),
+					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
 			serializer.SerializeMessage(context.GetFd(), result);
@@ -440,7 +438,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case LOG_LEVEL_INFO: {
-			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result, current_log_level).release());
+			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result).release());
 			serializer.SerializeMessage(context.GetFd(), result);
 			break;
 		}

@@ -64,8 +64,6 @@ private:
 	// Processing flag
 	atomic<bool> active;
 
-	string current_log_level = "info";
-
 	string access_token;
 
 	PiscsiImage piscsi_image;

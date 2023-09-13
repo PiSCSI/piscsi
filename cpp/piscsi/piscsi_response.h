@@ -35,10 +35,10 @@ public:
 	unique_ptr<PbDeviceTypesInfo> GetDeviceTypesInfo(PbResult&) const;
 	unique_ptr<PbVersionInfo> GetVersionInfo(PbResult&) const;
 	unique_ptr<PbServerInfo> GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>&, PbResult&, const unordered_set<int>&,
-			const string&, const string&, const string&, const string&, int) const;
+			const string&, const string&, const string&, int) const;
 	unique_ptr<PbNetworkInterfacesInfo> GetNetworkInterfacesInfo(PbResult&) const;
 	unique_ptr<PbMappingInfo> GetMappingInfo(PbResult&) const;
-	unique_ptr<PbLogLevelInfo> GetLogLevelInfo(PbResult&, const string&) const;
+	unique_ptr<PbLogLevelInfo> GetLogLevelInfo(PbResult&) const;
 	unique_ptr<PbOperationInfo> GetOperationInfo(PbResult&, int) const;
 
 private:

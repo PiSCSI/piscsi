@@ -261,13 +261,13 @@ unique_ptr<PbDeviceTypesInfo> PiscsiResponse::GetDeviceTypesInfo(PbResult& resul
 }
 
 unique_ptr<PbServerInfo> PiscsiResponse::GetServerInfo(const unordered_set<shared_ptr<PrimaryDevice>>& devices,
-		PbResult& result, const unordered_set<int>& reserved_ids, const string& current_log_level,
-		const string& default_folder, const string& folder_pattern, const string& file_pattern, int scan_depth) const
+		PbResult& result, const unordered_set<int>& reserved_ids, const string& default_folder,
+		const string& folder_pattern, const string& file_pattern, int scan_depth) const
 {
 	auto server_info = make_unique<PbServerInfo>();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result).release());
-	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level).release()); //NOSONAR The allocated memory is managed by protobuf
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result).release()); //NOSONAR The allocated memory is managed by protobuf
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info()); //NOSONAR The allocated memory is managed by protobuf
 	GetAvailableImages(result, *server_info, default_folder, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result).release());
@@ -294,7 +294,7 @@ unique_ptr<PbVersionInfo> PiscsiResponse::GetVersionInfo(PbResult& result) const
 	return version_info;
 }
 
-unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level) const
+unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result) const
 {
 	auto log_level_info = make_unique<PbLogLevelInfo>();
 
@@ -302,7 +302,7 @@ unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result, con
 		log_level_info->add_log_levels(log_level.data());
 	}
 
-	log_level_info->set_current_log_level(current_log_level);
+	log_level_info->set_current_log_level(spdlog::level::level_string_views[spdlog::get_level()].data());
 
 	result.set_status(true);
 
