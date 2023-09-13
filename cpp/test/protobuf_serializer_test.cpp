@@ -96,5 +96,6 @@ TEST(ProtobufSerializerTest, ReadBytes)
 	fd = open("/dev/zero", O_RDONLY);
 	ASSERT_NE(-1, fd);
 	EXPECT_EQ(1, serializer.ReadBytes(fd, buf1));
+	EXPECT_EQ(0, serializer.ReadBytes(fd, buf2));
 	close(fd);
 }
