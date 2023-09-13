@@ -12,7 +12,6 @@
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "generated/piscsi_interface.pb.h"
-#include <array>
 #include <string>
 
 using namespace std;
@@ -45,8 +44,6 @@ public:
 private:
 
 	const DeviceFactory device_factory;
-
-	static const inline array log_levels = { "trace", "debug", "info", "warning", "error", "off" };
 
 	unique_ptr<PbDeviceProperties> GetDeviceProperties(const Device&) const;
 	void GetDevice(const Device&, PbDevice&, const string&) const;

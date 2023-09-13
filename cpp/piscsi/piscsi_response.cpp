@@ -298,8 +298,8 @@ unique_ptr<PbLogLevelInfo> PiscsiResponse::GetLogLevelInfo(PbResult& result, con
 {
 	auto log_level_info = make_unique<PbLogLevelInfo>();
 
-	for (const auto& log_level : log_levels) {
-		log_level_info->add_log_levels(log_level);
+	for (const auto& log_level : spdlog::level::level_string_views) {
+		log_level_info->add_log_levels(log_level.data());
 	}
 
 	log_level_info->set_current_log_level(current_log_level);

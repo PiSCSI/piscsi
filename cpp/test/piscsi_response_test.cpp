@@ -201,7 +201,7 @@ TEST(PiscsiResponseTest, GetLogLevelInfo)
 	const auto& info = response.GetLogLevelInfo(result, "level");
 	EXPECT_TRUE(result.status());
 	EXPECT_EQ("level", info->current_log_level());
-	EXPECT_EQ(6, info->log_levels().size());
+	EXPECT_EQ(7, info->log_levels().size());
 }
 
 TEST(PiscsiResponseTest, GetNetworkInterfacesInfo)
