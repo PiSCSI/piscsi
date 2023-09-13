@@ -392,8 +392,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		}
 
 		case DEFAULT_FOLDER: {
-			if (const string status = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !status.empty()) {
-				context.ReturnStatus(false, status);
+			if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
+				context.ReturnErrorStatus(error);
 			}
 			else {
 				context.ReturnStatus();

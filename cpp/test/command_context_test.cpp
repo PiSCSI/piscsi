@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -51,4 +51,12 @@ TEST(CommandContext, ReturnStatus)
 
 	EXPECT_TRUE(context.ReturnStatus(true, "status"));
 	EXPECT_FALSE(context.ReturnStatus(false, "status"));
+}
+
+
+TEST(CommandContext, ReturnErrorStatus)
+{
+	CommandContext context("", -1);
+
+	EXPECT_FALSE(context.ReturnErrorStatus("status"));
 }

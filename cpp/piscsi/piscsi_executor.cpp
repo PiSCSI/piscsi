@@ -102,7 +102,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
 			if (const string error = SetReservedIds(ids); !error.empty()) {
-				return context.ReturnStatus(false, error);
+				return context.ReturnErrorStatus(error);
 			}
 
 			return context.ReturnStatus();
@@ -141,8 +141,8 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	// Restore the list of reserved files before proceeding
 	StorageDevice::SetReservedFiles(reserved_files);
 
-	if (const string result = ValidateLunSetup(command); !result.empty()) {
-		return context.ReturnStatus(false, result);
+	if (const string error = ValidateLunSetup(command); !error.empty()) {
+		return context.ReturnErrorStatus(error);
 	}
 
 	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
@@ -711,7 +711,7 @@ bool PiscsiExecutor::SetProductData(const CommandContext& context, const PbDevic
 		}
 	}
 	catch(const invalid_argument& e) {
-		return context.ReturnStatus(false, e.what());
+		return context.ReturnErrorStatus(e.what());
 	}
 
 	return true;
