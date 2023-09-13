@@ -37,6 +37,7 @@ public:
 	PbCommand ReadCommand(int);
 	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 
+	// TODO Try to get rid of this method
 	bool IsValid() const { return fd != -1; }
 
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
