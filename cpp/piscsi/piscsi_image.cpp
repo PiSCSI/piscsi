@@ -162,7 +162,6 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	}
 
 	const auto full_filename = path(GetFullName(filename));
-
 	if (!exists(full_filename)) {
 		return context.ReturnStatus(false, "Image file '" + full_filename.string() + "' does not exist");
 	}
@@ -287,7 +286,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 
 bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
 {
-	string filename = GetParam(command, "file");
+	const string filename = GetParam(command, "file");
 	if (filename.empty()) {
 		return context.ReturnStatus(false, "Missing image filename");
 	}
@@ -296,30 +295,25 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
 
-	filename = GetFullName(filename);
-	if (!IsValidSrcFilename(filename)) {
-		return context.ReturnStatus(false, "Can't modify image file '" + filename + "': Invalid name or type");
+	const string full_filename = GetFullName(filename);
+	if (!IsValidSrcFilename(full_filename)) {
+		return context.ReturnStatus(false, "Can't modify image file '" + full_filename + "': Invalid name or type");
 	}
 
 	const bool protect = command.operation() == PROTECT_IMAGE;
 
 	try {
-		permissions(path(filename), protect ?
+		permissions(path(full_filename), protect ?
 				perms::owner_read | perms::group_read | perms::others_read :
 				perms::owner_read | perms::group_read | perms::others_read |
 				perms::owner_write | perms::group_write);
 	}
 	catch(const filesystem_error& e) {
 		return context.ReturnStatus(false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" +
-				filename + "': " + e.what());
+				full_filename + "': " + e.what());
 	}
 
-	if (protect) {
-		spdlog::info("Protected image file '" + filename + "'");
-	}
-	else {
-		spdlog::info("Unprotected image file '" + filename + "'");
-	}
+	spdlog::info((protect ? "Protected" : "Unprotected") + string(" image file '") + full_filename + "'");
 
 	return context.ReturnStatus();
 }
