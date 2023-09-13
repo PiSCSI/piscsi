@@ -11,7 +11,6 @@
 
 #include "shared/config.h"
 #include "shared/piscsi_util.h"
-#include "shared/protobuf_serializer.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
@@ -377,7 +376,6 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 	spdlog::trace("Received " + PbOperation_Name(command.operation()) + " command");
 
 	PbResult result;
-	ProtobufSerializer serializer;
 
 	switch(command.operation()) {
 		case LOG_LEVEL: {
@@ -404,13 +402,13 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 		case DEVICES_INFO: {
 			piscsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
 					piscsi_image.GetDefaultFolder());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case DEVICE_TYPES_INFO: {
 			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
@@ -419,19 +417,19 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case VERSION_INFO: {
 			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case LOG_LEVEL_INFO: {
 			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
@@ -439,7 +437,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
 					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
@@ -453,7 +451,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
-					serializer.SerializeMessage(context.GetFd(), result);
+					context.WriteResult(result);
 				}
 				else {
 					context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_FILE_INFO);
@@ -464,27 +462,27 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 
 		case NETWORK_INTERFACES_INFO: {
 			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case MAPPING_INFO: {
 			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case OPERATION_INFO: {
 			result.set_allocated_operation_info(piscsi_response.GetOperationInfo(result,
 					piscsi_image.GetDepth()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 
 		case RESERVED_IDS_INFO: {
 			result.set_allocated_reserved_ids_info(piscsi_response.GetReservedIds(result,
 					executor->GetReservedIds()).release());
-			serializer.SerializeMessage(context.GetFd(), result);
+			context.WriteResult(result);
 			break;
 		}
 

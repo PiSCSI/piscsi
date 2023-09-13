@@ -35,6 +35,7 @@ public:
 	void Cleanup();
 
 	PbCommand ReadCommand(int);
+	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 
 	int GetFd() const { return fd; }
 	bool IsValid() const { return fd != -1; }
