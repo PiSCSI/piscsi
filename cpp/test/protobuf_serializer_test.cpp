@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -22,10 +22,10 @@ TEST(ProtobufSerializerTest, SerializeMessage)
 	ProtobufSerializer serializer;
 
 	const int fd = open("/dev/null", O_WRONLY);
-	EXPECT_NE(-1, fd);
+	ASSERT_NE(-1, fd);
 	serializer.SerializeMessage(fd, result);
-	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception) << "Writing a message must fail";
 	close(fd);
+	EXPECT_THROW(serializer.SerializeMessage(-1, result), io_exception) << "Writing a message must fail";
 }
 
 TEST(ProtobufSerializerTest, DeserializeMessage)
@@ -35,7 +35,7 @@ TEST(ProtobufSerializerTest, DeserializeMessage)
 	vector<byte> buf(1);
 
 	int fd = open("/dev/null", O_RDONLY);
-	EXPECT_NE(-1, fd);
+	ASSERT_NE(-1, fd);
 	EXPECT_THROW(serializer.DeserializeMessage(fd, result), io_exception) << "Reading the message header must fail";
 	close(fd);
 
@@ -45,7 +45,7 @@ TEST(ProtobufSerializerTest, DeserializeMessage)
 	EXPECT_EQ(buf.size(), write(fd1, buf.data(), buf.size()));
 	close(fd1);
 	fd1 = open(filename1.c_str(), O_RDONLY);
-	EXPECT_NE(-1, fd1);
+	ASSERT_NE(-1, fd1);
 	EXPECT_THROW(serializer.DeserializeMessage(fd1, result), io_exception) << "Invalid header was not rejected";
 	remove(filename1);
 
