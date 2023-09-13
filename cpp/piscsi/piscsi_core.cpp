@@ -39,8 +39,6 @@ using namespace piscsi_util;
 using namespace protobuf_util;
 using namespace scsi_defs;
 
-Piscsi *Piscsi::instance;
-
 void Piscsi::Banner(span<char *> args) const
 {
 	cout << piscsi_util::Banner("(Backend Service)");

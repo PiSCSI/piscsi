@@ -81,5 +81,5 @@ private:
 	shared_ptr<BUS> bus;
 
 	// Required for the termination handler
-	static Piscsi *instance;
+	static inline Piscsi *instance;
 };
