@@ -330,11 +330,6 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
-	from = GetFullName(from);
-	if (!IsValidSrcFilename(from)) {
-		return context.ReturnStatus(false, "Can't " + operation + " image file: '" + from + "': Invalid name or type");
-	}
-
 	to = GetParam(command, "to");
 	if (to.empty()) {
 		return context.ReturnStatus(false, "Can't " + operation + " image file '" + from + "': Missing destination filename");
@@ -342,6 +337,11 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 
 	if (!CheckDepth(to)) {
 		return context.ReturnStatus(false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+	}
+
+	from = GetFullName(from);
+	if (!IsValidSrcFilename(from)) {
+		return context.ReturnStatus(false, "Can't " + operation + " image file: '" + from + "': Invalid name or type");
 	}
 
 	to = GetFullName(to);
