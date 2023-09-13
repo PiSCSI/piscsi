@@ -11,7 +11,7 @@
 
 #include "shared/scsi.h"
 
-	using namespace scsi_defs;
+using namespace scsi_defs;
 
 class PhaseHandler
 {
