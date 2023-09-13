@@ -29,6 +29,11 @@ TEST(PiscsiUtilTest, ProcessId)
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
+	error = ProcessId("8", 32, id, lun);
+	EXPECT_FALSE(error.empty());
+	EXPECT_EQ(-1, id);
+	EXPECT_EQ(-1, lun);
+
 	error = ProcessId("0:32", 32, id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
