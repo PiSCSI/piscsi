@@ -97,7 +97,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 	switch (command.operation()) {
 		case DETACH_ALL:
 			DetachAll();
-			return context.ReturnStatus();
+			return context.ReturnSuccessStatus();
 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
@@ -105,7 +105,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 				return context.ReturnErrorStatus(error);
 			}
 
-			return context.ReturnStatus();
+			return context.ReturnSuccessStatus();
 		}
 
 		case CREATE_IMAGE:
@@ -161,7 +161,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& 
 		return true;
 	}
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const

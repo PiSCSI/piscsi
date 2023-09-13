@@ -65,6 +65,11 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 	return status;
 }
 
+bool CommandContext::ReturnSuccessStatus() const
+{
+	return ReturnStatus(true, "", PbErrorCode::NO_ERROR_CODE, true);
+}
+
 bool CommandContext::ReturnErrorStatus(const string& msg) const
 {
 	return ReturnStatus(false, msg, PbErrorCode::NO_ERROR_CODE, true);

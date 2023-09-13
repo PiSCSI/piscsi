@@ -147,7 +147,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	spdlog::info("Created " + string(read_only ? "read-only " : "") + "image file '" + full_filename +
 			"' with a size of " + to_string(len) + " bytes");
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
@@ -195,7 +195,7 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 
 	spdlog::info("Deleted image file '" + full_filename.string() + "'");
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
@@ -225,7 +225,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 
 	spdlog::info("Renamed/Moved image file '" + from + "' to '" + to + "'");
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
@@ -264,7 +264,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 
 		spdlog::info("Copied image file symlink '" + from + "' to '"  + to + "'");
 
-		return context.ReturnStatus();
+		return context.ReturnSuccessStatus();
 	}
 
 	try {
@@ -281,7 +281,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 
 	spdlog::info("Copied image file '" + from + "' to '" + to + "'");
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
@@ -315,7 +315,7 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 
 	spdlog::info((protect ? "Protected" : "Unprotected") + string(" image file '") + full_filename + "'");
 
-	return context.ReturnStatus();
+	return context.ReturnSuccessStatus();
 }
 
 bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand& command, const string& operation,

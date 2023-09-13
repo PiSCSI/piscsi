@@ -45,18 +45,16 @@ TEST(CommandContext, ReturnLocalizedError)
 	EXPECT_FALSE(context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL));
 }
 
-TEST(CommandContext, ReturnStatus)
+TEST(CommandContext, ReturnSuccessStatus)
 {
 	CommandContext context("", -1);
 
-	EXPECT_TRUE(context.ReturnStatus(true, "status"));
-	EXPECT_FALSE(context.ReturnStatus(false, "status"));
+	EXPECT_TRUE(context.ReturnSuccessStatus());
 }
-
 
 TEST(CommandContext, ReturnErrorStatus)
 {
 	CommandContext context("", -1);
 
-	EXPECT_FALSE(context.ReturnErrorStatus("status"));
+	EXPECT_FALSE(context.ReturnErrorStatus("error"));
 }

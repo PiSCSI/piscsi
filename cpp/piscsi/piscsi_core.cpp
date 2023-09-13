@@ -386,7 +386,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
-				context.ReturnStatus();
+				context.ReturnSuccessStatus();
 			}
 			break;
 		}
@@ -396,7 +396,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& comm
 				context.ReturnErrorStatus(error);
 			}
 			else {
-				context.ReturnStatus();
+				context.ReturnSuccessStatus();
 			}
 			break;
 		}
