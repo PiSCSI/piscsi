@@ -662,19 +662,23 @@ bool PiscsiExecutor::ValidateOperationAgainstDevice(const CommandContext& contex
 		const PbOperation& operation)
 {
 	if ((operation == START || operation == STOP) && !device.IsStoppable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, device.GetTypeString());
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, PbOperation_Name(operation),
+				device.GetTypeString());
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device.IsRemovable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, device.GetTypeString());
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_REMOVABLE, PbOperation_Name(operation),
+				device.GetTypeString());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsProtectable()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, device.GetTypeString());
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_PROTECTABLE, PbOperation_Name(operation),
+				device.GetTypeString());
 	}
 
 	if ((operation == PROTECT || operation == UNPROTECT) && !device.IsReady()) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, device.GetTypeString());
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_OPERATION_DENIED_READY, PbOperation_Name(operation),
+				device.GetTypeString());
 	}
 
 	return true;
