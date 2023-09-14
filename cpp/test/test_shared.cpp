@@ -87,7 +87,7 @@ pair<int, path> OpenTempFile()
 
 path CreateTempFile(int size)
 {
-	const vector<int> data = vector<int>(size);
+	const auto data = vector<int>(size);
 	return CreateTempFileWithData(data);
 }
 
