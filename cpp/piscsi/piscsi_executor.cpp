@@ -30,7 +30,7 @@ using namespace piscsi_util;
 
 bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
-	spdlog::info(PrintCommand(context.GetCommand(), pb_device, dryRun));
+	spdlog::info(dryRun ? "Validating: " : "Executing: " + PrintCommand(context.GetCommand(), pb_device));
 
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
@@ -542,13 +542,12 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	return true;
 }
 
-string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefinition& pb_device, bool dryRun) const
+string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefinition& pb_device) const
 {
 	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;
-	s << (dryRun ? "Validating" : "Executing");
-	s << ": operation=" << PbOperation_Name(command.operation());
+	s << "operation=" << PbOperation_Name(command.operation());
 
 	if (!params.empty()) {
 		s << ", command params=";

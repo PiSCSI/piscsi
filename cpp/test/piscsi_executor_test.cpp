@@ -545,11 +545,12 @@ TEST_F(PiscsiExecutorTest, PrintCommand)
 
 	PbCommand command;
 	PbDeviceDefinition definition;
-	EXPECT_NE(executor.PrintCommand(command, definition, true).find("Validating"), string::npos);
-	EXPECT_NE(executor.PrintCommand(command, definition, false).find("Executing"), string::npos);
+	EXPECT_NE(executor.PrintCommand(command, definition).find("operation="), string::npos);
+	EXPECT_EQ(executor.PrintCommand(command, definition).find("key=value"), string::npos);
 
 	SetParam(command, "key", "value");
-	EXPECT_NE(executor.PrintCommand(command, definition, true).find("key=value"), string::npos);
+	EXPECT_NE(executor.PrintCommand(command, definition).find("operation="), string::npos);
+	EXPECT_NE(executor.PrintCommand(command, definition).find("key=value"), string::npos);
 }
 
 TEST_F(PiscsiExecutorTest, ValidateLunSetup)
