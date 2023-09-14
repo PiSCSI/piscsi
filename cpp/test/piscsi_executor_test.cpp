@@ -236,34 +236,30 @@ TEST_F(PiscsiExecutorTest, ProcessCmd)
 	// The operations below must fail because of missing parameters.
 	// The respective functionality is tested in piscsi_image_test.cpp.
 
-	PbCommand command_create_image;
-	command_create_image.set_operation(CREATE_IMAGE);
-	CommandContext context_create_image(command_create_image);
+	PbCommand command;
+
+	command.set_operation(CREATE_IMAGE);
+	CommandContext context_create_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_create_image));
 
-	PbCommand command_delete_image;
-	command_delete_image.set_operation(DELETE_IMAGE);
-	CommandContext context_delete_image(command_delete_image);
+	command.set_operation(DELETE_IMAGE);
+	CommandContext context_delete_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_delete_image));
 
-	PbCommand command_rename_image;
-	command_rename_image.set_operation(RENAME_IMAGE);
-	CommandContext context_rename_image(command_rename_image);
+	command.set_operation(RENAME_IMAGE);
+	CommandContext context_rename_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_rename_image));
 
-	PbCommand command_copy_image;
-	command_copy_image.set_operation(COPY_IMAGE);
-	CommandContext context_copy_image(command_copy_image);
+	command.set_operation(COPY_IMAGE);
+	CommandContext context_copy_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_copy_image));
 
-	PbCommand command_protect_image;
-	command_protect_image.set_operation(PROTECT_IMAGE);
-	CommandContext context_protect_image(command_protect_image);
+	command.set_operation(PROTECT_IMAGE);
+	CommandContext context_protect_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_protect_image));
 
-	PbCommand command_unprotect_image;
-	command_unprotect_image.set_operation(UNPROTECT_IMAGE);
-	CommandContext context_unprotect_image(command_unprotect_image);
+	command.set_operation(UNPROTECT_IMAGE);
+	CommandContext context_unprotect_image(command);
 	EXPECT_FALSE(executor->ProcessCmd(context_unprotect_image));
 }
 
