@@ -54,12 +54,7 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 
 	if (fd == -1) {
 		if (!msg.empty()) {
-			if (status) {
-				cerr << "Error: " << msg << endl;
-			}
-			else {
-				cout << msg << endl;
-			}
+			cerr << "Error: " << msg << endl;
 		}
 	}
 	else {
