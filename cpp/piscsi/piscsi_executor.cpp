@@ -28,10 +28,9 @@ using namespace spdlog;
 using namespace protobuf_util;
 using namespace piscsi_util;
 
-bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device,
-		const PbCommand& command, bool dryRun)
+bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
-	PrintCommand(command, pb_device, dryRun);
+	PrintCommand(context.GetCommand(), pb_device, dryRun);
 
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
@@ -40,7 +39,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 		return false;
 	}
 
-	const PbOperation operation = command.operation();
+	const PbOperation operation = context.GetCommand().operation();
 
 	// For all commands except ATTACH the device and LUN must exist
 	if (operation != ATTACH && !VerifyExistingIdAndLun(context, id, lun)) {
@@ -134,7 +133,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 	// Remember the list of reserved files, then run the dry run
 	const auto& reserved_files = StorageDevice::GetReservedFiles();
 	if (ranges::find_if_not(context.GetCommand().devices(), [&] (const auto& device)
-			{ return ProcessDeviceCmd(context, device, command, true); }) != command.devices().end()) {
+			{ return ProcessDeviceCmd(context, device, true); }) != command.devices().end()) {
 		// Dry run failed, restore the file list
 		StorageDevice::SetReservedFiles(reserved_files);
 		return false;
@@ -148,7 +147,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 	}
 
 	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
-			{ return ProcessDeviceCmd(context, device, command, false); } ) != command.devices().end()) {
+			{ return ProcessDeviceCmd(context, device, false); } ) != command.devices().end()) {
 		return false;
 	}
 

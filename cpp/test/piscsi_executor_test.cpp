@@ -50,27 +50,29 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 
 	definition.set_id(8);
 	definition.set_unit(32);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID and LUN must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid ID and LUN must fail";
 
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid ID must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid ID must fail";
 
 	definition.set_id(ID);
 	definition.set_unit(32);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Invalid LUN must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Invalid LUN must fail";
 
 	definition.set_unit(LUN);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Unknown operation must fail";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, true)) << "Unknown operation must fail";
 
 	command.set_operation(ATTACH);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation for unknown device type must fail";
+	CommandContext context_attach(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition, true)) << "Operation for unknown device type must fail";
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
 
 	definition.set_type(SCHS);
 	command.set_operation(INSERT);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Operation unsupported by device must fail";
+	CommandContext context_insert1(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert1, definition, true)) << "Operation unsupported by device must fail";
 	controller_manager->DeleteAllControllers();
 	definition.set_type(SCRM);
 
@@ -80,72 +82,88 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 	device2->SetReady(true);
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
 
-	command.set_operation(ATTACH);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "ID and LUN already exist";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_attach, definition, true)) << "ID and LUN already exist";
 
 	command.set_operation(START);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_start(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_start, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_start, definition, false));
 
 	command.set_operation(PROTECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_protect(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, false));
 
-	command.set_operation(UNPROTECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	command.set_operation(PROTECT);
+	CommandContext context_unprotect(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_unprotect, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_unprotect, definition, false));
 
 	command.set_operation(STOP);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_stop(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_stop, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_stop, definition, false));
 
 	command.set_operation(EJECT);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_eject(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_eject, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_eject, definition, false));
 
 	command.set_operation(INSERT);
 	SetParam(definition, "file", "filename");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true)) << "Non-existing file";
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, false)) << "Non-existing file";
+	CommandContext context_insert2(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert2, definition, true)) << "Non-existing file";
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_insert2, definition, false)) << "Non-existing file";
 
 	command.set_operation(DETACH);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_detach(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, false));
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
 
 	command.set_operation(CHECK_AUTHENTICATION);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext conext_check_authentication(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(conext_check_authentication, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(conext_check_authentication, definition, false));
 
 	command.set_operation(NO_OPERATION);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, command, false));
+	CommandContext context_no_operation(command);
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, false));
 
 	// The operations below are not related to a device
 
 	command.set_operation(DETACH_ALL);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_detach_all(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_detach_all, definition, true));
 
 	command.set_operation(RESERVE_IDS);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_reserve_ids(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_reserve_ids, definition, true));
 
 	command.set_operation(CREATE_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_create_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_create_image, definition, true));
 
 	command.set_operation(DELETE_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_delete_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_delete_image, definition, true));
 
 	command.set_operation(RENAME_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_rename_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_rename_image, definition, true));
 
 	command.set_operation(COPY_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_copy_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_copy_image, definition, true));
 
 	command.set_operation(PROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_protect_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_protect_image, definition, true));
 
 	command.set_operation(UNPROTECT_IMAGE);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context, definition, command, true));
+	CommandContext context_unprotect_image(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_unprotect_image, definition, true));
 }
 
 TEST_F(PiscsiExecutorTest, ProcessCmd)

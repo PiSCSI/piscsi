@@ -31,7 +31,7 @@ public:
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
 
-	bool ProcessDeviceCmd(const CommandContext&, const PbDeviceDefinition&, const PbCommand&, bool);
+	bool ProcessDeviceCmd(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool ProcessCmd(const CommandContext&);
 	bool Start(PrimaryDevice&, bool) const;
 	bool Stop(PrimaryDevice&, bool) const;
