@@ -69,8 +69,12 @@ size_t ProtobufSerializer::ReadBytes(int fd, span<byte> buf) const
 	size_t offset = 0;
 	while (offset < buf.size()) {
 		const auto len = read(fd, &buf.data()[offset], buf.size() - offset);
-		if (len <= 0) {
-			return len;
+		if (len == -1) {
+			throw io_exception("Read error: " + string(strerror(errno)));
+		}
+
+		if (!len) {
+			break;
 		}
 
 		offset += len;

@@ -37,7 +37,7 @@ TEST(CommandContext, ReadCommand)
 	EXPECT_THROW(context3.ReadCommand(), io_exception);
 	close(fd);
 
-	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDWR);
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDWR | O_APPEND);
 	ProtobufSerializer serializer;
 	PbCommand command;
 	serializer.SerializeMessage(fd, command);
