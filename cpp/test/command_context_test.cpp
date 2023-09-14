@@ -13,7 +13,7 @@
 
 TEST(CommandContext, IsValid)
 {
-	CommandContext context("");
+	CommandContext context;
 
 	EXPECT_FALSE(context.IsValid());
 }
@@ -27,14 +27,14 @@ TEST(CommandContext, ReturnLocalizedError)
 
 TEST(CommandContext, ReturnSuccessStatus)
 {
-	CommandContext context("");
+	CommandContext context;
 
 	EXPECT_TRUE(context.ReturnSuccessStatus());
 }
 
 TEST(CommandContext, ReturnErrorStatus)
 {
-	CommandContext context("");
+	CommandContext context;
 
 	EXPECT_FALSE(context.ReturnErrorStatus("error"));
 }

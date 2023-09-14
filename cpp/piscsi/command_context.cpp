@@ -15,23 +15,19 @@
 using namespace std;
 using namespace piscsi_interface;
 
-bool CommandContext::ReadCommand()
+void CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
 	const size_t bytes_read = serializer.ReadBytes(fd, magic);
-	if (!bytes_read) {
-		return false;
+	if (bytes_read) {
+		if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
+			throw io_exception("Invalid magic");
+		}
+
+		// Fetch the command
+		serializer.DeserializeMessage(fd, command);
 	}
-
-	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
-		throw io_exception("Invalid magic");
-	}
-
-	// Fetch the command
-	serializer.DeserializeMessage(fd, command);
-
-	return command.operation() != PbOperation::NO_OPERATION;
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
