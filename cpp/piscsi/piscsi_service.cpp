@@ -35,16 +35,11 @@ bool PiscsiService::Init(const callback& cb, int port)
 	}
 
 	// Create socket for monitor
-	sockaddr_in server = {};
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
 		spdlog::error("Unable to create socket");
 		return false;
 	}
-
-	server.sin_family = PF_INET;
-	server.sin_port = htons((uint16_t)port);
-	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// Allow address reuse
 	if (int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
@@ -53,6 +48,8 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	signal(SIGPIPE, SIG_IGN);
 
+	sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
+			.sin_addr { .s_addr = htonl(INADDR_ANY) } };
 	if (bind(service_socket, (sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
 		cerr << "Error: Port " << port << " is in use, is piscsi or rascsi already running?" << endl;
 		return false;
