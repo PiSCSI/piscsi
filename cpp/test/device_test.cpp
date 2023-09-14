@@ -157,6 +157,12 @@ TEST(DeviceTest, GetTypeString)
 	EXPECT_EQ("SCLP", sclp.GetTypeString());
 }
 
+TEST(DeviceTest, GetIdentifier)
+{
+	MockDevice device(1);
+	EXPECT_EQ("UNDEFINED 0:1", device.GetIdentifier());
+}
+
 TEST(DeviceTest, Vendor)
 {
 	MockDevice device(0);

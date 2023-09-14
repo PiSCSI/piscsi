@@ -98,6 +98,7 @@ public:
 	static PbDeviceType ParseDeviceType(const string&);
 	PbDeviceType GetType() const { return type; }
 	string GetTypeString() const { return PbDeviceType_Name(type); }
+	string GetIdentifier() const { return GetTypeString() + " " + to_string(GetId()) + ":" + to_string(lun); }
 
 	bool IsReady() const { return ready; }
 	virtual void Reset();

@@ -168,12 +168,10 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		spdlog::info("Start requested for " + device.GetTypeString() +" ID " +
-				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
+		spdlog::info("Start requested for " + device.GetIdentifier());
 
 		if (!device.Start()) {
-			spdlog::warn("Starting " +device.GetTypeString() + " ID " +
-					to_string(device.GetId()) +" unit " + to_string(device.GetLun()) + " failed");
+			spdlog::warn("Starting " + device.GetIdentifier() + " failed");
 		}
 	}
 
@@ -183,8 +181,7 @@ bool PiscsiExecutor::Start(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Stop(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		spdlog::info("Stop requested for " + device.GetTypeString() + " ID " +
-				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
+		spdlog::info("Stop requested for " + device.GetIdentifier());
 
 		device.Stop();
 	}
@@ -195,12 +192,10 @@ bool PiscsiExecutor::Stop(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Eject(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		spdlog::info("Eject requested for " + device.GetTypeString() + " ID " +
-				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
+		spdlog::info("Eject requested for " + device.GetIdentifier());
 
 		if (!device.Eject(true)) {
-			spdlog::warn("Ejecting " + device.GetTypeString() + " ID " +
-					to_string(device.GetId()) +" unit " + to_string(device.GetLun()) + " failed");
+			spdlog::warn("Ejecting " + device.GetIdentifier() + " failed");
 		}
 	}
 
@@ -210,8 +205,7 @@ bool PiscsiExecutor::Eject(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Protect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		spdlog::info("Write protection requested for " + device.GetTypeString() + " ID " +
-				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
+		spdlog::info("Write protection requested for " + device.GetIdentifier());
 
 		device.SetProtected(true);
 	}
@@ -222,8 +216,7 @@ bool PiscsiExecutor::Protect(PrimaryDevice& device, bool dryRun) const
 bool PiscsiExecutor::Unprotect(PrimaryDevice& device, bool dryRun) const
 {
 	if (!dryRun) {
-		spdlog::info("Write unprotection requested for " + device.GetTypeString() +" ID " +
-				to_string(device.GetId()) + ", unit " + to_string(device.GetLun()));
+		spdlog::info("Write unprotection requested for " + device.GetIdentifier());
 
 		device.SetProtected(false);
 	}
@@ -317,7 +310,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	else if (device->IsProtectable() && device->IsProtected()) {
 		msg += "protected ";
 	}
-	msg += string(device->GetTypeString()) + " device, ID " + to_string(id) + ", unit " + to_string(lun);
+	msg += device->GetIdentifier();
 	spdlog::info(msg);
 
 	return true;
@@ -350,8 +343,8 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
-			"' requested into " + storage_device->GetTypeString() + " ID " +
-			to_string(pb_device.id()) + ", unit " + to_string(pb_device.unit()));
+			"' requested into " + storage_device->GetTypeString() + " " +
+			to_string(pb_device.id()) + ":" + to_string(pb_device.unit()));
 
 	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
 		return false;
@@ -382,8 +375,8 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 	}
 
 	if (!dryRun) {
-		// Remember the ID before it gets invalid when removing the device
-		const int id = device->GetId();
+		// Remember the device identifier before its ID becomes invalid by removing the device
+		const string identifier = device->GetIdentifier();
 
 		if (!controller->RemoveDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
@@ -398,8 +391,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 			storage_device->UnreserveFile();
 		}
 
-		spdlog::info("Detached " + string(device->GetTypeString()) + " device with ID " + to_string(id)
-				+ ", unit " + to_string(device->GetLun()));
+		spdlog::info("Detached " + identifier);
 	}
 
 	return true;
