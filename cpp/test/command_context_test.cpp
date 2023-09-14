@@ -92,7 +92,12 @@ TEST(CommandContext, ReturnSuccessStatus)
 TEST(CommandContext, ReturnErrorStatus)
 {
 	PbCommand command;
-	CommandContext context(command);
 
-	EXPECT_FALSE(context.ReturnErrorStatus("error"));
+	CommandContext context1(command);
+	EXPECT_FALSE(context1.ReturnErrorStatus("error"));
+
+	const int fd = open("/dev/null", O_RDWR);
+	CommandContext context2(fd);
+	EXPECT_FALSE(context2.ReturnErrorStatus("error"));
+	close(fd);
 }
