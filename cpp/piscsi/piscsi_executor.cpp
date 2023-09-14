@@ -30,7 +30,7 @@ using namespace piscsi_util;
 
 bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
-	PrintCommand(context.GetCommand(), pb_device, dryRun);
+	spdlog::info(PrintCommand(context.GetCommand(), pb_device, dryRun));
 
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
@@ -542,7 +542,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	return true;
 }
 
-void PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefinition& pb_device, bool dryRun) const
+string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefinition& pb_device, bool dryRun) const
 {
 	const map<string, string, less<>> params = { command.params().begin(), command.params().end() };
 
@@ -580,7 +580,8 @@ void PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefini
 
 	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 		<< "', revision='" << pb_device.revision() << "', block size=" << pb_device.block_size();
-	spdlog::info(s.str());
+
+	return s.str();
 }
 
 string PiscsiExecutor::ValidateLunSetup(const PbCommand& command) const

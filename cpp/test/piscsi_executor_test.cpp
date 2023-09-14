@@ -536,6 +536,22 @@ TEST_F(PiscsiExecutorTest, ValidateImageFile)
 	EXPECT_TRUE(full_path.empty());
 }
 
+TEST_F(PiscsiExecutorTest, PrintCommand)
+{
+	auto bus = make_shared<MockBus>();
+	auto controller_manager = make_shared<ControllerManager>(*bus);
+	PiscsiImage piscsi_image;
+	PiscsiExecutor executor(piscsi_image, *controller_manager);
+
+	PbCommand command;
+	PbDeviceDefinition definition;
+	EXPECT_NE(executor.PrintCommand(command, definition, true).find("Validating"), string::npos);
+	EXPECT_NE(executor.PrintCommand(command, definition, false).find("Executing"), string::npos);
+
+	SetParam(command, "key", "value");
+	EXPECT_NE(executor.PrintCommand(command, definition, true).find("key=value"), string::npos);
+}
+
 TEST_F(PiscsiExecutorTest, ValidateLunSetup)
 {
 	DeviceFactory device_factory;

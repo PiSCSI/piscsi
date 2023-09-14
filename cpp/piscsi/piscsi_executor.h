@@ -45,7 +45,7 @@ public:
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
 	bool ValidateImageFile(const CommandContext&, StorageDevice&, const string&, string&) const;
-	void PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
+	string PrintCommand(const PbCommand&, const PbDeviceDefinition&, bool) const;
 	string ValidateLunSetup(const PbCommand&) const;
 	bool VerifyExistingIdAndLun(const CommandContext&, int, int) const;
 	shared_ptr<PrimaryDevice> CreateDevice(const CommandContext&, const PbDeviceType, int, const string&) const;
