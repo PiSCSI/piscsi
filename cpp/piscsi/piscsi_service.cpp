@@ -89,35 +89,26 @@ void PiscsiService::Execute() const
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	while (true) {
-		CommandContext context;
+	sockaddr client = {};
+	socklen_t socklen = sizeof(client);
 
+	while (true) {
+		const int fd = accept(service_socket, &client, &socklen);
+		if (fd == -1) {
+			spdlog::warn("accept() failed");
+			continue;
+		}
+
+		CommandContext context;
 		try {
-			PbCommand command = ReadCommand(context);
-			if (command.operation() != PbOperation::NO_OPERATION) {
-				execute(context, command);
+			if (context.ReadCommand(fd)) {
+				execute(context);
 			}
 		}
 		catch(const io_exception& e) {
 			spdlog::warn(e.what());
-
-            // Fall through
 		}
 
-		context.Cleanup();
+		close(fd);
 	}
 }
-
-PbCommand PiscsiService::ReadCommand(CommandContext& context) const
-{
-	// Wait for connection
-	sockaddr client = {};
-	socklen_t socklen = sizeof(client);
-	const int fd = accept(service_socket, &client, &socklen);
-	if (fd == -1) {
-		throw io_exception("accept() failed");
-	}
-
-	return context.ReadCommand(fd);
-}
-

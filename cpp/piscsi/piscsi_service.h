@@ -21,7 +21,7 @@ using namespace piscsi_interface;
 
 class PiscsiService
 {
-	using callback = function<bool(const CommandContext&, const piscsi_interface::PbCommand&)>;
+	using callback = function<bool(const CommandContext&)>;
 
 	callback execute;
 
@@ -45,8 +45,6 @@ public:
 private:
 
 	void Execute() const;
-
-	PbCommand ReadCommand(CommandContext&) const;
 
 	static void KillHandler(int) { running = false; }
 };

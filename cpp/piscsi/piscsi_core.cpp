@@ -361,8 +361,10 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	return true;
 }
 
-bool Piscsi::ExecuteCommand(const CommandContext& context, const PbCommand& command)
+bool Piscsi::ExecuteCommand(const CommandContext& context)
 {
+	const PbCommand& command = context.GetCommand();
+
 	if (!access_token.empty() && access_token != GetParam(command, "token")) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_AUTHENTICATION, UNAUTHORIZED);
 	}
@@ -544,8 +546,7 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init([this] (const CommandContext& context, const PbCommand& command)
-			{ return ExecuteCommand(context, command); }, port)) {
+	if (!service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port)) {
 		return EXIT_FAILURE;
 	}
 

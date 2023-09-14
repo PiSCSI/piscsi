@@ -15,23 +15,13 @@
 using namespace std;
 using namespace piscsi_interface;
 
-void CommandContext::Cleanup()
+bool CommandContext::ReadCommand(int f)
 {
-	if (fd != -1) {
-		close(fd);
-		fd = -1;
-	}
-}
-
-PbCommand CommandContext::ReadCommand(int f)
-{
-	PbCommand command;
-
 	// Read magic string
 	array<byte, 6> magic;
 	const size_t bytes_read = serializer.ReadBytes(f, magic);
 	if (!bytes_read) {
-		return command;
+		return false;
 	}
 
 	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
@@ -43,7 +33,7 @@ PbCommand CommandContext::ReadCommand(int f)
 
 	fd = f;
 
-	return command;
+	return command.operation() != PbOperation::NO_OPERATION;
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,

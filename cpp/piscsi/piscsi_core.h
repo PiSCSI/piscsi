@@ -53,7 +53,7 @@ private:
 	void Process();
 	void WaitForNotBusy() const;
 
-	bool ExecuteCommand(const CommandContext&, const PbCommand&);
+	bool ExecuteCommand(const CommandContext&);
 
 	bool SetLogLevel(const string&) const;
 

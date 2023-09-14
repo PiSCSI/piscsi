@@ -23,6 +23,8 @@ class CommandContext
 
 	const Localizer localizer;
 
+	PbCommand command;
+
 	string locale;
 
 	int fd = -1;
@@ -32,9 +34,8 @@ public:
 	explicit CommandContext(const string& s = "") : locale(s) {}
 	~CommandContext() = default;
 
-	void Cleanup();
-
-	PbCommand ReadCommand(int);
+	bool ReadCommand(int);
+	const PbCommand& GetCommand() const { return command; }
 	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 
 	// TODO Try to get rid of this method
