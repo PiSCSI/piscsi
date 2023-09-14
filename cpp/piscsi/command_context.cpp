@@ -25,7 +25,8 @@ bool CommandContext::ReadCommand(int f)
 	}
 
 	if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
-		throw io_exception("Invalid magic");
+		spdlog::warn("Invalid magic");
+		return false;
 	}
 
 	// Fetch the command
