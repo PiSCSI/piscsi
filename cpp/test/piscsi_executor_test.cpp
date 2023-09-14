@@ -133,6 +133,10 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 
 	// The operations below are not related to a device
 
+	command.set_operation(SHUT_DOWN);
+	CommandContext context_shutdown(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown, definition, true));
+
 	command.set_operation(DETACH_ALL);
 	CommandContext context_detach_all(command);
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context_detach_all, definition, true));
