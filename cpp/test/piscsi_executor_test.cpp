@@ -460,7 +460,6 @@ TEST_F(PiscsiExecutorTest, DetachAll)
 
 TEST_F(PiscsiExecutorTest, ShutDown)
 {
-	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
