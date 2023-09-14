@@ -63,9 +63,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	monthread = thread([this] () { Execute(); } );
 	monthread.detach();
 
-	// Interrupt handler settings
-	return signal(SIGINT, KillHandler) != SIG_ERR && signal(SIGHUP, KillHandler) != SIG_ERR
-			&& signal(SIGTERM, KillHandler) != SIG_ERR;
+	return true;
 }
 
 void PiscsiService::Execute() const

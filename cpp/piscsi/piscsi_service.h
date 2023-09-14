@@ -43,6 +43,4 @@ public:
 private:
 
 	void Execute() const;
-
-	static void KillHandler(int) { running = false; }
 };
