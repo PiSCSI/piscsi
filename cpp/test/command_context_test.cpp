@@ -24,7 +24,7 @@ TEST(CommandContext, ReadCommand)
 	close(fd);
 
 	// Invalid magic with wrong length
-	vector<byte> data = { byte{'1'}, byte{'2'}, byte{'3'} };
+	vector data = { byte{'1'}, byte{'2'}, byte{'3'} };
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context2(fd);
 	EXPECT_THROW(context2.ReadCommand(), io_exception);
@@ -71,6 +71,26 @@ TEST(CommandContext, GetCommand)
 	command.set_operation(PbOperation::SERVER_INFO);
 	CommandContext context(command);
 	EXPECT_EQ(PbOperation::SERVER_INFO, context.GetCommand().operation());
+}
+
+TEST(CommandContext, WriteResult)
+{
+	const string filename = CreateTempFile(0);
+	int fd = open(filename.c_str(), O_RDWR | O_APPEND);
+	PbResult result;
+	result.set_status(false);
+	result.set_error_code(PbErrorCode::UNAUTHORIZED);
+	CommandContext context(fd);
+	context.WriteResult(result);
+	close(fd);
+
+	ProtobufSerializer serializer;
+	fd = open(filename.c_str(), O_RDONLY);
+	result.set_status(true);
+	serializer.DeserializeMessage(fd, result);
+	close(fd);
+	EXPECT_FALSE(result.status());
+	EXPECT_EQ(PbErrorCode::UNAUTHORIZED, result.error_code());
 }
 
 TEST(CommandContext, IsValid)
