@@ -87,12 +87,17 @@ pair<int, path> OpenTempFile()
 
 path CreateTempFile(int size)
 {
+	const vector<int> data = vector<int>(size);
+	return CreateTempFileWithData(data);
+}
+
+path CreateTempFileWithData(const span<const int> data)
+{
     const auto [fd, filename] = OpenTempFile();
 
-    vector<char> data(size);
     const size_t count = write(fd, data.data(), data.size());
-    close(fd);
     EXPECT_EQ(count, data.size()) << "Couldn't create temporary file '" << string(filename) << "'";
+    close(fd);
 
     return path(filename);
 }

@@ -13,6 +13,7 @@
 #include "shared/scsi.h"
 #include <filesystem>
 #include <memory>
+#include <span>
 #include <string>
 
 using namespace std;
@@ -28,6 +29,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, MockAbstractController&, co
 
 pair<int, path> OpenTempFile();
 path CreateTempFile(int);
+path CreateTempFileWithData(span<const int>);
 
 // create a file with the specified data
 void CreateTempFileWithData(const string&, vector<uint8_t>&);

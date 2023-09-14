@@ -11,32 +11,39 @@
 
 #include "test/test_shared.h"
 #include "shared/piscsi_exceptions.h"
+#include "shared/protobuf_serializer.h"
 #include "piscsi/command_context.h"
+#include <fcntl.h>
 #include <unistd.h>
 
 TEST(CommandContext, ReadCommand)
 {
-	auto [fd1, filename1] = OpenTempFile();
-
-	CommandContext context1(fd1);
-
+	int fd = open(CreateTempFile(0).string().c_str(), O_RDONLY);
+	CommandContext context1(fd);
 	context1.ReadCommand();
+	close(fd);
 
 	// Invalid magic
-	ASSERT_EQ(3, write(fd1, "abc", 3));
-	close(fd1);
-
-	EXPECT_THROW(context1.ReadCommand(), io_exception);
-
-	auto [fd2, filename2] = OpenTempFile();
-
-	CommandContext context2(fd2);
-
-	// Valid magic but invalid (no) command
-	ASSERT_EQ(6, write(fd2, "RASCSI", 6));
-	close(fd2);
-
+	vector<int> data = { '1', '2', '3', '4', '5', '6' };
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context2(fd);
 	EXPECT_THROW(context2.ReadCommand(), io_exception);
+	close(fd);
+
+	data = { 'R', 'A', 'S', 'C', 'S', 'I' };
+	// Valid magic but invalid (no) command
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context3(fd);
+	EXPECT_THROW(context3.ReadCommand(), io_exception);
+	close(fd);
+
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDWR);
+	ProtobufSerializer serializer;
+	PbCommand command;
+	serializer.SerializeMessage(fd, command);
+	CommandContext context4(fd);
+	context4.ReadCommand();
+	close(fd);
 }
 
 TEST(CommandContext, IsValid)
