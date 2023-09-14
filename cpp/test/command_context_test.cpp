@@ -23,26 +23,33 @@ TEST(CommandContext, ReadCommand)
 	context1.ReadCommand();
 	close(fd);
 
-	// Invalid magic
-	vector<int> data = { '1', '2', '3', '4', '5', '6' };
+	// Invalid magic with wrong length
+	vector<int> data = { '1', '2', '3' };
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context2(fd);
 	EXPECT_THROW(context2.ReadCommand(), io_exception);
 	close(fd);
 
-	data = { 'R', 'A', 'S', 'C', 'S', 'I' };
-	// Valid magic but invalid (no) command
+	// Invalid magic with right length
+	data = { '1', '2', '3', '4', '5', '6' };
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context3(fd);
 	EXPECT_THROW(context3.ReadCommand(), io_exception);
+	close(fd);
+
+	data = { 'R', 'A', 'S', 'C', 'S', 'I' };
+	// Valid magic but invalid (no) command
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context4(fd);
+	EXPECT_THROW(context4.ReadCommand(), io_exception);
 	close(fd);
 
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDWR | O_APPEND);
 	ProtobufSerializer serializer;
 	PbCommand command;
 	serializer.SerializeMessage(fd, command);
-	CommandContext context4(fd);
-	context4.ReadCommand();
+	CommandContext context5(fd);
+	context5.ReadCommand();
 	close(fd);
 }
 
