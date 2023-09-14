@@ -111,20 +111,20 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 		}
 
 		case CREATE_IMAGE:
-			return piscsi_image.CreateImage(context, command);
+			return piscsi_image.CreateImage(context);
 
 		case DELETE_IMAGE:
-			return piscsi_image.DeleteImage(context, command);
+			return piscsi_image.DeleteImage(context);
 
 		case RENAME_IMAGE:
-			return piscsi_image.RenameImage(context, command);
+			return piscsi_image.RenameImage(context);
 
 		case COPY_IMAGE:
-			return piscsi_image.CopyImage(context, command);
+			return piscsi_image.CopyImage(context);
 
 		case PROTECT_IMAGE:
 		case UNPROTECT_IMAGE:
-			return piscsi_image.SetImagePermissions(context, command);
+			return piscsi_image.SetImagePermissions(context);
 
 		default:
 			// This is a device-specific command handled below
@@ -133,7 +133,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 
 	// Remember the list of reserved files, then run the dry run
 	const auto& reserved_files = StorageDevice::GetReservedFiles();
-	if (ranges::find_if_not(command.devices(), [&] (const auto& device)
+	if (ranges::find_if_not(context.GetCommand().devices(), [&] (const auto& device)
 			{ return ProcessDeviceCmd(context, device, command, true); }) != command.devices().end()) {
 		// Dry run failed, restore the file list
 		StorageDevice::SetReservedFiles(reserved_files);

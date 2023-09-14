@@ -85,9 +85,9 @@ string PiscsiImage::SetDefaultFolder(string_view f)
 	return "";
 }
 
-bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& command) const
+bool PiscsiImage::CreateImage(const CommandContext& context) const
 {
-	const string filename = GetParam(command, "file");
+	const string filename = GetParam(context.GetCommand(), "file");
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -101,7 +101,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return context.ReturnErrorStatus("Can't create image file: '" + full_filename + "': File already exists");
 	}
 
-	const string size = GetParam(command, "size");
+	const string size = GetParam(context.GetCommand(), "size");
 	if (size.empty()) {
 		return context.ReturnErrorStatus("Can't create image file '" + full_filename + "': Missing file size");
 	}
@@ -124,7 +124,7 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return false;
 	}
 
-	const bool read_only = GetParam(command, "read_only") == "true";
+	const bool read_only = GetParam(context.GetCommand(), "read_only") == "true";
 
 	error_code error;
 	path file(full_filename);
@@ -150,9 +150,9 @@ bool PiscsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 	return context.ReturnSuccessStatus();
 }
 
-bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& command) const
+bool PiscsiImage::DeleteImage(const CommandContext& context) const
 {
-	const string filename = GetParam(command, "file");
+	const string filename = GetParam(context.GetCommand(), "file");
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -198,11 +198,11 @@ bool PiscsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	return context.ReturnSuccessStatus();
 }
 
-bool PiscsiImage::RenameImage(const CommandContext& context, const PbCommand& command) const
+bool PiscsiImage::RenameImage(const CommandContext& context) const
 {
 	string from;
 	string to;
-	if (!ValidateParams(context, command, "rename/move", from, to)) {
+	if (!ValidateParams(context, context.GetCommand(), "rename/move", from, to)) {
 		return false;
 	}
 
@@ -228,11 +228,11 @@ bool PiscsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 	return context.ReturnSuccessStatus();
 }
 
-bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& command) const
+bool PiscsiImage::CopyImage(const CommandContext& context) const
 {
 	string from;
 	string to;
-	if (!ValidateParams(context, command, "copy", from, to)) {
+	if (!ValidateParams(context, context.GetCommand(), "copy", from, to)) {
 		return false;
 	}
 
@@ -270,7 +270,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	try {
 		copy_file(f, t);
 
-		permissions(t, GetParam(command, "read_only") == "true" ?
+		permissions(t, GetParam(context.GetCommand(), "read_only") == "true" ?
 				perms::owner_read | perms::group_read | perms::others_read :
 				perms::owner_read | perms::group_read | perms::others_read |
 				perms::owner_write | perms::group_write);
@@ -284,9 +284,9 @@ bool PiscsiImage::CopyImage(const CommandContext& context, const PbCommand& comm
 	return context.ReturnSuccessStatus();
 }
 
-bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCommand& command) const
+bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 {
-	const string filename = GetParam(command, "file");
+	const string filename = GetParam(context.GetCommand(), "file");
 	if (filename.empty()) {
 		return context.ReturnErrorStatus("Missing image filename");
 	}
@@ -300,7 +300,7 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 		return context.ReturnErrorStatus("Can't modify image file '" + full_filename + "': Invalid name or type");
 	}
 
-	const bool protect = command.operation() == PROTECT_IMAGE;
+	const bool protect = context.GetCommand().operation() == PROTECT_IMAGE;
 
 	try {
 		permissions(path(full_filename), protect ?

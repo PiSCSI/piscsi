@@ -29,11 +29,11 @@ public:
 	int GetDepth() const { return depth; }
 	string GetDefaultFolder() const { return default_folder; }
 	string SetDefaultFolder(string_view);
-	bool CreateImage(const CommandContext&, const PbCommand&) const;
-	bool DeleteImage(const CommandContext&, const PbCommand&) const;
-	bool RenameImage(const CommandContext&, const PbCommand&) const;
-	bool CopyImage(const CommandContext&, const PbCommand&) const;
-	bool SetImagePermissions(const CommandContext&, const PbCommand&) const;
+	bool CreateImage(const CommandContext&) const;
+	bool DeleteImage(const CommandContext&) const;
+	bool RenameImage(const CommandContext&) const;
+	bool CopyImage(const CommandContext&) const;
+	bool SetImagePermissions(const CommandContext&) const;
 
 private:
 
