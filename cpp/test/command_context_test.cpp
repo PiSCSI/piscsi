@@ -24,32 +24,37 @@ TEST(CommandContext, ReadCommand)
 	close(fd);
 
 	// Invalid magic with wrong length
-	vector<int> data = { '1', '2', '3' };
+	vector<byte> data = { byte{'1'}, byte{'2'}, byte{'3'} };
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context2(fd);
 	EXPECT_THROW(context2.ReadCommand(), io_exception);
 	close(fd);
 
 	// Invalid magic with right length
-	data = { '1', '2', '3', '4', '5', '6' };
+	data = { byte{'1'}, byte{'2'}, byte{'3'}, byte{'4'}, byte{'5'}, byte{'6'} };
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context3(fd);
 	EXPECT_THROW(context3.ReadCommand(), io_exception);
 	close(fd);
 
-	data = { 'R', 'A', 'S', 'C', 'S', 'I' };
+	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'} };
 	// Valid magic but invalid (no) command
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context4(fd);
 	EXPECT_THROW(context4.ReadCommand(), io_exception);
 	close(fd);
 
-	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDWR | O_APPEND);
+	const string filename = CreateTempFileWithData(data).string();
+	fd = open(filename.c_str(), O_RDWR | O_APPEND);
 	ProtobufSerializer serializer;
 	PbCommand command;
+	command.set_operation(PbOperation::SERVER_INFO);
 	serializer.SerializeMessage(fd, command);
+	close(fd);
+	fd = open(filename.c_str(), O_RDONLY);
 	CommandContext context5(fd);
 	context5.ReadCommand();
+	EXPECT_EQ(PbOperation::SERVER_INFO, context5.GetCommand().operation());
 	close(fd);
 }
 

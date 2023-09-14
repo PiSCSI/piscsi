@@ -29,7 +29,7 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, MockAbstractController&, co
 
 pair<int, path> OpenTempFile();
 path CreateTempFile(int);
-path CreateTempFileWithData(span<const int>);
+path CreateTempFileWithData(span<const byte>);
 
 // create a file with the specified data
 void CreateTempFileWithData(const string&, vector<uint8_t>&);
