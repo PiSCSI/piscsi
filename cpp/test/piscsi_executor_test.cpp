@@ -121,6 +121,8 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, false));
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
 
+	// The operations below are not related to a device
+
 	command.set_operation(CHECK_AUTHENTICATION);
 	CommandContext conext_check_authentication(command);
 	EXPECT_TRUE(executor->ProcessDeviceCmd(conext_check_authentication, definition, true));
@@ -130,8 +132,6 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 	CommandContext context_no_operation(command);
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, true));
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, false));
-
-	// The operations below are not related to a device
 
 	command.set_operation(SHUT_DOWN);
 	CommandContext context_shutdown(command);
