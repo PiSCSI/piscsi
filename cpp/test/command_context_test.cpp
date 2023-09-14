@@ -84,9 +84,14 @@ TEST(CommandContext, ReturnLocalizedError)
 TEST(CommandContext, ReturnSuccessStatus)
 {
 	PbCommand command;
-	CommandContext context(command);
 
-	EXPECT_TRUE(context.ReturnSuccessStatus());
+	CommandContext context1(command);
+	EXPECT_TRUE(context1.ReturnSuccessStatus());
+
+	const int fd = open("/dev/null", O_RDWR);
+	CommandContext context2(fd);
+	EXPECT_TRUE(context2.ReturnSuccessStatus());
+	close(fd);
 }
 
 TEST(CommandContext, ReturnErrorStatus)
