@@ -198,11 +198,11 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_LUN0, "es", "El LUN 0 no se puede desconectar mientras haya otro LUN");
 	Add(LocalizationKey::ERROR_LUN0, "zh", "LUN 0 无法卸载，因为当前仍有另一个 LUN。");
 
-	Add(LocalizationKey::ERROR_INITIALIZATION, "en", "Initialization of %1 device, ID %2, LUN %3 failed");
-	Add(LocalizationKey::ERROR_INITIALIZATION, "de", "Initialisierung von %1-Gerät, ID %2, LUN %3 fehlgeschlagen");
-	Add(LocalizationKey::ERROR_INITIALIZATION, "sv", "Kunde ej initialisera enheten %1 med id %2 och enhetsnummer %3");
-	Add(LocalizationKey::ERROR_INITIALIZATION, "es", "La inicialización del dispositivo %1, ID %2, LUN %3 falló");
-	Add(LocalizationKey::ERROR_INITIALIZATION, "zh", "%1 设备、ID %2、LUN %3 的初始化失败");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "en", "Initialization of %1 failed");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "de", "Initialisierung von %1 fehlgeschlagen");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "sv", "Kunde ej initialisera %1 ");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "es", "La inicialización del %1 falló");
+	Add(LocalizationKey::ERROR_INITIALIZATION, "zh", "%1 的初始化失败");
 
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "en", "%1 operation denied, %2 isn't stoppable");
 	Add(LocalizationKey::ERROR_OPERATION_DENIED_STOPPABLE, "de", "%1-Operation verweigert, %2 ist nicht stopbar");

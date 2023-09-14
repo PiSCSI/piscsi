@@ -291,8 +291,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (!device->Init(params)) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, device->GetTypeString(),
-				to_string(id), to_string(lun));
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, device->GetIdentifier());
 	}
 
 	if (storage_device != nullptr) {
