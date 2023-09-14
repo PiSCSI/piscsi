@@ -65,6 +65,14 @@ TEST(CommandContext, ReadCommand)
 	EXPECT_EQ(PbOperation::SERVER_INFO, context6.GetCommand().operation());
 }
 
+TEST(CommandContext, GetCommand)
+{
+	PbCommand command;
+	command.set_operation(PbOperation::SERVER_INFO);
+	CommandContext context(command);
+	EXPECT_EQ(PbOperation::SERVER_INFO, context.GetCommand().operation());
+}
+
 TEST(CommandContext, IsValid)
 {
 	PbCommand command;
