@@ -30,7 +30,7 @@ using namespace piscsi_util;
 
 bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, bool dryRun)
 {
-	spdlog::info(dryRun ? "Validating: " : "Executing: " + PrintCommand(context.GetCommand(), pb_device));
+	spdlog::info((dryRun ? "Validating: " : "Executing: ") + PrintCommand(context.GetCommand(), pb_device));
 
 	const int id = pb_device.id();
 	const int lun = pb_device.unit();
