@@ -9,7 +9,35 @@
 
 #include <gtest/gtest.h>
 
+#include "test/test_shared.h"
+#include "shared/piscsi_exceptions.h"
 #include "piscsi/command_context.h"
+#include <unistd.h>
+
+TEST(CommandContext, ReadCommand)
+{
+	auto [fd1, filename1] = OpenTempFile();
+
+	CommandContext context1(fd1);
+
+	context1.ReadCommand();
+
+	// Invalid magic
+	ASSERT_EQ(3, write(fd1, "abc", 3));
+	close(fd1);
+
+	EXPECT_THROW(context1.ReadCommand(), io_exception);
+
+	auto [fd2, filename2] = OpenTempFile();
+
+	CommandContext context2(fd2);
+
+	// Valid magic but invalid (no) command
+	ASSERT_EQ(6, write(fd2, "RASCSI", 6));
+	close(fd2);
+
+	EXPECT_THROW(context2.ReadCommand(), io_exception);
+}
 
 TEST(CommandContext, IsValid)
 {
