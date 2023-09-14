@@ -31,7 +31,7 @@ class CommandContext
 
 public:
 
-	explicit CommandContext(const PbCommand& cmd, const string& s = "") : command(cmd), locale(s) {}
+	CommandContext(const PbCommand& cmd, const string& s = "") : command(cmd), locale(s) {}
 	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
