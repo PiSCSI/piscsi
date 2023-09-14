@@ -91,8 +91,8 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 
 	command.set_operation(PROTECT);
 	CommandContext context_protect(command);
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context, definition, false));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_protect, definition, true));
+	EXPECT_TRUE(executor->ProcessDeviceCmd(context_protect, definition, false));
 
 	command.set_operation(UNPROTECT);
 	CommandContext context_unprotect(command);
