@@ -92,8 +92,10 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 	return true;
 }
 
-bool PiscsiExecutor::ProcessCmd(const CommandContext& context, const PbCommand& command)
+bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 {
+	const PbCommand& command = context.GetCommand();
+
 	switch (command.operation()) {
 		case DETACH_ALL:
 			DetachAll();

@@ -13,28 +13,32 @@
 
 TEST(CommandContext, IsValid)
 {
-	CommandContext context;
+	PbCommand command;
+	CommandContext context(command);
 
 	EXPECT_FALSE(context.IsValid());
 }
 
 TEST(CommandContext, ReturnLocalizedError)
 {
-	CommandContext context("en_US");
+	PbCommand command;
+	CommandContext context(command, "en_US");
 
 	EXPECT_FALSE(context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL));
 }
 
 TEST(CommandContext, ReturnSuccessStatus)
 {
-	CommandContext context;
+	PbCommand command;
+	CommandContext context(command);
 
 	EXPECT_TRUE(context.ReturnSuccessStatus());
 }
 
 TEST(CommandContext, ReturnErrorStatus)
 {
-	CommandContext context;
+	PbCommand command;
+	CommandContext context(command);
 
 	EXPECT_FALSE(context.ReturnErrorStatus("error"));
 }
