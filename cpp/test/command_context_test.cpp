@@ -37,11 +37,18 @@ TEST(CommandContext, ReadCommand)
 	EXPECT_THROW(context3.ReadCommand(), io_exception);
 	close(fd);
 
-	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'} };
-	// Valid magic but invalid (no) command
+	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'}, byte{'1'} };
+	// Valid magic but invalid command
 	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
 	CommandContext context4(fd);
 	EXPECT_THROW(context4.ReadCommand(), io_exception);
+	close(fd);
+
+	data = { byte{'R'}, byte{'A'}, byte{'S'}, byte{'C'}, byte{'S'}, byte{'I'} };
+	// Valid magic but missing command
+	fd = open(CreateTempFileWithData(data).string().c_str(), O_RDONLY);
+	CommandContext context5(fd);
+	EXPECT_THROW(context5.ReadCommand(), io_exception);
 	close(fd);
 
 	const string filename = CreateTempFileWithData(data).string();
@@ -52,10 +59,10 @@ TEST(CommandContext, ReadCommand)
 	serializer.SerializeMessage(fd, command);
 	close(fd);
 	fd = open(filename.c_str(), O_RDONLY);
-	CommandContext context5(fd);
-	context5.ReadCommand();
+	CommandContext context6(fd);
+	context6.ReadCommand();
 	close(fd);
-	EXPECT_EQ(PbOperation::SERVER_INFO, context5.GetCommand().operation());
+	EXPECT_EQ(PbOperation::SERVER_INFO, context6.GetCommand().operation());
 }
 
 TEST(CommandContext, IsValid)
