@@ -299,7 +299,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 	// Attach all specified devices
 	command.set_operation(ATTACH);
 
-	if (CommandContext context(command, locale); !executor->ProcessCmd(context)) {
+	if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
 		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
 	}
 
