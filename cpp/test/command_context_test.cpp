@@ -96,9 +96,13 @@ TEST(CommandContext, WriteResult)
 TEST(CommandContext, IsValid)
 {
 	PbCommand command;
-	CommandContext context(command);
+	CommandContext context1(command);
+	EXPECT_FALSE(context1.IsValid());
 
-	EXPECT_FALSE(context.IsValid());
+	const int fd = open(CreateTempFile(0).string().c_str(), O_RDONLY);
+	CommandContext context2(fd);
+	EXPECT_TRUE(context2.IsValid());
+	close(fd);
 }
 
 TEST(CommandContext, ReturnLocalizedError)
