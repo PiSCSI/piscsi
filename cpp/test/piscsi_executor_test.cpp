@@ -46,7 +46,7 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
-	MockCommandContext context;
+	CommandContext context;
 
 	definition.set_id(8);
 	definition.set_unit(32);
@@ -157,7 +157,7 @@ TEST_F(PiscsiExecutorTest, ProcessCmd)
 	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
 	PbCommand command1;
 	PbCommand command2;
-	MockCommandContext context;
+	CommandContext context;
 
 	command1.set_operation(DETACH_ALL);
 	EXPECT_TRUE(executor->ProcessCmd(context, command1));
@@ -224,7 +224,7 @@ TEST_F(PiscsiExecutorTest, Attach)
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
 	PbDeviceDefinition definition;
-	MockCommandContext context;
+	CommandContext context;
 
 	definition.set_unit(32);
 	EXPECT_FALSE(executor.Attach(context, definition, false));
@@ -305,7 +305,7 @@ TEST_F(PiscsiExecutorTest, Insert)
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
 	PbDeviceDefinition definition;
-	MockCommandContext context;
+	CommandContext context;
 
 	auto device = device_factory.CreateDevice(SCRM, 0, "test");
 
@@ -363,7 +363,7 @@ TEST_F(PiscsiExecutorTest, Detach)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
 	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
@@ -447,7 +447,7 @@ TEST_F(PiscsiExecutorTest, ValidateImageFile)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	string full_path;
 	auto device = dynamic_pointer_cast<StorageDevice>(device_factory.CreateDevice(SCHD, 0, "test"));
@@ -493,7 +493,7 @@ TEST_F(PiscsiExecutorTest, VerifyExistingIdAndLun)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN1));
 	auto device = device_factory.CreateDevice(SCHS, LUN1, "");
@@ -508,7 +508,7 @@ TEST_F(PiscsiExecutorTest, CreateDevice)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	EXPECT_EQ(nullptr, executor.CreateDevice(context, UNDEFINED, 0, ""));
 #pragma GCC diagnostic push
@@ -525,7 +525,7 @@ TEST_F(PiscsiExecutorTest, SetSectorSize)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	unordered_set<uint32_t> sizes;
 	auto hd = make_shared<MockSCSIHD>(0, sizes, false);
@@ -544,7 +544,7 @@ TEST_F(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	auto device = make_shared<MockPrimaryDevice>(0);
 
@@ -597,7 +597,7 @@ TEST_F(PiscsiExecutorTest, ValidateIdAndLun)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 
 	EXPECT_FALSE(executor.ValidateIdAndLun(context, -1, 0));
 	EXPECT_FALSE(executor.ValidateIdAndLun(context, 8, 0));
@@ -613,7 +613,7 @@ TEST_F(PiscsiExecutorTest, SetProductData)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
-	MockCommandContext context;
+	CommandContext context;
 	PbDeviceDefinition definition;
 
 	auto device = make_shared<MockPrimaryDevice>(0);

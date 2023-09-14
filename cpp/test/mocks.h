@@ -407,14 +407,6 @@ class MockHostServices : public HostServices
 	using HostServices::HostServices;
 };
 
-class MockCommandContext : public CommandContext
-{
-public:
-
-	MockCommandContext() = default;
-	~MockCommandContext() = default;
-};
-
 class MockPiscsiExecutor : public PiscsiExecutor
 {
 public:

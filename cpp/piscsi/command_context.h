@@ -32,9 +32,10 @@ class CommandContext
 public:
 
 	explicit CommandContext(const string& s = "") : locale(s) {}
+	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
-	bool ReadCommand(int);
+	bool ReadCommand();
 	const PbCommand& GetCommand() const { return command; }
 	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 

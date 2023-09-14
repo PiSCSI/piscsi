@@ -15,11 +15,11 @@
 using namespace std;
 using namespace piscsi_interface;
 
-bool CommandContext::ReadCommand(int f)
+bool CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
-	const size_t bytes_read = serializer.ReadBytes(f, magic);
+	const size_t bytes_read = serializer.ReadBytes(fd, magic);
 	if (!bytes_read) {
 		return false;
 	}
@@ -30,9 +30,7 @@ bool CommandContext::ReadCommand(int f)
 	}
 
 	// Fetch the command
-	serializer.DeserializeMessage(f, command);
-
-	fd = f;
+	serializer.DeserializeMessage(fd, command);
 
 	return command.operation() != PbOperation::NO_OPERATION;
 }

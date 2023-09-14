@@ -96,14 +96,19 @@ void PiscsiService::Execute() const
 		const int fd = accept(service_socket, &client, &socklen);
 		if (fd == -1) {
 			spdlog::warn("accept() failed");
+			continue;
 		}
-		else {
-			CommandContext context;
-			if (context.ReadCommand(fd)) {
+
+		CommandContext context(fd);
+		try {
+			if (context.ReadCommand()) {
 				execute(context);
 			}
-
-			close(fd);
 		}
+		catch(const io_exception& e) {
+			spdlog::warn(e.what());
+		}
+
+		close(fd);
 	}
 }

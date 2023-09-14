@@ -35,7 +35,7 @@ TEST(PiscsiImageTest, SetGetDefaultFolder)
 
 TEST(PiscsiImageTest, CreateImage)
 {
-	MockCommandContext context;
+	CommandContext context;
 	PbCommand command;
 	PiscsiImage image;
 
@@ -61,7 +61,7 @@ TEST(PiscsiImageTest, CreateImage)
 
 TEST(PiscsiImageTest, DeleteImage)
 {
-	MockCommandContext context;
+	CommandContext context;
 	PbCommand command;
 	PiscsiImage image;
 
@@ -82,7 +82,7 @@ TEST(PiscsiImageTest, DeleteImage)
 
 TEST(PiscsiImageTest, RenameImage)
 {
-	MockCommandContext context;
+	CommandContext context;
 	PbCommand command;
 	PiscsiImage image;
 
@@ -101,7 +101,7 @@ TEST(PiscsiImageTest, RenameImage)
 
 TEST(PiscsiImageTest, CopyImage)
 {
-	MockCommandContext context;
+	CommandContext context;
 	PbCommand command;
 	PiscsiImage image;
 
@@ -120,7 +120,7 @@ TEST(PiscsiImageTest, CopyImage)
 
 TEST(PiscsiImageTest, SetImagePermissions)
 {
-	MockCommandContext context;
+	CommandContext context;
 	PbCommand command;
 	PiscsiImage image;
 
