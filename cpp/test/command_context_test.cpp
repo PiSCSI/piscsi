@@ -54,8 +54,8 @@ TEST(CommandContext, ReadCommand)
 	fd = open(filename.c_str(), O_RDONLY);
 	CommandContext context5(fd);
 	context5.ReadCommand();
-	EXPECT_EQ(PbOperation::SERVER_INFO, context5.GetCommand().operation());
 	close(fd);
+	EXPECT_EQ(PbOperation::SERVER_INFO, context5.GetCommand().operation());
 }
 
 TEST(CommandContext, IsValid)
