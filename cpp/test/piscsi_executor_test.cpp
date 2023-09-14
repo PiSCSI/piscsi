@@ -134,24 +134,9 @@ TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, false));
 
 	command.set_operation(SHUT_DOWN);
-	CommandContext context_shutdown1(command);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown1, definition, true));
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown1, definition, false));
-
-	SetParam(command, "mode", "rascsi");
-	CommandContext context_shutdown_rascsi(command);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_rascsi, definition, true));
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_rascsi, definition, false));
-
-	SetParam(command, "mode", "system");
-	CommandContext context_shutdown_system(command);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_system, definition, true));
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_system, definition, false));
-
-	SetParam(command, "mode", "reboot");
-	CommandContext context_shutdown_reboot(command);
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_reboot, definition, true));
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown_reboot, definition, false));
+	CommandContext context_shutdown(command);
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown, definition, true));
+	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown, definition, false));
 
 	command.set_operation(DETACH_ALL);
 	CommandContext context_detach_all(command);
