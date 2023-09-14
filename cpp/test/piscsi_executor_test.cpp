@@ -547,12 +547,20 @@ TEST_F(PiscsiExecutorTest, PrintCommand)
 	PbCommand command;
 	string s = executor.PrintCommand(command, definition);
 	EXPECT_NE(s.find("operation="), string::npos);
-	EXPECT_EQ(s.find("key=value"), string::npos);
+	EXPECT_EQ(s.find("key1=value1"), string::npos);
+	EXPECT_EQ(s.find("key2=value2"), string::npos);
+	EXPECT_EQ(s.find(":"), string::npos);
 
-	SetParam(command, "key", "value");
+	SetParam(command, "key1", "value1");
 	s = executor.PrintCommand(command, definition);
 	EXPECT_NE(s.find("operation="), string::npos);
-	EXPECT_NE(s.find("key=value"), string::npos);
+	EXPECT_NE(s.find("key1=value1"), string::npos);
+
+	SetParam(command, "key2", "value2");
+	s = executor.PrintCommand(command, definition);
+	EXPECT_NE(s.find("operation="), string::npos);
+	EXPECT_NE(s.find("key1=value1"), string::npos);
+	EXPECT_NE(s.find("key2=value2"), string::npos);
 }
 
 TEST_F(PiscsiExecutorTest, ValidateLunSetup)
