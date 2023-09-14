@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "generated/piscsi_interface.pb.h"
 #include <functional>
 #include <thread>
 #include <atomic>
@@ -17,7 +16,6 @@
 class CommandContext;
 
 using namespace std;
-using namespace piscsi_interface;
 
 class PiscsiService
 {
