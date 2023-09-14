@@ -42,7 +42,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	}
 
 	// Allow address reuse
-	if (int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	if (const int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return false;
 	}
 
