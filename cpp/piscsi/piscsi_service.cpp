@@ -52,7 +52,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(service_socket, (const sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
-		cerr << "Error: Port " << port << " is in use, is piscsi or rascsi already running?" << endl;
+		cerr << "Error: Port " << port << " is in use, is piscsi already running?" << endl;
 		return false;
 	}
 
