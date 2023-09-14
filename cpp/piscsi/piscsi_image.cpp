@@ -202,7 +202,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 {
 	string from;
 	string to;
-	if (!ValidateParams(context, context.GetCommand(), "rename/move", from, to)) {
+	if (!ValidateParams(context, "rename/move", from, to)) {
 		return false;
 	}
 
@@ -232,7 +232,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 {
 	string from;
 	string to;
-	if (!ValidateParams(context, context.GetCommand(), "copy", from, to)) {
+	if (!ValidateParams(context, "copy", from, to)) {
 		return false;
 	}
 
@@ -318,10 +318,9 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 	return context.ReturnSuccessStatus();
 }
 
-bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand& command, const string& operation,
-		string& from, string& to) const
+bool PiscsiImage::ValidateParams(const CommandContext& context, const string& operation, string& from, string& to) const
 {
-	from = GetParam(command, "from");
+	from = GetParam(context.GetCommand(), "from");
 	if (from.empty()) {
 		return context.ReturnErrorStatus("Can't " + operation + " image file: Missing source filename");
 	}
@@ -330,7 +329,7 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const PbCommand&
 		return context.ReturnErrorStatus("Invalid folder hierarchy depth '" + from + "'");
 	}
 
-	to = GetParam(command, "to");
+	to = GetParam(context.GetCommand(), "to");
 	if (to.empty()) {
 		return context.ReturnErrorStatus("Can't " + operation + " image file '" + from + "': Missing destination filename");
 	}
