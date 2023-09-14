@@ -89,13 +89,9 @@ void PiscsiService::Execute() const
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	sockaddr client = {};
-	socklen_t socklen = sizeof(client);
-
 	while (true) {
-		const int fd = accept(service_socket, &client, &socklen);
+		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd == -1) {
-			spdlog::warn("accept() failed");
 			continue;
 		}
 
