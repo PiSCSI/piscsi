@@ -504,7 +504,7 @@ set<id_set> PiscsiResponse::MatchDevices(const unordered_set<shared_ptr<PrimaryD
 			id_sets.clear();
 
 			result.set_status(false);
-			result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
+			result.set_msg("No device for " + to_string(device.id()) + ":" + to_string(device.unit()));
 
 			break;
 		}
