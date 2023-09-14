@@ -57,12 +57,12 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "es", "El tipo de dispositivo %1 requiere un nombre de archivo");
 	Add(LocalizationKey::ERROR_DEVICE_MISSING_FILENAME, "zh", "设备类型 %1 需要一个文件名");
 
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "en", "Image file '%1' is already being used by ID %2, unit %3");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von ID %2, Einheit %3 benutzt");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "sv", "Skivbildsfilen '%1' används redan av id %2, enhetsnummer %3");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "fr", "Le fichier d'image '%1' est déjà utilisé par l'ID %2, unité %3");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "es", "El archivo de imagen '%1' ya está siendo utilizado por el ID %2, unidad %3");
-	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "zh", "图像文件%1已被 ID %2、单元 %3 使用");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "en", "Image file '%1' is already being used by device %2");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von Gerät %2 benutzt");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "sv", "Skivbildsfilen '%1' används redan av nhet %2");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "fr", "Le fichier d'image '%1' est déjà utilisé par périphérique %2");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "es", "El archivo de imagen '%1' ya está siendo utilizado por dispositivo %2");
+	Add(LocalizationKey::ERROR_IMAGE_IN_USE, "zh", "图像文件%1已被 ID %2");
 
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "en", "Can't create image file info for '%1'");
 	Add(LocalizationKey::ERROR_IMAGE_FILE_INFO, "de", "Image-Datei-Information für '%1' kann nicht erzeugt werden");

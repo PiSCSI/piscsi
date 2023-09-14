@@ -499,7 +499,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 
 	if (const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile(filename); id1 != -1 || lun1 != -1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(id1), to_string(lun1));
+				to_string(id1) + ":" + to_string(lun1));
 	}
 
 	string effective_filename = filename;
