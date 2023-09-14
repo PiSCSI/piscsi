@@ -542,9 +542,9 @@ TEST_F(PiscsiExecutorTest, PrintCommand)
 	auto controller_manager = make_shared<ControllerManager>(*bus);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
+	PbDeviceDefinition definition;
 
 	PbCommand command;
-	PbDeviceDefinition definition;
 	EXPECT_NE(executor.PrintCommand(command, definition).find("operation="), string::npos);
 	EXPECT_EQ(executor.PrintCommand(command, definition).find("key=value"), string::npos);
 
