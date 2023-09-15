@@ -213,7 +213,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(const vector<char *>& args, int& por
 		}
 
 		if (optopt) {
-			throw parser_exception("Praser error");
+			throw parser_exception("Parser error");
 		}
 	}
 
