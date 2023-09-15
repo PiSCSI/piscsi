@@ -3,13 +3,13 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 // Also used by the PiscsiExecutor tests
 bool enable_logging; //NOSONAR Must be global in order to be shared with the tests

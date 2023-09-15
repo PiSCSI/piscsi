@@ -7,7 +7,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "spdlog/spdlog.h"
 #include "mocks.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
@@ -18,6 +17,7 @@
 #include "piscsi/piscsi_response.h"
 #include "piscsi/piscsi_image.h"
 #include "piscsi/piscsi_executor.h"
+#include <spdlog/spdlog.h>
 #include <filesystem>
 
 using namespace filesystem;
