@@ -48,9 +48,9 @@ bool PiscsiService::Init(const callback& cb, int port)
 		return false;
 	}
 
-	const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
+	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-	if (bind(service_socket, (const sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
+		bind(service_socket, (const sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
 		cerr << "Error: Port " << port << " is in use, is piscsi already running?" << endl;
 		return false;
 	}
