@@ -38,7 +38,7 @@ public:
 	void Cleanup() const;
 
 	bool IsRunning() const { return running; }
-	void SetRunning(bool b) const { running = b; }
+	void SetRunning() const { running = true; }
 
 private:
 
