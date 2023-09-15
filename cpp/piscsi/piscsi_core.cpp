@@ -569,7 +569,7 @@ void Piscsi::Process()
 #endif
 
 	// Start execution
-	service.SetRunning();
+	service.Start();
 
 	// Main Loop
 	while (service.IsRunning()) {

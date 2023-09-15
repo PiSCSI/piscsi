@@ -11,7 +11,6 @@
 
 #include <functional>
 #include <thread>
-#include <atomic>
 
 class CommandContext;
 
@@ -27,18 +26,15 @@ class PiscsiService
 
 	jthread monthread;
 
-	static inline atomic<bool> running = false;
-
 public:
 
 	PiscsiService() = default;
 	~PiscsiService() = default;
 
 	bool Init(const callback&, int);
+	void Start();
 	void Cleanup();
-
-	bool IsRunning() const { return running; }
-	void SetRunning() const { running = true; }
+	bool IsRunning() const { return service_socket != -1; }
 
 private:
 

@@ -21,8 +21,6 @@ using namespace piscsi_util;
 
 void PiscsiService::Cleanup()
 {
-	running = false;
-
 	if (service_socket != -1) {
 		shutdown(service_socket, SHUT_RDWR);
 		close(service_socket);
@@ -60,9 +58,12 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	execute = cb;
 
-	monthread = jthread([this] () { Execute(); } );
-
 	return true;
+}
+
+void PiscsiService::Start()
+{
+	monthread = jthread([this] () { Execute(); } );
 }
 
 void PiscsiService::Execute() const
@@ -76,12 +77,6 @@ void PiscsiService::Execute() const
 
 	// Set the affinity to a specific processor core
 	FixCpu(2);
-
-	// Wait for the execution to start
-	const timespec ts = { .tv_sec = 0, .tv_nsec = 1000};
-	while (!running) {
-		nanosleep(&ts, nullptr);
-	}
 
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
