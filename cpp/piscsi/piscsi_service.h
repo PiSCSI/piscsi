@@ -24,7 +24,7 @@ class PiscsiService
 
 	int service_socket = -1;
 
-	jthread monthread;
+	jthread command_executor;
 
 public:
 
