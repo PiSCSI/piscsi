@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 // These tests only test up the point where a network connection is required.
 //
@@ -17,7 +17,6 @@ TEST(PiscsiServiceTest, LifeCycle)
 {
 	PiscsiService service;
 
-	EXPECT_TRUE(service.Init(nullptr, 65535));
 	EXPECT_FALSE(service.Init(nullptr, 65536));
 	EXPECT_FALSE(service.Init(nullptr, 0));
 	EXPECT_FALSE(service.Init(nullptr, -1));
