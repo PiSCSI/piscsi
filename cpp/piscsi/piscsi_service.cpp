@@ -59,8 +59,8 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	execute = cb;
 
-	// Launch the remote interface command execution thread
-	jthread([this] () { Execute(); } );
+	monthread = jthread([this] () { Execute(); } );
+	monthread.detach();
 
 	return true;
 }

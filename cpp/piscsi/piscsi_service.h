@@ -25,6 +25,8 @@ class PiscsiService
 
 	int service_socket = -1;
 
+	jthread monthread;
+
 	static inline atomic<bool> running = false;
 
 public:
