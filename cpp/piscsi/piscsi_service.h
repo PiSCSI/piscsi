@@ -24,7 +24,7 @@ class PiscsiService
 
 	int service_socket = -1;
 
-	jthread command_executor;
+	jthread socket_listener;
 
 public:
 

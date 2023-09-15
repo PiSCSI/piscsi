@@ -63,7 +63,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 void PiscsiService::Start()
 {
-	command_executor = jthread([this] () { Execute(); } );
+	socket_listener = jthread([this] () { Execute(); } );
 }
 
 void PiscsiService::Execute() const
