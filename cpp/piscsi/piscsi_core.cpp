@@ -32,7 +32,6 @@
 
 using namespace std;
 using namespace filesystem;
-using namespace spdlog;
 using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace protobuf_util;
