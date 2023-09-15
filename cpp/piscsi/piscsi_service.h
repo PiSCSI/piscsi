@@ -43,4 +43,5 @@ public:
 private:
 
 	void Execute() const;
+	void ExecuteCommand(int) const;
 };

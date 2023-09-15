@@ -87,21 +87,23 @@ void PiscsiService::Execute() const
 
 	while (running) {
 		const int fd = accept(service_socket, nullptr, nullptr);
-		if (fd == -1) {
-			continue;
+		if (fd != -1) {
+			ExecuteCommand(fd);
+			close(fd);
 		}
+	}
+}
 
-		CommandContext context(fd);
-		try {
-			context.ReadCommand();
-			if (context.GetCommand().operation() != PbOperation::NO_OPERATION) {
-				execute(context);
-			}
+void PiscsiService::ExecuteCommand(int fd) const
+{
+	CommandContext context(fd);
+	try {
+		context.ReadCommand();
+		if (context.GetCommand().operation() != PbOperation::NO_OPERATION) {
+			execute(context);
 		}
-		catch(const io_exception& e) {
-			spdlog::warn(e.what());
-		}
-
-		close(fd);
+	}
+	catch(const io_exception& e) {
+		spdlog::warn(e.what());
 	}
 }
