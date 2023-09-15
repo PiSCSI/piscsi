@@ -13,6 +13,7 @@
 #include "localizer.h"
 #include "piscsi_service.h"
 #include <spdlog/spdlog.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <csignal>
 
@@ -24,6 +25,7 @@ void PiscsiService::Cleanup() const
 	running = false;
 
 	if (service_socket != -1) {
+		shutdown(service_socket, SHUT_RDWR);
 		close(service_socket);
 	}
 }
@@ -84,7 +86,7 @@ void PiscsiService::Execute() const
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	while (true) {
+	while (running) {
 		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd == -1) {
 			continue;
