@@ -485,6 +485,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			return executor->ProcessCmd(context);
 
 		// The remaining commands can only be executed when the target is idle
+		// TODO What happens when the target becomes active while the command is still being executed?
 		default: {
 			// TODO Find a better way to wait
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
