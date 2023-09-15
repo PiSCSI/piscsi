@@ -230,7 +230,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 
 			case 'b':
 				if (!GetAsUnsignedInt(value, block_size)) {
-					throw parser_exception("Invalid block size " + string(value));
+					throw parser_exception("Invalid block size " + value);
 				}
 				continue;
 
