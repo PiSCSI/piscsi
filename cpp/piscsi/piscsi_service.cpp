@@ -95,9 +95,7 @@ void PiscsiService::ExecuteCommand(int fd) const
 	CommandContext context(fd);
 	try {
 		context.ReadCommand();
-		if (context.GetCommand().operation() != PbOperation::NO_OPERATION) {
-			execute(context);
-		}
+		execute(context);
 	}
 	catch(const io_exception& e) {
 		spdlog::warn(e.what());

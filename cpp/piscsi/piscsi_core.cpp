@@ -380,7 +380,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 		}
 
-		case DEFAULT_FOLDER: {
+		case DEFAULT_FOLDER:
 			if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
 				context.ReturnErrorStatus(error);
 			}
@@ -388,51 +388,44 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 				context.ReturnSuccessStatus();
 			}
 			break;
-		}
 
-		case DEVICES_INFO: {
+		case DEVICES_INFO:
 			piscsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
 					piscsi_image.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
-		}
 
-		case DEVICE_TYPES_INFO: {
+		case DEVICE_TYPES_INFO:
 			result.set_allocated_device_types_info(piscsi_response.GetDeviceTypesInfo(result).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case SERVER_INFO: {
+		case SERVER_INFO:
 			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager->GetAllDevices(),
 					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case VERSION_INFO: {
+		case VERSION_INFO:
 			result.set_allocated_version_info(piscsi_response.GetVersionInfo(result).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case LOG_LEVEL_INFO: {
+		case LOG_LEVEL_INFO:
 			result.set_allocated_log_level_info(piscsi_response.GetLogLevelInfo(result).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case DEFAULT_IMAGE_FILES_INFO: {
+		case DEFAULT_IMAGE_FILES_INFO:
 			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
 					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case IMAGE_FILE_INFO: {
+		case IMAGE_FILE_INFO:
 			if (string filename = GetParam(command, "file"); filename.empty()) {
 				context.ReturnLocalizedError( LocalizationKey::ERROR_MISSING_FILENAME);
 			}
@@ -449,43 +442,41 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 				}
 			}
 			break;
-		}
 
-		case NETWORK_INTERFACES_INFO: {
+		case NETWORK_INTERFACES_INFO:
 			result.set_allocated_network_interfaces_info(piscsi_response.GetNetworkInterfacesInfo(result).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case MAPPING_INFO: {
+		case MAPPING_INFO:
 			result.set_allocated_mapping_info(piscsi_response.GetMappingInfo(result).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case OPERATION_INFO: {
+		case OPERATION_INFO:
 			result.set_allocated_operation_info(piscsi_response.GetOperationInfo(result,
 					piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case RESERVED_IDS_INFO: {
+		case RESERVED_IDS_INFO:
 			result.set_allocated_reserved_ids_info(piscsi_response.GetReservedIds(result,
 					executor->GetReservedIds()).release());
 			context.WriteResult(result);
 			break;
-		}
 
-		case SHUT_DOWN: {
+		case SHUT_DOWN:
 			if (executor->ShutDown(context, GetParam(command, "mode"))) {
 				TerminationHandler(0);
 			}
 			break;
-		}
+
+		case NO_OPERATION:
+			break;
 
 		default: {
 			// Wait until we become idle
+			// TODO Is this code required?
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
 			while (active) {
 				nanosleep(&ts, nullptr);
