@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "spdlog/spdlog.h"
 #include "mocks.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
