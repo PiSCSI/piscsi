@@ -10,7 +10,6 @@
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "command_context.h"
-#include "localizer.h"
 #include "piscsi_service.h"
 #include <spdlog/spdlog.h>
 #include <sys/socket.h>
