@@ -369,16 +369,14 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 	PbResult result;
 
 	switch(command.operation()) {
-		case LOG_LEVEL: {
-			const string log_level = GetParam(command, "level");
-			if (const bool status = SetLogLevel(log_level); !status) {
+		case LOG_LEVEL:
+			if (const string log_level = GetParam(command, "level"); !SetLogLevel(log_level)) {
 				context.ReturnLocalizedError(LocalizationKey::ERROR_LOG_LEVEL, log_level);
 			}
 			else {
 				context.ReturnSuccessStatus();
 			}
 			break;
-		}
 
 		case DEFAULT_FOLDER:
 			if (const string error = piscsi_image.SetDefaultFolder(GetParam(command, "folder")); !error.empty()) {
