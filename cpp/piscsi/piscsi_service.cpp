@@ -63,6 +63,9 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 void PiscsiService::Start()
 {
+	// Set up the monitor socket to receive commands
+	listen(service_socket, 1);
+
 	socket_listener = jthread([this] () { Execute(); } );
 }
 
@@ -77,9 +80,6 @@ void PiscsiService::Execute() const
 
 	// Set the affinity to a specific processor core
 	FixCpu(2);
-
-	// Set up the monitor socket to receive commands
-	listen(service_socket, 1);
 
 	while (service_socket != -1) {
 		const int fd = accept(service_socket, nullptr, nullptr);
