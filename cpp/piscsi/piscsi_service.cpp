@@ -60,7 +60,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	execute = cb;
 
-	monthread = thread([this] () { Execute(); } );
+	monthread = jthread([this] () { Execute(); } );
 	monthread.detach();
 
 	return true;
