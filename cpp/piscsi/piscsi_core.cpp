@@ -626,6 +626,7 @@ void Piscsi::Process()
 		active = true;
 
 #if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
+		// TODO Check whether this results in any performance gain
 		// Scheduling policy setting (highest priority)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
