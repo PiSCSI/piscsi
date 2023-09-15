@@ -473,13 +473,15 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			context.ReturnSuccessStatus();
 			break;
 
-		case RESERVE_IDS:
+		// TODO The image operations below can most likely directly be executed without calling the executor,
+		// because they do not require the target to be idle
 		case CREATE_IMAGE:
 		case DELETE_IMAGE:
 		case RENAME_IMAGE:
 		case COPY_IMAGE:
 		case PROTECT_IMAGE:
 		case UNPROTECT_IMAGE:
+		case RESERVE_IDS:
 			return executor->ProcessCmd(context);
 
 		// The remaining commands can only be executed when the target is idle
