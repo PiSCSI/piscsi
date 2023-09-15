@@ -19,13 +19,15 @@
 using namespace piscsi_interface;
 using namespace piscsi_util;
 
-void PiscsiService::Cleanup() const
+void PiscsiService::Cleanup()
 {
 	running = false;
 
 	if (service_socket != -1) {
 		shutdown(service_socket, SHUT_RDWR);
 		close(service_socket);
+
+		service_socket = -1;
 	}
 }
 
@@ -84,7 +86,7 @@ void PiscsiService::Execute() const
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	while (running) {
+	while (service_socket != -1) {
 		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd != -1) {
 			ExecuteCommand(fd);

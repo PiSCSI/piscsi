@@ -35,7 +35,7 @@ public:
 	~PiscsiService() = default;
 
 	bool Init(const callback&, int);
-	void Cleanup() const;
+	void Cleanup();
 
 	bool IsRunning() const { return running; }
 	void SetRunning() const { running = true; }
