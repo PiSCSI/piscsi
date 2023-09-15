@@ -475,7 +475,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		default: {
 			// Wait until the target is idle
-			// TODO Use a better way to wait, maybe a semaphore
+			// TODO Find a better way to wait
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
 			while (active) {
 				nanosleep(&ts, nullptr);
