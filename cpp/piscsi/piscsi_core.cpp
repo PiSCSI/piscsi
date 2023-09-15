@@ -156,11 +156,10 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 			case 't':
 			case 'F':
 			case 'z':
-			{
-				const string optarg_str = optarg == nullptr ? "" : optarg;
-				optargs.emplace_back(opt, optarg_str);
+			// Encountered filename
+			case 1:
+				optargs.emplace_back(opt, optarg == nullptr ? "" : optarg);
 				continue;
-			}
 
 			case 'L':
 				log_level = optarg;
@@ -179,14 +178,6 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 			case 'v':
 				cout << piscsi_get_version_string() << endl;
 				exit(0);
-
-			case 1:
-			{
-				// Encountered filename
-				const string optarg_str = (optarg == nullptr) ? "" : string(optarg);
-				optargs.emplace_back(opt, optarg_str);
-				continue;
-			}
 
 			default:
 				throw parser_exception("Parser error");
