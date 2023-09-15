@@ -24,7 +24,17 @@ using namespace filesystem;
 using namespace piscsi_interface;
 using namespace protobuf_util;
 
-TEST(PiscsiExecutorTest, ProcessDeviceCmd)
+const extern bool enable_logging;
+
+// This test fixture is required in order to reset the log level changed by the log level tests
+class PiscsiExecutorTest : public Test
+{
+	void TearDown() override {
+		spdlog::set_level(enable_logging ? spdlog::level::trace : spdlog::level::off);
+	}
+};
+
+TEST_F(PiscsiExecutorTest, ProcessDeviceCmd)
 {
 	const int ID = 3;
 	const int LUN = 0;
@@ -161,7 +171,7 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 	EXPECT_FALSE(executor->ProcessDeviceCmd(context_unprotect_image, definition, true));
 }
 
-TEST(PiscsiExecutorTest, ProcessCmd)
+TEST_F(PiscsiExecutorTest, ProcessCmd)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -258,7 +268,7 @@ TEST(PiscsiExecutorTest, ProcessCmd)
 	EXPECT_FALSE(executor->ProcessCmd(context_unprotect_image));
 }
 
-TEST(PiscsiExecutorTest, Attach)
+TEST_F(PiscsiExecutorTest, Attach)
 {
 	const int ID = 3;
 	const int LUN = 0;
@@ -343,7 +353,7 @@ TEST(PiscsiExecutorTest, Attach)
 	controller_manager->DeleteAllControllers();
 }
 
-TEST(PiscsiExecutorTest, Insert)
+TEST_F(PiscsiExecutorTest, Insert)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -399,7 +409,7 @@ TEST(PiscsiExecutorTest, Insert)
 	EXPECT_TRUE(result);
 }
 
-TEST(PiscsiExecutorTest, Detach)
+TEST_F(PiscsiExecutorTest, Detach)
 {
 	const int ID = 3;
 	const int LUN1 = 0;
@@ -428,7 +438,7 @@ TEST(PiscsiExecutorTest, Detach)
 	EXPECT_FALSE(executor.Detach(context, d1, false));
 }
 
-TEST(PiscsiExecutorTest, DetachAll)
+TEST_F(PiscsiExecutorTest, DetachAll)
 {
 	const int ID = 4;
 
@@ -448,7 +458,7 @@ TEST(PiscsiExecutorTest, DetachAll)
 	EXPECT_TRUE(controller_manager->GetAllDevices().empty());
 }
 
-TEST(PiscsiExecutorTest, ShutDown)
+TEST_F(PiscsiExecutorTest, ShutDown)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -467,7 +477,7 @@ TEST(PiscsiExecutorTest, ShutDown)
 	EXPECT_THROW(executor.ShutDown(context, "rascsi"), io_exception);
 }
 
-TEST(PiscsiExecutorTest, SetReservedIds)
+TEST_F(PiscsiExecutorTest, SetReservedIds)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -507,7 +517,7 @@ TEST(PiscsiExecutorTest, SetReservedIds)
 	EXPECT_FALSE(error.empty());
 }
 
-TEST(PiscsiExecutorTest, ValidateImageFile)
+TEST_F(PiscsiExecutorTest, ValidateImageFile)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -526,7 +536,7 @@ TEST(PiscsiExecutorTest, ValidateImageFile)
 	EXPECT_TRUE(full_path.empty());
 }
 
-TEST(PiscsiExecutorTest, PrintCommand)
+TEST_F(PiscsiExecutorTest, PrintCommand)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -553,7 +563,7 @@ TEST(PiscsiExecutorTest, PrintCommand)
 	EXPECT_NE(s.find("key2=value2"), string::npos);
 }
 
-TEST(PiscsiExecutorTest, ValidateLunSetup)
+TEST_F(PiscsiExecutorTest, ValidateLunSetup)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -577,7 +587,7 @@ TEST(PiscsiExecutorTest, ValidateLunSetup)
 	EXPECT_TRUE(error.empty());
 }
 
-TEST(PiscsiExecutorTest, VerifyExistingIdAndLun)
+TEST_F(PiscsiExecutorTest, VerifyExistingIdAndLun)
 {
 	const int ID = 1;
 	const int LUN1 = 0;
@@ -598,7 +608,7 @@ TEST(PiscsiExecutorTest, VerifyExistingIdAndLun)
 	EXPECT_FALSE(executor.VerifyExistingIdAndLun(context, ID, LUN2));
 }
 
-TEST(PiscsiExecutorTest, CreateDevice)
+TEST_F(PiscsiExecutorTest, CreateDevice)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -616,7 +626,7 @@ TEST(PiscsiExecutorTest, CreateDevice)
 	EXPECT_NE(nullptr, executor.CreateDevice(context, SCHS, 0, ""));
 }
 
-TEST(PiscsiExecutorTest, SetSectorSize)
+TEST_F(PiscsiExecutorTest, SetSectorSize)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -636,7 +646,7 @@ TEST(PiscsiExecutorTest, SetSectorSize)
 	EXPECT_TRUE(executor.SetSectorSize(context, hd, 512));
 }
 
-TEST(PiscsiExecutorTest, ValidateOperationAgainstDevice)
+TEST_F(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -690,7 +700,7 @@ TEST(PiscsiExecutorTest, ValidateOperationAgainstDevice)
 	EXPECT_TRUE(executor.ValidateOperationAgainstDevice(context, *device, UNPROTECT));
 }
 
-TEST(PiscsiExecutorTest, ValidateIdAndLun)
+TEST_F(PiscsiExecutorTest, ValidateIdAndLun)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
@@ -707,7 +717,7 @@ TEST(PiscsiExecutorTest, ValidateIdAndLun)
 	EXPECT_TRUE(executor.ValidateIdAndLun(context, 7, 31));
 }
 
-TEST(PiscsiExecutorTest, SetProductData)
+TEST_F(PiscsiExecutorTest, SetProductData)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
