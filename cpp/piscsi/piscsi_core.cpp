@@ -470,16 +470,16 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case NO_OPERATION:
+			context.ReturnSuccessStatus();
 			break;
 
 		default: {
-			// Wait until we become idle
-			// TODO Is this code required?
+			// Wait until the target is idle
+			// TODO Use a better way to wait, maybe a semaphore
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
 			while (active) {
 				nanosleep(&ts, nullptr);
 			}
-
 			executor->ProcessCmd(context);
 			break;
 		}
