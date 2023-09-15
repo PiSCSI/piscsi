@@ -137,7 +137,6 @@ void Piscsi::TerminationHandler(int)
 Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 {
 	optargs_type optargs;
-	int block_size = 0;
 	string log_level = "info";
 
 	opterr = 1;
@@ -148,6 +147,7 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 			// the 'bus' object is created and configured
 			case 'i':
 			case 'I':
+			case 'b':
 			case 'd':
 			case 'D':
 			case 'R':
@@ -159,13 +159,6 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 			{
 				const string optarg_str = optarg == nullptr ? "" : optarg;
 				optargs.emplace_back(opt, optarg_str);
-				continue;
-			}
-
-			case 'b': {
-				if (!GetAsUnsignedInt(optarg, block_size)) {
-					throw parser_exception("Invalid block size " + string(optarg));
-				}
 				continue;
 			}
 
@@ -233,6 +226,12 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 			case 'd':
 			case 'D':
 				id_and_lun = value;
+				continue;
+
+			case 'b':
+				if (!GetAsUnsignedInt(value, block_size)) {
+					throw parser_exception("Invalid block size " + string(value));
+				}
 				continue;
 
 			case 'z':
