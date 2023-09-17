@@ -44,10 +44,10 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
 void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
 		bool removable, const string& extension)
 {
-    auto bus                = make_shared<MockBus>();
+    auto bus = make_shared<MockBus>();
     auto controller_manager = make_shared<ControllerManager>(*bus);
-    auto controller         = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
-    auto device             = CreateDevice(type, *controller, extension);
+    auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+    auto device = CreateDevice(type, *controller, extension);
 
     // ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
