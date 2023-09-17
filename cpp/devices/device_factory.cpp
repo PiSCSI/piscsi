@@ -20,7 +20,6 @@
 #include "device_factory.h"
 
 using namespace std;
-using namespace piscsi_interface;
 using namespace piscsi_util;
 using namespace network_util;
 
