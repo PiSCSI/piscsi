@@ -10,6 +10,7 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "scsictl_display.h"
+#include <sstream>
 #include <vector>
 #include <set>
 #include <map>
@@ -78,9 +79,7 @@ string ScsictlDisplay::DisplayDeviceInfo(const PbDevice& pb_device) const
 		s << Join(properties) << "  ";
 	}
 
-	DisplayParams(s, pb_device);
-
-	s << '\n';
+	s << DisplayParams(pb_device) << '\n';
 
 	return s.str();
 }
@@ -135,7 +134,7 @@ string ScsictlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_ty
 
 		const PbDeviceProperties& properties = device_type_info.properties();
 
-		DisplayAttributes(s, properties);
+		s << DisplayAttributes(properties);
 
 		if (properties.supports_file()) {
 			s << "Image file support\n        ";
@@ -145,9 +144,9 @@ string ScsictlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_ty
 			s << "Parameter support\n        ";
 		}
 
-		DisplayDefaultParameters(s, properties);
+		s << DisplayDefaultParameters(properties);
 
-		DisplayBlockSizes(s, properties);
+		s << DisplayBlockSizes(properties);
 	}
 
 	s << '\n';
@@ -263,7 +262,7 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 			}
 			s << '\n';
 
-			DisplayParameters(s, meta_data);
+			s << DisplayParameters(meta_data);
 		}
 		else {
 			s << "  " << name << " (Unknown server-side operation)\n";
@@ -273,20 +272,25 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 	return s.str();
 }
 
-void ScsictlDisplay::DisplayParams(ostringstream& s, const PbDevice& pb_device) const
+string ScsictlDisplay::DisplayParams(const PbDevice& pb_device) const
 {
+	ostringstream s;
+
 	set<string, less<>> params;
 	for (const auto& [key, value] : pb_device.params()) {
 		params.insert(key + "=" + value);
 	}
 
 	s << Join(params, ":");
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDeviceProperties& props) const
+string ScsictlDisplay::DisplayAttributes(const PbDeviceProperties& props) const
 {
-	vector<string> properties;
+	ostringstream s;
 
+	vector<string> properties;
 	if (props.read_only()) {
 		properties.emplace_back("read-only");
 	}
@@ -306,10 +310,14 @@ void ScsictlDisplay::DisplayAttributes(ostringstream& s, const PbDevicePropertie
 	if (!properties.empty()) {
 		s << "Properties: " << Join(properties) << "\n        ";
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDeviceProperties& properties) const
+string ScsictlDisplay::DisplayDefaultParameters(const PbDeviceProperties& properties) const
 {
+	ostringstream s;
+
 	if (!properties.default_params().empty()) {
 		set<string, less<>> params;
 		for (const auto& [key, value] : properties.default_params()) {
@@ -318,20 +326,28 @@ void ScsictlDisplay::DisplayDefaultParameters(ostringstream& s, const PbDevicePr
 
 		s << "Default parameters: " << Join(params, "\n                            ");
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayBlockSizes(ostringstream& s, const PbDeviceProperties& properties) const
+string ScsictlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) const
 {
+	ostringstream s;
+
 	if (properties.block_sizes_size()) {
 		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 		s << "Configurable block sizes in bytes: " << Join(sorted_sizes);
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaData& meta_data) const
+string ScsictlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) const
 {
 	vector<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
 	ranges::sort(sorted_parameters, [](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+	ostringstream s;
 
 	for (const auto& parameter : sorted_parameters) {
 		s << "    " << parameter.name() << ": "
@@ -342,18 +358,23 @@ void ScsictlDisplay::DisplayParameters(ostringstream& s, const PbOperationMetaDa
 		}
 		s << '\n';
 
-		DisplayPermittedValues(s, parameter);
+		s << DisplayPermittedValues(parameter);
 
 		if (!parameter.default_value().empty()) {
 			s << "      Default value: " << parameter.default_value() << '\n';
 		}
 	}
+
+	return s.str();
 }
 
-void ScsictlDisplay::DisplayPermittedValues(ostringstream& s, const PbOperationParameter& parameter) const
+string ScsictlDisplay::DisplayPermittedValues(const PbOperationParameter& parameter) const
 {
+	ostringstream s;
 	if (parameter.permitted_values_size()) {
 		const set<string, less<>> sorted_values = { parameter.permitted_values().begin(), parameter.permitted_values().end() };
 		s << "      Permitted values: " << Join(parameter.permitted_values()) << '\n';
 	}
+
+	return s.str();
 }

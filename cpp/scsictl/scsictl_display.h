@@ -11,7 +11,6 @@
 
 #include "generated/piscsi_interface.pb.h"
 #include <string>
-#include <sstream>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -37,10 +36,10 @@ public:
 
 private:
 
-	void DisplayParams(ostringstream&, const PbDevice&) const;
-	void DisplayAttributes(ostringstream&, const PbDeviceProperties&) const;
-	void DisplayDefaultParameters(ostringstream&, const PbDeviceProperties&) const;
-	void DisplayBlockSizes(ostringstream&, const PbDeviceProperties&) const;
-	void DisplayParameters(ostringstream&, const PbOperationMetaData&) const;
-	void DisplayPermittedValues(ostringstream&, const PbOperationParameter&) const;
+	string DisplayParams(const PbDevice&) const;
+	string DisplayAttributes(const PbDeviceProperties&) const;
+	string DisplayDefaultParameters(const PbDeviceProperties&) const;
+	string DisplayBlockSizes(const PbDeviceProperties&) const;
+	string DisplayParameters(const PbOperationMetaData&) const;
+	string DisplayPermittedValues(const PbOperationParameter&) const;
 };
