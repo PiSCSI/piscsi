@@ -10,7 +10,6 @@
 #pragma once
 
 #include <functional>
-#include <thread>
 
 class CommandContext;
 
@@ -23,8 +22,6 @@ class PiscsiService
 	callback execute;
 
 	int service_socket = -1;
-
-	jthread socket_listener;
 
 public:
 

@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <csignal>
+#include <future>
 
 using namespace piscsi_util;
 
@@ -65,7 +66,7 @@ void PiscsiService::Start()
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	socket_listener = jthread([this] () { Execute(); } );
+	const auto& socket_listener = async(launch::async, [this] () { Execute(); } );
 }
 
 void PiscsiService::Execute() const
