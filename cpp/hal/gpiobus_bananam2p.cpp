@@ -723,9 +723,9 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
     }
 
     if (sunxi_gpio_state == SunXI::HIGH)
-        pio->DAT &= ~(1 << num);
+    	pio->DAT = pio->DAT & ~(1 << num);
     else
-        pio->DAT |= (1 << num);
+    	pio->DAT = pio->DAT | (1 << num);
 }
 
 void GPIOBUS_BananaM2p::DisableIRQ()
@@ -978,9 +978,9 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int pin, int value)
     }
 
     if (value == 0)
-        pio->DAT &= ~(1 << num);
+    	pio->DAT = pio->DAT & ~(1 << num);
     else
-        pio->DAT |= (1 << num);
+    	pio->DAT = pio->DAT | (1 << num);
 }
 
 void GPIOBUS_BananaM2p::sunxi_set_all_gpios(array<uint32_t, 12> &mask, array<uint32_t, 12> &value)
