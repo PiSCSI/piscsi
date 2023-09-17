@@ -48,7 +48,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-		bind(service_socket, (const sockaddr *)&server, sizeof(sockaddr_in)) < 0) {
+		bind(service_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bind() API requires reinterpret_cast
 		cerr << "Error: Port " << port << " is in use, is piscsi already running?" << endl;
 		return false;
 	}
