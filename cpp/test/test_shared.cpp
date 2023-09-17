@@ -139,7 +139,7 @@ void CleanupAllTempFiles()
 
 string ReadTempFileToString(const string& filename)
 {
-    path temp_file = test_data_temp_path / path(filename);
+    const path temp_file = test_data_temp_path / path(filename);
     ifstream in_fs(temp_file);
     stringstream buffer;
     buffer << in_fs.rdbuf();
