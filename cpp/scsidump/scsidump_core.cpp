@@ -87,7 +87,7 @@ bool ScsiDump::Init() const
     return bus != nullptr;
 }
 
-void ScsiDump::ParseArguments(span <char *> args)
+void ScsiDump::ParseArguments(span<char *> args)
 {
     int opt;
 
@@ -456,9 +456,9 @@ int ScsiDump::DumpRestore()
     }
 
     // Dump by buffer size
-    auto dsiz      = static_cast<int>(buffer.size());
+    auto dsiz = static_cast<int>(buffer.size());
     const int duni = dsiz / inq_info.sector_size;
-    auto dnum      = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
+    auto dnum = static_cast<int>((inq_info.capacity * inq_info.sector_size) / dsiz);
 
     auto start_time = chrono::high_resolution_clock::now();
 
@@ -565,8 +565,8 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
     RequestSense();
 
     const auto [capacity, sector_size] = ReadCapacity();
-    inq_info.capacity                  = capacity;
-    inq_info.sector_size               = sector_size;
+    inq_info.capacity = capacity;
+    inq_info.sector_size = sector_size;
 
     cout << "Sectors:      " << capacity << "\n"
          << "Sector size:  " << sector_size << " bytes\n"
@@ -581,8 +581,7 @@ ScsiDump::inquiry_info_t ScsiDump::GetDeviceInfo()
 void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info_t& inq_info)
 {
     string prop_filename = filename + ".properties";
-    string prop_str;
-    stringstream prop_stream(prop_str);
+    stringstream prop_stream;
 
     prop_stream << "{" << endl;
     prop_stream << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
@@ -595,7 +594,7 @@ void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info
     if (fp) {
         fputs(prop_stream.str().c_str(), fp);
     } else {
-        spdlog::warn("Unable to open output file '%s" + prop_filename + "'");
+        spdlog::warn("Unable to open output file '" + prop_filename + "'");
         return;
     }
 
