@@ -27,7 +27,7 @@ public:
 
 private:
 
-	unordered_map<int, PbOperation> operations = {
+	const unordered_map<int, PbOperation> operations = {
 			{ 'a', ATTACH },
 			{ 'd', DETACH },
 			{ 'e', EJECT },
@@ -37,7 +37,7 @@ private:
 			{ 'u', UNPROTECT }
 	};
 
-	unordered_map<int, PbDeviceType> device_types = {
+	const unordered_map<int, PbDeviceType> device_types = {
 			{ 'b', SCBR },
 			{ 'c', SCCD },
 			{ 'd', SCDP },
