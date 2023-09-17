@@ -29,7 +29,7 @@ public:
 	~PiscsiService() = default;
 
 	bool Init(const callback&, int);
-	void Start();
+	void Start() const;
 	void Cleanup();
 	bool IsRunning() const { return service_socket != -1; }
 

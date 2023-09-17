@@ -61,7 +61,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	return true;
 }
 
-void PiscsiService::Start()
+void PiscsiService::Start() const
 {
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
