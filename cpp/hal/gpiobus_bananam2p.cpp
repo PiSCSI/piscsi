@@ -1043,11 +1043,11 @@ void GPIOBUS_BananaM2p::set_pullupdn(int pin, int pud)
     else if (pud == SunXI::PUD_UP)
         *(gpio_map + SunXI::PULLUPDN_OFFSET) = (*(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3) | SunXI::PUD_UP;
     else // pud == PUD_OFF
-        *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
+    	*(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
 
     SunXI::short_wait();
     *(gpio_map + clk_offset) = 1 << shift;
     SunXI::short_wait();
-    *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
+    *(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
     *(gpio_map + clk_offset) = 0;
 }
