@@ -674,7 +674,7 @@ void GPIOBUS_BananaM2p::SetMode(int pin, int mode)
     pio->CFG[0 + index] = regval;
 }
 
-inline bool GPIOBUS_BananaM2p::GetSignal(int pin) const
+bool GPIOBUS_BananaM2p::GetSignal(int pin) const
 {
     GPIO_FUNCTION_TRACE
     int gpio_num = pin;
@@ -723,9 +723,9 @@ void GPIOBUS_BananaM2p::SetSignal(int pin, bool ast)
     }
 
     if (sunxi_gpio_state == SunXI::HIGH)
-        pio->DAT = pio->DAT & ~(1 << num);
+        pio->DAT &= ~(1 << num);
     else
-        pio->DAT = pio->DAT & (1 << num);
+        pio->DAT |= (1 << num);
 }
 
 void GPIOBUS_BananaM2p::DisableIRQ()
@@ -978,9 +978,9 @@ void GPIOBUS_BananaM2p::sunxi_output_gpio(int pin, int value)
     }
 
     if (value == 0)
-        pio->DAT = pio->DAT & ~(1 << num);
+        pio->DAT &= ~(1 << num);
     else
-        pio->DAT = pio->DAT | (1 << num);
+        pio->DAT |= (1 << num);
 }
 
 void GPIOBUS_BananaM2p::sunxi_set_all_gpios(array<uint32_t, 12> &mask, array<uint32_t, 12> &value)
@@ -1043,11 +1043,11 @@ void GPIOBUS_BananaM2p::set_pullupdn(int pin, int pud)
     else if (pud == SunXI::PUD_UP)
         *(gpio_map + SunXI::PULLUPDN_OFFSET) = (*(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3) | SunXI::PUD_UP;
     else // pud == PUD_OFF
-        *(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
+        *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
 
     SunXI::short_wait();
     *(gpio_map + clk_offset) = 1 << shift;
     SunXI::short_wait();
-    *(gpio_map + SunXI::PULLUPDN_OFFSET) = *(gpio_map + SunXI::PULLUPDN_OFFSET) & ~3;
+    *(gpio_map + SunXI::PULLUPDN_OFFSET) &= ~3;
     *(gpio_map + clk_offset) = 0;
 }
