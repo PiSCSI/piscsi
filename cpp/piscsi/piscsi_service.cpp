@@ -16,7 +16,6 @@
 #include <netinet/in.h>
 #include <csignal>
 
-using namespace piscsi_interface;
 using namespace piscsi_util;
 
 void PiscsiService::Cleanup()
