@@ -51,7 +51,7 @@ void ScsiDump::KillHandler(int)
     exit(EXIT_SUCCESS);
 }
 
-bool ScsiDump::Banner(const vector<char*>& args) const
+bool ScsiDump::Banner(span<char *> args) const
 {
     cout << piscsi_util::Banner("(Hard Disk Dump/Restore Utility)");
 
@@ -87,7 +87,7 @@ bool ScsiDump::Init() const
     return bus != nullptr;
 }
 
-void ScsiDump::ParseArguments(const vector<char*>& args)
+void ScsiDump::ParseArguments(span <char *> args)
 {
     int opt;
 
@@ -388,7 +388,7 @@ void ScsiDump::WaitForBusy() const
     }
 }
 
-int ScsiDump::run(const vector<char*>& args)
+int ScsiDump::run(span<char *> args)
 {
     if (!Banner(args)) {
         return EXIT_SUCCESS;
