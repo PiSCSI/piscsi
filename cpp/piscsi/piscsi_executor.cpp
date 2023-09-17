@@ -12,7 +12,6 @@
 #include "shared/piscsi_exceptions.h"
 #include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
-#include "devices/device_logger.h"
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
 #include "devices/disk.h"
