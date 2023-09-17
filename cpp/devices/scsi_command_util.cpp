@@ -11,7 +11,6 @@
 #include "device_logger.h"
 #include "scsi_command_util.h"
 #include <cstring>
-#include <cassert>
 #include <sstream>
 #include <iomanip>
 
