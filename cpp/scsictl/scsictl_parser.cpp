@@ -9,7 +9,7 @@
 
 #include "scsictl_parser.h"
 
-PbOperation ScsictlParser::ParseOperation(const string& operation) const
+PbOperation ScsictlParser::ParseOperation(string_view operation) const
 {
 	const auto& it = operations.find(tolower(operation[0]));
 	return it != operations.end() ? it->second : NO_OPERATION;

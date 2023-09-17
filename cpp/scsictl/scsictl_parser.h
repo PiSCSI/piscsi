@@ -22,7 +22,7 @@ public:
 	ScsictlParser() = default;
 	~ScsictlParser() = default;
 
-	PbOperation ParseOperation(const string&) const;
+	PbOperation ParseOperation(string_view) const;
 	PbDeviceType ParseType(const string&) const;
 
 private:
