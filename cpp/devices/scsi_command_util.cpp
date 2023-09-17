@@ -126,42 +126,6 @@ uint64_t scsi_command_util::GetInt64(span<const int> buf, int offset)
 			(static_cast<uint64_t>(buf[offset + 6]) << 8) | static_cast<uint64_t>(buf[offset + 7]);
 }
 
-void scsi_command_util::SetInt16(vector<byte>& buf, int offset, int value)
-{
-	assert(buf.size() > static_cast<size_t>(offset) + 1);
-
-	buf[offset] = static_cast<byte>(value >> 8);
-	buf[offset + 1] = static_cast<byte>(value);
-}
-
-void scsi_command_util::SetInt32(vector<byte>& buf, int offset, uint32_t value)
-{
-	assert(buf.size() > static_cast<size_t>(offset) + 3);
-
-	buf[offset] = static_cast<byte>(value >> 24);
-	buf[offset + 1] = static_cast<byte>(value >> 16);
-	buf[offset + 2] = static_cast<byte>(value >> 8);
-	buf[offset + 3] = static_cast<byte>(value);
-}
-
-void scsi_command_util::SetInt16(vector<uint8_t>& buf, int offset, int value)
-{
-	assert(buf.size() > static_cast<size_t>(offset) + 1);
-
-	buf[offset] = static_cast<uint8_t>(value >> 8);
-	buf[offset + 1] = static_cast<uint8_t>(value);
-}
-
-void scsi_command_util::SetInt32(vector<uint8_t>& buf, int offset, uint32_t value)
-{
-	assert(buf.size() > static_cast<size_t>(offset) + 3);
-
-	buf[offset] = static_cast<uint8_t>(value >> 24);
-	buf[offset + 1] = static_cast<uint8_t>(value >> 16);
-	buf[offset + 2] = static_cast<uint8_t>(value >> 8);
-	buf[offset + 3] = static_cast<uint8_t>(value);
-}
-
 void scsi_command_util::SetInt64(vector<uint8_t>& buf, int offset, uint64_t value)
 {
 	assert(buf.size() > static_cast<size_t>(offset) + 7);

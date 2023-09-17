@@ -27,18 +27,35 @@ namespace scsi_command_util
 	void EnrichFormatPage(map<int, vector<byte>>&, bool, int);
 	void AddAppleVendorModePage(map<int, vector<byte>>&, bool);
 
-	int GetInt16(const auto buf, int offset) {
+	int GetInt16(const auto buf, int offset)
+	{
 		assert(buf.size() > static_cast<size_t>(offset) + 1);
 
 		return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
 	};
 
+	template<class T>
+	void SetInt16(vector<T>& buf, int offset, int value)
+	{
+		assert(buf.size() > static_cast<size_t>(offset) + 1);
+
+		buf[offset] = static_cast<T>(value >> 8);
+		buf[offset + 1] = static_cast<T>(value);
+	}
+
+	template<class T>
+	void SetInt32(vector<T>& buf, int offset, uint32_t value)
+	{
+		assert(buf.size() > static_cast<size_t>(offset) + 3);
+
+		buf[offset] = static_cast<T>(value >> 24);
+		buf[offset + 1] = static_cast<T>(value >> 16);
+		buf[offset + 2] = static_cast<T>(value >> 8);
+		buf[offset + 3] = static_cast<T>(value);
+	}
+
 	int GetInt24(span<const int>, int);
 	uint32_t GetInt32(span <const int>, int);
 	uint64_t GetInt64(span<const int>, int);
-	void SetInt16(vector<byte>&, int, int);
-	void SetInt16(vector<uint8_t>&, int, int);
-	void SetInt32(vector<byte>&, int, uint32_t);
-	void SetInt32(vector<uint8_t>&, int, uint32_t);
 	void SetInt64(vector<uint8_t>&, int, uint64_t);
 }
