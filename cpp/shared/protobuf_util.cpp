@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "piscsi_util.h"
-#include "protobuf_serializer.h"
 #include "protobuf_util.h"
 #include <sstream>
 
