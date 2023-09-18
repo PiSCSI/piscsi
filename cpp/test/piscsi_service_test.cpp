@@ -33,14 +33,17 @@ TEST(PiscsiServiceTest, Init)
 	EXPECT_TRUE(service.Init(nullptr, 9999)) << "Port 9999 is expected not to be in use for this test";
 }
 
-TEST(PiscsiServiceTest, StartStop)
+TEST(PiscsiServiceTest, IsRunning)
 {
 	PiscsiService service;
-
-	EXPECT_TRUE(service.Init(nullptr, 9999));
+	EXPECT_FALSE(service.IsRunning());
+	service.Init(nullptr, 9999);
+	EXPECT_TRUE(service.IsRunning());
 
 	service.Start();
+	EXPECT_TRUE(service.IsRunning());
 	service.Stop();
+	EXPECT_FALSE(service.IsRunning());
 }
 
 TEST(PiscsiServiceTest, Execute)
