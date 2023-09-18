@@ -17,9 +17,10 @@ TEST(PiscsiServiceTest, Init)
 {
 	PiscsiService service;
 
-	EXPECT_FALSE(service.Init(nullptr, 65536));
-	EXPECT_FALSE(service.Init(nullptr, 0));
-	EXPECT_FALSE(service.Init(nullptr, -1));
+	EXPECT_FALSE(service.Init(nullptr, 65536)) << "Illegal port number";
+	EXPECT_FALSE(service.Init(nullptr, 0)) << "Illegal port number";
+	EXPECT_FALSE(service.Init(nullptr, -1)) << "Illegal port number";
+	EXPECT_FALSE(service.Init(nullptr, 1)) << "Port 1 is only available for the root user";
 	EXPECT_TRUE(service.Init(nullptr, 9999));
 }
 
