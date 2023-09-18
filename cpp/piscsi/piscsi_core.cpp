@@ -597,7 +597,6 @@ void Piscsi::Process()
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
 		if (IsNotBusy() && bus->GetSEL()) {
-			// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
 			target_is_active = true;
 
 			// Process command on the responsible controller based on the current initiator and target ID
