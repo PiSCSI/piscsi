@@ -596,7 +596,7 @@ void Piscsi::Process()
 #endif
 
 		// Only process the SCSI command if the bus is not busy and no other device responded
-		if (WaitForNotBusy() && bus->GetSEL()) {
+		if (IsNotBusy() && bus->GetSEL()) {
 			// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
 			target_is_active = true;
 
@@ -608,7 +608,7 @@ void Piscsi::Process()
 	}
 }
 
-bool Piscsi::WaitForNotBusy() const
+bool Piscsi::IsNotBusy() const
 {
     // Wait until BSY is released as there is a possibility for the
 	// initiator to assert it while setting the ID (for up to 3 seconds)
