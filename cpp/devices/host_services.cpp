@@ -35,8 +35,8 @@ bool HostServices::Init(const unordered_map<string, string>& params)
 {
 	ModePageDevice::Init(params);
 
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [&] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdStartStop, [&] { StartStopUnit(); });
 
 	SetReady(true);
 

@@ -37,9 +37,9 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 	// Create host file system
 	fs.Reset();
 
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdGetMessage10, [this] { GetMessage10(); });
-	AddCommand(scsi_command::eCmdSendMessage10, [this] { SendMessage10(); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [&] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdGetMessage10, [&] { GetMessage10(); });
+	AddCommand(scsi_command::eCmdSendMessage10, [&] { SendMessage10(); });
 
 #ifdef __linux__
 	m_bTapEnable = tap.Init(GetParams());

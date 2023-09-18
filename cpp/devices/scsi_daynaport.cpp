@@ -42,13 +42,13 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
 
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
-	AddCommand(scsi_command::eCmdWrite6, [this] { Write6(); });
-	AddCommand(scsi_command::eCmdRetrieveStats, [this] { RetrieveStatistics(); });
-	AddCommand(scsi_command::eCmdSetIfaceMode, [this] { SetInterfaceMode(); });
-	AddCommand(scsi_command::eCmdSetMcastAddr, [this] { SetMcastAddr(); });
-	AddCommand(scsi_command::eCmdEnableInterface, [this] { EnableInterface(); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [&] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdRead6, [&] { Read6(); });
+	AddCommand(scsi_command::eCmdWrite6, [&] { Write6(); });
+	AddCommand(scsi_command::eCmdRetrieveStats, [&] { RetrieveStatistics(); });
+	AddCommand(scsi_command::eCmdSetIfaceMode, [&] { SetInterfaceMode(); });
+	AddCommand(scsi_command::eCmdSetMcastAddr, [&] { SetMcastAddr(); });
+	AddCommand(scsi_command::eCmdEnableInterface, [&] { EnableInterface(); });
 
 	// The Daynaport needs to have a delay after the size/flags field of the read response.
 	// In the MacOS driver, it looks like the driver is doing two "READ" system calls.

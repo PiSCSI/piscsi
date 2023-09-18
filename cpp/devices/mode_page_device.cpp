@@ -24,10 +24,10 @@ bool ModePageDevice::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
 
-	AddCommand(scsi_command::eCmdModeSense6, [this] { ModeSense6(); });
-	AddCommand(scsi_command::eCmdModeSense10, [this] { ModeSense10(); });
-	AddCommand(scsi_command::eCmdModeSelect6, [this] { ModeSelect6(); });
-	AddCommand(scsi_command::eCmdModeSelect10, [this] { ModeSelect10(); });
+	AddCommand(scsi_command::eCmdModeSense6, [&] { ModeSense6(); });
+	AddCommand(scsi_command::eCmdModeSense10, [&] { ModeSense10(); });
+	AddCommand(scsi_command::eCmdModeSelect6, [&] { ModeSelect6(); });
+	AddCommand(scsi_command::eCmdModeSelect10, [&] { ModeSelect10(); });
 
 	return true;
 }

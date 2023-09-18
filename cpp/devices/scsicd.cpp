@@ -35,7 +35,7 @@ bool SCSICD::Init(const unordered_map<string, string>& params)
 {
 	Disk::Init(params);
 
-	AddCommand(scsi_command::eCmdReadToc, [this] { ReadToc(); });
+	AddCommand(scsi_command::eCmdReadToc, [&] { ReadToc(); });
 
 	return true;
 }

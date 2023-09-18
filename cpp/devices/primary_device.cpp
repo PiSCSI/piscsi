@@ -20,15 +20,15 @@ using namespace scsi_command_util;
 bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 {
 	// Mandatory SCSI primary commands
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdInquiry, [this] { Inquiry(); });
-	AddCommand(scsi_command::eCmdReportLuns, [this] { ReportLuns(); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [&] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdInquiry, [&] { Inquiry(); });
+	AddCommand(scsi_command::eCmdReportLuns, [&] { ReportLuns(); });
 
 	// Optional commands supported by all PiSCSI devices
-	AddCommand(scsi_command::eCmdRequestSense, [this] { RequestSense(); });
-	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
-	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
-	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
+	AddCommand(scsi_command::eCmdRequestSense, [&] { RequestSense(); });
+	AddCommand(scsi_command::eCmdReserve6, [&] { ReserveUnit(); });
+	AddCommand(scsi_command::eCmdRelease6, [&] { ReleaseUnit(); });
+	AddCommand(scsi_command::eCmdSendDiagnostic, [&] { SendDiagnostic(); });
 
 	SetParams(params);
 
