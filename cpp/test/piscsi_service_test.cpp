@@ -30,7 +30,7 @@ TEST(PiscsiServiceTest, Init)
 	EXPECT_FALSE(service.Init(nullptr, 0)) << "Illegal port number";
 	EXPECT_FALSE(service.Init(nullptr, -1)) << "Illegal port number";
 	EXPECT_FALSE(service.Init(nullptr, 1)) << "Port 1 is only available for the root user";
-	EXPECT_TRUE(service.Init(nullptr, 9999));
+	EXPECT_TRUE(service.Init(nullptr, 9999)) << "Port 9999 is expected not to be in use for this test";
 }
 
 TEST(PiscsiServiceTest, StartStop)
