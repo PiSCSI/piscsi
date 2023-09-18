@@ -15,7 +15,7 @@
 using namespace std;
 using namespace piscsi_interface;
 
-void CommandContext::ReadCommand()
+bool CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
@@ -27,7 +27,11 @@ void CommandContext::ReadCommand()
 
 		// Fetch the command
 		serializer.DeserializeMessage(fd, command);
+
+		return true;
 	}
+
+	return false;
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,

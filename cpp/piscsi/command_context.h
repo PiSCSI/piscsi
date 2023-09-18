@@ -35,7 +35,7 @@ public:
 	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
-	void ReadCommand();
+	bool ReadCommand();
 	const PbCommand& GetCommand() const { return command; }
 	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 

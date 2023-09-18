@@ -93,8 +93,9 @@ void PiscsiService::ExecuteCommand(int fd) const
 {
 	CommandContext context(fd);
 	try {
-		context.ReadCommand();
-		execute(context);
+		if (context.ReadCommand()) {
+			execute(context);
+		}
 	}
 	catch(const io_exception& e) {
 		spdlog::warn(e.what());

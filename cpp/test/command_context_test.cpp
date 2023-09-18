@@ -20,7 +20,7 @@ TEST(CommandContext, ReadCommand)
 {
 	int fd = open(CreateTempFile(0).string().c_str(), O_RDONLY);
 	CommandContext context1(fd);
-	context1.ReadCommand();
+	EXPECT_FALSE(context1.ReadCommand());
 	close(fd);
 
 	// Invalid magic with wrong length
@@ -60,7 +60,7 @@ TEST(CommandContext, ReadCommand)
 	close(fd);
 	fd = open(filename.c_str(), O_RDONLY);
 	CommandContext context6(fd);
-	context6.ReadCommand();
+	EXPECT_TRUE(context6.ReadCommand());
 	close(fd);
 	EXPECT_EQ(PbOperation::SERVER_INFO, context6.GetCommand().operation());
 }
