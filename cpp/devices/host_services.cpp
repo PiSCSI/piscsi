@@ -77,7 +77,7 @@ void HostServices::StartStopUnit() const
 	EnterStatusPhase();
 }
 
-int HostServices::ModeSense6(cdb cdb, vector<uint8_t>& buf) const
+int HostServices::ModeSense6(cdb_t cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
@@ -95,7 +95,7 @@ int HostServices::ModeSense6(cdb cdb, vector<uint8_t>& buf) const
 	return size;
 }
 
-int HostServices::ModeSense10(cdb cdb, vector<uint8_t>& buf) const
+int HostServices::ModeSense10(cdb_t cdb, vector<uint8_t>& buf) const
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {

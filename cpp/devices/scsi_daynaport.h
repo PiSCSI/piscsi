@@ -53,10 +53,10 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int Read(cdb, vector<uint8_t>&, uint64_t) const;
-	bool Write(cdb, span<const uint8_t>) const;
+	int Read(cdb_t, vector<uint8_t>&, uint64_t) const;
+	bool Write(cdb_t, span<const uint8_t>) const;
 
-	int RetrieveStats(cdb, vector<uint8_t>&) const;
+	int RetrieveStats(cdb_t, vector<uint8_t>&) const;
 
 	void TestUnitReady() override;
 	void Read6() const;

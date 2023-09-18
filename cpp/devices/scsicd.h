@@ -42,7 +42,7 @@ protected:
 
 private:
 
-	int ReadTocInternal(cdb, vector<uint8_t>&);
+	int ReadTocInternal(cdb_t, vector<uint8_t>&);
 
 	void AddCDROMPage(map<int, vector<byte>>&, bool) const;
 	void AddCDDAPage(map<int, vector<byte>>&, bool) const;

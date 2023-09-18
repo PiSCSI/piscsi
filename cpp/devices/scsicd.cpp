@@ -244,7 +244,7 @@ int SCSICD::Read(span<uint8_t> buf, uint64_t block)
 	return Disk::Read(buf, block);
 }
 
-int SCSICD::ReadTocInternal(cdb cdb, vector<uint8_t>& buf)
+int SCSICD::ReadTocInternal(cdb_t cdb, vector<uint8_t>& buf)
 {
 	CheckReady();
 

@@ -15,7 +15,7 @@
 
 using namespace std;
 
-using cdb = span<const int>;
+using cdb_t = span<const int>;
 
 namespace scsi_defs
 {

@@ -84,7 +84,7 @@ vector<uint8_t> SCSIHD::InquiryInternal() const
 	return HandleInquiry(device_type::direct_access, scsi_level, IsRemovable());
 }
 
-void SCSIHD::ModeSelect(scsi_command cmd, cdb cdb, span<const uint8_t> buf, int length) const
+void SCSIHD::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length) const
 {
 	scsi_command_util::ModeSelect(GetLogger(), cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
 }

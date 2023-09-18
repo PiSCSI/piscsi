@@ -39,8 +39,8 @@ public:
 
 	// Commands
 	vector<uint8_t> InquiryInternal() const override;
-	int GetMessage10(cdb, vector<uint8_t>&);
-	bool ReadWrite(cdb, vector<uint8_t>&);
+	int GetMessage10(cdb_t, vector<uint8_t>&);
+	bool ReadWrite(cdb_t, vector<uint8_t>&);
 	void TestUnitReady() override;
 	void GetMessage10();
 	void SendMessage10() const;

@@ -78,7 +78,7 @@ public:
 	void IncrementNext() { ++ctrl.next; }
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
-	cdb GetCmd() const { return ctrl.cmd; }
+	cdb_t GetCmd() const { return ctrl.cmd; }
 	int GetCmdByte(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
