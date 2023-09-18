@@ -34,7 +34,7 @@ namespace scsi_command_util
 		return (static_cast<int>(buf[offset]) << 8) | buf[offset + 1];
 	};
 
-	template<class T>
+	template<typename T>
 	void SetInt16(vector<T>& buf, int offset, int value)
 	{
 		assert(buf.size() > static_cast<size_t>(offset) + 1);
@@ -43,7 +43,7 @@ namespace scsi_command_util
 		buf[offset + 1] = static_cast<T>(value);
 	}
 
-	template<class T>
+	template<typename T>
 	void SetInt32(vector<T>& buf, int offset, uint32_t value)
 	{
 		assert(buf.size() > static_cast<size_t>(offset) + 3);
