@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@
 #include "devices/device_factory.h"
 #include "generated/piscsi_interface.pb.h"
 #include "piscsi/piscsi_response.h"
+#include <sys/stat.h>
 
 using namespace piscsi_interface;
 
@@ -79,6 +80,16 @@ TEST(PiscsiResponseTest, GetImageFile)
 	EXPECT_FALSE(response.GetImageFile(image_file, "default_folder", "filename.hds"));
 	EXPECT_EQ("filename.hds", image_file.name());
 	EXPECT_EQ(SCHD, image_file.type());
+}
+
+TEST(PiscsiResponseTest, GetAvailableImages)
+{
+	PiscsiResponse response;
+	PbResult result;
+
+	const auto& image_files_info = response.GetAvailableImages(result, "default_folder", "", "", 1);
+	EXPECT_TRUE(result.status());
+	EXPECT_TRUE(image_files_info->image_files().empty());
 }
 
 TEST(PiscsiResponseTest, GetReservedIds)
