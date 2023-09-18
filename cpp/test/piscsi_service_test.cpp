@@ -21,5 +21,7 @@ TEST(PiscsiServiceTest, LifeCycle)
 	EXPECT_FALSE(service.Init(nullptr, 0));
 	EXPECT_FALSE(service.Init(nullptr, -1));
 
-	service.Cleanup();
+	service.Start();
+
+	service.Stop();
 }

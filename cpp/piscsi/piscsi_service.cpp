@@ -19,7 +19,7 @@
 
 using namespace piscsi_util;
 
-void PiscsiService::Cleanup()
+void PiscsiService::Stop()
 {
 	if (service_socket != -1) {
 		shutdown(service_socket, SHUT_RDWR);

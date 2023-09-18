@@ -78,9 +78,9 @@ bool Piscsi::InitBus()
 
 void Piscsi::Cleanup()
 {
-	executor->DetachAll();
+	service.Stop();
 
-	service.Cleanup();
+	executor->DetachAll();
 
 	bus->Cleanup();
 }

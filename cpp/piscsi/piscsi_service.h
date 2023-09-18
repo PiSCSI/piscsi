@@ -30,7 +30,7 @@ public:
 
 	bool Init(const callback&, int);
 	void Start() const;
-	void Cleanup();
+	void Stop();
 	bool IsRunning() const { return service_socket != -1; }
 
 private:
