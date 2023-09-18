@@ -38,7 +38,7 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 
 shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
 {
-	const auto& it = ranges::find_if(controllers, [data] (const auto& c) { return (data & (1 << c.first)); } );
+	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (data & (1 << c.first)); } );
 
 	return it != controllers.end() ? (*it).second : nullptr;
 }
