@@ -16,8 +16,8 @@
 
 using namespace scsi_defs;
 
-void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd, span<const int> cdb,
-		span<const uint8_t> buf, int length, int sector_size)
+void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd, cdb cdb, span<const uint8_t> buf,
+		int length, int sector_size)
 {
 	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
 	assert(length >= 0);

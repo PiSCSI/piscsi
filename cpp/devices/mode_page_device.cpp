@@ -32,7 +32,7 @@ bool ModePageDevice::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-int ModePageDevice::AddModePages(span<const int> cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
+int ModePageDevice::AddModePages(cdb cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const
 {
 	const int max_length = length - offset;
 	if (max_length < 0) {
@@ -114,7 +114,7 @@ void ModePageDevice::ModeSense10() const
 	EnterDataInPhase();
 }
 
-void ModePageDevice::ModeSelect(scsi_command, span<const int>, span<const uint8_t>, int) const
+void ModePageDevice::ModeSelect(scsi_command, cdb, span<const uint8_t>, int) const
 {
 	// There is no default implementation of MODE SELECT
 	throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);

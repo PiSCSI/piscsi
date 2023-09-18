@@ -114,7 +114,7 @@ vector<uint8_t> SCSIDaynaPort::InquiryInternal() const
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(span<const int> cdb, vector<uint8_t>& buf, uint64_t) const
+int SCSIDaynaPort::Read(cdb cdb, vector<uint8_t>& buf, uint64_t) const
 {
 	int rx_packet_size = 0;
 	const auto response = (scsi_resp_read_t*)buf.data();
@@ -247,7 +247,7 @@ int SCSIDaynaPort::Read(span<const int> cdb, vector<uint8_t>& buf, uint64_t) con
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIDaynaPort::Write(span<const int> cdb, span<const uint8_t> buf) const
+bool SCSIDaynaPort::Write(cdb cdb, span<const uint8_t> buf) const
 {
 	if (const int data_format = cdb[5]; data_format == 0x00) {
 		const int data_length = GetInt16(cdb, 3);
@@ -287,7 +287,7 @@ bool SCSIDaynaPort::Write(span<const int> cdb, span<const uint8_t> buf) const
 //              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::RetrieveStats(span<const int> cdb, vector<uint8_t>& buf) const
+int SCSIDaynaPort::RetrieveStats(cdb cdb, vector<uint8_t>& buf) const
 {
 	memcpy(buf.data(), &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 

@@ -10,9 +10,12 @@
 
 #pragma once
 
+#include <span>
 #include <unordered_map>
 
 using namespace std;
+
+using cdb = span<const int>;
 
 namespace scsi_defs
 {

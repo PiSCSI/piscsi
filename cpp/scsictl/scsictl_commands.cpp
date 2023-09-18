@@ -13,6 +13,7 @@
 #include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
+#include <unistd.h>
 #include <netdb.h>
 #include <iostream>
 #include <vector>

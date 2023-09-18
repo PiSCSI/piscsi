@@ -96,7 +96,7 @@ void SCSIBR::TestUnitReady()
 	EnterStatusPhase();
 }
 
-int SCSIBR::GetMessage10(span<const int> cdb, vector<uint8_t>& buf)
+int SCSIBR::GetMessage10(cdb cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];
@@ -184,7 +184,7 @@ int SCSIBR::GetMessage10(span<const int> cdb, vector<uint8_t>& buf)
 	return 0;
 }
 
-bool SCSIBR::ReadWrite(span<const int> cdb, vector<uint8_t>& buf)
+bool SCSIBR::ReadWrite(cdb cdb, vector<uint8_t>& buf)
 {
 	// Type
 	const int type = cdb[2];

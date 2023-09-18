@@ -23,13 +23,13 @@ public:
 
 	bool Init(const unordered_map<string, string>&) override;
 
-	virtual void ModeSelect(scsi_defs::scsi_command, span<const int>, span<const uint8_t>, int) const;
+	virtual void ModeSelect(scsi_defs::scsi_command, cdb, span<const uint8_t>, int) const;
 
 protected:
 
 	bool SupportsSaveParameters() const { return supports_save_parameters; }
 	void SupportsSaveParameters(bool b) { supports_save_parameters = b; }
-	int AddModePages(span<const int>, vector<uint8_t>&, int, int, int) const;
+	int AddModePages(cdb, vector<uint8_t>&, int, int, int) const;
 	virtual void SetUpModePages(map<int, vector<byte>>&, int, bool) const = 0;
 	virtual void AddVendorPage(map<int, vector<byte>>&, int, bool) const {
 		// Nothing to add by default
@@ -39,8 +39,8 @@ private:
 
 	bool supports_save_parameters = false;
 
-	virtual int ModeSense6(span<const int>, vector<uint8_t>&) const = 0;
-	virtual int ModeSense10(span<const int>, vector<uint8_t>&) const = 0;
+	virtual int ModeSense6(cdb, vector<uint8_t>&) const = 0;
+	virtual int ModeSense10(cdb, vector<uint8_t>&) const = 0;
 
 	void ModeSense6() const;
 	void ModeSense10() const;

@@ -32,7 +32,7 @@ public:
 	void Open() override;
 
 	vector<uint8_t> InquiryInternal() const override;
-	void ModeSelect(scsi_defs::scsi_command, span<const int>, span<const uint8_t>, int) const override;
+	void ModeSelect(scsi_defs::scsi_command, cdb, span<const uint8_t>, int) const override;
 
 protected:
 

@@ -279,7 +279,7 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-int Disk::ModeSense6(span<const int> cdb, vector<uint8_t>& buf) const
+int Disk::ModeSense6(cdb cdb, vector<uint8_t>& buf) const
 {
 	// Get length, clear buffer
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(cdb[4])));
@@ -315,7 +315,7 @@ int Disk::ModeSense6(span<const int> cdb, vector<uint8_t>& buf) const
 	return size;
 }
 
-int Disk::ModeSense10(span<const int> cdb, vector<uint8_t>& buf) const
+int Disk::ModeSense10(cdb cdb, vector<uint8_t>& buf) const
 {
 	// Get length, clear buffer
 	const auto length = static_cast<int>(min(buf.size(), static_cast<size_t>(GetInt16(cdb, 7))));
