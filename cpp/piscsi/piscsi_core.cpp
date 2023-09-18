@@ -629,6 +629,7 @@ void Piscsi::ProcessOnController(AbstractController& controller, int id_data)
 	// Return to bus monitoring if the selection phase has not started
 	phase_t phase = controller.Process(initiator_id);
 	if (phase == phase_t::selection) {
+		// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
 		target_is_active = true;
 
 		// Handle bus phases until the bus is free
