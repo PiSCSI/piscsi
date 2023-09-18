@@ -629,7 +629,7 @@ void Piscsi::ProcessOnController(AbstractController& controller, int id_data)
 	// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
 	target_is_active = true;
 
-	while (service.IsRunning() && controller.Process(initiator_id) != phase_t::busfree) {
+	while (controller.Process(initiator_id) != phase_t::busfree) {
 		// Handle bus phases until the bus is free
 	}
 
