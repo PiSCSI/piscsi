@@ -630,18 +630,16 @@ void Piscsi::Process()
 		}
 
 		// Return to bus monitoring if the selection phase has not started
-		if (phase != phase_t::selection) {
-			continue;
+		if (phase == phase_t::selection) {
+			target_is_active = true;
+
+			// Handle bus phases until the bus is free
+			while (phase != phase_t::busfree && service.IsRunning()) {
+				phase = controller->Process(initiator_id);
+			}
+
+			target_is_active = false;
 		}
-
-		target_is_active = true;
-
-		// Handle bus phases until the bus is free
-		while (phase != phase_t::busfree && service.IsRunning()) {
-			phase = controller->Process(initiator_id);
-		}
-
-		target_is_active = false;
 	}
 }
 
