@@ -603,14 +603,11 @@ void Piscsi::Process()
 			continue;
 		}
 
-		// The initiator and target ID
-		const uint8_t id_data = bus->GetDAT();
-
 		// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
 		target_is_active = true;
 
-		// Process SCSI command on the responsible controller
-		controller_manager->ProcessOnController(id_data);
+		// Process SCSI command on the responsible controller based on the current initiator and target ID
+		controller_manager->ProcessOnController(bus->GetDAT());
 
 		target_is_active = false;
 	}
