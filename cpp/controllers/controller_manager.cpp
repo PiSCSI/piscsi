@@ -36,11 +36,26 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
-shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) const
+void ControllerManager::ProcessOnController(int id_data)
 {
-	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (data & (1 << c.first)); } );
+	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
+	if (it != controllers.end()) {
+		AbstractController& controller = *(*it).second;
 
-	return it != controllers.end() ? (*it).second : nullptr;
+		device_logger.SetIdAndLun(controller.GetTargetId(), -1);
+
+		const int initiator_id = controller.ExtractInitiatorId(id_data);
+		if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
+			device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+		}
+		else {
+			device_logger.Trace("++++ Starting processing for unknown initiator ID");
+		}
+
+		while (controller.Process(initiator_id) != phase_t::busfree) {
+			// Handle bus phases until the bus is free
+		}
+	}
 }
 
 shared_ptr<AbstractController> ControllerManager::FindController(int target_id) const

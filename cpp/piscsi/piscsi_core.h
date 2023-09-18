@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "devices/device_logger.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
@@ -51,7 +50,6 @@ private:
 	optargs_type ParseArguments(span<char *>, int&);
 	void CreateInitialDevices(const optargs_type&);
 	void Process();
-	void ProcessOnController(AbstractController&, int);
 	void WaitForNotBusy() const;
 
 	bool ExecuteCommand(const CommandContext&);
@@ -59,8 +57,6 @@ private:
 	bool SetLogLevel(const string&) const;
 
 	const shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt("piscsi stdout logger");
-
-	DeviceLogger device_logger;
 
 	// Processing flag
 	atomic_bool target_is_active;

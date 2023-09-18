@@ -606,34 +606,14 @@ void Piscsi::Process()
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
 
-		// Identify the responsible controller
-		auto controller = controller_manager->IdentifyController(id_data);
-		if (controller != nullptr) {
-			ProcessOnController(*controller, id_data);
-		}
+		// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
+		target_is_active = true;
+
+		// Process SCSI command on the responsible controller
+		controller_manager->ProcessOnController(id_data);
+
+		target_is_active = false;
 	}
-}
-
-void Piscsi::ProcessOnController(AbstractController& controller, int id_data)
-{
-	device_logger.SetIdAndLun(controller.GetTargetId(), -1);
-
-	const int initiator_id = controller.ExtractInitiatorId(id_data);
-	if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-		device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
-	}
-	else {
-		device_logger.Trace("++++ Starting processing for unknown initiator ID");
-	}
-
-	// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
-	target_is_active = true;
-
-	while (controller.Process(initiator_id) != phase_t::busfree) {
-		// Handle bus phases until the bus is free
-	}
-
-	target_is_active = false;
 }
 
 void Piscsi::WaitForNotBusy() const

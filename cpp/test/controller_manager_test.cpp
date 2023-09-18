@@ -30,8 +30,6 @@ TEST(ControllerManagerTest, LifeCycle)
 	auto controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
-	EXPECT_NE(nullptr, controller_manager->IdentifyController(1 << ID));
-	EXPECT_EQ(nullptr, controller_manager->IdentifyController(0));
 	EXPECT_FALSE(controller_manager->HasController(0));
 	EXPECT_EQ(nullptr, controller_manager->FindController(0));
 	EXPECT_NE(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
