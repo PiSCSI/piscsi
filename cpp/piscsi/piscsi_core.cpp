@@ -626,19 +626,14 @@ void Piscsi::ProcessOnController(AbstractController& controller, int id_data)
 		device_logger.Trace("++++ Starting processing for unknown initiator ID");
 	}
 
-	// Return to bus monitoring if the selection phase has not started
-	phase_t phase = controller.Process(initiator_id);
-	if (phase == phase_t::selection) {
-		// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
-		target_is_active = true;
+	// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
+	target_is_active = true;
 
+	while (service.IsRunning() && controller.Process(initiator_id) != phase_t::busfree) {
 		// Handle bus phases until the bus is free
-		while (phase != phase_t::busfree && service.IsRunning()) {
-			phase = controller.Process(initiator_id);
-		}
-
-		target_is_active = false;
 	}
+
+	target_is_active = false;
 }
 
 void Piscsi::WaitForNotBusy() const
