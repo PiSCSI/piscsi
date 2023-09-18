@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include "shared/network_util.h"
+#include <netdb.h>
 
 using namespace network_util;
 
@@ -21,4 +22,11 @@ TEST(NetworkUtilTest, IsInterfaceUp)
 TEST(NetworkUtilTest, GetNetworkInterfaces)
 {
 	EXPECT_FALSE(GetNetworkInterfaces().empty());
+}
+
+TEST(NetworkUtilTest, ResolveHostName)
+{
+	sockaddr_in server_addr = {};
+	EXPECT_FALSE(ResolveHostName("foo.foobar", &server_addr));
+	EXPECT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
 }
