@@ -37,7 +37,7 @@ bool PiscsiService::Init(const callback& cb, int port)
 	// Create socket for monitor
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		spdlog::error("Unable to create socket");
+		spdlog::error("Unable to create server socket");
 		return false;
 	}
 
