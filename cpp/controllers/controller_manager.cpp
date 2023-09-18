@@ -36,7 +36,7 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
-void ControllerManager::ProcessOnController(int id_data)
+void ControllerManager::ProcessOnController(int id_data) const
 {
 	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
 	if (it != controllers.end()) {

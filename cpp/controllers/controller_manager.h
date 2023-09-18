@@ -34,7 +34,7 @@ public:
 	inline BUS& GetBus() const { return bus; }
 	bool AttachToScsiController(int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
-	void ProcessOnController(int);
+	void ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	bool HasController(int) const;
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
