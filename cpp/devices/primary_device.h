@@ -26,6 +26,8 @@ using namespace scsi_defs;
 
 class PrimaryDevice: private ScsiPrimaryCommands, public Device
 {
+	friend class AbstractController;
+
 	using operation = function<void()>;
 
 public:
@@ -38,8 +40,6 @@ public:
 	virtual void Dispatch(scsi_command);
 
 	int GetId() const override;
-
-	void SetController(shared_ptr<AbstractController>);
 
 	virtual bool WriteByteSequence(span<const uint8_t>);
 
@@ -74,11 +74,13 @@ protected:
 	void EnterDataInPhase() const { controller.lock()->DataIn(); }
 	void EnterDataOutPhase() const { controller.lock()->DataOut(); }
 
-	inline shared_ptr<AbstractController> GetController() const { return controller.lock(); }
+	auto GetController() const { return controller.lock(); }
 
 private:
 
 	static const int NOT_RESERVED = -2;
+
+	void SetController(shared_ptr<AbstractController>);
 
 	void TestUnitReady() override;
 	void RequestSense() override;
