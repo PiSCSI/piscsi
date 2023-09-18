@@ -13,7 +13,7 @@
 
 #include "piscsi/piscsi_service.h"
 
-TEST(PiscsiServiceTest, LifeCycle)
+TEST(PiscsiServiceTest, Init)
 {
 	PiscsiService service;
 
@@ -21,8 +21,14 @@ TEST(PiscsiServiceTest, LifeCycle)
 	EXPECT_FALSE(service.Init(nullptr, 0));
 	EXPECT_FALSE(service.Init(nullptr, -1));
 	EXPECT_TRUE(service.Init(nullptr, 9999));
+}
+
+TEST(PiscsiServiceTest, StartStop)
+{
+	PiscsiService service;
+
+	EXPECT_TRUE(service.Init(nullptr, 9999));
 
 	service.Start();
-
 	service.Stop();
 }
