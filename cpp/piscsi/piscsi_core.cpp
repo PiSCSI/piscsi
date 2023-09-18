@@ -489,7 +489,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 		default: {
 			// TODO Find a better way to wait
 			const timespec ts = { .tv_sec = 0, .tv_nsec = 500'000'000};
-			while (active) {
+			while (target_is_active) {
 				nanosleep(&ts, nullptr);
 			}
 			return executor->ProcessCmd(context);
@@ -633,8 +633,7 @@ void Piscsi::Process()
 			continue;
 		}
 
-		// Start target device
-		active = true;
+		target_is_active = true;
 
 #if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
 		// TODO Check whether this results in any performance gain
@@ -644,14 +643,9 @@ void Piscsi::Process()
 #endif
 
 		// Loop until the bus is free
-		while (service.IsRunning()) {
+		while (phase != phase_t::busfree && service.IsRunning()) {
 			// Target drive
 			phase = controller->Process(initiator_id);
-
-			// End when the bus is free
-			if (phase == phase_t::busfree) {
-				break;
-			}
 		}
 
 #if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
@@ -660,8 +654,7 @@ void Piscsi::Process()
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
 #endif
 
-		// End the target travel
-		active = false;
+		target_is_active = false;
 	}
 }
 

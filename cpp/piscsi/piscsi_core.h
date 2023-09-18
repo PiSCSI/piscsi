@@ -62,7 +62,7 @@ private:
 	DeviceLogger device_logger;
 
 	// Processing flag
-	atomic<bool> active;
+	atomic<bool> target_is_active;
 
 	string access_token;
 
