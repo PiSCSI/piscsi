@@ -55,7 +55,8 @@ TEST(PiscsiServiceTest, Execute)
 	EXPECT_FALSE(connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) >= 0) << "Service should not be running";
 
 	PiscsiService service;
-	service.Init([] (const CommandContext& context) { PbResult result; context.WriteResult(result); return true; }, 9999);
+	service.Init([] (const CommandContext& context)
+			{ PbResult result; result.set_status(true); context.WriteResult(result); return true; }, 9999);
 	service.Start();
 	EXPECT_TRUE(connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) >= 0) << "Service should be running";
 
@@ -69,7 +70,7 @@ TEST(PiscsiServiceTest, Execute)
 
     close(fd);
 
-    EXPECT_FALSE(result.status());
+    EXPECT_TRUE(result.status());
 
     service.Stop();
 }
