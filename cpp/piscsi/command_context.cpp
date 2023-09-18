@@ -19,8 +19,7 @@ bool CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
-	const size_t bytes_read = serializer.ReadBytes(fd, magic);
-	if (bytes_read) {
+	if (const size_t bytes_read = serializer.ReadBytes(fd, magic); bytes_read) {
 		if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 			throw io_exception("Invalid magic");
 		}
