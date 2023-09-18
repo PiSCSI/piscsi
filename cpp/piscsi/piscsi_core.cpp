@@ -642,9 +642,8 @@ void Piscsi::Process()
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
 #endif
 
-		// Loop until the bus is free
+		// Handle bus phases until the bus is free
 		while (phase != phase_t::busfree && service.IsRunning()) {
-			// Target drive
 			phase = controller->Process(initiator_id);
 		}
 
