@@ -132,7 +132,7 @@ public:
 	bool SupportsFile() const { return supports_file; }
 	void SupportsParams(bool b) { supports_params = b; }
 	void SupportsFile(bool b) { supports_file = b; }
-	unordered_map<string, string> GetParams() const { return params; }
+	auto GetParams() const { return params; }
 	void SetDefaultParams(const unordered_map<string, string>& p) { default_params = p; }
 
 	void SetStatusCode(int s) { status_code = s; }

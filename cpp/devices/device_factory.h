@@ -34,7 +34,7 @@ public:
 	PbDeviceType GetTypeForFile(const string&) const;
 	const unordered_set<uint32_t>& GetSectorSizes(PbDeviceType type) const;
 	const unordered_map<string, string>& GetDefaultParams(PbDeviceType type) const;
-	const unordered_map<string, PbDeviceType>& GetExtensionMapping() const { return extension_mapping; }
+	const auto& GetExtensionMapping() const { return extension_mapping; }
 
 private:
 

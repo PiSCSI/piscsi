@@ -43,7 +43,7 @@ public:
 
 	void SetMediumChanged(bool b) { medium_changed = b; }
 
-	static unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
+	static auto GetReservedFiles() { return reserved_files; }
 	static void SetReservedFiles(const unordered_map<string, id_set>& r) { reserved_files = r; }
 	static id_set GetIdsForReservedFile(const string&);
 
