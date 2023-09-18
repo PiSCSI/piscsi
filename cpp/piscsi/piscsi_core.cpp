@@ -603,8 +603,6 @@ void Piscsi::Process()
 			continue;
 		}
 
-		int initiator_id = AbstractController::UNKNOWN_INITIATOR_ID;
-
 		// The initiator and target ID
 		const uint8_t id_data = bus->GetDAT();
 
@@ -616,7 +614,7 @@ void Piscsi::Process()
 
 		device_logger.SetIdAndLun(controller->GetTargetId(), -1);
 
-		initiator_id = controller->ExtractInitiatorId(id_data);
+		const int initiator_id = controller->ExtractInitiatorId(id_data);
 		if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
 			device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
 		}
