@@ -45,8 +45,12 @@ shared_ptr<AbstractController> ControllerManager::IdentifyController(int data) c
 
 shared_ptr<AbstractController> ControllerManager::FindController(int target_id) const
 {
-	const auto& it = controllers.find(target_id);
-	return it == controllers.end() ? nullptr : it->second;
+	try {
+		return controllers.at(target_id);
+	}
+	catch(const out_of_range& e) {
+		return nullptr;
+	}
 }
 
 bool ControllerManager::HasController(int target_id) const {
