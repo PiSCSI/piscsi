@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <unistd.h>
 #endif
 
 using namespace std;
@@ -57,4 +59,19 @@ set<string, less<>> network_util::GetNetworkInterfaces()
 #endif
 
 	return network_interfaces;
+}
+
+bool network_util::ResolveHostName(const string& host, sockaddr_in *addr)
+{
+	addrinfo hints = {};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
+		*addr = *(sockaddr_in *)(result->ai_addr);
+		freeaddrinfo(result);
+		return true;
+	}
+
+	return false;
 }

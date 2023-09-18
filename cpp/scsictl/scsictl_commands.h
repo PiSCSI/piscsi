@@ -52,8 +52,6 @@ private:
 	bool SendCommand();
 	bool EvaluateParams(string_view, const string&, const string&);
 
-	static bool ResolveHostName(const string&, sockaddr_in *);
-
 	PbCommand& command;
 	string hostname;
 	int port;

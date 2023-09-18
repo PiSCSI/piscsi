@@ -7,18 +7,19 @@
 //
 //---------------------------------------------------------------------------
 
+#include "shared/network_util.h"
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
-#include <unistd.h>
 #include <netdb.h>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 using namespace piscsi_interface;
+using namespace network_util;
 using namespace piscsi_util;
 using namespace protobuf_util;
 
@@ -338,21 +339,6 @@ bool ScsictlCommands::EvaluateParams(string_view image_params, const string& key
 		SetParam(command, key1, image_params.substr(0, separator_pos));
 		SetParam(command, key2, image_params.substr(separator_pos + 1));
 
-		return true;
-	}
-
-	return false;
-}
-
-bool ScsictlCommands::ResolveHostName(const string& host, sockaddr_in *addr)
-{
-	addrinfo hints = {};
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
-	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
-		*addr = *(sockaddr_in *)(result->ai_addr);
-		freeaddrinfo(result);
 		return true;
 	}
 

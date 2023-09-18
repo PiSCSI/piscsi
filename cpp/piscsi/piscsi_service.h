@@ -22,7 +22,7 @@ class PiscsiService
 
 	callback execute;
 
-	jthread execution_thread;
+	jthread service_thread;
 
 	int service_socket = -1;
 
