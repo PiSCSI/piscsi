@@ -25,7 +25,7 @@ string ScsictlDisplay::DisplayDevicesInfo(const PbDevicesInfo& devices_info) con
 {
 	ostringstream s;
 
-	const vector<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
+	const vector<PbDevice> devices(devices_info.devices().begin(), devices_info.devices().end());
 
 	s << ListDevices(devices);
 
@@ -159,7 +159,7 @@ string ScsictlDisplay::DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_
 	ostringstream s;
 
 	if (reserved_ids_info.ids_size()) {
-		const set<int32_t> sorted_ids = { reserved_ids_info.ids().begin(), reserved_ids_info.ids().end() };
+		const set<int32_t> sorted_ids(reserved_ids_info.ids().begin(), reserved_ids_info.ids().end());
 		s << "Reserved device IDs: " << Join(sorted_ids) << '\n';
 	}
 
@@ -193,7 +193,7 @@ string ScsictlDisplay::DisplayImageFilesInfo(const PbImageFilesInfo& image_files
 	s << "Supported folder depth: " << image_files_info.depth() << '\n';
 
 	if (!image_files_info.image_files().empty()) {
-		vector<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
+		vector<PbImageFile> image_files(image_files_info.image_files().begin(), image_files_info.image_files().end());
 		ranges::sort(image_files, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		s << "Available image files:\n";
@@ -211,7 +211,7 @@ string ScsictlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& n
 {
 	ostringstream s;
 
-	const set<string, less<>> sorted_interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+	const set<string, less<>> sorted_interfaces(network_interfaces_info.name().begin(), network_interfaces_info.name().end());
 	s << "Available (up) network interfaces: " << Join(sorted_interfaces) << '\n';
 
 	return s.str();
@@ -223,7 +223,7 @@ string ScsictlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info) con
 
 	s << "Supported image file extension to device type mappings:\n";
 
-	const map<string, PbDeviceType, less<>> sorted_mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+	const map<string, PbDeviceType, less<>> sorted_mappings(mapping_info.mapping().begin(), mapping_info.mapping().end());
 
 	for (const auto& [extension, type] : sorted_mappings) {
 		s << "  " << extension << "->" << PbDeviceType_Name(type) << '\n';
@@ -236,7 +236,7 @@ string ScsictlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_inf
 {
 	ostringstream s;
 
-	const map<int, PbOperationMetaData, less<>> operations = { operation_info.operations().begin(), operation_info.operations().end() };
+	const map<int, PbOperationMetaData, less<>> operations(operation_info.operations().begin(), operation_info.operations().end());
 
 	// Copies result into a map sorted by operation name
 	auto unknown_operation = make_unique<PbOperationMetaData>();
@@ -335,7 +335,7 @@ string ScsictlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) c
 	ostringstream s;
 
 	if (properties.block_sizes_size()) {
-		const set<uint32_t> sorted_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
+		const set<uint32_t> sorted_sizes(properties.block_sizes().begin(), properties.block_sizes().end());
 		s << "Configurable block sizes in bytes: " << Join(sorted_sizes);
 	}
 
@@ -344,7 +344,7 @@ string ScsictlDisplay::DisplayBlockSizes(const PbDeviceProperties& properties) c
 
 string ScsictlDisplay::DisplayParameters(const PbOperationMetaData& meta_data) const
 {
-	vector<PbOperationParameter> sorted_parameters = { meta_data.parameters().begin(), meta_data.parameters().end() };
+	vector<PbOperationParameter> sorted_parameters(meta_data.parameters().begin(), meta_data.parameters().end());
 	ranges::sort(sorted_parameters, [](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 	ostringstream s;
@@ -372,7 +372,7 @@ string ScsictlDisplay::DisplayPermittedValues(const PbOperationParameter& parame
 {
 	ostringstream s;
 	if (parameter.permitted_values_size()) {
-		const set<string, less<>> sorted_values = { parameter.permitted_values().begin(), parameter.permitted_values().end() };
+		const set<string, less<>> sorted_values(parameter.permitted_values().begin(), parameter.permitted_values().end());
 		s << "      Permitted values: " << Join(parameter.permitted_values()) << '\n';
 	}
 
