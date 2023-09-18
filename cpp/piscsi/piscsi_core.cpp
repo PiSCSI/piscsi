@@ -608,32 +608,35 @@ void Piscsi::Process()
 
 		// Identify the responsible controller
 		auto controller = controller_manager->IdentifyController(id_data);
-		if (controller == nullptr) {
-			continue;
+		if (controller != nullptr) {
+			ProcessOnController(*controller, id_data);
+		}
+	}
+}
+
+void Piscsi::ProcessOnController(AbstractController& controller, int id_data)
+{
+	device_logger.SetIdAndLun(controller.GetTargetId(), -1);
+
+	const int initiator_id = controller.ExtractInitiatorId(id_data);
+	if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
+		device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+	}
+	else {
+		device_logger.Trace("++++ Starting processing for unknown initiator ID");
+	}
+
+	// Return to bus monitoring if the selection phase has not started
+	phase_t phase = controller.Process(initiator_id);
+	if (phase == phase_t::selection) {
+		target_is_active = true;
+
+		// Handle bus phases until the bus is free
+		while (phase != phase_t::busfree && service.IsRunning()) {
+			phase = controller.Process(initiator_id);
 		}
 
-		device_logger.SetIdAndLun(controller->GetTargetId(), -1);
-
-		const int initiator_id = controller->ExtractInitiatorId(id_data);
-		if (initiator_id != AbstractController::UNKNOWN_INITIATOR_ID) {
-			device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
-		}
-		else {
-			device_logger.Trace("++++ Starting processing for unknown initiator ID");
-		}
-
-		// Return to bus monitoring if the selection phase has not started
-		phase_t phase = controller->Process(initiator_id);
-		if (phase == phase_t::selection) {
-			target_is_active = true;
-
-			// Handle bus phases until the bus is free
-			while (phase != phase_t::busfree && service.IsRunning()) {
-				phase = controller->Process(initiator_id);
-			}
-
-			target_is_active = false;
-		}
+		target_is_active = false;
 	}
 }
 
