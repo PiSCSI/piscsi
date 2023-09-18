@@ -558,9 +558,10 @@ int Piscsi::run(span<char *> args)
 
 void Piscsi::Process()
 {
-	sched_param schparam;
 #ifdef USE_SEL_EVENT_ENABLE
 	// Scheduling policy setting (highest priority)
+	// TODO Check whether this results in any performance gain
+	sched_param schparam;
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #else
@@ -635,23 +636,10 @@ void Piscsi::Process()
 
 		target_is_active = true;
 
-#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
-		// TODO Check whether this results in any performance gain
-		// Scheduling policy setting (highest priority)
-		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
-		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif
-
 		// Handle bus phases until the bus is free
 		while (phase != phase_t::busfree && service.IsRunning()) {
 			phase = controller->Process(initiator_id);
 		}
-
-#if !defined(USE_SEL_EVENT_ENABLE) && defined(__linux__)
-		// Set the scheduling priority back to normal
-		schparam.sched_priority = 0;
-		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif
 
 		target_is_active = false;
 	}
