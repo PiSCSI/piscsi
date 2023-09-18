@@ -65,7 +65,7 @@ public:
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
-	vector<uint8_t>& GetBuffer() { return ctrl.buffer; }
+	auto& GetBuffer() { return ctrl.buffer; }
 	scsi_defs::status GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
 	uint32_t GetLength() const { return ctrl.length; }
@@ -87,10 +87,10 @@ public:
 
 protected:
 
-	shared_ptr<ControllerManager> GetControllerManager() const { return controller_manager.lock(); }
+	auto GetControllerManager() const { return controller_manager.lock(); }
 	inline BUS& GetBus() const { return controller_manager.lock()->GetBus(); }
 
-	scsi_defs::scsi_command GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
+	auto GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
 
 	void ProcessPhase();
