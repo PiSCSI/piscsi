@@ -15,6 +15,7 @@
 #include "hal/bus.h"
 #include "phase_handler.h"
 #include "controller_manager.h"
+#include "devices/device_logger.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <span>
@@ -62,6 +63,7 @@ public:
 	bool RemoveDevice(shared_ptr<PrimaryDevice>);
 	bool HasDeviceForLun(int) const;
 	int ExtractInitiatorId(int) const;
+	void ProcessOnController(int);
 
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
@@ -135,4 +137,6 @@ private:
 
 	bool is_byte_transfer = false;
 	uint32_t bytes_to_transfer = 0;
+
+	DeviceLogger device_logger;
 };

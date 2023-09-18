@@ -69,6 +69,23 @@ void AbstractController::Reset()
 	}
 }
 
+void AbstractController::ProcessOnController(int id_data)
+{
+	device_logger.SetIdAndLun(GetTargetId(), -1);
+
+	const int initiator_id = ExtractInitiatorId(id_data);
+	if (initiator_id != UNKNOWN_INITIATOR_ID) {
+		device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+	}
+	else {
+		device_logger.Trace("++++ Starting processing for unknown initiator ID");
+	}
+
+	while (Process(initiator_id) != phase_t::busfree) {
+		// Handle bus phases until the bus is free
+	}
+}
+
 void AbstractController::ProcessPhase()
 {
 	switch (GetPhase()) {

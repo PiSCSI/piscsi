@@ -12,11 +12,9 @@
 #pragma once
 
 #include "hal/bus.h"
-#include "devices/device_logger.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
-#include <functional>
 
 using namespace std;
 
@@ -48,6 +46,4 @@ private:
 	BUS& bus;
 
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
-
-	DeviceLogger device_logger;
 };
