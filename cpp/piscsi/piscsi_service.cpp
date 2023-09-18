@@ -65,7 +65,7 @@ void PiscsiService::Start()
 	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
-	service_thread = jthread([this] () { Execute(); } );
+	execution_thread = jthread([this] () { Execute(); } );
 }
 
 void PiscsiService::Execute() const
