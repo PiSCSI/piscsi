@@ -50,7 +50,7 @@ private:
 	optargs_type ParseArguments(span<char *>, int&);
 	void CreateInitialDevices(const optargs_type&);
 	void Process();
-	void WaitForNotBusy() const;
+	bool WaitForNotBusy() const;
 
 	bool ExecuteCommand(const CommandContext&);
 

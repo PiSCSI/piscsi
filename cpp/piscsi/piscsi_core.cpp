@@ -596,24 +596,22 @@ void Piscsi::Process()
 
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
-		WaitForNotBusy();
+		const bool isNotBusy = WaitForNotBusy();
 
-		// Stop because the bus is busy or another device responded
-		if (bus->GetBSY() || !bus->GetSEL()) {
-			continue;
+		// Only process the SCSI command if the bus is not busy and no other device responded
+		if (isNotBusy && bus->GetSEL()) {
+			// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
+			target_is_active = true;
+
+			// Process command on the responsible controller based on the current initiator and target ID
+			controller_manager->ProcessOnController(bus->GetDAT());
+
+			target_is_active = false;
 		}
-
-		// TODO This approach does not fully prevent interface command executions, the flag may have to be set earlier
-		target_is_active = true;
-
-		// Process SCSI command on the responsible controller based on the current initiator and target ID
-		controller_manager->ProcessOnController(bus->GetDAT());
-
-		target_is_active = false;
 	}
 }
 
-void Piscsi::WaitForNotBusy() const
+bool Piscsi::WaitForNotBusy() const
 {
 	if (bus->GetBSY()) {
 		const uint32_t now = SysTimer::GetTimerLow();
@@ -623,8 +621,12 @@ void Piscsi::WaitForNotBusy() const
 			bus->Acquire();
 
 			if (!bus->GetBSY()) {
-				break;
+				return true;
 			}
 		}
+
+		return false;
 	}
+
+	return true;
 }
