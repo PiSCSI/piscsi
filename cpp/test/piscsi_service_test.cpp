@@ -58,19 +58,21 @@ TEST(PiscsiServiceTest, Execute)
 	EXPECT_FALSE(connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) >= 0) << "Service should not be running";
 
 	PiscsiService service;
-	service.Init([] (const CommandContext& context)
-			{ PbResult result; result.set_status(true); context.WriteResult(result); return true; }, 9999);
+	service.Init([] (const CommandContext& context) {
+		PbResult result;
+		result.set_status(true);
+		context.WriteResult(result);
+		return true;
+	}, 9999);
 	service.Start();
 	EXPECT_TRUE(connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) >= 0) << "Service should be running";
-
-	ASSERT_EQ(6, write(fd, "RASCSI", 6));
 
 	PbCommand command;
 	PbResult result;
 	const ProtobufSerializer serializer;
+	ASSERT_EQ(6, write(fd, "RASCSI", 6));
 	serializer.SerializeMessage(fd, command);
     serializer.DeserializeMessage(fd, result);
-
     close(fd);
 
     service.Stop();
