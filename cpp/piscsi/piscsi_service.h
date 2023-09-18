@@ -10,6 +10,7 @@
 #pragma once
 
 #include <functional>
+#include <thread>
 
 class CommandContext;
 
@@ -21,6 +22,8 @@ class PiscsiService
 
 	callback execute;
 
+	jthread service_thread;
+
 	int service_socket = -1;
 
 public:
@@ -29,7 +32,7 @@ public:
 	~PiscsiService() = default;
 
 	bool Init(const callback&, int);
-	void Start() const;
+	void Start();
 	void Stop();
 	bool IsRunning() const { return service_socket != -1; }
 

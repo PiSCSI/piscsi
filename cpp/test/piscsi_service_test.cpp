@@ -20,6 +20,7 @@ TEST(PiscsiServiceTest, LifeCycle)
 	EXPECT_FALSE(service.Init(nullptr, 65536));
 	EXPECT_FALSE(service.Init(nullptr, 0));
 	EXPECT_FALSE(service.Init(nullptr, -1));
+	EXPECT_TRUE(service.Init(nullptr, 9999));
 
 	service.Start();
 
