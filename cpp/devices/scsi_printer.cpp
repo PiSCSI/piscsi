@@ -48,16 +48,16 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 {
 	PrimaryDevice::Init(params);
 
-	AddCommand(scsi_command::eCmdTestUnitReady, [&] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdPrint, [&] { Print(); });
-	AddCommand(scsi_command::eCmdSynchronizeBuffer, [&] { SynchronizeBuffer(); });
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdPrint, [this] { Print(); });
+	AddCommand(scsi_command::eCmdSynchronizeBuffer, [this] { SynchronizeBuffer(); });
 	// STOP PRINT is identical with TEST UNIT READY, it just returns the status
-	AddCommand(scsi_command::eCmdStopPrint, [&] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdStopPrint, [this] { TestUnitReady(); });
 
 	// Required also in this class in order to fulfill the ScsiPrinterCommands interface contract
-	AddCommand(scsi_command::eCmdReserve6, [&] { ReserveUnit(); });
-	AddCommand(scsi_command::eCmdRelease6, [&] { ReleaseUnit(); });
-	AddCommand(scsi_command::eCmdSendDiagnostic, [&] { SendDiagnostic(); });
+	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
+	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
+	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
 
 	if (GetParam("cmd").find("%f") == string::npos) {
 		GetLogger().Trace("Missing filename specifier %f");

@@ -36,30 +36,30 @@ bool Disk::Init(const unordered_map<string, string>& params)
 	StorageDevice::Init(params);
 
 	// REZERO implementation is identical with Seek
-	AddCommand(scsi_command::eCmdRezero, [&] { Seek(); });
-	AddCommand(scsi_command::eCmdFormatUnit, [&] { FormatUnit(); });
+	AddCommand(scsi_command::eCmdRezero, [this] { Seek(); });
+	AddCommand(scsi_command::eCmdFormatUnit, [this] { FormatUnit(); });
 	// REASSIGN BLOCKS implementation is identical with Seek
-	AddCommand(scsi_command::eCmdReassignBlocks, [&] { Seek(); });
-	AddCommand(scsi_command::eCmdRead6, [&] { Read6(); });
-	AddCommand(scsi_command::eCmdWrite6, [&] { Write6(); });
-	AddCommand(scsi_command::eCmdSeek6, [&] { Seek6(); });
-	AddCommand(scsi_command::eCmdStartStop, [&] { StartStopUnit(); });
-	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [&]{ PreventAllowMediumRemoval(); });
-	AddCommand(scsi_command::eCmdReadCapacity10, [&] { ReadCapacity10(); });
-	AddCommand(scsi_command::eCmdRead10, [&] { Read10(); });
-	AddCommand(scsi_command::eCmdWrite10, [&] { Write10(); });
-	AddCommand(scsi_command::eCmdReadLong10, [&] { ReadWriteLong10(); });
-	AddCommand(scsi_command::eCmdWriteLong10, [&] { ReadWriteLong10(); });
-	AddCommand(scsi_command::eCmdWriteLong16, [&] { ReadWriteLong16(); });
-	AddCommand(scsi_command::eCmdSeek10, [&] { Seek10(); });
-	AddCommand(scsi_command::eCmdVerify10, [&] { Verify10(); });
-	AddCommand(scsi_command::eCmdSynchronizeCache10, [&] { SynchronizeCache(); });
-	AddCommand(scsi_command::eCmdSynchronizeCache16, [&] { SynchronizeCache(); });
-	AddCommand(scsi_command::eCmdReadDefectData10, [&] { ReadDefectData10(); });
-	AddCommand(scsi_command::eCmdRead16,[&] { Read16(); });
-	AddCommand(scsi_command::eCmdWrite16, [&] { Write16(); });
-	AddCommand(scsi_command::eCmdVerify16, [&] { Verify16(); });
-	AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, [&] { ReadCapacity16_ReadLong16(); });
+	AddCommand(scsi_command::eCmdReassignBlocks, [this] { Seek(); });
+	AddCommand(scsi_command::eCmdRead6, [this] { Read6(); });
+	AddCommand(scsi_command::eCmdWrite6, [this] { Write6(); });
+	AddCommand(scsi_command::eCmdSeek6, [this] { Seek6(); });
+	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+	AddCommand(scsi_command::eCmdPreventAllowMediumRemoval, [this]{ PreventAllowMediumRemoval(); });
+	AddCommand(scsi_command::eCmdReadCapacity10, [this] { ReadCapacity10(); });
+	AddCommand(scsi_command::eCmdRead10, [this] { Read10(); });
+	AddCommand(scsi_command::eCmdWrite10, [this] { Write10(); });
+	AddCommand(scsi_command::eCmdReadLong10, [this] { ReadWriteLong10(); });
+	AddCommand(scsi_command::eCmdWriteLong10, [this] { ReadWriteLong10(); });
+	AddCommand(scsi_command::eCmdWriteLong16, [this] { ReadWriteLong16(); });
+	AddCommand(scsi_command::eCmdSeek10, [this] { Seek10(); });
+	AddCommand(scsi_command::eCmdVerify10, [this] { Verify10(); });
+	AddCommand(scsi_command::eCmdSynchronizeCache10, [this] { SynchronizeCache(); });
+	AddCommand(scsi_command::eCmdSynchronizeCache16, [this] { SynchronizeCache(); });
+	AddCommand(scsi_command::eCmdReadDefectData10, [this] { ReadDefectData10(); });
+	AddCommand(scsi_command::eCmdRead16,[this] { Read16(); });
+	AddCommand(scsi_command::eCmdWrite16, [this] { Write16(); });
+	AddCommand(scsi_command::eCmdVerify16, [this] { Verify16(); });
+	AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, [this] { ReadCapacity16_ReadLong16(); });
 
 	return true;
 }
