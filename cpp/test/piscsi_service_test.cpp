@@ -70,7 +70,7 @@ TEST(PiscsiServiceTest, Execute)
 
     close(fd);
 
-    EXPECT_TRUE(result.status());
-
     service.Stop();
+
+    EXPECT_TRUE(result.status());
 }
