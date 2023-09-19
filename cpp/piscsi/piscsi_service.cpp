@@ -21,6 +21,8 @@ using namespace piscsi_util;
 
 string PiscsiService::InitServerSocket(const callback& cb, int port)
 {
+	assert(server_socket == -1);
+
 	if (port <= 0 || port > 65535) {
 		return "Invalid port number " + to_string(port);
 	}
@@ -31,16 +33,19 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 	}
 
 	if (const int yes = 1; setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+		Stop();
 		return "Can't reuse address";
 	}
 
 	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
 		bind(server_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bind() API requires reinterpret_cast
+		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
 
 	if (listen(server_socket, 1) == -1) {
+		Stop();
 		return "Can't listen to server socket: " + string(strerror(errno));
 	}
 
