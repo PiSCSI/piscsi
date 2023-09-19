@@ -548,6 +548,7 @@ int Piscsi::run(span<char *> args)
 	termination_handler.sa_flags = 0;
 	sigaction(SIGINT, &termination_handler, nullptr);
 	sigaction(SIGTERM, &termination_handler, nullptr);
+	signal(SIGPIPE, SIG_IGN);
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
@@ -569,7 +570,6 @@ void Piscsi::Process()
 	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
 #endif
 
-	// Start execution
 	service.Start();
 
 	// Main Loop

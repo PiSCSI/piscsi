@@ -53,8 +53,6 @@ bool PiscsiService::Init(const callback& cb, int port)
 		return false;
 	}
 
-	signal(SIGPIPE, SIG_IGN);
-
 	execute = cb;
 
 	return true;
@@ -62,7 +60,6 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 void PiscsiService::Start()
 {
-	// Set up the monitor socket to receive commands
 	listen(service_socket, 1);
 
 	service_thread = jthread([this] () { Execute(); } );
