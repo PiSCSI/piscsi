@@ -66,7 +66,7 @@ void PiscsiService::Stop()
 {
 	assert(service_socket != -1);
 
-	shutdown(service_socket, SHUT_RDWR);
+	shutdown(service_socket, SHUT_RD);
 	close(service_socket);
 
 	service_socket = -1;
