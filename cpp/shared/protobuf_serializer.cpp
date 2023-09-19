@@ -11,6 +11,8 @@
 #include "shared/piscsi_exceptions.h"
 #include "generated/piscsi_interface.pb.h"
 #include <unistd.h>
+#include <array>
+#include <vector>
 #include <string>
 
 using namespace std;
