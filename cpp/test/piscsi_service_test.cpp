@@ -14,6 +14,7 @@
 #include "generated/piscsi_interface.pb.h"
 #include "shared/network_util.h"
 #include "shared/protobuf_serializer.h"
+#include "shared/piscsi_exceptions.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include <unistd.h>
@@ -52,7 +53,7 @@ TEST(PiscsiServiceTest, Execute)
 	sockaddr_in server_addr = {};
 	EXPECT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
 
-	const int fd = socket(AF_INET, SOCK_STREAM, 0);
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_NE(-1, fd);
 
 	server_addr.sin_port = htons(uint16_t(9999));
@@ -60,9 +61,14 @@ TEST(PiscsiServiceTest, Execute)
 
 	PiscsiService service;
 	service.Init([] (const CommandContext& context) {
-		PbResult result;
-		result.set_status(true);
-		context.WriteResult(result);
+		if (context.GetCommand().operation() == PbOperation::NO_OPERATION) {
+			PbResult result;
+			result.set_status(true);
+			context.WriteResult(result);
+		}
+		else {
+			throw io_exception("error");
+		}
 		return true;
 	}, 9999);
 	service.Start();
@@ -75,8 +81,17 @@ TEST(PiscsiServiceTest, Execute)
 	serializer.SerializeMessage(fd, command);
     serializer.DeserializeMessage(fd, result);
     close(fd);
+    EXPECT_TRUE(result.status());
+
+    command.set_operation(PbOperation::EJECT);
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    ASSERT_NE(-1, fd);
+	EXPECT_TRUE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running";
+	ASSERT_EQ(6, write(fd, "RASCSI", 6));
+	serializer.SerializeMessage(fd, command);
+    serializer.DeserializeMessage(fd, result);
+    close(fd);
+    EXPECT_FALSE(result.status());
 
     service.Stop();
-
-    EXPECT_TRUE(result.status());
 }
