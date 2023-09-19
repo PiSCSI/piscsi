@@ -23,6 +23,22 @@
 using namespace piscsi_interface;
 using namespace network_util;
 
+void SendCommand(const PbCommand& command, PbResult& result)
+{
+	sockaddr_in server_addr = {};
+	ASSERT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
+	server_addr.sin_port = htons(uint16_t(9999));
+
+	const int fd = socket(AF_INET, SOCK_STREAM, 0);
+	ASSERT_NE(-1, fd);
+	EXPECT_TRUE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running";
+	ASSERT_EQ(6, write(fd, "RASCSI", 6));
+	const ProtobufSerializer serializer;
+	serializer.SerializeMessage(fd, command);
+    serializer.DeserializeMessage(fd, result);
+    close(fd);
+}
+
 TEST(PiscsiServiceTest, Init)
 {
 	PiscsiService service;
@@ -51,13 +67,14 @@ TEST(PiscsiServiceTest, IsRunning)
 TEST(PiscsiServiceTest, Execute)
 {
 	sockaddr_in server_addr = {};
-	EXPECT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
+	ASSERT_TRUE(ResolveHostName("127.0.0.1", &server_addr));
 
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	const int fd = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_NE(-1, fd);
 
 	server_addr.sin_port = htons(uint16_t(9999));
 	EXPECT_FALSE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running";
+	close(fd);
 
 	PiscsiService service;
 	service.Init([] (const CommandContext& context) {
@@ -71,26 +88,17 @@ TEST(PiscsiServiceTest, Execute)
 		}
 		return true;
 	}, 9999);
+
 	service.Start();
-	EXPECT_TRUE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running";
 
 	PbCommand command;
 	PbResult result;
-	const ProtobufSerializer serializer;
-	ASSERT_EQ(6, write(fd, "RASCSI", 6));
-	serializer.SerializeMessage(fd, command);
-    serializer.DeserializeMessage(fd, result);
-    close(fd);
+
+	SendCommand(command, result);
     EXPECT_TRUE(result.status());
 
     command.set_operation(PbOperation::EJECT);
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-    ASSERT_NE(-1, fd);
-	EXPECT_TRUE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running";
-	ASSERT_EQ(6, write(fd, "RASCSI", 6));
-	serializer.SerializeMessage(fd, command);
-    serializer.DeserializeMessage(fd, result);
-    close(fd);
+    SendCommand(command, result);
     EXPECT_FALSE(result.status());
 
     service.Stop();
