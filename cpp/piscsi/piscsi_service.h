@@ -26,7 +26,7 @@ public:
 	PiscsiService() = default;
 	~PiscsiService() = default;
 
-	string InitServerSocket(const callback&, int);
+	string InitServiceSocket(const callback&, int);
 	void Start();
 	void Stop();
 	bool IsRunning() const { return service_socket != -1 && service_thread.joinable(); }

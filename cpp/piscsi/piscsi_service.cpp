@@ -20,7 +20,7 @@
 
 using namespace piscsi_util;
 
-string PiscsiService::InitServerSocket(const callback& cb, int port)
+string PiscsiService::InitServiceSocket(const callback& cb, int port)
 {
 	assert(service_socket == -1);
 
