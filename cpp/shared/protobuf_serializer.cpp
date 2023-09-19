@@ -59,7 +59,6 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 		throw io_exception("Invalid protobuf message data");
 	}
 
-	// Create protobuf message
 	message.ParseFromArray(data_buf.data(), data_buf.size());
 }
 
