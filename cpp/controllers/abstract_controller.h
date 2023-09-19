@@ -21,6 +21,7 @@
 #include <span>
 #include <vector>
 #include <memory>
+#include <functional>
 
 using namespace std;
 
@@ -109,6 +110,17 @@ protected:
 private:
 
 	int ExtractInitiatorId(int) const;
+
+	const unordered_map<phase_t, function<void()>> phase_executors = {
+			{ phase_t::busfree, [this] () { BusFree(); } },
+			{ phase_t::selection, [this] () { Selection(); } },
+			{ phase_t::dataout, [this] () { DataOut(); } },
+			{ phase_t::datain, [this] () { DataIn(); } },
+			{ phase_t::command, [this] () { Command(); } },
+			{ phase_t::status, [this] () { Status(); } },
+			{ phase_t::msgout, [this] () { MsgOut(); } },
+			{ phase_t::msgin, [this] () { MsgIn(); } },
+	};
 
 	using ctrl_t = struct _ctrl_t {
 		// Command data, dynamically resized if required

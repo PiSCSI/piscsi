@@ -88,42 +88,11 @@ void AbstractController::ProcessOnController(int id_data)
 
 void AbstractController::ProcessPhase()
 {
-	switch (GetPhase()) {
-		case phase_t::busfree:
-			BusFree();
-			break;
-
-		case phase_t::selection:
-			Selection();
-			break;
-
-		case phase_t::dataout:
-			DataOut();
-			break;
-
-		case phase_t::datain:
-			DataIn();
-			break;
-
-		case phase_t::command:
-			Command();
-			break;
-
-		case phase_t::status:
-			Status();
-			break;
-
-		case phase_t::msgout:
-			MsgOut();
-			break;
-
-		case phase_t::msgin:
-			MsgIn();
-			break;
-
-		default:
-			throw scsi_exception(sense_key::aborted_command);
-			break;
+	try {
+		phase_executors.at(GetPhase())();
+	}
+	catch(const out_of_range& e) {
+		throw scsi_exception(sense_key::aborted_command);
 	}
 }
 
