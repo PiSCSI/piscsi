@@ -56,15 +56,10 @@ void AbstractController::Reset()
 {
 	SetPhase(phase_t::busfree);
 
-	ctrl.status = status::good;
-	ctrl.message = 0x00;
-	ctrl.blocks = 0;
-	ctrl.next = 0;
-	ctrl.offset = 0;
-	ctrl.length = 0;
+	ctrl = {};
 
 	// Reset all LUNs
-	for (const auto& [lun, device] : luns) {
+	for (const auto& [_, device] : luns) {
 		device->Reset();
 	}
 }
