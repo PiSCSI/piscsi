@@ -9,7 +9,6 @@
 
 #include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
-#include <google/protobuf/message.h>
 #include <unistd.h>
 #include <array>
 #include <vector>
