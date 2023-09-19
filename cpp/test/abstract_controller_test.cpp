@@ -102,53 +102,6 @@ TEST(AbstractControllerTest, Status)
 	EXPECT_EQ(status::reservation_conflict, controller.GetStatus());
 }
 
-TEST(AbstractControllerTest, ProcessPhase)
-{
-	MockAbstractController controller;
-
-	controller.SetPhase(phase_t::selection);
-	EXPECT_CALL(controller, Selection);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::busfree);
-	EXPECT_CALL(controller, BusFree);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::datain);
-	EXPECT_CALL(controller, DataIn);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::dataout);
-	EXPECT_CALL(controller, DataOut);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::command);
-	EXPECT_CALL(controller, Command);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::status);
-	EXPECT_CALL(controller, Status);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::msgin);
-	EXPECT_CALL(controller, MsgIn);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::msgout);
-	EXPECT_CALL(controller, MsgOut);
-	controller.ProcessPhase();
-
-	controller.SetPhase(phase_t::reselection);
-	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
-			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
-
-	controller.SetPhase(phase_t::reserved);
-	EXPECT_THAT([&] { controller.ProcessPhase(); }, Throws<scsi_exception>(AllOf(
-			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
-			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
-}
-
 TEST(AbstractControllerTest, DeviceLunLifeCycle)
 {
 	const int ID = 1;

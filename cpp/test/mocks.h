@@ -81,6 +81,7 @@ public:
 class MockPhaseHandler : public PhaseHandler
 {
 	FRIEND_TEST(PhaseHandlerTest, Phases);
+	FRIEND_TEST(PhaseHandlerTest, ProcessPhase);
 
 public:
 
@@ -105,7 +106,6 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 
 	FRIEND_TEST(AbstractControllerTest, AllocateCmd);
 	FRIEND_TEST(AbstractControllerTest, Reset);
-	FRIEND_TEST(AbstractControllerTest, ProcessPhase);
 	FRIEND_TEST(AbstractControllerTest, DeviceLunLifeCycle);
 	FRIEND_TEST(AbstractControllerTest, ExtractInitiatorId);
 	FRIEND_TEST(AbstractControllerTest, GetOpcode);
