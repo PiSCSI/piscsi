@@ -43,7 +43,7 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 	sockaddr saddr;
 	memcpy(&saddr, &sin, sizeof(saddr));
 
-	if (bind(server_socket, &saddr, sizeof(saddr)) < 0) {
+	if (bind(server_socket, &saddr, sizeof(sockaddr)) < 0) {
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}

@@ -67,8 +67,9 @@ bool network_util::ResolveHostName(const string& host, sockaddr_in *addr)
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
+	static_assert(sizeof(sockaddr_in) == sizeof(sockaddr));
 	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
-		*addr = *reinterpret_cast<sockaddr_in *>(result->ai_addr); //NOSONAR getaddrinfo() API requires reinterpret_cast
+		memcpy(addr, result->ai_addr, sizeof(sockaddr_in));
 		freeaddrinfo(result);
 		return true;
 	}
