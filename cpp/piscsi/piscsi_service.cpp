@@ -107,7 +107,7 @@ void PiscsiService::ExecuteCommand(int fd) const
 		try {
 			context.WriteResult(result);
 		}
-		catch(const io_exception&) {
+		catch(const io_exception&) { //NOSONAR Not handled on purpose
 			// Ignore
 		}
 	}
