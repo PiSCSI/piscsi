@@ -558,6 +558,8 @@ int Piscsi::run(span<char *> args)
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
+	service.Start();
+
 	Process();
 
 	return EXIT_SUCCESS;
@@ -574,8 +576,6 @@ void Piscsi::Process()
 #else
 	cout << "Note: No PiSCSI hardware support, only client interface calls are supported" << endl;
 #endif
-
-	service.Start();
 
 	// Main Loop
 	while (service.IsRunning()) {
