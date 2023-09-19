@@ -30,7 +30,7 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		return "Unable to create server socket: " + string(strerror(errno));
+		return "Unable to create service socket: " + string(strerror(errno));
 	}
 
 	if (const int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
@@ -47,7 +47,7 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 
 	if (listen(service_socket, 1) == -1) {
 		Stop();
-		return "Can't listen to server socket: " + string(strerror(errno));
+		return "Can't listen to service socket: " + string(strerror(errno));
 	}
 
 	execute = cb;
