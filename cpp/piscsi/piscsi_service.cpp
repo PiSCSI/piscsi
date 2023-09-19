@@ -24,13 +24,11 @@ string PiscsiService::Init(const callback& cb, int port)
 		return "Invalid port number " + to_string(port);
 	}
 
-	// Create socket for monitor
 	server_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (server_socket == -1) {
 		return "Unable to create server socket: " + string(strerror(errno));
 	}
 
-	// Allow address reuse
 	if (const int yes = 1; setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return "Can't reuse address";
 	}
