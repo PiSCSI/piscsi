@@ -45,6 +45,7 @@ void ScsiController::Reset()
 
 	execstart = 0;
 	identified_lun = -1;
+	initiator_id = UNKNOWN_INITIATOR_ID;
 
 	scsi = {};
 }
