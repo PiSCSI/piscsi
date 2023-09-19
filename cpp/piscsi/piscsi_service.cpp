@@ -45,7 +45,7 @@ string PiscsiService::Init(const callback& cb, int port)
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
 
-	if (listen(service_socket, 1) == -1) {
+	if (listen(service_socket, 2) == -1) {
 		Stop();
 		return "Can't listen to service socket: " + string(strerror(errno));
 	}
