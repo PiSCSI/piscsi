@@ -21,12 +21,6 @@ class PiscsiService
 {
 	using callback = function<bool(const CommandContext&)>;
 
-	callback execute;
-
-	jthread service_thread;
-
-	int service_socket = -1;
-
 public:
 
 	PiscsiService() = default;
@@ -41,4 +35,10 @@ private:
 
 	void Execute() const;
 	void ExecuteCommand(int) const;
+
+	callback execute;
+
+	jthread service_thread;
+
+	int service_socket = -1;
 };
