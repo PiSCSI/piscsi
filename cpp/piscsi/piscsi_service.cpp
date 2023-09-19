@@ -104,6 +104,7 @@ void PiscsiService::ExecuteCommand(int fd) const
 
 		// Try to return a failure message (this might fail)
 		PbResult result;
+		result.set_msg(e.what());
 		try {
 			context.WriteResult(result);
 		}
