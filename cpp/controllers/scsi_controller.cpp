@@ -74,7 +74,7 @@ bool ScsiController::Process(int id)
 		BusFree();
 	}
 
-	return GetPhase() != phase_t::busfree;
+	return !IsBusFree();
 }
 
 void ScsiController::BusFree()
