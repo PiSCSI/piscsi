@@ -13,7 +13,7 @@
 
 using namespace std;
 
-bool ControllerManager::AttachToScsiController(int id, shared_ptr<PrimaryDevice> device)
+bool ControllerManager::AttachToController(int id, shared_ptr<PrimaryDevice> device)
 {
 	if (auto controller = FindController(id); controller != nullptr) {
 		return controller->AddDevice(device);

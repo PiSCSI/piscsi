@@ -32,7 +32,7 @@ public:
 	static const int DEVICE_MAX = 8;
 
 	inline BUS& GetBus() const { return bus; }
-	bool AttachToScsiController(int, shared_ptr<PrimaryDevice>);
+	bool AttachToController(int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
 	void ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;

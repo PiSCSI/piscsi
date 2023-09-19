@@ -36,7 +36,7 @@ void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 	auto d = device_factory.CreateDevice(type, 0, "");
 	const unordered_map<string, string> params;
 	d->Init(params);
-	EXPECT_TRUE(controller_manager->AttachToScsiController(0, d));
+	EXPECT_TRUE(controller_manager->AttachToController(0, d));
 
 	PbServerInfo info;
 	response.GetDevices(controller_manager->GetAllDevices(), info, "image_folder");
@@ -127,7 +127,7 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	EXPECT_TRUE(result.devices_info().devices().empty());
 
 	auto device1 = make_shared<MockHostServices>(LUN1);
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device1));
 
 	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
@@ -138,7 +138,7 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	EXPECT_EQ(LUN1, devices1[0].unit());
 
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN2);
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device2));
 
 	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());

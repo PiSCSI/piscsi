@@ -22,10 +22,10 @@ TEST(ControllerManagerTest, LifeCycle)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(SCHS, -1, "");
-	EXPECT_FALSE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_FALSE(controller_manager->AttachToController(ID, device));
 
 	device = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device));
 	EXPECT_TRUE(controller_manager->HasController(ID));
 	auto controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller);
@@ -36,7 +36,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device));
 	EXPECT_TRUE(controller_manager->HasController(ID));
 	controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller_manager->FindController(ID));
@@ -49,7 +49,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
 }
 
-TEST(ControllerManagerTest, AttachToScsiController)
+TEST(ControllerManagerTest, AttachToController)
 {
 	const int ID = 4;
 	const int LUN1 = 3;
@@ -60,10 +60,10 @@ TEST(ControllerManagerTest, AttachToScsiController)
 	DeviceFactory device_factory;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_FALSE(controller_manager->AttachToScsiController(ID, device1)) << "LUN 0 is missing";
+	EXPECT_FALSE(controller_manager->AttachToController(ID, device1)) << "LUN 0 is missing";
 
 	auto device2 = device_factory.CreateDevice(SCLP, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device2));
-	EXPECT_TRUE(controller_manager->AttachToScsiController(ID, device1));
-	EXPECT_FALSE(controller_manager->AttachToScsiController(ID, device1));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device2));
+	EXPECT_TRUE(controller_manager->AttachToController(ID, device1));
+	EXPECT_FALSE(controller_manager->AttachToController(ID, device1));
 }

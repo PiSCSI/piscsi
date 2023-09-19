@@ -293,7 +293,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		storage_device->ReserveFile(full_path, id, lun);
 	}
 
-	if (!controller_manager.AttachToScsiController(id, device)) {
+	if (!controller_manager.AttachToController(id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 
