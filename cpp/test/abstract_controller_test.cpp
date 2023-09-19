@@ -43,6 +43,7 @@ TEST(AbstractControllerTest, Reset)
 
 	controller->SetPhase(phase_t::status);
 	EXPECT_EQ(phase_t::status, controller->GetPhase());
+	EXPECT_CALL(*bus, Reset());
 	controller->Reset();
 	EXPECT_TRUE(controller->IsBusFree());
 	EXPECT_EQ(status::good, controller->GetStatus());
