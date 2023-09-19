@@ -102,7 +102,7 @@ void PiscsiService::ExecuteCommand(int fd) const
 	catch(const io_exception& e) {
 		spdlog::warn(e.what());
 
-		// Try to return a failure message (this might fail)
+		// Try to return an error message (this may fail if the exception was caused when returning the actual result)
 		PbResult result;
 		result.set_msg(e.what());
 		try {
