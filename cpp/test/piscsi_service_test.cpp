@@ -95,6 +95,7 @@ TEST(PiscsiServiceTest, Execute)
 	PbResult result;
 
 	SendCommand(command, result);
+	command.set_operation(PbOperation::NO_OPERATION);
     EXPECT_TRUE(result.status()) << "Command should have been successful";
 
     command.set_operation(PbOperation::EJECT);
