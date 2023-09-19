@@ -22,30 +22,30 @@ using namespace piscsi_util;
 
 string PiscsiService::InitServerSocket(const callback& cb, int port)
 {
-	assert(server_socket == -1);
+	assert(service_socket == -1);
 
 	if (port <= 0 || port > 65535) {
 		return "Invalid port number " + to_string(port);
 	}
 
-	server_socket = socket(PF_INET, SOCK_STREAM, 0);
-	if (server_socket == -1) {
+	service_socket = socket(PF_INET, SOCK_STREAM, 0);
+	if (service_socket == -1) {
 		return "Unable to create server socket: " + string(strerror(errno));
 	}
 
-	if (const int yes = 1; setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	if (const int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		Stop();
 		return "Can't reuse address";
 	}
 
 	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-		bind(server_socket, bit_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) {
+		bind(service_socket, bit_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) {
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
 
-	if (listen(server_socket, 1) == -1) {
+	if (listen(service_socket, 1) == -1) {
 		Stop();
 		return "Can't listen to server socket: " + string(strerror(errno));
 	}
@@ -57,19 +57,19 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 
 void PiscsiService::Start()
 {
-	assert(server_socket != -1);
+	assert(service_socket != -1);
 
 	service_thread = jthread([this] () { Execute(); } );
 }
 
 void PiscsiService::Stop()
 {
-	assert(server_socket != -1);
+	assert(service_socket != -1);
 
-	shutdown(server_socket, SHUT_RDWR);
-	close(server_socket);
+	shutdown(service_socket, SHUT_RDWR);
+	close(service_socket);
 
-	server_socket = -1;
+	service_socket = -1;
 }
 
 void PiscsiService::Execute() const
@@ -85,8 +85,8 @@ void PiscsiService::Execute() const
 	FixCpu(2);
 
 	// TODO Accept a sequence of commands instead of closing the socket after a single command
-	while (server_socket != -1) {
-		const int fd = accept(server_socket, nullptr, nullptr);
+	while (service_socket != -1) {
+		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd != -1) {
 			ExecuteCommand(fd);
 			close(fd);

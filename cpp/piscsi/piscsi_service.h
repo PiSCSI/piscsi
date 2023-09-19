@@ -25,7 +25,7 @@ class PiscsiService
 
 	jthread service_thread;
 
-	int server_socket = -1;
+	int service_socket = -1;
 
 public:
 
@@ -35,7 +35,7 @@ public:
 	string InitServerSocket(const callback&, int);
 	void Start();
 	void Stop();
-	bool IsRunning() const { return server_socket != -1 && service_thread.joinable(); }
+	bool IsRunning() const { return service_socket != -1 && service_thread.joinable(); }
 
 private:
 
