@@ -55,7 +55,7 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 
 	// Read the binary protobuf data
 	vector<byte> data_buf(size);
-	if (ReadBytes(fd, data_buf) < data_buf.size()) {
+	if (ReadBytes(fd, data_buf) != data_buf.size()) {
 		throw io_exception("Missing protobuf message data");
 	}
 
