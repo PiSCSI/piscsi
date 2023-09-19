@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <csignal>
 #include <cassert>
+#include <bit>
 
 using namespace piscsi_util;
 
@@ -39,7 +40,7 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 
 	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-		bind(server_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bind() API requires reinterpret_cast
+		bind(server_socket, bit_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) {
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
