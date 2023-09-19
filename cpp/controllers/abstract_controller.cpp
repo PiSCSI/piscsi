@@ -86,16 +86,6 @@ void AbstractController::ProcessOnController(int id_data)
 	}
 }
 
-void AbstractController::ProcessPhase()
-{
-	try {
-		phase_executors.at(GetPhase())();
-	}
-	catch(const out_of_range& e) {
-		throw scsi_exception(sense_key::aborted_command);
-	}
-}
-
 bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 {
 	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || HasDeviceForLun(device->GetLun())) {
