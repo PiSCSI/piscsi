@@ -71,7 +71,6 @@ phase_t ScsiController::Process(int id)
 		ProcessPhase();
 	}
 	catch(const scsi_exception&) {
-		// Any exception should have been handled during the phase processing
 		logger.Error("Unhandled SCSI error, resetting controller and bus and entering bus free phase");
 
 		Reset();
