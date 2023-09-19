@@ -84,7 +84,7 @@ void PiscsiService::Execute() const
 	// Set the affinity to a specific processor core
 	FixCpu(2);
 
-	// TODO Accept a sequence of commands instead of closing the socket after a single command
+	// TODO Accept more than one command instead of closing the socket after a single command
 	while (service_socket != -1) {
 		const int fd = accept(service_socket, nullptr, nullptr);
 		if (fd != -1) {
