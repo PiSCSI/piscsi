@@ -75,7 +75,7 @@ void PiscsiService::Stop()
 void PiscsiService::Execute() const
 {
 #ifdef __linux__
-    // Scheduler Settings
+	// Run this thread with very low priority
 	sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
