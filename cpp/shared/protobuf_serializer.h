@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "google/protobuf/message.h"
+#include <google/protobuf/message.h>
 #include <span>
 
 using namespace std;
