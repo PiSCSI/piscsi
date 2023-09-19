@@ -49,12 +49,12 @@ protected:
 	bool IsMsgIn() const { return phase == phase_t::msgin; }
 	bool IsMsgOut() const { return phase == phase_t::msgout; }
 
-	void ProcessPhase()
+	void ProcessPhase() const
 	{
 		try {
 			phase_executors.at(phase)();
 		}
-		catch(const out_of_range& e) {
+		catch(const out_of_range&) {
 			throw scsi_exception(sense_key::aborted_command);
 		}
 	}
