@@ -30,7 +30,7 @@ void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Messag
 	// Write the size of the protobuf data as a header
 	const auto size = static_cast<int32_t>(data.length());
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw io_exception("Can't write protobuf message header");
+    	throw io_exception("Can't write protobuf message size");
     }
 
     // Write the actual protobuf data
@@ -50,7 +50,7 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 	const int size = (static_cast<int>(header_buf[3]) << 24) + (static_cast<int>(header_buf[2]) << 16)
 			+ (static_cast<int>(header_buf[1]) << 8) + static_cast<int>(header_buf[0]);
 	if (size < 0) {
-		throw io_exception("Invalid protobuf message header");
+		throw io_exception("Invalid protobuf message size");
 	}
 
 	// Read the binary protobuf data
