@@ -37,13 +37,9 @@ string PiscsiService::InitServerSocket(const callback& cb, int port)
 		return "Can't reuse address";
 	}
 
-	static_assert(sizeof(sockaddr_in) == sizeof(sockaddr));
-	const sockaddr_in sin = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
-				.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-	sockaddr saddr;
-	memcpy(&saddr, &sin, sizeof(saddr));
-
-	if (bind(server_socket, &saddr, sizeof(saddr)) < 0) {
+	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
+			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
+		bind(server_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bind() API requires reinterpret_cast
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
