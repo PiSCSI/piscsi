@@ -9,14 +9,12 @@
 
 #include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
-#include "generated/piscsi_interface.pb.h"
+#include <google/protobuf/message.h>
 #include <unistd.h>
 #include <array>
 #include <vector>
-#include <string>
 
 using namespace std;
-using namespace piscsi_interface;
 
 //---------------------------------------------------------------------------
 //
