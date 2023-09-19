@@ -34,7 +34,7 @@ public:
 	bool Init(const callback&, int);
 	void Start();
 	void Stop();
-	bool IsRunning() const { return service_socket != -1; }
+	bool IsRunning() const { return service_socket != -1 && service_thread.joinable(); }
 
 private:
 

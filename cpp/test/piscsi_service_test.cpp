@@ -39,7 +39,7 @@ TEST(PiscsiServiceTest, IsRunning)
 	PiscsiService service;
 	EXPECT_FALSE(service.IsRunning());
 	EXPECT_TRUE(service.Init(nullptr, 9999)) << "Port 9999 is expected not to be in use for this test";
-	EXPECT_TRUE(service.IsRunning());
+	EXPECT_FALSE(service.IsRunning());
 
 	service.Start();
 	EXPECT_TRUE(service.IsRunning());
