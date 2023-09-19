@@ -79,3 +79,10 @@ shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun
 
 	return nullptr;
 }
+
+void ControllerManager::FlushDeviceCaches() const
+{
+	for (const auto& device : GetAllDevices()) {
+		device->FlushCache();
+	}
+}

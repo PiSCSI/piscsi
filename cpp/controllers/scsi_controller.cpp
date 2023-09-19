@@ -103,9 +103,7 @@ void ScsiController::BusFree()
 
 		if (shutdown_mode != piscsi_shutdown_mode::NONE) {
 			// Prepare the shutdown by flushing all caches
-			for (const auto& device : GetControllerManager()->GetAllDevices()) {
-				device->FlushCache();
-			}
+			GetControllerManager()->FlushDeviceCaches();
 		}
 
 		// When the bus is free PiSCSI or the Pi may be shut down.
