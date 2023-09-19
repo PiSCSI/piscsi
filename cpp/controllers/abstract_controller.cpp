@@ -64,6 +64,8 @@ void AbstractController::Reset()
 	for (const auto& [_, device] : luns) {
 		device->Reset();
 	}
+
+	GetBus().Reset();
 }
 
 void AbstractController::ProcessOnController(int id_data)

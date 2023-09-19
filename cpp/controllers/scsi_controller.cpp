@@ -58,8 +58,6 @@ phase_t ScsiController::Process(int id)
 
 		Reset();
 
-		GetBus().Reset();
-
 		return GetPhase();
 	}
 
@@ -72,7 +70,6 @@ phase_t ScsiController::Process(int id)
 		logger.Error("Unhandled SCSI error, resetting controller and bus and entering bus free phase");
 
 		Reset();
-		GetBus().Reset();
 
 		BusFree();
 	}
@@ -429,7 +426,6 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	// Reset check
 	if (GetBus().GetRST()) {
 		Reset();
-		GetBus().Reset();
 
 		return;
 	}

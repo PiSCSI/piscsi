@@ -38,7 +38,6 @@ TEST(ScsiControllerTest, Process)
 	ON_CALL(*bus, GetRST).WillByDefault(Return(true));
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST);
-	EXPECT_CALL(*bus, Reset);
 	EXPECT_CALL(controller, Reset);
 	EXPECT_EQ(phase_t::reserved, controller.Process(0));
 
@@ -51,7 +50,6 @@ TEST(ScsiControllerTest, Process)
 	controller.SetPhase(phase_t::reserved);
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST);
-	EXPECT_CALL(*bus, Reset);
 	EXPECT_CALL(controller, Reset);
 	EXPECT_EQ(phase_t::busfree, controller.Process(0));
 }
@@ -258,7 +256,6 @@ TEST(ScsiControllerTest, Error)
 	controller.SetPhase(phase_t::reserved);
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST());
-	EXPECT_CALL(*bus, Reset);
 	EXPECT_CALL(controller, Reset);
 	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	EXPECT_EQ(status::good, controller.GetStatus());
@@ -268,7 +265,6 @@ TEST(ScsiControllerTest, Error)
 	controller.SetPhase(phase_t::status);
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST());
-	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
 	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
@@ -276,7 +272,6 @@ TEST(ScsiControllerTest, Error)
 	controller.SetPhase(phase_t::msgin);
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST());
-	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
 	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
 	EXPECT_EQ(phase_t::busfree, controller.GetPhase());
@@ -284,7 +279,6 @@ TEST(ScsiControllerTest, Error)
 	controller.SetPhase(phase_t::reserved);
 	EXPECT_CALL(*bus, Acquire);
 	EXPECT_CALL(*bus, GetRST());
-	EXPECT_CALL(*bus, Reset).Times(0);
 	EXPECT_CALL(controller, Reset).Times(0);
 	EXPECT_CALL(controller, Status);
 	controller.Error(sense_key::aborted_command, asc::no_additional_sense_information, status::reservation_conflict);
