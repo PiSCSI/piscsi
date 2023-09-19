@@ -195,21 +195,6 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	EXPECT_FALSE(controller->RemoveDevice(device1));
 }
 
-TEST(AbstractControllerTest, ExtractInitiatorId)
-{
-	const int ID = 1;
-	const int INITIATOR_ID_1 = 6;
-	const int INITIATOR_ID_2 = 7;
-
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, ID);
-
-	EXPECT_EQ(INITIATOR_ID_1, controller.ExtractInitiatorId((1 << INITIATOR_ID_1) | ( 1 << ID)));
-	EXPECT_EQ(INITIATOR_ID_2, controller.ExtractInitiatorId((1 << INITIATOR_ID_2) | ( 1 << ID)));
-	EXPECT_EQ(AbstractController::UNKNOWN_INITIATOR_ID, controller.ExtractInitiatorId(1 << ID));
-}
-
 TEST(AbstractControllerTest, GetOpcode)
 {
 	auto bus = make_shared<MockBus>();

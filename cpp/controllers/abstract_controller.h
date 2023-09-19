@@ -62,7 +62,6 @@ public:
 	bool AddDevice(shared_ptr<PrimaryDevice>);
 	bool RemoveDevice(shared_ptr<PrimaryDevice>);
 	bool HasDeviceForLun(int) const;
-	int ExtractInitiatorId(int) const;
 	void ProcessOnController(int);
 
 	// TODO These should probably be extracted into a new TransferHandler class
@@ -108,6 +107,8 @@ protected:
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
 private:
+
+	int ExtractInitiatorId(int) const;
 
 	using ctrl_t = struct _ctrl_t {
 		// Command data, dynamically resized if required
