@@ -34,7 +34,7 @@ public:
 	virtual void MsgIn() = 0;
 	virtual void MsgOut() = 0;
 
-	virtual phase_t Process(int) = 0;
+	virtual bool Process(int) = 0;
 
 protected:
 

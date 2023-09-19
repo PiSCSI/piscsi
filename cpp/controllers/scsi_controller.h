@@ -60,7 +60,7 @@ public:
 
 	void Reset() override;
 
-	phase_t Process(int) override;
+	bool Process(int) override;
 
 	int GetEffectiveLun() const override;
 

@@ -49,7 +49,7 @@ void ScsiController::Reset()
 	scsi = {};
 }
 
-phase_t ScsiController::Process(int id)
+bool ScsiController::Process(int id)
 {
 	GetBus().Acquire();
 
@@ -58,7 +58,7 @@ phase_t ScsiController::Process(int id)
 
 		Reset();
 
-		return GetPhase();
+		return false;
 	}
 
 	initiator_id = id;
@@ -74,7 +74,7 @@ phase_t ScsiController::Process(int id)
 		BusFree();
 	}
 
-	return GetPhase();
+	return GetPhase() != phase_t::busfree;
 }
 
 void ScsiController::BusFree()

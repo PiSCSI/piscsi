@@ -80,7 +80,7 @@ void AbstractController::ProcessOnController(int id_data)
 		device_logger.Trace("++++ Starting processing for unknown initiator ID");
 	}
 
-	while (Process(initiator_id) != phase_t::busfree) {
+	while (Process(initiator_id)) {
 		// Handle bus phases until the bus is free
 	}
 }

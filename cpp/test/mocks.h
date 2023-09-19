@@ -85,7 +85,7 @@ class MockPhaseHandler : public PhaseHandler
 
 public:
 
-	MOCK_METHOD(phase_t, Process, (int), (override));
+	MOCK_METHOD(bool, Process, (int), (override));
 	MOCK_METHOD(void, Status, (), ());
 	MOCK_METHOD(void, DataIn, (), ());
 	MOCK_METHOD(void, DataOut, (), ());
@@ -167,7 +167,7 @@ class MockAbstractController : public AbstractController //NOSONAR Having many f
 
 public:
 
-	MOCK_METHOD(phase_t, Process, (int), (override));
+	MOCK_METHOD(bool, Process, (int), (override));
 	MOCK_METHOD(int, GetEffectiveLun, (), (const override));
 	MOCK_METHOD(void, Error, (scsi_defs::sense_key, scsi_defs::asc, scsi_defs::status), (override));
 	MOCK_METHOD(int, GetInitiatorId, (), (const override));
