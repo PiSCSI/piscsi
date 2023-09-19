@@ -11,6 +11,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "generated/piscsi_interface.pb.h"
 #include <unistd.h>
+#include <string>
 
 using namespace std;
 using namespace piscsi_interface;
@@ -24,8 +25,7 @@ using namespace piscsi_interface;
 
 void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Message& message) const
 {
-	string data;
-	message.SerializeToString(&data);
+	const string data = message.SerializeAsString();
 
 	// Write the size of the protobuf data as a header
 	const auto size = static_cast<int32_t>(data.length());
