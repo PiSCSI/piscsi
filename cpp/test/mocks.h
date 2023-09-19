@@ -181,6 +181,7 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
+	MockAbstractController() : AbstractController(nullptr, 0, 32) {}
 	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
 		: AbstractController(controller_manager, target_id, 32) {
 		AllocateBuffer(512);
