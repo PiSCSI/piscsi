@@ -28,36 +28,36 @@ void PiscsiService::Stop()
 	}
 }
 
-bool PiscsiService::Init(const callback& cb, int port)
+string PiscsiService::Init(const callback& cb, int port)
 {
 	if (port <= 0 || port > 65535) {
-		return false;
+		return "Invalid port number " + to_string(port);
 	}
 
 	// Create socket for monitor
 	service_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (service_socket == -1) {
-		spdlog::error("Unable to create server socket");
-		return false;
+		return "Unable to create server socket: " + string(strerror(errno));
 	}
 
 	// Allow address reuse
 	if (const int yes = 1; setsockopt(service_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		return false;
+		return "Can't reuse address";
 	}
 
 	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
 			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
 		bind(service_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bind() API requires reinterpret_cast
-		cerr << "Error: Port " << port << " is in use, is piscsi already running?" << endl;
-		return false;
+		return "Port " + to_string(port) + " is in use, is piscsi already running?";
+	}
+
+	if (listen(service_socket, 1) == -1) {
+		return "Can't listen to server socket: " + string(strerror(errno));
 	}
 
 	execute = cb;
 
-	listen(service_socket, 1);
-
-	return true;
+	return "";
 }
 
 void PiscsiService::Start()

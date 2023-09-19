@@ -536,7 +536,9 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (!service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port)) {
+	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
+		!error.empty()) {
+		cerr << "Error: " << error << endl;
 		return EXIT_FAILURE;
 	}
 
