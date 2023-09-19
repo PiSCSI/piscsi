@@ -95,11 +95,11 @@ TEST(PiscsiServiceTest, Execute)
 	PbResult result;
 
 	SendCommand(command, result);
-    EXPECT_TRUE(result.status());
+    EXPECT_TRUE(result.status()) << "Command should have been successful";
 
     command.set_operation(PbOperation::EJECT);
     SendCommand(command, result);
-    EXPECT_FALSE(result.status());
+    EXPECT_FALSE(result.status()) << "Exception should have been raised";
 
     service.Stop();
 }
