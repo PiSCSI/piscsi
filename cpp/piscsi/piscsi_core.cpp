@@ -539,6 +539,9 @@ int Piscsi::run(span<char *> args)
 	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
 		!error.empty()) {
 		cerr << "Error: " << error << endl;
+
+		Cleanup();
+
 		return EXIT_FAILURE;
 	}
 
