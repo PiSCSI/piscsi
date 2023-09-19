@@ -102,6 +102,7 @@ void PiscsiService::ExecuteCommand(int fd) const
 	catch(const io_exception& e) {
 		spdlog::warn(e.what());
 
+		// Try to return a failure message (this might fail)
 		PbResult result;
 		try {
 			context.WriteResult(result);
