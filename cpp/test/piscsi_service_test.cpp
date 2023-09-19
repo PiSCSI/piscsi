@@ -22,15 +22,15 @@
 using namespace piscsi_interface;
 using namespace network_util;
 
-TEST(PiscsiServiceTest, Init)
+TEST(PiscsiServiceTest, InitServerSocket)
 {
 	PiscsiService service;
 
-	EXPECT_FALSE(service.Init(nullptr, 65536).empty()) << "Illegal port number";
-	EXPECT_FALSE(service.Init(nullptr, 0).empty()) << "Illegal port number";
-	EXPECT_FALSE(service.Init(nullptr, -1).empty()) << "Illegal port number";
-	EXPECT_FALSE(service.Init(nullptr, 1).empty()) << "Port 1 is only available for the root user";
-	EXPECT_TRUE(service.Init(nullptr, 9999).empty()) << "Port 9999 is expected not to be in use for this test";
+	EXPECT_FALSE(service.InitServerSocket(nullptr, 65536).empty()) << "Illegal port number";
+	EXPECT_FALSE(service.InitServerSocket(nullptr, 0).empty()) << "Illegal port number";
+	EXPECT_FALSE(service.InitServerSocket(nullptr, -1).empty()) << "Illegal port number";
+	EXPECT_FALSE(service.InitServerSocket(nullptr, 1).empty()) << "Port 1 is only available for the root user";
+	EXPECT_TRUE(service.InitServerSocket(nullptr, 9999).empty()) << "Port 9999 is expected not to be in use for this test";
 	service.Stop();
 }
 
@@ -38,7 +38,7 @@ TEST(PiscsiServiceTest, IsRunning)
 {
 	PiscsiService service;
 	EXPECT_FALSE(service.IsRunning());
-	EXPECT_TRUE(service.Init(nullptr, 9999).empty()) << "Port 9999 is expected not to be in use for this test";
+	EXPECT_TRUE(service.InitServerSocket(nullptr, 9999).empty()) << "Port 9999 is expected not to be in use for this test";
 	EXPECT_FALSE(service.IsRunning());
 
 	service.Start();
@@ -59,7 +59,7 @@ TEST(PiscsiServiceTest, Execute)
 	EXPECT_FALSE(connect(fd, (sockaddr *)&server_addr, sizeof(server_addr)) >= 0) << "Service should not be running";
 
 	PiscsiService service;
-	service.Init([] (const CommandContext& context) {
+	service.InitServerSocket([] (const CommandContext& context) {
 		PbResult result;
 		result.set_status(true);
 		context.WriteResult(result);

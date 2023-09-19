@@ -15,10 +15,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <csignal>
+#include <cassert>
 
 using namespace piscsi_util;
 
-string PiscsiService::Init(const callback& cb, int port)
+string PiscsiService::InitServerSocket(const callback& cb, int port)
 {
 	if (port <= 0 || port > 65535) {
 		return "Invalid port number " + to_string(port);
@@ -50,17 +51,19 @@ string PiscsiService::Init(const callback& cb, int port)
 
 void PiscsiService::Start()
 {
+	assert(server_socket != -1);
+
 	service_thread = jthread([this] () { Execute(); } );
 }
 
 void PiscsiService::Stop()
 {
-	if (server_socket != -1) {
-		shutdown(server_socket, SHUT_RDWR);
-		close(server_socket);
+	assert(server_socket != -1);
 
-		server_socket = -1;
-	}
+	shutdown(server_socket, SHUT_RDWR);
+	close(server_socket);
+
+	server_socket = -1;
 }
 
 void PiscsiService::Execute() const

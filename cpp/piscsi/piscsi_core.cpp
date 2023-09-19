@@ -79,7 +79,9 @@ bool Piscsi::InitBus()
 
 void Piscsi::Cleanup()
 {
-	service.Stop();
+	if (service.IsRunning()) {
+		service.Stop();
+	}
 
 	executor->DetachAll();
 
@@ -536,7 +538,7 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
+	if (const string error = service.InitServerSocket([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
 		!error.empty()) {
 		cerr << "Error: " << error << endl;
 
