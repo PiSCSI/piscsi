@@ -46,9 +46,7 @@ void ScsiController::Reset()
 	execstart = 0;
 	identified_lun = -1;
 
-	scsi.atnmsg = false;
-	scsi.msc = 0;
-	scsi.msb = {};
+	scsi = {};
 
 	SetByteTransfer(false);
 }
