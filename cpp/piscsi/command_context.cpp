@@ -65,7 +65,7 @@ bool CommandContext::ReturnStatus(bool status, const string& msg, PbErrorCode er
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		serializer.SerializeMessage(fd, result);
+		WriteResult(result);
 	}
 
 	return status;
