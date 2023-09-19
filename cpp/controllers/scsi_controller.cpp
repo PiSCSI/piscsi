@@ -47,8 +47,6 @@ void ScsiController::Reset()
 	identified_lun = -1;
 
 	scsi = {};
-
-	SetByteTransfer(false);
 }
 
 phase_t ScsiController::Process(int id)

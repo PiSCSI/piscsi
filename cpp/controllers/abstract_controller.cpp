@@ -58,6 +58,8 @@ void AbstractController::Reset()
 
 	ctrl = {};
 
+	SetByteTransfer(false);
+
 	// Reset all LUNs
 	for (const auto& [_, device] : luns) {
 		device->Reset();
