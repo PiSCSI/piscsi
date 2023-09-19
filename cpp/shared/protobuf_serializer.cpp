@@ -60,8 +60,7 @@ void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& m
 	}
 
 	// Create protobuf message
-	const string data((const char *)data_buf.data(), size);
-	message.ParseFromString(data);
+	message.ParseFromArray(data_buf.data(), data_buf.size());
 }
 
 size_t ProtobufSerializer::ReadBytes(int fd, span<byte> buf) const
