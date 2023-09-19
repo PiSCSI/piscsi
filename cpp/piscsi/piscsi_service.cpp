@@ -18,16 +18,6 @@
 
 using namespace piscsi_util;
 
-void PiscsiService::Stop()
-{
-	if (server_socket != -1) {
-		shutdown(server_socket, SHUT_RDWR);
-		close(server_socket);
-
-		server_socket = -1;
-	}
-}
-
 string PiscsiService::Init(const callback& cb, int port)
 {
 	if (port <= 0 || port > 65535) {
@@ -63,6 +53,16 @@ string PiscsiService::Init(const callback& cb, int port)
 void PiscsiService::Start()
 {
 	service_thread = jthread([this] () { Execute(); } );
+}
+
+void PiscsiService::Stop()
+{
+	if (server_socket != -1) {
+		shutdown(server_socket, SHUT_RDWR);
+		close(server_socket);
+
+		server_socket = -1;
+	}
 }
 
 void PiscsiService::Execute() const
