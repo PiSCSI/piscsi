@@ -88,8 +88,7 @@ phase_t ScsiController::Process(int id)
 void ScsiController::BusFree()
 {
 	if (!IsBusFree()) {
-		logger.Trace("Bus free phase");
-
+		logger.Trace("Bus Free phase");
 		SetPhase(phase_t::busfree);
 
 		GetBus().SetREQ(false);
@@ -165,7 +164,6 @@ void ScsiController::Selection()
 		}
 
 		logger.Trace("Selection phase");
-
 		SetPhase(phase_t::selection);
 
 		// Raise BSY and respond
@@ -188,7 +186,6 @@ void ScsiController::Command()
 {
 	if (!IsCommand()) {
 		logger.Trace("Command phase");
-
 		SetPhase(phase_t::command);
 
 		GetBus().SetMSG(false);
@@ -305,9 +302,8 @@ void ScsiController::Status()
 		}
 
 		stringstream s;
-		s << "Status Phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
+		s << "Status phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
 		logger.Trace(s.str());
-
 		SetPhase(phase_t::status);
 
 		// Signal line operated by the target
@@ -331,7 +327,6 @@ void ScsiController::MsgIn()
 {
 	if (!IsMsgIn()) {
 		logger.Trace("Message In phase");
-
 		SetPhase(phase_t::msgin);
 
 		GetBus().SetMSG(true);
@@ -348,8 +343,6 @@ void ScsiController::MsgIn()
 void ScsiController::MsgOut()
 {
 	if (!IsMsgOut()) {
-		logger.Trace("Message Out phase");
-
 	    // process the IDENTIFY message
 		if (IsSelection()) {
 			scsi.atnmsg = true;
@@ -357,6 +350,7 @@ void ScsiController::MsgOut()
 			scsi.msb = {};
 		}
 
+		logger.Trace("Message Out phase");
 		SetPhase(phase_t::msgout);
 
 		GetBus().SetMSG(true);
@@ -388,8 +382,7 @@ void ScsiController::DataIn()
 			return;
 		}
 
-		logger.Trace("Entering Data In phase");
-
+		logger.Trace("Data In phase");
 		SetPhase(phase_t::datain);
 
 		GetBus().SetMSG(false);
@@ -419,7 +412,6 @@ void ScsiController::DataOut()
 		}
 
 		logger.Trace("Data Out phase");
-
 		SetPhase(phase_t::dataout);
 
 		// Signal line operated by the target
