@@ -42,9 +42,9 @@ void ProtobufSerializer::SerializeMessage(int fd, const google::protobuf::Messag
 void ProtobufSerializer::DeserializeMessage(int fd, google::protobuf::Message& message) const
 {
 	// Read the header with the size of the protobuf data
-	array<byte, 4> header_buf;
+	array<byte, sizeof(int32_t)> header_buf;
 	if (ReadBytes(fd, header_buf) < header_buf.size()) {
-		throw io_exception("Invalid protobuf message header");
+		throw io_exception("Can't read protobuf message size");
 	}
 
 	const int size = (static_cast<int>(header_buf[3]) << 24) + (static_cast<int>(header_buf[2]) << 16)
