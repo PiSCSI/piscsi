@@ -159,7 +159,9 @@ TEST(DeviceTest, GetTypeString)
 
 TEST(DeviceTest, GetIdentifier)
 {
-	NiceMock<MockDevice> device(1);
+	MockDevice device(1);
+
+	EXPECT_CALL(device, GetId());
 	EXPECT_EQ("UNDEFINED 0:1", device.GetIdentifier());
 }
 
