@@ -55,13 +55,13 @@ bool PiscsiService::Init(const callback& cb, int port)
 
 	execute = cb;
 
+	listen(service_socket, 1);
+
 	return true;
 }
 
 void PiscsiService::Start()
 {
-	listen(service_socket, 1);
-
 	service_thread = jthread([this] () { Execute(); } );
 }
 
