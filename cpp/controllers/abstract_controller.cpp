@@ -92,7 +92,7 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 	}
 
 	luns[device->GetLun()] = device;
-	device->SetController(shared_from_this());
+	device->SetController(this);
 
 	return true;
 }

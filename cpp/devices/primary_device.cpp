@@ -74,7 +74,7 @@ int PrimaryDevice::GetId() const
 	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
 
-void PrimaryDevice::SetController(shared_ptr<AbstractController> c)
+void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
 

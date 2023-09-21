@@ -70,17 +70,17 @@ protected:
 	void ReserveUnit() override;
 	void ReleaseUnit() override;
 
-	void EnterStatusPhase() const { controller.lock()->Status(); }
-	void EnterDataInPhase() const { controller.lock()->DataIn(); }
-	void EnterDataOutPhase() const { controller.lock()->DataOut(); }
+	void EnterStatusPhase() const { controller->Status(); }
+	void EnterDataInPhase() const { controller->DataIn(); }
+	void EnterDataOutPhase() const { controller->DataOut(); }
 
-	auto GetController() const { return controller.lock(); }
+	auto GetController() const { return controller; }
 
 private:
 
 	static const int NOT_RESERVED = -2;
 
-	void SetController(shared_ptr<AbstractController>);
+	void SetController(AbstractController *);
 
 	void TestUnitReady() override;
 	void RequestSense() override;
@@ -91,9 +91,9 @@ private:
 
 	DeviceLogger logger;
 
-	// TODO Make this a reference and try to use a NullController for initialization in order to get rid of the weak_ptr
+	// TODO Make this a reference and try to use a NullController for initialization in order to get rid of the raw ptr
 	// Or try to eliminate this field completely
-	weak_ptr<AbstractController> controller;
+	AbstractController *controller = nullptr;
 
 	unordered_map<scsi_command, operation> commands;
 

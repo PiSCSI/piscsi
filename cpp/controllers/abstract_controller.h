@@ -26,7 +26,7 @@ using namespace std;
 
 class PrimaryDevice;
 
-class AbstractController : public PhaseHandler, public enable_shared_from_this<AbstractController>
+class AbstractController : public PhaseHandler
 {
 public:
 
