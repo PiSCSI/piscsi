@@ -39,7 +39,7 @@ public:
 	void WriteResult(const PbResult&) const;
 	const PbCommand& GetCommand() const { return command; }
 
-	// TODO Try to get rid of this method
+	// TODO Try to get rid of this method, it is only required for the unit tests
 	bool IsValid() const { return fd != -1; }
 
 	bool ReturnLocalizedError(LocalizationKey, const string& = "", const string& = "", const string& = "") const;
