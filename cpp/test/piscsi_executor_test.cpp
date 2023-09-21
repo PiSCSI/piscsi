@@ -453,8 +453,7 @@ TEST(PiscsiExecutorTest, ShutDown)
 
 	EXPECT_FALSE(executor.ShutDown(context, "system")) << "Only available for the root user";
 	EXPECT_FALSE(executor.ShutDown(context, "reboot")) << "Only available for the root user";
-
-	EXPECT_THROW(executor.ShutDown(context, "rascsi"), io_exception);
+	EXPECT_TRUE(executor.ShutDown(context, "rascsi"));
 }
 
 TEST(PiscsiExecutorTest, SetReservedIds)
