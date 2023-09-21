@@ -608,10 +608,45 @@ void Piscsi::Process()
 			target_is_active = true;
 
 			// Process command on the responsible controller based on the current initiator and target ID
-			controller_manager->ProcessOnController(bus->GetDAT());
+			const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
+
+			// When the bus is free PiSCSI or the Pi may be shut down.
+			CheckForShutdown(shutdown_mode);
 
 			target_is_active = false;
 		}
+	}
+}
+
+void Piscsi::CheckForShutdown(AbstractController::piscsi_shutdown_mode shutdown_mode)
+{
+	if (shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
+		// Prepare the shutdown by flushing all caches
+		controller_manager->FlushCaches();
+	}
+
+	switch(shutdown_mode) {
+	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
+		spdlog::info("PiSCSI shutdown requested");
+		service.Stop();
+		break;
+
+	case AbstractController::piscsi_shutdown_mode::STOP_PI:
+		spdlog::info("Raspberry Pi shutdown requested");
+		if (system("init 0") == -1) {
+			spdlog::error("Raspberry Pi shutdown failed: " + string(strerror(errno)));
+		}
+		break;
+
+	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
+		spdlog::info("Raspberry Pi restart requested");
+		if (system("init 6") == -1) {
+			spdlog::info("Raspberry Pi restart failed: " + string(strerror(errno)));
+		}
+		break;
+
+	default:
+		break;
 	}
 }
 

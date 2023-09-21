@@ -20,7 +20,7 @@ TEST(DiskTest, Dispatch)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -44,7 +44,7 @@ TEST(DiskTest, Rezero)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -67,7 +67,7 @@ TEST(DiskTest, FormatUnit)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -96,7 +96,7 @@ TEST(DiskTest, ReassignBlocks)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -119,7 +119,7 @@ TEST(DiskTest, Seek6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -150,7 +150,7 @@ TEST(DiskTest, Seek10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -182,7 +182,7 @@ TEST(DiskTest, ReadCapacity10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -219,7 +219,7 @@ TEST(DiskTest, ReadCapacity16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -263,7 +263,7 @@ TEST(DiskTest, Read6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -282,7 +282,7 @@ TEST(DiskTest, Read10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -306,7 +306,7 @@ TEST(DiskTest, Read16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -330,7 +330,7 @@ TEST(DiskTest, Write6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -357,7 +357,7 @@ TEST(DiskTest, Write10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -381,7 +381,7 @@ TEST(DiskTest, Write16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -405,7 +405,7 @@ TEST(DiskTest, Verify10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -429,7 +429,7 @@ TEST(DiskTest, Verify16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -453,7 +453,7 @@ TEST(DiskTest, ReadLong10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -482,7 +482,7 @@ TEST(DiskTest, ReadLong16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -513,7 +513,7 @@ TEST(DiskTest, WriteLong10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -542,7 +542,7 @@ TEST(DiskTest, WriteLong16)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -571,7 +571,7 @@ TEST(DiskTest, StartStopUnit)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -628,7 +628,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -717,7 +717,7 @@ TEST(DiskTest, ModeSense6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -770,7 +770,7 @@ TEST(DiskTest, ModeSense10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -850,7 +850,7 @@ TEST(DiskTest, SynchronizeCache)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);
@@ -872,7 +872,7 @@ TEST(DiskTest, ReadDefectData)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto disk = make_shared<MockDisk>();
 	const unordered_map<string, string> params;
 	disk->Init(params);

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "controllers/abstract_controller.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
 #include "piscsi/piscsi_image.h"
@@ -51,6 +52,8 @@ private:
 	void CreateInitialDevices(const optargs_type&);
 	void Process();
 	bool IsNotBusy() const;
+
+	void CheckForShutdown(AbstractController::piscsi_shutdown_mode);
 
 	bool ExecuteCommand(const CommandContext&);
 

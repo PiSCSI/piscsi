@@ -36,7 +36,7 @@ TEST(AbstractControllerTest, Reset)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
 	controller->AddDevice(device);
@@ -110,7 +110,7 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, ID);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, ID);
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	auto device2 = make_shared<MockPrimaryDevice>(32);

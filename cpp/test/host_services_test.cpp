@@ -41,21 +41,18 @@ TEST(HostServicesTest, StartStopUnit)
 	auto services = CreateDevice(SCHS, *controller);
 
     // STOP
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PISCSI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::good, controller->GetStatus());
 
     // LOAD
 	controller->SetCmdByte(4, 0x02);
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::STOP_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::good, controller->GetStatus());
 
     // UNLOAD
 	controller->SetCmdByte(4, 0x03);
-    EXPECT_CALL(*controller, ScheduleShutdown(AbstractController::piscsi_shutdown_mode::RESTART_PI));
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdStartStop);
     EXPECT_EQ(status::good, controller->GetStatus());
@@ -71,7 +68,7 @@ TEST(HostServicesTest, ModeSense6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
 	services->Init(params);
@@ -114,7 +111,7 @@ TEST(HostServicesTest, ModeSense10)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
 	services->Init(params);

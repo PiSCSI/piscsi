@@ -20,7 +20,7 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
     EXPECT_CALL(*controller, Status());
@@ -33,7 +33,7 @@ TEST(ScsiDaynaportTest, Read)
 	vector<uint8_t> buf(0);
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
 
 	// ALLOCATION LENGTH
@@ -46,7 +46,7 @@ TEST(ScsiDaynaportTest, Write)
 	vector<uint8_t> buf(0);
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
 
 	// Unknown data format
@@ -58,7 +58,7 @@ TEST(ScsiDaynaportTest, Read6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
 	controller->SetCmdByte(5, 0xff);
@@ -72,7 +72,7 @@ TEST(ScsiDaynaportTest, Write6)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
 	controller->SetCmdByte(5, 0x00);
@@ -102,7 +102,7 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
     // ALLOCATION LENGTH
@@ -115,7 +115,7 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
 	// Unknown interface command
@@ -156,7 +156,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
@@ -173,7 +173,7 @@ TEST(ScsiDaynaportTest, EnableInterface)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto daynaport = CreateDevice(SCDP, *controller);
 
 	// Enable

@@ -21,7 +21,7 @@ bool ControllerManager::AttachToController(int id, shared_ptr<PrimaryDevice> dev
 
 	// If this is LUN 0 create a new controller
 	if (device->GetLun() == 0) {
-		if (auto controller = make_shared<ScsiController>(*this, id); controller->AddDevice(device)) {
+		if (auto controller = make_shared<ScsiController>(bus, id); controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;
@@ -36,12 +36,16 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
-void ControllerManager::ProcessOnController(int id_data) const
+AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const
 {
 	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
 	if (it != controllers.end()) {
 		(*it).second->ProcessOnController(id_data);
+
+		return (*it).second->GetShutdownMode();
 	}
+
+	return AbstractController::piscsi_shutdown_mode::NONE;
 }
 
 shared_ptr<AbstractController> ControllerManager::FindController(int target_id) const

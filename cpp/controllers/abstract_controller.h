@@ -14,7 +14,6 @@
 #include "shared/scsi.h"
 #include "hal/bus.h"
 #include "phase_handler.h"
-#include "controller_manager.h"
 #include "devices/device_logger.h"
 #include <unordered_set>
 #include <unordered_map>
@@ -40,8 +39,7 @@ public:
 		RESTART_PI
 	};
 
-	AbstractController(ControllerManager& controller_manager, int target_id, int max_luns)
-		: controller_manager(controller_manager), target_id(target_id), max_luns(max_luns) {}
+	AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns) {}
 	~AbstractController() override = default;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::no_additional_sense_information,
@@ -52,7 +50,8 @@ public:
 	// Get requested LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	virtual int GetEffectiveLun() const = 0;
 
-	virtual void ScheduleShutdown(piscsi_shutdown_mode) = 0;
+	void ScheduleShutdown(piscsi_shutdown_mode mode) { shutdown_mode = mode; }
+	piscsi_shutdown_mode GetShutdownMode() const { return shutdown_mode; }
 
 	int GetTargetId() const { return target_id; }
 	int GetMaxLuns() const { return max_luns; }
@@ -89,8 +88,7 @@ public:
 
 protected:
 
-	auto GetControllerManager() const { return controller_manager; }
-	BUS& GetBus() const { return controller_manager.GetBus(); }
+	BUS& GetBus() const { return bus; }
 
 	auto GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
@@ -126,7 +124,7 @@ private:
 
 	ctrl_t ctrl = {};
 
-	ControllerManager& controller_manager;
+	BUS& bus;
 
 	// Logical units of this controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
@@ -137,6 +135,8 @@ private:
 
 	bool is_byte_transfer = false;
 	uint32_t bytes_to_transfer = 0;
+
+	piscsi_shutdown_mode shutdown_mode = piscsi_shutdown_mode::NONE;
 
 	DeviceLogger device_logger;
 };

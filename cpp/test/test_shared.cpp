@@ -46,7 +46,7 @@ void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const 
 {
     auto bus = make_shared<MockBus>();
     auto controller_manager = make_shared<ControllerManager>(*bus);
-    auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+    auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
     auto device = CreateDevice(type, *controller, extension);
 
     // ALLOCATION LENGTH

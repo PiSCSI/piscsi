@@ -9,12 +9,12 @@
 
 #pragma once
 
+#include "controllers/controller_manager.h"
 #include "piscsi/piscsi_response.h"
 #include <unordered_set>
 
 class PiscsiImage;
 class DeviceFactory;
-class ControllerManager;
 class PrimaryDevice;
 class StorageDevice;
 class CommandContext;

@@ -29,8 +29,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(ControllerManager& controller_manager, int target_id)
-	: AbstractController(controller_manager, target_id, LUN_MAX)
+ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
 {
 	logger.SetIdAndLun(target_id, -1);
 
@@ -100,37 +99,6 @@ void ScsiController::BusFree()
 		identified_lun = -1;
 
 		SetByteTransfer(false);
-
-		if (shutdown_mode != piscsi_shutdown_mode::NONE) {
-			// Prepare the shutdown by flushing all caches
-			GetControllerManager().FlushCaches();
-		}
-
-		// When the bus is free PiSCSI or the Pi may be shut down.
-		// This code has to be executed in the bus free phase and thus has to be located in the controller.
-		switch(shutdown_mode) {
-		case piscsi_shutdown_mode::STOP_PISCSI:
-			logger.Info("PiSCSI shutdown requested");
-			exit(EXIT_SUCCESS);
-			break;
-
-		case piscsi_shutdown_mode::STOP_PI:
-			logger.Info("Raspberry Pi shutdown requested");
-			if (system("init 0") == -1) {
-				logger.Error("Raspberry Pi shutdown failed: " + string(strerror(errno)));
-			}
-			break;
-
-		case piscsi_shutdown_mode::RESTART_PI:
-			logger.Info("Raspberry Pi restart requested");
-			if (system("init 6") == -1) {
-				logger.Error("Raspberry Pi restart failed: " + string(strerror(errno)));
-			}
-			break;
-
-		default:
-			break;
-		}
 
 		return;
 	}

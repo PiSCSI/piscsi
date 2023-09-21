@@ -100,15 +100,6 @@ public:
 
 inline static const auto mock_bus = make_shared<MockBus>();
 
-class MockControllerManager : public ControllerManager
-{
-public:
-
-	MockControllerManager() : ControllerManager(*mock_bus) {}
-};
-
-inline static const auto mock_controller_manager = make_shared<MockControllerManager>();
-
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
 	friend class TestInquiry;
@@ -190,11 +181,9 @@ public:
 	MOCK_METHOD(void, Command, (), ());
 	MOCK_METHOD(void, MsgIn, (), ());
 	MOCK_METHOD(void, MsgOut, (), ());
-	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
-	MockAbstractController() : AbstractController(*mock_controller_manager, 0, 32) {}
-	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: AbstractController(*controller_manager, target_id, 32) {
+	MockAbstractController() : AbstractController(*mock_bus, 0, 32) {}
+	explicit MockAbstractController(shared_ptr<BUS> bus, int target_id) : AbstractController(*bus, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
@@ -221,10 +210,8 @@ public:
 	MOCK_METHOD(void, Execute, (), ());
 
 	using ScsiController::ScsiController;
-	MockScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: ScsiController(*controller_manager, target_id) {}
-	explicit MockScsiController(shared_ptr<ControllerManager> controller_manager)
-		: ScsiController(*controller_manager, 0) {}
+	MockScsiController(shared_ptr<BUS> bus, int target_id) : ScsiController(*bus, target_id) {}
+	explicit MockScsiController(shared_ptr<BUS> bus) : ScsiController(*bus, 0) {}
 	~MockScsiController() override = default;
 
 };

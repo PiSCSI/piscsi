@@ -12,13 +12,13 @@
 #pragma once
 
 #include "hal/bus.h"
+#include "controllers/abstract_controller.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
 
 using namespace std;
 
-class AbstractController;
 class PrimaryDevice;
 
 class ControllerManager
@@ -34,7 +34,7 @@ public:
 	inline BUS& GetBus() const { return bus; }
 	bool AttachToController(int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
-	void ProcessOnController(int) const;
+	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	bool HasController(int) const;
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;

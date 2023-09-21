@@ -15,7 +15,6 @@
 #pragma once
 
 #include "shared/scsi.h"
-#include "controller_manager.h"
 #include "devices/device_logger.h"
 #include "abstract_controller.h"
 #include <array>
@@ -55,7 +54,7 @@ public:
 	// Maximum number of logical units
 	static inline const int LUN_MAX = 32;
 
-	explicit ScsiController(ControllerManager&, int);
+	ScsiController(BUS&, int);
 	~ScsiController() override = default;
 
 	void Reset() override;
@@ -82,8 +81,6 @@ public:
 	// TODO Make non-virtual private as soon as SysTimer calls do not segfault anymore on a regular PC,
 	// e.g. by using ifdef __arm__. Currently the unit tests require this method to be public.
 	virtual void Execute();
-
-	void ScheduleShutdown(piscsi_shutdown_mode mode) override { shutdown_mode = mode; }
 
 private:
 
@@ -116,7 +113,5 @@ private:
 	void Sleep();
 
 	scsi_t scsi = {};
-
-	AbstractController::piscsi_shutdown_mode shutdown_mode = AbstractController::piscsi_shutdown_mode::NONE;
 };
 

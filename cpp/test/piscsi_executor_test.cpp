@@ -30,7 +30,7 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, ID);
+	MockAbstractController controller(bus, ID);
 	PiscsiImage piscsi_image;
 	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
 	PbDeviceDefinition definition;
@@ -164,7 +164,7 @@ TEST(PiscsiExecutorTest, ProcessCmd)
 {
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
-	MockAbstractController controller(controller_manager, 0);
+	MockAbstractController controller(bus, 0);
 	PiscsiImage piscsi_image;
 	auto executor = make_shared<MockPiscsiExecutor>(piscsi_image, *controller_manager);
 
