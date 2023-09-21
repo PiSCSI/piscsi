@@ -9,16 +9,13 @@
 
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/scsi_printer.h"
 
 using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
 	unordered_map<string, string> params;
@@ -33,9 +30,7 @@ TEST(ScsiPrinterTest, Init)
 
 TEST(ScsiPrinterTest, TestUnitReady)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, Status());
@@ -50,9 +45,7 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, Status()).Times(1);
@@ -62,9 +55,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, Status()).Times(1);
@@ -74,9 +65,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, Status()).Times(1);
@@ -86,9 +75,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 
 TEST(ScsiPrinterTest, Print)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, DataOut());
@@ -104,9 +91,7 @@ TEST(ScsiPrinterTest, Print)
 
 TEST(ScsiPrinterTest, StopPrint)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_CALL(*controller, Status());
@@ -116,9 +101,7 @@ TEST(ScsiPrinterTest, StopPrint)
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
@@ -131,9 +114,7 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
 
 	const vector<uint8_t> buf(1);

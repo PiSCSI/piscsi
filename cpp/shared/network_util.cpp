@@ -17,7 +17,6 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <bit>
 #endif
 
 using namespace std;
@@ -69,7 +68,7 @@ bool network_util::ResolveHostName(const string& host, sockaddr_in *addr)
 	hints.ai_socktype = SOCK_STREAM;
 
 	if (addrinfo *result; !getaddrinfo(host.c_str(), nullptr, &hints, &result)) {
-		*addr = *bit_cast<sockaddr_in *>(result->ai_addr);
+		*addr = *reinterpret_cast<sockaddr_in *>(result->ai_addr); //NOSONAR bit_cast is not supported by the bullseye compiler
 		freeaddrinfo(result);
 		return true;
 	}
