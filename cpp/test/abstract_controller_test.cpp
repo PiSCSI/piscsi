@@ -35,7 +35,6 @@ TEST(AbstractControllerTest, AllocateBuffer)
 TEST(AbstractControllerTest, Reset)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 
