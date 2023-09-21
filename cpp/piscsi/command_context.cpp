@@ -35,7 +35,10 @@ bool CommandContext::ReadCommand()
 
 void CommandContext::WriteResult(const PbResult& result) const
 {
-	serializer.SerializeMessage(fd, result);
+	// The descriptor is -1 when devices are not attached via the remote interface by by the piscsi tool
+	if (fd != -1) {
+		serializer.SerializeMessage(fd, result);
+	}
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
