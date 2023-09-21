@@ -22,9 +22,7 @@ void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto services = CreateDevice(SCHS, *controller);
 
     EXPECT_CALL(*controller, Status());
@@ -39,9 +37,7 @@ TEST(HostServicesTest, Inquiry)
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<MockAbstractController>(controller_manager, 0);
+	auto controller = make_shared<MockAbstractController>();
 	auto services = CreateDevice(SCHS, *controller);
 
     // STOP
