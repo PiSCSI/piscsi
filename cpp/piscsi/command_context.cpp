@@ -33,9 +33,9 @@ bool CommandContext::ReadCommand()
 	return false;
 }
 
-void CommandContext::WriteResult(const google::protobuf::Message& msg) const
+void CommandContext::WriteResult(const PbResult& result) const
 {
-	serializer.SerializeMessage(fd, msg);
+	serializer.SerializeMessage(fd, result);
 }
 
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,

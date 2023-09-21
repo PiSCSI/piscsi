@@ -36,7 +36,7 @@ public:
 	~CommandContext() = default;
 
 	bool ReadCommand();
-	void WriteResult(const google::protobuf::Message&) const;
+	void WriteResult(const PbResult&) const;
 	const PbCommand& GetCommand() const { return command; }
 
 	// TODO Try to get rid of this method
