@@ -35,7 +35,7 @@ bool CommandContext::ReadCommand()
 
 void CommandContext::WriteResult(const PbResult& result) const
 {
-	// The descriptor is -1 when devices are not attached via the remote interface by by the piscsi tool
+	// The descriptor is -1 when devices are not attached via the remote interface but by the piscsi tool
 	if (fd != -1) {
 		serializer.SerializeMessage(fd, result);
 	}
