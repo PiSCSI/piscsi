@@ -107,9 +107,7 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	const int ID = 1;
 	const int LUN = 4;
 
-	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, ID);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(ID);
 
 	auto device1 = make_shared<MockPrimaryDevice>(LUN);
 	auto device2 = make_shared<MockPrimaryDevice>(32);

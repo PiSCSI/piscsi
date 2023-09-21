@@ -21,8 +21,7 @@ TEST(PrimaryDeviceTest, GetId)
 {
 	const int ID = 5;
 
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, ID);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(ID);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -35,8 +34,7 @@ TEST(PrimaryDeviceTest, GetId)
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -55,8 +53,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 
 TEST(PrimaryDeviceTest, Reset)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -73,8 +70,7 @@ TEST(PrimaryDeviceTest, Reset)
 
 TEST(PrimaryDeviceTest, CheckReservation)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -106,8 +102,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -134,8 +129,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 TEST(PrimaryDeviceTest, DiscardReservation)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -152,8 +146,7 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -202,8 +195,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -272,8 +264,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -296,8 +287,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);
@@ -333,8 +323,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	const int LUN1 = 1;
 	const int LUN2 = 4;
 
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
 	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
 	const unordered_map<string, string> params;
@@ -372,8 +361,7 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	const unordered_map<string, string> params;
 	device->Init(params);

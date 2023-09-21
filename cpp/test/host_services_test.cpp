@@ -65,8 +65,7 @@ TEST(HostServicesTest, StartStopUnit)
 
 TEST(HostServicesTest, ModeSense6)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
 	services->Init(params);
@@ -107,8 +106,7 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	auto bus = make_shared<MockBus>();
-	auto controller = make_shared<MockAbstractController>(bus, 0);
+	auto controller = make_shared<MockAbstractController>(0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
 	services->Init(params);
