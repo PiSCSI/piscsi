@@ -21,7 +21,7 @@ bool ControllerManager::AttachToController(int id, shared_ptr<PrimaryDevice> dev
 
 	// If this is LUN 0 create a new controller
 	if (device->GetLun() == 0) {
-		if (auto controller = make_shared<ScsiController>(shared_from_this(), id); controller->AddDevice(device)) {
+		if (auto controller = make_shared<ScsiController>(*this, id); controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;

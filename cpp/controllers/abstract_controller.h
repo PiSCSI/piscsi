@@ -40,7 +40,7 @@ public:
 		RESTART_PI
 	};
 
-	AbstractController(shared_ptr<ControllerManager> controller_manager, int target_id, int max_luns)
+	AbstractController(ControllerManager& controller_manager, int target_id, int max_luns)
 		: controller_manager(controller_manager), target_id(target_id), max_luns(max_luns) {}
 	~AbstractController() override = default;
 
@@ -89,8 +89,8 @@ public:
 
 protected:
 
-	auto GetControllerManager() const { return controller_manager.lock(); }
-	inline BUS& GetBus() const { return controller_manager.lock()->GetBus(); }
+	auto GetControllerManager() const { return controller_manager; }
+	inline BUS& GetBus() const { return controller_manager.GetBus(); }
 
 	auto GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
@@ -126,7 +126,7 @@ private:
 
 	ctrl_t ctrl = {};
 
-	weak_ptr<ControllerManager> controller_manager;
+	ControllerManager& controller_manager;
 
 	// Logical units of this controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;

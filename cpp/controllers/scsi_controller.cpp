@@ -29,7 +29,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
+ScsiController::ScsiController(ControllerManager& controller_manager, int target_id)
 	: AbstractController(controller_manager, target_id, LUN_MAX)
 {
 	logger.SetIdAndLun(target_id, -1);
@@ -103,7 +103,7 @@ void ScsiController::BusFree()
 
 		if (shutdown_mode != piscsi_shutdown_mode::NONE) {
 			// Prepare the shutdown by flushing all caches
-			GetControllerManager()->FlushDeviceCaches();
+			GetControllerManager().FlushDeviceCaches();
 		}
 
 		// When the bus is free PiSCSI or the Pi may be shut down.

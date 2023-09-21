@@ -192,9 +192,9 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
-	MockAbstractController() : AbstractController(mock_controller_manager, 0, 32) {}
+	MockAbstractController() : AbstractController(*mock_controller_manager, 0, 32) {}
 	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: AbstractController(controller_manager, target_id, 32) {
+		: AbstractController(*controller_manager, target_id, 32) {
 		AllocateBuffer(512);
 	}
 	~MockAbstractController() override = default;
@@ -222,9 +222,9 @@ public:
 
 	using ScsiController::ScsiController;
 	MockScsiController(shared_ptr<ControllerManager> controller_manager, int target_id)
-		: ScsiController(controller_manager, target_id) {}
+		: ScsiController(*controller_manager, target_id) {}
 	explicit MockScsiController(shared_ptr<ControllerManager> controller_manager)
-		: ScsiController(controller_manager, 0) {}
+		: ScsiController(*controller_manager, 0) {}
 	~MockScsiController() override = default;
 
 };

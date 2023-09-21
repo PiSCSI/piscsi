@@ -21,7 +21,7 @@ using namespace std;
 class AbstractController;
 class PrimaryDevice;
 
-class ControllerManager : public enable_shared_from_this<ControllerManager>
+class ControllerManager
 {
 public:
 

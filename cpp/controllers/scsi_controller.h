@@ -55,7 +55,7 @@ public:
 	// Maximum number of logical units
 	static inline const int LUN_MAX = 32;
 
-	explicit ScsiController(shared_ptr<ControllerManager>, int);
+	explicit ScsiController(ControllerManager&, int);
 	~ScsiController() override = default;
 
 	void Reset() override;
