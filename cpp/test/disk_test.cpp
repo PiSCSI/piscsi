@@ -683,9 +683,9 @@ TEST(DiskTest, Eject)
 	EXPECT_TRUE(disk.Eject(true));
 }
 
-void DiskTest_ValidateFormatPage(shared_ptr<AbstractController> controller, int offset)
+void DiskTest_ValidateFormatPage(AbstractController& controller, int offset)
 {
-	const auto& buf = controller->GetBuffer();
+	const auto& buf = controller.GetBuffer();
 	EXPECT_EQ(0x08, buf[offset + 3]) << "Wrong number of trackes in one zone";
 	EXPECT_EQ(25, GetInt16(buf, offset + 10)) << "Wrong number of sectors per track";
 	EXPECT_EQ(1024, GetInt16(buf, offset + 12)) << "Wrong number of bytes per sector";
@@ -696,18 +696,18 @@ void DiskTest_ValidateFormatPage(shared_ptr<AbstractController> controller, int 
 	EXPECT_TRUE(buf[offset + 20] & 0x40) << "Wrong hard-sectored flag";
 }
 
-void DiskTest_ValidateDrivePage(shared_ptr<AbstractController> controller, int offset)
+void DiskTest_ValidateDrivePage(AbstractController& controller, int offset)
 {
-	const auto& buf = controller->GetBuffer();
+	const auto& buf = controller.GetBuffer();
 	EXPECT_EQ(0x17, buf[offset + 2]);
 	EXPECT_EQ(0x4d3b, GetInt16(buf, offset + 3));
 	EXPECT_EQ(8, buf[offset + 5]) << "Wrong number of heads";
 	EXPECT_EQ(7200, GetInt16(buf, offset + 20)) << "Wrong medium rotation rate";
 }
 
-void DiskTest_ValidateCachePage(shared_ptr<AbstractController> controller, int offset)
+void DiskTest_ValidateCachePage(AbstractController& controller, int offset)
 {
-	const auto& buf = controller->GetBuffer();
+	const auto& buf = controller.GetBuffer();
 	EXPECT_EQ(0xffff, GetInt16(buf, offset + 4)) << "Wrong pre-fetch transfer length";
 	EXPECT_EQ(0xffff, GetInt16(buf, offset + 8)) << "Wrong maximum pre-fetch";
 	EXPECT_EQ(0xffff, GetInt16(buf, offset + 10)) << "Wrong maximum pre-fetch ceiling";
@@ -752,18 +752,18 @@ TEST(DiskTest, ModeSense6)
 	controller->SetCmdByte(2, 3);
 	disk->SetSectorSizeInBytes(1024);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
-	DiskTest_ValidateFormatPage(controller, 12);
+	DiskTest_ValidateFormatPage(*controller, 12);
 
 	// Rigid disk drive page
 	controller->SetCmdByte(2, 4);
 	disk->SetBlockCount(0x12345678);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
-	DiskTest_ValidateDrivePage(controller, 12);
+	DiskTest_ValidateDrivePage(*controller, 12);
 
 	// Cache page
 	controller->SetCmdByte(2, 8);
 	disk->Dispatch(scsi_command::eCmdModeSense6);
-	DiskTest_ValidateCachePage(controller, 12);
+	DiskTest_ValidateCachePage(*controller, 12);
 }
 
 TEST(DiskTest, ModeSense10)
@@ -832,18 +832,18 @@ TEST(DiskTest, ModeSense10)
 	controller->SetCmdByte(2, 3);
 	disk->SetSectorSizeInBytes(1024);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
-	DiskTest_ValidateFormatPage(controller, 16);
+	DiskTest_ValidateFormatPage(*controller, 16);
 
 	// Rigid disk drive page
 	controller->SetCmdByte(2, 4);
 	disk->SetBlockCount(0x12345678);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
-	DiskTest_ValidateDrivePage(controller, 16);
+	DiskTest_ValidateDrivePage(*controller, 16);
 
 	// Cache page
 	controller->SetCmdByte(2, 8);
 	disk->Dispatch(scsi_command::eCmdModeSense10);
-	DiskTest_ValidateCachePage(controller, 16);
+	DiskTest_ValidateCachePage(*controller, 16);
 }
 
 TEST(DiskTest, SynchronizeCache)
