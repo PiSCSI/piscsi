@@ -73,7 +73,8 @@ TEST(PiscsiServiceTest, Execute)
 	ASSERT_NE(-1, fd);
 
 	server_addr.sin_port = htons(uint16_t(9999));
-	EXPECT_FALSE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running";
+	EXPECT_FALSE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running"; //NOSONAR bit_cast is not supported by the bullseye compiler
+
 	close(fd);
 
 	PiscsiService service;
