@@ -28,7 +28,7 @@
 
 using namespace testing;
 
-class MockBus : public BUS, public enable_shared_from_this<MockBus> //NOSONAR Having many fields/methods cannot be avoided
+class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
 {
 public:
 
