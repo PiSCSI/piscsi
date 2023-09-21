@@ -28,7 +28,7 @@
 
 using namespace testing;
 
-class MockBus : public BUS //NOSONAR Having many fields/methods cannot be avoided
+class MockBus : public BUS, public enable_shared_from_this<MockBus> //NOSONAR Having many fields/methods cannot be avoided
 {
 public:
 
@@ -97,6 +97,17 @@ public:
 
 	using PhaseHandler::PhaseHandler;
 };
+
+inline static const auto mock_bus = make_shared<MockBus>();
+
+class MockControllerManager : public ControllerManager
+{
+public:
+
+	MockControllerManager() : ControllerManager(*mock_bus) {}
+};
+
+inline static const auto mock_controller_manager = make_shared<MockControllerManager>();
 
 class MockAbstractController : public AbstractController //NOSONAR Having many fields/methods cannot be avoided
 {
@@ -181,7 +192,7 @@ public:
 	MOCK_METHOD(void, MsgOut, (), ());
 	MOCK_METHOD(void, ScheduleShutdown, (piscsi_shutdown_mode), (override));
 
-	MockAbstractController() : AbstractController(nullptr, 0, 32) {}
+	MockAbstractController() : AbstractController(mock_controller_manager, 0, 32) {}
 	explicit MockAbstractController(shared_ptr<ControllerManager> controller_manager, int target_id)
 		: AbstractController(controller_manager, target_id, 32) {
 		AllocateBuffer(512);
