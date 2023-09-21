@@ -31,7 +31,7 @@ void SendCommand(const PbCommand& command, PbResult& result)
 
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_NE(-1, fd);
-	EXPECT_TRUE(connect(fd, bit_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running";
+	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye compiler
 	ASSERT_EQ(6, write(fd, "RASCSI", 6));
 	const ProtobufSerializer serializer;
 	serializer.SerializeMessage(fd, command);
