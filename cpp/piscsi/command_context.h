@@ -36,8 +36,8 @@ public:
 	~CommandContext() = default;
 
 	bool ReadCommand();
+	void WriteResult(const google::protobuf::Message&) const;
 	const PbCommand& GetCommand() const { return command; }
-	void WriteResult(const google::protobuf::Message& msg) const { serializer.SerializeMessage(fd, msg); }
 
 	// TODO Try to get rid of this method
 	bool IsValid() const { return fd != -1; }

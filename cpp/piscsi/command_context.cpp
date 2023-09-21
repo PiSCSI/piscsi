@@ -33,6 +33,11 @@ bool CommandContext::ReadCommand()
 	return false;
 }
 
+void CommandContext::WriteResult(const google::protobuf::Message& msg) const
+{
+	serializer.SerializeMessage(fd, msg);
+}
+
 bool CommandContext::ReturnLocalizedError(LocalizationKey key, const string& arg1, const string& arg2,
 		const string& arg3) const
 {
