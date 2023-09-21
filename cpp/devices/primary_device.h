@@ -92,6 +92,7 @@ private:
 	DeviceLogger logger;
 
 	// TODO Make this a reference and try to use a NullController for initialization in order to get rid of the weak_ptr
+	// Or try to eliminate this field completely
 	weak_ptr<AbstractController> controller;
 
 	unordered_map<scsi_command, operation> commands;
