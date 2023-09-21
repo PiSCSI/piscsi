@@ -136,6 +136,6 @@ TEST(ScsiPrinterTest, WriteByteSequence)
 	auto controller = make_shared<NiceMock<MockAbstractController>>(controller_manager, 0);
 	auto printer = CreateDevice(SCLP, *controller);
 
-	vector<uint8_t> buf(1);
+	const vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf));
 }
