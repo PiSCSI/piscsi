@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/scsihd_nec.h"
 #include <filesystem>
 #include <fstream>

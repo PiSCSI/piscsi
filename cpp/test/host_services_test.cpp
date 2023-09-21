@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "devices/host_services.h"
 
 using namespace std;
@@ -67,7 +66,6 @@ TEST(HostServicesTest, StartStopUnit)
 TEST(HostServicesTest, ModeSense6)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;
@@ -110,7 +108,6 @@ TEST(HostServicesTest, ModeSense6)
 TEST(HostServicesTest, ModeSense10)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
 	auto controller = make_shared<MockAbstractController>(bus, 0);
 	auto services = CreateDevice(SCHS, *controller);
 	const unordered_map<string, string> params;

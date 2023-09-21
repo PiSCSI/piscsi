@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "test_shared.h"
-#include "controllers/controller_manager.h"
 #include "mocks.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
@@ -45,7 +44,6 @@ void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const 
 		bool removable, const string& extension)
 {
     auto bus = make_shared<MockBus>();
-    auto controller_manager = make_shared<ControllerManager>(*bus);
     auto controller = make_shared<NiceMock<MockAbstractController>>(bus, 0);
     auto device = CreateDevice(type, *controller, extension);
 
