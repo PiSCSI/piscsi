@@ -38,8 +38,8 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 
 AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const
 {
-	const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
-	if (it != controllers.end()) {
+	if (const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
+		it != controllers.end()) {
 		(*it).second->ProcessOnController(id_data);
 
 		return (*it).second->GetShutdownMode();
