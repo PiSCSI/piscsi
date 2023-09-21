@@ -90,7 +90,7 @@ public:
 protected:
 
 	auto GetControllerManager() const { return controller_manager; }
-	inline BUS& GetBus() const { return controller_manager.GetBus(); }
+	BUS& GetBus() const { return controller_manager.GetBus(); }
 
 	auto GetOpcode() const { return static_cast<scsi_defs::scsi_command>(ctrl.cmd[0]); }
 	int GetLun() const { return (ctrl.cmd[1] >> 5) & 0x07; }
