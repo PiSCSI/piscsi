@@ -628,7 +628,7 @@ void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 	switch(shutdown_mode) {
 	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
 		spdlog::info("PiSCSI shutdown requested");
-		service.Stop();
+		Cleanup();
 		break;
 
 	case AbstractController::piscsi_shutdown_mode::STOP_PI:
