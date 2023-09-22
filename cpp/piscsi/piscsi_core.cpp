@@ -609,10 +609,9 @@ void Piscsi::Process()
 			target_is_active = true;
 
 			// Process command on the responsible controller based on the current initiator and target ID
-			const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
-
-			// When the bus is free PiSCSI or the Pi may be shut down.
-			if (shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
+			if (const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
+				shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
+				// When the bus is free PiSCSI or the Pi may be shut down.
 				ShutDown(shutdown_mode);
 			}
 
