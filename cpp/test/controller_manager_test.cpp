@@ -18,14 +18,14 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN2 = 3;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller_manager = make_shared<ControllerManager>();
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(SCHS, -1, "");
-	EXPECT_FALSE(controller_manager->AttachToController(ID, device));
+	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device));
 
 	device = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager->AttachToController(ID, device));
+	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device));
 	EXPECT_TRUE(controller_manager->HasController(ID));
 	auto controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller);
@@ -36,7 +36,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToController(ID, device));
+	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device));
 	EXPECT_TRUE(controller_manager->HasController(ID));
 	controller = controller_manager->FindController(ID);
 	EXPECT_NE(nullptr, controller_manager->FindController(ID));
@@ -56,14 +56,14 @@ TEST(ControllerManagerTest, AttachToController)
 	const int LUN2 = 0;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto controller_manager = make_shared<ControllerManager>();
 	DeviceFactory device_factory;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_FALSE(controller_manager->AttachToController(ID, device1)) << "LUN 0 is missing";
+	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device1)) << "LUN 0 is missing";
 
 	auto device2 = device_factory.CreateDevice(SCLP, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToController(ID, device2));
-	EXPECT_TRUE(controller_manager->AttachToController(ID, device1));
-	EXPECT_FALSE(controller_manager->AttachToController(ID, device1));
+	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device2));
+	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device1));
+	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device1));
 }

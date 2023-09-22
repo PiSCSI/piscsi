@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "hal/bus.h"
 #include "controllers/controller_manager.h"
 #include "piscsi/piscsi_response.h"
 #include <unordered_set>
@@ -25,8 +26,8 @@ class PiscsiExecutor
 {
 public:
 
-	PiscsiExecutor(PiscsiImage& piscsi_image, ControllerManager& controller_manager)
-		: piscsi_image(piscsi_image), controller_manager(controller_manager) {}
+	PiscsiExecutor(PiscsiImage& piscsi_image, BUS& bus, ControllerManager& controller_manager)
+		: piscsi_image(piscsi_image), bus(bus), controller_manager(controller_manager) {}
 	~PiscsiExecutor() = default;
 
 	unordered_set<int> GetReservedIds() const { return reserved_ids; }
@@ -40,7 +41,7 @@ public:
 	bool Unprotect(PrimaryDevice&, bool) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, const shared_ptr<PrimaryDevice>&, bool) const;
-	bool Detach(const CommandContext&, const shared_ptr<PrimaryDevice>&, bool) const;
+	bool Detach(const CommandContext&, const shared_ptr<PrimaryDevice>&, bool);
 	void DetachAll();
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);
@@ -60,6 +61,8 @@ private:
 	const PiscsiResponse piscsi_response;
 
 	PiscsiImage& piscsi_image;
+
+	BUS& bus;
 
 	ControllerManager& controller_manager;
 

@@ -25,13 +25,13 @@ class ControllerManager
 {
 public:
 
-	explicit ControllerManager(BUS& bus) : bus(bus) {}
+	ControllerManager() = default;
 	~ControllerManager() = default;
 
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 
-	bool AttachToController(int, shared_ptr<PrimaryDevice>);
+	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
 	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
@@ -42,8 +42,6 @@ public:
 	void FlushCaches() const;
 
 private:
-
-	BUS& bus;
 
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };

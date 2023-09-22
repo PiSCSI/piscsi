@@ -10,7 +10,6 @@
 #include "shared/piscsi_util.h"
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
-#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_factory.h"
 #include "devices/primary_device.h"
@@ -293,7 +292,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		storage_device->ReserveFile(full_path, id, lun);
 	}
 
-	if (!controller_manager.AttachToController(id, device)) {
+	if (!controller_manager.AttachToController(bus, id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
 	}
 
@@ -356,7 +355,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<PrimaryDevice>& device, bool dryRun) const
+bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<PrimaryDevice>& device, bool dryRun)
 {
 	auto controller = controller_manager.FindController(device->GetId());
 	if (controller == nullptr) {

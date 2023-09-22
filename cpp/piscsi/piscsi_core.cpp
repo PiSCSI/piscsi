@@ -71,8 +71,7 @@ bool Piscsi::InitBus()
 		return false;
 	}
 
-	controller_manager = make_shared<ControllerManager>(*bus);
-	executor = make_unique<PiscsiExecutor>(piscsi_image, *controller_manager);
+	executor = make_unique<PiscsiExecutor>(piscsi_image, *bus, controller_manager);
 
 	return true;
 }
@@ -83,7 +82,7 @@ void Piscsi::Cleanup()
 		service.Stop();
 	}
 
-	controller_manager->FlushCaches();
+	controller_manager.FlushCaches();
 
 	executor->DetachAll();
 
@@ -299,7 +298,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	piscsi_response.GetDevices(controller_manager->GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	piscsi_response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
 	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -393,7 +392,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case DEVICES_INFO:
-			piscsi_response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command,
+			piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command,
 					piscsi_image.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
@@ -404,7 +403,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			break;
 
 		case SERVER_INFO:
-			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager->GetAllDevices(),
+			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager.GetAllDevices(),
 					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
@@ -610,7 +609,7 @@ void Piscsi::Process()
 			target_is_active = true;
 
 			// Process command on the responsible controller based on the current initiator and target ID
-			const auto shutdown_mode = controller_manager->ProcessOnController(bus->GetDAT());
+			const auto shutdown_mode = controller_manager.ProcessOnController(bus->GetDAT());
 
 			// When the bus is free PiSCSI or the Pi may be shut down.
 			CheckForShutdown(shutdown_mode);
@@ -624,7 +623,7 @@ void Piscsi::CheckForShutdown(AbstractController::piscsi_shutdown_mode shutdown_
 {
 	if (shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
 		// Prepare the shutdown by flushing all caches
-		controller_manager->FlushCaches();
+		controller_manager.FlushCaches();
 	}
 
 	switch(shutdown_mode) {
