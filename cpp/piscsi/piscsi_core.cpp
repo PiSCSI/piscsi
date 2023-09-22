@@ -485,11 +485,13 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	// Attach all specified devices
-	command.set_operation(ATTACH);
+	if (command.devices_size()) {
+		// Attach all specified devices
+		command.set_operation(ATTACH);
 
-	if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
-		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
+		if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
+			throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
+		}
 	}
 
 	// Display and log the device list
