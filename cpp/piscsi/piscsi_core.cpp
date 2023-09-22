@@ -623,12 +623,11 @@ void Piscsi::Process()
 
 void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
-	controller_manager.FlushCaches();
+	Cleanup();
 
 	switch(shutdown_mode) {
 	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
 		spdlog::info("PiSCSI shutdown requested");
-		Cleanup();
 		break;
 
 	case AbstractController::piscsi_shutdown_mode::STOP_PI:
