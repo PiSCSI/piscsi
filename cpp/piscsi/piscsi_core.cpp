@@ -634,14 +634,14 @@ void Piscsi::CheckForShutdown(AbstractController::piscsi_shutdown_mode shutdown_
 	case AbstractController::piscsi_shutdown_mode::STOP_PI:
 		spdlog::info("Raspberry Pi shutdown requested");
 		if (system("init 0") == -1) {
-			spdlog::error("Raspberry Pi shutdown failed: " + string(strerror(errno)));
+			spdlog::error("Raspberry Pi shutdown failed");
 		}
 		break;
 
 	case AbstractController::piscsi_shutdown_mode::RESTART_PI:
 		spdlog::info("Raspberry Pi restart requested");
 		if (system("init 6") == -1) {
-			spdlog::error("Raspberry Pi restart failed: " + string(strerror(errno)));
+			spdlog::error("Raspberry Pi restart failed");
 		}
 		break;
 
