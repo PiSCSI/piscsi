@@ -459,7 +459,7 @@ int Piscsi::run(span<char *> args)
 
 	Banner(args);
 
-	// The -v option shall result in no other action than displaying the version
+	// The -v option shall result in no other action except displaying the version
 	for (const char *arg : args) {
 		if (!strcasecmp(arg, "-v")) {
 			cout << piscsi_get_version_string() << '\n';
