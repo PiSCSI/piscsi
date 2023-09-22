@@ -91,7 +91,7 @@ private:
 
 	DeviceLogger logger;
 
-	// TODO Try to eliminate this field
+	// Owned by the controller manager
 	AbstractController *controller = nullptr;
 
 	unordered_map<scsi_command, operation> commands;
