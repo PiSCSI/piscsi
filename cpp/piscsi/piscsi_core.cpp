@@ -485,6 +485,15 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
+	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
+		!error.empty()) {
+		cerr << "Error: " << error << endl;
+
+		Cleanup();
+
+		return EXIT_FAILURE;
+	}
+
 	if (command.devices_size()) {
 		// Attach all specified devices
 		command.set_operation(ATTACH);
@@ -501,15 +510,6 @@ int Piscsi::run(span<char *> args)
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << flush;
-
-	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
-		!error.empty()) {
-		cerr << "Error: " << error << endl;
-
-		Cleanup();
-
-		return EXIT_FAILURE;
-	}
 
 	instance = this;
 	// Signal handler to detach all devices on a KILL or TERM signal
