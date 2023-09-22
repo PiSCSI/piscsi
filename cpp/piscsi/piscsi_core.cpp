@@ -460,11 +460,9 @@ int Piscsi::run(span<char *> args)
 	Banner(args);
 
 	// The -v option shall result in no other action except displaying the version
-	for (const char *arg : args) {
-		if (!strcasecmp(arg, "-v")) {
-			cout << piscsi_get_version_string() << '\n';
-			return EXIT_SUCCESS;
-		}
+	if (ranges::find_if(args, [] (const char* arg) { return !strcasecmp(arg, "-v"); } ) != args.end()) {
+		cout << piscsi_get_version_string() << '\n';
+		return EXIT_SUCCESS;
 	}
 
 	PbCommand command;
