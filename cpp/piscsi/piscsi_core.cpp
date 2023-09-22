@@ -613,7 +613,7 @@ void Piscsi::Process()
 
 			// When the bus is free PiSCSI or the Pi may be shut down.
 			if (shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
-				CheckForShutdown(shutdown_mode);
+				ShutDown(shutdown_mode);
 			}
 
 			target_is_active = false;
@@ -621,7 +621,7 @@ void Piscsi::Process()
 	}
 }
 
-void Piscsi::CheckForShutdown(AbstractController::piscsi_shutdown_mode shutdown_mode)
+void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
 	controller_manager.FlushCaches();
 
