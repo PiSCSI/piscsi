@@ -527,7 +527,7 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	// We need to wait to create the devices until after the bus/controller/etc objects have been created
+	// We need to wait to create the devices until after the bus/executor objects have been created
 	// TODO Try to resolve dependencies so that this work-around can be removed
 	try {
 		CreateInitialDevices(optargs);
