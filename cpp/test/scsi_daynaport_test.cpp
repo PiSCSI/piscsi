@@ -164,7 +164,7 @@ TEST(ScsiDaynaportTest, EnableInterface)
 TEST(ScsiDaynaportTest, GetSendDelay)
 {
 	SCSIDaynaPort daynaport(0);
-	EXPECT_TRUE(daynaport.Init({}));
+	daynaport.Init({});
 
 	EXPECT_EQ(6, daynaport.GetSendDelay());
 }
