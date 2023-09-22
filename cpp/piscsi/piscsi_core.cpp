@@ -622,7 +622,6 @@ void Piscsi::Process()
 void Piscsi::CheckForShutdown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
 	if (shutdown_mode != AbstractController::piscsi_shutdown_mode::NONE) {
-		// Prepare the shutdown by flushing all caches
 		controller_manager.FlushCaches();
 	}
 
