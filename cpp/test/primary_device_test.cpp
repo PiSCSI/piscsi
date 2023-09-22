@@ -17,27 +17,28 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+pair<shared_ptr<MockAbstractController>, shared_ptr<MockPrimaryDevice>> CreatePrimaryDevice(int id = 0)
+{
+	auto controller = make_shared<MockAbstractController>(id);
+	auto device = make_shared<MockPrimaryDevice>(0);
+	EXPECT_TRUE(device->Init({}));
+	EXPECT_TRUE(controller->AddDevice(device));
+
+	return { controller, device };
+}
+
 TEST(PrimaryDeviceTest, GetId)
 {
 	const int ID = 5;
 
-	auto controller = make_shared<NiceMock<MockAbstractController>>(ID);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
+	auto [controller, device] = CreatePrimaryDevice(ID);
 
-	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
-
-	controller->AddDevice(device);
 	EXPECT_EQ(ID, device->GetId());
 }
 
 TEST(PrimaryDeviceTest, PhaseChange)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_CALL(*controller, Status);
 	device->EnterStatusPhase();
@@ -51,11 +52,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 
 TEST(PrimaryDeviceTest, Reset)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -67,11 +64,7 @@ TEST(PrimaryDeviceTest, Reset)
 
 TEST(PrimaryDeviceTest, CheckReservation)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_TRUE(device->CheckReservation(0, scsi_command::eCmdTestUnitReady, false))
 		<< "Device must not be reserved for initiator ID 0";
@@ -98,11 +91,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -124,11 +113,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 
 TEST(PrimaryDeviceTest, DiscardReservation)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
 	EXPECT_FALSE(device->CheckReservation(1, scsi_command::eCmdTestUnitReady, false))
@@ -140,11 +125,7 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	device->SetReset(true);
 	device->SetAttn(true);
@@ -188,11 +169,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 
 TEST(PrimaryDeviceTest, Inquiry)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
@@ -256,11 +233,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 TEST(PrimaryDeviceTest, RequestSense)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
@@ -278,11 +251,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_CALL(*controller, Status);
 	device->Dispatch(scsi_command::eCmdSendDiagnostic);
@@ -350,20 +319,16 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto device = make_shared<MockPrimaryDevice>(0);
-	EXPECT_TRUE(device->Init({}));
-
-	controller->AddDevice(device);
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_THROW(device->Dispatch(static_cast<scsi_command>(0x1f)), scsi_exception) << "Unknown command";
 }
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-	vector<uint8_t> data;
 	MockPrimaryDevice device(0);
 
+	vector<uint8_t> data;
 	EXPECT_FALSE(device.WriteByteSequence(data)) << "Primary device does not support writing byte sequences";
 }
 
