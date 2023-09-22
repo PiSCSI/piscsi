@@ -16,13 +16,19 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-TEST(DiskTest, Dispatch)
+pair<shared_ptr<MockAbstractController>, shared_ptr<MockDisk>> CreateDisk()
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
 	EXPECT_TRUE(disk->Init({}));
+	EXPECT_TRUE(controller->AddDevice(disk));
 
-	controller->AddDevice(disk);
+	return { controller, disk };
+}
+
+TEST(DiskTest, Dispatch)
+{
+	auto [controller, disk] = CreateDisk();
 
 	disk->SetRemovable(true);
 	disk->SetMediumChanged(false);
@@ -39,11 +45,7 @@ TEST(DiskTest, Dispatch)
 
 TEST(DiskTest, Rezero)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
@@ -59,11 +61,7 @@ TEST(DiskTest, Rezero)
 
 TEST(DiskTest, FormatUnit)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
@@ -85,11 +83,7 @@ TEST(DiskTest, FormatUnit)
 
 TEST(DiskTest, ReassignBlocks)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReassignBlocks); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
@@ -105,11 +99,7 @@ TEST(DiskTest, ReassignBlocks)
 
 TEST(DiskTest, Seek6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -133,11 +123,7 @@ TEST(DiskTest, Seek6)
 
 TEST(DiskTest, Seek10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -162,11 +148,7 @@ TEST(DiskTest, Seek10)
 
 TEST(DiskTest, ReadCapacity10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
@@ -196,11 +178,7 @@ TEST(DiskTest, ReadCapacity10)
 
 TEST(DiskTest, ReadCapacity16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	controller->SetCmdByte(1, 0x00);
 
@@ -237,11 +215,7 @@ TEST(DiskTest, ReadCapacity16)
 
 TEST(DiskTest, Read6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -253,11 +227,7 @@ TEST(DiskTest, Read6)
 
 TEST(DiskTest, Read10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -274,11 +244,7 @@ TEST(DiskTest, Read10)
 
 TEST(DiskTest, Read16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -295,11 +261,7 @@ TEST(DiskTest, Read16)
 
 TEST(DiskTest, Write6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -319,11 +281,7 @@ TEST(DiskTest, Write6)
 
 TEST(DiskTest, Write10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -340,11 +298,7 @@ TEST(DiskTest, Write10)
 
 TEST(DiskTest, Write16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -361,11 +315,7 @@ TEST(DiskTest, Write16)
 
 TEST(DiskTest, Verify10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -382,11 +332,7 @@ TEST(DiskTest, Verify10)
 
 TEST(DiskTest, Verify16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -403,11 +349,7 @@ TEST(DiskTest, Verify16)
 
 TEST(DiskTest, ReadLong10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdReadLong10);
@@ -429,11 +371,7 @@ TEST(DiskTest, ReadLong10)
 
 TEST(DiskTest, ReadLong16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	// READ LONG(16), not READ CAPACITY(16)
 	controller->SetCmdByte(1, 0x11);
@@ -457,11 +395,7 @@ TEST(DiskTest, ReadLong16)
 
 TEST(DiskTest, WriteLong10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdWriteLong10);
@@ -483,11 +417,7 @@ TEST(DiskTest, WriteLong10)
 
 TEST(DiskTest, WriteLong16)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	controller->SetCmdByte(2, 1);
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
@@ -509,13 +439,9 @@ TEST(DiskTest, WriteLong16)
 
 TEST(DiskTest, StartStopUnit)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
+	auto [controller, disk] = CreateDisk();
 
 	disk->SetRemovable(true);
-
-	controller->AddDevice(disk);
 
 	// Stop/Unload
 	disk->SetReady(true);
@@ -563,11 +489,7 @@ TEST(DiskTest, StartStopUnit)
 
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
@@ -649,11 +571,7 @@ void DiskTest_ValidateCachePage(AbstractController& controller, int offset)
 
 TEST(DiskTest, ModeSense6)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	// Drive must be ready on order to return all data
 	disk->SetReady(true);
@@ -699,11 +617,7 @@ TEST(DiskTest, ModeSense6)
 
 TEST(DiskTest, ModeSense10)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	// Drive must be ready on order to return all data
 	disk->SetReady(true);
@@ -776,11 +690,7 @@ TEST(DiskTest, ModeSense10)
 
 TEST(DiskTest, SynchronizeCache)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_CALL(*disk, FlushCache);
 	EXPECT_CALL(*controller, Status);
@@ -795,11 +705,7 @@ TEST(DiskTest, SynchronizeCache)
 
 TEST(DiskTest, ReadDefectData)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto disk = make_shared<MockDisk>();
-	EXPECT_TRUE(disk->Init({}));
-
-	controller->AddDevice(disk);
+	auto [controller, disk] = CreateDisk();
 
 	EXPECT_CALL(*controller, DataIn);
 	disk->Dispatch(scsi_command::eCmdReadDefectData10);
