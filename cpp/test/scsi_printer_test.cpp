@@ -70,13 +70,15 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 TEST(ScsiPrinterTest, Print)
 {
 	auto [controller, printer] = CreateDevice(SCLP);
+	// Required by the bullseye compiler
+	auto p = printer;
 
     EXPECT_CALL(*controller, DataOut());
     printer->Dispatch(scsi_command::eCmdPrint);
 
     controller->SetCmdByte(3, 0xff);
     controller->SetCmdByte(4, 0xff);
-    EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { p->Dispatch(scsi_command::eCmdPrint); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Buffer overflow was not reported";
@@ -94,8 +96,10 @@ TEST(ScsiPrinterTest, StopPrint)
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
 	auto [controller, printer] = CreateDevice(SCLP);
+	// Required by the bullseye compiler
+	auto p = printer;
 
-    EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { p->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))))
 		<< "Nothing to print";

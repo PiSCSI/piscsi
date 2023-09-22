@@ -36,6 +36,8 @@ TEST(HostServicesTest, Inquiry)
 TEST(HostServicesTest, StartStopUnit)
 {
 	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye compiler
+	auto s = services;
 
     // STOP
     EXPECT_CALL(*controller, Status());
@@ -56,7 +58,7 @@ TEST(HostServicesTest, StartStopUnit)
 
     // START
 	controller->SetCmdByte(4, 0x01);
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
@@ -64,15 +66,18 @@ TEST(HostServicesTest, StartStopUnit)
 TEST(HostServicesTest, ModeSense6)
 {
 	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye compiler
+	auto s = services;
+
 	EXPECT_TRUE(services->Init({}));
 
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
 	controller->SetCmdByte(2, 0x20);
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";
@@ -103,15 +108,18 @@ TEST(HostServicesTest, ModeSense6)
 TEST(HostServicesTest, ModeSense10)
 {
 	auto [controller, services] = CreateDevice(SCHS);
+	// Required by the bullseye compiler
+	auto s = services;
+	
 	EXPECT_TRUE(services->Init({}));
 
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Unsupported mode page was returned";
 
 	controller->SetCmdByte(2, 0x20);
-	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { s->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
     	<< "Block descriptors are not supported";

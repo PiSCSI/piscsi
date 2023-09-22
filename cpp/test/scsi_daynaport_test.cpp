@@ -48,9 +48,11 @@ TEST(ScsiDaynaportTest, Write)
 TEST(ScsiDaynaportTest, Read6)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
+	// Required by the bullseye compiler
+	auto d = daynaport;
 
 	controller->SetCmdByte(5, 0xff);
-    EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid data format";
@@ -59,9 +61,11 @@ TEST(ScsiDaynaportTest, Read6)
 TEST(ScsiDaynaportTest, Write6)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
+	// Required by the bullseye compiler
+	auto d = daynaport;
 
 	controller->SetCmdByte(5, 0x00);
-    EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid transfer length";
@@ -69,7 +73,7 @@ TEST(ScsiDaynaportTest, Write6)
 	controller->SetCmdByte(3, -1);
 	controller->SetCmdByte(4, -8);
 	controller->SetCmdByte(5, 0x08);
-    EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid transfer length";
@@ -77,7 +81,7 @@ TEST(ScsiDaynaportTest, Write6)
 	controller->SetCmdByte(3, 0);
 	controller->SetCmdByte(4, 0);
 	controller->SetCmdByte(5, 0xff);
-    EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Invalid transfer length";
@@ -96,9 +100,11 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 TEST(ScsiDaynaportTest, SetInterfaceMode)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
+	// Required by the bullseye compiler
+	auto d = daynaport;
 
 	// Unknown interface command
-    EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+    EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
@@ -114,19 +120,19 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 
 	// Not implemented
 	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_STATS);
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
 	// Not implemented
 	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_ENABLE);
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 
 	// Not implemented
 	controller->SetCmdByte(5, SCSIDaynaPort::CMD_SCSILINK_SET);
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_command_operation_code))));
 }
@@ -134,8 +140,10 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 TEST(ScsiDaynaportTest, SetMcastAddr)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
+	// Required by the bullseye compiler
+	auto d = daynaport;
 
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Length of 0 is not supported";
@@ -148,15 +156,17 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 TEST(ScsiDaynaportTest, EnableInterface)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
+	// Required by the bullseye compiler
+	auto d = daynaport;
 
 	// Enable
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 
 	// Disable
 	controller->SetCmdByte(5, 0x00);
-	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
 			Property(&scsi_exception::get_asc, asc::no_additional_sense_information))));
 }

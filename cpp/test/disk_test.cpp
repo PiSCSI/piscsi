@@ -46,8 +46,10 @@ TEST(DiskTest, Dispatch)
 TEST(DiskTest, Rezero)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "REZERO must fail because drive is not ready";
@@ -62,8 +64,10 @@ TEST(DiskTest, Rezero)
 TEST(DiskTest, FormatUnit)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "FORMAT UNIT must fail because drive is not ready";
@@ -76,7 +80,7 @@ TEST(DiskTest, FormatUnit)
 
 	controller->SetCmdByte(1, 0x10);
 	controller->SetCmdByte(4, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))));
 }
@@ -84,8 +88,10 @@ TEST(DiskTest, FormatUnit)
 TEST(DiskTest, ReassignBlocks)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReassignBlocks); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReassignBlocks); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "REASSIGN must fail because drive is not ready";
@@ -100,8 +106,10 @@ TEST(DiskTest, ReassignBlocks)
 TEST(DiskTest, Seek6)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "SEEK(6) must fail for a medium with 0 blocks";
@@ -109,7 +117,7 @@ TEST(DiskTest, Seek6)
 	disk->SetBlockCount(1);
 	// Block count
 	controller->SetCmdByte(4, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "SEEK(6) must fail because drive is not ready";
@@ -124,8 +132,10 @@ TEST(DiskTest, Seek6)
 TEST(DiskTest, Seek10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "SEEK(10) must fail for a medium with 0 blocks";
@@ -134,7 +144,7 @@ TEST(DiskTest, Seek10)
 	// Block count
 	controller->SetCmdByte(5, 1);
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "SEEK(10) must fail because drive is not ready";
@@ -149,14 +159,16 @@ TEST(DiskTest, Seek10)
 TEST(DiskTest, ReadCapacity10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "READ CAPACITY(10) must fail because drive is not ready";
 
 	disk->SetReady(true);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "READ CAPACITY(10) must fail because the medium has no capacity";
@@ -179,23 +191,25 @@ TEST(DiskTest, ReadCapacity10)
 TEST(DiskTest, ReadCapacity16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	controller->SetCmdByte(1, 0x00);
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "Neither READ CAPACITY(16) nor READ LONG(16)";
 
 	// READ CAPACITY(16), not READ LONG(16)
 	controller->SetCmdByte(1, 0x10);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "READ CAPACITY(16) must fail because drive is not ready";
 
 	disk->SetReady(true);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "READ CAPACITY(16) must fail because the medium has no capacity";
@@ -216,8 +230,10 @@ TEST(DiskTest, ReadCapacity16)
 TEST(DiskTest, Read6)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ(6) must fail for a medium with 0 blocks";
@@ -228,8 +244,10 @@ TEST(DiskTest, Read6)
 TEST(DiskTest, Read10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ(10) must fail for a medium with 0 blocks";
@@ -245,8 +263,10 @@ TEST(DiskTest, Read10)
 TEST(DiskTest, Read16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ(16) must fail for a medium with 0 blocks";
@@ -262,8 +282,10 @@ TEST(DiskTest, Read16)
 TEST(DiskTest, Write6)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE(6) must fail for a medium with 0 blocks";
@@ -272,7 +294,7 @@ TEST(DiskTest, Write6)
 	disk->SetReady(true);
 	disk->SetProtectable(true);
 	disk->SetProtected(true);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::data_protect),
 			Property(&scsi_exception::get_asc, asc::write_protected))));
 
@@ -282,8 +304,10 @@ TEST(DiskTest, Write6)
 TEST(DiskTest, Write10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE(10) must fail for a medium with 0 blocks";
@@ -299,8 +323,10 @@ TEST(DiskTest, Write10)
 TEST(DiskTest, Write16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE(16) must fail for a medium with 0 blocks";
@@ -316,8 +342,10 @@ TEST(DiskTest, Write16)
 TEST(DiskTest, Verify10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "VERIFY(10) must fail for a medium with 0 blocks";
@@ -333,8 +361,10 @@ TEST(DiskTest, Verify10)
 TEST(DiskTest, Verify16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "VERIFY(16) must fail for a medium with 0 blocks";
@@ -350,20 +380,22 @@ TEST(DiskTest, Verify16)
 TEST(DiskTest, ReadLong10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdReadLong10);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
 	controller->SetCmdByte(2, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ LONG(10) must fail because the capacity is exceeded";
 	controller->SetCmdByte(2, 0);
 
 	controller->SetCmdByte(7, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "READ LONG(10) must fail because it currently only supports 0 bytes transfer length";
@@ -372,11 +404,13 @@ TEST(DiskTest, ReadLong10)
 TEST(DiskTest, ReadLong16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	// READ LONG(16), not READ CAPACITY(16)
 	controller->SetCmdByte(1, 0x11);
 	controller->SetCmdByte(2, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "READ LONG(16) must fail because the capacity is exceeded";
@@ -387,7 +421,7 @@ TEST(DiskTest, ReadLong16)
 	EXPECT_EQ(status::good, controller->GetStatus());
 
 	controller->SetCmdByte(13, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity16_ReadLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "READ LONG(16) must fail because it currently only supports 0 bytes transfer length";
@@ -396,20 +430,22 @@ TEST(DiskTest, ReadLong16)
 TEST(DiskTest, WriteLong10)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdWriteLong10);
 	EXPECT_EQ(status::good, controller->GetStatus());
 
 	controller->SetCmdByte(2, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE LONG(10) must fail because the capacity is exceeded";
 	controller->SetCmdByte(2, 0);
 
 	controller->SetCmdByte(7, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWriteLong10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "WRITE LONG(10) must fail because it currently only supports 0 bytes transfer length";
@@ -418,9 +454,11 @@ TEST(DiskTest, WriteLong10)
 TEST(DiskTest, WriteLong16)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	controller->SetCmdByte(2, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "WRITE LONG(16) must fail because the capacity is exceeded";
@@ -431,7 +469,7 @@ TEST(DiskTest, WriteLong16)
 	EXPECT_EQ(status::good, controller->GetStatus());
 
 	controller->SetCmdByte(13, 1);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWriteLong16); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "WRITE LONG(16) must fail because it currently only supports 0 bytes transfer length";
@@ -440,6 +478,8 @@ TEST(DiskTest, WriteLong16)
 TEST(DiskTest, StartStopUnit)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
 	disk->SetRemovable(true);
 
@@ -462,14 +502,14 @@ TEST(DiskTest, StartStopUnit)
 
 	disk->SetReady(false);
 	EXPECT_CALL(*disk, FlushCache).Times(0);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::load_or_eject_failed))));
 
 	disk->SetReady(true);
 	disk->SetLocked(true);
 	EXPECT_CALL(*disk, FlushCache).Times(0);
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdStartStop); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::load_or_eject_failed))));
 
@@ -490,8 +530,10 @@ TEST(DiskTest, StartStopUnit)
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	auto [controller, disk] = CreateDisk();
+	// Required by the bullseye compiler
+	auto d = disk;
 
-	EXPECT_THAT([&] { disk->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::not_ready),
 			Property(&scsi_exception::get_asc, asc::medium_not_present))))
 		<< "REMOVAL must fail because drive is not ready";
