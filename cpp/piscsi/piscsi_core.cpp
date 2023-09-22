@@ -499,7 +499,11 @@ int Piscsi::run(span<char *> args)
 		command.set_operation(ATTACH);
 
 		if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
-			throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
+			cerr << "Error: Can't attach initial devices" << endl;
+
+			Cleanup();
+
+			return EXIT_FAILURE;
 		}
 	}
 
