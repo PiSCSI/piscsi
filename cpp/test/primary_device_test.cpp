@@ -178,7 +178,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
 
-	ON_CALL(*d, InquiryInternal()).WillByDefault([&]() {
+	ON_CALL(*d, InquiryInternal()).WillByDefault([&d]() {
 		return d->HandleInquiry(device_type::processor, scsi_level::spc_3, false);
 	});
 	EXPECT_CALL(*device, InquiryInternal);
