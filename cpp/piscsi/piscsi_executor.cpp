@@ -244,7 +244,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	// If no filename was provided the medium is considered not inserted
-	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
+	const auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	device->SetRemoved(storage_device != nullptr ? filename.empty() : false);
 
 	if (!SetProductData(context, pb_device, *device)) {
