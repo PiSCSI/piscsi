@@ -15,7 +15,7 @@ using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	auto [_, printer] = CreateDevice(SCLP);
+	auto [controller, printer] = CreateDevice(SCLP);
 	EXPECT_TRUE(printer->Init({}));
 
 	unordered_map<string, string> params;
@@ -93,7 +93,7 @@ TEST(ScsiPrinterTest, StopPrint)
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
-	auto [_, printer] = CreateDevice(SCLP);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
@@ -105,7 +105,7 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	auto [_, printer] = CreateDevice(SCLP);
+	auto [controller, printer] = CreateDevice(SCLP);
 
 	const vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf));
