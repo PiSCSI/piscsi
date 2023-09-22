@@ -1,11 +1,12 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator PiSCSI
-//	for Raspberry Pi
+// SCSI Target Emulator PiSCSI
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Powered by XM6 TypeG Technology.
+// Copyright (C) 2016-2020 GIMONS
+// Copyright (C) 2020-2023 Contributors to the PiSCSI project
+// Copyright (C) 2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -28,6 +29,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 using namespace filesystem;
@@ -135,35 +137,64 @@ void Piscsi::TerminationHandler(int)
 	// Process will terminate automatically
 }
 
-Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
+pair<string, string> Piscsi::ParseArguments(PbCommand& command, span<char *> args, int& port)
 {
-	optargs_type optargs;
 	string log_level = "info";
+	PbDeviceType type = UNDEFINED;
+	int block_size = 0;
+	string name;
+	string id_and_lun;
+	string reserved_ids;
+
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
+		locale = "en";
+	}
 
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
 		switch (opt) {
-			// The following options can not be processed until AFTER
-			// the 'bus' object is created and configured
+			// The two options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
-			case 'b':
+				continue;
+
 			case 'd':
 			case 'D':
-			case 'R':
-			case 'n':
-			case 'r':
-			case 't':
-			case 'F':
+				id_and_lun = optarg;
+				continue;
+
+			case 'b':
+				if (!GetAsUnsignedInt(optarg, block_size)) {
+					throw parser_exception("Invalid block size " + string(optarg));
+				}
+				continue;
+
 			case 'z':
-			// Encountered filename
-			case 1:
-				optargs.emplace_back(opt, optarg == nullptr ? "" : optarg);
+				locale = optarg;
+				continue;
+
+			case 'F':
+				if (const string error = piscsi_image.SetDefaultFolder(optarg); !error.empty()) {
+					throw parser_exception(error);
+				}
 				continue;
 
 			case 'L':
 				log_level = optarg;
+				continue;
+
+			case 'R':
+				int depth;
+				if (!GetAsUnsignedInt(optarg, depth)) {
+					throw parser_exception("Invalid image file scan depth " + string(optarg));
+				}
+				piscsi_image.SetDepth(depth);
+				continue;
+
+			case 'n':
+				name = optarg;
 				continue;
 
 			case 'p':
@@ -180,82 +211,12 @@ Piscsi::optargs_type Piscsi::ParseArguments(span<char *> args, int& port)
 				cout << piscsi_get_version_string() << endl;
 				exit(0);
 
-			default:
-				throw parser_exception("Parser error");
-		}
-
-		if (optopt) {
-			throw parser_exception("Parser error");
-		}
-	}
-
-	SetLogLevel(log_level);
-
-	return optargs;
-}
-
-void Piscsi::CreateInitialDevices(const optargs_type& optargs)
-{
-	PbCommand command;
-	PbDeviceType type = UNDEFINED;
-	int block_size = 0;
-	string name;
-	string log_level;
-	string id_and_lun;
-
-	const char *locale = setlocale(LC_MESSAGES, "");
-	if (locale == nullptr || !strcmp(locale, "C")) {
-		locale = "en";
-	}
-
-	opterr = 1;
-	for (const auto& [option, value] : optargs) {
-		switch (option) {
-			case 'i':
-			case 'I':
-				continue;
-
-			case 'd':
-			case 'D':
-				id_and_lun = value;
-				continue;
-
-			case 'b':
-				if (!GetAsUnsignedInt(value, block_size)) {
-					throw parser_exception("Invalid block size " + value);
-				}
-				continue;
-
-			case 'z':
-				locale = value.c_str();
-				continue;
-
-			case 'F':
-				if (const string error = piscsi_image.SetDefaultFolder(value); !error.empty()) {
-					throw parser_exception(error);
-				}
-				continue;
-
-			case 'R':
-				int depth;
-				if (!GetAsUnsignedInt(value, depth)) {
-					throw parser_exception("Invalid image file scan depth " + value);
-				}
-				piscsi_image.SetDepth(depth);
-				continue;
-
-			case 'n':
-				name = value;
-				continue;
-
 			case 'r':
-				if (const string error = executor->SetReservedIds(value); !error.empty()) {
-					throw parser_exception(error);
-				}
+				reserved_ids = optarg;
 				continue;
 
 			case 't':
-				type = Device::ParseDeviceType(value);
+				type = Device::ParseDeviceType(optarg);
 				continue;
 
 			case 1:
@@ -265,6 +226,12 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 			default:
 				throw parser_exception("Parser error");
 		}
+
+		if (optopt) {
+			throw parser_exception("Parser error");
+		}
+
+		// Set up the device data
 
 		PbDeviceDefinition *device = command.add_devices();
 
@@ -277,7 +244,7 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		ParseParameters(*device, value);
+		ParseParameters(*device, optarg);
 
 		SetProductData(*device, name);
 
@@ -287,20 +254,9 @@ void Piscsi::CreateInitialDevices(const optargs_type& optargs)
 		id_and_lun = "";
 	}
 
-	// Attach all specified devices
-	command.set_operation(ATTACH);
+	SetLogLevel(log_level);
 
-	if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
-		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
-	}
-
-	// Display and log the device list
-	PbServerInfo server_info;
-	piscsi_response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
-	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
-	const string device_list = ListDevices(devices);
-	LogDevices(device_list);
-	cout << device_list << flush;
+	return { locale, reserved_ids };
 }
 
 bool Piscsi::SetLogLevel(const string& log_level) const
@@ -508,10 +464,14 @@ int Piscsi::run(span<char *> args)
 
 	Banner(args);
 
+	string locale;
+	string reserved_ids;
+	PbCommand command;
 	int port = DEFAULT_PORT;
-	optargs_type optargs;
 	try {
-		optargs = ParseArguments(args, port);
+		const auto [l, r] = ParseArguments(command, args, port);
+		locale = l;
+		reserved_ids = r;
 	}
 	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;
@@ -525,18 +485,20 @@ int Piscsi::run(span<char *> args)
 		return EXIT_FAILURE;
 	}
 
-	// We need to wait to create the devices until after the bus/executor objects have been created
-	// TODO Try to remove this work-around
-	try {
-		CreateInitialDevices(optargs);
-	}
-	catch(const parser_exception& e) {
-		cerr << "Error: " << e.what() << endl;
+	// Attach all specified devices
+	command.set_operation(ATTACH);
 
-		Cleanup();
-
-		return EXIT_FAILURE;
+	if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
+		throw parser_exception("Can't execute " + PbOperation_Name(command.operation()));
 	}
+
+	// Display and log the device list
+	PbServerInfo server_info;
+	piscsi_response.GetDevices(controller_manager.GetAllDevices(), server_info, piscsi_image.GetDefaultFolder());
+	const vector<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
+	const string device_list = ListDevices(devices);
+	LogDevices(device_list);
+	cout << device_list << flush;
 
 	if (const string error = service.Init([this] (const CommandContext& context) { return ExecuteCommand(context); }, port);
 		!error.empty()) {

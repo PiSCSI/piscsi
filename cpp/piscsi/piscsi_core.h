@@ -19,7 +19,6 @@
 #include "generated/piscsi_interface.pb.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <span>
-#include <vector>
 #include <string>
 #include <atomic>
 
@@ -29,8 +28,6 @@ class BUS;
 
 class Piscsi
 {
-	using optargs_type = vector<pair<int, string>>;
-
 	static const int DEFAULT_PORT = 6868;
 
 public:
@@ -48,8 +45,7 @@ private:
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	optargs_type ParseArguments(span<char *>, int&);
-	void CreateInitialDevices(const optargs_type&);
+	pair<string, string> ParseArguments(PbCommand&, span<char *>, int&);
 	void Process();
 	bool IsNotBusy() const;
 
