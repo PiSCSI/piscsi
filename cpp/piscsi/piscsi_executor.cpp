@@ -312,11 +312,11 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinition& pb_device,
 		const shared_ptr<PrimaryDevice>& device, bool dryRun) const
 {
-	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
-	if (storage_device == nullptr) {
+	if (!device->SupportsFile()) {
 		return false;
 	}
 
+	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (!storage_device->IsRemoved()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
