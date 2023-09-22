@@ -208,8 +208,8 @@ pair<string, string> Piscsi::ParseArguments(PbCommand& command, span<char *> arg
 				continue;
 
 			case 'v':
-				cout << piscsi_get_version_string() << endl;
-				exit(0);
+				cout << piscsi_get_version_string() << '\n';
+				exit(EXIT_SUCCESS);
 
 			case 'r':
 				reserved_ids = optarg;
