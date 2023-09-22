@@ -137,14 +137,13 @@ void Piscsi::TerminationHandler(int)
 	// Process will terminate automatically
 }
 
-pair<string, string> Piscsi::ParseArguments(PbCommand& command, span<char *> args, int& port)
+string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, string& reserved_ids)
 {
 	string log_level = "info";
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
 	string id_and_lun;
-	string reserved_ids;
 
 	const char *locale = setlocale(LC_MESSAGES, "");
 	if (locale == nullptr || !strcmp(locale, "C")) {
@@ -256,7 +255,7 @@ pair<string, string> Piscsi::ParseArguments(PbCommand& command, span<char *> arg
 
 	SetLogLevel(log_level);
 
-	return { locale, reserved_ids };
+	return locale;
 }
 
 bool Piscsi::SetLogLevel(const string& log_level) const
@@ -464,14 +463,12 @@ int Piscsi::run(span<char *> args)
 
 	Banner(args);
 
+	PbCommand command;
 	string locale;
 	string reserved_ids;
-	PbCommand command;
 	int port = DEFAULT_PORT;
 	try {
-		const auto [l, r] = ParseArguments(command, args, port);
-		locale = l;
-		reserved_ids = r;
+		locale = ParseArguments(args, command, port, reserved_ids);
 	}
 	catch(const parser_exception& e) {
 		cerr << "Error: " << e.what() << endl;

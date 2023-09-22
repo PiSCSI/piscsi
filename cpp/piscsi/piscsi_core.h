@@ -45,7 +45,7 @@ private:
 	void ReadAccessToken(const path&);
 	void LogDevices(string_view) const;
 	static void TerminationHandler(int);
-	pair<string, string> ParseArguments(PbCommand&, span<char *>, int&);
+	string ParseArguments(span<char *>, PbCommand&, int&, string&);
 	void Process();
 	bool IsNotBusy() const;
 
