@@ -448,9 +448,6 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 			spdlog::error("System reboot failed");
 		}
 	}
-	else {
-		assert(false);
-	}
 
 	return false;
 }
