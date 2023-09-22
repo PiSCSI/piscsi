@@ -28,9 +28,6 @@ public:
 	ControllerManager() = default;
 	~ControllerManager() = default;
 
-	// Maximum number of controller devices
-	static const int DEVICE_MAX = 8;
-
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
 	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;

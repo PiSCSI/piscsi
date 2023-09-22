@@ -58,6 +58,9 @@ public:
 
 private:
 
+	// Maximum number of controller devices
+	static const int DEVICE_MAX = 8;
+
 	const PiscsiResponse piscsi_response;
 
 	PiscsiImage& piscsi_image;
