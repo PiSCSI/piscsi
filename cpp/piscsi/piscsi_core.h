@@ -76,7 +76,7 @@ private:
 
 	ControllerManager controller_manager;
 
-	shared_ptr<BUS> bus;
+	unique_ptr<BUS> bus;
 
 	// Required for the termination handler
 	static inline Piscsi *instance;
