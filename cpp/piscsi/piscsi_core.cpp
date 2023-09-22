@@ -14,7 +14,6 @@
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_version.h"
-#include "controllers/controller_manager.h"
 #include "controllers/scsi_controller.h"
 #include "devices/device_logger.h"
 #include "devices/device_factory.h"
@@ -22,7 +21,6 @@
 #include "hal/gpiobus_factory.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "piscsi/piscsi_executor.h"
 #include "piscsi/piscsi_core.h"
 #include <spdlog/spdlog.h>
 #include <netinet/in.h>
