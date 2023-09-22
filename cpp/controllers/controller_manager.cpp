@@ -55,7 +55,7 @@ shared_ptr<AbstractController> ControllerManager::FindController(int target_id) 
 }
 
 bool ControllerManager::HasController(int target_id) const {
-	return FindController(target_id) != nullptr;
+	return controllers.find(target_id) != controllers.end();
 }
 
 unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() const
