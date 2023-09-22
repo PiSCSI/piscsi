@@ -40,6 +40,6 @@ public:
 
 private:
 
-	// Controllers mapped to their ID
+	// Controllers mapped to their device IDs
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };
