@@ -18,35 +18,35 @@ TEST(ControllerManagerTest, LifeCycle)
 	const int LUN2 = 3;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>();
+	ControllerManager controller_manager;
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(SCHS, -1, "");
-	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device));
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device));
 
 	device = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device));
-	EXPECT_TRUE(controller_manager->HasController(ID));
-	auto controller = controller_manager->FindController(ID);
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+	EXPECT_TRUE(controller_manager.HasController(ID));
+	auto controller = controller_manager.FindController(ID);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
-	EXPECT_FALSE(controller_manager->HasController(0));
-	EXPECT_EQ(nullptr, controller_manager->FindController(0));
-	EXPECT_NE(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
-	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(0, 0));
+	EXPECT_FALSE(controller_manager.HasController(0));
+	EXPECT_EQ(nullptr, controller_manager.FindController(0));
+	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
+	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device));
-	EXPECT_TRUE(controller_manager->HasController(ID));
-	controller = controller_manager->FindController(ID);
-	EXPECT_NE(nullptr, controller_manager->FindController(ID));
-	EXPECT_TRUE(controller_manager->DeleteController(controller));
-	EXPECT_EQ(nullptr, controller_manager->FindController(ID));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+	EXPECT_TRUE(controller_manager.HasController(ID));
+	controller = controller_manager.FindController(ID);
+	EXPECT_NE(nullptr, controller_manager.FindController(ID));
+	EXPECT_TRUE(controller_manager.DeleteController(controller));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
 
-	controller_manager->DeleteAllControllers();
-	EXPECT_FALSE(controller_manager->HasController(ID));
-	EXPECT_EQ(nullptr, controller_manager->FindController(ID));
-	EXPECT_EQ(nullptr, controller_manager->GetDeviceByIdAndLun(ID, LUN1));
+	controller_manager.DeleteAllControllers();
+	EXPECT_FALSE(controller_manager.HasController(ID));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
+	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 }
 
 TEST(ControllerManagerTest, AttachToController)
@@ -56,14 +56,14 @@ TEST(ControllerManagerTest, AttachToController)
 	const int LUN2 = 0;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>();
+	ControllerManager controller_manager;
 	DeviceFactory device_factory;
 
 	auto device1 = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device1)) << "LUN 0 is missing";
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device1)) << "LUN 0 is missing";
 
 	auto device2 = device_factory.CreateDevice(SCLP, LUN2, "");
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device2));
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device1));
-	EXPECT_FALSE(controller_manager->AttachToController(*bus, ID, device1));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device1));
 }

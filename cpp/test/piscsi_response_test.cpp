@@ -29,17 +29,17 @@ TEST(PiscsiResponseTest, Operation_Count)
 void TestNonDiskDevice(PbDeviceType type, int default_param_count)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>();
+	ControllerManager controller_manager;
 	DeviceFactory device_factory;
 	PiscsiResponse response;
 
 	auto d = device_factory.CreateDevice(type, 0, "");
 	const unordered_map<string, string> params;
 	d->Init(params);
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, 0, d));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, d));
 
 	PbServerInfo info;
-	response.GetDevices(controller_manager->GetAllDevices(), info, "image_folder");
+	response.GetDevices(controller_manager.GetAllDevices(), info, "image_folder");
 
 	EXPECT_EQ(1, info.devices_info().devices().size());
 
@@ -117,19 +117,19 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	const int LUN3 = 6;
 
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>();
+	ControllerManager controller_manager;
 	PiscsiResponse response;
 	PbCommand command;
 	PbResult result;
 
-	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	EXPECT_TRUE(result.devices_info().devices().empty());
 
 	auto device1 = make_shared<MockHostServices>(LUN1);
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device1));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
 
-	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices1 = result.devices_info().devices();
 	EXPECT_EQ(1, devices1.size());
@@ -138,9 +138,9 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	EXPECT_EQ(LUN1, devices1[0].unit());
 
 	auto device2 = make_shared<MockSCSIHD_NEC>(LUN2);
-	EXPECT_TRUE(controller_manager->AttachToController(*bus, ID, device2));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
 
-	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices2 = result.devices_info().devices();
 	EXPECT_EQ(2, devices2.size()) << "Data for all devices must be returned";
@@ -148,7 +148,7 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 	auto requested_device = command.add_devices();
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN1);
-	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
 	EXPECT_TRUE(result.status());
 	auto& devices3 = result.devices_info().devices();
 	EXPECT_EQ(1, devices3.size()) << "Only data for the specified ID and LUN must be returned";
@@ -158,7 +158,7 @@ TEST(PiscsiResponseTest, GetDevicesInfo)
 
 	requested_device->set_id(ID);
 	requested_device->set_unit(LUN3);
-	response.GetDevicesInfo(controller_manager->GetAllDevices(), result, command, "");
+	response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command, "");
 	EXPECT_FALSE(result.status()) << "Only data for the specified ID and LUN must be returned";
 }
 
@@ -175,7 +175,6 @@ TEST(PiscsiResponseTest, GetDeviceTypesInfo)
 TEST(PiscsiResponseTest, GetServerInfo)
 {
 	auto bus = make_shared<MockBus>();
-	auto controller_manager = make_shared<ControllerManager>();
 	PiscsiResponse response;
 	const unordered_set<shared_ptr<PrimaryDevice>> devices;
 	const unordered_set<int> ids = { 1, 3 };
