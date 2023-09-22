@@ -244,8 +244,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	// If no filename was provided the medium is considered not inserted
-	const auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
-	device->SetRemoved(storage_device != nullptr ? filename.empty() : false);
+	device->SetRemoved(device->SupportsFile() ? filename.empty() : false);
 
 	if (!SetProductData(context, pb_device, *device)) {
 		return false;
@@ -256,6 +255,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	string full_path;
+	const auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (device->SupportsFile()) {
 		// Only with removable media drives, CD and MO the medium (=file) may be inserted later
 		if (!device->IsRemovable() && filename.empty()) {
