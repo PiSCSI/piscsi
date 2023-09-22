@@ -43,6 +43,6 @@ public:
 
 private:
 
-	// Controllers mapped to their SCSI ID
+	// Controllers mapped to their ID
 	unordered_map<int, shared_ptr<AbstractController>> controllers;
 };
