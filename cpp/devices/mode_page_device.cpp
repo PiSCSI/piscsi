@@ -20,12 +20,16 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-ModePageDevice::ModePageDevice(PbDeviceType type, int lun) : PrimaryDevice(type, lun)
+bool ModePageDevice::Init(const unordered_map<string, string>& params)
 {
+	PrimaryDevice::Init(params);
+
 	AddCommand(scsi_command::eCmdModeSense6, [this] { ModeSense6(); });
 	AddCommand(scsi_command::eCmdModeSense10, [this] { ModeSense10(); });
 	AddCommand(scsi_command::eCmdModeSelect6, [this] { ModeSelect6(); });
 	AddCommand(scsi_command::eCmdModeSelect10, [this] { ModeSelect10(); });
+
+	return true;
 }
 
 int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, int length, int max_size) const

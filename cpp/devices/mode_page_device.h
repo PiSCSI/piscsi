@@ -19,8 +19,9 @@ class ModePageDevice : public PrimaryDevice
 {
 public:
 
-	ModePageDevice(PbDeviceType, int);
-	~ModePageDevice() override {};
+	using PrimaryDevice::PrimaryDevice;
+
+	bool Init(const unordered_map<string, string>&) override;
 
 	virtual void ModeSelect(scsi_defs::scsi_command, cdb_t, span<const uint8_t>, int) const;
 
