@@ -429,10 +429,11 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 
 		context.WriteResult(result);
 
+		controller_manager.FlushCaches();
 		DetachAll();
 
 		if (system("init 0") == -1) {
-			LogErrno("System shutdown failed");
+			spdlog::error("System shutdown failed");
 		}
 	}
 	else if (mode == "reboot") {
@@ -440,10 +441,11 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 
 		context.WriteResult(result);
 
+		controller_manager.FlushCaches();
 		DetachAll();
 
 		if (system("init 6") == -1) {
-			LogErrno("System reboot failed");
+			spdlog::error("System reboot failed");
 		}
 	}
 	else {
