@@ -378,12 +378,12 @@ TEST(PiscsiExecutorTest, Insert)
 	EXPECT_FALSE(executor.Insert(context, definition, device, false));
 
 	path filename = CreateTempFile(1);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	const bool result = executor.Insert(context, definition, device, false);
 	remove(filename);
 	EXPECT_TRUE(result);
