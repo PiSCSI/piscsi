@@ -23,18 +23,8 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-Disk::~Disk()
+Disk::Disk(PbDeviceType type, int lun) : StorageDevice(type, lun)
 {
-	// Save disk cache, only if ready
-	if (IsReady() && cache != nullptr) {
-		cache->Save();
-	}
-}
-
-bool Disk::Init(const unordered_map<string, string>& params)
-{
-	StorageDevice::Init(params);
-
 	// REZERO implementation is identical with Seek
 	AddCommand(scsi_command::eCmdRezero, [this] { Seek(); });
 	AddCommand(scsi_command::eCmdFormatUnit, [this] { FormatUnit(); });
@@ -60,8 +50,14 @@ bool Disk::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdWrite16, [this] { Write16(); });
 	AddCommand(scsi_command::eCmdVerify16, [this] { Verify16(); });
 	AddCommand(scsi_command::eCmdReadCapacity16_ReadLong16, [this] { ReadCapacity16_ReadLong16(); });
+}
 
-	return true;
+Disk::~Disk()
+{
+	// Save disk cache, only if ready
+	if (IsReady() && cache != nullptr) {
+		cache->Save();
+	}
 }
 
 void Disk::Dispatch(scsi_command cmd)

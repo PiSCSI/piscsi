@@ -21,7 +21,7 @@ class HostServices: public ModePageDevice
 
 public:
 
-	explicit HostServices(int lun) : ModePageDevice(SCHS, lun) {}
+	explicit HostServices(int);
 	~HostServices() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;

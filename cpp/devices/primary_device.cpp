@@ -24,7 +24,7 @@ bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdInquiry, [this] { Inquiry(); });
 	AddCommand(scsi_command::eCmdReportLuns, [this] { ReportLuns(); });
 
-	// Optional commands supported by all PiSCSI devices
+	// Optional commands supported by all devices
 	AddCommand(scsi_command::eCmdRequestSense, [this] { RequestSense(); });
 	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
 	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });

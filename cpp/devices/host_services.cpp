@@ -31,12 +31,15 @@ using namespace std::chrono;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
+HostServices::HostServices(int lun) : ModePageDevice(SCHS, lun)
+{
+	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
+	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
+}
+
 bool HostServices::Init(const unordered_map<string, string>& params)
 {
 	ModePageDevice::Init(params);
-
-	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
-	AddCommand(scsi_command::eCmdStartStop, [this] { StartStopUnit(); });
 
 	SetReady(true);
 

@@ -41,13 +41,6 @@ using namespace scsi_command_util;
 
 SCSIPrinter::SCSIPrinter(int lun) : PrimaryDevice(SCLP, lun)
 {
-	SupportsParams(true);
-}
-
-bool SCSIPrinter::Init(const unordered_map<string, string>& params)
-{
-	PrimaryDevice::Init(params);
-
 	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
 	AddCommand(scsi_command::eCmdPrint, [this] { Print(); });
 	AddCommand(scsi_command::eCmdSynchronizeBuffer, [this] { SynchronizeBuffer(); });
@@ -58,6 +51,13 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
 	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
 	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
+
+	SupportsParams(true);
+}
+
+bool SCSIPrinter::Init(const unordered_map<string, string>& params)
+{
+	PrimaryDevice::Init(params);
 
 	if (GetParam("cmd").find("%f") == string::npos) {
 		GetLogger().Trace("Missing filename specifier %f");
