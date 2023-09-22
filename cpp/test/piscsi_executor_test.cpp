@@ -296,19 +296,19 @@ TEST(PiscsiExecutorTest, Attach)
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Drive with non-existing image file not rejected";
 
 	path filename = CreateTempFile(1);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	EXPECT_FALSE(executor.Attach(context, definition, false)) << "Too small image file not rejected";
 	remove(filename);
 
 	filename = CreateTempFile(512);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	bool result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
 	controller_manager.DeleteAllControllers();
 
 	filename = CreateTempFile(513);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
@@ -316,7 +316,7 @@ TEST(PiscsiExecutorTest, Attach)
 	definition.set_type(PbDeviceType::SCCD);
 	definition.set_unit(LUN + 1);
 	filename = CreateTempFile(2048);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
@@ -325,7 +325,7 @@ TEST(PiscsiExecutorTest, Attach)
 	definition.set_unit(LUN + 2);
 	SetParam(definition, "read_only", "true");
 	filename = CreateTempFile(4096);
-	SetParam(definition, "file", filename.c_str());
+	SetParam(definition, "file", filename.string());
 	result = executor.Attach(context, definition, false);
 	remove(filename);
 	EXPECT_TRUE(result);
