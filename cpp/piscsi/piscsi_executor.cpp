@@ -316,8 +316,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
-	if (!storage_device->IsRemoved()) {
+	if (!device->IsRemoved()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_EJECT_REQUIRED);
 	}
 
@@ -336,9 +335,10 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
-			"' requested into " + storage_device->GetTypeString() + " " +
+			"' requested into " + device->GetTypeString() + " " +
 			to_string(pb_device.id()) + ":" + to_string(pb_device.unit()));
 
+	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
 		return false;
 	}
