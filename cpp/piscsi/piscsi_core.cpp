@@ -233,7 +233,7 @@ pair<string, string> Piscsi::ParseArguments(PbCommand& command, span<char *> arg
 
 		// Set up the device data
 
-		PbDeviceDefinition *device = command.add_devices();
+		auto device = command.add_devices();
 
 		if (!id_and_lun.empty()) {
 			if (const string error = SetIdAndLun(*device, id_and_lun, ScsiController::LUN_MAX); !error.empty()) {
