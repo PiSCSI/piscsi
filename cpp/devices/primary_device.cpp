@@ -93,7 +93,7 @@ void PrimaryDevice::Inquiry()
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 
-	vector<uint8_t> buf = InquiryInternal();
+	const vector<uint8_t> buf = InquiryInternal();
 
 	const size_t allocation_length = min(buf.size(), static_cast<size_t>(GetInt16(GetController()->GetCmd(), 3)));
 
