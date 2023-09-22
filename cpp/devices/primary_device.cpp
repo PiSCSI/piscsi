@@ -67,9 +67,7 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	assert(controller);
-
-	return controller->GetTargetId();
+	return GetController()->GetTargetId();
 }
 
 void PrimaryDevice::SetController(AbstractController *c)
