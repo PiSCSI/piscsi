@@ -206,10 +206,6 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 				ReadAccessToken(optarg);
 				continue;
 
-			case 'v':
-				cout << piscsi_get_version_string() << '\n';
-				exit(EXIT_SUCCESS);
-
 			case 'r':
 				reserved_ids = optarg;
 				continue;
@@ -462,6 +458,14 @@ int Piscsi::run(span<char *> args)
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	Banner(args);
+
+	// The -v option shall result in no other action than displaying the version
+	for (const char *arg : args) {
+		if (!strcasecmp(arg, "-v")) {
+			cout << piscsi_get_version_string() << '\n';
+			return EXIT_SUCCESS;
+		}
+	}
 
 	PbCommand command;
 	string locale;
