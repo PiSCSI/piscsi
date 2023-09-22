@@ -17,7 +17,7 @@ using namespace std;
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-PrimaryDevice::PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun)
+bool PrimaryDevice::Init(const unordered_map<string, string>& params)
 {
 	// Mandatory SCSI primary commands
 	AddCommand(scsi_command::eCmdTestUnitReady, [this] { TestUnitReady(); });
@@ -29,10 +29,7 @@ PrimaryDevice::PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun)
 	AddCommand(scsi_command::eCmdReserve6, [this] { ReserveUnit(); });
 	AddCommand(scsi_command::eCmdRelease6, [this] { ReleaseUnit(); });
 	AddCommand(scsi_command::eCmdSendDiagnostic, [this] { SendDiagnostic(); });
-}
 
-bool PrimaryDevice::Init(const unordered_map<string, string>& params)
-{
 	SetParams(params);
 
 	return true;

@@ -32,7 +32,7 @@ class PrimaryDevice: private ScsiPrimaryCommands, public Device
 
 public:
 
-	PrimaryDevice(PbDeviceType, int);
+	PrimaryDevice(PbDeviceType type, int lun) : Device(type, lun) {}
 	~PrimaryDevice() override = default;
 
 	virtual bool Init(const unordered_map<string, string>&);
