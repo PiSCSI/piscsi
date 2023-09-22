@@ -74,7 +74,7 @@ void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
 
-	logger.SetIdAndLun(c != nullptr ? c->GetTargetId() : -1, GetLun());
+	logger.SetIdAndLun(c->GetTargetId(), GetLun());
 }
 
 void PrimaryDevice::TestUnitReady()
