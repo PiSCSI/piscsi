@@ -173,8 +173,7 @@ TEST(ScsiDaynaportTest, EnableInterface)
 TEST(ScsiDaynaportTest, GetSendDelay)
 {
 	SCSIDaynaPort daynaport(0);
-	const unordered_map<string, string> params;
-	daynaport.Init(params);
+	EXPECT_TRUE(daynaport.Init({}));
 
 	EXPECT_EQ(6, daynaport.GetSendDelay());
 }

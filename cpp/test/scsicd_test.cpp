@@ -115,8 +115,7 @@ TEST(ScsiCdTest, ReadToc)
 	auto controller = make_shared<MockAbstractController>();
 	const unordered_set<uint32_t> sector_sizes;
 	auto cd = make_shared<MockSCSICD>(0, sector_sizes);
-	const unordered_map<string, string> params;
-	cd->Init(params);
+	EXPECT_TRUE(cd->Init({}));
 
 	controller->AddDevice(cd);
 

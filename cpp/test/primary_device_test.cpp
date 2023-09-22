@@ -23,8 +23,7 @@ TEST(PrimaryDeviceTest, GetId)
 
 	auto controller = make_shared<NiceMock<MockAbstractController>>(ID);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	EXPECT_EQ(-1, device->GetId()) << "Device ID cannot be known without assignment to a controller";
 
@@ -36,8 +35,7 @@ TEST(PrimaryDeviceTest, PhaseChange)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -55,8 +53,7 @@ TEST(PrimaryDeviceTest, Reset)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -72,8 +69,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -104,8 +100,7 @@ TEST(PrimaryDeviceTest, ReserveReleaseUnit)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -131,8 +126,7 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -148,8 +142,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -197,8 +190,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -266,8 +258,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -289,8 +280,7 @@ TEST(PrimaryDeviceTest, SendDiagnostic)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 
@@ -326,9 +316,8 @@ TEST(PrimaryDeviceTest, ReportLuns)
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device1 = make_shared<MockPrimaryDevice>(LUN1);
 	auto device2 = make_shared<MockPrimaryDevice>(LUN2);
-	const unordered_map<string, string> params;
-	device1->Init(params);
-	device2->Init(params);
+	EXPECT_TRUE(device1->Init({}));
+	EXPECT_TRUE(device2->Init({}));
 
 	controller->AddDevice(device1);
 	EXPECT_TRUE(controller->HasDeviceForLun(LUN1));
@@ -363,8 +352,7 @@ TEST(PrimaryDeviceTest, Dispatch)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 

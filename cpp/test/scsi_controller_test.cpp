@@ -281,8 +281,7 @@ TEST(ScsiControllerTest, RequestSense)
 	auto bus = make_shared<NiceMock<MockBus>>();
 	auto controller = make_shared<MockScsiController>(bus, 0);
 	auto device = make_shared<MockPrimaryDevice>(0);
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
 	controller->AddDevice(device);
 

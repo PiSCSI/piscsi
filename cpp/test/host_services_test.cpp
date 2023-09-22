@@ -67,8 +67,7 @@ TEST(HostServicesTest, ModeSense6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto services = CreateDevice(SCHS, *controller);
-	const unordered_map<string, string> params;
-	services->Init(params);
+	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -108,8 +107,7 @@ TEST(HostServicesTest, ModeSense10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto services = CreateDevice(SCHS, *controller);
-	const unordered_map<string, string> params;
-	services->Init(params);
+	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),

@@ -82,8 +82,7 @@ TEST(ModePageDeviceTest, ModeSense6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
     controller->AddDevice(device);
 
@@ -95,8 +94,7 @@ TEST(ModePageDeviceTest, ModeSense10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<NiceMock<MockModePageDevice>>();
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
     controller->AddDevice(device);
 
@@ -124,8 +122,7 @@ TEST(ModePageDeviceTest, ModeSelect6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockModePageDevice>();
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
     controller->AddDevice(device);
 
@@ -143,8 +140,7 @@ TEST(ModePageDeviceTest, ModeSelect10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto device = make_shared<MockModePageDevice>();
-	const unordered_map<string, string> params;
-	device->Init(params);
+	EXPECT_TRUE(device->Init({}));
 
     controller->AddDevice(device);
 

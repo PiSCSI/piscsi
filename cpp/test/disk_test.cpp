@@ -20,8 +20,7 @@ TEST(DiskTest, Dispatch)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -42,8 +41,7 @@ TEST(DiskTest, Rezero)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -63,8 +61,7 @@ TEST(DiskTest, FormatUnit)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -90,8 +87,7 @@ TEST(DiskTest, ReassignBlocks)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -111,8 +107,7 @@ TEST(DiskTest, Seek6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -140,8 +135,7 @@ TEST(DiskTest, Seek10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -170,8 +164,7 @@ TEST(DiskTest, ReadCapacity10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -205,8 +198,7 @@ TEST(DiskTest, ReadCapacity16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -247,8 +239,7 @@ TEST(DiskTest, Read6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -264,8 +255,7 @@ TEST(DiskTest, Read10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -286,8 +276,7 @@ TEST(DiskTest, Read16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -308,8 +297,7 @@ TEST(DiskTest, Write6)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -333,8 +321,7 @@ TEST(DiskTest, Write10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -355,8 +342,7 @@ TEST(DiskTest, Write16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -377,8 +363,7 @@ TEST(DiskTest, Verify10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -399,8 +384,7 @@ TEST(DiskTest, Verify16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -421,8 +405,7 @@ TEST(DiskTest, ReadLong10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -448,8 +431,7 @@ TEST(DiskTest, ReadLong16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -477,8 +459,7 @@ TEST(DiskTest, WriteLong10)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -504,8 +485,7 @@ TEST(DiskTest, WriteLong16)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -531,8 +511,7 @@ TEST(DiskTest, StartStopUnit)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	disk->SetRemovable(true);
 
@@ -586,8 +565,7 @@ TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -673,8 +651,7 @@ TEST(DiskTest, ModeSense6)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -724,8 +701,7 @@ TEST(DiskTest, ModeSense10)
 {
 	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -802,8 +778,7 @@ TEST(DiskTest, SynchronizeCache)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 
@@ -822,8 +797,7 @@ TEST(DiskTest, ReadDefectData)
 {
 	auto controller = make_shared<MockAbstractController>(0);
 	auto disk = make_shared<MockDisk>();
-	const unordered_map<string, string> params;
-	disk->Init(params);
+	EXPECT_TRUE(disk->Init({}));
 
 	controller->AddDevice(disk);
 

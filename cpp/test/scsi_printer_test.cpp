@@ -17,10 +17,9 @@ TEST(ScsiPrinterTest, Init)
 {
 	auto controller = make_shared<MockAbstractController>();
 	auto printer = CreateDevice(SCLP, *controller);
+	EXPECT_TRUE(printer->Init({}));
 
 	unordered_map<string, string> params;
-	EXPECT_TRUE(printer->Init(params));
-
 	params["cmd"] = "missing_filename_specifier";
 	EXPECT_FALSE(printer->Init(params));
 

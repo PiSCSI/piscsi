@@ -32,10 +32,9 @@ shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController
     DeviceFactory device_factory;
 
     auto device = device_factory.CreateDevice(type, 0, extension);
-    unordered_map<string, string> params;
-    device->Init(params);
+    device->Init({});
 
-    controller.AddDevice(device);
+    EXPECT_TRUE(controller.AddDevice(device));
 
     return device;
 }
