@@ -336,15 +336,15 @@ TEST(PiscsiExecutorTest, Attach)
 TEST(PiscsiExecutorTest, Insert)
 {
 	DeviceFactory device_factory;
+
 	auto bus = make_shared<MockBus>();
 	auto controller_manager = make_shared<ControllerManager>(*bus);
+	auto [controller, device] = CreateDevice(SCHD);
 	PiscsiImage piscsi_image;
 	PiscsiExecutor executor(piscsi_image, *controller_manager);
 	PbDeviceDefinition definition;
 	PbCommand command;
 	CommandContext context(command);
-
-	auto device = device_factory.CreateDevice(SCRM, 0, "test");
 
 	device->SetRemoved(false);
 	EXPECT_FALSE(executor.Insert(context, definition, device, false)) << "Medium is not removed";
