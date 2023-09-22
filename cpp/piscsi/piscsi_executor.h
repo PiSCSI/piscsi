@@ -30,7 +30,7 @@ public:
 		: piscsi_image(piscsi_image), bus(bus), controller_manager(controller_manager) {}
 	~PiscsiExecutor() = default;
 
-	unordered_set<int> GetReservedIds() const { return reserved_ids; }
+	auto GetReservedIds() const { return reserved_ids; }
 
 	bool ProcessDeviceCmd(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool ProcessCmd(const CommandContext&);
