@@ -27,23 +27,23 @@ const path test_data_temp_path(temp_directory_path() /
                                path(fmt::format("piscsi-test-{}",
                                                 getpid()))); // NOSONAR Publicly writable directory is fine here
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType type, MockAbstractController& controller, const string& extension)
+pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType type, const string& extension)
 {
     DeviceFactory device_factory;
 
+	auto controller = make_shared<MockAbstractController>(0);
     auto device = device_factory.CreateDevice(type, 0, extension);
     device->Init({});
 
-    EXPECT_TRUE(controller.AddDevice(device));
+    EXPECT_TRUE(controller->AddDevice(device));
 
-    return device;
+    return { controller, device };
 }
 
 void TestInquiry::Inquiry(PbDeviceType type, device_type t, scsi_level l, const string& ident, int additional_length,
 		bool removable, const string& extension)
 {
-    auto controller = make_shared<NiceMock<MockAbstractController>>(0);
-    auto device = CreateDevice(type, *controller, extension);
+    auto [controller, device] = CreateDevice(type, extension);
 
     // ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);

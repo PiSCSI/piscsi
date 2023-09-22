@@ -15,8 +15,7 @@ using namespace std;
 
 TEST(ScsiPrinterTest, Init)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [_, printer] = CreateDevice(SCLP);
 	EXPECT_TRUE(printer->Init({}));
 
 	unordered_map<string, string> params;
@@ -29,8 +28,7 @@ TEST(ScsiPrinterTest, Init)
 
 TEST(ScsiPrinterTest, TestUnitReady)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdTestUnitReady);
@@ -44,8 +42,7 @@ TEST(ScsiPrinterTest, Inquiry)
 
 TEST(ScsiPrinterTest, ReserveUnit)
 {
-	auto controller = make_shared<NiceMock<MockAbstractController>>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdReserve6);
@@ -54,8 +51,7 @@ TEST(ScsiPrinterTest, ReserveUnit)
 
 TEST(ScsiPrinterTest, ReleaseUnit)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdRelease6);
@@ -64,8 +60,7 @@ TEST(ScsiPrinterTest, ReleaseUnit)
 
 TEST(ScsiPrinterTest, SendDiagnostic)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, Status()).Times(1);
     printer->Dispatch(scsi_command::eCmdSendDiagnostic);
@@ -74,8 +69,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 
 TEST(ScsiPrinterTest, Print)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, DataOut());
     printer->Dispatch(scsi_command::eCmdPrint);
@@ -90,8 +84,7 @@ TEST(ScsiPrinterTest, Print)
 
 TEST(ScsiPrinterTest, StopPrint)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [controller, printer] = CreateDevice(SCLP);
 
     EXPECT_CALL(*controller, Status());
     printer->Dispatch(scsi_command::eCmdStopPrint);
@@ -100,8 +93,7 @@ TEST(ScsiPrinterTest, StopPrint)
 
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [_, printer] = CreateDevice(SCLP);
 
     EXPECT_THAT([&] { printer->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
     		Property(&scsi_exception::get_sense_key, sense_key::aborted_command),
@@ -113,8 +105,7 @@ TEST(ScsiPrinterTest, SynchronizeBuffer)
 
 TEST(ScsiPrinterTest, WriteByteSequence)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto printer = CreateDevice(SCLP, *controller);
+	auto [_, printer] = CreateDevice(SCLP);
 
 	const vector<uint8_t> buf(1);
 	EXPECT_TRUE(printer->WriteByteSequence(buf));

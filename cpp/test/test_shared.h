@@ -25,7 +25,7 @@ class MockAbstractController;
 
 extern const path test_data_temp_path;
 
-shared_ptr<PrimaryDevice> CreateDevice(PbDeviceType, MockAbstractController&, const string& = "");
+pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice(PbDeviceType, const string& = "");
 
 pair<int, path> OpenTempFile();
 path CreateTempFile(int);

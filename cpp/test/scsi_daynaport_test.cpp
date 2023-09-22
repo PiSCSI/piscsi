@@ -18,8 +18,7 @@ TEST(ScsiDaynaportTest, Inquiry)
 
 TEST(ScsiDaynaportTest, TestUnitReady)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
     EXPECT_CALL(*controller, Status());
     daynaport->Dispatch(scsi_command::eCmdTestUnitReady);
@@ -28,30 +27,27 @@ TEST(ScsiDaynaportTest, TestUnitReady)
 
 TEST(ScsiDaynaportTest, Read)
 {
-	vector<uint8_t> buf(0);
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	// ALLOCATION LENGTH
 	controller->SetCmdByte(4, 1);
-	EXPECT_EQ(0, daynaport->Read(controller->GetCmd(), buf, 0)) << "Trying to read the root sector must fail";
+	vector<uint8_t> buf(0);
+	EXPECT_EQ(0, dynamic_pointer_cast<SCSIDaynaPort>(daynaport)->Read(controller->GetCmd(), buf, 0)) << "Trying to read the root sector must fail";
 }
 
 TEST(ScsiDaynaportTest, Write)
 {
-	vector<uint8_t> buf(0);
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(CreateDevice(SCDP, *controller));
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	// Unknown data format
 	controller->SetCmdByte(5, 0xff);
-	EXPECT_TRUE(daynaport->Write(controller->GetCmd(), buf));
+	vector<uint8_t> buf(0);
+	EXPECT_TRUE(dynamic_pointer_cast<SCSIDaynaPort>(daynaport)->Write(controller->GetCmd(), buf));
 }
 
 TEST(ScsiDaynaportTest, Read6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	controller->SetCmdByte(5, 0xff);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
@@ -62,8 +58,7 @@ TEST(ScsiDaynaportTest, Read6)
 
 TEST(ScsiDaynaportTest, Write6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	controller->SetCmdByte(5, 0x00);
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
@@ -90,8 +85,7 @@ TEST(ScsiDaynaportTest, Write6)
 
 TEST(ScsiDaynaportTest, TestRetrieveStats)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
     // ALLOCATION LENGTH
 	controller->SetCmdByte(4, 255);
@@ -101,8 +95,7 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 
 TEST(ScsiDaynaportTest, SetInterfaceMode)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	// Unknown interface command
     EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetIfaceMode); }, Throws<scsi_exception>(AllOf(
@@ -140,8 +133,7 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 
 TEST(ScsiDaynaportTest, SetMcastAddr)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
@@ -155,8 +147,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 
 TEST(ScsiDaynaportTest, EnableInterface)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto daynaport = CreateDevice(SCDP, *controller);
+	auto [controller, daynaport] = CreateDevice(SCDP);
 
 	// Enable
 	EXPECT_THAT([&] { daynaport->Dispatch(scsi_command::eCmdEnableInterface); }, Throws<scsi_exception>(AllOf(

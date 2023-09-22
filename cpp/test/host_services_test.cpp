@@ -21,8 +21,7 @@ void HostServices_SetUpModePages(map<int, vector<byte>>& pages)
 
 TEST(HostServicesTest, TestUnitReady)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto services = CreateDevice(SCHS, *controller);
+	auto [controller, services] = CreateDevice(SCHS);
 
     EXPECT_CALL(*controller, Status());
     services->Dispatch(scsi_command::eCmdTestUnitReady);
@@ -36,8 +35,7 @@ TEST(HostServicesTest, Inquiry)
 
 TEST(HostServicesTest, StartStopUnit)
 {
-	auto controller = make_shared<MockAbstractController>();
-	auto services = CreateDevice(SCHS, *controller);
+	auto [controller, services] = CreateDevice(SCHS);
 
     // STOP
     EXPECT_CALL(*controller, Status());
@@ -65,8 +63,7 @@ TEST(HostServicesTest, StartStopUnit)
 
 TEST(HostServicesTest, ModeSense6)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto services = CreateDevice(SCHS, *controller);
+	auto [controller, services] = CreateDevice(SCHS);
 	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense6); }, Throws<scsi_exception>(AllOf(
@@ -105,8 +102,7 @@ TEST(HostServicesTest, ModeSense6)
 
 TEST(HostServicesTest, ModeSense10)
 {
-	auto controller = make_shared<MockAbstractController>(0);
-	auto services = CreateDevice(SCHS, *controller);
+	auto [controller, services] = CreateDevice(SCHS);
 	EXPECT_TRUE(services->Init({}));
 
 	EXPECT_THAT([&] { services->Dispatch(scsi_command::eCmdModeSense10); }, Throws<scsi_exception>(AllOf(
