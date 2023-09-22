@@ -31,7 +31,7 @@ pair<shared_ptr<MockAbstractController>, shared_ptr<PrimaryDevice>> CreateDevice
 {
     DeviceFactory device_factory;
 
-	auto controller = make_shared<MockAbstractController>(0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
     auto device = device_factory.CreateDevice(type, 0, extension);
     device->Init({});
 

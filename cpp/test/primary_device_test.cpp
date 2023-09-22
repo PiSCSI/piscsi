@@ -19,7 +19,7 @@ using namespace scsi_command_util;
 
 pair<shared_ptr<MockAbstractController>, shared_ptr<MockPrimaryDevice>> CreatePrimaryDevice(int id = 0)
 {
-	auto controller = make_shared<MockAbstractController>(id);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(id);
 	auto device = make_shared<MockPrimaryDevice>(0);
 	EXPECT_TRUE(device->Init({}));
 	EXPECT_TRUE(controller->AddDevice(device));

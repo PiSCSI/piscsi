@@ -18,7 +18,7 @@ using namespace scsi_command_util;
 
 pair<shared_ptr<MockAbstractController>, shared_ptr<MockDisk>> CreateDisk()
 {
-	auto controller = make_shared<MockAbstractController>(0);
+	auto controller = make_shared<NiceMock<MockAbstractController>>(0);
 	auto disk = make_shared<MockDisk>();
 	EXPECT_TRUE(disk->Init({}));
 	EXPECT_TRUE(controller->AddDevice(disk));
