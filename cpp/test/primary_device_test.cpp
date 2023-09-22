@@ -198,7 +198,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 	EXPECT_EQ(scsi_level::scsi_2, (scsi_level)controller->GetBuffer()[3]) << "Wrong response level";
 	EXPECT_EQ(0x1f, controller->GetBuffer()[4]) << "Wrong additional data size";
 
-	ON_CALL(*device, InquiryInternal()).WillByDefault([&]() {
+	ON_CALL(*device, InquiryInternal()).WillByDefault([&d]() {
 		return d->HandleInquiry(device_type::direct_access, scsi_level::scsi_1_ccs, true);
 	});
 	EXPECT_CALL(*device, InquiryInternal);
@@ -219,7 +219,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 
 	controller->SetCmdByte(2, 0x01);
 	EXPECT_CALL(*controller, DataIn).Times(0);
-	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
+	EXPECT_THAT([&d] { d->Dispatch(scsi_command::eCmdInquiry); }, Throws<scsi_exception>(AllOf(
 			Property(&scsi_exception::get_sense_key, sense_key::illegal_request),
 			Property(&scsi_exception::get_asc, asc::invalid_field_in_cdb))))
 		<< "PAGE CODE field is not supported";
