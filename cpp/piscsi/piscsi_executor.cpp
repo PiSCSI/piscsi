@@ -45,8 +45,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 	}
 
 	auto device = controller_manager.GetDeviceByIdAndLun(id, lun);
-
-	if (!ValidateOperationAgainstDevice(context, *device, operation)) {
+	if (device == nullptr || !ValidateOperationAgainstDevice(context, *device, operation)) {
 		return false;
 	}
 
