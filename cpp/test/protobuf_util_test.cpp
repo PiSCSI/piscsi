@@ -29,6 +29,7 @@ TEST(ProtobufUtil, GetSetParam)
 	SetParam(command, "key", "value");
 	EXPECT_EQ("value", GetParam(command, "key"));
 	EXPECT_EQ("", GetParam(command, "xyz"));
+	EXPECT_EQ("", GetParam(command, ""));
 }
 
 TEST(ProtobufUtil, ParseParameters)
