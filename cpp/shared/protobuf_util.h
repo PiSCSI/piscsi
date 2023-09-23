@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "google/protobuf/message.h"
 #include "generated/piscsi_interface.pb.h"
 #include <string>
 #include <vector>
