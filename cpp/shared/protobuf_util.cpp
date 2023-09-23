@@ -36,8 +36,9 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 
 	for (const auto& p : Split(params, COMPONENT_SEPARATOR)) {
-		if (const size_t separator_pos = p.find(KEY_VALUE_SEPARATOR); separator_pos != string::npos) {
-			SetParam(device, p.substr(0, separator_pos), string_view(p).substr(separator_pos + 1));
+		const auto& param = Split(p, KEY_VALUE_SEPARATOR, 2);
+		if (param.size() == 2) {
+			SetParam(device, param[0], param[1]);
 		}
 	}
 }
