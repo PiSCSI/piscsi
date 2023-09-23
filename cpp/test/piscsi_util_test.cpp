@@ -19,7 +19,7 @@ using namespace piscsi_util;
 
 TEST(PiscsiUtilTest, Split)
 {
-	auto v = Split("this:is:a:test", ':');
+	auto v = Split("this_is_a_test", '_');
 	EXPECT_EQ(4, v.size());
 	EXPECT_EQ("this", v[0]);
 	EXPECT_EQ("is", v[1]);
