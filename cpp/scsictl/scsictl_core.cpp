@@ -259,7 +259,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 
 	bool status;
 	try {
-		// Listing devices is a special case (rasctl backwards compatibility)
+		// Listing devices is a special case (legacy rasctl backwards compatibility)
 		if (list) {
 			command.clear_devices();
 			command.set_operation(DEVICES_INFO);
