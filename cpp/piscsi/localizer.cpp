@@ -10,7 +10,6 @@
 #include "localizer.h"
 #include <cassert>
 #include <algorithm>
-#include <regex>
 
 using namespace std;
 
@@ -266,9 +265,9 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 	}
 
 	string message = m->second;
-	message = regex_replace(message, regex("%1"), arg1);
-	message = regex_replace(message, regex("%2"), arg2);
-	message = regex_replace(message, regex("%3"), arg3);
+	message = regex_replace(message, regex1, arg1);
+	message = regex_replace(message, regex2, arg2);
+	message = regex_replace(message, regex3, arg3);
 
 	return message;
 }
