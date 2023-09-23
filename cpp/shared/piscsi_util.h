@@ -35,7 +35,7 @@ namespace piscsi_util
 		return s.str();
 	}
 
-	vector<string> Split(const string&, int = INT_MAX);
+	vector<string> Split(const string&, char, int = INT_MAX);
 	string GetLocale();
 	bool GetAsUnsignedInt(const string&, int&);
 	string ProcessId(const string&, int, int&, int&);

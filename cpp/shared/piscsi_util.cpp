@@ -19,7 +19,7 @@
 using namespace std;
 using namespace filesystem;
 
-vector<string> piscsi_util::Split(const string& s, int limit)
+vector<string> piscsi_util::Split(const string& s, char separator, int limit)
 {
 	assert(limit >= 0);
 
@@ -27,7 +27,7 @@ vector<string> piscsi_util::Split(const string& s, int limit)
 	vector<string> result;
 	stringstream str(s);
 
-	while (--limit > 0 && getline(str, component, COMPONENT_SEPARATOR)) {
+	while (--limit > 0 && getline(str, component, separator)) {
 		result.push_back(component);
 	}
 
@@ -80,7 +80,7 @@ string piscsi_util::ProcessId(const string& id_spec, int max_luns, int& id, int&
 		return "Missing device ID";
 	}
 
-	if (const auto& components = Split(id_spec, 2); !components.empty()) {
+	if (const auto& components = Split(id_spec, COMPONENT_SEPARATOR, 2); !components.empty()) {
 		if (components.size() == 1) {
 			if (!GetAsUnsignedInt(components[0], id) || id > 7) {
 				id = -1;
