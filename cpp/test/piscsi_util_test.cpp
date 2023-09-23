@@ -17,6 +17,11 @@
 using namespace std;
 using namespace piscsi_util;
 
+TEST(PiscsiUtilTest, GetLocale)
+{
+	EXPECT_LE(2, GetLocale().size());
+}
+
 TEST(PiscsiUtilTest, ProcessId)
 {
 	int id = -1;
