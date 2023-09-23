@@ -113,20 +113,44 @@
         </div>
 
         <div>
-            {% if env["netatalk_configured"] == 1 %}
-            {{ _("The AppleShare server is running. No active connections.") }}
+            {% if env["netatalk_configured"] %}
+		{{ _("Mac AFP file sharing is enabled.") }}
+		{% if env["webmin_configured"] %}
+		    <a href="https://{{ env["ip_addr"] }}:10000/netatalk2/" target=\"_blank\">
+		    {{ ("Server administration") }}
+		    </a>
+		{% endif %}
+	    {% else %}
+		{{ _("Mac AFP file sharing is disabled.") }}
             {% endif %}
-            {% if env["netatalk_configured"] == 2 %}
-            {{ _("%(value)d active AFP connection", value=(env["netatalk_configured"] - 1)) }}
-            {% elif env["netatalk_configured"] > 2 %}
-            {{ _("%(value)d active AFP connections", value=(env["netatalk_configured"] - 1)) }}
+        </div>
+        <div>
+            {% if env["samba_configured"] %}
+		{{ _("Windows SMB file sharing is enabled.") }}
+		{% if env["webmin_configured"] %}
+		    <a href="https://{{ env["ip_addr"] }}:10000/samba/" target=\"_blank\">
+		    {{ ("Server administration") }}
+		    </a>
+		{% endif %}
+	    {% else %}
+		{{ _("Windows SMB file sharing is disabled.") }}
+            {% endif %}
+        </div>
+        <div>
+            {% if env["ftp_configured"] %}
+		{{ _("FTP file sharing is enabled.") }}
+	    {% else %}
+		{{ _("FTP file sharing is disabled.") }}
             {% endif %}
         </div>
         <div>
             {% if env["macproxy_configured"] %}
-            {{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
+		{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=env['ip_addr']) }}
+	    {% else %}
+		{{ _("Macproxy is disabled.") }}
             {% endif %}
         </div>
+
         <div>
 	    {{ _("PiSCSI software version:") }} <b>{{ env["version"] }}</b>
         </div>
