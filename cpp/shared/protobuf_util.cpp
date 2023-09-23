@@ -63,22 +63,22 @@ void protobuf_util::SetPatternParams(PbCommand& command, const string& patterns)
 
 void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& data)
 {
-	string name = data;
+	const auto& components = Split(data, COMPONENT_SEPARATOR, 3);
+	switch (components.size()) {
+		case 2:
+			device.set_vendor(components[0]);
+			device.set_product(components[1]);
+			break;
 
-	if (size_t separator_pos = name.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		device.set_vendor(name.substr(0, separator_pos));
-		name = name.substr(separator_pos + 1);
-		separator_pos = name.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
-			device.set_product(name.substr(0, separator_pos));
-			device.set_revision(name.substr(separator_pos + 1));
-		}
-		else {
-			device.set_product(name);
-		}
-	}
-	else {
-		device.set_vendor(name);
+		case 3:
+			device.set_vendor(components[0]);
+			device.set_product(components[1]);
+			device.set_revision(components[2]);
+			break;
+
+		default:
+			device.set_vendor(data);
+			break;
 	}
 }
 
