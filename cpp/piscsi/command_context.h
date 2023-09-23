@@ -22,7 +22,7 @@ class CommandContext
 
 	PbCommand command;
 
-	string locale;
+	const string locale;
 
 	int fd = -1;
 
