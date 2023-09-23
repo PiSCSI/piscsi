@@ -38,7 +38,7 @@ namespace protobuf_util
 	}
 
 	void ParseParameters(PbDeviceDefinition&, const string&);
-	void SetPatternParams(PbCommand&, string_view);
+	void SetPatternParams(PbCommand&, const string&);
 	void SetProductData(PbDeviceDefinition&, const string&);
 	string SetIdAndLun(PbDeviceDefinition&, const string&, int);
 	string ListDevices(const vector<PbDevice>&);

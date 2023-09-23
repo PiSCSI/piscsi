@@ -42,13 +42,15 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 }
 
-void protobuf_util::SetPatternParams(PbCommand& command, string_view patterns)
+void protobuf_util::SetPatternParams(PbCommand& command, const string& patterns)
 {
 	string folder_pattern;
 	string file_pattern;
-	if (const size_t separator_pos = patterns.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		folder_pattern = patterns.substr(0, separator_pos);
-		file_pattern = patterns.substr(separator_pos + 1);
+
+	const auto& components = Split(patterns, 2);
+	if (components.size() == 2) {
+		folder_pattern = components[0];
+		file_pattern = components[1];
 	}
 	else {
 		file_pattern = patterns;
