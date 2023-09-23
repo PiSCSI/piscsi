@@ -24,7 +24,7 @@ void TestSpecialDevice(const string& name)
 
 TEST(ProtobufUtil, GetSetParam)
 {
-	// The implementation is a template, testing one possible T is sufficient
+	// The implementation is a function template, testing one possible T is sufficient
 	PbCommand command;
 	SetParam(command, "key", "value");
 	EXPECT_EQ("value", GetParam(command, "key"));
