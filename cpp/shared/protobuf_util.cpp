@@ -65,15 +65,13 @@ void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& dat
 {
 	const auto& components = Split(data, COMPONENT_SEPARATOR, 3);
 	switch (components.size()) {
+		case 3:
+			device.set_revision(components[2]);
+			[[fallthrough]];
+
 		case 2:
 			device.set_vendor(components[0]);
 			device.set_product(components[1]);
-			break;
-
-		case 3:
-			device.set_vendor(components[0]);
-			device.set_product(components[1]);
-			device.set_revision(components[2]);
 			break;
 
 		default:
