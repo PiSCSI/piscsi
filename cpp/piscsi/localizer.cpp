@@ -29,12 +29,12 @@ Localizer::Localizer()
 	Add(LocalizationKey::ERROR_OPERATION, "es", "Operación desconocida");
 	Add(LocalizationKey::ERROR_OPERATION, "zh", "未知操作");
 
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "en", "Invalid log level %1");
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level %1");
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "sv", "Ogiltig loggnivå %1");
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "fr", "Niveau de journalisation invalide %1");
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "es", "Nivel de registro %1 no válido");
-	Add(LocalizationKey::ERROR_LOG_LEVEL, "zh", "无效的日志级别 %1");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "en", "Invalid log level '%1'");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level '%1'");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "sv", "Ogiltig loggnivå '%1'");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "fr", "Niveau de journalisation invalide '%1'");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "es", "Nivel de registro '%1' no válido");
+	Add(LocalizationKey::ERROR_LOG_LEVEL, "zh", "无效的日志级别 '%1'");
 
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_ID, "en", "Missing device ID");
 	Add(LocalizationKey::ERROR_MISSING_DEVICE_ID, "de", "Fehlende Geräte-ID");

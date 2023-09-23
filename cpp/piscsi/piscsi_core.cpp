@@ -268,7 +268,7 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 
 		if (components.size() > 1) {
 			if (const string error = ProcessId(components[1], ScsiController::LUN_MAX, id, lun); !error.empty()) {
-				spdlog::warn("Invalid log level '" + level + "': " + error);
+				spdlog::warn("Error setting log level: " + error);
 				return false;
 			}
 		}
