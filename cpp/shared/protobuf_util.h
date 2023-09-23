@@ -29,10 +29,15 @@ namespace protobuf_util
 		return it != item.params().end() ? it->second : "";
 	}
 
+	void SetParam(auto& item, const string& key, string_view value)
+	{
+		if (!key.empty() && !value.empty()) {
+			auto& map = *item.mutable_params();
+			map[key] = value;
+		}
+	}
+
 	void ParseParameters(PbDeviceDefinition&, const string&);
-	void SetParam(PbCommand&, const string&, string_view);
-	void SetParam(PbDevice&, const string&, string_view);
-	void SetParam(PbDeviceDefinition&, const string&, string_view);
 	void SetPatternParams(PbCommand&, string_view);
 	void SetProductData(PbDeviceDefinition&, const string&);
 	string SetIdAndLun(PbDeviceDefinition&, const string&, int);

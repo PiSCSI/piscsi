@@ -41,30 +41,6 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 }
 
-void protobuf_util::SetParam(PbCommand& command, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *command.mutable_params();
-		map[key] = value;
-	}
-}
-
-void protobuf_util::SetParam(PbDevice& device, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *device.mutable_params();
-		map[key] = value;
-	}
-}
-
-void protobuf_util::SetParam(PbDeviceDefinition& device, const string& key, string_view value)
-{
-	if (!key.empty() && !value.empty()) {
-		auto& map = *device.mutable_params();
-		map[key] = value;
-	}
-}
-
 void protobuf_util::SetPatternParams(PbCommand& command, string_view patterns)
 {
 	string folder_pattern;
