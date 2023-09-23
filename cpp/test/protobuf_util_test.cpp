@@ -22,22 +22,13 @@ void TestSpecialDevice(const string& name)
 	EXPECT_EQ("", GetParam(device, "interfaces"));
 }
 
-TEST(ProtobufUtil, AddGetParam)
+TEST(ProtobufUtil, GetSetParam)
 {
+	// The implementation is a template, testing one possible T is sufficient
 	PbCommand command;
 	SetParam(command, "key", "value");
 	EXPECT_EQ("value", GetParam(command, "key"));
 	EXPECT_EQ("", GetParam(command, "xyz"));
-
-	PbDeviceDefinition definition;
-	SetParam(definition, "key", "value");
-	EXPECT_EQ("value", GetParam(definition, "key"));
-	EXPECT_EQ("", GetParam(definition, "xyz"));
-
-	PbDevice device;
-	SetParam(device, "key", "value");
-	const auto& it = device.params().find("key");
-	EXPECT_EQ("value", it->second);
 }
 
 TEST(ProtobufUtil, ParseParameters)
