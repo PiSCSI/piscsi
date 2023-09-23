@@ -150,6 +150,9 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 		locale = "en";
 	}
 
+	// Avoid duplicate messages while parsing
+	set_level(level::off);
+
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(static_cast<int>(args.size()), args.data(), "-Iib:d:n:p:r:t:z:D:F:L:P:R:C:v")) != -1) {
@@ -249,7 +252,9 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 		id_and_lun = "";
 	}
 
-	SetLogLevel(log_level);
+	if (!SetLogLevel(log_level)) {
+		throw parser_exception("Invalid log level '" + log_level + "'");
+	}
 
 	return locale;
 }
