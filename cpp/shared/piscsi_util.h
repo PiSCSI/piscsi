@@ -9,13 +9,18 @@
 
 #pragma once
 
+#include <climits>
 #include <string>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
 namespace piscsi_util
 {
+	// Separator for compound options like ID:LUN
+	static const char COMPONENT_SEPARATOR = ':';
+
 	string Join(const auto& collection, const string_view separator = ", ") {
 		ostringstream s;
 
@@ -30,9 +35,7 @@ namespace piscsi_util
 		return s.str();
 	}
 
-	// Separator for compound options like ID:LUN
-	static const char COMPONENT_SEPARATOR = ':';
-
+	vector<string> Split(const string&, int = INT_MAX);
 	string GetLocale();
 	bool GetAsUnsignedInt(const string&, int&);
 	string ProcessId(const string&, int, int&, int&);

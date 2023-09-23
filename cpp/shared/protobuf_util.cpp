@@ -92,7 +92,7 @@ string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& valu
 	}
 
 	device.set_id(id);
-	device.set_unit(lun);
+	device.set_unit(lun != -1 ? lun : 0);
 
 	return "";
 }

@@ -17,6 +17,39 @@
 using namespace std;
 using namespace piscsi_util;
 
+TEST(PiscsiUtilTest, Split)
+{
+	auto v = Split("this:is:a:test");
+	EXPECT_EQ(4, v.size());
+	EXPECT_EQ("this", v[0]);
+	EXPECT_EQ("is", v[1]);
+	EXPECT_EQ("a", v[2]);
+	EXPECT_EQ("test", v[3]);
+	v = Split("test");
+	EXPECT_EQ(1, v.size());
+	EXPECT_EQ("test", v[0]);
+	v = Split(":test");
+	EXPECT_EQ(2, v.size());
+	EXPECT_EQ("", v[0]);
+	EXPECT_EQ("test", v[1]);
+	v = Split("test:");
+	EXPECT_EQ(1, v.size());
+	EXPECT_EQ("test", v[0]);
+	v = Split(":");
+	EXPECT_EQ(1, v.size());
+	EXPECT_EQ("", v[0]);
+	v = Split("");
+	EXPECT_EQ(0, v.size());
+
+	v = Split("this:is:a:test", 1);
+	EXPECT_EQ(1, v.size());
+	EXPECT_EQ("this:is:a:test", v[0]);
+	v = Split("this:is:a:test", 2);
+	EXPECT_EQ(2, v.size());
+	EXPECT_EQ("this", v[0]);
+	EXPECT_EQ("is:a:test", v[1]);
+}
+
 TEST(PiscsiUtilTest, GetLocale)
 {
 	EXPECT_LE(2, GetLocale().size());
@@ -70,7 +103,7 @@ TEST(PiscsiUtilTest, ProcessId)
 	error = ProcessId("0", 32, id, lun);
 	EXPECT_TRUE(error.empty());
 	EXPECT_EQ(0, id);
-	EXPECT_EQ(0, lun);
+	EXPECT_EQ(-1, lun);
 
 	error = ProcessId("7:31", 32, id, lun);
 	EXPECT_TRUE(error.empty());

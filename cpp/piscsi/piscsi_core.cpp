@@ -262,21 +262,15 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	int lun = -1;
 	string level = log_level;
 
-	if (size_t separator_pos = log_level.find(COMPONENT_SEPARATOR); separator_pos != string::npos) {
-		level = log_level.substr(0, separator_pos);
+	const auto components = Split(log_level, 2);
+	if (!components.empty()) {
+		level = components[0];
 
-		const string l = log_level.substr(separator_pos + 1);
-		separator_pos = l.find(COMPONENT_SEPARATOR);
-		if (separator_pos != string::npos) {
-			const string error = ProcessId(l, ScsiController::LUN_MAX, id, lun);
-			if (!error.empty()) {
-				spdlog::warn("Invalid device ID/LUN specifier '" + l + "'");
+		if (components.size() > 1) {
+			if (const string error = ProcessId(components[1], ScsiController::LUN_MAX, id, lun); !error.empty()) {
+				spdlog::warn("Invalid log level '" + level + "': " + error);
 				return false;
 			}
-		}
-		else if (!GetAsUnsignedInt(l, id)) {
-			spdlog::warn("Invalid device ID specifier '" + l + "'");
-			return false;
 		}
 	}
 
@@ -292,10 +286,10 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 
 	if (id != -1) {
 		if (lun == -1) {
-			spdlog::info("Set log level for device ID " + to_string(id) + " to '" + level + "'");
+			spdlog::info("Set log level for device " + to_string(id) + " to '" + level + "'");
 		}
 		else {
-			spdlog::info("Set log level for device ID " + to_string(id) + ", LUN " + to_string(lun) + " to '" + level + "'");
+			spdlog::info("Set log level for device " + to_string(id) + ":" + to_string(lun) + " to '" + level + "'");
 		}
 	}
 	else {
