@@ -70,12 +70,14 @@ void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& dat
 			[[fallthrough]];
 
 		case 2:
-			device.set_vendor(components[0]);
 			device.set_product(components[1]);
+			[[fallthrough]];
+
+		case 1:
+			device.set_vendor(components[0]);
 			break;
 
 		default:
-			device.set_vendor(data);
 			break;
 	}
 }
