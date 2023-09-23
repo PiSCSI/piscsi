@@ -12,8 +12,8 @@
 #include <gtest/gtest.h>
 
 #include "generated/piscsi_interface.pb.h"
+#include "shared/protobuf_util.h"
 #include "shared/network_util.h"
-#include "shared/protobuf_serializer.h"
 #include "shared/piscsi_exceptions.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
@@ -21,6 +21,7 @@
 #include <netdb.h>
 
 using namespace piscsi_interface;
+using namespace protobuf_util;
 using namespace network_util;
 
 void SendCommand(const PbCommand& command, PbResult& result)
@@ -33,9 +34,8 @@ void SendCommand(const PbCommand& command, PbResult& result)
 	ASSERT_NE(-1, fd);
 	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye compiler
 	ASSERT_EQ(6, write(fd, "RASCSI", 6));
-	const ProtobufSerializer serializer;
-	serializer.SerializeMessage(fd, command);
-    serializer.DeserializeMessage(fd, result);
+	SerializeMessage(fd, command);
+    DeserializeMessage(fd, result);
     close(fd);
 }
 

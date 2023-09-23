@@ -10,7 +10,6 @@
 #pragma once
 
 #include "localizer.h"
-#include "shared/protobuf_serializer.h"
 #include "generated/piscsi_interface.pb.h"
 #include <string>
 
@@ -19,8 +18,6 @@ using namespace piscsi_interface;
 
 class CommandContext
 {
-	const ProtobufSerializer serializer;
-
 	const Localizer localizer;
 
 	PbCommand command;

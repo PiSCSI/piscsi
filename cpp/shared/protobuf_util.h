@@ -13,6 +13,7 @@
 
 #include "generated/piscsi_interface.pb.h"
 #include <string>
+#include <span>
 #include <vector>
 
 using namespace std;
@@ -41,4 +42,8 @@ namespace protobuf_util
 	void SetProductData(PbDeviceDefinition&, const string&);
 	string SetIdAndLun(PbDeviceDefinition&, const string&, int);
 	string ListDevices(const vector<PbDevice>&);
+
+	void SerializeMessage(int, const google::protobuf::Message&);
+	void DeserializeMessage(int, google::protobuf::Message&);
+	size_t ReadBytes(int, span<byte>);
 }

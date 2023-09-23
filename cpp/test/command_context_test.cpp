@@ -11,10 +11,12 @@
 
 #include "test/test_shared.h"
 #include "shared/piscsi_exceptions.h"
-#include "shared/protobuf_serializer.h"
+#include "shared/protobuf_util.h"
 #include "piscsi/command_context.h"
 #include <fcntl.h>
 #include <unistd.h>
+
+using namespace protobuf_util;
 
 TEST(CommandContext, ReadCommand)
 {
@@ -53,10 +55,9 @@ TEST(CommandContext, ReadCommand)
 
 	const string filename = CreateTempFileWithData(data).string();
 	fd = open(filename.c_str(), O_RDWR | O_APPEND);
-	ProtobufSerializer serializer;
 	PbCommand command;
 	command.set_operation(PbOperation::SERVER_INFO);
-	serializer.SerializeMessage(fd, command);
+	SerializeMessage(fd, command);
 	close(fd);
 	fd = open(filename.c_str(), O_RDONLY);
 	CommandContext context6(fd);
@@ -84,10 +85,9 @@ TEST(CommandContext, WriteResult)
 	context.WriteResult(result);
 	close(fd);
 
-	ProtobufSerializer serializer;
 	fd = open(filename.c_str(), O_RDONLY);
 	result.set_status(true);
-	serializer.DeserializeMessage(fd, result);
+	DeserializeMessage(fd, result);
 	close(fd);
 	EXPECT_FALSE(result.status());
 	EXPECT_EQ(PbErrorCode::UNAUTHORIZED, result.error_code());

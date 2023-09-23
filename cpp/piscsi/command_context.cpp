@@ -8,24 +8,26 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
+#include "shared/protobuf_util.h"
 #include "command_context.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 
 using namespace std;
 using namespace piscsi_interface;
+using namespace protobuf_util;
 
 bool CommandContext::ReadCommand()
 {
 	// Read magic string
 	array<byte, 6> magic;
-	if (const size_t bytes_read = serializer.ReadBytes(fd, magic); bytes_read) {
+	if (const size_t bytes_read = ReadBytes(fd, magic); bytes_read) {
 		if (bytes_read != magic.size() || memcmp(magic.data(), "RASCSI", magic.size())) {
 			throw io_exception("Invalid magic");
 		}
 
 		// Fetch the command
-		serializer.DeserializeMessage(fd, command);
+		DeserializeMessage(fd, command);
 
 		return true;
 	}
@@ -37,7 +39,7 @@ void CommandContext::WriteResult(const PbResult& result) const
 {
 	// The descriptor is -1 when devices are not attached via the remote interface but by the piscsi tool
 	if (fd != -1) {
-		serializer.SerializeMessage(fd, result);
+		SerializeMessage(fd, result);
 	}
 }
 

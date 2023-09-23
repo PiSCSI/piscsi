@@ -75,8 +75,7 @@ SRC_PROTOC = piscsi_interface.proto
 SRC_GENERATED = $(GENERATED_DIR)/piscsi_interface.pb.cpp
 
 SRC_PROTOBUF = \
-	shared/protobuf_util.cpp \
-	shared/protobuf_serializer.cpp
+	shared/protobuf_util.cpp
 
 SRC_SHARED = \
 	shared/piscsi_version.cpp \
