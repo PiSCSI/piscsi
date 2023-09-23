@@ -23,9 +23,14 @@ namespace protobuf_util
 {
 	static const char KEY_VALUE_SEPARATOR = '=';
 
+	template<typename T>
+	string GetParam(const T& item, const string& key)
+	{
+		const auto& it = item.params().find(key);
+		return it != item.params().end() ? it->second : "";
+	}
+
 	void ParseParameters(PbDeviceDefinition&, const string&);
-	string GetParam(const PbCommand&, const string&);
-	string GetParam(const PbDeviceDefinition&, const string&);
 	void SetParam(PbCommand&, const string&, string_view);
 	void SetParam(PbDevice&, const string&, string_view);
 	void SetParam(PbDeviceDefinition&, const string&, string_view);

@@ -41,18 +41,6 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 }
 
-string protobuf_util::GetParam(const PbCommand& command, const string& key)
-{
-	const auto& it = command.params().find(key);
-	return it != command.params().end() ? it->second : "";
-}
-
-string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
-{
-	const auto& it = device.params().find(key);
-	return it != device.params().end() ? it->second : "";
-}
-
 void protobuf_util::SetParam(PbCommand& command, const string& key, string_view value)
 {
 	if (!key.empty() && !value.empty()) {
