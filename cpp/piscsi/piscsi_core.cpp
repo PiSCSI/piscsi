@@ -145,10 +145,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 	string name;
 	string id_and_lun;
 
-	const char *locale = setlocale(LC_MESSAGES, "");
-	if (locale == nullptr || !strcmp(locale, "C")) {
-		locale = "en";
-	}
+	string locale = GetLocale();
 
 	// Avoid duplicate messages while parsing
 	set_level(level::off);

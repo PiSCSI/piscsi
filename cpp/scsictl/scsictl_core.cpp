@@ -76,10 +76,7 @@ int ScsiCtl::run(const vector<char *>& args) const
 	string token;
 	bool list = false;
 
-	const char *locale = setlocale(LC_MESSAGES, "");
-	if (locale == nullptr || !strcmp(locale, "C")) {
-		locale = "en";
-	}
+	string locale = GetLocale();
 
 	opterr = 1;
 	int opt;
@@ -215,7 +212,7 @@ int ScsiCtl::run(const vector<char *>& args) const
                 break;
 
 			case 'v':
-				cout << "scsictl version: " << piscsi_get_version_string() << endl;
+				cout << "scsictl version: " << piscsi_get_version_string() << '\n';
 				exit(EXIT_SUCCESS);
 				break;
 

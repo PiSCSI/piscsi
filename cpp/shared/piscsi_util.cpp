@@ -19,6 +19,16 @@
 using namespace std;
 using namespace filesystem;
 
+string piscsi_util::GetLocale()
+{
+	const char *locale = setlocale(LC_MESSAGES, "");
+	if (locale == nullptr || !strcmp(locale, "C")) {
+		locale = "en";
+	}
+
+	return locale;
+}
+
 bool piscsi_util::GetAsUnsignedInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {

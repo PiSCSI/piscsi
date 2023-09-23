@@ -33,6 +33,7 @@ namespace piscsi_util
 	// Separator for compound options like ID:LUN
 	static const char COMPONENT_SEPARATOR = ':';
 
+	string GetLocale();
 	bool GetAsUnsignedInt(const string&, int&);
 	string ProcessId(const string&, int, int&, int&);
 	string Banner(string_view);
