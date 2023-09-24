@@ -17,6 +17,7 @@
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "hal/systimer.h"
+#include "controllers/controller_manager.h"
 #include "shared/piscsi_exceptions.h"
 #include "shared/piscsi_util.h"
 #include "shared/piscsi_version.h"
@@ -57,8 +58,9 @@ bool ScsiDump::Banner(span<char *> args) const
 
     if (args.size() < 2 || string(args[1]) == "-h" || string(args[1]) == "--help") {
         cout << "Usage: " << args[0] << " -t ID[:LUN] [-i BID] -f FILE [-v] [-r] [-s BUFFER_SIZE] [-p]\n"
-             << " ID is the target device ID (0-7).\n"
-             << " LUN is the optional target device LUN (0-7). Default is 0.\n"
+             << " ID is the target device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n"
+             << " LUN is the optional target device LUN (0-" << (ControllerManager::GetScsiLunMax() -1 ) << ")."
+			 << " Default is 0.\n"
              << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
              << " FILE is the dump file path.\n"
              << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << to_string(MINIMUM_BUFFER_SIZE)
@@ -114,7 +116,7 @@ void ScsiDump::ParseArguments(span<char *> args)
             break;
 
         case 't': {
-            const string error = ProcessId(optarg, 8, target_id, target_lun);
+            const string error = ProcessId(optarg, target_id, target_lun);
             if (!error.empty()) {
                 throw parser_exception(error);
             }

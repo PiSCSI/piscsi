@@ -38,6 +38,9 @@ public:
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 	void FlushCaches() const;
 
+	static int GetScsiIdMax() { return 8; }
+	static int GetScsiLunMax() { return 32; }
+
 private:
 
 	// Controllers mapped to their device IDs

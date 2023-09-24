@@ -16,6 +16,7 @@
 #include "shared/piscsi_exceptions.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
+#include "controllers/controller_manager.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "devices/mode_page_device.h"
@@ -29,7 +30,7 @@
 
 using namespace scsi_defs;
 
-ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, LUN_MAX)
+ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
 {
 	logger.SetIdAndLun(target_id, -1);
 

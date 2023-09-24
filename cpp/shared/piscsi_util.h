@@ -38,7 +38,7 @@ namespace piscsi_util
 	vector<string> Split(const string&, char, int = INT_MAX);
 	string GetLocale();
 	bool GetAsUnsignedInt(const string&, int&);
-	string ProcessId(const string&, int, int&, int&);
+	string ProcessId(const string&, int&, int&);
 	string Banner(string_view);
 
 	string GetExtensionLowerCase(string_view);

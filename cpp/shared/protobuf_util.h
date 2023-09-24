@@ -40,7 +40,7 @@ namespace protobuf_util
 	void ParseParameters(PbDeviceDefinition&, const string&);
 	void SetPatternParams(PbCommand&, const string&);
 	void SetProductData(PbDeviceDefinition&, const string&);
-	string SetIdAndLun(PbDeviceDefinition&, const string&, int);
+	string SetIdAndLun(PbDeviceDefinition&, const string&);
 	string ListDevices(const vector<PbDevice>&);
 
 	void SerializeMessage(int, const google::protobuf::Message&);

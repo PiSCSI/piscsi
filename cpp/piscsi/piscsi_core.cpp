@@ -45,8 +45,8 @@ void Piscsi::Banner(span<char *> args) const
 
 	if ((args.size() > 1 && strcmp(args[1], "-h") == 0) || (args.size() > 1 && strcmp(args[1], "--help") == 0)){
 		cout << "\nUsage: " << args[0] << " [-idID[:LUN] FILE] ...\n\n";
-		cout << " ID is SCSI device ID (0-7).\n";
-		cout << " LUN is the optional logical unit (0-31).\n";
+		cout << " ID is SCSI device ID (0-" << (ControllerManager::GetScsiIdMax() - 1) << ").\n";
+		cout << " LUN is the optional logical unit (0-" << (ControllerManager::GetScsiLunMax() - 1) <<").\n";
 		cout << " FILE is a disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n";
 		cout << " Image type is detected based on file extension if no explicit type is specified.\n";
 		cout << "  hd1 : SCSI-1 HD image (Non-removable generic SCSI-1 HD image)\n";
@@ -231,7 +231,7 @@ string Piscsi::ParseArguments(span<char *> args, PbCommand& command, int& port, 
 		auto device = command.add_devices();
 
 		if (!id_and_lun.empty()) {
-			if (const string error = SetIdAndLun(*device, id_and_lun, ScsiController::LUN_MAX); !error.empty()) {
+			if (const string error = SetIdAndLun(*device, id_and_lun); !error.empty()) {
 				throw parser_exception(error);
 			}
 		}
@@ -266,7 +266,7 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 		level = components[0];
 
 		if (components.size() > 1) {
-			if (const string error = ProcessId(components[1], ScsiController::LUN_MAX, id, lun); !error.empty()) {
+			if (const string error = ProcessId(components[1], id, lun); !error.empty()) {
 				spdlog::warn("Error setting log level: " + error);
 				return false;
 			}

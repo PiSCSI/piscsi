@@ -60,52 +60,52 @@ TEST(PiscsiUtilTest, ProcessId)
 	int id = -1;
 	int lun = -1;
 
-	string error = ProcessId("", 32, id, lun);
+	string error = ProcessId("", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("8", 32, id, lun);
+	error = ProcessId("8", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("0:32", 32, id, lun);
+	error = ProcessId("0:32", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("-1:", 32, id, lun);
+	error = ProcessId("-1:", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("0:-1", 32, id, lun);
+	error = ProcessId("0:-1", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("a", 32, id, lun);
+	error = ProcessId("a", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("a:0", 32, id, lun);
+	error = ProcessId("a:0", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("0:a", 32, id, lun);
+	error = ProcessId("0:a", id, lun);
 	EXPECT_FALSE(error.empty());
 	EXPECT_EQ(-1, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("0", 32, id, lun);
+	error = ProcessId("0", id, lun);
 	EXPECT_TRUE(error.empty());
 	EXPECT_EQ(0, id);
 	EXPECT_EQ(-1, lun);
 
-	error = ProcessId("7:31", 32, id, lun);
+	error = ProcessId("7:31", id, lun);
 	EXPECT_TRUE(error.empty());
 	EXPECT_EQ(7, id);
 	EXPECT_EQ(31, lun);

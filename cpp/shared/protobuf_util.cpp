@@ -80,11 +80,11 @@ void protobuf_util::SetProductData(PbDeviceDefinition& device, const string& dat
 	}
 }
 
-string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& value, int max_luns)
+string protobuf_util::SetIdAndLun(PbDeviceDefinition& device, const string& value)
 {
 	int id;
 	int lun;
-	if (const string error = ProcessId(value, max_luns, id, lun); !error.empty()) {
+	if (const string error = ProcessId(value, id, lun); !error.empty()) {
 		return error;
 	}
 
