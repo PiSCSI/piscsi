@@ -262,8 +262,7 @@ bool Piscsi::SetLogLevel(const string& log_level) const
 	int lun = -1;
 	string level = log_level;
 
-	const auto& components = Split(log_level, COMPONENT_SEPARATOR, 2);
-	if (!components.empty()) {
+	if (const auto& components = Split(log_level, COMPONENT_SEPARATOR, 2); !components.empty()) {
 		level = components[0];
 
 		if (components.size() > 1) {

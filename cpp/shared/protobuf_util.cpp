@@ -36,8 +36,7 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 	}
 
 	for (const auto& p : Split(params, COMPONENT_SEPARATOR)) {
-		const auto& param = Split(p, KEY_VALUE_SEPARATOR, 2);
-		if (param.size() == 2) {
+		if (const auto& param = Split(p, KEY_VALUE_SEPARATOR, 2); param.size() == 2) {
 			SetParam(device, param[0], param[1]);
 		}
 	}
@@ -48,8 +47,7 @@ void protobuf_util::SetPatternParams(PbCommand& command, const string& patterns)
 	string folder_pattern;
 	string file_pattern;
 
-	const auto& components = Split(patterns, ':', 2);
-	if (components.size() == 2) {
+	if (const auto& components = Split(patterns, ':', 2); components.size() == 2) {
 		folder_pattern = components[0];
 		file_pattern = components[1];
 	}
