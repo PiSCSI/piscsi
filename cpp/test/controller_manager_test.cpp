@@ -77,3 +77,10 @@ TEST(ControllerManagerTest, AttachToController)
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device1));
 	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device1));
 }
+
+TEST(ControllerManager, ProcessOnController)
+{
+	ControllerManager controller_manager;
+
+	EXPECT_EQ(AbstractController::piscsi_shutdown_mode::NONE, controller_manager.ProcessOnController(0));
+}
