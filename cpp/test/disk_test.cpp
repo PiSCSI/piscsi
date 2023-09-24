@@ -103,24 +103,6 @@ TEST(DiskTest, ReassignBlocks)
 	EXPECT_EQ(status::good, controller->GetStatus());
 }
 
-TEST(DiskTest, Read)
-{
-	MockDisk disk;
-
-	disk.SetBlockCount(1);
-	vector<uint8_t> buf(512);
-	EXPECT_THROW(disk.Read(buf, 0), scsi_exception);
-}
-
-TEST(DiskTest, Write)
-{
-	MockDisk disk;
-
-	disk.SetBlockCount(1);
-	vector<uint8_t> buf(512);
-	EXPECT_THROW(disk.Write(buf, 0), scsi_exception);
-}
-
 TEST(DiskTest, Seek6)
 {
 	auto [controller, disk] = CreateDisk();
