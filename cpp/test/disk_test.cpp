@@ -350,7 +350,15 @@ TEST(DiskTest, Verify10)
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "VERIFY(10) must fail for a medium with 0 blocks";
 
+	disk->SetReady(true);
+	// Verify 0 sectors
 	disk->SetBlockCount(1);
+	EXPECT_CALL(*controller, Status);
+	disk->Dispatch(scsi_command::eCmdVerify10);
+	EXPECT_EQ(status::good, controller->GetStatus());
+
+	// Verify 1 sector with BytChk=0
+	controller->SetCmdByte(8, 1);
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdVerify10);
 	EXPECT_EQ(status::good, controller->GetStatus());
@@ -369,7 +377,15 @@ TEST(DiskTest, Verify16)
 			Property(&scsi_exception::get_asc, asc::lba_out_of_range))))
 		<< "VERIFY(16) must fail for a medium with 0 blocks";
 
+	disk->SetReady(true);
+	// Verify 0 sectors
 	disk->SetBlockCount(1);
+	EXPECT_CALL(*controller, Status);
+	disk->Dispatch(scsi_command::eCmdVerify16);
+	EXPECT_EQ(status::good, controller->GetStatus());
+
+	// Verify 1 sector with BytChk=0
+	controller->SetCmdByte(13, 1);
 	EXPECT_CALL(*controller, Status);
 	disk->Dispatch(scsi_command::eCmdVerify16);
 	EXPECT_EQ(status::good, controller->GetStatus());
