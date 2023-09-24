@@ -89,13 +89,13 @@ TEST(ControllerManager, FlushCaches)
 {
 	auto bus = make_shared<MockBus>();
 	ControllerManager controller_manager;
-	auto device1 = make_shared<MockPrimaryDevice>(0);
-	auto device2 = make_shared<MockPrimaryDevice>(0);
+	auto device = make_shared<MockPrimaryDevice>(0);
+	auto disk = make_shared<MockDisk>();
 
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device1));
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, 4, device2));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 4, disk));
 
-	EXPECT_CALL(*device1, FlushCache);
-	EXPECT_CALL(*device2, FlushCache);
+	EXPECT_CALL(*device, FlushCache);
+	EXPECT_CALL(*disk, FlushCache);
 	controller_manager.FlushCaches();
 }
