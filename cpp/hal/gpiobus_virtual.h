@@ -13,7 +13,6 @@
 
 #include "hal/data_sample_raspberry.h"
 #include "hal/gpiobus.h"
-#include "shared/log.h"
 #include "shared/scsi.h"
 
 #include <map>

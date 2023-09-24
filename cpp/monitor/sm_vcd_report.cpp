@@ -11,7 +11,7 @@
 
 #include "hal/data_sample.h"
 #include "hal/gpiobus.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include "sm_core.h"
 #include "sm_reports.h"
 #include <fstream>

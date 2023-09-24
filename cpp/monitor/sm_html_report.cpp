@@ -9,7 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
+#include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "sm_reports.h"
 #include <iostream>

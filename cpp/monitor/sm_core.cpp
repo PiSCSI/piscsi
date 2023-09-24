@@ -13,7 +13,7 @@
 #include "hal/gpiobus.h"
 #include "hal/gpiobus_factory.h"
 #include "monitor/sm_reports.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "shared/piscsi_util.h"
 #include <climits>

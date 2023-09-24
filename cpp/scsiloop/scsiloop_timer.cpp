@@ -10,7 +10,7 @@
 #include "scsiloop_timer.h"
 #include "hal/systimer.h"
 #include "scsiloop/scsiloop_cout.h"
-#include "shared/log.h"
+#include "hal/log.h"
 
 int ScsiLoop_Timer::RunTimerTest(vector<string> &error_list)
 {

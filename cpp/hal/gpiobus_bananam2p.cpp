@@ -43,7 +43,7 @@
 #include "hal/pi_defs/bpi-gpio.h"
 #include "hal/sunxi_utils.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include "hal/log.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / (sizeof(x[0])))
 

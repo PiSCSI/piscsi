@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "shared/log.h"
+#include "hal/log.h"
 #include "shared/piscsi_version.h"
 #include "shared/piscsi_util.h"
 #include "spdlog/sinks/stdout_color_sinks.h"

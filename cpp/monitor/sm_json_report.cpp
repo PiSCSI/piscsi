@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "hal/data_sample_raspberry.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include "sm_reports.h"
 #include "string.h"
 #include <fstream>

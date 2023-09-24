@@ -14,7 +14,7 @@
 
 #include "hal/gpiobus.h"
 
-#include "shared/log.h"
+#include "hal/log.h"
 
 const std::string SysTimer_AllWinner::dev_mem_filename = "/dev/mem";
 

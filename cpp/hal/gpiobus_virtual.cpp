@@ -13,7 +13,7 @@
 #include "hal/gpiobus_virtual.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include "shared/log.h"
+#include "hal/log.h"
 #include <cstddef>
 #include <map>
 #include <memory>
