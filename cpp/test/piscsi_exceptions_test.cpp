@@ -3,7 +3,7 @@
 // SCSI Target Emulator PiSCSI
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2022-2023 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -44,10 +44,10 @@ TEST(PiscsiExceptionsTest, ScsiErrorException)
 	}
 
 	try {
-		throw scsi_exception(sense_key::unit_attention, asc::lba_out_of_range);
+		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
 	catch(const scsi_exception& e) {
-		EXPECT_EQ(sense_key::unit_attention, e.get_sense_key());
+		EXPECT_EQ(sense_key::illegal_request, e.get_sense_key());
 		EXPECT_EQ(asc::lba_out_of_range, e.get_asc());
 	}
 }
