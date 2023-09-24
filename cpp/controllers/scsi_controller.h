@@ -75,10 +75,6 @@ public:
 	void DataIn() override;
 	void DataOut() override;
 
-	// TODO Make non-virtual private as soon as SysTimer calls do not segfault anymore on a regular PC,
-	// e.g. by using ifdef __arm__. Currently the unit tests require this method to be public.
-	virtual void Execute();
-
 private:
 
 	DeviceLogger logger;
@@ -102,6 +98,9 @@ private:
 
 	void DataOutNonBlockOriented();
 	void Receive();
+
+	// TODO Make non-virtual as soon as SysTimer calls do not segfault anymore on a regular PC, e.g. by using ifdef __arm__.
+	virtual void Execute();
 
 	void ProcessCommand();
 	void ParseMessage();
