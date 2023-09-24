@@ -13,6 +13,11 @@
 
 using namespace std;
 
+shared_ptr<ScsiController> ControllerManager::CreateScsiController(BUS& bus, int id) const
+{
+	return make_shared<ScsiController>(bus, id);
+}
+
 bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryDevice> device)
 {
 	if (auto controller = FindController(id); controller != nullptr) {
@@ -21,7 +26,7 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 
 	// If this is LUN 0 create a new controller
 	if (device->GetLun() == 0) {
-		if (auto controller = make_shared<ScsiController>(bus, id); controller->AddDevice(device)) {
+		if (auto controller = CreateScsiController(bus, id); controller->AddDevice(device)) {
 			controllers[id] = controller;
 
 			return true;

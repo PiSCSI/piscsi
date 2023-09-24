@@ -19,6 +19,7 @@
 
 using namespace std;
 
+class ScsiController;
 class PrimaryDevice;
 
 class ControllerManager
@@ -28,6 +29,7 @@ public:
 	ControllerManager() = default;
 	~ControllerManager() = default;
 
+	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
 	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;

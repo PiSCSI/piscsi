@@ -49,6 +49,16 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
 }
 
+TEST(ControllerManagerTest, CreateScsiController)
+{
+	const int ID = 6;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+
+	const auto& controller = controller_manager.CreateScsiController(*bus, ID);
+	EXPECT_EQ(ID, controller->GetTargetId());
+}
+
 TEST(ControllerManagerTest, AttachToController)
 {
 	const int ID = 4;
