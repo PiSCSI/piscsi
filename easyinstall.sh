@@ -876,6 +876,8 @@ function installMacproxy {
 
 # Installs vsftpd (FTP server)
 function installFtp() {
+    echo
+    echo "Installing packages..."
     sudo apt-get update && sudo apt-get install vsftpd --assume-yes --no-install-recommends </dev/null
 
     echo
@@ -905,11 +907,11 @@ function installSamba() {
         fi
     fi
 
-    echo ""
-    echo "Installing dependencies..."
+    echo
+    echo "Installing packages..."
     sudo apt-get update || true
     sudo apt-get install samba --no-install-recommends --assume-yes </dev/null
-    echo ""
+    echo
     echo "Modifying $SAMBA_CONFIG_PATH/smb.conf ..."
     if [[ `sudo grep -c "server min protocol = NT1" $SAMBA_CONFIG_PATH/smb.conf` -eq 0 ]]; then
         # Allow Windows XP clients and earlier to connect to the server
@@ -925,6 +927,38 @@ function installSamba() {
 
     echo "Please create a Samba password for user $USER"
     sudo smbpasswd -a "$USER"
+}
+
+# Installs and configures Webmin
+function installWebmin() {
+    WEBMIN_PATH="/usr/share/webmin"
+    WEBMIN_MODULE_VERSION="1.0"
+
+    if [ -d "$WEBMIN_PATH" ]; then
+        echo
+        echo "Webmin dir $WEBMIN_PATH already exists."
+        echo "This installation process may overwrite existing software."
+        echo
+        echo "Do you want to proceed with the installation? [y/N]"
+        read -r REPLY
+        if ! [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            exit 0
+        fi
+    fi
+
+    echo
+    echo "Installing packages..."
+    sudo apt-get update || true
+    sudo apt-get install curl --no-install-recommends --assume-yes </dev/null
+    curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
+    sudo sh setup-repos.sh
+    rm setup-repos.sh
+    sudo apt-get install webmin --install-recommends
+    echo
+    echo "Downloading and installing Webmin module..."
+    rm netatalk2-wbm.tgz || true
+    wget -O netatalk2-wbm.tgz "https://github.com/Netatalk/netatalk-webmin/releases/download/netatalk2-$WEBMIN_MODULE_VERSION/netatalk2-wbm-$WEBMIN_MODULE_VERSION.tgz" </dev/null
+    sudo /usr/share/webmin/install-module.pl netatalk2-wbm.tgz
 }
 
 # updates configuration files and installs packages needed for the OLED screen script
@@ -1393,6 +1427,16 @@ function runChoice() {
               installPackagesStandalone
               compilePiscsi
           ;;
+          17)
+              echo "Install Webmin"
+              echo "This script will make the following changes to your system:"
+              echo "- Add a 3rd party apt repository"
+              echo "- Install and start the Webmin webapp"
+	      echo "- Install the netatalk2 Webmin module"
+              installWebmin
+              echo "Install Webmin - Complete!"
+	      echo "The Webmin webapp should now be listening to port 10000 on this system"
+          ;;
           99)
               echo "Hidden setup mode for running the pi-gen utility"
               echo "This shouldn't be used by normal users"
@@ -1426,8 +1470,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "16" ]) ; do
-       echo -n "Enter your choice (0-16) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && ([ $choice -eq "99" ] || [ $choice -le "17" ]) ; do
+       echo -n "Enter your choice (0-17) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -1460,6 +1504,7 @@ function showMenu() {
     echo "EXPERIMENTAL FEATURES"
     echo " 15) Share the images dir over AppleShare (requires Netatalk)"
     echo " 16) Compile PiSCSI binaries"
+    echo " 17) Install Webmin to manage Netatalk and Samba"
 }
 
 # parse arguments passed to the script
