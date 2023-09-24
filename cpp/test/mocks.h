@@ -323,6 +323,8 @@ class MockDisk : public Disk
 	FRIEND_TEST(DiskTest, Rezero);
 	FRIEND_TEST(DiskTest, FormatUnit);
 	FRIEND_TEST(DiskTest, ReassignBlocks);
+	FRIEND_TEST(DiskTest, Read);
+	FRIEND_TEST(DiskTest, Write);
 	FRIEND_TEST(DiskTest, Seek6);
 	FRIEND_TEST(DiskTest, Seek10);
 	FRIEND_TEST(DiskTest, Read6);
