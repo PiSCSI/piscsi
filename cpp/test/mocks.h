@@ -251,6 +251,7 @@ class MockPrimaryDevice : public PrimaryDevice
 public:
 
 	MOCK_METHOD(vector<uint8_t>, InquiryInternal, (), (const));
+	MOCK_METHOD(void, FlushCache, (), ());
 
 	explicit MockPrimaryDevice(int lun) : PrimaryDevice(UNDEFINED, lun) {}
 	~MockPrimaryDevice() override = default;

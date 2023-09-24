@@ -84,3 +84,18 @@ TEST(ControllerManager, ProcessOnController)
 
 	EXPECT_EQ(AbstractController::piscsi_shutdown_mode::NONE, controller_manager.ProcessOnController(0));
 }
+
+TEST(ControllerManager, FlushCaches)
+{
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	auto device1 = make_shared<MockPrimaryDevice>(0);
+	auto device2 = make_shared<MockPrimaryDevice>(0);
+
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device1));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, 4, device2));
+
+	EXPECT_CALL(*device1, FlushCache);
+	EXPECT_CALL(*device2, FlushCache);
+	controller_manager.FlushCaches();
+}
