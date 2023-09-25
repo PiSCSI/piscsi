@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include "network_util.h"
-#ifdef __linux__
 #include <cstring>
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
@@ -17,7 +16,6 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <unistd.h>
-#endif
 
 using namespace std;
 
