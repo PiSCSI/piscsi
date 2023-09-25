@@ -9,8 +9,9 @@
 
 #include <gtest/gtest.h>
 
-#include "shared/network_util.h"
 #include <netdb.h>
+#include <netinet/in.h>
+#include "shared/network_util.h"
 
 using namespace network_util;
 
