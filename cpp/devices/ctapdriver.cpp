@@ -179,12 +179,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		else {
 			string address = inet;
 			string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
-			if (size_t separatorPos = inet.find('/'); separatorPos != string::npos) {
-				address = inet.substr(0, separatorPos);
+			const auto& components = Split(inet, '/', 2);
+			if (components.size() == 2) {
+				address = components[0];
 
 				int m;
-				if (!GetAsUnsignedInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
-					return cleanUp("Invalid CIDR netmask notation '" + inet.substr(separatorPos + 1) + "'");
+				if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
+					return cleanUp("Invalid CIDR netmask notation '" + components[1] + "'");
 				}
 
 				// long long is required for compatibility with 32 bit platforms
