@@ -164,51 +164,12 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		spdlog::info("Creating " + BRIDGE_NAME + " for interface " + bridge_interface);
 
 		if (bridge_interface == "eth0") {
-			spdlog::trace("brctl addbr " + BRIDGE_NAME);
-
-			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-				return cleanUp("Can't ioctl SIOCBRADDBR");
-			}
-
-			spdlog::trace("brctl addif " + BRIDGE_NAME + " " + bridge_interface);
-
-			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
+			if (const string error = SetUpEth0(br_socket_fd, bridge_interface); !error.empty()) {
 				return cleanUp(error);
 			}
 		}
-		else {
-			const auto [address, netmask] = ExtractAddressAndMask(inet);
-			if (address.empty() || netmask.empty()) {
-				return cleanUp("Error extracting inet address and netmask");
-			}
-
-			spdlog::trace("brctl addbr " + BRIDGE_NAME);
-
-			if (ioctl(br_socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
-				return cleanUp("Can't ioctl SIOCBRADDBR");
-			}
-
-			ifreq ifr_a;
-			ifr_a.ifr_addr.sa_family = AF_INET;
-			strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-			if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
-				inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
-				return cleanUp("Can't convert '" + address + "' into a network address");
-			}
-
-			ifreq ifr_n;
-			ifr_n.ifr_addr.sa_family = AF_INET;
-			strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
-			if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
-				inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
-				return cleanUp("Can't convert '" + netmask + "' into a netmask");
-			}
-
-			spdlog::trace("ip address add " + inet + " dev " + BRIDGE_NAME);
-
-			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
-				return cleanUp("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK");
-			}
+		else if (const string error = SetUpNonEth0(br_socket_fd, ip_fd, inet); !error.empty()) {
+			return cleanUp(error);
 		}
 
 		spdlog::trace("ip link set dev " + BRIDGE_NAME + " up");
@@ -252,11 +213,11 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
+pair<string, string> CTapDriver::ExtractAddressAndMask(const string& inet) const
 {
-	string address = s;
+	string address = inet;
 	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
-	const auto& components = Split(s, '/', 2);
+	const auto& components = Split(inet, '/', 2);
 	if (components.size() == 2) {
 		address = components[0];
 
@@ -273,6 +234,61 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 	}
 
 	return { address, netmask };
+}
+
+string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface) const
+{
+	spdlog::trace("brctl addbr " + BRIDGE_NAME);
+
+	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
+		return "Can't ioctl SIOCBRADDBR";
+	}
+
+	spdlog::trace("brctl addif " + BRIDGE_NAME + " " + bridge_interface);
+
+	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
+		return error;
+	}
+
+	return "";
+}
+
+string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& inet) const
+{
+	const auto [address, netmask] = ExtractAddressAndMask(inet);
+	if (address.empty() || netmask.empty()) {
+		return "Error extracting inet address and netmask";
+	}
+
+	spdlog::trace("brctl addbr " + BRIDGE_NAME);
+
+	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
+		return "Can't ioctl SIOCBRADDBR";
+	}
+
+	ifreq ifr_a;
+	ifr_a.ifr_addr.sa_family = AF_INET;
+	strncpy(ifr_a.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
+	if (auto addr = (sockaddr_in*)&ifr_a.ifr_addr;
+		inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
+		return "Can't convert '" + address + "' into a network address";
+	}
+
+	ifreq ifr_n;
+	ifr_n.ifr_addr.sa_family = AF_INET;
+	strncpy(ifr_n.ifr_name, BRIDGE_NAME.c_str(), IFNAMSIZ - 1); //NOSONAR Using strncpy is safe
+	if (auto mask = (sockaddr_in*)&ifr_n.ifr_addr;
+		inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
+		return "Can't convert '" + netmask + "' into a netmask";
+	}
+
+	spdlog::trace("ip address add " + inet + " dev " + BRIDGE_NAME);
+
+	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
+		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
+	}
+
+	return "";
 }
 
 string CTapDriver::IpLink(bool enable) const

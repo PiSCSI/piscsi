@@ -43,6 +43,8 @@ public:
 private:
 
 	pair<string, string> ExtractAddressAndMask(const string&) const;
+	string SetUpEth0(int, const string&) const;
+	string SetUpNonEth0(int, int, const string&) const;
 
 	array<byte, 6> m_MacAddr;	// MAC Address
 
