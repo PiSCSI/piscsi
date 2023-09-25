@@ -10,7 +10,7 @@
 #include "mocks.h"
 #include "controllers/phase_handler.h"
 
-TEST(PhaseHandlerTest, Phases) //NOSONAR using enum is not supported by the bullseye compiler
+TEST(PhaseHandlerTest, Phases)
 {
 	MockPhaseHandler handler;
 

@@ -18,10 +18,10 @@
 #include <span>
 
 #ifndef ETH_FRAME_LEN
-#define ETH_FRAME_LEN 1514
+static const int ETH_FRAME_LEN = 1514;
 #endif
 #ifndef ETH_FCS_LEN
-#define ETH_FCS_LEN 4
+static const int ETH_FCS_LEN = 4;
 #endif
 
 using namespace std;
