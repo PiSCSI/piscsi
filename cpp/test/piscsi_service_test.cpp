@@ -17,6 +17,9 @@
 #include "shared/piscsi_exceptions.h"
 #include "piscsi/command_context.h"
 #include "piscsi/piscsi_service.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
 
