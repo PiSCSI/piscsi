@@ -38,9 +38,11 @@ string PiscsiService::Init(const callback& cb, int port)
 		return "Can't reuse address";
 	}
 
-	if (const sockaddr_in server = { .sin_family = PF_INET, .sin_port = htons((uint16_t)port),
-			.sin_addr { .s_addr = INADDR_ANY }, .sin_zero = {} };
-		bind(service_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bit_cast is not supported by the bullseye compiler
+	sockaddr_in server = {};
+	server.sin_family = PF_INET;
+	server.sin_port = htons((uint16_t)port);
+	server.sin_addr.s_addr = INADDR_ANY;
+	if (bind(service_socket, reinterpret_cast<const sockaddr *>(&server), sizeof(sockaddr_in)) < 0) { //NOSONAR bit_cast is not supported by the bullseye compiler
 		Stop();
 		return "Port " + to_string(port) + " is in use, is piscsi already running?";
 	}
