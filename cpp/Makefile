@@ -24,7 +24,7 @@ ifeq ("$(shell uname -s)","Linux")
 	CXXFLAGS += -Wno-psabi
 endif
 
-CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -MD -MP
+CXXFLAGS += -std=c++20 -iquote . -D_FILE_OFFSET_BITS=64 -DFMT_HEADER_ONLY -DSPDLOG_FMT_EXTERNAL -DSPDLOG_FMT_EXTERNAL -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CXXFLAGS += $(EXTRA_FLAGS)

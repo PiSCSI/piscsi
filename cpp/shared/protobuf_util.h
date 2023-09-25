@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include "generated/piscsi_interface.pb.h"
 #include <string>
 #include <span>
 #include <vector>
+#include "generated/piscsi_interface.pb.h"
 
 using namespace std;
 using namespace piscsi_interface;
