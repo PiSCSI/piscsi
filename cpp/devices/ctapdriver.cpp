@@ -253,9 +253,9 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface) cons
 	return "";
 }
 
-string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& inet) const
+string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
 {
-	const auto [address, netmask] = ExtractAddressAndMask(inet);
+	const auto [address, netmask] = ExtractAddressAndMask(d);
 	if (address.empty() || netmask.empty()) {
 		return "Error extracting inet address and netmask";
 	}
