@@ -54,7 +54,7 @@ CTapDriver::~CTapDriver()
 		if (const int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0); br_socket_fd < 0) {
 			LogErrno("Can't open bridge socket");
 		} else {
-			spdlog::trace("brctl delif " + BRIDGE_NAME + " piscsi0");
+			spdlog::trace(">brctl delif " + BRIDGE_NAME + " piscsi0");
 			if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", false); !error.empty()) {
 				spdlog::warn("Warning: Removing piscsi0 from the bridge failed: " + error);
 				spdlog::warn("You may need to manually remove the piscsi0 tap device from the bridge");
@@ -172,7 +172,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			return cleanUp(error);
 		}
 
-		spdlog::trace("ip link set dev " + BRIDGE_NAME + " up");
+		spdlog::trace(">ip link set dev " + BRIDGE_NAME + " up");
 
 		if (const string error = ip_link(ip_fd, BRIDGE_NAME.c_str(), true); !error.empty()) {
 			return cleanUp(error);
@@ -182,13 +182,13 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 		spdlog::info(BRIDGE_NAME + " is already available");
 	}
 
-	spdlog::trace("ip link set piscsi0 up");
+	spdlog::trace(">ip link set piscsi0 up");
 
 	if (const string error = ip_link(ip_fd, "piscsi0", true); !error.empty()) {
 		return cleanUp(error);
 	}
 
-	spdlog::trace("brctl addif " + BRIDGE_NAME + " piscsi0");
+	spdlog::trace(">brctl addif " + BRIDGE_NAME + " piscsi0");
 
 	if (const string error = br_setif(br_socket_fd, BRIDGE_NAME, "piscsi0", true); !error.empty()) {
 		return cleanUp(error);
@@ -238,13 +238,13 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 
 string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface) const
 {
-	spdlog::trace("brctl addbr " + BRIDGE_NAME);
+	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
 	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 		return "Can't ioctl SIOCBRADDBR";
 	}
 
-	spdlog::trace("brctl addif " + BRIDGE_NAME + " " + bridge_interface);
+	spdlog::trace(">brctl addif " + BRIDGE_NAME + " " + bridge_interface);
 
 	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
 		return error;
@@ -260,7 +260,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
 		return "Error extracting inet address and netmask";
 	}
 
-	spdlog::trace("brctl addbr " + BRIDGE_NAME);
+	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
 	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
 		return "Can't ioctl SIOCBRADDBR";
@@ -282,7 +282,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
 		return "Can't convert '" + netmask + "' into a netmask";
 	}
 
-	spdlog::trace("ip address add " + inet + " dev " + BRIDGE_NAME);
+	spdlog::trace(">ip address add " + inet + " dev " + BRIDGE_NAME);
 
 	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
@@ -294,7 +294,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
 string CTapDriver::IpLink(bool enable) const
 {
 	const int fd = socket(PF_INET, SOCK_DGRAM, 0);
-	spdlog::trace(string("ip link set piscsi0 ") + (enable ? "up" : "down"));
+	spdlog::trace(string(">ip link set piscsi0 ") + (enable ? "up" : "down"));
 	const string result = ip_link(fd, "piscsi0", enable);
 	close(fd);
 	return result;
