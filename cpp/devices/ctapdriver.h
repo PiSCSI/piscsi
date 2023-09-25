@@ -41,6 +41,9 @@ public:
 	static uint32_t Crc32(span<const uint8_t>);
 
 private:
+
+	pair<string, string> ExtractAddressAndMask(const string&) const;
+
 	array<byte, 6> m_MacAddr;	// MAC Address
 
 	int m_hTAP = -1;			// File handle

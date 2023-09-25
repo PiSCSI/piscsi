@@ -177,21 +177,9 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 			}
 		}
 		else {
-			string address = inet;
-			string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
-			const auto& components = Split(inet, '/', 2);
-			if (components.size() == 2) {
-				address = components[0];
-
-				int m;
-				if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
-					return cleanUp("Invalid CIDR netmask notation '" + components[1] + "'");
-				}
-
-				// long long is required for compatibility with 32 bit platforms
-				const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
-				netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
-						to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
+			const auto [address, netmask] = ExtractAddressAndMask(inet);
+			if (address.empty() || netmask.empty()) {
+				return cleanUp("Error extracting inet address and netmask");
 			}
 
 			spdlog::trace("brctl addbr " + BRIDGE_NAME);
@@ -262,6 +250,29 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 
 	return true;
 #endif
+}
+
+pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
+{
+	string address = s;
+	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
+	const auto& components = Split(s, '/', 2);
+	if (components.size() == 2) {
+		address = components[0];
+
+		int m;
+		if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
+			LogErrno("Invalid CIDR netmask notation '" + components[1] + "'");
+			return { "", "" };
+		}
+
+		// long long is required for compatibility with 32 bit platforms
+		const auto mask = (long long)(pow(2, 32) - (1 << (32 - m)));
+		netmask = to_string((mask >> 24) & 0xff) + '.' + to_string((mask >> 16) & 0xff) + '.' +
+				to_string((mask >> 8) & 0xff) + '.' + to_string(mask & 0xff);
+	}
+
+	return { address, netmask };
 }
 
 string CTapDriver::IpLink(bool enable) const
