@@ -217,8 +217,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 {
 	string address = s;
 	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
-	const auto& components = Split(inet, '/', 2);
-	if (components.size() == 2) {
+	if (const auto& components = Split(inet, '/', 2); components.size() == 2) {
 		address = components[0];
 
 		int m;
