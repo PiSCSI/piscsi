@@ -584,7 +584,7 @@ void Piscsi::ShutDown(AbstractController::piscsi_shutdown_mode shutdown_mode)
 {
 	Cleanup();
 
-	switch(shutdown_mode) {
+	switch(shutdown_mode) { //NOSONAR using enum is not supported by the bullseye compiler
 	case AbstractController::piscsi_shutdown_mode::STOP_PISCSI:
 		spdlog::info("PiSCSI shutdown requested");
 		break;
