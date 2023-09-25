@@ -237,6 +237,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 
 string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 {
+#ifdef __linux__
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
 	if (ioctl(socket_fd, SIOCBRADDBR, BRIDGE_NAME.c_str()) < 0) {
@@ -248,6 +249,7 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 	if (const string error = br_setif(socket_fd, BRIDGE_NAME, bridge_interface, true); !error.empty()) {
 		return error;
 	}
+#endif
 
 	return "";
 }
