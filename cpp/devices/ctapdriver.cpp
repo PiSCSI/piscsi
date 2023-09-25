@@ -256,6 +256,7 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 
 string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 {
+#ifdef __linux__
 	const auto [address, netmask] = ExtractAddressAndMask(s);
 	if (address.empty() || netmask.empty()) {
 		return "Error extracting inet address and netmask";
@@ -288,6 +289,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
 	}
+#endif
 
 	return "";
 }
