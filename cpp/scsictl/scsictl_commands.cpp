@@ -12,6 +12,7 @@
 #include "shared/protobuf_util.h"
 #include "shared/piscsi_exceptions.h"
 #include "scsictl_commands.h"
+#include <sys/socket.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
