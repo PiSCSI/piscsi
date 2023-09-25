@@ -189,7 +189,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t) const
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
-			if (!m_tap.PendingPackets()) {
+			if (!m_tap.HasPendingPackets()) {
 				response->length = 0;
 				response->flags = read_data_flags_t::e_no_more_data;
 				return DAYNAPORT_READ_HEADER_SZ;
@@ -214,7 +214,7 @@ int SCSIDaynaPort::Read(cdb_t cdb, vector<uint8_t>& buf, uint64_t) const
 				size = 64;
 			}
 			SetInt16(buf, 0, size);
-			SetInt32(buf, 2, m_tap.PendingPackets() ? 0x10 : 0x00);
+			SetInt32(buf, 2, m_tap.HasPendingPackets() ? 0x10 : 0x00);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver

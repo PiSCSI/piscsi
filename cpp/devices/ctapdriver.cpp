@@ -301,7 +301,7 @@ string CTapDriver::IpLink(bool enable) const
 
 void CTapDriver::Flush() const
 {
-	while (PendingPackets()) {
+	while (HasPendingPackets()) {
 		array<uint8_t, ETH_FRAME_LEN> m_garbage_buffer;
 		(void)Receive(m_garbage_buffer.data());
 	}
@@ -314,7 +314,7 @@ void CTapDriver::GetMacAddr(uint8_t *mac) const
 	memcpy(mac, m_MacAddr.data(), m_MacAddr.size());
 }
 
-bool CTapDriver::PendingPackets() const
+bool CTapDriver::HasPendingPackets() const
 {
 	assert(m_hTAP != -1);
 
@@ -346,7 +346,7 @@ int CTapDriver::Receive(uint8_t *buf) const
 	assert(m_hTAP != -1);
 
 	// Check if there is data that can be received
-	if (!PendingPackets()) {
+	if (!HasPendingPackets()) {
 		return 0;
 	}
 

@@ -34,7 +34,7 @@ public:
 	void GetMacAddr(uint8_t *) const;
 	int Receive(uint8_t *) const;
 	int Send(const uint8_t *, int) const;
-	bool PendingPackets() const;		// Check if there are IP packets available
+	bool HasPendingPackets() const;		// Check if there are IP packets available
 	string IpLink(bool) const;	// Enable/Disable the piscsi0 interface
 	void Flush() const;			// Purge all of the packets that are waiting to be processed
 
