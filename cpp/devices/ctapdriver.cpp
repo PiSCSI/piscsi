@@ -213,7 +213,7 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
+pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s)
 {
 	string address = s;
 	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
@@ -235,7 +235,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 	return { address, netmask };
 }
 
-string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface) const
+string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface)
 {
 	spdlog::trace(">brctl addbr " + BRIDGE_NAME);
 
@@ -252,9 +252,9 @@ string CTapDriver::SetUpEth0(int socket_fd, const string& bridge_interface) cons
 	return "";
 }
 
-string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
+string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& s)
 {
-	const auto [address, netmask] = ExtractAddressAndMask(d);
+	const auto [address, netmask] = ExtractAddressAndMask(s);
 	if (address.empty() || netmask.empty()) {
 		return "Error extracting inet address and netmask";
 	}
@@ -281,7 +281,7 @@ string CTapDriver::SetUpNonEth0(int socket_fd, int ip_fd, const string& d) const
 		return "Can't convert '" + netmask + "' into a netmask";
 	}
 
-	spdlog::trace(">ip address add " + inet + " dev " + BRIDGE_NAME);
+	spdlog::trace(">ip address add " + s + " dev " + BRIDGE_NAME);
 
 	if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 		return "Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK";
