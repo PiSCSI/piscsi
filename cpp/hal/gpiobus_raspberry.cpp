@@ -21,7 +21,9 @@
 #include <spdlog/spdlog.h>
 #include <map>
 #include <cstring>
+#ifdef __linux__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
