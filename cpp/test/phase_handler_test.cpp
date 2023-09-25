@@ -96,7 +96,7 @@ TEST(PhaseHandlerTest, Phases)
 }
 
 TEST(PhaseHandlerTest, ProcessPhase)
-{
+{ //NOSONAR using enum is not supported by the bullseye compiler
 	MockPhaseHandler handler;
 
 	handler.SetPhase(phase_t::selection);
