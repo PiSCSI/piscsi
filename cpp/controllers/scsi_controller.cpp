@@ -28,6 +28,10 @@
 #include <linux/if_tun.h>
 #endif
 
+#ifndef ETH_FRAME_LEN
+#define ETH_FRAME_LEN 1514
+#endif
+
 using namespace scsi_defs;
 
 ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
