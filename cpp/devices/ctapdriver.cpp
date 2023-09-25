@@ -223,7 +223,7 @@ pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 
 		int m;
 		if (!GetAsUnsignedInt(components[1], m) || m < 8 || m > 32) {
-			LogErrno("Invalid CIDR netmask notation '" + components[1] + "'");
+			spdlog::error("Invalid CIDR netmask notation '" + components[1] + "'");
 			return { "", "" };
 		}
 
