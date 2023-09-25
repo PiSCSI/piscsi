@@ -37,6 +37,10 @@
 #include <unordered_map>
 #include <array>
 
+#ifndef ETH_FRAME_LEN
+#define ETH_FRAME_LEN 1514
+#endif
+
 //===========================================================================
 //
 //	DaynaPort SCSI Link
