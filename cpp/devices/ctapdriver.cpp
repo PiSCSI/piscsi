@@ -213,9 +213,9 @@ bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 #endif
 }
 
-pair<string, string> CTapDriver::ExtractAddressAndMask(const string& inet) const
+pair<string, string> CTapDriver::ExtractAddressAndMask(const string& s) const
 {
-	string address = inet;
+	string address = s;
 	string netmask = "255.255.255.0"; //NOSONAR This hardcoded IP address is safe
 	const auto& components = Split(inet, '/', 2);
 	if (components.size() == 2) {
