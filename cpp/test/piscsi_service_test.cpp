@@ -35,7 +35,7 @@ void SendCommand(const PbCommand& command, PbResult& result)
 
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
 	ASSERT_NE(-1, fd);
-	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye compiler
+	EXPECT_TRUE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
 	ASSERT_EQ(6, write(fd, "RASCSI", 6));
 	SerializeMessage(fd, command);
     DeserializeMessage(fd, result);
@@ -76,7 +76,7 @@ TEST(PiscsiServiceTest, Execute)
 	ASSERT_NE(-1, fd);
 
 	server_addr.sin_port = htons(uint16_t(9999));
-	EXPECT_FALSE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running"; //NOSONAR bit_cast is not supported by the bullseye compiler
+	EXPECT_FALSE(connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr)) >= 0) << "Service should not be running"; //NOSONAR bit_cast is not supported by the bullseye clang++ compiler
 
 	close(fd);
 

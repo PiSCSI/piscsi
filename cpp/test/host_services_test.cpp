@@ -36,7 +36,7 @@ TEST(HostServicesTest, Inquiry)
 TEST(HostServicesTest, StartStopUnit)
 {
 	auto [controller, services] = CreateDevice(SCHS);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto s = services;
 
     // STOP
@@ -66,7 +66,7 @@ TEST(HostServicesTest, StartStopUnit)
 TEST(HostServicesTest, ModeSense6)
 {
 	auto [controller, services] = CreateDevice(SCHS);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto s = services;
 
 	EXPECT_TRUE(services->Init({}));
@@ -108,7 +108,7 @@ TEST(HostServicesTest, ModeSense6)
 TEST(HostServicesTest, ModeSense10)
 {
 	auto [controller, services] = CreateDevice(SCHS);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto s = services;
 	
 	EXPECT_TRUE(services->Init({}));

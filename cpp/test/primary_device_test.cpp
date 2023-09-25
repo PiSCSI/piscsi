@@ -90,7 +90,7 @@ TEST(PrimaryDeviceTest, CheckReservation)
 }
 
 TEST(PrimaryDeviceTest, ReserveReleaseUnit)
-{ //NOSONAR using enum is not supported by the bullseye compiler
+{ //NOSONAR using enum is not supported by the bullseye clang++ compiler
 	auto [controller, device] = CreatePrimaryDevice();
 
 	device->Dispatch(scsi_command::eCmdReserve6);
@@ -126,7 +126,7 @@ TEST(PrimaryDeviceTest, DiscardReservation)
 TEST(PrimaryDeviceTest, TestUnitReady)
 {
 	auto [controller, device] = CreatePrimaryDevice();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = device;
 
 	device->SetReset(true);
@@ -172,7 +172,7 @@ TEST(PrimaryDeviceTest, TestUnitReady)
 TEST(PrimaryDeviceTest, Inquiry)
 {
 	auto [controller, device] = CreatePrimaryDevice();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = device;
 
 	// ALLOCATION LENGTH
@@ -238,7 +238,7 @@ TEST(PrimaryDeviceTest, Inquiry)
 TEST(PrimaryDeviceTest, RequestSense)
 {
 	auto [controller, device] = CreatePrimaryDevice();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = device;
 
 	// ALLOCATION LENGTH
@@ -258,7 +258,7 @@ TEST(PrimaryDeviceTest, RequestSense)
 TEST(PrimaryDeviceTest, SendDiagnostic)
 {
 	auto [controller, device] = CreatePrimaryDevice();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = device;
 
 	EXPECT_CALL(*controller, Status);

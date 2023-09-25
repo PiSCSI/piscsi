@@ -46,7 +46,7 @@ TEST(DiskTest, Dispatch)
 TEST(DiskTest, Rezero)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRezero); }, Throws<scsi_exception>(AllOf(
@@ -64,7 +64,7 @@ TEST(DiskTest, Rezero)
 TEST(DiskTest, FormatUnit)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdFormatUnit); }, Throws<scsi_exception>(AllOf(
@@ -88,7 +88,7 @@ TEST(DiskTest, FormatUnit)
 TEST(DiskTest, ReassignBlocks)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReassignBlocks); }, Throws<scsi_exception>(AllOf(
@@ -106,7 +106,7 @@ TEST(DiskTest, ReassignBlocks)
 TEST(DiskTest, Seek6)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek6); }, Throws<scsi_exception>(AllOf(
@@ -132,7 +132,7 @@ TEST(DiskTest, Seek6)
 TEST(DiskTest, Seek10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSeek10); }, Throws<scsi_exception>(AllOf(
@@ -159,7 +159,7 @@ TEST(DiskTest, Seek10)
 TEST(DiskTest, ReadCapacity10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdReadCapacity10); }, Throws<scsi_exception>(AllOf(
@@ -191,7 +191,7 @@ TEST(DiskTest, ReadCapacity10)
 TEST(DiskTest, ReadCapacity16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	controller->SetCmdByte(1, 0x00);
@@ -230,7 +230,7 @@ TEST(DiskTest, ReadCapacity16)
 TEST(DiskTest, Read6)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead6); }, Throws<scsi_exception>(AllOf(
@@ -244,7 +244,7 @@ TEST(DiskTest, Read6)
 TEST(DiskTest, Read10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead10); }, Throws<scsi_exception>(AllOf(
@@ -263,7 +263,7 @@ TEST(DiskTest, Read10)
 TEST(DiskTest, Read16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdRead16); }, Throws<scsi_exception>(AllOf(
@@ -282,7 +282,7 @@ TEST(DiskTest, Read16)
 TEST(DiskTest, Write6)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite6); }, Throws<scsi_exception>(AllOf(
@@ -304,7 +304,7 @@ TEST(DiskTest, Write6)
 TEST(DiskTest, Write10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite10); }, Throws<scsi_exception>(AllOf(
@@ -323,7 +323,7 @@ TEST(DiskTest, Write10)
 TEST(DiskTest, Write16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdWrite16); }, Throws<scsi_exception>(AllOf(
@@ -342,7 +342,7 @@ TEST(DiskTest, Write16)
 TEST(DiskTest, Verify10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdVerify10); }, Throws<scsi_exception>(AllOf(
@@ -369,7 +369,7 @@ TEST(DiskTest, Verify10)
 TEST(DiskTest, Verify16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdVerify16); }, Throws<scsi_exception>(AllOf(
@@ -396,7 +396,7 @@ TEST(DiskTest, Verify16)
 TEST(DiskTest, ReadLong10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_CALL(*controller, Status);
@@ -420,7 +420,7 @@ TEST(DiskTest, ReadLong10)
 TEST(DiskTest, ReadLong16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	// READ LONG(16), not READ CAPACITY(16)
@@ -446,7 +446,7 @@ TEST(DiskTest, ReadLong16)
 TEST(DiskTest, WriteLong10)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_CALL(*controller, Status);
@@ -470,7 +470,7 @@ TEST(DiskTest, WriteLong10)
 TEST(DiskTest, WriteLong16)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	controller->SetCmdByte(2, 1);
@@ -494,7 +494,7 @@ TEST(DiskTest, WriteLong16)
 TEST(DiskTest, StartStopUnit)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	disk->SetRemovable(true);
@@ -546,7 +546,7 @@ TEST(DiskTest, StartStopUnit)
 TEST(DiskTest, PreventAllowMediumRemoval)
 {
 	auto [controller, disk] = CreateDisk();
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = disk;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdPreventAllowMediumRemoval); }, Throws<scsi_exception>(AllOf(

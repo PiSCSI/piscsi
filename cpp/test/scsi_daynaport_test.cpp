@@ -48,7 +48,7 @@ TEST(ScsiDaynaportTest, Write)
 TEST(ScsiDaynaportTest, Read6)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = daynaport;
 
 	controller->SetCmdByte(5, 0xff);
@@ -61,7 +61,7 @@ TEST(ScsiDaynaportTest, Read6)
 TEST(ScsiDaynaportTest, Write6)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = daynaport;
 
 	controller->SetCmdByte(5, 0x00);
@@ -100,7 +100,7 @@ TEST(ScsiDaynaportTest, TestRetrieveStats)
 TEST(ScsiDaynaportTest, SetInterfaceMode)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = daynaport;
 
 	// Unknown interface command
@@ -140,7 +140,7 @@ TEST(ScsiDaynaportTest, SetInterfaceMode)
 TEST(ScsiDaynaportTest, SetMcastAddr)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = daynaport;
 
 	EXPECT_THAT([&] { d->Dispatch(scsi_command::eCmdSetMcastAddr); }, Throws<scsi_exception>(AllOf(
@@ -156,7 +156,7 @@ TEST(ScsiDaynaportTest, SetMcastAddr)
 TEST(ScsiDaynaportTest, EnableInterface)
 {
 	auto [controller, daynaport] = CreateDevice(SCDP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto d = daynaport;
 
 	// Enable

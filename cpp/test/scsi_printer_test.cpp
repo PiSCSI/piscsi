@@ -70,7 +70,7 @@ TEST(ScsiPrinterTest, SendDiagnostic)
 TEST(ScsiPrinterTest, Print)
 {
 	auto [controller, printer] = CreateDevice(SCLP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto p = printer;
 
     EXPECT_CALL(*controller, DataOut());
@@ -96,7 +96,7 @@ TEST(ScsiPrinterTest, StopPrint)
 TEST(ScsiPrinterTest, SynchronizeBuffer)
 {
 	auto [controller, printer] = CreateDevice(SCLP);
-	// Required by the bullseye compiler
+	// Required by the bullseye clang++ compiler
 	auto p = printer;
 
     EXPECT_THAT([&] { p->Dispatch(scsi_command::eCmdSynchronizeBuffer); }, Throws<scsi_exception>(AllOf(
