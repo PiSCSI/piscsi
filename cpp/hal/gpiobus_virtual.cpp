@@ -18,7 +18,9 @@
 #include <map>
 #include <memory>
 #include <string.h>
+#ifdef __linux__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
