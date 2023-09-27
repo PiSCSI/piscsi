@@ -69,6 +69,8 @@ from settings import (
     TEMPLATE_THEMES,
     TEMPLATE_THEME_DEFAULT,
     TEMPLATE_THEME_LEGACY,
+    THROTTLE_NOTIFY_MODES,
+    THROTTLE_TEST_MODES,
 )
 
 
@@ -88,6 +90,8 @@ def get_env_info():
     else:
         username = None
 
+    throttled_statuses = sys_cmd.get_throttled(THROTTLE_NOTIFY_MODES, THROTTLE_TEST_MODES)
+
     return {
         "running_env": sys_cmd.running_env(),
         "username": username,
@@ -102,10 +106,16 @@ def get_env_info():
         "image_dir": server_info["image_dir"],
         "image_root_dir": Path(server_info["image_dir"]).name,
         "netatalk_configured": sys_cmd.running_proc("afpd"),
+        "samba_configured": sys_cmd.running_proc("smbd"),
+        "ftp_configured": sys_cmd.running_proc("vsftpd"),
         "macproxy_configured": sys_cmd.running_proc("macproxy"),
+        "webmin_configured": sys_cmd.running_proc("miniserv.pl"),
         "cd_suffixes": tuple(server_info["sccd"]),
         "rm_suffixes": tuple(server_info["scrm"]),
         "mo_suffixes": tuple(server_info["scmo"]),
+        "throttle_status": [
+            (s[0], ReturnCodeMapper.add_msg({"return_code": s[1]})) for s in throttled_statuses
+        ],
     }
 
 
@@ -651,10 +661,12 @@ def attach_device():
             if param:
                 params.update({item.replace(PARAM_PREFIX, ""): param})
 
+    return_message = "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
     if "interface" in params.keys():
         bridge_status = is_bridge_configured(params["interface"])
         if not bridge_status["status"]:
             return response(error=True, message=bridge_status["msg"])
+        return_message = return_message + " - " + bridge_status["msg"]
 
     kwargs = {
         "unit": int(unit),
@@ -672,7 +684,7 @@ def attach_device():
     if process["status"]:
         return response(
             message=_(
-                "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+                return_message,
                 device_type=get_device_name(device_type),
                 id_number=scsi_id,
                 unit_number=unit,
