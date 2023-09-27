@@ -18,7 +18,7 @@
 #include "hal/gpiobus_raspberry.h"
 #include "hal/gpiobus.h"
 #include "hal/systimer.h"
-#include <spdlog/spdlog.h>
+#include "hal/log.h"
 #include <map>
 #include <cstring>
 #ifdef __linux__
