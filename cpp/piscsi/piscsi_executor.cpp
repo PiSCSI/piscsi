@@ -368,20 +368,20 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 	}
 
 	if (!dryRun) {
-		// Remember the device identifier before its ID becomes invalid by removing the device
+		// Remember the device identifier before the device becomes invalid by removing the device
 		const string identifier = device->GetIdentifier();
 
-		if (!controller->RemoveDevice(device)) {
+		if (auto storage_device = dynamic_pointer_cast<StorageDevice>(device); storage_device != nullptr) {
+			storage_device->UnreserveFile();
+		}
+
+		if (!controller->RemoveDevice(*device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 
 		// If no LUN is left also delete the controller
 		if (!controller->GetLunCount() && !controller_manager.DeleteController(*controller)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
-		}
-
-		if (auto storage_device = dynamic_pointer_cast<StorageDevice>(device); storage_device != nullptr) {
-			storage_device->UnreserveFile();
 		}
 
 		spdlog::info("Detached " + identifier);

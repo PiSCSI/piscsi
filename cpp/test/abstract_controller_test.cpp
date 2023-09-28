@@ -123,9 +123,9 @@ TEST(AbstractControllerTest, DeviceLunLifeCycle)
 	EXPECT_FALSE(controller->HasDeviceForLun(0));
 	EXPECT_NE(nullptr, controller->GetDeviceForLun(LUN));
 	EXPECT_EQ(nullptr, controller->GetDeviceForLun(0));
-	EXPECT_TRUE(controller->RemoveDevice(device1));
+	EXPECT_TRUE(controller->RemoveDevice(*device1));
 	EXPECT_EQ(0, controller->GetLunCount());
-	EXPECT_FALSE(controller->RemoveDevice(device1));
+	EXPECT_FALSE(controller->RemoveDevice(*device1));
 }
 
 TEST(AbstractControllerTest, GetOpcode)
