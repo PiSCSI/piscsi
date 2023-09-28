@@ -293,7 +293,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	if (storage_device != nullptr) {
-		storage_device->ReserveFile(full_path);
+		storage_device->ReserveFile();
 	}
 
 	string msg = "Attached ";
@@ -350,7 +350,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	storage_device->SetProtected(pb_device.protected_());
-	storage_device->ReserveFile(full_path);
+	storage_device->ReserveFile();
 	storage_device->SetMediumChanged(true);
 
 	return true;

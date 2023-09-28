@@ -86,7 +86,7 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 	EXPECT_EQ(-1, id1);
 	EXPECT_EQ(-1, lun1);
 
-	device->ReserveFile("filename");
+	device->ReserveFile();
 	const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(ID, id2);
 	EXPECT_EQ(LUN, lun2);
@@ -109,7 +109,7 @@ TEST(StorageDeviceTest, UnreserveAll)
 
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 
-	device->ReserveFile("filename");
+	device->ReserveFile();
 	StorageDevice::UnreserveAll();
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id);
@@ -128,7 +128,7 @@ TEST(StorageDeviceTest, GetSetReservedFiles)
 
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 
-	device->ReserveFile("filename");
+	device->ReserveFile();
 
 	const unordered_map<string, id_set> reserved_files = StorageDevice::GetReservedFiles();
 	EXPECT_EQ(1, reserved_files.size());

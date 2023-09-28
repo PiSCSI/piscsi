@@ -83,7 +83,8 @@ TEST(PiscsiImageTest, DeleteImage)
 	EXPECT_FALSE(image.DeleteImage(context2)) << "Depth must be reported as invalid";
 
 	MockStorageDevice device;
-	device.ReserveFile("filename");
+	device.SetFilename("filename");
+	device.ReserveFile();
 	PbCommand command3;
 	SetParam(command3, "file", "filename");
 	CommandContext context3(command3, "", "");

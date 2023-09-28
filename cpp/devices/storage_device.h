@@ -36,7 +36,7 @@ public:
 
 	uint64_t GetBlockCount() const { return blocks; }
 
-	void ReserveFile(const string&) const;
+	void ReserveFile() const;
 	void UnreserveFile();
 	// TODO Remove this method, it is only used by the unit tests
 	static void UnreserveAll();
