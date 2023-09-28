@@ -87,12 +87,13 @@ void AbstractController::ProcessOnController(int id_data)
 
 bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 {
-	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || device->GetController()
-			|| HasDeviceForLun(device->GetLun())) {
+	const int lun = device->GetLun();
+
+	if (lun < 0 || lun >= GetMaxLuns() || HasDeviceForLun(lun) || device->GetController()) {
 		return false;
 	}
 
-	luns[device->GetLun()] = device;
+	luns[lun] = device;
 	device->SetController(this);
 
 	return true;
