@@ -41,7 +41,7 @@ public:
 	bool Unprotect(PrimaryDevice&, bool) const;
 	bool Attach(const CommandContext&, const PbDeviceDefinition&, bool);
 	bool Insert(const CommandContext&, const PbDeviceDefinition&, const shared_ptr<PrimaryDevice>&, bool) const;
-	bool Detach(const CommandContext&, const shared_ptr<PrimaryDevice>&, bool);
+	bool Detach(const CommandContext&, PrimaryDevice&, bool);
 	void DetachAll();
 	bool ShutDown(const CommandContext&, const string&);
 	string SetReservedIds(string_view);

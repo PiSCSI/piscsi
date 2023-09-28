@@ -60,7 +60,7 @@ bool PiscsiExecutor::ProcessDeviceCmd(const CommandContext& context, const PbDev
 			return Attach(context, pb_device, dryRun);
 
 		case DETACH:
-			return Detach(context, device, dryRun);
+			return Detach(context, *device, dryRun);
 
 		case INSERT:
 			return Insert(context, pb_device, device, dryRun);
@@ -355,23 +355,23 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	return true;
 }
 
-bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<PrimaryDevice>& device, bool dryRun)
+bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device, bool dryRun)
 {
-	auto controller = controller_manager.FindController(device->GetId());
+	auto controller = controller_manager.FindController(device.GetId());
 	if (controller == nullptr) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 	}
 
 	// LUN 0 can only be detached if there is no other LUN anymore
-	if (!device->GetLun() && controller->GetLunCount() > 1) {
+	if (!device.GetLun() && controller->GetLunCount() > 1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_LUN0);
 	}
 
 	if (!dryRun) {
 		// Remember the device identifier for the log message before the device data become invalid on removal
-		const string identifier = device->GetIdentifier();
+		const string identifier = device.GetIdentifier();
 
-		if (!controller->RemoveDevice(*device)) {
+		if (!controller->RemoveDevice(device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 

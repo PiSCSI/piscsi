@@ -359,13 +359,13 @@ TEST(PiscsiExecutorTest, Detach)
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
 
 	auto d1 = controller_manager.GetDeviceByIdAndLun(ID, LUN1);
-	EXPECT_FALSE(executor.Detach(context, d1, false)) << "LUNs > 0 have to be detached first";
+	EXPECT_FALSE(executor.Detach(context, *d1, false)) << "LUNs > 0 have to be detached first";
 	auto d2 = controller_manager.GetDeviceByIdAndLun(ID, LUN2);
-	EXPECT_TRUE(executor.Detach(context, d2, false));
-	EXPECT_TRUE(executor.Detach(context, d1, false));
+	EXPECT_TRUE(executor.Detach(context, *d2, false));
+	EXPECT_TRUE(executor.Detach(context, *d1, false));
 	EXPECT_TRUE(controller_manager.GetAllDevices().empty());
 
-	EXPECT_FALSE(executor.Detach(context, d1, false));
+	EXPECT_FALSE(executor.Detach(context, *d1, false));
 }
 
 TEST(PiscsiExecutorTest, DetachAll)
