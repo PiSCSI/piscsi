@@ -27,6 +27,20 @@ void StorageDevice::Cleanup()
 	UnreserveFile();
 }
 
+void StorageDevice::SetFilename(string_view f)
+{
+	filename = filesystem::path(f);
+
+	// Permanently write-protected
+	SetReadOnly(IsReadOnlyFile());
+
+	SetProtectable(!IsReadOnlyFile());
+
+	if (IsReadOnlyFile()) {
+		SetProtected(false);
+	}
+}
+
 void StorageDevice::ValidateFile()
 {
 	if (blocks == 0) {

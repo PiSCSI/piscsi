@@ -32,7 +32,7 @@ public:
 	virtual void Open() = 0;
 
 	string GetFilename() const { return filename.string(); }
-	void SetFilename(string_view f) { filename = filesystem::path(f); }
+	void SetFilename(string_view);
 
 	uint64_t GetBlockCount() const { return blocks; }
 
