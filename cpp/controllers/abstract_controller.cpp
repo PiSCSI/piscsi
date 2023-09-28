@@ -81,7 +81,7 @@ void AbstractController::ProcessOnController(int id_data)
 	}
 
 	while (Process(initiator_id)) {
-		// Handle bus phases until the bus is free
+		// Handle bus phases until the bus is free for the next command
 	}
 }
 
