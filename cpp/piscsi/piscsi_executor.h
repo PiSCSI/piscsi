@@ -58,6 +58,8 @@ public:
 
 private:
 
+	static bool CheckForReservedFile(const CommandContext&, const string&);
+
 	// Maximum number of controller devices
 	static const int DEVICE_MAX = 8;
 

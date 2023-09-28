@@ -481,9 +481,8 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 		return true;
 	}
 
-	if (const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile(filename); id1 != -1 || lun1 != -1) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-				to_string(id1) + ":" + to_string(lun1));
+	if (!CheckForReservedFile(context, filename)) {
+		return false;
 	}
 
 	string effective_filename = filename;
@@ -492,13 +491,8 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 		// If the file does not exist search for it in the default image folder
 		effective_filename = context.GetDefaultFolder() + "/" + filename;
 
-		if (const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile(effective_filename); id2 != -1 || lun2 != -1) {
-			return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-					to_string(id2) + ":" + to_string(lun2));
-		}
-
-		if (!StorageDevice::FileExists(effective_filename)) {
-			return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
+		if (!CheckForReservedFile(context, effective_filename)) {
+			return false;
 		}
 	}
 
@@ -509,6 +503,16 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	}
 	catch(const io_exception&) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
+	}
+
+	return true;
+}
+
+bool PiscsiExecutor::CheckForReservedFile(const CommandContext& context, const string& filename)
+{
+	if (const auto [id, lun] = StorageDevice::GetIdsForReservedFile(filename); id != -1 || lun != -1) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
+				to_string(id) + ":" + to_string(lun));
 	}
 
 	return true;
