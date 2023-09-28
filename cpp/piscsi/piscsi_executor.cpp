@@ -376,7 +376,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 		}
 
 		// If no LUN is left also delete the controller
-		if (!controller->GetLunCount() && !controller_manager.DeleteController(controller)) {
+		if (!controller->GetLunCount() && !controller_manager.DeleteController(*controller)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 

@@ -41,7 +41,7 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_TRUE(controller_manager.HasController(ID1));
 	controller = controller_manager.FindController(ID1);
 	EXPECT_NE(nullptr, controller_manager.FindController(ID1));
-	EXPECT_TRUE(controller_manager.DeleteController(controller));
+	EXPECT_TRUE(controller_manager.DeleteController(*controller));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID1));
 
 	auto disk = make_shared<MockDisk>();

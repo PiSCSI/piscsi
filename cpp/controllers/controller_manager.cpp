@@ -36,13 +36,13 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 	return false;
 }
 
-bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
+bool ControllerManager::DeleteController(const AbstractController& controller)
 {
-	for (const auto& device : controller->GetDevices()) {
+	for (const auto& device : controller.GetDevices()) {
 		device->FlushCache();
 	}
 
-	return controllers.erase(controller->GetTargetId()) == 1;
+	return controllers.erase(controller.GetTargetId()) == 1;
 }
 
 void ControllerManager::DeleteAllControllers()
@@ -51,7 +51,7 @@ void ControllerManager::DeleteAllControllers()
 	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
 
 	for (const auto& controller : values) {
-		DeleteController(controller);
+		DeleteController(*controller);
 	}
 
 	assert(controllers.empty());

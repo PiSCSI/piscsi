@@ -31,7 +31,7 @@ public:
 
 	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
-	bool DeleteController(shared_ptr<AbstractController>);
+	bool DeleteController(const AbstractController&);
 	void DeleteAllControllers();
 	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
