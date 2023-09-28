@@ -60,7 +60,7 @@ public:
 	unordered_set<shared_ptr<PrimaryDevice>> GetDevices() const;
 	shared_ptr<PrimaryDevice> GetDeviceForLun(int) const;
 	bool AddDevice(shared_ptr<PrimaryDevice>);
-	bool RemoveDevice(const PrimaryDevice&);
+	bool DeleteDevice(const PrimaryDevice&);
 	bool HasDeviceForLun(int) const;
 	void ProcessOnController(int);
 
