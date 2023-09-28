@@ -38,6 +38,10 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 
 bool ControllerManager::DeleteController(shared_ptr<AbstractController> controller)
 {
+	for (const auto& device : controller->GetDevices()) {
+		device->FlushCache();
+	}
+
 	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
