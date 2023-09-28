@@ -167,9 +167,9 @@ bool PiscsiImage::DeleteImage(const CommandContext& context) const
 	}
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
-	if (id != -1 || lun != -1) {
+	if (id != -1) {
 		return context.ReturnErrorStatus("Can't delete image file '" + full_filename.string() +
-				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
+				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
 	}
 
 	if (error_code error; !remove(full_filename, error)) {
@@ -207,9 +207,9 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 	}
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
-	if (id != -1 || lun != -1) {
+	if (id != -1) {
 		return context.ReturnErrorStatus("Can't rename/move image file '" + from +
-				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
+				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -241,9 +241,9 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
     }
 
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
-	if (id != -1 || lun != -1) {
+	if (id != -1) {
 		return context.ReturnErrorStatus("Can't copy image file '" + from +
-				"', it is currently being used by device ID " + to_string(id) + ", LUN " + to_string(lun));
+				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
 	}
 
 	if (!CreateImageFolder(context, to)) {

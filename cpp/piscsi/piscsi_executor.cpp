@@ -510,7 +510,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 
 bool PiscsiExecutor::CheckForReservedFile(const CommandContext& context, const string& filename)
 {
-	if (const auto [id, lun] = StorageDevice::GetIdsForReservedFile(filename); id != -1 || lun != -1) {
+	if (const auto [id, lun] = StorageDevice::GetIdsForReservedFile(filename); id != -1) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
 				to_string(id) + ":" + to_string(lun));
 	}
