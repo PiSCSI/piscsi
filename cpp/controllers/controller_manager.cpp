@@ -91,7 +91,7 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 	return devices;
 }
 
-bool ControllerManager::HasDevice(int id, int lun) const
+bool ControllerManager::HasDeviceForIdAndLun(int id, int lun) const
 {
 	return GetDeviceByIdAndLun(id, lun) != nullptr;
 }

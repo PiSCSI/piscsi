@@ -33,9 +33,9 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_EQ(1, controller->GetLunCount());
 	EXPECT_FALSE(controller_manager.HasController(0));
 	EXPECT_EQ(nullptr, controller_manager.FindController(0));
-	EXPECT_TRUE(controller_manager.HasDevice(ID1, LUN1));
+	EXPECT_TRUE(controller_manager.HasDeviceForIdAndLun(ID1, LUN1));
 	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID1, LUN1));
-	EXPECT_FALSE(controller_manager.HasDevice(0, 0));
+	EXPECT_FALSE(controller_manager.HasDeviceForIdAndLun(0, 0));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
@@ -53,11 +53,11 @@ TEST(ControllerManagerTest, LifeCycle)
 	EXPECT_FALSE(controller_manager.HasController(ID1));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID1));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID1, LUN1));
-	EXPECT_FALSE(controller_manager.HasDevice(ID1, LUN1));
+	EXPECT_FALSE(controller_manager.HasDeviceForIdAndLun(ID1, LUN1));
 	EXPECT_FALSE(controller_manager.HasController(ID2));
 	EXPECT_EQ(nullptr, controller_manager.FindController(ID2));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID2, LUN1));
-	EXPECT_FALSE(controller_manager.HasDevice(ID2, LUN1));
+	EXPECT_FALSE(controller_manager.HasDeviceForIdAndLun(ID2, LUN1));
 }
 
 TEST(ControllerManagerTest, CreateScsiController)

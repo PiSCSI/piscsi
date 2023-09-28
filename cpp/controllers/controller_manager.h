@@ -37,7 +37,7 @@ public:
 	shared_ptr<AbstractController> FindController(int) const;
 	bool HasController(int) const;
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
-	bool HasDevice(int, int) const;
+	bool HasDeviceForIdAndLun(int, int) const;
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 
 	static int GetScsiIdMax() { return 8; }

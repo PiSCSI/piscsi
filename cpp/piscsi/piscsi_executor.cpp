@@ -228,7 +228,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 				to_string(ControllerManager::GetScsiLunMax()));
 	}
 
-	if (controller_manager.HasDevice(id, lun)) {
+	if (controller_manager.HasDeviceForIdAndLun(id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_DUPLICATE_ID, to_string(id), to_string(lun));
 	}
 
@@ -585,7 +585,7 @@ bool PiscsiExecutor::VerifyExistingIdAndLun(const CommandContext& context, int i
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
-	if (!controller_manager.HasDevice(id, lun)) {
+	if (!controller_manager.HasDeviceForIdAndLun(id, lun)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_NON_EXISTING_UNIT, to_string(id), to_string(lun));
 	}
 
