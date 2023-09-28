@@ -491,7 +491,7 @@ int Piscsi::run(span<char *> args)
 		command.set_operation(ATTACH);
 
 		if (const CommandContext context(command, piscsi_image.GetDefaultFolder(), locale); !executor->ProcessCmd(context)) {
-			cerr << "Error: Can't attach initial devices" << endl;
+			cerr << "Error: Can't attach devices" << endl;
 
 			Cleanup();
 
