@@ -390,7 +390,6 @@ bool PiscsiExecutor::Detach(const CommandContext& context, PrimaryDevice& device
 void PiscsiExecutor::DetachAll()
 {
 	controller_manager.DeleteAllControllers();
-	StorageDevice::UnreserveAll();
 
 	spdlog::info("Detached all devices");
 }
