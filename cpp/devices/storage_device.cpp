@@ -22,9 +22,9 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, 
 
 void StorageDevice::Cleanup()
 {
-	ModePageDevice::Cleanup();
-
 	UnreserveFile();
+
+	ModePageDevice::Cleanup();
 }
 
 void StorageDevice::SetFilename(string_view f)

@@ -23,14 +23,6 @@
 using namespace scsi_defs;
 using namespace scsi_command_util;
 
-Disk::~Disk()
-{
-	// Save disk cache, only if ready
-	if (IsReady() && cache != nullptr) {
-		cache->Save();
-	}
-}
-
 bool Disk::Init(const unordered_map<string, string>& params)
 {
 	StorageDevice::Init(params);
@@ -64,6 +56,13 @@ bool Disk::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
+void Disk::Cleanup()
+{
+	FlushCache();
+
+	StorageDevice::Cleanup();
+}
+
 void Disk::Dispatch(scsi_command cmd)
 {
 	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
@@ -93,7 +92,7 @@ void Disk::ResizeCache(const string& path, bool raw)
 
 void Disk::FlushCache()
 {
-	if (cache != nullptr) {
+	if (cache != nullptr && IsReady()) {
 		cache->Save();
 	}
 }

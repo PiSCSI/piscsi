@@ -45,9 +45,10 @@ class Disk : public StorageDevice, private ScsiBlockCommands
 public:
 
 	Disk(PbDeviceType type, int lun) : StorageDevice(type, lun) {}
-	~Disk() override;
+	~Disk() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void Cleanup() override;
 
 	void Dispatch(scsi_command) override;
 
