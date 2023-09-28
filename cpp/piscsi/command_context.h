@@ -28,10 +28,13 @@ class CommandContext
 
 public:
 
-	CommandContext(const PbCommand& cmd, const string& s = "") : command(cmd), locale(s) {}
+	CommandContext(const PbCommand& cmd, const string& f, const string& l)
+		: command(cmd), locale(l), default_folder(f) {}
 	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
+	string GetDefaultFolder() const { return default_folder; }
+	void SetDefaultFolder(const string& f) { default_folder = f; }
 	bool ReadCommand();
 	void WriteResult(const PbResult&) const;
 	const PbCommand& GetCommand() const { return command; }
@@ -44,4 +47,6 @@ public:
 private:
 
 	bool ReturnStatus(bool, const string&, PbErrorCode, bool) const;
+
+	string default_folder;
 };

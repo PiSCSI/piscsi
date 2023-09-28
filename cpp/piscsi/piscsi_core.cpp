@@ -337,7 +337,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEVICES_INFO:
 			piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command,
-					piscsi_image.GetDefaultFolder());
+					context.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
 
@@ -348,7 +348,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case SERVER_INFO:
 			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager.GetAllDevices(),
-					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
+					result, executor->GetReservedIds(), context.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
@@ -492,7 +492,7 @@ int Piscsi::run(span<char *> args)
 		// Attach all specified devices
 		command.set_operation(ATTACH);
 
-		if (const CommandContext context(command, locale); !executor->ProcessCmd(context)) {
+		if (const CommandContext context(command, piscsi_image.GetDefaultFolder(), locale); !executor->ProcessCmd(context)) {
 			cerr << "Error: Can't attach initial devices" << endl;
 
 			Cleanup();
