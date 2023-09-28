@@ -254,7 +254,6 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	string full_path;
 	const auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (device->SupportsFile()) {
 		// Only with removable media drives, CD and MO the medium (=file) may be inserted later
@@ -262,7 +261,7 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_FILENAME, PbDeviceType_Name(type));
 		}
 
-		if (!ValidateImageFile(context, *storage_device, filename, full_path)) {
+		if (!ValidateImageFile(context, *storage_device, filename)) {
 			return false;
 		}
 	}
@@ -344,8 +343,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 		return false;
 	}
 
-	string full_path;
-	if (!ValidateImageFile(context, *storage_device, filename, full_path)) {
+	if (!ValidateImageFile(context, *storage_device, filename)) {
 		return false;
 	}
 
@@ -477,7 +475,7 @@ string PiscsiExecutor::SetReservedIds(string_view ids)
 }
 
 bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDevice& storage_device,
-		const string& filename, string& full_path) const
+		const string& filename) const
 {
 	if (filename.empty()) {
 		return true;
@@ -512,8 +510,6 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 	catch(const io_exception&) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
 	}
-
-	full_path = effective_filename;
 
 	return true;
 }
