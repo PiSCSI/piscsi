@@ -527,7 +527,7 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 	if (!params.empty()) {
 		s << ", command params=";
 		bool isFirst = true;
-		for (const auto& [key, value]: params) {
+		for (const auto& [key, value] : params) {
 			if (!isFirst) {
 				s << ", ";
 			}
