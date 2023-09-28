@@ -72,22 +72,26 @@ TEST(StorageDeviceTest, MediumChanged)
 TEST(StorageDeviceTest, GetIdsForReservedFile)
 {
 	const int ID = 1;
-	const int LUN = 2;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 	StorageDevice::UnreserveAll();
 
-	MockStorageDevice device;
-	device.SetFilename("filename");
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
 
 	const auto [id1, lun1] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id1);
 	EXPECT_EQ(-1, lun1);
 
-	device.ReserveFile("filename", ID, LUN);
+	device->ReserveFile("filename");
 	const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(ID, id2);
 	EXPECT_EQ(LUN, lun2);
 
-	device.UnreserveFile();
+	device->UnreserveFile();
 	const auto [id3, lun3] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id3);
 	EXPECT_EQ(-1, lun3);
@@ -95,9 +99,17 @@ TEST(StorageDeviceTest, GetIdsForReservedFile)
 
 TEST(StorageDeviceTest, UnreserveAll)
 {
-	MockStorageDevice device;
-	device.ReserveFile("filename", 2, 31);
+	const int ID = 1;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+
+	device->ReserveFile("filename");
 	StorageDevice::UnreserveAll();
 	const auto [id, lun] = StorageDevice::GetIdsForReservedFile("filename");
 	EXPECT_EQ(-1, id);
@@ -107,10 +119,16 @@ TEST(StorageDeviceTest, UnreserveAll)
 TEST(StorageDeviceTest, GetSetReservedFiles)
 {
 	const int ID = 1;
-	const int LUN = 16;
+	const int LUN = 0;
+	auto bus = make_shared<MockBus>();
+	ControllerManager controller_manager;
+	MockAbstractController controller(bus, ID);
+	auto device = make_shared<MockSCSIHD_NEC>(LUN);
+	device->SetFilename("filename");
 
-	MockStorageDevice device;
-	device.ReserveFile("filename", ID, LUN);
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
+
+	device->ReserveFile("filename");
 
 	const unordered_map<string, id_set> reserved_files = StorageDevice::GetReservedFiles();
 	EXPECT_EQ(1, reserved_files.size());

@@ -288,12 +288,12 @@ bool PiscsiExecutor::Attach(const CommandContext& context, const PbDeviceDefinit
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INITIALIZATION, device->GetIdentifier());
 	}
 
-	if (storage_device != nullptr) {
-		storage_device->ReserveFile(full_path, id, lun);
-	}
-
 	if (!controller_manager.AttachToController(bus, id, device)) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_SCSI_CONTROLLER);
+	}
+
+	if (storage_device != nullptr) {
+		storage_device->ReserveFile(full_path);
 	}
 
 	string msg = "Attached ";
@@ -349,7 +349,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	storage_device->SetProtected(pb_device.protected_());
-	storage_device->ReserveFile(full_path, storage_device->GetId(), storage_device->GetLun());
+	storage_device->ReserveFile(full_path);
 	storage_device->SetMediumChanged(true);
 
 	return true;
