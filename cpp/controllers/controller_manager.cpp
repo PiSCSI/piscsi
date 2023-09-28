@@ -48,7 +48,7 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 void ControllerManager::DeleteAllControllers()
 {
 	unordered_set<shared_ptr<AbstractController>> values;
-	ranges::transform(controllers, inserter(values, values.begin()), [] (auto controller) { return controller.second; } );
+	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
 
 	for (auto& controller : values) {
 		DeleteController(controller);
