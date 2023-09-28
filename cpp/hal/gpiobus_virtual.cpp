@@ -93,7 +93,7 @@ void GPIOBUS_Virtual::Cleanup()
 
 void GPIOBUS_Virtual::Reset()
 {
-#if defined(__x86_64__) || defined(__X86__)
+#if defined(__x86_64__) || defined(__X86__) || defined(__aarch64__)
     return;
 #else
     int i;
