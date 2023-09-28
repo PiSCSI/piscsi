@@ -123,6 +123,8 @@ void ScsiController::Selection()
 
 	// Selection completed
 	if (!GetBus().GetSEL() && GetBus().GetBSY()) {
+		logger.Trace("Selection completed");
+
 		// Message out phase if ATN=1, otherwise command phase
 		if (GetBus().GetATN()) {
 			MsgOut();
