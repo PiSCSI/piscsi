@@ -485,24 +485,24 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 		return false;
 	}
 
-	string effective_filename = filename;
+	storage_device.SetFilename(filename);
 
 	if (!StorageDevice::FileExists(filename)) {
 		// If the file does not exist search for it in the default image folder
-		effective_filename = context.GetDefaultFolder() + "/" + filename;
+		const string effective_filename = context.GetDefaultFolder() + "/" + filename;
 
 		if (!CheckForReservedFile(context, effective_filename)) {
 			return false;
 		}
-	}
 
-	storage_device.SetFilename(effective_filename);
+		storage_device.SetFilename(effective_filename);
+	}
 
 	try {
 		storage_device.Open();
 	}
 	catch(const io_exception&) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, effective_filename);
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_FILE_OPEN, storage_device.GetFilename());
 	}
 
 	return true;
