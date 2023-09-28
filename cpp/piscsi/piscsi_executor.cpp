@@ -375,7 +375,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 			storage_device->UnreserveFile();
 		}
 
-		if (!controller->DeleteDevice(*device)) {
+		if (!controller->RemoveDevice(*device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}
 

@@ -98,7 +98,7 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 	return true;
 }
 
-bool AbstractController::DeleteDevice(const PrimaryDevice& device)
+bool AbstractController::RemoveDevice(const PrimaryDevice& device)
 {
 	return luns.erase(device.GetLun()) == 1;
 }
