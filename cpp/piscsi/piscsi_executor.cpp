@@ -494,7 +494,7 @@ bool PiscsiExecutor::ValidateImageFile(const CommandContext& context, StorageDev
 
 		if (const auto [id2, lun2] = StorageDevice::GetIdsForReservedFile(effective_filename); id2 != -1 || lun2 != -1) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_IMAGE_IN_USE, filename,
-					to_string(id2), to_string(lun2));
+					to_string(id2) + ":" + to_string(lun2));
 		}
 
 		if (!StorageDevice::FileExists(effective_filename)) {
