@@ -18,23 +18,15 @@ using namespace piscsi_interface;
 
 class CommandContext
 {
-	const Localizer localizer;
-
-	PbCommand command;
-
-	const string locale;
-
-	int fd = -1;
 
 public:
 
-	CommandContext(const PbCommand& cmd, const string& f, const string& l)
-		: command(cmd), locale(l), default_folder(f) {}
+	CommandContext(const PbCommand& cmd, string_view f, string_view l) : command(cmd), default_folder(f), locale(l) {}
 	explicit CommandContext(int f) : fd(f) {}
 	~CommandContext() = default;
 
 	string GetDefaultFolder() const { return default_folder; }
-	void SetDefaultFolder(const string& f) { default_folder = f; }
+	void SetDefaultFolder(string_view f) { default_folder = f; }
 	bool ReadCommand();
 	void WriteResult(const PbResult&) const;
 	const PbCommand& GetCommand() const { return command; }
@@ -48,5 +40,13 @@ private:
 
 	bool ReturnStatus(bool, const string&, PbErrorCode, bool) const;
 
+	const Localizer localizer;
+
+	PbCommand command;
+
 	string default_folder;
+
+	string locale;
+
+	int fd = -1;
 };
