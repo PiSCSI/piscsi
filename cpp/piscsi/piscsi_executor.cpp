@@ -368,7 +368,7 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 	}
 
 	if (!dryRun) {
-		// Remember the device identifier for the log message before the device becomes invalid on removal
+		// Remember the device identifier for the log message before the device data become invalid on removal
 		const string identifier = device->GetIdentifier();
 
 		if (auto storage_device = dynamic_pointer_cast<StorageDevice>(device); storage_device != nullptr) {
