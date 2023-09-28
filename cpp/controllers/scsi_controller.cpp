@@ -113,11 +113,6 @@ void ScsiController::BusFree()
 void ScsiController::Selection()
 {
 	if (!IsSelection()) {
-		// A different device controller was selected
-		if (const int id = 1 << GetTargetId(); (static_cast<int>(GetBus().GetDAT()) & id) == 0) {
-			return;
-		}
-
 		logger.Trace("Selection phase");
 		SetPhase(phase_t::selection);
 

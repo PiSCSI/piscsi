@@ -124,11 +124,6 @@ TEST(ScsiControllerTest, Selection)
 	controller->Selection();
 	EXPECT_EQ(phase_t::msgout, controller->GetPhase());
 
-	controller->SetPhase(phase_t::reserved);
-	ON_CALL(*bus, GetDAT).WillByDefault(Return(0));
-	controller->Selection();
-	EXPECT_EQ(phase_t::reserved, controller->GetPhase());
-
 	ON_CALL(*bus, GetDAT).WillByDefault(Return(1));
 	EXPECT_CALL(*bus, SetBSY(true));
 	controller->Selection();
