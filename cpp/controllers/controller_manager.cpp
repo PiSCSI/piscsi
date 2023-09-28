@@ -45,6 +45,18 @@ bool ControllerManager::DeleteController(shared_ptr<AbstractController> controll
 	return controllers.erase(controller->GetTargetId()) == 1;
 }
 
+void ControllerManager::DeleteAllControllers()
+{
+	vector<shared_ptr<AbstractController>> values;
+	ranges::transform(controllers, back_inserter(values), [] (auto controller) { return controller.second; } );
+
+	for (auto controller : values) {
+		DeleteController(controller);
+	}
+
+	assert(controllers.empty());
+}
+
 AbstractController::piscsi_shutdown_mode ControllerManager::ProcessOnController(int id_data) const
 {
 	if (const auto& it = ranges::find_if(controllers, [&] (const auto& c) { return (id_data & (1 << c.first)); } );
@@ -77,15 +89,6 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 	}
 
 	return devices;
-}
-
-void ControllerManager::DeleteAllControllers()
-{
-	for (const auto& device : GetAllDevices()) {
-		device->FlushCache();
-	}
-
-	controllers.clear();
 }
 
 shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun) const

@@ -32,11 +32,11 @@ public:
 	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(shared_ptr<AbstractController>);
+	void DeleteAllControllers();
 	AbstractController::piscsi_shutdown_mode ProcessOnController(int) const;
 	shared_ptr<AbstractController> FindController(int) const;
 	bool HasController(int) const;
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
-	void DeleteAllControllers();
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
 
 	static int GetScsiIdMax() { return 8; }
