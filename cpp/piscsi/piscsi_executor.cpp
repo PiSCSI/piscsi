@@ -427,7 +427,6 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	if (mode == "system") {
 		spdlog::info("System shutdown requested");
 
-		controller_manager.FlushCaches();
 		DetachAll();
 
 		context.WriteResult(result);
@@ -439,7 +438,6 @@ bool PiscsiExecutor::ShutDown(const CommandContext& context, const string& mode)
 	else if (mode == "reboot") {
 		spdlog::info("System reboot requested");
 
-		controller_manager.FlushCaches();
 		DetachAll();
 
 		context.WriteResult(result);

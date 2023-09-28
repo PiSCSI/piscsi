@@ -82,8 +82,6 @@ void Piscsi::Cleanup()
 		service.Stop();
 	}
 
-	controller_manager.FlushCaches();
-
 	executor->DetachAll();
 
 	bus->Cleanup();

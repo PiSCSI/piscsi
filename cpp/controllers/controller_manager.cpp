@@ -77,6 +77,10 @@ unordered_set<shared_ptr<PrimaryDevice>> ControllerManager::GetAllDevices() cons
 
 void ControllerManager::DeleteAllControllers()
 {
+	for (const auto& device : GetAllDevices()) {
+		device->FlushCache();
+	}
+
 	controllers.clear();
 }
 
@@ -87,11 +91,4 @@ shared_ptr<PrimaryDevice> ControllerManager::GetDeviceByIdAndLun(int id, int lun
 	}
 
 	return nullptr;
-}
-
-void ControllerManager::FlushCaches() const
-{
-	for (const auto& device : GetAllDevices()) {
-		device->FlushCache();
-	}
 }

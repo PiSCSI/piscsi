@@ -13,7 +13,8 @@
 
 TEST(ControllerManagerTest, LifeCycle)
 {
-	const int ID = 4;
+	const int ID1 = 4;
+	const int ID2 = 5;
 	const int LUN1 = 0;
 	const int LUN2 = 3;
 
@@ -22,31 +23,37 @@ TEST(ControllerManagerTest, LifeCycle)
 	DeviceFactory device_factory;
 
 	auto device = device_factory.CreateDevice(SCHS, -1, "");
-	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID, device));
+	EXPECT_FALSE(controller_manager.AttachToController(*bus, ID1, device));
 
 	device = device_factory.CreateDevice(SCHS, LUN1, "");
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
-	EXPECT_TRUE(controller_manager.HasController(ID));
-	auto controller = controller_manager.FindController(ID);
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID1, device));
+	EXPECT_TRUE(controller_manager.HasController(ID1));
+	auto controller = controller_manager.FindController(ID1);
 	EXPECT_NE(nullptr, controller);
 	EXPECT_EQ(1, controller->GetLunCount());
 	EXPECT_FALSE(controller_manager.HasController(0));
 	EXPECT_EQ(nullptr, controller_manager.FindController(0));
-	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
+	EXPECT_NE(nullptr, controller_manager.GetDeviceByIdAndLun(ID1, LUN1));
 	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(0, 0));
 
 	device = device_factory.CreateDevice(SCHS, LUN2, "");
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device));
-	EXPECT_TRUE(controller_manager.HasController(ID));
-	controller = controller_manager.FindController(ID);
-	EXPECT_NE(nullptr, controller_manager.FindController(ID));
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID1, device));
+	EXPECT_TRUE(controller_manager.HasController(ID1));
+	controller = controller_manager.FindController(ID1);
+	EXPECT_NE(nullptr, controller_manager.FindController(ID1));
 	EXPECT_TRUE(controller_manager.DeleteController(controller));
-	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID1));
 
+	auto disk = make_shared<MockDisk>();
+	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID2, disk));
+	EXPECT_CALL(*disk, FlushCache);
 	controller_manager.DeleteAllControllers();
-	EXPECT_FALSE(controller_manager.HasController(ID));
-	EXPECT_EQ(nullptr, controller_manager.FindController(ID));
-	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID, LUN1));
+	EXPECT_FALSE(controller_manager.HasController(ID1));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID1));
+	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID1, LUN1));
+	EXPECT_FALSE(controller_manager.HasController(ID2));
+	EXPECT_EQ(nullptr, controller_manager.FindController(ID2));
+	EXPECT_EQ(nullptr, controller_manager.GetDeviceByIdAndLun(ID2, LUN1));
 }
 
 TEST(ControllerManagerTest, CreateScsiController)
@@ -83,19 +90,4 @@ TEST(ControllerManager, ProcessOnController)
 	ControllerManager controller_manager;
 
 	EXPECT_EQ(AbstractController::piscsi_shutdown_mode::NONE, controller_manager.ProcessOnController(0));
-}
-
-TEST(ControllerManager, FlushCaches)
-{
-	auto bus = make_shared<MockBus>();
-	ControllerManager controller_manager;
-	auto device = make_shared<MockPrimaryDevice>(0);
-	auto disk = make_shared<MockDisk>();
-
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device));
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, 4, disk));
-
-	EXPECT_CALL(*device, FlushCache);
-	EXPECT_CALL(*disk, FlushCache);
-	controller_manager.FlushCaches();
 }

@@ -38,7 +38,6 @@ public:
 	unordered_set<shared_ptr<PrimaryDevice>> GetAllDevices() const;
 	void DeleteAllControllers();
 	shared_ptr<PrimaryDevice> GetDeviceByIdAndLun(int, int) const;
-	void FlushCaches() const;
 
 	static int GetScsiIdMax() { return 8; }
 	static int GetScsiLunMax() { return 32; }
