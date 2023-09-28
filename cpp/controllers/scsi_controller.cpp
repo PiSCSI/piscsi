@@ -760,7 +760,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 	s << "Command: $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
 	logger.Trace(s.str());
 
-	int lun = GetEffectiveLun();
+	const int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
 		return false;
 	}
@@ -844,8 +844,8 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 			}
 
 			// TODO Get rid of this special case for SCDP
-			if (auto dynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); dynaport) {
-				if (!dynaport->Write(GetCmd(), GetBuffer())) {
+			if (auto daynaport = dynamic_pointer_cast<SCSIDaynaPort>(device); daynaport) {
+				if (!daynaport->Write(GetCmd(), GetBuffer())) {
 					return false;
 				}
 
@@ -895,7 +895,7 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 
 void ScsiController::ProcessCommand()
 {
-	uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
+	const uint32_t len = GPIOBUS::GetCommandByteCount(GetBuffer()[0]);
 
 	stringstream s;
 	s << "CDB=$" << setfill('0') << setw(2) << hex;
