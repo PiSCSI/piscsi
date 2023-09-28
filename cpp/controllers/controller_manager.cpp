@@ -50,7 +50,7 @@ void ControllerManager::DeleteAllControllers()
 	unordered_set<shared_ptr<AbstractController>> values;
 	ranges::transform(controllers, inserter(values, values.begin()), [] (const auto& controller) { return controller.second; } );
 
-	for (auto& controller : values) {
+	for (const auto& controller : values) {
 		DeleteController(controller);
 	}
 
