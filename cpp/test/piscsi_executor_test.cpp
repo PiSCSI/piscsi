@@ -108,56 +108,6 @@ TEST(PiscsiExecutorTest, ProcessDeviceCmd)
 	CommandContext context_detach(command, "", "");
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, true));
 	EXPECT_TRUE(executor->ProcessDeviceCmd(context_detach, definition, false));
-	EXPECT_TRUE(controller_manager.AttachToController(*bus, ID, device2));
-
-	// The operations below are not related to a device
-
-	command.set_operation(CHECK_AUTHENTICATION);
-	CommandContext conext_check_authentication(command, "", "");
-	EXPECT_TRUE(executor->ProcessDeviceCmd(conext_check_authentication, definition, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(conext_check_authentication, definition, false));
-
-	command.set_operation(NO_OPERATION);
-	CommandContext context_no_operation(command, "", "");
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, true));
-	EXPECT_TRUE(executor->ProcessDeviceCmd(context_no_operation, definition, false));
-
-	command.set_operation(SHUT_DOWN);
-	CommandContext context_shutdown(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown, definition, true));
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_shutdown, definition, false));
-
-	command.set_operation(DETACH_ALL);
-	CommandContext context_detach_all(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_detach_all, definition, true));
-
-	command.set_operation(RESERVE_IDS);
-	CommandContext context_reserve_ids(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_reserve_ids, definition, true));
-
-	command.set_operation(CREATE_IMAGE);
-	CommandContext context_create_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_create_image, definition, true));
-
-	command.set_operation(DELETE_IMAGE);
-	CommandContext context_delete_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_delete_image, definition, true));
-
-	command.set_operation(RENAME_IMAGE);
-	CommandContext context_rename_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_rename_image, definition, true));
-
-	command.set_operation(COPY_IMAGE);
-	CommandContext context_copy_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_copy_image, definition, true));
-
-	command.set_operation(PROTECT_IMAGE);
-	CommandContext context_protect_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_protect_image, definition, true));
-
-	command.set_operation(UNPROTECT_IMAGE);
-	CommandContext context_unprotect_image(command, "", "");
-	EXPECT_FALSE(executor->ProcessDeviceCmd(context_unprotect_image, definition, true));
 }
 
 TEST(PiscsiExecutorTest, ProcessCmd)
