@@ -334,8 +334,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 	}
 
 	spdlog::info("Insert " + string(pb_device.protected_() ? "protected " : "") + "file '" + filename +
-			"' requested into " + device->GetTypeString() + " " +
-			to_string(pb_device.id()) + ":" + to_string(pb_device.unit()));
+			"' requested into " + device->GetIdentifier());
 
 	// TODO It may be better to add PrimaryDevice::Insert for all device-specific insert operations
 	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
