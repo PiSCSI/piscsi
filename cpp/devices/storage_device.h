@@ -41,7 +41,6 @@ public:
 	static void UnreserveAll();
 
 	static bool FileExists(string_view);
-	bool IsReadOnlyFile() const;
 
 	void SetMediumChanged(bool b) { medium_changed = b; }
 
@@ -60,6 +59,8 @@ protected:
 	off_t GetFileSize() const;
 
 private:
+
+	bool IsReadOnlyFile() const;
 
 	uint64_t blocks = 0;
 

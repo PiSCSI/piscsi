@@ -145,17 +145,6 @@ TEST(StorageDeviceTest, FileExists)
 	EXPECT_TRUE(StorageDevice::FileExists("/dev/null"));
 }
 
-TEST(StorageDeviceTest, IsReadOnlyFile)
-{
-	MockStorageDevice device;
-
-	device.SetFilename("/dev/null");
-	EXPECT_FALSE(device.IsReadOnlyFile());
-
-	device.SetFilename("/dev/mem");
-	EXPECT_TRUE(device.IsReadOnlyFile());
-}
-
 TEST(StorageDeviceTest, GetFileSize)
 {
 	MockStorageDevice device;
