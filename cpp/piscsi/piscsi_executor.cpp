@@ -338,6 +338,7 @@ bool PiscsiExecutor::Insert(const CommandContext& context, const PbDeviceDefinit
 			"' requested into " + device->GetTypeString() + " " +
 			to_string(pb_device.id()) + ":" + to_string(pb_device.unit()));
 
+	// TODO It may be better to add PrimaryDevice::Insert for all device-specific insert operations
 	auto storage_device = dynamic_pointer_cast<StorageDevice>(device);
 	if (!SetSectorSize(context, storage_device, pb_device.block_size())) {
 		return false;
