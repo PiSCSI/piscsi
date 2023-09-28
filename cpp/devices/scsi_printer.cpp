@@ -167,6 +167,8 @@ bool SCSIPrinter::WriteByteSequence(span<const uint8_t> buf)
 
 void SCSIPrinter::Cleanup()
 {
+	PrimaryDevice::Cleanup();
+
 	if (out.is_open()) {
 		out.close();
 

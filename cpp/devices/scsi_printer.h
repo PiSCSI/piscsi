@@ -31,6 +31,7 @@ public:
 	~SCSIPrinter() override = default;
 
 	bool Init(const unordered_map<string, string>&) override;
+	void Cleanup() override;
 
 	vector<uint8_t> InquiryInternal() const override;
 
@@ -44,8 +45,6 @@ private:
 	void SendDiagnostic() override { PrimaryDevice::SendDiagnostic(); }
 	void Print() override;
 	void SynchronizeBuffer();
-
-	void Cleanup();
 
 	string file_template;
 

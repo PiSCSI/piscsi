@@ -27,6 +27,8 @@ public:
 	StorageDevice(PbDeviceType, int);
 	~StorageDevice() override = default;
 
+	void Cleanup() override;
+
 	virtual void Open() = 0;
 
 	string GetFilename() const { return filename.string(); }

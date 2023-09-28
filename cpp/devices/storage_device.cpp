@@ -20,6 +20,13 @@ StorageDevice::StorageDevice(PbDeviceType type, int lun) : ModePageDevice(type, 
 	SetStoppable(true);
 }
 
+void StorageDevice::Cleanup()
+{
+	ModePageDevice::Cleanup();
+
+	UnreserveFile();
+}
+
 void StorageDevice::ValidateFile()
 {
 	if (blocks == 0) {

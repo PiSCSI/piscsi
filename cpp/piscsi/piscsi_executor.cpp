@@ -371,10 +371,6 @@ bool PiscsiExecutor::Detach(const CommandContext& context, const shared_ptr<Prim
 		// Remember the device identifier for the log message before the device data become invalid on removal
 		const string identifier = device->GetIdentifier();
 
-		if (auto storage_device = dynamic_pointer_cast<StorageDevice>(device); storage_device != nullptr) {
-			storage_device->UnreserveFile();
-		}
-
 		if (!controller->RemoveDevice(*device)) {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_DETACH);
 		}

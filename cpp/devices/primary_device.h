@@ -36,6 +36,9 @@ public:
 	~PrimaryDevice() override = default;
 
 	virtual bool Init(const unordered_map<string, string>&);
+	virtual void Cleanup() {
+		// Override if cleanup work is required for a derived device
+	};
 
 	virtual void Dispatch(scsi_command);
 
