@@ -52,7 +52,7 @@ void StorageDevice::ValidateFile()
 	}
 
 	if (GetFileSize() > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("Drives > 2 TiB are not supported");
+		throw io_exception("Image files > 2 TiB are not supported");
 	}
 
 	// TODO Check for duplicate handling of these properties (-> piscsi_executor.cpp)
