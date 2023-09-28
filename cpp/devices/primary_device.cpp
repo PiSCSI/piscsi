@@ -67,14 +67,14 @@ void PrimaryDevice::Reset()
 
 int PrimaryDevice::GetId() const
 {
-	return GetController()->GetTargetId();
+	return GetController() != nullptr ? GetController()->GetTargetId() : -1;
 }
 
 void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
 
-	logger.SetIdAndLun(c->GetTargetId(), GetLun());
+	logger.SetIdAndLun(GetId(), GetLun());
 }
 
 void PrimaryDevice::TestUnitReady()

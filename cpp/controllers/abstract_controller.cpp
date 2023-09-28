@@ -87,7 +87,8 @@ void AbstractController::ProcessOnController(int id_data)
 
 bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 {
-	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || HasDeviceForLun(device->GetLun())) {
+	if (device->GetLun() < 0 || device->GetLun() >= GetMaxLuns() || device->GetController()
+			|| HasDeviceForLun(device->GetLun())) {
 		return false;
 	}
 
@@ -99,6 +100,8 @@ bool AbstractController::AddDevice(shared_ptr<PrimaryDevice> device)
 
 bool AbstractController::RemoveDevice(shared_ptr<PrimaryDevice> device)
 {
+	device->SetController(nullptr);
+
 	return luns.erase(device->GetLun()) == 1;
 }
 
