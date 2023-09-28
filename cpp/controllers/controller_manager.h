@@ -29,7 +29,6 @@ public:
 	ControllerManager() = default;
 	~ControllerManager() = default;
 
-	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
 	bool AttachToController(BUS&, int, shared_ptr<PrimaryDevice>);
 	bool DeleteController(const AbstractController&);
 	void DeleteAllControllers();
@@ -44,6 +43,8 @@ public:
 	static int GetScsiLunMax() { return 32; }
 
 private:
+
+	shared_ptr<ScsiController> CreateScsiController(BUS&, int) const;
 
 	// Controllers mapped to their device IDs
 	unordered_map<int, shared_ptr<AbstractController>> controllers;

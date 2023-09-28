@@ -25,7 +25,7 @@ bool ControllerManager::AttachToController(BUS& bus, int id, shared_ptr<PrimaryD
 	}
 
 	// If this is LUN 0 create a new controller
-	if (device->GetLun() == 0) {
+	if (!device->GetLun()) {
 		if (auto controller = CreateScsiController(bus, id); controller->AddDevice(device)) {
 			controllers[id] = controller;
 
