@@ -50,7 +50,7 @@ void ControllerManager::DeleteAllControllers()
 	vector<shared_ptr<AbstractController>> values;
 	ranges::transform(controllers, back_inserter(values), [] (auto controller) { return controller.second; } );
 
-	for (auto controller : values) {
+	for (auto& controller : values) {
 		DeleteController(controller);
 	}
 
