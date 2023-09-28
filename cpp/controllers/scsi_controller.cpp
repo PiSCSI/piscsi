@@ -118,11 +118,6 @@ void ScsiController::Selection()
 			return;
 		}
 
-		// Abort if there is no LUN for this controller
-		if (!GetLunCount()) {
-			return;
-		}
-
 		logger.Trace("Selection phase");
 		SetPhase(phase_t::selection);
 

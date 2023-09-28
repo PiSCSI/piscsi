@@ -130,11 +130,6 @@ TEST(ScsiControllerTest, Selection)
 	EXPECT_EQ(phase_t::reserved, controller->GetPhase());
 
 	ON_CALL(*bus, GetDAT).WillByDefault(Return(1));
-	controller->Selection();
-	EXPECT_EQ(phase_t::reserved, controller->GetPhase()) << "There is no device that can be selected";
-
-	auto device = make_shared<MockPrimaryDevice>(0);
-	controller->AddDevice(device);
 	EXPECT_CALL(*bus, SetBSY(true));
 	controller->Selection();
 	EXPECT_EQ(phase_t::selection, controller->GetPhase());
