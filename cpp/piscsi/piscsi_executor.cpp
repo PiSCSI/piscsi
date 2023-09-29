@@ -537,8 +537,7 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 		}
 	}
 
-	s << ", device id=" << pb_device.id() << ", lun=" << pb_device.unit() << ", type="
-			<< PbDeviceType_Name(pb_device.type());
+	s << ", device=" << pb_device.id() << ":" << pb_device.unit() << ", type=" << PbDeviceType_Name(pb_device.type());
 
 	if (pb_device.params_size()) {
 		s << ", device params=";
