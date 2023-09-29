@@ -605,18 +605,18 @@ shared_ptr<PrimaryDevice> PiscsiExecutor::CreateDevice(const CommandContext& con
 	return device;
 }
 
-bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<PrimaryDevice> device, int block_size) const
+bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<PrimaryDevice> device, int size) const
 {
-	if (block_size) {
+	if (size) {
 		const auto disk = dynamic_pointer_cast<Disk>(device);
 		if (disk != nullptr && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(device_factory, block_size)) {
-				return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE, to_string(block_size));
+			if (!disk->SetConfiguredSectorSize(device_factory, size)) {
+				return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE, to_string(size));
 			}
 		}
 		else {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE,
-					device->GetTypeString());
+					device->GetIdentifier());
 		}
 	}
 
