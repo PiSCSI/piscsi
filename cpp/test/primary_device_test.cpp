@@ -327,17 +327,16 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	auto [controller, device] = CreatePrimaryDevice();
+	auto [_, device] = CreatePrimaryDevice();
 
 	EXPECT_THROW(device->Dispatch(static_cast<scsi_command>(0x1f)), scsi_exception) << "Unknown command";
 }
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-	MockPrimaryDevice device(0);
+	auto [_, device] = CreatePrimaryDevice();
 
-	vector<uint8_t> data;
-	EXPECT_FALSE(device.WriteByteSequence(data)) << "Primary device does not support writing byte sequences";
+	EXPECT_FALSE(device->WriteByteSequence({})) << "Primary device does not support writing byte sequences";
 }
 
 TEST(PrimaryDeviceTest, GetSetSendDelay)
