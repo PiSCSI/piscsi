@@ -151,9 +151,9 @@ TEST(AbstractControllerTest, Blocks)
 	MockAbstractController controller;
 
 	controller.SetBlocks(1);
-	EXPECT_EQ(1, controller.GetBlocks());
+	EXPECT_TRUE(controller.HasBlocks());
 	controller.DecrementBlocks();
-	EXPECT_EQ(0, controller.GetBlocks());
+	EXPECT_FALSE(controller.HasBlocks());
 }
 
 TEST(AbstractControllerTest, Length)

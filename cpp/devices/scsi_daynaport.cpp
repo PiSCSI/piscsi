@@ -315,7 +315,7 @@ void SCSIDaynaPort::Read6() const
 
 	stringstream s;
 	s << "READ(6) command, record: $" << setfill('0') << setw(8) << hex << record;
-	GetLogger().Trace(s.str() + ", blocks: " + to_string(GetController()->GetBlocks()));
+	GetLogger().Trace(s.str());
 
 	GetController()->SetLength(Read(GetController()->GetCmd(), GetController()->GetBuffer(), record));
 	GetLogger().Trace("Length is " + to_string(GetController()->GetLength()));

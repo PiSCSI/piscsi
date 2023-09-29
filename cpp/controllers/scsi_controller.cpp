@@ -453,24 +453,22 @@ void ScsiController::Send()
 	}
 
 	DecrementBlocks();
-	bool result = true;
 
 	// Processing after data collection (read/data-in only)
-	if (IsDataIn() && GetBlocks() != 0) {
+	if (IsDataIn() && HasBlocks()) {
 		// set next buffer (set offset, length)
-		result = XferIn(GetBuffer());
-		logger.Trace("Processing after data collection. Blocks: " + to_string(GetBlocks()));
+		if (!XferIn(GetBuffer())) {
+			// If result FALSE, move to status phase
+			Error(sense_key::aborted_command);
+			return;
+		}
+
+		logger.Trace("Processing after data collection");
 	}
 
-	// If result FALSE, move to status phase
-	if (!result) {
-		Error(sense_key::aborted_command);
-		return;
-	}
-
-	// Continue sending if block !=0
-	if (GetBlocks() != 0){
-		logger.Trace("Continuing to send. Blocks: " + to_string(GetBlocks()));
+	// Continue sending if blocks != 0
+	if (HasBlocks()) {
+		logger.Trace("Continuing to send");
 		assert(HasValidLength());
 		assert(GetOffset() == 0);
 		return;
@@ -546,7 +544,7 @@ void ScsiController::Receive()
 	logger.Trace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::dataout:
-			if (GetBlocks() == 0) {
+			if (!HasBlocks()) {
 				// End with this buffer
 				result = XferOut(false);
 			} else {
@@ -577,8 +575,8 @@ void ScsiController::Receive()
 		return;
 	}
 
-	// Continue to receive if block != 0
-	if (GetBlocks() != 0) {
+	// Continue to receive if blocks != 0
+	if (HasBlocks()) {
 		assert(HasValidLength());
 		assert(GetOffset() == 0);
 		return;
