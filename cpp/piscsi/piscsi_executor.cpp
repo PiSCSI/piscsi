@@ -651,7 +651,6 @@ bool PiscsiExecutor::ValidateOperationAgainstDevice(const CommandContext& contex
 
 bool PiscsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int lun)
 {
-	// Validate the device ID and LUN
 	if (id < 0) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
