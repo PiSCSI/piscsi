@@ -136,7 +136,7 @@ bool PiscsiExecutor::ProcessCmd(const CommandContext& context)
 		return false;
 	}
 
-	if (const string error = ValidateLunSetup(command); !error.empty()) {
+	if (const string error = EnsureLun0(command); !error.empty()) {
 		return context.ReturnErrorStatus(error);
 	}
 
@@ -557,7 +557,7 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 	return s.str();
 }
 
-string PiscsiExecutor::ValidateLunSetup(const PbCommand& command) const
+string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 {
 	// Mapping of available LUNs (bit vector) to devices
 	unordered_map<int32_t, int32_t> luns;

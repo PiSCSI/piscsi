@@ -488,7 +488,7 @@ TEST(PiscsiExecutorTest, PrintCommand)
 	EXPECT_NE(s.find("key2=value2"), string::npos);
 }
 
-TEST(PiscsiExecutorTest, ValidateLunSetup)
+TEST(PiscsiExecutorTest, EnsureLun0)
 {
 	DeviceFactory device_factory;
 	auto bus = make_shared<MockBus>();
@@ -499,16 +499,16 @@ TEST(PiscsiExecutorTest, ValidateLunSetup)
 
 	auto device1 = command.add_devices();
 	device1->set_unit(0);
-	string error = executor.ValidateLunSetup(command);
+	string error = executor.EnsureLun0(command);
 	EXPECT_TRUE(error.empty());
 
 	device1->set_unit(1);
-	error = executor.ValidateLunSetup(command);
+	error = executor.EnsureLun0(command);
 	EXPECT_FALSE(error.empty());
 
 	auto device2 = device_factory.CreateDevice(SCHS, 0, "");
 	EXPECT_TRUE(controller_manager.AttachToController(*bus, 0, device2));
-	error = executor.ValidateLunSetup(command);
+	error = executor.EnsureLun0(command);
 	EXPECT_TRUE(error.empty());
 }
 
