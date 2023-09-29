@@ -366,7 +366,6 @@ void ScsiController::DataOut()
 		logger.Trace("Data Out phase");
 		SetPhase(phase_t::dataout);
 
-		// Signal line operated by the target
 		GetBus().SetMSG(false);
 		GetBus().SetCD(false);
 		GetBus().SetIO(false);
