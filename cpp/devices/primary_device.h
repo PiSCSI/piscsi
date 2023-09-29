@@ -61,7 +61,8 @@ protected:
 
 	void AddCommand(scsi_command, const operation&);
 
-	const DeviceLogger& GetLogger() const { return logger; }
+	// TODO Try to get rid of this accessor
+	const DeviceLogger& GetLogger() const { return device_logger; }
 
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
@@ -79,6 +80,12 @@ protected:
 
 	auto GetController() const { return controller; }
 
+	void LogTrace(const string& s) const { device_logger.Trace(s); }
+	void LogDebug(const string& s) const { device_logger.Debug(s); }
+	void LogInfo(const string& s) const { device_logger.Info(s); }
+	void LogWarn(const string& s) const { device_logger.Warn(s); }
+	void LogError(const string& s) const { device_logger.Error(s); }
+
 private:
 
 	static const int NOT_RESERVED = -2;
@@ -92,7 +99,7 @@ private:
 
 	vector<byte> HandleRequestSense() const;
 
-	DeviceLogger logger;
+	DeviceLogger device_logger;
 
 	// Owned by the controller manager
 	AbstractController *controller = nullptr;

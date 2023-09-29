@@ -46,13 +46,13 @@ void PrimaryDevice::Dispatch(scsi_command cmd)
 	s << "$" << setfill('0') << setw(2) << hex << static_cast<int>(cmd);
 
 	if (const auto& it = commands.find(cmd); it != commands.end()) {
-		GetLogger().Debug("Device is executing " + string(command_mapping.find(cmd)->second.second) +
+		LogDebug("Device is executing " + string(command_mapping.find(cmd)->second.second) +
 				" (" + s.str() + ")");
 
 		it->second();
 	}
 	else {
-		GetLogger().Trace("Received unsupported command: " + s.str());
+		LogTrace("Received unsupported command: " + s.str());
 
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_command_operation_code);
 	}
@@ -74,7 +74,7 @@ void PrimaryDevice::SetController(AbstractController *c)
 {
 	controller = c;
 
-	logger.SetIdAndLun(GetId(), GetLun());
+	device_logger.SetIdAndLun(GetId(), GetLun());
 }
 
 void PrimaryDevice::TestUnitReady()
@@ -100,7 +100,7 @@ void PrimaryDevice::Inquiry()
 
 	// Report if the device does not support the requested LUN
 	if (const int lun = GetController()->GetEffectiveLun(); !GetController()->HasDeviceForLun(lun)) {
-		GetLogger().Trace("LUN is not available");
+		LogTrace("LUN is not available");
 
 		// Signal that the requested LUN does not exist
 		GetController()->GetBuffer().data()[0] = 0x7f;
@@ -186,24 +186,24 @@ void PrimaryDevice::CheckReady()
 	// Not ready if reset
 	if (IsReset()) {
 		SetReset(false);
-		GetLogger().Trace("Device in reset");
+		LogTrace("Device in reset");
 		throw scsi_exception(sense_key::unit_attention, asc::power_on_or_reset);
 	}
 
 	// Not ready if it needs attention
 	if (IsAttn()) {
 		SetAttn(false);
-		GetLogger().Trace("Device in needs attention");
+		LogTrace("Device in needs attention");
 		throw scsi_exception(sense_key::unit_attention, asc::not_ready_to_ready_change);
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
-		GetLogger().Trace("Device not ready");
+		LogTrace("Device not ready");
 		throw scsi_exception(sense_key::not_ready, asc::medium_not_present);
 	}
 
-	GetLogger().Trace("Device is ready");
+	LogTrace("Device is ready");
 }
 
 vector<uint8_t> PrimaryDevice::HandleInquiry(device_type type, scsi_level level, bool is_removable) const
@@ -253,14 +253,14 @@ vector<byte> PrimaryDevice::HandleRequestSense() const
 			<< "Status $" << static_cast<int>(GetController()->GetStatus())
 			<< ", Sense Key $" << static_cast<int>(buf[2])
 			<< ", ASC $" << static_cast<int>(buf[12]);
-	GetLogger().Trace(s.str());
+	LogTrace(s.str());
 
 	return buf;
 }
 
 bool PrimaryDevice::WriteByteSequence(span<const uint8_t>)
 {
-	GetLogger().Error("Writing bytes is not supported by this device");
+	LogError("Writing bytes is not supported by this device");
 
 	return false;
 }
@@ -270,10 +270,10 @@ void PrimaryDevice::ReserveUnit()
 	reserving_initiator = GetController()->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
-		GetLogger().Trace("Reserved device for initiator ID " + to_string(reserving_initiator));
+		LogTrace("Reserved device for initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		GetLogger().Trace("Reserved device for unknown initiator");
+		LogTrace("Reserved device for unknown initiator");
 	}
 
 	EnterStatusPhase();
@@ -282,10 +282,10 @@ void PrimaryDevice::ReserveUnit()
 void PrimaryDevice::ReleaseUnit()
 {
 	if (reserving_initiator != -1) {
-		GetLogger().Trace("Released device reserved by initiator ID " + to_string(reserving_initiator));
+		LogTrace("Released device reserved by initiator ID " + to_string(reserving_initiator));
 	}
 	else {
-		GetLogger().Trace("Released device reserved by unknown initiator");
+		LogTrace("Released device reserved by unknown initiator");
 	}
 
 	DiscardReservation();
@@ -309,10 +309,10 @@ bool PrimaryDevice::CheckReservation(int initiator_id, scsi_command cmd, bool pr
 	}
 
 	if (initiator_id != -1) {
-		GetLogger().Trace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
+		LogTrace("Initiator ID " + to_string(initiator_id) + " tries to access reserved device");
 	}
 	else {
-		GetLogger().Trace("Unknown initiator tries to access reserved device");
+		LogTrace("Unknown initiator tries to access reserved device");
 	}
 
 	return false;

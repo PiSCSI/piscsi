@@ -116,7 +116,7 @@ void Disk::Read(access_mode mode)
 		GetController()->SetBlocks(blocks);
 		GetController()->SetLength(Read(GetController()->GetBuffer(), start));
 
-		GetLogger().Trace("Length is " + to_string(GetController()->GetLength()));
+		LogTrace("Length is " + to_string(GetController()->GetLength()));
 
 		// Set next block
 		GetController()->SetNext(start + 1);
@@ -203,10 +203,10 @@ void Disk::StartStopUnit()
 	const bool load = GetController()->GetCmdByte(4) & 0x02;
 
 	if (load) {
-		GetLogger().Trace(start ? "Loading medium" : "Ejecting medium");
+		LogTrace(start ? "Loading medium" : "Ejecting medium");
 	}
 	else {
-		GetLogger().Trace(start ? "Starting unit" : "Stopping unit");
+		LogTrace(start ? "Starting unit" : "Stopping unit");
 
 		SetStopped(!start);
 	}
@@ -238,7 +238,7 @@ void Disk::PreventAllowMediumRemoval()
 
 	const bool lock = GetController()->GetCmdByte(4) & 0x01;
 
-	GetLogger().Trace(lock ? "Locking medium" : "Unlocking medium");
+	LogTrace(lock ? "Locking medium" : "Unlocking medium");
 
 	SetLocked(lock);
 
@@ -623,7 +623,7 @@ void Disk::ValidateBlockAddress(access_mode mode) const
 	const uint64_t block = mode == RW16 ? GetInt64(GetController()->GetCmd(), 2) : GetInt32(GetController()->GetCmd(), 2);
 
 	if (block > GetBlockCount()) {
-		GetLogger().Trace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
+		LogTrace("Capacity of " + to_string(GetBlockCount()) + " block(s) exceeded: Trying to access block "
 				+ to_string(block));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}
@@ -658,11 +658,11 @@ tuple<bool, uint64_t, uint32_t> Disk::CheckAndGetStartAndCount(access_mode mode)
 
 	stringstream s;
 	s << "READ/WRITE/VERIFY/SEEK, start block: $" << setfill('0') << setw(8) << hex << start;
-	GetLogger().Trace(s.str() + ", blocks: " + to_string(count));
+	LogTrace(s.str() + ", blocks: " + to_string(count));
 
 	// Check capacity
 	if (uint64_t capacity = GetBlockCount(); !capacity || start > capacity || start + count > capacity) {
-		GetLogger().Trace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
+		LogTrace("Capacity of " + to_string(capacity) + " block(s) exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count));
 		throw scsi_exception(sense_key::illegal_request, asc::lba_out_of_range);
 	}

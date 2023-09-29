@@ -46,7 +46,7 @@ int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, in
 
 	stringstream s;
 	s << "Requesting mode page $" << setfill('0') << setw(2) << hex << page;
-	GetLogger().Trace(s.str());
+	LogTrace(s.str());
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<byte>> pages;
@@ -54,7 +54,7 @@ int ModePageDevice::AddModePages(cdb_t cdb, vector<uint8_t>& buf, int offset, in
 
 	if (pages.empty()) {
 		s << "Unsupported mode page $" << page;
-		GetLogger().Trace(s.str());
+		LogTrace(s.str());
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_cdb);
 	}
 

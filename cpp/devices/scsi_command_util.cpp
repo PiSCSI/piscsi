@@ -55,7 +55,6 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 			if (GetInt16(buf, offset + 12) != sector_size) {
 				// With piscsi it is not possible to permanently (by formatting) change the sector size,
 				// because the size is an externally configurable setting only
-				logger.Warn("In order to change the sector size use the -b option when launching piscsi");
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
