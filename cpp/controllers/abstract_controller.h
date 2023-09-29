@@ -39,7 +39,7 @@ public:
 		RESTART_PI
 	};
 
-	AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns) {}
+	AbstractController(BUS&, int, int);
 	~AbstractController() override = default;
 
 	virtual void Error(scsi_defs::sense_key, scsi_defs::asc = scsi_defs::asc::no_additional_sense_information,
@@ -103,6 +103,12 @@ protected:
 	void ResetOffset() { ctrl.offset = 0; }
 	void UpdateOffsetAndLength() { ctrl.offset += ctrl.length; ctrl.length = 0; }
 
+	void LogTrace(const string& s) const { device_logger.Trace(s); }
+	void LogDebug(const string& s) const { device_logger.Debug(s); }
+	void LogInfo(const string& s) const { device_logger.Info(s); }
+	void LogWarn(const string& s) const { device_logger.Warn(s); }
+	void LogError(const string& s) const { device_logger.Error(s); }
+
 private:
 
 	int ExtractInitiatorId(int) const;
@@ -126,6 +132,8 @@ private:
 
 	BUS& bus;
 
+	DeviceLogger device_logger;
+
 	// Logical units of this controller mapped to their LUN numbers
 	unordered_map<int, shared_ptr<PrimaryDevice>> luns;
 
@@ -137,6 +145,4 @@ private:
 	uint32_t bytes_to_transfer = 0;
 
 	piscsi_shutdown_mode shutdown_mode = piscsi_shutdown_mode::NONE;
-
-	DeviceLogger device_logger;
 };

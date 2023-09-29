@@ -15,7 +15,6 @@
 #pragma once
 
 #include "shared/scsi.h"
-#include "devices/device_logger.h"
 #include "abstract_controller.h"
 #include <array>
 
@@ -76,8 +75,6 @@ public:
 	void DataOut() override;
 
 private:
-
-	DeviceLogger logger;
 
 	// Execution start time
 	uint32_t execstart = 0;

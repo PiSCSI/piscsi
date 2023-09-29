@@ -14,6 +14,11 @@
 
 using namespace scsi_defs;
 
+AbstractController::AbstractController(BUS& bus, int target_id, int max_luns) : bus(bus), target_id(target_id), max_luns(max_luns)
+{
+	device_logger.SetIdAndLun(target_id, -1);
+}
+
 void AbstractController::AllocateCmd(size_t size)
 {
 	if (size > ctrl.cmd.size()) {
@@ -74,10 +79,10 @@ void AbstractController::ProcessOnController(int id_data)
 
 	const int initiator_id = ExtractInitiatorId(id_data);
 	if (initiator_id != UNKNOWN_INITIATOR_ID) {
-		device_logger.Trace("++++ Starting processing for initiator ID " + to_string(initiator_id));
+		LogTrace("++++ Starting processing for initiator ID " + to_string(initiator_id));
 	}
 	else {
-		device_logger.Trace("++++ Starting processing for unknown initiator ID");
+		LogTrace("++++ Starting processing for unknown initiator ID");
 	}
 
 	while (Process(initiator_id)) {

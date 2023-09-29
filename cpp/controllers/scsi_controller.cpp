@@ -32,8 +32,6 @@ using namespace scsi_defs;
 
 ScsiController::ScsiController(BUS& bus, int target_id) : AbstractController(bus, target_id, ControllerManager::GetScsiLunMax())
 {
-	logger.SetIdAndLun(target_id, -1);
-
 	// The initial buffer size will default to either the default buffer size OR
 	// the size of an Ethernet message, whichever is larger.
 	AllocateBuffer(std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN));
@@ -55,7 +53,7 @@ bool ScsiController::Process(int id)
 	GetBus().Acquire();
 
 	if (GetBus().GetRST()) {
-		logger.Warn("RESET signal received!");
+		LogWarn("RESET signal received!");
 
 		Reset();
 
@@ -68,7 +66,7 @@ bool ScsiController::Process(int id)
 		ProcessPhase();
 	}
 	catch(const scsi_exception&) {
-		logger.Error("Unhandled SCSI error, resetting controller and bus and entering bus free phase");
+		LogError("Unhandled SCSI error, resetting controller and bus and entering bus free phase");
 
 		Reset();
 
@@ -81,7 +79,7 @@ bool ScsiController::Process(int id)
 void ScsiController::BusFree()
 {
 	if (!IsBusFree()) {
-		logger.Trace("Bus Free phase");
+		LogTrace("Bus Free phase");
 		SetPhase(phase_t::busfree);
 
 		GetBus().SetREQ(false);
@@ -113,7 +111,7 @@ void ScsiController::BusFree()
 void ScsiController::Selection()
 {
 	if (!IsSelection()) {
-		logger.Trace("Selection phase");
+		LogTrace("Selection phase");
 		SetPhase(phase_t::selection);
 
 		// Raise BSY and respond
@@ -123,7 +121,7 @@ void ScsiController::Selection()
 
 	// Selection completed
 	if (!GetBus().GetSEL() && GetBus().GetBSY()) {
-		logger.Trace("Selection completed");
+		LogTrace("Selection completed");
 
 		// Message out phase if ATN=1, otherwise command phase
 		if (GetBus().GetATN()) {
@@ -137,7 +135,7 @@ void ScsiController::Selection()
 void ScsiController::Command()
 {
 	if (!IsCommand()) {
-		logger.Trace("Command phase");
+		LogTrace("Command phase");
 		SetPhase(phase_t::command);
 
 		GetBus().SetMSG(false);
@@ -148,7 +146,7 @@ void ScsiController::Command()
 		if (actual_count == 0) {
 			stringstream s;
 			s << "Received unknown command: $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
-			logger.Trace(s.str());
+			LogTrace(s.str());
 
 			Error(sense_key::illegal_request, asc::invalid_command_operation_code);
 			return;
@@ -160,7 +158,7 @@ void ScsiController::Command()
 		if (actual_count != command_byte_count) {
 			stringstream s;
 			s << "Command byte count mismatch for command $" << setfill('0') << setw(2) << hex << GetBuffer()[0];
-			logger.Error(s.str() + ": expected " + to_string(command_byte_count) + " bytes, received"
+			LogError(s.str() + ": expected " + to_string(command_byte_count) + " bytes, received"
 					+ to_string(actual_count) + " byte(s)");
 			Error(sense_key::aborted_command);
 			return;
@@ -186,7 +184,7 @@ void ScsiController::Execute()
 	for (int i = 0; i < BUS::GetCommandByteCount(static_cast<uint8_t>(GetOpcode())); i++) {
 		s << setw(2) << GetCmdByte(i);
 	}
-	logger.Debug(s.str());
+	LogDebug(s.str());
 
 	// Initialization for data transfer
 	ResetOffset();
@@ -201,7 +199,7 @@ void ScsiController::Execute()
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
 		if (GetOpcode() != scsi_command::eCmdInquiry && GetOpcode() != scsi_command::eCmdRequestSense) {
-			logger.Trace("Invalid LUN " + to_string(lun));
+			LogTrace("Invalid LUN " + to_string(lun));
 
 			Error(sense_key::illegal_request, asc::invalid_lun);
 
@@ -215,7 +213,7 @@ void ScsiController::Execute()
 
 	// SCSI-2 4.4.3 Incorrect logical unit handling
 	if (GetOpcode() == scsi_command::eCmdInquiry && !HasDeviceForLun(lun)) {
-		logger.Trace("Reporting LUN" + to_string(GetEffectiveLun()) + " as not supported");
+		LogTrace("Reporting LUN" + to_string(GetEffectiveLun()) + " as not supported");
 
 		GetBuffer().data()[0] = 0x7f;
 
@@ -255,7 +253,7 @@ void ScsiController::Status()
 
 		stringstream s;
 		s << "Status phase, status is $" << setfill('0') << setw(2) << hex << static_cast<int>(GetStatus());
-		logger.Trace(s.str());
+		LogTrace(s.str());
 		SetPhase(phase_t::status);
 
 		// Signal line operated by the target
@@ -278,7 +276,7 @@ void ScsiController::Status()
 void ScsiController::MsgIn()
 {
 	if (!IsMsgIn()) {
-		logger.Trace("Message In phase");
+		LogTrace("Message In phase");
 		SetPhase(phase_t::msgin);
 
 		GetBus().SetMSG(true);
@@ -302,7 +300,7 @@ void ScsiController::MsgOut()
 			scsi.msb = {};
 		}
 
-		logger.Trace("Message Out phase");
+		LogTrace("Message Out phase");
 		SetPhase(phase_t::msgout);
 
 		GetBus().SetMSG(true);
@@ -334,7 +332,7 @@ void ScsiController::DataIn()
 			return;
 		}
 
-		logger.Trace("Data In phase");
+		LogTrace("Data In phase");
 		SetPhase(phase_t::datain);
 
 		GetBus().SetMSG(false);
@@ -363,7 +361,7 @@ void ScsiController::DataOut()
 			return;
 		}
 
-		logger.Trace("Data Out phase");
+		LogTrace("Data Out phase");
 		SetPhase(phase_t::dataout);
 
 		GetBus().SetMSG(false);
@@ -398,7 +396,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun) || asc == asc::invalid_lun) {
 		if (!HasDeviceForLun(0)) {
-			logger.Error("No LUN 0");
+			LogError("No LUN 0");
 
 			SetStatus(status);
 			SetMessage(0x00);
@@ -415,7 +413,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 		stringstream s;
 		s << setfill('0') << setw(2) << hex << "Error status: Sense Key $" << static_cast<int>(sense_key)
 				<< ", ASC $" << static_cast<int>(asc);
-		logger.Debug(s.str());
+		LogDebug(s.str());
 
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
 		GetDeviceForLun(lun)->SetStatusCode((static_cast<int>(sense_key) << 16) | (static_cast<int>(asc) << 8));
@@ -424,7 +422,7 @@ void ScsiController::Error(sense_key sense_key, asc asc, status status)
 	SetStatus(status);
 	SetMessage(0x00);
 
-	logger.Trace("Error (to status phase)");
+	LogTrace("Error (to status phase)");
 
 	Status();
 }
@@ -435,7 +433,7 @@ void ScsiController::Send()
 	assert(GetBus().GetIO());
 
 	if (HasValidLength()) {
-		logger.Trace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
+		LogTrace("Sending data, offset: " + to_string(GetOffset()) + ", length: " + to_string(GetLength()));
 
 		// The delay should be taken from the respective LUN, but as there are no Daynaport drivers for
 		// LUNs other than 0 this work-around works.
@@ -463,19 +461,19 @@ void ScsiController::Send()
 			return;
 		}
 
-		logger.Trace("Processing after data collection");
+		LogTrace("Processing after data collection");
 	}
 
 	// Continue sending if blocks != 0
 	if (HasBlocks()) {
-		logger.Trace("Continuing to send");
+		LogTrace("Continuing to send");
 		assert(HasValidLength());
 		assert(GetOffset() == 0);
 		return;
 	}
 
 	// Move to next phase
-	logger.Trace("All data transferred, moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
+	LogTrace("All data transferred, moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
@@ -516,11 +514,11 @@ void ScsiController::Receive()
 	assert(!GetBus().GetIO());
 
 	if (HasValidLength()) {
-		logger.Trace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
+		LogTrace("Receiving data, transfer length: " + to_string(GetLength()) + " byte(s)");
 
 		// If not able to receive all, move to status phase
 		if (uint32_t len = GetBus().ReceiveHandShake(GetBuffer().data() + GetOffset(), GetLength()); len != GetLength()) {
-			logger.Error("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
+			LogError("Not able to receive " + to_string(GetLength()) + " byte(s) of data, only received "
 					+ to_string(len));
 			Error(sense_key::aborted_command);
 			return;
@@ -541,7 +539,7 @@ void ScsiController::Receive()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	logger.Trace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
+	LogTrace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::dataout:
 			if (!HasBlocks()) {
@@ -630,7 +628,7 @@ void ScsiController::ReceiveBytes()
 	bool result = true;
 
 	// Processing after receiving data (by phase)
-	logger.Trace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
+	LogTrace("Phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
 		case phase_t::dataout:
 			result = XferOut(false);
@@ -727,7 +725,7 @@ void ScsiController::DataOutNonBlockOriented()
 			stringstream s;
 			s << "Unexpected Data Out phase for command $" << setfill('0') << setw(2) << hex
 					<< static_cast<int>(GetOpcode());
-			logger.Warn(s.str());
+			LogWarn(s.str());
 			break;
 	}
 }
@@ -744,7 +742,7 @@ bool ScsiController::XferIn(vector<uint8_t>& buf)
 
 	stringstream s;
 	s << "Command: $" << setfill('0') << setw(2) << hex << static_cast<int>(GetOpcode());
-	logger.Trace(s.str());
+	LogTrace(s.str());
 
 	const int lun = GetEffectiveLun();
 	if (!HasDeviceForLun(lun)) {
@@ -865,14 +863,14 @@ bool ScsiController::XferOutBlockOriented(bool cont)
 		}
 
 		case scsi_command::eCmdSetMcastAddr:
-			logger.Trace("Done with DaynaPort Set Multicast Address");
+			LogTrace("Done with DaynaPort Set Multicast Address");
 			break;
 
 		default:
 			stringstream s;
 			s << "Received an unexpected command ($" << setfill('0') << setw(2) << hex
 					<< static_cast<int>(GetOpcode()) << ")";
-			logger.Warn(s.str());
+			LogWarn(s.str());
 			break;
 	}
 
@@ -889,7 +887,7 @@ void ScsiController::ProcessCommand()
 		SetCmdByte(i, GetBuffer()[i]);
 		s << GetCmdByte(i);
 	}
-	logger.Trace(s.str());
+	LogTrace(s.str());
 
 	Execute();
 }
@@ -901,13 +899,13 @@ void ScsiController::ParseMessage()
 		const uint8_t message_type = scsi.msb[i];
 
 		if (message_type == 0x06) {
-			logger.Trace("Received ABORT message");
+			LogTrace("Received ABORT message");
 			BusFree();
 			return;
 		}
 
 		if (message_type == 0x0C) {
-			logger.Trace("Received BUS DEVICE RESET message");
+			LogTrace("Received BUS DEVICE RESET message");
 			scsi.syncoffset = 0;
 			if (auto device = GetDeviceForLun(identified_lun); device != nullptr) {
 				device->DiscardReservation();
@@ -918,11 +916,11 @@ void ScsiController::ParseMessage()
 
 		if (message_type >= 0x80) {
 			identified_lun = static_cast<int>(message_type) & 0x1F;
-			logger.Trace("Received IDENTIFY message for LUN " + to_string(identified_lun));
+			LogTrace("Received IDENTIFY message for LUN " + to_string(identified_lun));
 		}
 
 		if (message_type == 0x01) {
-			logger.Trace("Received EXTENDED MESSAGE");
+			LogTrace("Received EXTENDED MESSAGE");
 
 			// Check only when synchronous transfer is possible
 			if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
