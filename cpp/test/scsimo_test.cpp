@@ -28,8 +28,7 @@ TEST(ScsiMoTest, Inquiry)
 TEST(ScsiMoTest, SupportsSaveParameters)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	EXPECT_TRUE(mo.SupportsSaveParameters());
 }

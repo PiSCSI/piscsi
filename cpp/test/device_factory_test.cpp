@@ -42,9 +42,8 @@ TEST(DeviceFactoryTest, GetTypeForFile)
 TEST(DeviceFactoryTest, GetSectorSizes)
 {
 	DeviceFactory device_factory;
-	unordered_set<uint32_t> sector_sizes;
 
-	sector_sizes = device_factory.GetSectorSizes(SCHD);
+	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(SCHD);
 	EXPECT_EQ(4, sector_sizes.size());
 
 	EXPECT_TRUE(sector_sizes.contains(512));

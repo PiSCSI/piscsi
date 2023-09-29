@@ -816,8 +816,7 @@ TEST(DiskTest, SectorSize)
 TEST(DiskTest, ConfiguredSectorSize)
 {
 	DeviceFactory device_factory;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD disk(0, sector_sizes, false);
+	MockSCSIHD disk(0, {}, false);
 
 	EXPECT_TRUE(disk.SetConfiguredSectorSize(device_factory, 512));
 	EXPECT_EQ(512, disk.GetConfiguredSectorSize());
