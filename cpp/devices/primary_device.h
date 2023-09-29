@@ -96,6 +96,7 @@ private:
 
 	vector<byte> HandleRequestSense() const;
 
+	// TODO Try to remove this field and use controller->Log*() methods instead
 	DeviceLogger device_logger;
 
 	// Owned by the controller manager
