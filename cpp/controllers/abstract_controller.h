@@ -97,7 +97,6 @@ protected:
 
 	void SetCmdByte(int index, int value) { ctrl.cmd[index] = value; }
 
-	// TODO These should probably be extracted into a new TransferHandler class
 	bool HasValidLength() const { return ctrl.length != 0; }
 	int GetOffset() const { return ctrl.offset; }
 	void ResetOffset() { ctrl.offset = 0; }
