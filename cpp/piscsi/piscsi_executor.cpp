@@ -572,7 +572,6 @@ string PiscsiExecutor::EnsureLun0(const PbCommand& command) const
 		luns[device->GetId()] |= 1 << device->GetLun();
 	}
 
-	// LUN 0 must exist for all devices
 	const auto& it = ranges::find_if_not(luns, [] (const auto& l) { return l.second & 0x01; } );
 	return it == luns.end() ? "" : "LUN 0 is missing for device ID " + to_string((*it).first);
 }
