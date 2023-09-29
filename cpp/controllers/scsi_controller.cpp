@@ -479,7 +479,6 @@ void ScsiController::Send()
 	// Move to next phase
 	logger.Trace("Moving to next phase: " + string(BUS::GetPhaseStrRaw(GetPhase())));
 	switch (GetPhase()) {
-		// Message in phase
 		case phase_t::msgin:
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
@@ -494,13 +493,11 @@ void ScsiController::Send()
 			}
 			break;
 
-		// Data-in Phase
 		case phase_t::datain:
 			// status phase
 			Status();
 			break;
 
-		// status phase
 		case phase_t::status:
 			// Message in phase
 			SetLength(1);
