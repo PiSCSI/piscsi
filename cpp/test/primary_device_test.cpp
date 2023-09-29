@@ -327,14 +327,14 @@ TEST(PrimaryDeviceTest, ReportLuns)
 
 TEST(PrimaryDeviceTest, Dispatch)
 {
-	auto [_, device] = CreatePrimaryDevice();
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_THROW(device->Dispatch(static_cast<scsi_command>(0x1f)), scsi_exception) << "Unknown command";
 }
 
 TEST(PrimaryDeviceTest, WriteByteSequence)
 {
-	auto [_, device] = CreatePrimaryDevice();
+	auto [controller, device] = CreatePrimaryDevice();
 
 	EXPECT_FALSE(device->WriteByteSequence({})) << "Primary device does not support writing byte sequences";
 }
