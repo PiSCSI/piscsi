@@ -61,7 +61,7 @@ private:
 	static bool CheckForReservedFile(const CommandContext&, const string&);
 
 	// Maximum number of controller devices
-	static const int DEVICE_MAX = 8;
+	static const int CONTROLLER_MAX = 8;
 
 	const PiscsiResponse piscsi_response;
 

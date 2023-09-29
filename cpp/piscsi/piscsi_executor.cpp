@@ -654,8 +654,8 @@ bool PiscsiExecutor::ValidateIdAndLun(const CommandContext& context, int id, int
 	if (id < 0) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_MISSING_DEVICE_ID);
 	}
-	if (id >= DEVICE_MAX) {
-		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(DEVICE_MAX - 1));
+	if (id >= CONTROLLER_MAX) {
+		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_ID, to_string(id), to_string(CONTROLLER_MAX - 1));
 	}
 	if (lun < 0 || lun >= ControllerManager::GetScsiLunMax()) {
 		return context.ReturnLocalizedError(LocalizationKey::ERROR_INVALID_LUN, to_string(lun), to_string(ControllerManager::GetScsiLunMax() - 1));
