@@ -236,7 +236,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 	    	return context.ReturnErrorStatus("Can't copy image file symlink '" + from + "': " + e.what());
 		}
 
-		spdlog::info("Copied image file symlink '" + from + "' to '"  + to + "'");
+		spdlog::info("Copied image file symlink '" + from + "' to '" + to + "'");
 
 		return context.ReturnSuccessStatus();
 	}
