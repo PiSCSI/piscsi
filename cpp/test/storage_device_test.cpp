@@ -62,6 +62,8 @@ TEST(StorageDeviceTest, MediumChanged)
 {
 	MockStorageDevice device;
 
+	EXPECT_FALSE(device.IsMediumChanged());
+
 	device.SetMediumChanged(true);
 	EXPECT_TRUE(device.IsMediumChanged());
 
