@@ -216,7 +216,7 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 		rename(path(from), path(to));
 	}
 	catch(const filesystem_error& e) {
-		return context.ReturnErrorStatus("Can't rename/move image file '" + from + "' to '" + to + "': " + e.what());
+		return context.ReturnErrorStatus("Can't rename/move image file '" + from + "': " + e.what());
 	}
 
 	spdlog::info("Renamed/Moved image file '" + from + "' to '" + to + "'");
@@ -231,10 +231,6 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 	if (!ValidateParams(context, "copy", from, to)) {
 		return false;
 	}
-
-	if (access(from.c_str(), R_OK)) {
-    	return context.ReturnErrorStatus("Can't read source image file '" + from + "'");
-    }
 
 	if (!IsReservedFile(context, from, "copy")) {
 		return false;
@@ -270,7 +266,7 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 				perms::owner_write | perms::group_write);
 	}
 	catch(const filesystem_error& e) {
-        return context.ReturnErrorStatus("Can't copy image file '" + from + "' to '" + to + "': " + e.what());
+        return context.ReturnErrorStatus("Can't copy image file '" + from + "': " + e.what());
 	}
 
 	spdlog::info("Copied image file '" + from + "' to '" + to + "'");
