@@ -16,6 +16,7 @@
 
 using namespace scsi_defs;
 
+// TODO Get rid of the logger argument
 void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd, cdb_t cdb, span<const uint8_t> buf,
 		int length, int sector_size)
 {
