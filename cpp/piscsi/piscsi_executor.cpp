@@ -616,7 +616,7 @@ bool PiscsiExecutor::SetSectorSize(const CommandContext& context, shared_ptr<Pri
 		}
 		else {
 			return context.ReturnLocalizedError(LocalizationKey::ERROR_BLOCK_SIZE_NOT_CONFIGURABLE,
-					device->GetIdentifier());
+					device->GetTypeString());
 		}
 	}
 
