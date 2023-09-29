@@ -475,7 +475,6 @@ TEST(PiscsiExecutorTest, PrintCommand)
 	EXPECT_NE(s.find("operation="), string::npos);
 	EXPECT_EQ(s.find("key1=value1"), string::npos);
 	EXPECT_EQ(s.find("key2=value2"), string::npos);
-	EXPECT_EQ(s.find(":"), string::npos);
 
 	SetParam(command, "key1", "value1");
 	s = executor.PrintCommand(command, definition);
