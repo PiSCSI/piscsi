@@ -14,7 +14,7 @@
 
 using namespace filesystem;
 
-TEST(StorageDeviceTest, Filename)
+TEST(StorageDeviceTest, SetGetFilename)
 {
 	MockStorageDevice device;
 
