@@ -8,26 +8,26 @@
 //---------------------------------------------------------------------------
 
 #include "shared/piscsi_exceptions.h"
-#include "device_logger.h"
 #include "scsi_command_util.h"
+#include <spdlog/spdlog.h>
 #include <cstring>
 #include <sstream>
 #include <iomanip>
 
 using namespace scsi_defs;
 
-// TODO Get rid of the logger argument
-void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd, cdb_t cdb, span<const uint8_t> buf,
-		int length, int sector_size)
+string scsi_command_util::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length, int sector_size)
 {
 	assert(cmd == scsi_command::eCmdModeSelect6 || cmd == scsi_command::eCmdModeSelect10);
 	assert(length >= 0);
+
+	string result;
 
 	// PF
 	if (!(cdb[1] & 0x10)) {
 		// Vendor-specific parameters (SCSI-1) are not supported.
 		// Do not report an error in order to support Apple's HD SC Setup.
-		return;
+		return result;
 	}
 
 	// Skip block descriptors
@@ -56,7 +56,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 			if (GetInt16(buf, offset + 12) != sector_size) {
 				// With piscsi it is not possible to permanently (by formatting) change the sector size,
 				// because the size is an externally configurable setting only
-				logger.Warn("In order to change the sector size use the -b option when launching piscsi");
+				spdlog::warn("In order to change the sector size use the -b option when launching piscsi");
 				throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 			}
 
@@ -65,7 +65,7 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 		else {
 			stringstream s;
 			s << "Unknown MODE SELECT page code: $" << setfill('0') << setw(2) << hex << page;
-			logger.Warn(s.str());
+			result = s.str();
 		}
 
 		// Advance to the next page
@@ -78,6 +78,8 @@ void scsi_command_util::ModeSelect(const DeviceLogger& logger, scsi_command cmd,
 	if (!has_valid_page_code) {
 		throw scsi_exception(sense_key::illegal_request, asc::invalid_field_in_parameter_list);
 	}
+
+	return result;
 }
 
 void scsi_command_util::EnrichFormatPage(map<int, vector<byte>>& pages, bool changeable, int sector_size)

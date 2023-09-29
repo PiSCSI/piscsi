@@ -92,7 +92,10 @@ void SCSIMO::AddOptionPage(map<int, vector<byte>>& pages, bool) const
 
 void SCSIMO::ModeSelect(scsi_command cmd, cdb_t cdb, span<const uint8_t> buf, int length) const
 {
-	scsi_command_util::ModeSelect(GetLogger(), cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+	if (const string result = scsi_command_util::ModeSelect(cmd, cdb, buf, length, 1 << GetSectorSizeShiftCount());
+		!result.empty()) {
+		LogWarn(result);
+	}
 }
 
 //

@@ -61,9 +61,6 @@ protected:
 
 	void AddCommand(scsi_command, const operation&);
 
-	// TODO Try to get rid of this accessor
-	const DeviceLogger& GetLogger() const { return device_logger; }
-
 	vector<uint8_t> HandleInquiry(scsi_defs::device_type, scsi_level, bool) const;
 	virtual vector<uint8_t> InquiryInternal() const = 0;
 	void CheckReady();
