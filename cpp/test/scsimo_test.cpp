@@ -37,8 +37,7 @@ TEST(ScsiMoTest, SupportsSaveParameters)
 TEST(ScsiMoTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	// Non changeable
 	mo.SetUpModePages(pages, 0x3f, false);
@@ -53,8 +52,7 @@ TEST(ScsiMoTest, SetUpModePages)
 TEST(ScsiMoTest, TestAddVendorPage)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, {});
 
 	mo.SetReady(true);
 	mo.SetUpModePages(pages, 0x21, false);
@@ -125,8 +123,7 @@ TEST(ScsiMoTest, TestAddVendorPage)
 
 TEST(ScsiMoTest, ModeSelect)
 {
-	const unordered_set<uint32_t> sector_sizes = { 1024, 2048 };
-	MockSCSIMO mo(0, sector_sizes);
+	MockSCSIMO mo(0, { 1024, 2048 });
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 

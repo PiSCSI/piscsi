@@ -37,8 +37,7 @@ TEST(ScsiCdTest, Inquiry)
 TEST(ScsiCdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD cd(0, sector_sizes);
+	MockSCSICD cd(0, {});
 
 	// Non changeable
 	cd.SetUpModePages(pages, 0x3f, false);
@@ -52,11 +51,10 @@ TEST(ScsiCdTest, SetUpModePages)
 
 TEST(ScsiCdTest, Open)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSICD cd_iso(0, sector_sizes);
-	MockSCSICD cd_cue(0, sector_sizes);
-	MockSCSICD cd_raw(0, sector_sizes);
-	MockSCSICD cd_physical(0, sector_sizes);
+	MockSCSICD cd_iso(0, {});
+	MockSCSICD cd_cue(0, {});
+	MockSCSICD cd_raw(0, {});
+	MockSCSICD cd_physical(0, {});
 
 	EXPECT_THROW(cd_iso.Open(), io_exception) << "Missing filename";
 
