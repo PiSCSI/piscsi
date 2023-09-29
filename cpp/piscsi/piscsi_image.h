@@ -40,6 +40,7 @@ private:
 	bool CheckDepth(string_view) const;
 	string GetFullName(const string& filename) const { return default_folder + "/" + filename; }
 	bool CreateImageFolder(const CommandContext&, string_view) const;
+	static bool IsReservedFile(const CommandContext&, const string&, const string&);
 	bool ValidateParams(const CommandContext&, const string&, string&, string&) const;
 
 	static bool IsValidSrcFilename(string_view);

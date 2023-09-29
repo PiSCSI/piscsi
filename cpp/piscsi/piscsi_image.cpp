@@ -166,10 +166,8 @@ bool PiscsiImage::DeleteImage(const CommandContext& context) const
 		return context.ReturnErrorStatus("Image file '" + full_filename.string() + "' does not exist");
 	}
 
-	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(full_filename);
-	if (id != -1) {
-		return context.ReturnErrorStatus("Can't delete image file '" + full_filename.string() +
-				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
+	if (!IsReservedFile(context, full_filename, "delete")) {
+		return false;
 	}
 
 	if (error_code error; !remove(full_filename, error)) {
@@ -206,10 +204,8 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 		return false;
 	}
 
-	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
-	if (id != -1) {
-		return context.ReturnErrorStatus("Can't rename/move image file '" + from +
-				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
+	if (!IsReservedFile(context, from, "rename/move")) {
+		return false;
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -240,10 +236,8 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
     	return context.ReturnErrorStatus("Can't read source image file '" + from + "'");
     }
 
-	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(from);
-	if (id != -1) {
-		return context.ReturnErrorStatus("Can't copy image file '" + from +
-				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
+	if (!IsReservedFile(context, from, "copy")) {
+		return false;
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -316,6 +310,17 @@ bool PiscsiImage::SetImagePermissions(const CommandContext& context) const
 	spdlog::info((protect ? "Protected" : "Unprotected") + string(" image file '") + full_filename + "'");
 
 	return context.ReturnSuccessStatus();
+}
+
+bool PiscsiImage::IsReservedFile(const CommandContext& context, const string& file, const string& op)
+{
+	const auto [id, lun] = StorageDevice::GetIdsForReservedFile(file);
+	if (id != -1) {
+		return context.ReturnErrorStatus("Can't " + op + " image file '" + file +
+				"', it is currently being used by device " + to_string(id) + ":" + to_string(lun));
+	}
+
+	return true;
 }
 
 bool PiscsiImage::ValidateParams(const CommandContext& context, const string& operation, string& from, string& to) const
