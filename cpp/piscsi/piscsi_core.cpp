@@ -335,7 +335,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEVICES_INFO:
 			piscsi_response.GetDevicesInfo(controller_manager.GetAllDevices(), result, command,
-					context.GetDefaultFolder());
+					piscsi_image.GetDefaultFolder());
 			context.WriteResult(result);
 			break;
 
@@ -346,7 +346,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case SERVER_INFO:
 			result.set_allocated_server_info(piscsi_response.GetServerInfo(controller_manager.GetAllDevices(),
-					result, executor->GetReservedIds(), context.GetDefaultFolder(),
+					result, executor->GetReservedIds(), piscsi_image.GetDefaultFolder(),
 					GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 					piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
@@ -364,7 +364,7 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 
 		case DEFAULT_IMAGE_FILES_INFO:
 			result.set_allocated_image_files_info(piscsi_response.GetAvailableImages(result,
-					context.GetDefaultFolder(), GetParam(command, "folder_pattern"),
+					piscsi_image.GetDefaultFolder(), GetParam(command, "folder_pattern"),
 					GetParam(command, "file_pattern"), piscsi_image.GetDepth()).release());
 			context.WriteResult(result);
 			break;
@@ -375,7 +375,8 @@ bool Piscsi::ExecuteCommand(const CommandContext& context)
 			}
 			else {
 				auto image_file = make_unique<PbImageFile>();
-				const bool status = piscsi_response.GetImageFile(*image_file.get(), context.GetDefaultFolder(), filename);
+				const bool status = piscsi_response.GetImageFile(*image_file.get(), piscsi_image.GetDefaultFolder(),
+						filename);
 				if (status) {
 					result.set_status(true);
 					result.set_allocated_image_file_info(image_file.get());
