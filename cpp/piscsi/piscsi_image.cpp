@@ -204,14 +204,6 @@ bool PiscsiImage::RenameImage(const CommandContext& context) const
 		return false;
 	}
 
-	if (!IsReservedFile(context, from, "rename/move")) {
-		return false;
-	}
-
-	if (!CreateImageFolder(context, to)) {
-		return false;
-	}
-
 	try {
 		rename(path(from), path(to));
 	}
@@ -229,14 +221,6 @@ bool PiscsiImage::CopyImage(const CommandContext& context) const
 	string from;
 	string to;
 	if (!ValidateParams(context, "copy", from, to)) {
-		return false;
-	}
-
-	if (!IsReservedFile(context, from, "copy")) {
-		return false;
-	}
-
-	if (!CreateImageFolder(context, to)) {
 		return false;
 	}
 
@@ -319,11 +303,11 @@ bool PiscsiImage::IsReservedFile(const CommandContext& context, const string& fi
 	return true;
 }
 
-bool PiscsiImage::ValidateParams(const CommandContext& context, const string& operation, string& from, string& to) const
+bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op, string& from, string& to) const
 {
 	from = GetParam(context.GetCommand(), "from");
 	if (from.empty()) {
-		return context.ReturnErrorStatus("Can't " + operation + " image file: Missing source filename");
+		return context.ReturnErrorStatus("Can't " + op + " image file: Missing source filename");
 	}
 
 	if (!CheckDepth(from)) {
@@ -332,7 +316,7 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op
 
 	to = GetParam(context.GetCommand(), "to");
 	if (to.empty()) {
-		return context.ReturnErrorStatus("Can't " + operation + " image file '" + from + "': Missing destination filename");
+		return context.ReturnErrorStatus("Can't " + op + " image file '" + from + "': Missing destination filename");
 	}
 
 	if (!CheckDepth(to)) {
@@ -341,12 +325,20 @@ bool PiscsiImage::ValidateParams(const CommandContext& context, const string& op
 
 	from = GetFullName(from);
 	if (!IsValidSrcFilename(from)) {
-		return context.ReturnErrorStatus("Can't " + operation + " image file: '" + from + "': Invalid name or type");
+		return context.ReturnErrorStatus("Can't " + op + " image file: '" + from + "': Invalid name or type");
 	}
 
 	to = GetFullName(to);
 	if (!IsValidDstFilename(to)) {
-		return context.ReturnErrorStatus("Can't " + operation + " image file '" + from + "' to '" + to + "': File already exists");
+		return context.ReturnErrorStatus("Can't " + op + " image file '" + from + "' to '" + to + "': File already exists");
+	}
+
+	if (!IsReservedFile(context, from, op)) {
+		return false;
+	}
+
+	if (!CreateImageFolder(context, to)) {
+		return false;
 	}
 
 	return true;
