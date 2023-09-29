@@ -67,23 +67,23 @@ public:
 	// TODO These should probably be extracted into a new TransferHandler class
 	void AllocateBuffer(size_t);
 	auto& GetBuffer() { return ctrl.buffer; }
-	scsi_defs::status GetStatus() const { return ctrl.status; }
+	auto GetStatus() const { return ctrl.status; }
 	void SetStatus(scsi_defs::status s) { ctrl.status = s; }
-	uint32_t GetLength() const { return ctrl.length; }
+	auto GetLength() const { return ctrl.length; }
 	void SetLength(uint32_t l) { ctrl.length = l; }
 	bool HasBlocks() const { return ctrl.blocks; }
 	void SetBlocks(uint32_t b) { ctrl.blocks = b; }
 	void DecrementBlocks() { --ctrl.blocks; }
-	uint64_t GetNext() const { return ctrl.next; }
+	auto GetNext() const { return ctrl.next; }
 	void SetNext(uint64_t n) { ctrl.next = n; }
 	void IncrementNext() { ++ctrl.next; }
 	int GetMessage() const { return ctrl.message; }
 	void SetMessage(int m) { ctrl.message = m; }
-	cdb_t GetCmd() const { return ctrl.cmd; }
+	auto GetCmd() const { return ctrl.cmd; }
 	int GetCmdByte(int index) const { return ctrl.cmd[index]; }
 	bool IsByteTransfer() const { return is_byte_transfer; }
 	void SetByteTransfer(bool);
-	uint32_t GetBytesToTransfer() const { return bytes_to_transfer; }
+	auto GetBytesToTransfer() const { return bytes_to_transfer; }
 	void SetBytesToTransfer(uint32_t b) { bytes_to_transfer = b; }
 
 protected:

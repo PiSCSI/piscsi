@@ -30,16 +30,14 @@ TEST(ScsiHdTest, Inquiry)
 
 TEST(ScsiHdTest, SupportsSaveParameters)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	EXPECT_TRUE(hd.SupportsSaveParameters());
 }
 
 TEST(ScsiHdTest, FinalizeSetup)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	hd.SetSectorSizeInBytes(1024);
 	EXPECT_THROW(hd.FinalizeSetup(0), io_exception) << "Device has 0 blocks";
@@ -47,10 +45,9 @@ TEST(ScsiHdTest, FinalizeSetup)
 
 TEST(ScsiHdTest, GetProductData)
 {
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd_kb(0, sector_sizes, false);
-	MockSCSIHD hd_mb(0, sector_sizes, false);
-	MockSCSIHD hd_gb(0, sector_sizes, false);
+	MockSCSIHD hd_kb(0, {}, false);
+	MockSCSIHD hd_mb(0, {}, false);
+	MockSCSIHD hd_gb(0, {}, false);
 
 	const path filename = CreateTempFile(1);
 	hd_kb.SetFilename(string(filename));
@@ -79,8 +76,7 @@ TEST(ScsiHdTest, GetProductData)
 TEST(ScsiHdTest, SetUpModePages)
 {
 	map<int, vector<byte>> pages;
-	const unordered_set<uint32_t> sector_sizes;
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, {}, false);
 
 	// Non changeable
 	hd.SetUpModePages(pages, 0x3f, false);
@@ -94,8 +90,7 @@ TEST(ScsiHdTest, SetUpModePages)
 
 TEST(ScsiHdTest, ModeSelect)
 {
-	const unordered_set<uint32_t> sector_sizes = { 512 };
-	MockSCSIHD hd(0, sector_sizes, false);
+	MockSCSIHD hd(0, { 512 }, false);
 	vector<int> cmd(10);
 	vector<uint8_t> buf(255);
 
