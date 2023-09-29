@@ -560,7 +560,7 @@ string PiscsiExecutor::PrintCommand(const PbCommand& command, const PbDeviceDefi
 string PiscsiExecutor::ValidateLunSetup(const PbCommand& command) const
 {
 	// Mapping of available LUNs (bit vector) to devices
-	unordered_map<uint32_t, uint32_t> luns;
+	unordered_map<int32_t, int32_t> luns;
 
 	// Collect LUN bit vectors of new devices
 	for (const auto& device : command.devices()) {
