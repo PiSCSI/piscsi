@@ -343,7 +343,6 @@ void ScsiController::DataIn()
 
 		ResetOffset();
 
-		// TODO Check whether here (and in the other phases) we can just fall through
 		return;
 	}
 
