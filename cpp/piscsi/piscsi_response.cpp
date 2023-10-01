@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include "controllers/controller_manager.h"
 #include "shared/protobuf_util.h"
 #include "shared/network_util.h"
 #include "shared/piscsi_util.h"
@@ -27,8 +28,7 @@ unique_ptr<PbDeviceProperties> PiscsiResponse::GetDeviceProperties(const Device&
 {
 	auto properties = make_unique<PbDeviceProperties>();
 
-	// Currently there is only a SCSI controller, i.e. there can always be 32 LUNs
-	properties->set_luns(32);
+	properties->set_luns(ControllerManager::GetScsiLunMax());
 	properties->set_read_only(device.IsReadOnly());
 	properties->set_protectable(device.IsProtectable());
 	properties->set_stoppable(device.IsStoppable());
