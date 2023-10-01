@@ -63,7 +63,7 @@ bool ScsiDump::Banner(span<char *> args) const
 			 << " Default is 0.\n"
              << " BID is the PiSCSI board ID (0-7). Default is 7.\n"
              << " FILE is the dump file path.\n"
-             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << to_string(MINIMUM_BUFFER_SIZE)
+             << " BUFFER_SIZE is the transfer buffer size in bytes, at least " << MINIMUM_BUFFER_SIZE
              << " bytes. Default is 1 MiB.\n"
              << " -v Enable verbose logging.\n"
              << " -r Restore instead of dump.\n"
@@ -509,11 +509,11 @@ int ScsiDump::DumpRestore()
     const auto duration = chrono::duration_cast<chrono::seconds>(stop_time - start_time).count();
 
     cout << divider_str << "\n";
-    cout << "Transfered : " << to_string(inq_info.capacity * inq_info.sector_size) << " bytes ["
-         << to_string(inq_info.capacity * inq_info.sector_size / 1024 / 1024) << "MiB]\n";
-    cout << "Total time: " << to_string(duration) << " seconds (" << to_string(duration / 60) << " minutes\n";
-    cout << "Averate transfer rate: " << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration)
-         << " bytes per second (" << to_string((inq_info.capacity * inq_info.sector_size / 8) / duration / 1024)
+    cout << "Transfered : " << inq_info.capacity * inq_info.sector_size << " bytes ["
+         << inq_info.capacity * inq_info.sector_size / 1024 / 1024 << "MiB]\n";
+    cout << "Total time: " << duration << " seconds (" << duration / 60 << " minutes\n";
+    cout << "Averate transfer rate: " << (inq_info.capacity * inq_info.sector_size / 8) / duration
+         << " bytes per second (" << (inq_info.capacity * inq_info.sector_size / 8) / duration / 1024
          << " KiB per second)\n";
     cout << divider_str << "\n";
 
@@ -589,7 +589,7 @@ void ScsiDump::GeneratePropertiesFile(const string& filename, const inquiry_info
     prop_stream << "   \"vendor\": \"" << inq_info.vendor << "\"," << endl;
     prop_stream << "   \"product\": \"" << inq_info.product << "\"," << endl;
     prop_stream << "   \"revision\": \"" << inq_info.revision << "\"," << endl;
-    prop_stream << "   \"block_size\": \"" << to_string(inq_info.sector_size) << "\"," << endl;
+    prop_stream << "   \"block_size\": \"" << inq_info.sector_size << "\"," << endl;
     prop_stream << "}" << endl;
 
     FILE* fp = fopen(prop_filename.c_str(), "w");
